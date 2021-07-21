@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31424.327
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BIA.ToolKit", "BIA.ToolKit\BIA.ToolKit.csproj", "{9E2816DA-B405-454D-B1B0-7FE651681BF5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9E2816DA-B405-454D-B1B0-7FE651681BF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E2816DA-B405-454D-B1B0-7FE651681BF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E2816DA-B405-454D-B1B0-7FE651681BF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E2816DA-B405-454D-B1B0-7FE651681BF5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7B77949D-BFAE-4C14-B9E8-0BD523B72096}
+	EndGlobalSection
+EndGlobal
