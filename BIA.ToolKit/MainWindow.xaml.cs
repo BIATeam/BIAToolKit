@@ -5,6 +5,8 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
+    using System.IO.Compression;
+    using System.Linq;
     using System.Management.Automation;
     using System.Threading.Tasks;
     using System.Windows;
@@ -20,6 +22,9 @@
     {
         ConsoleWriter consoleWriter;
         bool isCreateFrameworkVersionInitialized = false;
+        string biaDemoBIATemplatePath = "";
+        string tempFolderPath = Path.GetTempPath();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -30,6 +35,7 @@
             BIADemoLocalFolder.IsChecked = Settings.Default.BIADemoLocalFolder;
             BIADemoLocalFolderText.Text = Settings.Default.BIADemoLocalFolderText;
 
+            UseCompanyFile.IsChecked = Settings.Default.UseCompanyFile;
             CompanyFilesGit.IsChecked = Settings.Default.CompanyFilesGit;
             CompanyFilesLocalFolder.IsChecked = Settings.Default.CompanyFilesLocalFolder;
             CompanyFilesGitRepo.Text = Settings.Default.CompanyFilesGitRepo;
@@ -37,6 +43,15 @@
 
             CreateProjectRootFolderText.Text = Settings.Default.CreateProjectRootFolderText;
             CreateCompanyName.Text = Settings.Default.CreateCompanyName;
+
+
+            tempFolderPath = Path.GetTempPath() + "BIAToolKit";
+            if (!Directory.Exists(tempFolderPath))
+            {
+                Directory.CreateDirectory(tempFolderPath);
+            }
+
+
         }
 
         private void SaveSettings_Click(object sender, RoutedEventArgs e)
@@ -45,6 +60,7 @@
             Settings.Default.BIADemoLocalFolder = BIADemoLocalFolder.IsChecked == true;
             Settings.Default.BIADemoLocalFolderText = BIADemoLocalFolderText.Text;
 
+            Settings.Default.UseCompanyFile = UseCompanyFile.IsChecked == true;
             Settings.Default.CompanyFilesGit = CompanyFilesGit.IsChecked == true;
             Settings.Default.CompanyFilesLocalFolder = CompanyFilesLocalFolder.IsChecked == true;
             Settings.Default.CompanyFilesGitRepo = CompanyFilesGitRepo.Text;
@@ -91,26 +107,30 @@
             CompanyFilesLocalFolderSync.IsEnabled = false;
         }
 
-        private void BIADemoLocalFolderSync_Click(object sender, RoutedEventArgs e)
+        private async void BIADemoLocalFolderSync_Click(object sender, RoutedEventArgs e)
         {
             BIADemoLocalFolderSync.IsEnabled = false;
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
 
-            consoleWriter.AddMessageLine("Synchronize BIADemo local folder...", Brushes.Green);
-            _ = RunScript($"cd " + BIADemoLocalFolderText.Text + $" \r\n" + $"git pull");
+            consoleWriter.AddMessageLine("Synchronize BIADemo local folder...", Brushes.Pink);
+            await RunScript($"cd " + BIADemoLocalFolderText.Text + $" \r\n" + $"git pull");
+
+            consoleWriter.AddMessageLine("Synchronize BIADemo local folder finished", Brushes.Green);
 
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
             BIADemoLocalFolderSync.IsEnabled = true;
 
         }
 
-        private void CompanyFilesLocalFolderSync_Click(object sender, RoutedEventArgs e)
+        private async void CompanyFilesLocalFolderSync_Click(object sender, RoutedEventArgs e)
         {
             CompanyFilesLocalFolderSync.IsEnabled = false;
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
 
-            consoleWriter.AddMessageLine("Synchronize Company files local folder...", Brushes.Green);
-            _ = RunScript($"cd " + CompanyFilesLocalFolderText.Text + $" \r\n" + $"git pull");
+            consoleWriter.AddMessageLine("Synchronize Company files local folder...", Brushes.Pink);
+            await RunScript($"cd " + CompanyFilesLocalFolderText.Text + $" \r\n" + $"git pull");
+
+            consoleWriter.AddMessageLine("Synchronize Company files local folder finished", Brushes.Green);
 
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
             CompanyFilesLocalFolderSync.IsEnabled = true;
@@ -146,7 +166,7 @@
                 if (scriptParameters!= null) ps.AddParameters(scriptParameters);
 
                 // execute the script and await the result.
-                var pipelineObjects = await ps.InvokeAsync().ConfigureAwait(false);
+                var pipelineObjects = await ps.InvokeAsync().ConfigureAwait(true);
 
                 // print the resulting pipeline objects to the console.
                 foreach (var item in pipelineObjects)
@@ -182,7 +202,7 @@
                         }
                         else
                         {
-                            string biaDemoBIATemplatePath = biaDemoPath + "\\Docs\\BIATemplate";
+                            biaDemoBIATemplatePath = biaDemoPath + "\\Docs\\BIATemplate";
                             if (!Directory.Exists(biaDemoBIATemplatePath))
                             {
                                 MessageBox.Show("Error on BIADemo local folder do not contain BIATemplate :\r\n " + biaDemoBIATemplatePath + " do not exist.\r\nCorrect it or synchronize it in config tab.");
@@ -202,13 +222,114 @@
                         }
                     }
                 }
+                if (UseCompanyFile.IsChecked == true)
+                {
+                    CreateCompanyFileVersion.Visibility = Visibility.Visible;
+                    CreateCompanyFileVersionLabel.Visibility = Visibility.Visible;
+
+                    CreateCompanyFileVersion.Items.Clear();
+                    if (CompanyFilesLocalFolder.IsChecked == true)
+                    {
+                        string companyFilesPath = CompanyFilesLocalFolderText.Text;
+                        if (!Directory.Exists(companyFilesPath))
+                        {
+                            MessageBox.Show("Error on company files path local folder :\r\nThe path " + companyFilesPath + " do not exist.\r\n Correct it in config tab.");
+                        }
+                        else
+                        {
+                            DirectoryInfo di = new DirectoryInfo(companyFilesPath);
+                            // Create an array representing the files in the current directory.
+                            DirectoryInfo[] versionDirectories = di.GetDirectories("V*.*.*", SearchOption.TopDirectoryOnly);
+                            // Print out the names of the files in the current directory.
+                            foreach (DirectoryInfo dir in versionDirectories)
+                            {
+                                //Add and select the last added
+                                CreateCompanyFileVersion.SelectedIndex = CreateCompanyFileVersion.Items.Add(dir.Name);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    CreateCompanyFileVersion.Visibility = Visibility.Hidden;
+                    CreateCompanyFileVersionLabel.Visibility = Visibility.Hidden;
+                }
+
                 isCreateFrameworkVersionInitialized = true;
             }
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void CreateFrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
+            for (int i= 0; i<CreateCompanyFileVersion.Items.Count; i++)
+            {
+                if (CreateFrameworkVersion.SelectedValue.ToString() == CreateCompanyFileVersion.Items[i].ToString())
+                {
+                    CreateCompanyFileVersion.SelectedIndex = i;
+                }
+            }
         }
+
+        private void Create_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(CreateProjectRootFolderText.Text))
+            {
+                MessageBox.Show("Please select root path.");
+                return;
+            }
+            if (string.IsNullOrEmpty(CreateCompanyName.Text))
+            {
+                MessageBox.Show("Please select company name.");
+                return;
+            }
+            if (string.IsNullOrEmpty(CreateProjectName.Text))
+            {
+                MessageBox.Show("Please select project name.");
+                return;
+            }
+            if (CreateFrameworkVersion.SelectedValue == null)
+            {
+                MessageBox.Show("Please select framework version.");
+                return;
+            }
+
+            string projectPath = CreateProjectRootFolderText.Text + "\\" + CreateProjectName.Text;
+            if (Directory.Exists(projectPath) && !IsDirectoryEmpty(projectPath))
+            {
+                MessageBox.Show("The project path is not empty : " +projectPath); 
+                return;
+            }
+
+            string biaDemoBIATemplatePathVersion = biaDemoBIATemplatePath + "\\" + CreateFrameworkVersion.SelectedValue;
+
+            string dotnetZipPath = biaDemoBIATemplatePathVersion + "\\BIA.DotNetTemplate." + CreateFrameworkVersion.SelectedValue.ToString().Substring(1) + ".zip";
+            string angularZipPath = biaDemoBIATemplatePathVersion + "\\BIA.AngularTemplate." + CreateFrameworkVersion.SelectedValue.ToString().Substring(1) + ".zip";
+
+            consoleWriter.AddMessageLine("Unzip dotnet.", Brushes.Pink);
+            ZipFile.ExtractToDirectory(dotnetZipPath, projectPath);
+            consoleWriter.AddMessageLine("Unzip angular.", Brushes.Pink);
+            ZipFile.ExtractToDirectory(angularZipPath, projectPath);
+
+            if (UseCompanyFile.IsChecked == true)
+            {
+                consoleWriter.AddMessageLine("Start copy company files.", Brushes.Pink);
+                string companyFilesPath = CompanyFilesLocalFolderText.Text + "\\" + CreateCompanyFileVersion.SelectedValue;
+                FileTransform.CopyFilesRecursively(companyFilesPath, projectPath);
+            }
+
+            consoleWriter.AddMessageLine("Start rename.", Brushes.Pink);
+            FileTransform.ReplaceInFileAndFileName(projectPath, "TheBIADevCompany", CreateCompanyName.Text);
+            FileTransform.ReplaceInFileAndFileName(projectPath, "BIATemplate", CreateProjectName.Text);
+            FileTransform.ReplaceInFileAndFileName(projectPath, "thebiadevcompany", CreateCompanyName.Text.ToLower());
+            FileTransform.ReplaceInFileAndFileName(projectPath, "biatemplate", CreateProjectName.Text.ToLower());
+
+            consoleWriter.AddMessageLine("Create project finished.", Brushes.Green);
+        }
+
+        private bool IsDirectoryEmpty(string path)
+        {
+            return !Directory.EnumerateFileSystemEntries(path).Any();
+        }
+
     }
 }

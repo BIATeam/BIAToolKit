@@ -36,7 +36,7 @@
                 {
                     OutputTextViewer.ScrollToEnd();
                 }
-                //System.Windows.Forms.Application.DoEvents();
+                System.Windows.Forms.Application.DoEvents();
             });
         }
     }

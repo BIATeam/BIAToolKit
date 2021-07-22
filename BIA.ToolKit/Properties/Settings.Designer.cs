@@ -130,5 +130,17 @@ namespace BIA.ToolKit.Properties {
                 this["CreateCompanyName"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UseCompanyFile {
+            get {
+                return ((bool)(this["UseCompanyFile"]));
+            }
+            set {
+                this["UseCompanyFile"] = value;
+            }
+        }
     }
 }
