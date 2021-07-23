@@ -7,7 +7,7 @@
 
     static public class FileTransform
     {
-        static public IList<string> replaceInFileExtenssions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml" };
+        static public IList<string> replaceInFileExtenssions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md" };
 
         /// <summary>
         /// Copy files for VSIX AdditionnalFiles folder to the root solution folder.
