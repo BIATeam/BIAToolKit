@@ -1,6 +1,7 @@
 ﻿namespace BIAToolKit
 {
     using BIA.ToolKit.Helper;
+    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Properties;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -14,6 +15,8 @@
     using System.Windows.Documents;
     using System.Windows.Input;
     using System.Windows.Media;
+    using System.Text.Json;
+    using BIA.ToolKit.Application.CompanyFiles;
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -23,7 +26,9 @@
         ConsoleWriter consoleWriter;
         bool isCreateFrameworkVersionInitialized = false;
         string biaDemoBIATemplatePath = "";
+        string companyFilesPath = "";
         string tempFolderPath = Path.GetTempPath();
+        CFSettings cfSettings = null;
 
         public MainWindow()
         {
@@ -186,8 +191,13 @@
 
         private void OnTabCreateSelected(object sender, RoutedEventArgs e)
         {
+
+
             if (!isCreateFrameworkVersionInitialized)
             {
+                int lastItemCreateCompanyFileVersion = -1;
+                int lastItemFrameworkVersion = -1;
+
                 CreateFrameworkVersion.Items.Clear();
                 var tab = sender as TabItem;
                 if (tab != null)
@@ -195,17 +205,17 @@
                     if (BIADemoLocalFolder.IsChecked == true)
                     {
                         string biaDemoPath = BIADemoLocalFolderText.Text;
-                        //string[] versionDirectories = Directory.GetDirectories(biaDemoPath + "\\Docs\\BIATemplate", "V*.*.*", SearchOption.TopDirectoryOnly);
+                        //string[] versionDirectories = Directory.GetDirectories(biaDemoPath + "\\Docs\\Templates", "V*.*.*", SearchOption.TopDirectoryOnly);
                         if (!Directory.Exists(biaDemoPath))
                         {
                             MessageBox.Show("Error on BIADemo local folder :\r\nThe path " + biaDemoPath + " do not exist.\r\n Correct it in config tab.");
                         }
                         else
                         {
-                            biaDemoBIATemplatePath = biaDemoPath + "\\Docs\\BIATemplate";
+                            biaDemoBIATemplatePath = biaDemoPath + "\\Docs\\Templates";
                             if (!Directory.Exists(biaDemoBIATemplatePath))
                             {
-                                MessageBox.Show("Error on BIADemo local folder do not contain BIATemplate :\r\n " + biaDemoBIATemplatePath + " do not exist.\r\nCorrect it or synchronize it in config tab.");
+                                MessageBox.Show("Error on BIADemo local folder do not contain folder DOCS\\Templates :\r\n " + biaDemoBIATemplatePath + " do not exist.\r\nCorrect it or synchronize it in config tab.");
                             }
                             else
                             {
@@ -216,7 +226,7 @@
                                 foreach (DirectoryInfo dir in versionDirectories)
                                 {
                                     //Add and select the last added
-                                    CreateFrameworkVersion.SelectedIndex = CreateFrameworkVersion.Items.Add(dir.Name);
+                                    lastItemFrameworkVersion = CreateFrameworkVersion.Items.Add(dir.Name);
                                 }
                             }
                         }
@@ -244,16 +254,22 @@
                             foreach (DirectoryInfo dir in versionDirectories)
                             {
                                 //Add and select the last added
-                                CreateCompanyFileVersion.SelectedIndex = CreateCompanyFileVersion.Items.Add(dir.Name);
+                                lastItemCreateCompanyFileVersion = CreateCompanyFileVersion.Items.Add(dir.Name);
                             }
                         }
                     }
                 }
                 else
                 {
+                    CreateCompanyFileGroup.Visibility = Visibility.Hidden;
                     CreateCompanyFileVersion.Visibility = Visibility.Hidden;
                     CreateCompanyFileVersionLabel.Visibility = Visibility.Hidden;
+                    CreateCompanyFileProfile.Visibility = Visibility.Hidden;
+                    CreateCompanyFileProfileLabel.Visibility = Visibility.Hidden;
                 }
+
+                if (lastItemFrameworkVersion != -1) CreateFrameworkVersion.SelectedIndex = lastItemFrameworkVersion;
+                if (lastItemCreateCompanyFileVersion != -1) CreateCompanyFileVersion.SelectedIndex = lastItemCreateCompanyFileVersion;
 
                 isCreateFrameworkVersionInitialized = true;
             }
@@ -296,7 +312,7 @@
             string projectPath = CreateProjectRootFolderText.Text + "\\" + CreateProjectName.Text;
             if (Directory.Exists(projectPath) && !IsDirectoryEmpty(projectPath))
             {
-                MessageBox.Show("The project path is not empty : " +projectPath); 
+                MessageBox.Show("The project path is not empty : " +projectPath);
                 return;
             }
 
@@ -310,18 +326,51 @@
             consoleWriter.AddMessageLine("Unzip angular.", Brushes.Pink);
             ZipFile.ExtractToDirectory(angularZipPath, projectPath);
 
+            IList<string> filesToRemove = new List<string>() { "new-angular-project.ps1" };
+
             if (UseCompanyFile.IsChecked == true)
             {
                 consoleWriter.AddMessageLine("Start copy company files.", Brushes.Pink);
-                string companyFilesPath = CompanyFilesLocalFolderText.Text + "\\" + CreateCompanyFileVersion.SelectedValue;
-                FileTransform.CopyFilesRecursively(companyFilesPath, projectPath);
+
+                IList<string> filesToExclude = new List<string>() { "\\.biaCompanyFiles" };
+                foreach (CFOption option in cfSettings.Options)
+                {
+                    if (option.IsChecked)
+                    {
+                        if (option.FilesToRemove!=null)
+                        {
+                            // Remove file of this profile
+                            foreach (string fileToRemove in option.FilesToRemove)
+                            {
+                                filesToRemove.Add(fileToRemove);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (option.Files!= null)
+                        {
+                            // Exclude file of this profile
+                            foreach (string fileToExclude in option.Files)
+                            {
+                                filesToExclude.Add(fileToExclude);
+                            }
+                        }
+                    }
+                }
+                FileTransform.CopyFilesRecursively(companyFilesPath, projectPath, CreateCompanyFileProfile.Text, filesToExclude);
+            }
+
+            if (filesToRemove.Count > 0)
+            {
+                FileTransform.RemoveRecursively(projectPath, filesToRemove);
             }
 
             consoleWriter.AddMessageLine("Start rename.", Brushes.Pink);
-            FileTransform.ReplaceInFileAndFileName(projectPath, "TheBIADevCompany", CreateCompanyName.Text);
-            FileTransform.ReplaceInFileAndFileName(projectPath, "BIATemplate", CreateProjectName.Text);
-            FileTransform.ReplaceInFileAndFileName(projectPath, "thebiadevcompany", CreateCompanyName.Text.ToLower());
-            FileTransform.ReplaceInFileAndFileName(projectPath, "biatemplate", CreateProjectName.Text.ToLower());
+            FileTransform.ReplaceInFileAndFileName(projectPath, "TheBIADevCompany", CreateCompanyName.Text, FileTransform.replaceInFileExtenssions);
+            FileTransform.ReplaceInFileAndFileName(projectPath, "BIATemplate", CreateProjectName.Text, FileTransform.replaceInFileExtenssions);
+            FileTransform.ReplaceInFileAndFileName(projectPath, "thebiadevcompany", CreateCompanyName.Text.ToLower(), FileTransform.replaceInFileExtenssions);
+            FileTransform.ReplaceInFileAndFileName(projectPath, "biatemplate", CreateProjectName.Text.ToLower(), FileTransform.replaceInFileExtenssions);
 
             consoleWriter.AddMessageLine("Create project finished.", Brushes.Green);
         }
@@ -331,5 +380,64 @@
             return !Directory.EnumerateFileSystemEntries(path).Any();
         }
 
+        private async void CreateCompanyFileVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            CreateCompanyFileProfile.Items.Clear();
+            companyFilesPath = CompanyFilesLocalFolderText.Text + "\\" + CreateCompanyFileVersion.SelectedValue;
+            string fileName = companyFilesPath + "\\.biaCompanyFiles";
+            string jsonString = File.ReadAllText(fileName);
+
+
+            cfSettings = JsonSerializer.Deserialize<CFSettings>(jsonString);
+
+            int lastIndex = -1;
+            foreach (string profile in cfSettings.Profiles)
+            {
+                lastIndex = CreateCompanyFileProfile.Items.Add(profile);
+            }
+            if (lastIndex != -1) CreateCompanyFileProfile.SelectedIndex = lastIndex;
+
+            CreateGridOption.Children.Clear();
+            int top = 0;
+
+            foreach (CFOption option in cfSettings.Options)
+            {
+                option.IsChecked = true;
+
+                //  <CheckBox Content="Otpion2" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CreateCFOption_Otpion2" Margin="0,25,0,0" />
+                CheckBox checkbox = new CheckBox();
+                checkbox.Content = option.Name;
+                checkbox.IsChecked = true;
+                checkbox.Foreground = Brushes.White;
+                checkbox.Height = 16;
+                checkbox.Name = "CreateCFOption_" + option.Key;
+                checkbox.Margin = new Thickness(0, top, 0,0);
+                checkbox.Checked += CreateCompanyFileOtption_Checked;
+                checkbox.Unchecked += CreateCompanyFileOtption_Checked;
+                top += 25;
+                checkbox.VerticalAlignment = VerticalAlignment.Top;
+                CreateGridOption.Children.Add(checkbox);
+            }
+        }
+
+        private void UseCompanyFile_Checked(object sender, RoutedEventArgs e)
+        {
+           isCreateFrameworkVersionInitialized = false;
+        }
+
+        private void CreateCompanyFileOtption_Checked(object sender, RoutedEventArgs e)
+        {
+            if (sender is CheckBox)
+            {
+                CheckBox chx = (CheckBox)sender;
+                foreach (CFOption option in cfSettings.Options)
+                {
+                    if ("CreateCFOption_" + option.Key == chx.Name)
+                    {
+                        option.IsChecked = chx.IsChecked == true;
+                    }
+                }
+            }
+         }
     }
 }
