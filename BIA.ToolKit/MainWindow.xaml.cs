@@ -1,18 +1,11 @@
 ﻿namespace BIAToolKit
 {
     using BIA.ToolKit.Helper;
-    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Properties;
-    using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
-    using System.IO.Compression;
     using System.Linq;
-    using System.Management.Automation;
-    using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
-    using System.Windows.Documents;
     using System.Windows.Input;
     using System.Windows.Media;
     using System.Text.Json;
@@ -27,6 +20,7 @@
     public partial class MainWindow : Window
     {
         GitService gitService;
+        ProjectCreatorService projectCreatorService;
         ConsoleWriter consoleWriter;
         bool isCreateFrameworkVersionInitialized = false;
         string biaDemoBIATemplatePath = "";
@@ -34,9 +28,10 @@
         string tempFolderPath = Path.GetTempPath();
         CFSettings cfSettings = null;
 
-        public MainWindow(GitService gitService, IConsoleWriter consoleWriter)
+        public MainWindow(GitService gitService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
         {
             this.gitService = gitService;
+            this.projectCreatorService = projectCreatorService;
 
             InitializeComponent();
 
@@ -165,8 +160,6 @@
 
         private void OnTabCreateSelected(object sender, RoutedEventArgs e)
         {
-
-
             if (!isCreateFrameworkVersionInitialized)
             {
                 int lastItemCreateCompanyFileVersion = -1;
@@ -286,67 +279,11 @@
             string projectPath = CreateProjectRootFolderText.Text + "\\" + CreateProjectName.Text;
             if (Directory.Exists(projectPath) && !IsDirectoryEmpty(projectPath))
             {
-                MessageBox.Show("The project path is not empty : " +projectPath);
+                MessageBox.Show("The project path is not empty : " + projectPath);
                 return;
             }
-
-            string biaDemoBIATemplatePathVersion = biaDemoBIATemplatePath + "\\" + CreateFrameworkVersion.SelectedValue;
-
-            string dotnetZipPath = biaDemoBIATemplatePathVersion + "\\BIA.DotNetTemplate." + CreateFrameworkVersion.SelectedValue.ToString().Substring(1) + ".zip";
-            string angularZipPath = biaDemoBIATemplatePathVersion + "\\BIA.AngularTemplate." + CreateFrameworkVersion.SelectedValue.ToString().Substring(1) + ".zip";
-
-            consoleWriter.AddMessageLine("Unzip dotnet.", Brushes.Pink);
-            ZipFile.ExtractToDirectory(dotnetZipPath, projectPath);
-            consoleWriter.AddMessageLine("Unzip angular.", Brushes.Pink);
-            ZipFile.ExtractToDirectory(angularZipPath, projectPath);
-
-            IList<string> filesToRemove = new List<string>() { "new-angular-project.ps1" };
-
-            if (UseCompanyFile.IsChecked == true)
-            {
-                consoleWriter.AddMessageLine("Start copy company files.", Brushes.Pink);
-
-                IList<string> filesToExclude = new List<string>() { "\\.biaCompanyFiles" };
-                foreach (CFOption option in cfSettings.Options)
-                {
-                    if (option.IsChecked)
-                    {
-                        if (option.FilesToRemove!=null)
-                        {
-                            // Remove file of this profile
-                            foreach (string fileToRemove in option.FilesToRemove)
-                            {
-                                filesToRemove.Add(fileToRemove);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (option.Files!= null)
-                        {
-                            // Exclude file of this profile
-                            foreach (string fileToExclude in option.Files)
-                            {
-                                filesToExclude.Add(fileToExclude);
-                            }
-                        }
-                    }
-                }
-                FileTransform.CopyFilesRecursively(companyFilesPath, projectPath, CreateCompanyFileProfile.Text, filesToExclude);
-            }
-
-            if (filesToRemove.Count > 0)
-            {
-                FileTransform.RemoveRecursively(projectPath, filesToRemove);
-            }
-
-            consoleWriter.AddMessageLine("Start rename.", Brushes.Pink);
-            FileTransform.ReplaceInFileAndFileName(projectPath, "TheBIADevCompany", CreateCompanyName.Text, FileTransform.replaceInFileExtenssions);
-            FileTransform.ReplaceInFileAndFileName(projectPath, "BIATemplate", CreateProjectName.Text, FileTransform.replaceInFileExtenssions);
-            FileTransform.ReplaceInFileAndFileName(projectPath, "thebiadevcompany", CreateCompanyName.Text.ToLower(), FileTransform.replaceInFileExtenssions);
-            FileTransform.ReplaceInFileAndFileName(projectPath, "biatemplate", CreateProjectName.Text.ToLower(), FileTransform.replaceInFileExtenssions);
-
-            consoleWriter.AddMessageLine("Create project finished.", Brushes.Green);
+            this.projectCreatorService.Create(CreateCompanyName.Text, CreateProjectName.Text, projectPath, biaDemoBIATemplatePath, CreateFrameworkVersion.SelectedValue.ToString(),
+            UseCompanyFile.IsChecked == true, cfSettings, companyFilesPath, CreateCompanyFileProfile.Text);
         }
 
         private bool IsDirectoryEmpty(string path)

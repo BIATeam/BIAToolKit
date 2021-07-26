@@ -28,7 +28,8 @@
         {
             services.AddSingleton<IConsoleWriter, ConsoleWriter> ();
             services.AddSingleton<MainWindow> ();
-            services.AddSingleton<GitService> ();
+            services.AddSingleton<GitService>();
+            services.AddSingleton<ProjectCreatorService>();
         }
         private void OnStartup(object sender, StartupEventArgs e)
         {

@@ -14,6 +14,13 @@
             this.outPut = outPut;
         }
 
+        public async void Synchronize(string repoName, string localPath)
+        {
+            outPut.AddMessageLine("Synchronize " + repoName + " local folder...", "Pink");
+            await RunScript($"cd " + localPath + $" \r\n" + $"git pull");
+
+            outPut.AddMessageLine("Synchronize BIADemo local folder finished", "Green");
+        }
 
         /// <summary>
         /// Runs a PowerShell script with parameters and prints the resulting pipeline objects to the console output. 
@@ -46,12 +53,5 @@
             return output;
         }
 
-        public async void Synchronize(string repoName, string localPath)
-        {
-            outPut.AddMessageLine("Synchronize " + repoName + " local folder...", "Pink");
-            await RunScript($"cd " + localPath + $" \r\n" + $"git pull");
-
-            outPut.AddMessageLine("Synchronize BIADemo local folder finished", "Green");
-        }
     }
 }
