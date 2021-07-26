@@ -17,12 +17,16 @@
     using System.Windows.Media;
     using System.Text.Json;
     using BIA.ToolKit.Application.CompanyFiles;
+    using BIAToolKit.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
+
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
+        GitService gitService;
         ConsoleWriter consoleWriter;
         bool isCreateFrameworkVersionInitialized = false;
         string biaDemoBIATemplatePath = "";
@@ -30,11 +34,14 @@
         string tempFolderPath = Path.GetTempPath();
         CFSettings cfSettings = null;
 
-        public MainWindow()
+        public MainWindow(GitService gitService, IConsoleWriter consoleWriter)
         {
+            this.gitService = gitService;
+
             InitializeComponent();
 
-            consoleWriter = new ConsoleWriter(OutputText, OutputTextViewer);
+            this.consoleWriter = (ConsoleWriter) consoleWriter;
+            this.consoleWriter.InitOutput(OutputText, OutputTextViewer);
 
             BIADemoGitHub.IsChecked = Settings.Default.BIADemoGitHub;
             BIADemoLocalFolder.IsChecked = Settings.Default.BIADemoLocalFolder;
@@ -117,10 +124,7 @@
             BIADemoLocalFolderSync.IsEnabled = false;
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
 
-            consoleWriter.AddMessageLine("Synchronize BIADemo local folder...", Brushes.Pink);
-            await RunScript($"cd " + BIADemoLocalFolderText.Text + $" \r\n" + $"git pull");
-
-            consoleWriter.AddMessageLine("Synchronize BIADemo local folder finished", Brushes.Green);
+            this.gitService.Synchronize("BIADemo", BIADemoLocalFolderText.Text); 
 
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
             BIADemoLocalFolderSync.IsEnabled = true;
@@ -132,10 +136,12 @@
             CompanyFilesLocalFolderSync.IsEnabled = false;
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
 
-            consoleWriter.AddMessageLine("Synchronize Company files local folder...", Brushes.Pink);
-            await RunScript($"cd " + CompanyFilesLocalFolderText.Text + $" \r\n" + $"git pull");
+            this.gitService.Synchronize("Company files", CompanyFilesLocalFolderText.Text);
 
-            consoleWriter.AddMessageLine("Synchronize Company files local folder finished", Brushes.Green);
+            //consoleWriter.AddMessageLine("Synchronize Company files local folder...", Brushes.Pink);
+            //await RunScript($"cd " + CompanyFilesLocalFolderText.Text + $" \r\n" + $"git pull");
+
+            //consoleWriter.AddMessageLine("Synchronize Company files local folder finished", Brushes.Green);
 
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
             CompanyFilesLocalFolderSync.IsEnabled = true;
@@ -151,38 +157,6 @@
             FileDialog.BrowseFolder(CompanyFilesLocalFolderText);
         }
 
-        /// <summary>
-        /// Runs a PowerShell script with parameters and prints the resulting pipeline objects to the console output. 
-        /// </summary>
-        /// <param name="scriptContents">The script file contents.</param>
-        /// <param name="scriptParameters">A dictionary of parameter names and parameter values.</param>
-        public async Task<string> RunScript(string scriptContents, Dictionary<string, object> scriptParameters = null)
-        {
-            string output = "";
-            // create a new hosted PowerShell instance using the default runspace.
-            // wrap in a using statement to ensure resources are cleaned up.
-
-            using (PowerShell ps = PowerShell.Create())
-            {
-                // specify the script code to run.
-                ps.AddScript(scriptContents);
-
-                // specify the parameters to pass into the script.
-                if (scriptParameters!= null) ps.AddParameters(scriptParameters);
-
-                // execute the script and await the result.
-                var pipelineObjects = await ps.InvokeAsync().ConfigureAwait(true);
-
-                // print the resulting pipeline objects to the console.
-                foreach (var item in pipelineObjects)
-                {
-                    Trace.WriteLine(item.BaseObject.ToString());
-                    consoleWriter.AddMessageLine(item.BaseObject.ToString(), Brushes.White);
-                    //output += item.BaseObject.ToString() + $" \r\n";
-                }
-            }
-            return output;
-        }
 
         private void CreateProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
@@ -439,5 +413,20 @@
                 }
             }
          }
+
+        public void AddMessageLine(string message,  string color= null)
+        {
+            Brush brush = null;
+            if (string.IsNullOrEmpty(color))
+            {
+                brush = Brushes.White;
+            }
+            else
+            {
+                Color col = (Color)ColorConverter.ConvertFromString("Red");
+                brush = new SolidColorBrush(col);
+            }
+            consoleWriter.AddMessageLine(message, brush);
+        }
     }
 }

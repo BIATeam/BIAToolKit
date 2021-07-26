@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.Helper
 {
+    using BIAToolKit.ToolKit.Application.Helper;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -11,15 +12,34 @@
     using System.Windows.Media;
     using System.Windows.Threading;
 
-    public class ConsoleWriter
+    public class ConsoleWriter : IConsoleWriter
     {
         TextBlock OutputText;
         ScrollViewer OutputTextViewer;
 
-        public ConsoleWriter(TextBlock _outputText, ScrollViewer _outputTextViewer)
+        public ConsoleWriter()
+        {
+        }
+
+        public void InitOutput(TextBlock _outputText, ScrollViewer _outputTextViewer)
         {
             OutputText = _outputText;
             OutputTextViewer = _outputTextViewer;
+        }
+
+        public void AddMessageLine(string message, string color = null)
+        {
+            Brush brush = null;
+            if (string.IsNullOrEmpty(color))
+            {
+                brush = Brushes.White;
+            }
+            else
+            {
+                Color col = (Color)ColorConverter.ConvertFromString(color);
+                brush = new SolidColorBrush(col);
+            }
+            AddMessageLine(message, brush);
         }
 
         public void AddMessageLine(string message, Brush brush)
