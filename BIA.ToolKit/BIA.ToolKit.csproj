@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <None Remove="bg-default.jpg" />
+    <None Remove="Images\BIALogo.gif" />
     <None Remove="Test4.gif" />
   </ItemGroup>
 
@@ -23,7 +24,7 @@
     <Resource Include="Images\bg-default.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Content Include="Images\MatrixLeaf.gif">
+    <Content Include="Images\BIALogo.gif">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
