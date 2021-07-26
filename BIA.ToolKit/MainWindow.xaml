@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:gif="http://wpfanimatedgif.codeplex.com"
         xmlns:local="clr-namespace:BIAToolKit"
         mc:Ignorable="d"
         Title="BIA Toolkit" Height="550" Width="1000" WindowStyle="ThreeDBorderWindow" ResizeMode="NoResize">
@@ -17,13 +18,10 @@
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="200"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <MediaElement  Source="Images/MatrixLeaf.gif"  LoadedBehavior="Play" Visibility="Visible" Grid.ColumnSpan="2">
-                        <MediaElement.OpacityMask>
-                            <ImageBrush ImageSource="Images/MatrixLeaf.gif"/>
-                        </MediaElement.OpacityMask>
-                    </MediaElement>
+                    <Image gif:ImageBehavior.AnimatedSource="Images/MatrixLeaf.gif" Grid.ColumnSpan="3" Margin="10"/>
                     <Label Foreground="White" Content="BIA Demo repository" HorizontalAlignment="Center"  Margin="0,10,0,0" VerticalAlignment="Top" FontSize="20" FontWeight="Bold"/>
                     <RadioButton Foreground="White" Content="Use the BIADemo GitHub repository: &#xD;&#xA;https://github.com/BIATeam/BIADemo.git " HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" GroupName="BIADemoSrc" Name="BIADemoGitHub" Checked="BIADemoGitHub_Checked"/>
                     <RadioButton Foreground="White" Content="Use a local cloned folder:" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top" GroupName="BIADemoSrc"  Name="BIADemoLocalFolder" Checked="BIADemoLocalFolder_Checked" />
@@ -31,14 +29,14 @@
                     <Button Content="..." HorizontalAlignment="Left" Margin="347,115,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" Name="BIADemoLocalFolderBrowse" IsEnabled="False" Click="BIADemoLocalFolderBrowse_Click"/>
                     <Button Content="Synchronize" HorizontalAlignment="Left" Margin="37,148,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="206" Name="BIADemoLocalFolderSync" IsEnabled="False" Click="BIADemoLocalFolderSync_Click"/>
 
-                    <CheckBox Name="UseCompanyFile"  Grid.Column="1" HorizontalAlignment="Left" Margin="132,21,0,0" VerticalAlignment="Top" Checked="UseCompanyFile_Checked" Unchecked="UseCompanyFile_Checked"/>
+                    <CheckBox Name="UseCompanyFile"  HorizontalAlignment="Left" Margin="82,21,0,0" VerticalAlignment="Top" Checked="UseCompanyFile_Checked" Unchecked="UseCompanyFile_Checked" Grid.Column="2"/>
                     <Label Foreground="White" Content="Use company files" HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" Grid.Column="2"/>
                     <RadioButton Foreground="White" Content="Use a Git repository:" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" GroupName="CompanyFilesSrc" Grid.Column="2" Name="CompanyFilesGit" Checked="CompanyFilesGit_Checked"/>
-                    <TextBox HorizontalAlignment="Left" Margin="37,65,0,0" Text="https://.../_git/BIACompanyFiles" TextWrapping="Wrap" VerticalAlignment="Top" Width="345" Grid.Column="1" Name="CompanyFilesGitRepo" Height="48"/>
-                    <RadioButton Foreground="White" Content="Use a local cloned folder:" HorizontalAlignment="Left" Margin="10,119,0,0" VerticalAlignment="Top" GroupName="CompanyFilesSrc"  Grid.Column="1" Name="CompanyFilesLocalFolder" Checked="CompanyFilesLocalFolder_Checked"/>
-                    <TextBox HorizontalAlignment="Left" Margin="37,144,0,0" Text="D:\...\BIACompanyFiles" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" Grid.Column="1" Name="CompanyFilesLocalFolderText" IsEnabled="False"/>
-                    <Button Content="..." HorizontalAlignment="Left" Margin="347,143,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" Grid.Column="1" Name="CompanyFilesLocalFolderBrowse" IsEnabled="False" Click="CompanyFilesLocalFolderBrowse_Click"/>
-                    <Button Content="Synchronize" HorizontalAlignment="Left" Margin="37,173,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="206" Grid.Column="1" Name="CompanyFilesLocalFolderSync" IsEnabled="False" Click="CompanyFilesLocalFolderSync_Click"/>
+                    <TextBox HorizontalAlignment="Left" Margin="37,65,0,0" Text="https://.../_git/BIACompanyFiles" TextWrapping="Wrap" VerticalAlignment="Top" Width="345" Grid.Column="2" Name="CompanyFilesGitRepo" Height="48"/>
+                    <RadioButton Foreground="White" Content="Use a local cloned folder:" HorizontalAlignment="Left" Margin="10,119,0,0" VerticalAlignment="Top" GroupName="CompanyFilesSrc"  Grid.Column="2" Name="CompanyFilesLocalFolder" Checked="CompanyFilesLocalFolder_Checked"/>
+                    <TextBox HorizontalAlignment="Left" Margin="37,144,0,0" Text="D:\...\BIACompanyFiles" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" Grid.Column="2" Name="CompanyFilesLocalFolderText" IsEnabled="False"/>
+                    <Button Content="..." HorizontalAlignment="Left" Margin="347,143,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" Grid.Column="2" Name="CompanyFilesLocalFolderBrowse" IsEnabled="False" Click="CompanyFilesLocalFolderBrowse_Click"/>
+                    <Button Content="Synchronize" HorizontalAlignment="Left" Margin="37,173,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="206" Grid.Column="2" Name="CompanyFilesLocalFolderSync" IsEnabled="False" Click="CompanyFilesLocalFolderSync_Click"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Create project" Selector.Selected="OnTabCreateSelected" >
