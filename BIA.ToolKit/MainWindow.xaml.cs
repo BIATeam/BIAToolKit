@@ -12,6 +12,8 @@
     using BIA.ToolKit.Application.CompanyFiles;
     using BIAToolKit.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using System.Collections.Generic;
+    using System;
 
 
     /// <summary>
@@ -23,9 +25,9 @@
         ProjectCreatorService projectCreatorService;
         ConsoleWriter consoleWriter;
         bool isCreateFrameworkVersionInitialized = false;
-        string biaDemoBIATemplatePath = "";
         string companyFilesPath = "";
-        string tempFolderPath = Path.GetTempPath();
+        string tempFolderPath = "";
+        string appFolderPath = "";
         CFSettings cfSettings = null;
 
         public MainWindow(GitService gitService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
@@ -38,9 +40,9 @@
             this.consoleWriter = (ConsoleWriter) consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer);
 
-            BIADemoGitHub.IsChecked = Settings.Default.BIADemoGitHub;
-            BIADemoLocalFolder.IsChecked = Settings.Default.BIADemoLocalFolder;
-            BIADemoLocalFolderText.Text = Settings.Default.BIADemoLocalFolderText;
+            BIATemplateGitHub.IsChecked = Settings.Default.BIATemplateGitHub;
+            BIATemplateLocalFolder.IsChecked = Settings.Default.BIATemplateLocalFolder;
+            BIATemplateLocalFolderText.Text = Settings.Default.BIATemplateLocalFolderText;
 
             UseCompanyFile.IsChecked = Settings.Default.UseCompanyFile;
             CompanyFilesGit.IsChecked = Settings.Default.CompanyFilesGit;
@@ -58,14 +60,14 @@
                 Directory.CreateDirectory(tempFolderPath);
             }
 
-
+            appFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
         }
 
         private void SaveSettings_Click(object sender, RoutedEventArgs e)
         {
-            Settings.Default.BIADemoGitHub = BIADemoGitHub.IsChecked == true;
-            Settings.Default.BIADemoLocalFolder = BIADemoLocalFolder.IsChecked == true;
-            Settings.Default.BIADemoLocalFolderText = BIADemoLocalFolderText.Text;
+            Settings.Default.BIATemplateGitHub = BIATemplateGitHub.IsChecked == true;
+            Settings.Default.BIATemplateLocalFolder = BIATemplateLocalFolder.IsChecked == true;
+            Settings.Default.BIATemplateLocalFolderText = BIATemplateLocalFolderText.Text;
 
             Settings.Default.UseCompanyFile = UseCompanyFile.IsChecked == true;
             Settings.Default.CompanyFilesGit = CompanyFilesGit.IsChecked == true;
@@ -79,23 +81,23 @@
             Settings.Default.Save();
         }
 
-        private void BIADemoLocalFolder_Checked(object sender, RoutedEventArgs e)
+        private void BIATemplateLocalFolder_Checked(object sender, RoutedEventArgs e)
         {
-            BIADemoLocalFolderText.IsEnabled = true;
-            BIADemoLocalFolderBrowse.IsEnabled = true;
-            BIADemoLocalFolderSync.IsEnabled = true;
+            BIATemplateLocalFolderText.IsEnabled = true;
+            BIATemplateLocalFolderBrowse.IsEnabled = true;
+            BIATemplateLocalFolderSync.IsEnabled = true;
             isCreateFrameworkVersionInitialized = false;
         }
 
-        private void BIADemoGitHub_Checked(object sender, RoutedEventArgs e)
+        private void BIATemplateGitHub_Checked(object sender, RoutedEventArgs e)
         {
-            BIADemoLocalFolderText.IsEnabled = false;
-            BIADemoLocalFolderBrowse.IsEnabled = false;
-            BIADemoLocalFolderSync.IsEnabled = false;
+            BIATemplateLocalFolderText.IsEnabled = false;
+            BIATemplateLocalFolderBrowse.IsEnabled = false;
+            BIATemplateLocalFolderSync.IsEnabled = false;
             isCreateFrameworkVersionInitialized = false;
         }
 
-        private void BIADemoLocalFolderText_TextChanged(object sender, RoutedEventArgs e)
+        private void BIATemplateLocalFolderText_TextChanged(object sender, RoutedEventArgs e)
         {
             isCreateFrameworkVersionInitialized = false;
         }
@@ -114,15 +116,15 @@
             CompanyFilesLocalFolderSync.IsEnabled = false;
         }
 
-        private async void BIADemoLocalFolderSync_Click(object sender, RoutedEventArgs e)
+        private async void BIATemplateLocalFolderSync_Click(object sender, RoutedEventArgs e)
         {
-            BIADemoLocalFolderSync.IsEnabled = false;
+            BIATemplateLocalFolderSync.IsEnabled = false;
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
 
-            this.gitService.Synchronize("BIADemo", BIADemoLocalFolderText.Text); 
+            this.gitService.Synchronize("BIATemplate", BIATemplateLocalFolderText.Text); 
 
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
-            BIADemoLocalFolderSync.IsEnabled = true;
+            BIATemplateLocalFolderSync.IsEnabled = true;
 
         }
 
@@ -142,9 +144,9 @@
             CompanyFilesLocalFolderSync.IsEnabled = true;
         }
 
-        private void BIADemoLocalFolderBrowse_Click(object sender, RoutedEventArgs e)
+        private void BIATemplateLocalFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
-            FileDialog.BrowseFolder(BIADemoLocalFolderText);
+            FileDialog.BrowseFolder(BIATemplateLocalFolderText);
         }
 
         private void CompanyFilesLocalFolderBrowse_Click(object sender, RoutedEventArgs e)
@@ -160,6 +162,8 @@
 
         private void OnTabCreateSelected(object sender, RoutedEventArgs e)
         {
+
+
             if (!isCreateFrameworkVersionInitialized)
             {
                 int lastItemCreateCompanyFileVersion = -1;
@@ -169,34 +173,19 @@
                 var tab = sender as TabItem;
                 if (tab != null)
                 {
-                    if (BIADemoLocalFolder.IsChecked == true)
+                    if (BIATemplateLocalFolder.IsChecked == true)
                     {
-                        string biaDemoPath = BIADemoLocalFolderText.Text;
-                        //string[] versionDirectories = Directory.GetDirectories(biaDemoPath + "\\Docs\\Templates", "V*.*.*", SearchOption.TopDirectoryOnly);
-                        if (!Directory.Exists(biaDemoPath))
+                        string biaTemplatePath = BIATemplateLocalFolderText.Text;
+
+                        List<string> versions = gitService.GetRelease(biaTemplatePath).OrderBy(q => q).ToList();
+
+                        foreach (string version in versions)
                         {
-                            MessageBox.Show("Error on BIADemo local folder :\r\nThe path " + biaDemoPath + " do not exist.\r\n Correct it in config tab.");
+                            //Add and select the last added
+                            lastItemFrameworkVersion = CreateFrameworkVersion.Items.Add(version);
                         }
-                        else
-                        {
-                            biaDemoBIATemplatePath = biaDemoPath + "\\Docs\\Templates";
-                            if (!Directory.Exists(biaDemoBIATemplatePath))
-                            {
-                                MessageBox.Show("Error on BIADemo local folder do not contain folder DOCS\\Templates :\r\n " + biaDemoBIATemplatePath + " do not exist.\r\nCorrect it or synchronize it in config tab.");
-                            }
-                            else
-                            {
-                                DirectoryInfo di = new DirectoryInfo(biaDemoBIATemplatePath);
-                                // Create an array representing the files in the current directory.
-                                DirectoryInfo[] versionDirectories = di.GetDirectories("V*.*.*", SearchOption.TopDirectoryOnly);
-                                // Print out the names of the files in the current directory.
-                                foreach (DirectoryInfo dir in versionDirectories)
-                                {
-                                    //Add and select the last added
-                                    lastItemFrameworkVersion = CreateFrameworkVersion.Items.Add(dir.Name);
-                                }
-                            }
-                        }
+
+                        lastItemFrameworkVersion = CreateFrameworkVersion.Items.Add("VX.Y.Z");
                     }
                 }
                 if (UseCompanyFile.IsChecked == true)
@@ -282,8 +271,8 @@
                 MessageBox.Show("The project path is not empty : " + projectPath);
                 return;
             }
-            this.projectCreatorService.Create(CreateCompanyName.Text, CreateProjectName.Text, projectPath, biaDemoBIATemplatePath, CreateFrameworkVersion.SelectedValue.ToString(),
-            UseCompanyFile.IsChecked == true, cfSettings, companyFilesPath, CreateCompanyFileProfile.Text);
+            this.projectCreatorService.Create(CreateCompanyName.Text, CreateProjectName.Text, projectPath, BIATemplateLocalFolderText.Text, CreateFrameworkVersion.SelectedValue.ToString(),
+            UseCompanyFile.IsChecked == true, cfSettings, companyFilesPath, CreateCompanyFileProfile.Text, appFolderPath);
         }
 
         private bool IsDirectoryEmpty(string path)
@@ -294,41 +283,50 @@
         private async void CreateCompanyFileVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             CreateCompanyFileProfile.Items.Clear();
+            CreateGridOption.Children.Clear();
+            
             companyFilesPath = CompanyFilesLocalFolderText.Text + "\\" + CreateCompanyFileVersion.SelectedValue;
-            string fileName = companyFilesPath + "\\.biaCompanyFiles";
+            string fileName = companyFilesPath + "\\biaCompanyFiles.json";
             string jsonString = File.ReadAllText(fileName);
 
+            try {
 
-            cfSettings = JsonSerializer.Deserialize<CFSettings>(jsonString);
+                cfSettings = JsonSerializer.Deserialize<CFSettings>(jsonString);
 
-            int lastIndex = -1;
-            foreach (string profile in cfSettings.Profiles)
-            {
-                lastIndex = CreateCompanyFileProfile.Items.Add(profile);
+                int lastIndex = -1;
+                foreach (string profile in cfSettings.Profiles)
+                {
+                    lastIndex = CreateCompanyFileProfile.Items.Add(profile);
+                }
+                if (lastIndex != -1) CreateCompanyFileProfile.SelectedIndex = lastIndex;
+
+
+                int top = 0;
+
+                foreach (CFOption option in cfSettings.Options)
+                {
+                    option.IsChecked = true;
+
+                    //  <CheckBox Content="Otpion2" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CreateCFOption_Otpion2" Margin="0,25,0,0" />
+                    CheckBox checkbox = new CheckBox();
+                    checkbox.Content = option.Name;
+                    checkbox.IsChecked = true;
+                    checkbox.Foreground = Brushes.White;
+                    checkbox.Height = 16;
+                    checkbox.Name = "CreateCFOption_" + option.Key;
+                    checkbox.Margin = new Thickness(0, top, 0, 0);
+                    checkbox.Checked += CreateCompanyFileOtption_Checked;
+                    checkbox.Unchecked += CreateCompanyFileOtption_Checked;
+                    top += 25;
+                    checkbox.VerticalAlignment = VerticalAlignment.Top;
+                    CreateGridOption.Children.Add(checkbox);
+                }
             }
-            if (lastIndex != -1) CreateCompanyFileProfile.SelectedIndex = lastIndex;
-
-            CreateGridOption.Children.Clear();
-            int top = 0;
-
-            foreach (CFOption option in cfSettings.Options)
+            catch (Exception ex)
             {
-                option.IsChecked = true;
-
-                //  <CheckBox Content="Otpion2" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CreateCFOption_Otpion2" Margin="0,25,0,0" />
-                CheckBox checkbox = new CheckBox();
-                checkbox.Content = option.Name;
-                checkbox.IsChecked = true;
-                checkbox.Foreground = Brushes.White;
-                checkbox.Height = 16;
-                checkbox.Name = "CreateCFOption_" + option.Key;
-                checkbox.Margin = new Thickness(0, top, 0,0);
-                checkbox.Checked += CreateCompanyFileOtption_Checked;
-                checkbox.Unchecked += CreateCompanyFileOtption_Checked;
-                top += 25;
-                checkbox.VerticalAlignment = VerticalAlignment.Top;
-                CreateGridOption.Children.Add(checkbox);
+                consoleWriter.AddMessageLine(ex.Message, Brushes.Red);
             }
+
         }
 
         private void UseCompanyFile_Checked(object sender, RoutedEventArgs e)

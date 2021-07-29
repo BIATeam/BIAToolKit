@@ -5,6 +5,8 @@
     using System.Threading.Tasks;
     using System.Management.Automation;
     using System;
+    using LibGit2Sharp;
+    using System.Linq;
 
     public class GitService
     {
@@ -19,7 +21,25 @@
             outPut.AddMessageLine("Synchronize " + repoName + " local folder...", "Pink");
             await RunScript($"cd " + localPath + $" \r\n" + $"git pull");
 
+            /*using (var repo = new Repository(localPath))
+            {
+                var result = Commands.Pull(repo, new LibGit2Sharp.Signature("BIAToolKit", "BIAToolKit", DateTimeOffset.Now), new PullOptions());
+                outPut.AddMessageLine(result.Status.ToString(), "White");
+            }*/
+
             outPut.AddMessageLine("Synchronize BIADemo local folder finished", "Green");
+        }
+
+        public List<string> GetRelease(string localPath)
+        {
+            List<string> release = new List<string>();
+
+            using (var repo = new Repository(localPath))
+            {
+                release = repo.Tags.Select(t => t.FriendlyName).ToList();
+            }
+            
+            return release;
         }
 
         /// <summary>

@@ -2,10 +2,10 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="BIA.ToolKit.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="BIADemoLocalFolder" Type="System.Boolean" Scope="User">
+    <Setting Name="BIATemplateLocalFolder" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="BIADemoGitHub" Type="System.Boolean" Scope="User">
+    <Setting Name="BIATemplateGitHub" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="CompanyFilesGit" Type="System.Boolean" Scope="User">
@@ -14,8 +14,8 @@
     <Setting Name="CompanyFilesLocalFolder" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="BIADemoLocalFolderText" Type="System.String" Scope="User">
-      <Value Profile="(Default)">D:\...\BIADemo</Value>
+    <Setting Name="BIATemplateLocalFolderText" Type="System.String" Scope="User">
+      <Value Profile="(Default)">D:\...\BIATemplate</Value>
     </Setting>
     <Setting Name="CompanyFilesGitRepo" Type="System.String" Scope="User">
       <Value Profile="(Default)">https://.../_git/BIACompanyFiles</Value>

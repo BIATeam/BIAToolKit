@@ -26,24 +26,24 @@ namespace BIA.ToolKit.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool BIADemoLocalFolder {
+        public bool BIATemplateLocalFolder {
             get {
-                return ((bool)(this["BIADemoLocalFolder"]));
+                return ((bool)(this["BIATemplateLocalFolder"]));
             }
             set {
-                this["BIADemoLocalFolder"] = value;
+                this["BIATemplateLocalFolder"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool BIADemoGitHub {
+        public bool BIATemplateGitHub {
             get {
-                return ((bool)(this["BIADemoGitHub"]));
+                return ((bool)(this["BIATemplateGitHub"]));
             }
             set {
-                this["BIADemoGitHub"] = value;
+                this["BIATemplateGitHub"] = value;
             }
         }
         
@@ -73,13 +73,13 @@ namespace BIA.ToolKit.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("D:\\...\\BIADemo")]
-        public string BIADemoLocalFolderText {
+        [global::System.Configuration.DefaultSettingValueAttribute("D:\\...\\BIATemplate")]
+        public string BIATemplateLocalFolderText {
             get {
-                return ((string)(this["BIADemoLocalFolderText"]));
+                return ((string)(this["BIATemplateLocalFolderText"]));
             }
             set {
-                this["BIADemoLocalFolderText"] = value;
+                this["BIATemplateLocalFolderText"] = value;
             }
         }
         

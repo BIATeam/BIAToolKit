@@ -8,6 +8,7 @@
         {
             using (System.Windows.Forms.FolderBrowserDialog openFileDlg = new System.Windows.Forms.FolderBrowserDialog())
             {
+                openFileDlg.SelectedPath = destTextBox.Text;
                 var result = openFileDlg.ShowDialog();
                 if (result == System.Windows.Forms.DialogResult.OK)
                 {
