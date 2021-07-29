@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.Helper
 {
+    using System.IO;
     using System.Windows.Controls;
 
     static class FileDialog
@@ -8,7 +9,11 @@
         {
             using (System.Windows.Forms.FolderBrowserDialog openFileDlg = new System.Windows.Forms.FolderBrowserDialog())
             {
-                openFileDlg.SelectedPath = destTextBox.Text;
+                if (Directory.Exists(destTextBox.Text))
+                {
+                    openFileDlg.SelectedPath = destTextBox.Text;
+                }
+
                 var result = openFileDlg.ShowDialog();
                 if (result == System.Windows.Forms.DialogResult.OK)
                 {
