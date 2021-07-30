@@ -1,8 +1,8 @@
-﻿namespace BIAToolKit
+﻿namespace BIA.ToolKit
 {
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Helper;
-    using BIAToolKit.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Helper;
     using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.Collections.Generic;
@@ -15,7 +15,7 @@
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
-    public partial class App : Application
+    public partial class App : System.Windows.Application
     {
         private ServiceProvider serviceProvider;
         public App()
@@ -27,7 +27,8 @@
         private void ConfigureServices(ServiceCollection services)
         {
             services.AddSingleton<IConsoleWriter, ConsoleWriter> ();
-            services.AddSingleton<MainWindow> ();
+            services.AddSingleton<MainWindow>();
+            services.AddSingleton<Configuration>();
             services.AddSingleton<GitService>();
             services.AddSingleton<ProjectCreatorService>();
         }

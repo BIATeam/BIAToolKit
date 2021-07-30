@@ -1,7 +1,7 @@
-﻿<Application x:Class="BIAToolKit.App"
+﻿<Application x:Class="BIA.ToolKit.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:BIAToolKit"
+             xmlns:local="clr-namespace:BIA.ToolKit"
              Startup="OnStartup">
     <Application.Resources>
          

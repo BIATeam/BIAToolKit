@@ -1,4 +1,4 @@
-﻿namespace BIAToolKit
+﻿namespace BIA.ToolKit
 {
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.Properties;
@@ -10,7 +10,7 @@
     using System.Windows.Media;
     using System.Text.Json;
     using BIA.ToolKit.Application.CompanyFiles;
-    using BIAToolKit.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using System.Collections.Generic;
     using System;
@@ -27,11 +27,10 @@
         ProjectCreatorService projectCreatorService;
         ConsoleWriter consoleWriter;
         bool isCreateTabInitialized = false;
-        string biaTemplatePath = "";
-        string rootCompanyFilesPath = "";
+
+        Configuration configuration = new Configuration();
+
         string companyFilesPath = "";
-        string tempFolderPath = "";
-        string appFolderPath = "";
         CFSettings cfSettings = null;
 
         string modifyProjectPath = "";
@@ -61,13 +60,38 @@
             CreateCompanyName.Text = Settings.Default.CreateCompanyName;
 
 
-            tempFolderPath = Path.GetTempPath() + "BIAToolKit";
-            if (!Directory.Exists(tempFolderPath))
-            {
-                Directory.CreateDirectory(tempFolderPath);
-            }
 
-            appFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
+        }
+
+        public bool RefreshConfiguration()
+        {
+            if (RefreshBIATemplateConfiguration())
+            {
+                return RefreshCompanyFilesConfiguration();
+            }
+            return false;
+        }
+
+        public bool RefreshBIATemplateConfiguration()
+        {
+            isCreateTabInitialized = false;
+            if (!configuration.RefreshBIATemplate(MainTab, BIATemplateLocalFolder.IsChecked == true, BIATemplateLocalFolderText.Text))
+            {
+                Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
+                return false;
+            }
+            return true;
+        }
+
+        public bool RefreshCompanyFilesConfiguration()
+        {
+            isCreateTabInitialized = false;
+            if (!configuration.RefreshCompanyFiles(MainTab, UseCompanyFile.IsChecked == true, CompanyFilesLocalFolder.IsChecked == true, CompanyFilesLocalFolderText.Text))
+            {
+                Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
+                return false;
+            }
+            return true;
         }
 
         private void SaveSettings_Click(object sender, RoutedEventArgs e)
@@ -123,61 +147,48 @@
 
         private async void BIATemplateLocalFolderSync_Click(object sender, RoutedEventArgs e)
         {
-            BIATemplateLocalFolderSync.IsEnabled = false;
-            Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
-            
-            if (BIATemplateLocalFolder.IsChecked == true)
+            if (RefreshBIATemplateConfiguration())
             {
-                biaTemplatePath = BIATemplateLocalFolderText.Text;
-                this.gitService.Synchronize("BIATemplate", biaTemplatePath);
-            }
-            else
-            {
-                biaTemplatePath = appFolderPath + "\\BIATemplate\\Repo";
-                /*if (Directory.Exists(biaTemplatePath))
-                {
-                    FileTransform.ForceDeleteDirectory(biaTemplatePath);
-                }*/
+                BIATemplateLocalFolderSync.IsEnabled = false;
+                Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
 
-                if (!Directory.Exists(biaTemplatePath))
+                if (!configuration.BIATemplateLocalFolderIsChecked && !Directory.Exists(configuration.BIATemplatePath))
                 {
-                    this.gitService.Clone("BIATemplate", "https://github.com/BIATeam/BIATemplate.git", biaTemplatePath);
+                    this.gitService.Clone("BIATemplate", "https://github.com/BIATeam/BIATemplate.git", configuration.BIATemplatePath);
                 }
                 else
                 {
-                    this.gitService.Synchronize("BIATemplate", biaTemplatePath);
+                    this.gitService.Synchronize("BIATemplate", configuration.BIATemplatePath);
                 }
-            }
-            Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
-            BIATemplateLocalFolderSync.IsEnabled = true;
 
-            isCreateTabInitialized = false;
+                Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
+                BIATemplateLocalFolderSync.IsEnabled = true;
+            }
         }
 
         private async void CompanyFilesLocalFolderSync_Click(object sender, RoutedEventArgs e)
         {
-            CompanyFilesLocalFolderSync.IsEnabled = false;
-            Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
-            if (CompanyFilesLocalFolder.IsChecked == true)
+            if (RefreshCompanyFilesConfiguration())
             {
-                rootCompanyFilesPath = CompanyFilesLocalFolderText.Text;
-                this.gitService.Synchronize("Company files", rootCompanyFilesPath);
-            }
-            else
-            {
-                rootCompanyFilesPath = appFolderPath + "\\BIACompanyFiles\\Repo";
-                if (Directory.Exists(rootCompanyFilesPath))
+                CompanyFilesLocalFolderSync.IsEnabled = false;
+                Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
+
+                if (configuration.CompanyFilesLocalFolderIsChecked)
                 {
-                    FileTransform.ForceDeleteDirectory(rootCompanyFilesPath);
+                    this.gitService.Synchronize("Company files", configuration.RootCompanyFilesPath);
                 }
-                this.gitService.Clone("BIACompanyFiles", CompanyFilesGitRepo.Text, rootCompanyFilesPath);
+                else
+                {
+                    if (Directory.Exists(configuration.RootCompanyFilesPath))
+                    {
+                        FileTransform.ForceDeleteDirectory(configuration.RootCompanyFilesPath);
+                    }
+                    this.gitService.Clone("BIACompanyFiles", CompanyFilesGitRepo.Text, configuration.RootCompanyFilesPath);
+                }
+
+                Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
+                CompanyFilesLocalFolderSync.IsEnabled = true;
             }
-        
-
-            Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
-            CompanyFilesLocalFolderSync.IsEnabled = true;
-
-            isCreateTabInitialized = false;
         }
 
         private void BIATemplateLocalFolderBrowse_Click(object sender, RoutedEventArgs e)
@@ -196,109 +207,65 @@
             FileDialog.BrowseFolder(CreateProjectRootFolderText);
         }
 
-        private void OnTabCreateSelected(object sender, RoutedEventArgs e)
+        private void OnTabCreateOrModifySelected(object sender, RoutedEventArgs e)
         {
             var tab = sender as TabItem;
             if (tab != null)
             {
                 if (!isCreateTabInitialized)
                 {
-                    int lastItemCreateCompanyFileVersion = -1;
-                    int lastItemFrameworkVersion = -1;
-
-                    CreateFrameworkVersion.Items.Clear();
-                    CreateCompanyFileVersion.Items.Clear();
-
-
-                    if (BIATemplateLocalFolder.IsChecked == true)
+                    if (RefreshConfiguration())
                     {
-                        //Use local folder
-                        biaTemplatePath = BIATemplateLocalFolderText.Text;
-                        if (!Directory.Exists(biaTemplatePath))
+
+                        int lastItemCreateCompanyFileVersion = -1;
+                        int lastItemCreateFrameworkVersion = -1;
+
+                        CreateFrameworkVersion.Items.Clear();
+                        MigrateFrameworkVersion.Items.Clear();
+                        CreateCompanyFileVersion.Items.Clear();
+
+
+                        if (Directory.Exists(configuration.BIATemplatePath))
                         {
-                            MessageBox.Show("Error on biatemplate local folder :\r\nThe path " + biaTemplatePath + " do not exist.\r\n Correct it in config tab.");
-                            Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        biaTemplatePath = appFolderPath + "\\BIATemplate\\Repo";
-                        if (!Directory.Exists(biaTemplatePath))
-                        {
-                            MessageBox.Show("Error on biatemplate repo :\r\nThe path " + biaTemplatePath + " do not exist.\r\n Please synchronize the BIATemplate repository.");
-                            Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
-                            return;
-                        }
-                    }
+                            List<string> versions = gitService.GetRelease(configuration.BIATemplatePath).OrderBy(q => q).ToList();
 
-                    if (Directory.Exists(biaTemplatePath))
-                    {
-                        List<string> versions = gitService.GetRelease(biaTemplatePath).OrderBy(q => q).ToList();
-
-                        foreach (string version in versions)
-                        {
-                            //Add and select the last added
-                            lastItemFrameworkVersion = CreateFrameworkVersion.Items.Add(version);
-                        }
-
-                        CreateFrameworkVersion.Items.Add("VX.Y.Z");
-                    }
-
-                    if (UseCompanyFile.IsChecked == true)
-                    {
-                        CreateCompanyFileVersion.Visibility = Visibility.Visible;
-                        CreateCompanyFileVersionLabel.Visibility = Visibility.Visible;
-
-                        rootCompanyFilesPath = "";
-
-                        if (CompanyFilesLocalFolder.IsChecked == true)
-                        {
-                            rootCompanyFilesPath = CompanyFilesLocalFolderText.Text;
-                            if (!Directory.Exists(rootCompanyFilesPath))
+                            foreach (string version in versions)
                             {
-                                MessageBox.Show("Error on company files path local folder :\r\nThe path " + rootCompanyFilesPath + " do not exist.\r\n Correct it in config tab.");
-                                Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
-                                return;
+                                //Add and select the last added
+                                lastItemCreateFrameworkVersion = CreateFrameworkVersion.Items.Add(version);
                             }
 
+                            CreateFrameworkVersion.Items.Add("VX.Y.Z");
+                        }
+
+                        if (configuration.UseCompanyFileIsChecked)
+                        {
+                            CreateCompanyFileGroup.Visibility = Visibility.Visible;
+
+
+                            if (Directory.Exists(configuration.RootCompanyFilesPath))
+                            {
+                                DirectoryInfo di = new DirectoryInfo(configuration.RootCompanyFilesPath);
+                                // Create an array representing the files in the current directory.
+                                DirectoryInfo[] versionDirectories = di.GetDirectories("V*.*.*", SearchOption.TopDirectoryOnly);
+                                // Print out the names of the files in the current directory.
+                                foreach (DirectoryInfo dir in versionDirectories)
+                                {
+                                    //Add and select the last added
+                                    lastItemCreateCompanyFileVersion = CreateCompanyFileVersion.Items.Add(dir.Name);
+                                }
+                            }
                         }
                         else
                         {
-                            rootCompanyFilesPath = appFolderPath + "\\BIACompanyFiles\\Repo";
-                            if (!Directory.Exists(rootCompanyFilesPath))
-                            {
-                                MessageBox.Show("Error on company files repo :\r\nThe path " + rootCompanyFilesPath + " do not exist.\r\n Please synchronize the company files repository.");
-                                Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
-                                return;
-                            }
+                            CreateCompanyFileGroup.Visibility = Visibility.Hidden;
                         }
-                        if (Directory.Exists(rootCompanyFilesPath))
-                        {
-                            DirectoryInfo di = new DirectoryInfo(rootCompanyFilesPath);
-                            // Create an array representing the files in the current directory.
-                            DirectoryInfo[] versionDirectories = di.GetDirectories("V*.*.*", SearchOption.TopDirectoryOnly);
-                            // Print out the names of the files in the current directory.
-                            foreach (DirectoryInfo dir in versionDirectories)
-                            {
-                                //Add and select the last added
-                                lastItemCreateCompanyFileVersion = CreateCompanyFileVersion.Items.Add(dir.Name);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        CreateCompanyFileGroup.Visibility = Visibility.Hidden;
-                        CreateCompanyFileVersion.Visibility = Visibility.Hidden;
-                        CreateCompanyFileVersionLabel.Visibility = Visibility.Hidden;
-                        CreateCompanyFileProfile.Visibility = Visibility.Hidden;
-                        CreateCompanyFileProfileLabel.Visibility = Visibility.Hidden;
-                    }
 
-                    if (lastItemFrameworkVersion != -1) CreateFrameworkVersion.SelectedIndex = lastItemFrameworkVersion;
-                    if (lastItemCreateCompanyFileVersion != -1) CreateCompanyFileVersion.SelectedIndex = lastItemCreateCompanyFileVersion;
+                        if (lastItemCreateFrameworkVersion != -1) CreateFrameworkVersion.SelectedIndex = lastItemCreateFrameworkVersion;
+                        if (lastItemCreateCompanyFileVersion != -1) CreateCompanyFileVersion.SelectedIndex = lastItemCreateCompanyFileVersion;
 
-                    isCreateTabInitialized = true;
+                        isCreateTabInitialized = true;
+                    }
                 }
             }
         }
@@ -343,8 +310,8 @@
                 MessageBox.Show("The project path is not empty : " + projectPath);
                 return;
             }
-            this.projectCreatorService.Create(CreateCompanyName.Text, CreateProjectName.Text, projectPath, biaTemplatePath, CreateFrameworkVersion.SelectedValue.ToString(),
-            UseCompanyFile.IsChecked == true, cfSettings, companyFilesPath, CreateCompanyFileProfile.Text, appFolderPath);
+            this.projectCreatorService.Create(CreateCompanyName.Text, CreateProjectName.Text, projectPath, configuration.BIATemplatePath, CreateFrameworkVersion.SelectedValue.ToString(),
+            configuration.UseCompanyFileIsChecked, cfSettings, companyFilesPath, CreateCompanyFileProfile.Text, configuration.AppFolderPath);
         }
 
         private bool IsDirectoryEmpty(string path)

@@ -1,6 +1,6 @@
 ﻿namespace BIA.ToolKit.Helper
 {
-    using BIAToolKit.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Helper;
     using System;
     using System.Collections.Generic;
     using System.Linq;

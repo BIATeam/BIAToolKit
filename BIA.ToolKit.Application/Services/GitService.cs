@@ -1,6 +1,6 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
-    using BIAToolKit.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Helper;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using System.Management.Automation;

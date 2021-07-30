@@ -3,7 +3,7 @@
     using BIA.ToolKit.Application.CompanyFiles;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Common;
-    using BIAToolKit.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Helper;
     using LibGit2Sharp;
     using System;
     using System.Collections.Generic;
