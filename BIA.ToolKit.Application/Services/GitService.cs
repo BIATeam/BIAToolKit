@@ -7,6 +7,9 @@
     using System;
     using LibGit2Sharp;
     using System.Linq;
+    using LibGit2Sharp.Handlers;
+    using System.Diagnostics;
+    using System.IO;
 
     public class GitService
     {
@@ -28,6 +31,17 @@
             }*/
 
             outPut.AddMessageLine("Synchronize BIADemo local folder finished", "Green");
+        }
+
+        public async void Clone(string repoName, string url, string localPath)
+        {
+            //var cloneOptions = new CloneOptions { BranchName = "master", Checkout = true };
+            //var cloneResult = Repository.Clone(url, localPath);
+            outPut.AddMessageLine("Clone " + repoName + " local folder...", "Pink");
+
+            await RunScript($"git clone \"" + url+"\" \"" + localPath + "\"");
+
+            outPut.AddMessageLine("Clone BIADemo local folder finished", "Green");
         }
 
         public List<string> GetRelease(string localPath)

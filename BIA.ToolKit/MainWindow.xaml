@@ -12,7 +12,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="250"/>
         </Grid.RowDefinitions>
-        <TabControl >
+        <TabControl Name="MainTab">
             <TabItem Header="Config">
                 <Grid Margin="10,10,10,10" Background="#FF000000">
 
@@ -27,7 +27,7 @@
                     <RadioButton Foreground="White" Content="Use a local cloned folder:" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top" GroupName="BIATemplateSrc"  Name="BIATemplateLocalFolder" Checked="BIATemplateLocalFolder_Checked" />
                     <TextBox HorizontalAlignment="Left" Margin="37,116,0,0" Text="D:\...\BIATemplate" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" Name="BIATemplateLocalFolderText" IsEnabled="False" TextChanged="BIATemplateLocalFolderText_TextChanged"/>
                     <Button Content="..." HorizontalAlignment="Left" Margin="347,115,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" Name="BIATemplateLocalFolderBrowse" IsEnabled="False" Click="BIATemplateLocalFolderBrowse_Click"/>
-                    <Button Content="Synchronize" HorizontalAlignment="Left" Margin="37,148,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="206" Name="BIATemplateLocalFolderSync" IsEnabled="False" Click="BIATemplateLocalFolderSync_Click"/>
+                    <Button Content="Synchronize" HorizontalAlignment="Center" Margin="0,0,0,10" RenderTransformOrigin="0.429,2.91" Width="206" Name="BIATemplateLocalFolderSync" Click="BIATemplateLocalFolderSync_Click" Height="20" VerticalAlignment="Bottom"/>
 
                     <CheckBox Name="UseCompanyFile"  HorizontalAlignment="Left" Margin="82,21,0,0" VerticalAlignment="Top" Checked="UseCompanyFile_Checked" Unchecked="UseCompanyFile_Checked" Grid.Column="2"/>
                     <Label Foreground="White" Content="Use company files" HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" Grid.Column="2"/>
@@ -36,7 +36,7 @@
                     <RadioButton Foreground="White" Content="Use a local cloned folder:" HorizontalAlignment="Left" Margin="10,119,0,0" VerticalAlignment="Top" GroupName="CompanyFilesSrc"  Grid.Column="2" Name="CompanyFilesLocalFolder" Checked="CompanyFilesLocalFolder_Checked"/>
                     <TextBox HorizontalAlignment="Left" Margin="37,144,0,0" Text="D:\...\BIACompanyFiles" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" Grid.Column="2" Name="CompanyFilesLocalFolderText" IsEnabled="False"/>
                     <Button Content="..." HorizontalAlignment="Left" Margin="347,143,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" Grid.Column="2" Name="CompanyFilesLocalFolderBrowse" IsEnabled="False" Click="CompanyFilesLocalFolderBrowse_Click"/>
-                    <Button Content="Synchronize" HorizontalAlignment="Left" Margin="37,173,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="206" Grid.Column="2" Name="CompanyFilesLocalFolderSync" IsEnabled="False" Click="CompanyFilesLocalFolderSync_Click"/>
+                    <Button Content="Synchronize" HorizontalAlignment="Center" Margin="0,0,0,10" RenderTransformOrigin="0.429,2.91" Width="206" Grid.Column="2" Name="CompanyFilesLocalFolderSync" Click="CompanyFilesLocalFolderSync_Click" Height="20" VerticalAlignment="Bottom"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Create project" Selector.Selected="OnTabCreateSelected" >
