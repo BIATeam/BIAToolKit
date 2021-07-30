@@ -51,6 +51,7 @@
             CompanyFilesLocalFolderText.Text = Settings.Default.CompanyFilesLocalFolderText;
 
             CreateProjectRootFolderText.Text = Settings.Default.CreateProjectRootFolderText;
+            ModifyProjectRootFolderText.Text = Settings.Default.CreateProjectRootFolderText;
             CreateCompanyName.Text = Settings.Default.CreateCompanyName;
 
 
@@ -126,6 +127,7 @@
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
             BIATemplateLocalFolderSync.IsEnabled = true;
 
+            isCreateFrameworkVersionInitialized = false;
         }
 
         private async void CompanyFilesLocalFolderSync_Click(object sender, RoutedEventArgs e)
@@ -135,13 +137,10 @@
 
             this.gitService.Synchronize("Company files", CompanyFilesLocalFolderText.Text);
 
-            //consoleWriter.AddMessageLine("Synchronize Company files local folder...", Brushes.Pink);
-            //await RunScript($"cd " + CompanyFilesLocalFolderText.Text + $" \r\n" + $"git pull");
-
-            //consoleWriter.AddMessageLine("Synchronize Company files local folder finished", Brushes.Green);
-
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
             CompanyFilesLocalFolderSync.IsEnabled = true;
+
+            isCreateFrameworkVersionInitialized = false;
         }
 
         private void BIATemplateLocalFolderBrowse_Click(object sender, RoutedEventArgs e)
@@ -175,17 +174,24 @@
                 {
                     if (BIATemplateLocalFolder.IsChecked == true)
                     {
+
                         string biaTemplatePath = BIATemplateLocalFolderText.Text;
-
-                        List<string> versions = gitService.GetRelease(biaTemplatePath).OrderBy(q => q).ToList();
-
-                        foreach (string version in versions)
+                        if (Directory.Exists(biaTemplatePath))
                         {
-                            //Add and select the last added
-                            lastItemFrameworkVersion = CreateFrameworkVersion.Items.Add(version);
-                        }
+                            List<string> versions = gitService.GetRelease(biaTemplatePath).OrderBy(q => q).ToList();
 
-                        lastItemFrameworkVersion = CreateFrameworkVersion.Items.Add("VX.Y.Z");
+                            foreach (string version in versions)
+                            {
+                                //Add and select the last added
+                                lastItemFrameworkVersion = CreateFrameworkVersion.Items.Add(version);
+                            }
+
+                            CreateFrameworkVersion.Items.Add("VX.Y.Z");
+                        }
+                        else
+                        {
+                            consoleWriter.AddMessageLine("The path " + biaTemplatePath + " do not exist.", Brushes.Red);
+                        }
                     }
                 }
                 if (UseCompanyFile.IsChecked == true)
@@ -235,7 +241,7 @@
         {
             for (int i= 0; i<CreateCompanyFileVersion.Items.Count; i++)
             {
-                if (CreateFrameworkVersion.SelectedValue.ToString() == CreateCompanyFileVersion.Items[i].ToString())
+                if (CreateFrameworkVersion.SelectedValue?.ToString() == CreateCompanyFileVersion.Items[i].ToString())
                 {
                     CreateCompanyFileVersion.SelectedIndex = i;
                 }
@@ -277,54 +283,65 @@
 
         private bool IsDirectoryEmpty(string path)
         {
-            return !Directory.EnumerateFileSystemEntries(path).Any();
+            string[] files = System.IO.Directory.GetFiles(path);
+            if (files.Length != 0) return false;
+
+            List<string> dirs = System.IO.Directory.GetDirectories(path).ToList();
+
+            if(dirs.Where(d => !d.EndsWith("\\.git")).Count() != 0) return false;
+
+            return true;
+
+            //return !Directory.EnumerateFileSystemEntries(path).Any();
         }
 
         private async void CreateCompanyFileVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             CreateCompanyFileProfile.Items.Clear();
             CreateGridOption.Children.Clear();
-            
-            companyFilesPath = CompanyFilesLocalFolderText.Text + "\\" + CreateCompanyFileVersion.SelectedValue;
-            string fileName = companyFilesPath + "\\biaCompanyFiles.json";
-            string jsonString = File.ReadAllText(fileName);
-
-            try {
-
-                cfSettings = JsonSerializer.Deserialize<CFSettings>(jsonString);
-
-                int lastIndex = -1;
-                foreach (string profile in cfSettings.Profiles)
-                {
-                    lastIndex = CreateCompanyFileProfile.Items.Add(profile);
-                }
-                if (lastIndex != -1) CreateCompanyFileProfile.SelectedIndex = lastIndex;
-
-
-                int top = 0;
-
-                foreach (CFOption option in cfSettings.Options)
-                {
-                    option.IsChecked = true;
-
-                    //  <CheckBox Content="Otpion2" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CreateCFOption_Otpion2" Margin="0,25,0,0" />
-                    CheckBox checkbox = new CheckBox();
-                    checkbox.Content = option.Name;
-                    checkbox.IsChecked = true;
-                    checkbox.Foreground = Brushes.White;
-                    checkbox.Height = 16;
-                    checkbox.Name = "CreateCFOption_" + option.Key;
-                    checkbox.Margin = new Thickness(0, top, 0, 0);
-                    checkbox.Checked += CreateCompanyFileOtption_Checked;
-                    checkbox.Unchecked += CreateCompanyFileOtption_Checked;
-                    top += 25;
-                    checkbox.VerticalAlignment = VerticalAlignment.Top;
-                    CreateGridOption.Children.Add(checkbox);
-                }
-            }
-            catch (Exception ex)
+            if (!string.IsNullOrEmpty(CreateCompanyFileVersion.SelectedValue?.ToString()))
             {
-                consoleWriter.AddMessageLine(ex.Message, Brushes.Red);
+                companyFilesPath = CompanyFilesLocalFolderText.Text + "\\" + CreateCompanyFileVersion.SelectedValue;
+                string fileName = companyFilesPath + "\\biaCompanyFiles.json";
+                string jsonString = File.ReadAllText(fileName);
+
+                try {
+
+                    cfSettings = JsonSerializer.Deserialize<CFSettings>(jsonString);
+
+                    int lastIndex = -1;
+                    foreach (string profile in cfSettings.Profiles)
+                    {
+                        lastIndex = CreateCompanyFileProfile.Items.Add(profile);
+                    }
+                    if (lastIndex != -1) CreateCompanyFileProfile.SelectedIndex = lastIndex;
+
+
+                    int top = 0;
+
+                    foreach (CFOption option in cfSettings.Options)
+                    {
+                        option.IsChecked = true;
+
+                        //  <CheckBox Content="Otpion2" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CreateCFOption_Otpion2" Margin="0,25,0,0" />
+                        CheckBox checkbox = new CheckBox();
+                        checkbox.Content = option.Name;
+                        checkbox.IsChecked = true;
+                        checkbox.Foreground = Brushes.White;
+                        checkbox.Height = 16;
+                        checkbox.Name = "CreateCFOption_" + option.Key;
+                        checkbox.Margin = new Thickness(0, top, 0, 0);
+                        checkbox.Checked += CreateCompanyFileOtption_Checked;
+                        checkbox.Unchecked += CreateCompanyFileOtption_Checked;
+                        top += 25;
+                        checkbox.VerticalAlignment = VerticalAlignment.Top;
+                        CreateGridOption.Children.Add(checkbox);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    consoleWriter.AddMessageLine(ex.Message, Brushes.Red);
+                }
             }
 
         }
@@ -362,6 +379,34 @@
                 brush = new SolidColorBrush(col);
             }
             consoleWriter.AddMessageLine(message, brush);
+        }
+
+        private void CreateProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (ModifyProjectRootFolderText != null && CreateProjectRootFolderText != null && ModifyProjectRootFolderText.Text != CreateProjectRootFolderText.Text)
+            {
+                ModifyProjectRootFolderText.Text = CreateProjectRootFolderText.Text;
+            }
+        }
+
+        private void ModifyProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (ModifyProjectRootFolderText != null && CreateProjectRootFolderText != null && ModifyProjectRootFolderText.Text != CreateProjectRootFolderText.Text)
+            {
+                CreateProjectRootFolderText.Text = ModifyProjectRootFolderText.Text;
+            }
+            if (Directory.Exists(ModifyProjectRootFolderText.Text))
+            {
+                DirectoryInfo di = new DirectoryInfo(ModifyProjectRootFolderText.Text);
+                // Create an array representing the files in the current directory.
+                DirectoryInfo[] versionDirectories = di.GetDirectories("*", SearchOption.TopDirectoryOnly);
+                // Print out the names of the files in the current directory.
+                foreach (DirectoryInfo dir in versionDirectories)
+                {
+                    //Add and select the last added
+                    ModifyProject.Items.Add(dir.Name);
+                }
+            }
         }
     }
 }
