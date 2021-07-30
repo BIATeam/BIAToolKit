@@ -31,9 +31,6 @@
 
         Configuration configuration;
 
-        string companyFilesPath = "";
-        CFSettings cfSettings = null;
-
         string modifyProjectPath = "";
 
         public MainWindow(Configuration configuration, GitService gitService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
@@ -44,6 +41,7 @@
 
             InitializeComponent();
             MigrateVersionAndOption.Inject(configuration,gitService,consoleWriter);
+            CreateVersionAndOption.Inject(configuration,gitService,consoleWriter);
 
             this.consoleWriter = (ConsoleWriter) consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer);
@@ -242,69 +240,13 @@
                 {
                     if (RefreshConfiguration())
                     {
-
-                        int lastItemCreateCompanyFileVersion = -1;
-                        int lastItemCreateFrameworkVersion = -1;
-
-                        CreateFrameworkVersion.Items.Clear();
-                        CreateCompanyFileVersion.Items.Clear();
-
-
-                        if (Directory.Exists(configuration.BIATemplatePath))
-                        {
-                            List<string> versions = gitService.GetRelease(configuration.BIATemplatePath).OrderBy(q => q).ToList();
-
-                            foreach (string version in versions)
-                            {
-                                //Add and select the last added
-                                lastItemCreateFrameworkVersion = CreateFrameworkVersion.Items.Add(version);
-                            }
-
-                            CreateFrameworkVersion.Items.Add("VX.Y.Z");
-                        }
-
-                        if (configuration.UseCompanyFileIsChecked)
-                        {
-                            CreateCompanyFileGroup.Visibility = Visibility.Visible;
-
-
-                            if (Directory.Exists(configuration.RootCompanyFilesPath))
-                            {
-                                DirectoryInfo di = new DirectoryInfo(configuration.RootCompanyFilesPath);
-                                // Create an array representing the files in the current directory.
-                                DirectoryInfo[] versionDirectories = di.GetDirectories("V*.*.*", SearchOption.TopDirectoryOnly);
-                                // Print out the names of the files in the current directory.
-                                foreach (DirectoryInfo dir in versionDirectories)
-                                {
-                                    //Add and select the last added
-                                    lastItemCreateCompanyFileVersion = CreateCompanyFileVersion.Items.Add(dir.Name);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            CreateCompanyFileGroup.Visibility = Visibility.Hidden;
-                        }
-
-                        if (lastItemCreateFrameworkVersion != -1) CreateFrameworkVersion.SelectedIndex = lastItemCreateFrameworkVersion;
-                        if (lastItemCreateCompanyFileVersion != -1) CreateCompanyFileVersion.SelectedIndex = lastItemCreateCompanyFileVersion;
-
+                        CreateVersionAndOption.refreshConfig();
                         isCreateTabInitialized = true;
                     }
                 }
             }
         }
 
-        private void CreateFrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            for (int i= 0; i<CreateCompanyFileVersion.Items.Count; i++)
-            {
-                if (CreateFrameworkVersion.SelectedValue?.ToString() == CreateCompanyFileVersion.Items[i].ToString())
-                {
-                    CreateCompanyFileVersion.SelectedIndex = i;
-                }
-            }
-        }
 
         private void Create_Click(object sender, RoutedEventArgs e)
         {
@@ -323,7 +265,7 @@
                 MessageBox.Show("Please select project name.");
                 return;
             }
-            if (CreateFrameworkVersion.SelectedValue == null)
+            if (CreateVersionAndOption.FrameworkVersion.SelectedValue == null)
             {
                 MessageBox.Show("Please select framework version.");
                 return;
@@ -335,8 +277,8 @@
                 MessageBox.Show("The project path is not empty : " + projectPath);
                 return;
             }
-            this.projectCreatorService.Create(CreateCompanyName.Text, CreateProjectName.Text, projectPath, configuration.BIATemplatePath, CreateFrameworkVersion.SelectedValue.ToString(),
-            configuration.UseCompanyFileIsChecked, cfSettings, companyFilesPath, CreateCompanyFileProfile.Text, configuration.AppFolderPath);
+            this.projectCreatorService.Create(CreateCompanyName.Text, CreateProjectName.Text, projectPath, configuration.BIATemplatePath, CreateVersionAndOption.FrameworkVersion.SelectedValue.ToString(),
+            configuration.UseCompanyFileIsChecked, CreateVersionAndOption.CfSettings, CreateVersionAndOption.CompanyFilesPath, CreateVersionAndOption.CompanyFileProfile.Text, configuration.AppFolderPath);
         }
 
         private bool IsDirectoryEmpty(string path)
@@ -353,76 +295,10 @@
             //return !Directory.EnumerateFileSystemEntries(path).Any();
         }
 
-        private async void CreateCompanyFileVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            CreateCompanyFileProfile.Items.Clear();
-            CreateGridOption.Children.Clear();
-            if (!string.IsNullOrEmpty(CreateCompanyFileVersion.SelectedValue?.ToString()))
-            {
-                companyFilesPath = CompanyFilesLocalFolderText.Text + "\\" + CreateCompanyFileVersion.SelectedValue;
-                string fileName = companyFilesPath + "\\biaCompanyFiles.json";
-                string jsonString = File.ReadAllText(fileName);
-
-                try {
-
-                    cfSettings = JsonSerializer.Deserialize<CFSettings>(jsonString);
-
-                    int lastIndex = -1;
-                    foreach (string profile in cfSettings.Profiles)
-                    {
-                        lastIndex = CreateCompanyFileProfile.Items.Add(profile);
-                    }
-                    if (lastIndex != -1) CreateCompanyFileProfile.SelectedIndex = lastIndex;
-
-
-                    int top = 0;
-
-                    foreach (CFOption option in cfSettings.Options)
-                    {
-                        option.IsChecked = true;
-
-                        //  <CheckBox Content="Otpion2" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CreateCFOption_Otpion2" Margin="0,25,0,0" />
-                        CheckBox checkbox = new CheckBox();
-                        checkbox.Content = option.Name;
-                        checkbox.IsChecked = true;
-                        checkbox.Foreground = Brushes.White;
-                        checkbox.Height = 16;
-                        checkbox.Name = "CreateCFOption_" + option.Key;
-                        checkbox.Margin = new Thickness(0, top, 0, 0);
-                        checkbox.Checked += CreateCompanyFileOtption_Checked;
-                        checkbox.Unchecked += CreateCompanyFileOtption_Checked;
-                        top += 25;
-                        checkbox.VerticalAlignment = VerticalAlignment.Top;
-                        CreateGridOption.Children.Add(checkbox);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    consoleWriter.AddMessageLine(ex.Message, Brushes.Red);
-                }
-            }
-
-        }
-
         private void UseCompanyFile_Checked(object sender, RoutedEventArgs e)
         {
            Configurationchange(); 
         }
-
-        private void CreateCompanyFileOtption_Checked(object sender, RoutedEventArgs e)
-        {
-            if (sender is CheckBox)
-            {
-                CheckBox chx = (CheckBox)sender;
-                foreach (CFOption option in cfSettings.Options)
-                {
-                    if ("CreateCFOption_" + option.Key == chx.Name)
-                    {
-                        option.IsChecked = chx.IsChecked == true;
-                    }
-                }
-            }
-         }
 
         public void AddMessageLine(string message,  string color= null)
         {

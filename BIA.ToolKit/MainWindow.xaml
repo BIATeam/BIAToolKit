@@ -7,8 +7,8 @@
         xmlns:local="clr-namespace:BIA.ToolKit"
         xmlns:uc="clr-namespace:BIA.ToolKit"
         mc:Ignorable="d"
-        Title="BIA Toolkit" Height="650" Width="1000" WindowStyle="ThreeDBorderWindow" ResizeMode="NoResize">
-    <Grid Background="#FFE5E5E5">
+        Title="BIA Toolkit" Height="690" Width="1020">
+    <Grid Background="#FFE5E5E5"  Height="650" Width="1000">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="250"/>
@@ -52,32 +52,8 @@
                     <TextBox HorizontalAlignment="Left" Margin="425,26,0,0" Text="MyCompany" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="CreateCompanyName" IsEnabled="True"/>
                     <Label Content="Project name" HorizontalAlignment="Left" Margin="406,51,0,0" VerticalAlignment="Top" Foreground="White"/>
                     <TextBox HorizontalAlignment="Left" Margin="425,76,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="CreateProjectName" IsEnabled="True"/>
-                    <Label Content="Framework version" HorizontalAlignment="Left" Margin="10,150,0,0" VerticalAlignment="Top" Foreground="White"/>
-                    <ComboBox HorizontalAlignment="Left" Margin="29,174,0,0" VerticalAlignment="Top" Width="120" Name="CreateFrameworkVersion" SelectionChanged="CreateFrameworkVersion_SelectionChanged"/>
-                    <GroupBox Header="Company files" Margin="0,116,10,10" Foreground="White" BorderBrush="White" Name="CreateCompanyFileGroup" HorizontalAlignment="Right" Width="642" Visibility="Visible">
-                        <Grid Margin="10,10,10,10">
-                            <Label Content="Company file version" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Foreground="White" Name="CreateCompanyFileVersionLabel"/>
-                            <ComboBox HorizontalAlignment="Left" Margin="20,25,0,0" VerticalAlignment="Top" Width="120" Name="CreateCompanyFileVersion" SelectionChanged="CreateCompanyFileVersion_SelectionChanged"/>
 
-                            <Label Content="Profile" HorizontalAlignment="Left" Margin="0,50,0,0" VerticalAlignment="Top" Foreground="White" Name="CreateCompanyFileProfileLabel"/>
-                            <ComboBox HorizontalAlignment="Left" Margin="20,75,0,0" VerticalAlignment="Top" Width="120" Name="CreateCompanyFileProfile"/>
-
-                            <Label Content="Options" HorizontalAlignment="Left" Margin="200,0,0,0" VerticalAlignment="Top" Foreground="White" Name="CreateCompanyFileOptionLabel"/>
-                            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="260,0,0,0" Name="CreateCompanyFileOptionViewer">
-                                <Grid Name="CreateGridOption">
-                                    <CheckBox Content="Otpion1" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CreateCFOption_Otpion1" Margin="0,0,0,0"/>
-                                    <CheckBox Content="Otpion2" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CreateCFOption_Otpion2" Margin="0,25,0,0" />
-                                    <CheckBox Content="Otpion3" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CreateCFOption_Otpion3" Margin="0,50,0,0"/>
-                                    <CheckBox Content="Otpion4" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CreateCFOption_Otpion4" Margin="0,75,0,0" />
-                                    <CheckBox Content="Otpion5" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CreateCFOption_Otpion5" Margin="0,100,0,0"/>
-                                    <CheckBox Content="Otpion6" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CreateCFOption_Otpion6" Margin="0,125,0,0" />
-                                    <CheckBox Content="Otpion7" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CreateCFOption_Otpion7" Margin="0,150,0,0"/>
-                                    <CheckBox Content="Otpion8" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CreateCFOption_Otpion8" Margin="0,175,0,0" />
-                                </Grid>
-                            </ScrollViewer>
-                        </Grid>
-                    </GroupBox>
-
+                    <uc:VersionAndOptionUserControl x:Name="CreateVersionAndOption" Margin="0,99,0,87"/>
 
 
 

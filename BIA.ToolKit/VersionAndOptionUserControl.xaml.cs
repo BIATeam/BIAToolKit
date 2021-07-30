@@ -30,7 +30,7 @@
         IConsoleWriter consoleWriter;
 
         public string CompanyFilesPath { get; private set; }
-        public CFSettings cfSettings { get; private set; }
+        public CFSettings CfSettings { get; private set; }
 
         public VersionAndOptionUserControl()
         {
@@ -118,10 +118,10 @@
                 try
                 {
 
-                    cfSettings = JsonSerializer.Deserialize<CFSettings>(jsonString);
+                    CfSettings = JsonSerializer.Deserialize<CFSettings>(jsonString);
 
                     int lastIndex = -1;
-                    foreach (string profile in cfSettings.Profiles)
+                    foreach (string profile in CfSettings.Profiles)
                     {
                         lastIndex = CompanyFileProfile.Items.Add(profile);
                     }
@@ -130,7 +130,7 @@
 
                     int top = 0;
 
-                    foreach (CFOption option in cfSettings.Options)
+                    foreach (CFOption option in CfSettings.Options)
                     {
                         option.IsChecked = true;
 
@@ -162,7 +162,7 @@
             if (sender is CheckBox)
             {
                 CheckBox chx = (CheckBox)sender;
-                foreach (CFOption option in cfSettings.Options)
+                foreach (CFOption option in CfSettings.Options)
                 {
                     if ("CFOption_" + option.Key == chx.Name)
                     {
