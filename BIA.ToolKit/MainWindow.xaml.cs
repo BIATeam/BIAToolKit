@@ -27,20 +27,23 @@
         ProjectCreatorService projectCreatorService;
         ConsoleWriter consoleWriter;
         bool isCreateTabInitialized = false;
+        bool isModifyTabInitialized = false;
 
-        Configuration configuration = new Configuration();
+        Configuration configuration;
 
         string companyFilesPath = "";
         CFSettings cfSettings = null;
 
         string modifyProjectPath = "";
 
-        public MainWindow(GitService gitService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
+        public MainWindow(Configuration configuration, GitService gitService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
         {
+            this.configuration = configuration;
             this.gitService = gitService;
             this.projectCreatorService = projectCreatorService;
 
             InitializeComponent();
+            MigrateVersionAndOption.Inject(configuration,gitService,consoleWriter);
 
             this.consoleWriter = (ConsoleWriter) consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer);
@@ -74,7 +77,7 @@
 
         public bool RefreshBIATemplateConfiguration()
         {
-            isCreateTabInitialized = false;
+            Configurationchange(); 
             if (!configuration.RefreshBIATemplate(MainTab, BIATemplateLocalFolder.IsChecked == true, BIATemplateLocalFolderText.Text))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
@@ -83,9 +86,15 @@
             return true;
         }
 
-        public bool RefreshCompanyFilesConfiguration()
+        private void Configurationchange()
         {
             isCreateTabInitialized = false;
+            isModifyTabInitialized = false;
+        }
+
+        public bool RefreshCompanyFilesConfiguration()
+        {
+            Configurationchange(); 
             if (!configuration.RefreshCompanyFiles(MainTab, UseCompanyFile.IsChecked == true, CompanyFilesLocalFolder.IsChecked == true, CompanyFilesLocalFolderText.Text))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
@@ -116,33 +125,33 @@
         {
             BIATemplateLocalFolderText.IsEnabled = true;
             BIATemplateLocalFolderBrowse.IsEnabled = true;
-            isCreateTabInitialized = false;
+            Configurationchange(); 
         }
 
         private void BIATemplateGitHub_Checked(object sender, RoutedEventArgs e)
         {
             BIATemplateLocalFolderText.IsEnabled = false;
             BIATemplateLocalFolderBrowse.IsEnabled = false;
-            isCreateTabInitialized = false;
+            Configurationchange(); 
         }
 
         private void BIATemplateLocalFolderText_TextChanged(object sender, RoutedEventArgs e)
         {
-            isCreateTabInitialized = false;
+            Configurationchange(); 
         }
 
         private void CompanyFilesLocalFolder_Checked(object sender, RoutedEventArgs e)
         {
             CompanyFilesLocalFolderText.IsEnabled = true;
             CompanyFilesLocalFolderBrowse.IsEnabled = true;
-            isCreateTabInitialized = false;
+            Configurationchange(); 
         }
 
         private void CompanyFilesGit_Checked(object sender, RoutedEventArgs e)
         {
             CompanyFilesLocalFolderText.IsEnabled = false;
             CompanyFilesLocalFolderBrowse.IsEnabled = false;
-            isCreateTabInitialized = false;
+            Configurationchange(); 
         }
 
         private async void BIATemplateLocalFolderSync_Click(object sender, RoutedEventArgs e)
@@ -207,7 +216,24 @@
             FileDialog.BrowseFolder(CreateProjectRootFolderText);
         }
 
-        private void OnTabCreateOrModifySelected(object sender, RoutedEventArgs e)
+
+        private void OnTabModifySelected(object sender, RoutedEventArgs e)
+        {
+            var tab = sender as TabItem;
+            if (tab != null)
+            {
+                if (!isModifyTabInitialized)
+                {
+                    if (RefreshConfiguration())
+                    {
+                        MigrateVersionAndOption.refreshConfig();
+                        isModifyTabInitialized = true;
+                    }
+                }
+            }
+        }
+
+        private void OnTabCreateSelected(object sender, RoutedEventArgs e)
         {
             var tab = sender as TabItem;
             if (tab != null)
@@ -221,7 +247,6 @@
                         int lastItemCreateFrameworkVersion = -1;
 
                         CreateFrameworkVersion.Items.Clear();
-                        MigrateFrameworkVersion.Items.Clear();
                         CreateCompanyFileVersion.Items.Clear();
 
 
@@ -381,7 +406,7 @@
 
         private void UseCompanyFile_Checked(object sender, RoutedEventArgs e)
         {
-           isCreateTabInitialized = false;
+           Configurationchange(); 
         }
 
         private void CreateCompanyFileOtption_Checked(object sender, RoutedEventArgs e)
@@ -474,8 +499,7 @@
                         break;
                     }
                 }
-            }
-            
+            } 
         }
     }
 }
