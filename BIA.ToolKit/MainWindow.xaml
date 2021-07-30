@@ -81,7 +81,7 @@
 
                 </Grid>
             </TabItem>
-            <TabItem Header="Modify existing project">
+            <TabItem Header="Modify existing project" Height="20" VerticalAlignment="Top">
                 <Grid Margin="10,10,10,10">
                     <Grid.Background>
                         <ImageBrush ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
@@ -90,6 +90,17 @@
                         <RowDefinition Height="50"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
+                    <Label Content="Project parent path" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Foreground="White"/>
+                    <TextBox HorizontalAlignment="Left" Margin="29,25,0,0" Text="D:\...\MyRootProjectPath" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="ModifyProjectRootFolderText" TextChanged="ModifyProjectRootFolderText_TextChanged"/>
+                    <Button Content="..." HorizontalAlignment="Left" Margin="339,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="ModifyProjectRootFolderBrowse" Click="CreateProjectRootFolderBrowse_Click"/>
+                    <Label Content="Project Folder" HorizontalAlignment="Left" Margin="487,0,0,0" VerticalAlignment="Top" Foreground="White"/>
+                    <ComboBox HorizontalAlignment="Left" Margin="513,25,0,0" VerticalAlignment="Top" Width="120" x:Name="ModifyProject" SelectionChanged="ModifyProject_SelectionChanged"/>
+                    <Label Content="Version detected : " HorizontalAlignment="Left" Margin="687,0,0,0" VerticalAlignment="Top" Foreground="White"/>
+                    <Label Content="???" HorizontalAlignment="Left" Margin="820,0,0,0" VerticalAlignment="Top" Foreground="White" x:Name="ModifyProjectVersion"/>
+                    <Label Content="Project name detected : " HorizontalAlignment="Left" Margin="687,25,0,0" VerticalAlignment="Top" Foreground="White"/>
+                    <Label Content="???" HorizontalAlignment="Left" Margin="820,25,0,0" VerticalAlignment="Top" Foreground="White" x:Name="ModifyProjectName"/>
+                    <Label Content="Company detected : " HorizontalAlignment="Left" Margin="687,50,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
+                    <Label Content="???" HorizontalAlignment="Left" Margin="820,50,0,0" VerticalAlignment="Top" Foreground="White" x:Name="ModifyProjectCompany" Grid.RowSpan="2"/>
                     <TabControl Grid.Row="2" Background="Transparent">
                         <TabItem Header="Migration">
                             <Grid Background="Transparent"/>
@@ -101,11 +112,6 @@
                             <Grid Background="Transparent"/>
                         </TabItem>
                     </TabControl>
-                    <Label Content="Project parent path" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Foreground="White"/>
-                    <TextBox HorizontalAlignment="Left" Margin="29,25,0,0" Text="D:\...\MyRootProjectPath" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="ModifyProjectRootFolderText" TextChanged="ModifyProjectRootFolderText_TextChanged"/>
-                    <Button Content="..." HorizontalAlignment="Left" Margin="339,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="ModifyProjectRootFolderBrowse" Click="CreateProjectRootFolderBrowse_Click"/>
-                    <Label Content="Project" HorizontalAlignment="Left" Margin="487,-1,0,0" VerticalAlignment="Top" Foreground="White" x:Name="CreateCompanyFileVersionLabel_Copy"/>
-                    <ComboBox HorizontalAlignment="Left" Margin="513,25,0,0" VerticalAlignment="Top" Width="120" x:Name="ModifyProject"/>
                 </Grid>
             </TabItem>
         </TabControl>

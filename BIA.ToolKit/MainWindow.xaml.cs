@@ -15,6 +15,7 @@
     using System.Collections.Generic;
     using System;
     using BIA.ToolKit.Application.Helper;
+    using System.Text.RegularExpressions;
 
 
     /// <summary>
@@ -32,6 +33,8 @@
         string tempFolderPath = "";
         string appFolderPath = "";
         CFSettings cfSettings = null;
+
+        string modifyProjectPath = "";
 
         public MainWindow(GitService gitService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
         {
@@ -454,6 +457,13 @@
 
         private void ModifyProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (ModifyProject != null)
+            {
+                ModifyProjectCompany.Content = "???";
+                ModifyProjectName.Content = "???";
+                ModifyProjectVersion.Content = "???";
+                ModifyProject.Items.Clear();
+            }
             if (ModifyProjectRootFolderText != null && CreateProjectRootFolderText != null && ModifyProjectRootFolderText.Text != CreateProjectRootFolderText.Text)
             {
                 CreateProjectRootFolderText.Text = ModifyProjectRootFolderText.Text;
@@ -470,6 +480,35 @@
                     ModifyProject.Items.Add(dir.Name);
                 }
             }
+        }
+
+        private void ModifyProject_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ModifyProjectCompany.Content = "???";
+            ModifyProjectName.Content = "???";
+            ModifyProjectVersion.Content = "???";
+
+            modifyProjectPath = ModifyProjectRootFolderText.Text + "\\" + ModifyProject.SelectedValue;
+            Regex reg = new Regex(modifyProjectPath.Replace("\\","\\\\") + @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$");
+            string file = Directory.GetFiles(modifyProjectPath, "Constants.cs", SearchOption.AllDirectories).Where(path => reg.IsMatch(path)).FirstOrDefault();
+            if (file != null)
+            {
+                var match = reg.Match(file);
+                ModifyProjectCompany.Content = match.Groups[1].Value;
+                ModifyProjectName.Content = match.Groups[2].Value;
+                Regex regVersion = new Regex(@" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$");
+
+                foreach (var line in File.ReadAllLines(file))
+                {
+                    var matchVersion = regVersion.Match(line);
+                    if (matchVersion.Success )
+                    {
+                        ModifyProjectVersion.Content = matchVersion.Groups[1].Value;
+                        break;
+                    }
+                }
+            }
+            
         }
     }
 }
