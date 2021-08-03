@@ -7,8 +7,8 @@
         xmlns:local="clr-namespace:BIA.ToolKit"
         xmlns:uc="clr-namespace:BIA.ToolKit"
         mc:Ignorable="d"
-        Title="BIA Toolkit" Height="690" Width="1020">
-    <Grid Background="#FFE5E5E5"  Height="650" Width="1000">
+        Title="BIA Toolkit" Height="765" Width="1020">
+    <Grid Background="#FFE5E5E5"  Height="725" Width="1000">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="250"/>
@@ -53,7 +53,7 @@
                     <Label Content="Project name" HorizontalAlignment="Left" Margin="406,51,0,0" VerticalAlignment="Top" Foreground="White"/>
                     <TextBox HorizontalAlignment="Left" Margin="425,76,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="CreateProjectName" IsEnabled="True"/>
 
-                    <uc:VersionAndOptionUserControl x:Name="CreateVersionAndOption" Margin="0,99,0,87"/>
+                    <uc:VersionAndOptionUserControl x:Name="CreateVersionAndOption" Margin="10,99,10,87"/>
 
 
 
@@ -84,8 +84,14 @@
                     <Label Content="???" HorizontalAlignment="Left" Margin="820,50,0,0" VerticalAlignment="Top" Foreground="White" x:Name="ModifyProjectCompany" Grid.RowSpan="2"/>
                     <TabControl Grid.Row="2" Background="Transparent">
                         <TabItem Header="Migration">
-                            <Grid Background="Transparent">
-                                <uc:VersionAndOptionUserControl x:Name="MigrateVersionAndOption"/>
+                            <Grid Background="Transparent" VerticalAlignment="Top">
+                                <GroupBox Header="Origial" Margin="0,0,150,0" Foreground="White" BorderBrush="White" Name="CompanyFileGroup" Visibility="Visible">
+                                    <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption" />
+                                </GroupBox>
+                                <GroupBox Header="Target" Margin="0,173,150,-173" Foreground="White" BorderBrush="White" Visibility="Visible">
+                                    <uc:VersionAndOptionUserControl x:Name="MigrateTargetVersionAndOption"/>
+                                </GroupBox>
+                                <Button Content="Migrate" HorizontalAlignment="Left"  Width="123" x:Name="Migrate" Margin="835,0,0,0" Height="69" VerticalAlignment="Center" Grid.RowSpan="2" Click="Migrate_Click"/>
                             </Grid>
                         </TabItem>
                         <TabItem Header="Rename project">

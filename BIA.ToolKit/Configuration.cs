@@ -15,6 +15,7 @@ namespace BIA.ToolKit
         public string BIATemplatePath { get; private set; }
         public string RootCompanyFilesPath { get; private set; }
         public string AppFolderPath { get; private set; }
+        public string TmpFolderPath { get; private set; }
 
         public bool BIATemplateLocalFolderIsChecked { get; private set; }
         public string BIaTemplateLocalFolderText { get; private set; }
@@ -27,6 +28,7 @@ namespace BIA.ToolKit
             BIATemplatePath = "";
             RootCompanyFilesPath = "";
             AppFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
+            TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
         }
 
         public bool RefreshBIATemplate(TabControl MainTab,

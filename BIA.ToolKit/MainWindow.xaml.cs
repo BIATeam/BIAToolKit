@@ -40,7 +40,8 @@
             this.projectCreatorService = projectCreatorService;
 
             InitializeComponent();
-            MigrateVersionAndOption.Inject(configuration,gitService,consoleWriter);
+            MigrateOriginVersionAndOption.Inject(configuration, gitService, consoleWriter);
+            MigrateTargetVersionAndOption.Inject(configuration, gitService, consoleWriter);
             CreateVersionAndOption.Inject(configuration,gitService,consoleWriter);
 
             this.consoleWriter = (ConsoleWriter) consoleWriter;
@@ -224,7 +225,8 @@
                 {
                     if (RefreshConfiguration())
                     {
-                        MigrateVersionAndOption.refreshConfig();
+                        MigrateOriginVersionAndOption.refreshConfig();
+                        MigrateTargetVersionAndOption.refreshConfig();
                         isModifyTabInitialized = true;
                     }
                 }
@@ -277,8 +279,13 @@
                 MessageBox.Show("The project path is not empty : " + projectPath);
                 return;
             }
-            this.projectCreatorService.Create(CreateCompanyName.Text, CreateProjectName.Text, projectPath, configuration.BIATemplatePath, CreateVersionAndOption.FrameworkVersion.SelectedValue.ToString(),
-            configuration.UseCompanyFileIsChecked, CreateVersionAndOption.CfSettings, CreateVersionAndOption.CompanyFilesPath, CreateVersionAndOption.CompanyFileProfile.Text, configuration.AppFolderPath);
+            CreateProject(CreateCompanyName.Text, CreateProjectName.Text, projectPath, CreateVersionAndOption);
+        }
+
+        private void CreateProject(string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption)
+        {
+            this.projectCreatorService.Create(CompanyName, ProjectName, projectPath, configuration.BIATemplatePath, versionAndOption.FrameworkVersion.SelectedValue.ToString(),
+            configuration.UseCompanyFileIsChecked, versionAndOption.CfSettings, versionAndOption.CompanyFilesPath, versionAndOption.CompanyFileProfile.Text, configuration.AppFolderPath);
         }
 
         private bool IsDirectoryEmpty(string path)
@@ -376,6 +383,29 @@
                     }
                 }
             } 
+        }
+
+        private void Migrate_Click(object sender, RoutedEventArgs e)
+        {
+            string projectPath = ModifyProjectRootFolderText.Text + "\\" + ModifyProjectName.Content;
+            if (!Directory.Exists(projectPath) || IsDirectoryEmpty(projectPath))
+            {
+                MessageBox.Show("The project path is empty : " + projectPath);
+                return;
+            }
+            string projectOriginPath = configuration.TmpFolderPath + ModifyProjectName.Content + "_" + MigrateOriginVersionAndOption.FrameworkVersion.SelectedValue.ToString();
+            if (Directory.Exists(projectOriginPath))
+            {
+                FileTransform.ForceDeleteDirectory(projectOriginPath);
+            }
+            CreateProject(ModifyProjectCompany.Content.ToString(), ModifyProjectName.Content.ToString(), projectOriginPath, MigrateOriginVersionAndOption);
+
+            string projectTargetPath = configuration.TmpFolderPath + ModifyProjectName.Content + "_" + MigrateTargetVersionAndOption.FrameworkVersion.SelectedValue.ToString();
+            if (Directory.Exists(projectTargetPath))
+            {
+                FileTransform.ForceDeleteDirectory(projectTargetPath);
+            }
+            CreateProject(ModifyProjectCompany.Content.ToString(), ModifyProjectName.Content.ToString(), projectTargetPath, MigrateTargetVersionAndOption);
         }
     }
 }
