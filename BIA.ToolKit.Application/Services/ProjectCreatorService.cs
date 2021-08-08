@@ -22,7 +22,7 @@
             this.consoleWriter = consoleWriter;
         }
 
-        public void Create(string companyName, string projectName, string projectPath, string biaTemplatePath, string frameworkVersion /*frameworkVersion;*/,
+        public void Create(bool actionFinishedAtEnd, string companyName, string projectName, string projectPath, string biaTemplatePath, string frameworkVersion /*frameworkVersion;*/,
             bool useCompanyFile, CFSettings cfSettings, string companyFilesPath, string companyFileProfile /* CreateCompanyFileProfile.Text*/,
             string appFolderPath
             )
@@ -140,7 +140,7 @@
             FileTransform.ReplaceInFileAndFileName(projectPath, "thebiadevcompany", companyName.ToLower(), FileTransform.replaceInFileExtensions);
             FileTransform.ReplaceInFileAndFileName(projectPath, "biatemplate", projectName.ToLower(), FileTransform.replaceInFileExtensions);
 
-            consoleWriter.AddMessageLine("Create project finished.", "Green");
+            consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd? "Green": "Blue");
         }
     }
 }

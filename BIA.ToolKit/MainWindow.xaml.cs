@@ -124,26 +124,26 @@
         {
             BIATemplateLocalFolderText.IsEnabled = true;
             BIATemplateLocalFolderBrowse.IsEnabled = true;
-            Configurationchange(); 
+            Configurationchange();
         }
 
         private void BIATemplateGitHub_Checked(object sender, RoutedEventArgs e)
         {
             BIATemplateLocalFolderText.IsEnabled = false;
             BIATemplateLocalFolderBrowse.IsEnabled = false;
-            Configurationchange(); 
+            Configurationchange();
         }
 
         private void BIATemplateLocalFolderText_TextChanged(object sender, RoutedEventArgs e)
         {
-            Configurationchange(); 
+            Configurationchange();
         }
 
         private void CompanyFilesLocalFolder_Checked(object sender, RoutedEventArgs e)
         {
             CompanyFilesLocalFolderText.IsEnabled = true;
             CompanyFilesLocalFolderBrowse.IsEnabled = true;
-            Configurationchange(); 
+            Configurationchange();
         }
 
         private void CompanyFilesGit_Checked(object sender, RoutedEventArgs e)
@@ -162,11 +162,11 @@
 
                 if (!configuration.BIATemplateLocalFolderIsChecked && !Directory.Exists(configuration.BIATemplatePath))
                 {
-                    this.gitService.Clone("BIATemplate", "https://github.com/BIATeam/BIATemplate.git", configuration.BIATemplatePath);
+                    await this.gitService.Clone("BIATemplate", "https://github.com/BIATeam/BIATemplate.git", configuration.BIATemplatePath);
                 }
                 else
                 {
-                    this.gitService.Synchronize("BIATemplate", configuration.BIATemplatePath);
+                    await this.gitService.Synchronize("BIATemplate", configuration.BIATemplatePath);
                 }
 
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
@@ -183,7 +183,7 @@
 
                 if (configuration.CompanyFilesLocalFolderIsChecked)
                 {
-                    this.gitService.Synchronize("Company files", configuration.RootCompanyFilesPath);
+                    await this.gitService.Synchronize("Company files", configuration.RootCompanyFilesPath);
                 }
                 else
                 {
@@ -191,7 +191,7 @@
                     {
                         FileTransform.ForceDeleteDirectory(configuration.RootCompanyFilesPath);
                     }
-                    this.gitService.Clone("BIACompanyFiles", CompanyFilesGitRepo.Text, configuration.RootCompanyFilesPath);
+                    await this.gitService.Clone("BIACompanyFiles", CompanyFilesGitRepo.Text, configuration.RootCompanyFilesPath);
                 }
 
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
@@ -279,12 +279,12 @@
                 MessageBox.Show("The project path is not empty : " + projectPath);
                 return;
             }
-            CreateProject(CreateCompanyName.Text, CreateProjectName.Text, projectPath, CreateVersionAndOption);
+            CreateProject(true, CreateCompanyName.Text, CreateProjectName.Text, projectPath, CreateVersionAndOption);
         }
 
-        private void CreateProject(string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption)
+        private void CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption)
         {
-            this.projectCreatorService.Create(CompanyName, ProjectName, projectPath, configuration.BIATemplatePath, versionAndOption.FrameworkVersion.SelectedValue.ToString(),
+            this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, configuration.BIATemplatePath, versionAndOption.FrameworkVersion.SelectedValue.ToString(),
             configuration.UseCompanyFileIsChecked, versionAndOption.CfSettings, versionAndOption.CompanyFilesPath, versionAndOption.CompanyFileProfile.Text, configuration.AppFolderPath);
         }
 
@@ -385,27 +385,47 @@
             } 
         }
 
-        private void Migrate_Click(object sender, RoutedEventArgs e)
+        private async void Migrate_Click(object sender, RoutedEventArgs e)
         {
+            Migrate.IsEnabled = false;
+            Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
+
             string projectPath = ModifyProjectRootFolderText.Text + "\\" + ModifyProjectName.Content;
             if (!Directory.Exists(projectPath) || IsDirectoryEmpty(projectPath))
             {
                 MessageBox.Show("The project path is empty : " + projectPath);
                 return;
             }
-            string projectOriginPath = configuration.TmpFolderPath + ModifyProjectName.Content + "_" + MigrateOriginVersionAndOption.FrameworkVersion.SelectedValue.ToString();
+
+            // Create project at original version.
+            string projectOriginalFolderName = ModifyProjectName.Content + "_" + MigrateOriginVersionAndOption.FrameworkVersion.SelectedValue.ToString();
+            string projectOriginPath = configuration.TmpFolderPath + projectOriginalFolderName;
             if (Directory.Exists(projectOriginPath))
             {
                 FileTransform.ForceDeleteDirectory(projectOriginPath);
             }
-            CreateProject(ModifyProjectCompany.Content.ToString(), ModifyProjectName.Content.ToString(), projectOriginPath, MigrateOriginVersionAndOption);
+            CreateProject(false, ModifyProjectCompany.Content.ToString(), ModifyProjectName.Content.ToString(), projectOriginPath, MigrateOriginVersionAndOption);
 
-            string projectTargetPath = configuration.TmpFolderPath + ModifyProjectName.Content + "_" + MigrateTargetVersionAndOption.FrameworkVersion.SelectedValue.ToString();
+            // Create project at target version.
+            string projectTargetFolderName = ModifyProjectName.Content + "_" + MigrateTargetVersionAndOption.FrameworkVersion.SelectedValue.ToString();
+            string projectTargetPath = configuration.TmpFolderPath + projectTargetFolderName;
             if (Directory.Exists(projectTargetPath))
             {
                 FileTransform.ForceDeleteDirectory(projectTargetPath);
             }
-            CreateProject(ModifyProjectCompany.Content.ToString(), ModifyProjectName.Content.ToString(), projectTargetPath, MigrateTargetVersionAndOption);
+            CreateProject(false, ModifyProjectCompany.Content.ToString(), ModifyProjectName.Content.ToString(), projectTargetPath, MigrateTargetVersionAndOption);
+
+            // Make the differential
+            string migrateFilePath = configuration.TmpFolderPath + $"Migration_{projectOriginalFolderName}-{projectTargetFolderName}.patch";
+            await gitService.DiffFolder(configuration.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath);
+
+            //Apply the differential
+            await gitService.ApplyDiff(projectPath, migrateFilePath);
+
+
+            Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
+            Migrate.IsEnabled = true;
+
         }
     }
 }

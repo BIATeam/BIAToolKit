@@ -19,7 +19,7 @@
             this.outPut = outPut;
         }
 
-        public async void Synchronize(string repoName, string localPath)
+        public async Task Synchronize(string repoName, string localPath)
         {
             outPut.AddMessageLine("Synchronize " + repoName + " local folder...", "Pink");
             await RunScript($"cd " + localPath + $" \r\n" + $"git pull");
@@ -33,7 +33,7 @@
             outPut.AddMessageLine("Synchronize BIADemo local folder finished", "Green");
         }
 
-        public async void Clone(string repoName, string url, string localPath)
+        public async Task Clone(string repoName, string url, string localPath)
         {
             //var cloneOptions = new CloneOptions { BranchName = "master", Checkout = true };
             //var cloneResult = Repository.Clone(url, localPath);
@@ -56,6 +56,36 @@
             return release;
         }
 
+        public async Task DiffFolder(string rootPath, string name1, string name2, string migrateFilePath)
+        {
+            outPut.AddMessageLine($"Diff {name1} <> {name2}", "Pink");
+
+
+            // git diff --no-index V3.3.3 V3.4.0 > .\\Migration\\CF_3.3.3-3.4.0.patch
+            await RunScript($"cd {rootPath} \r\n git diff --no-index {name1} {name2} > {migrateFilePath}");
+
+            // Replace a/{name1}/ by a/
+            FileTransform.ReplaceInFile(migrateFilePath, $"a/{name1}/", "a/");
+            FileTransform.ReplaceInFile(migrateFilePath, $"a/{name2}/", "a/");
+
+            // Replace b/{name2}/ by b/
+            FileTransform.ReplaceInFile(migrateFilePath, $"b/{name2}/", "b/");
+            FileTransform.ReplaceInFile(migrateFilePath, $"b/{name1}/", "b/");
+
+            FileTransform.ReplaceInFile(migrateFilePath, $"\r\n", "\n");
+
+            outPut.AddMessageLine("Diff folder finished", "Green");
+        }
+
+        public async Task ApplyDiff(string projectPath, string migrateFilePath)
+        {
+            outPut.AddMessageLine($"Apply diff", "Pink");
+
+            // cd "...\\YourProject" git apply --reject --whitespace=fix "3.2.2-3.3.0.patch" \
+            await RunScript($"cd {projectPath} \r\n git apply --reject --whitespace=fix {migrateFilePath} \\ ");
+
+            outPut.AddMessageLine("Apply diff finished", "Green");
+        }
         /// <summary>
         /// Runs a PowerShell script with parameters and prints the resulting pipeline objects to the console output. 
         /// </summary>
