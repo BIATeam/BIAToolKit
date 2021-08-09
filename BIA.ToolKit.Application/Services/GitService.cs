@@ -62,7 +62,8 @@
 
 
             // git diff --no-index V3.3.3 V3.4.0 > .\\Migration\\CF_3.3.3-3.4.0.patch
-            await RunScript($"cd {rootPath} \r\n git diff --no-index {name1} {name2} > {migrateFilePath}");
+            //await RunScript($"cd {rootPath} \r\n git diff --no-index --binary {name1} {name2} > {migrateFilePath}");
+            await RunScript($"cd {rootPath} \r\n git diff --no-index --binary {name1} {name2} | Out-File -encoding OEM {migrateFilePath}");
 
             // Replace a/{name1}/ by a/
             FileTransform.ReplaceInFile(migrateFilePath, $"a/{name1}/", "a/");
@@ -82,7 +83,7 @@
             outPut.AddMessageLine($"Apply diff", "Pink");
 
             // cd "...\\YourProject" git apply --reject --whitespace=fix "3.2.2-3.3.0.patch" \
-            await RunScript($"cd {projectPath} \r\n git apply --reject --whitespace=fix {migrateFilePath} \\ ");
+            await RunScript($"cd {projectPath} \r\n git apply --reject --whitespace=fix --binary {migrateFilePath} \\ ");
 
             outPut.AddMessageLine("Apply diff finished", "Green");
         }

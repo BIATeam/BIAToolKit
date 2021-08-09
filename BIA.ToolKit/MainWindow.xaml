@@ -15,7 +15,7 @@
         </Grid.RowDefinitions>
         <TabControl Name="MainTab">
             <TabItem Header="Config">
-                <Grid Margin="10,10,10,10" Background="#FF000000">
+                <Grid Margin="10,10,10,10" Background="#FF000000"  x:Name="TabConfig">
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -40,8 +40,8 @@
                     <Button Content="Synchronize" HorizontalAlignment="Center" Margin="0,0,0,10" RenderTransformOrigin="0.429,2.91" Width="206" Grid.Column="2" Name="CompanyFilesLocalFolderSync" Click="CompanyFilesLocalFolderSync_Click" Height="20" VerticalAlignment="Bottom"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="Create project" Selector.Selected="OnTabCreateSelected" >
-                <Grid Margin="10,10,10,10">
+            <TabItem Header="Create project" Selector.Selected="OnTabCreateSelected">
+                <Grid Margin="10,10,10,10" x:Name="TabCreate">
                     <Grid.Background>
                         <ImageBrush ImageSource="/Images/bg-default.jpg"/>
                     </Grid.Background>
@@ -62,8 +62,8 @@
 
                 </Grid>
             </TabItem>
-            <TabItem Header="Modify existing project" Selector.Selected="OnTabModifySelected">
-                <Grid Margin="10,10,10,10">
+            <TabItem Header="Modify existing project" Selector.Selected="OnTabModifySelected" >
+                <Grid Margin="10,10,10,10" x:Name="TabModify">
                     <Grid.Background>
                         <ImageBrush ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
                     </Grid.Background>

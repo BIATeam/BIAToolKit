@@ -113,10 +113,10 @@
             {
                 CompanyFilesPath = configuration.CompanyFilesLocalFolderText + "\\" + CompanyFileVersion.SelectedValue;
                 string fileName = CompanyFilesPath + "\\biaCompanyFiles.json";
-                string jsonString = File.ReadAllText(fileName);
 
                 try
                 {
+                    string jsonString = File.ReadAllText(fileName);
 
                     CfSettings = JsonSerializer.Deserialize<CFSettings>(jsonString);
 

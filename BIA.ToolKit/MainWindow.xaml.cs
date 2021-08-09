@@ -365,7 +365,7 @@
 
             modifyProjectPath = ModifyProjectRootFolderText.Text + "\\" + ModifyProject.SelectedValue;
             Regex reg = new Regex(modifyProjectPath.Replace("\\","\\\\") + @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$");
-            string file = Directory.GetFiles(modifyProjectPath, "Constants.cs", SearchOption.AllDirectories).Where(path => reg.IsMatch(path)).FirstOrDefault();
+            string file = Directory.GetFiles(modifyProjectPath, "Constants.cs", SearchOption.AllDirectories)?.Where(path => reg.IsMatch(path))?.FirstOrDefault();
             if (file != null)
             {
                 var match = reg.Match(file);
@@ -389,6 +389,11 @@
         {
             Migrate.IsEnabled = false;
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
+            System.Windows.Forms.Application.DoEvents();
+
+            TabConfig.IsEnabled = false;
+            TabModify.IsEnabled = false;
+            System.Windows.Forms.Application.DoEvents();
 
             string projectPath = ModifyProjectRootFolderText.Text + "\\" + ModifyProjectName.Content;
             if (!Directory.Exists(projectPath) || IsDirectoryEmpty(projectPath))
@@ -424,6 +429,8 @@
 
 
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
+            TabModify.IsEnabled = true;
+            TabConfig.IsEnabled = true;
             Migrate.IsEnabled = true;
 
         }
