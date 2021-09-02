@@ -67,17 +67,17 @@
 
         public bool RefreshConfiguration()
         {
-            if (RefreshBIATemplateConfiguration())
+            if (RefreshBIATemplateConfiguration(false))
             {
-                return RefreshCompanyFilesConfiguration();
+                return RefreshCompanyFilesConfiguration(false);
             }
             return false;
         }
 
-        public bool RefreshBIATemplateConfiguration()
+        public bool RefreshBIATemplateConfiguration(bool inSync)
         {
             Configurationchange(); 
-            if (!configuration.RefreshBIATemplate(MainTab, BIATemplateLocalFolder.IsChecked == true, BIATemplateLocalFolderText.Text))
+            if (!configuration.RefreshBIATemplate(MainTab, BIATemplateLocalFolder.IsChecked == true, BIATemplateLocalFolderText.Text, inSync))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
                 return false;
@@ -91,10 +91,10 @@
             isModifyTabInitialized = false;
         }
 
-        public bool RefreshCompanyFilesConfiguration()
+        public bool RefreshCompanyFilesConfiguration(bool inSync)
         {
             Configurationchange(); 
-            if (!configuration.RefreshCompanyFiles(MainTab, UseCompanyFile.IsChecked == true, CompanyFilesLocalFolder.IsChecked == true, CompanyFilesLocalFolderText.Text))
+            if (!configuration.RefreshCompanyFiles(MainTab, UseCompanyFile.IsChecked == true, CompanyFilesLocalFolder.IsChecked == true, CompanyFilesLocalFolderText.Text, inSync))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
                 return false;
@@ -155,7 +155,7 @@
 
         private async void BIATemplateLocalFolderSync_Click(object sender, RoutedEventArgs e)
         {
-            if (RefreshBIATemplateConfiguration())
+            if (RefreshBIATemplateConfiguration(true))
             {
                 BIATemplateLocalFolderSync.IsEnabled = false;
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
@@ -176,7 +176,7 @@
 
         private async void CompanyFilesLocalFolderSync_Click(object sender, RoutedEventArgs e)
         {
-            if (RefreshCompanyFilesConfiguration())
+            if (RefreshCompanyFilesConfiguration(true))
             {
                 CompanyFilesLocalFolderSync.IsEnabled = false;
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;

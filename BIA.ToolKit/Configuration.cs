@@ -32,7 +32,7 @@ namespace BIA.ToolKit
         }
 
         public bool RefreshBIATemplate(TabControl MainTab,
-            bool biaTemplateLocalFolderIsChecked, string biaTemplateLocalFolderText)
+            bool biaTemplateLocalFolderIsChecked, string biaTemplateLocalFolderText, bool inSync)
         {
             BIATemplateLocalFolderIsChecked = biaTemplateLocalFolderIsChecked;
             BIaTemplateLocalFolderText = biaTemplateLocalFolderText;
@@ -41,7 +41,7 @@ namespace BIA.ToolKit
             {
                 //Use local folder
                 BIATemplatePath = biaTemplateLocalFolderText;
-                if (!Directory.Exists(BIATemplatePath))
+                if (!inSync && !Directory.Exists(BIATemplatePath))
                 {
                     MessageBox.Show("Error on biatemplate local folder :\r\nThe path " + BIATemplatePath + " do not exist.\r\n Correct it in config tab.");
                     return false;
@@ -50,7 +50,7 @@ namespace BIA.ToolKit
             else
             {
                 BIATemplatePath = AppFolderPath + "\\BIATemplate\\Repo";
-                if (!Directory.Exists(BIATemplatePath))
+                if (!inSync && !Directory.Exists(BIATemplatePath))
                 {
                     MessageBox.Show("Error on biatemplate repo :\r\nThe path " + BIATemplatePath + " do not exist.\r\n Please synchronize the BIATemplate repository.");
                     return false;
@@ -61,7 +61,7 @@ namespace BIA.ToolKit
 
         public bool RefreshCompanyFiles(TabControl MainTab,
             bool useCompanyFileIsChecked,
-            bool companyFilesLocalFolderIsChecked, string companyFilesLocalFolderText)
+            bool companyFilesLocalFolderIsChecked, string companyFilesLocalFolderText, bool inSync)
          {
             UseCompanyFileIsChecked = useCompanyFileIsChecked;
             CompanyFilesLocalFolderIsChecked = companyFilesLocalFolderIsChecked;
@@ -73,7 +73,7 @@ namespace BIA.ToolKit
                 if (companyFilesLocalFolderIsChecked == true)
                 {
                     RootCompanyFilesPath = companyFilesLocalFolderText;
-                    if (!Directory.Exists(RootCompanyFilesPath))
+                    if (!inSync && !Directory.Exists(RootCompanyFilesPath))
                     {
                         MessageBox.Show("Error on company files path local folder :\r\nThe path " + RootCompanyFilesPath + " do not exist.\r\n Correct it in config tab.");
                         return false;
@@ -83,7 +83,7 @@ namespace BIA.ToolKit
                 else
                 {
                     RootCompanyFilesPath = AppFolderPath + "\\BIACompanyFiles\\Repo";
-                    if (!Directory.Exists(RootCompanyFilesPath))
+                    if (!inSync && !Directory.Exists(RootCompanyFilesPath))
                     {
                         MessageBox.Show("Error on company files repo :\r\nThe path " + RootCompanyFilesPath + " do not exist.\r\n Please synchronize the company files repository.");
                         return false;
