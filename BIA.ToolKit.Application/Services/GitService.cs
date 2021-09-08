@@ -22,7 +22,7 @@
         public async Task Synchronize(string repoName, string localPath)
         {
             outPut.AddMessageLine("Synchronize " + repoName + " local folder...", "Pink");
-            await RunScript($"cd " + localPath + $" \r\n" + $"git pull");
+            await RunScript($"cd \"" + localPath + $"\" \r\n" + $"git pull");
 
             /*using (var repo = new Repository(localPath))
             {
@@ -63,15 +63,21 @@
 
             // git diff --no-index V3.3.3 V3.4.0 > .\\Migration\\CF_3.3.3-3.4.0.patch
             //await RunScript($"cd {rootPath} \r\n git diff --no-index --binary {name1} {name2} > {migrateFilePath}");
-            await RunScript($"cd {rootPath} \r\n git diff --no-index --binary {name1} {name2} | Out-File -encoding OEM {migrateFilePath}");
+            await RunScript($"cd \"{rootPath}\" \r\n git diff --no-index --binary {name1} {name2} | Out-File -encoding OEM {migrateFilePath}");
 
             // Replace a/{name1}/ by a/
             FileTransform.ReplaceInFile(migrateFilePath, $"a/{name1}/", "a/");
             FileTransform.ReplaceInFile(migrateFilePath, $"a/{name2}/", "a/");
 
+            FileTransform.ReplaceInFile(migrateFilePath, $"rename from {name1}/", "rename from ");
+
             // Replace b/{name2}/ by b/
             FileTransform.ReplaceInFile(migrateFilePath, $"b/{name2}/", "b/");
             FileTransform.ReplaceInFile(migrateFilePath, $"b/{name1}/", "b/");
+
+            FileTransform.ReplaceInFile(migrateFilePath, $"rename to {name2}/", "rename to ");
+
+
 
             FileTransform.ReplaceInFile(migrateFilePath, $"\r\n", "\n");
 
@@ -83,7 +89,7 @@
             outPut.AddMessageLine($"Apply diff", "Pink");
 
             // cd "...\\YourProject" git apply --reject --whitespace=fix "3.2.2-3.3.0.patch" \
-            await RunScript($"cd {projectPath} \r\n git apply --reject --whitespace=fix --binary {migrateFilePath} \\ ");
+            await RunScript($"cd \"{projectPath}\" \r\n git apply --reject --whitespace=fix --binary {migrateFilePath} \\ ");
 
             outPut.AddMessageLine("Apply diff finished", "Green");
         }

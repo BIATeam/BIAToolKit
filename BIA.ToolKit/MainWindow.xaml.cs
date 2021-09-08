@@ -332,12 +332,12 @@
 
         private void ModifyProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (ModifyProject != null)
+            if (ModifyProjectFolder != null)
             {
                 ModifyProjectCompany.Content = "???";
                 ModifyProjectName.Content = "???";
                 ModifyProjectVersion.Content = "???";
-                ModifyProject.Items.Clear();
+                ModifyProjectFolder.Items.Clear();
             }
             if (ModifyProjectRootFolderText != null && CreateProjectRootFolderText != null && ModifyProjectRootFolderText.Text != CreateProjectRootFolderText.Text)
             {
@@ -352,7 +352,7 @@
                 foreach (DirectoryInfo dir in versionDirectories)
                 {
                     //Add and select the last added
-                    ModifyProject.Items.Add(dir.Name);
+                    ModifyProjectFolder.Items.Add(dir.Name);
                 }
             }
         }
@@ -363,7 +363,7 @@
             ModifyProjectName.Content = "???";
             ModifyProjectVersion.Content = "???";
 
-            modifyProjectPath = ModifyProjectRootFolderText.Text + "\\" + ModifyProject.SelectedValue;
+            modifyProjectPath = ModifyProjectRootFolderText.Text + "\\" + ModifyProjectFolder.SelectedValue;
             Regex reg = new Regex(modifyProjectPath.Replace("\\","\\\\") + @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$");
             string file = Directory.GetFiles(modifyProjectPath, "Constants.cs", SearchOption.AllDirectories)?.Where(path => reg.IsMatch(path))?.FirstOrDefault();
             if (file != null)
@@ -395,10 +395,9 @@
             TabModify.IsEnabled = false;
             System.Windows.Forms.Application.DoEvents();
 
-            string projectPath = ModifyProjectRootFolderText.Text + "\\" + ModifyProjectName.Content;
-            if (!Directory.Exists(projectPath) || IsDirectoryEmpty(projectPath))
+            if (!Directory.Exists(modifyProjectPath) || IsDirectoryEmpty(modifyProjectPath))
             {
-                MessageBox.Show("The project path is empty : " + projectPath);
+                MessageBox.Show("The project path is empty : " + modifyProjectPath);
                 return;
             }
 
@@ -425,7 +424,7 @@
             await gitService.DiffFolder(configuration.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath);
 
             //Apply the differential
-            await gitService.ApplyDiff(projectPath, migrateFilePath);
+            await gitService.ApplyDiff(modifyProjectPath, migrateFilePath);
 
 
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;

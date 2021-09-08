@@ -53,7 +53,7 @@
                     <Label Content="Project name" HorizontalAlignment="Left" Margin="406,51,0,0" VerticalAlignment="Top" Foreground="White"/>
                     <TextBox HorizontalAlignment="Left" Margin="425,76,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="CreateProjectName" IsEnabled="True"/>
 
-                    <uc:VersionAndOptionUserControl x:Name="CreateVersionAndOption" Margin="10,99,10,87"/>
+                    <uc:VersionAndOptionUserControl x:Name="CreateVersionAndOption" Margin="10,171,10,106"/>
 
 
 
@@ -75,7 +75,7 @@
                     <TextBox HorizontalAlignment="Left" Margin="29,25,0,0" Text="D:\...\MyRootProjectPath" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="ModifyProjectRootFolderText" TextChanged="ModifyProjectRootFolderText_TextChanged"/>
                     <Button Content="..." HorizontalAlignment="Left" Margin="339,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="ModifyProjectRootFolderBrowse" Click="CreateProjectRootFolderBrowse_Click"/>
                     <Label Content="Project Folder" HorizontalAlignment="Left" Margin="487,0,0,0" VerticalAlignment="Top" Foreground="White"/>
-                    <ComboBox HorizontalAlignment="Left" Margin="513,25,0,0" VerticalAlignment="Top" Width="120" x:Name="ModifyProject" SelectionChanged="ModifyProject_SelectionChanged"/>
+                    <ComboBox HorizontalAlignment="Left" Margin="513,25,0,0" VerticalAlignment="Top" Width="120" x:Name="ModifyProjectFolder" SelectionChanged="ModifyProject_SelectionChanged"/>
                     <Label Content="Version detected : " HorizontalAlignment="Left" Margin="687,0,0,0" VerticalAlignment="Top" Foreground="White"/>
                     <Label Content="???" HorizontalAlignment="Left" Margin="820,0,0,0" VerticalAlignment="Top" Foreground="White" x:Name="ModifyProjectVersion"/>
                     <Label Content="Project name detected : " HorizontalAlignment="Left" Margin="687,25,0,0" VerticalAlignment="Top" Foreground="White"/>
