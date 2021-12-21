@@ -16,6 +16,8 @@
     using System;
     using BIA.ToolKit.Application.Helper;
     using System.Text.RegularExpressions;
+    using System.Diagnostics;
+
 
 
     /// <summary>
@@ -25,6 +27,7 @@
     {
         GitService gitService;
         ProjectCreatorService projectCreatorService;
+        GenerateFilesService generateFilesService;
         ConsoleWriter consoleWriter;
         bool isCreateTabInitialized = false;
         bool isModifyTabInitialized = false;
@@ -33,11 +36,12 @@
 
         string modifyProjectPath = "";
 
-        public MainWindow(Configuration configuration, GitService gitService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
+        public MainWindow(Configuration configuration, GitService gitService,GenerateFilesService genFilesService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
         {
             this.configuration = configuration;
             this.gitService = gitService;
             this.projectCreatorService = projectCreatorService;
+            this.generateFilesService = genFilesService;
 
             InitializeComponent();
             MigrateOriginVersionAndOption.Inject(configuration, gitService, consoleWriter);
@@ -61,6 +65,7 @@
             ModifyProjectRootFolderText.Text = Settings.Default.CreateProjectRootFolderText;
             CreateCompanyName.Text = Settings.Default.CreateCompanyName;
 
+            txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
 
 
         }
@@ -432,6 +437,60 @@
             TabConfig.IsEnabled = true;
             Migrate.IsEnabled = true;
 
+        }
+
+        private void btnFileGenerator_OpenFolder_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new System.Windows.Forms.FolderBrowserDialog();
+            System.Windows.Forms.DialogResult result = dlg.ShowDialog();
+
+            if (result == System.Windows.Forms.DialogResult.OK)
+            {
+                txtFileGenerator_Folder.Text = dlg.SelectedPath;
+            }
+        }
+
+        private void btnFileGenerator_OpenFile_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new System.Windows.Forms.OpenFileDialog();
+            System.Windows.Forms.DialogResult result = dlg.ShowDialog();
+            // Get the selected file name and display in a TextBox 
+            if (result == System.Windows.Forms.DialogResult.OK)
+            {
+                // Open document 
+                string filename = dlg.FileName;
+                txtFileGenerator_File.Text = filename;
+                btnFileGenerator_Generate.IsEnabled = true;
+            }
+
+        }
+
+        private void btnFileGenerator_Generate_Click(object sender, RoutedEventArgs e)
+        {
+            if(!string.IsNullOrEmpty(txtFileGenerator_Folder.Text))
+            {
+                if (!string.IsNullOrEmpty(txtFileGenerator_File.Text))
+                {
+                    string resultFolder = string.Empty;
+                    generateFilesService.GenerateFiles(txtFileGenerator_File.Text, txtFileGenerator_Folder.Text, ref resultFolder);
+                    ProcessStartInfo startInfo = new ProcessStartInfo(resultFolder)
+                    {
+                        UseShellExecute = true
+                    };
+
+                    Process.Start(startInfo);
+
+                }
+                else
+                {
+                    MessageBox.Show("Select the class file","Generate files",MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+
+            }
+            else
+            {
+                MessageBox.Show("Select the folder to save the files", "Generate files", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

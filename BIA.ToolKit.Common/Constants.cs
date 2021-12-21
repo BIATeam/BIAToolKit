@@ -19,5 +19,24 @@ namespace BIA.ToolKit.Common
         /// </summary>
         public const string BIATemplateReleaseUrl = "https://github.com/BIATeam/BIATemplate/archive/";
 
+        /// <summary>
+        /// The start text on the original file.
+        /// </summary>
+        public const string TempName = "GENERATE_FILES_";
+
+        /// <summary>
+        /// Prcess Folder
+        /// </summary>
+        public const string NameFolderProcess = "Process";
+
+        /// <summary>
+        /// Folder name for Angular files
+        /// </summary>
+        public const string FolderAngular = "Angular";
+
+        /// <summary>
+        /// Folder name for Net Core files
+        /// </summary>
+        public const string FolderNetCore = "NetCore";
     }
 }
