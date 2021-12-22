@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:BIA.ToolKit"
         xmlns:uc="clr-namespace:BIA.ToolKit"
         mc:Ignorable="d"
-        Title="BIA Toolkit" Height="765" Width="1020">
+        Title="BIA Toolkit" Height="765" Width="1020" Icon="/Images/Tools.ico">
     <Grid Background="#FFE5E5E5"  Height="725" Width="1000">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>

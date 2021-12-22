@@ -5,6 +5,7 @@
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>Images\Tools.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +13,7 @@
     <None Remove="Images\BIALogo.gif" />
     <None Remove="Images\fileGenerator.jpg" />
     <None Remove="Images\LogoArbre.gif" />
+    <None Remove="Images\Tools.ico" />
     <None Remove="Images\workOnComputer2.jpg" />
     <None Remove="Test4.gif" />
   </ItemGroup>
@@ -34,6 +36,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\LogoArbre.gif">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Tools.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\workOnComputer2.jpg">
