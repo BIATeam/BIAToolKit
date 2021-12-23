@@ -594,7 +594,7 @@ namespace BIA.ToolKit.Application.Services
             d.Append(CommonMethods.AddNewLine($"        /// <param name=\"id\">The plane identifier.</param>"));
             d.Append(CommonMethods.AddNewLine($"        /// <param name=\"dto\">The plane DTO.</param>"));
             d.Append(CommonMethods.AddNewLine($"        /// <returns>The result of the update.</returns>"));
-            d.Append(CommonMethods.AddNewLine($"        [HttpPut(\"{{id}} \")]"));
+            d.Append(CommonMethods.AddNewLine($"        [HttpPut(\"{{id}}\")]"));
             d.Append(CommonMethods.AddNewLine($"        [ProducesResponseType(StatusCodes.Status200OK)]"));
             d.Append(CommonMethods.AddNewLine($"        [ProducesResponseType(StatusCodes.Status400BadRequest)]"));
             d.Append(CommonMethods.AddNewLine($"        [ProducesResponseType(StatusCodes.Status404NotFound)]"));
