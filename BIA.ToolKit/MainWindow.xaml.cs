@@ -426,12 +426,10 @@
             //Apply the differential
             await gitService.ApplyDiff(modifyProjectPath, migrateFilePath);
 
-
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
             TabModify.IsEnabled = true;
             TabConfig.IsEnabled = true;
             Migrate.IsEnabled = true;
-
         }
     }
 }
