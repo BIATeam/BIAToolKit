@@ -117,6 +117,8 @@ namespace BIA.ToolKit.Application.Services
             CreateAngularPermissionFile(className, tempFile.Name);
             consoleWriter.AddMessageLine("    => Create lines for Form Component HTML ", "Pink");
             CreateAngularFormComponentHtmlFile(className, tempFile.Name);
+
+            consoleWriter.AddMessageLine("Generate files finished.", "Green" );
         }
 
 
