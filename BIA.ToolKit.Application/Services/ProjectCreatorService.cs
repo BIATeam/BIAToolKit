@@ -140,6 +140,10 @@
             FileTransform.ReplaceInFileAndFileName(projectPath, "thebiadevcompany", companyName.ToLower(), FileTransform.replaceInFileExtensions);
             FileTransform.ReplaceInFileAndFileName(projectPath, "biatemplate", projectName.ToLower(), FileTransform.replaceInFileExtensions);
 
+
+            consoleWriter.AddMessageLine("Start remove BIATemplate only.", "Pink");
+            FileTransform.RemoveTemplateOnly(projectPath, "# Begin BIATemplate only", "# End BIATemplate only", new List<string>() { ".gitignore" });
+
             consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd? "Green": "Blue");
         }
     }

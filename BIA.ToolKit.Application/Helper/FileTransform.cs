@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Text;
     using System.Text.RegularExpressions;
 
     static public class FileTransform
@@ -54,6 +55,95 @@
             }
         }
 
+
+        /// <summary>
+        /// Copy files for VSIX AdditionnalFiles folder to the root solution folder.
+        /// </summary>
+        /// <param name="sourceDir">source folder.</param>
+        /// <param name="oldString">old string.</param>
+        /// <param name="newString">new string.</param>
+        static public void RemoveTemplateOnly(string sourceDir, string beginString, string endString, IList<string> replaceInFileExtenssions)
+        {
+
+            foreach (var file in Directory.GetFiles(sourceDir))
+            {
+                var name = Path.GetFileName(file);
+                string targetfile = file;
+                string extension = Path.GetExtension(targetfile).ToLower();
+                if (replaceInFileExtenssions.Contains(extension))
+                {
+                    RemoveTemplateOnlyInFile(targetfile, beginString, endString);
+                }
+            }
+
+            foreach (var directory in Directory.GetDirectories(sourceDir))
+            {
+                RemoveTemplateOnly(directory, beginString, endString, replaceInFileExtenssions);
+            }
+        }
+
+        static public void RemoveTemplateOnlyInFile(string filePath, string beginString, string endString)
+        {
+            string text = File.ReadAllText(filePath);
+            if (text.Contains(beginString))
+            {
+                text = "";
+                string line;
+                List<string> lines = new List<string>();
+                bool inSequence = false;
+                System.IO.StreamReader file = new System.IO.StreamReader(filePath);
+
+                while ((line = file.ReadLine()) != null)
+                {
+                    if (line.Contains(beginString))
+                    {
+                        inSequence = true;
+                    }
+                    if (!inSequence)
+                    {
+                        text += line;
+                        lines.Add(line);
+                    }
+                    if (line.Contains(endString))
+                    {
+                        inSequence = false;
+                    }
+                }
+                
+                file.Close();
+                var encoding = GetEncoding(filePath);
+                File.WriteAllLines(filePath, lines, encoding);
+
+            }
+        }
+
+        /// <summary>
+        /// Determines a text file's encoding by analyzing its byte order mark (BOM).
+        /// Defaults to ASCII when detection of the text file's endianness fails.
+        /// </summary>
+        /// <param name="filename">The text file to analyze.</param>
+        /// <returns>The detected encoding.</returns>
+        public static Encoding GetEncoding(string filename)
+        {
+            // Read the BOM
+            var bom = new byte[4];
+            using (var file = new FileStream(filename, FileMode.Open, FileAccess.Read))
+            {
+                file.Read(bom, 0, 4);
+            }
+
+            // Analyze the BOM
+            if (bom[0] == 0x2b && bom[1] == 0x2f && bom[2] == 0x76) return Encoding.UTF7;
+            if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf) return Encoding.UTF8;
+            if (bom[0] == 0xff && bom[1] == 0xfe && bom[2] == 0 && bom[3] == 0) return Encoding.UTF32; //UTF-32LE
+            if (bom[0] == 0xff && bom[1] == 0xfe) return Encoding.Unicode; //UTF-16LE
+            if (bom[0] == 0xfe && bom[1] == 0xff) return Encoding.BigEndianUnicode; //UTF-16BE
+            if (bom[0] == 0 && bom[1] == 0 && bom[2] == 0xfe && bom[3] == 0xff) return new UTF32Encoding(true, true);  //UTF-32BE
+
+            // We actually have no idea what the encoding is if we reach this point, so
+            // you may wish to return null instead of defaulting to ASCII
+            return Encoding.ASCII;
+        }
 
         static public void FolderUnix2Dos(string filePath)
         {
