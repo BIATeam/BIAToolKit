@@ -31,6 +31,7 @@
             services.AddSingleton<Configuration>();
             services.AddSingleton<GitService>();
             services.AddSingleton<ProjectCreatorService>();
+            services.AddSingleton<GenerateFilesService>();
         }
         private void OnStartup(object sender, StartupEventArgs e)
         {
