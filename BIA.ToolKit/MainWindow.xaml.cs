@@ -337,6 +337,8 @@
 
         private void ModifyProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)
         {
+            ParameterModifyChange();
+
             if (ModifyProjectFolder != null)
             {
                 ModifyProjectCompany.Content = "???";
@@ -364,6 +366,8 @@
 
         private void ModifyProject_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            ParameterModifyChange();
+
             ModifyProjectCompany.Content = "???";
             ModifyProjectName.Content = "???";
             ModifyProjectVersion.Content = "???";
@@ -392,13 +396,6 @@
 
         private async void Migrate_Click(object sender, RoutedEventArgs e)
         {
-            Migrate.IsEnabled = false;
-            Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
-            System.Windows.Forms.Application.DoEvents();
-
-            TabConfig.IsEnabled = false;
-            TabModify.IsEnabled = false;
-            System.Windows.Forms.Application.DoEvents();
 
             if (!Directory.Exists(modifyProjectPath) || IsDirectoryEmpty(modifyProjectPath))
             {
@@ -406,9 +403,87 @@
                 return;
             }
 
+            Enable(false);
+
+            string projectOriginalFolderName, projectOriginPath, projectTargetFolderName, projectTargetPath;
+            MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectTargetFolderName, out projectTargetPath);
+
+            GenerateProjects(projectOriginPath, projectTargetPath);
+
+            await ApplyDiff(projectOriginalFolderName, projectTargetFolderName);
+
+            Enable(true);
+        }
+
+        private void Enable(bool isEnabled)
+        {
+            //Migrate.IsEnabled = false;
+            if (isEnabled)
+            {
+                Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
+            }
+            else
+            {
+                Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
+            }
+
+            MainTab.IsEnabled = isEnabled;
+            System.Windows.Forms.Application.DoEvents();
+        }
+
+        private void ParameterModifyChange()
+        {
+            if (MigrateOpenFolder!= null) MigrateOpenFolder.IsEnabled = false;
+            if (MigrateApplyDiff != null) MigrateApplyDiff.IsEnabled = false;
+        }
+
+        private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
+        {
+
+            if (!Directory.Exists(modifyProjectPath) || IsDirectoryEmpty(modifyProjectPath))
+            {
+                MessageBox.Show("The project path is empty : " + modifyProjectPath);
+                return;
+            }
+
+            Enable(false);
+
+            string projectOriginalFolderName, projectOriginPath, projectTargetFolderName, projectTargetPath;
+            MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectTargetFolderName, out projectTargetPath);
+
+            GenerateProjects(projectOriginPath, projectTargetPath);
+
+            MigrateOpenFolder.IsEnabled = true;
+            MigrateApplyDiff.IsEnabled = true;
+            Enable(true);
+        }
+
+        private async void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
+        {
+            Enable(false);
+
+            string projectOriginalFolderName, projectOriginPath, projectTargetFolderName, projectTargetPath;
+
+            MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectTargetFolderName, out projectTargetPath);
+
+
+            await ApplyDiff(projectOriginalFolderName, projectTargetFolderName);
+
+            Enable(true);
+        }
+
+
+        private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectTargetFolderName, out string projectTargetPath)
+        {
+            projectOriginalFolderName = ModifyProjectName.Content + "_" + MigrateOriginVersionAndOption.FrameworkVersion.SelectedValue.ToString();
+            projectOriginPath = configuration.TmpFolderPath + projectOriginalFolderName;
+            projectTargetFolderName = ModifyProjectName.Content + "_" + MigrateTargetVersionAndOption.FrameworkVersion.SelectedValue.ToString();
+            projectTargetPath = configuration.TmpFolderPath + projectTargetFolderName;
+        }
+
+        private void GenerateProjects(string projectOriginPath, string projectTargetPath)
+        {
             // Create project at original version.
-            string projectOriginalFolderName = ModifyProjectName.Content + "_" + MigrateOriginVersionAndOption.FrameworkVersion.SelectedValue.ToString();
-            string projectOriginPath = configuration.TmpFolderPath + projectOriginalFolderName;
             if (Directory.Exists(projectOriginPath))
             {
                 FileTransform.ForceDeleteDirectory(projectOriginPath);
@@ -416,25 +491,26 @@
             CreateProject(false, ModifyProjectCompany.Content.ToString(), ModifyProjectName.Content.ToString(), projectOriginPath, MigrateOriginVersionAndOption);
 
             // Create project at target version.
-            string projectTargetFolderName = ModifyProjectName.Content + "_" + MigrateTargetVersionAndOption.FrameworkVersion.SelectedValue.ToString();
-            string projectTargetPath = configuration.TmpFolderPath + projectTargetFolderName;
             if (Directory.Exists(projectTargetPath))
             {
                 FileTransform.ForceDeleteDirectory(projectTargetPath);
             }
             CreateProject(false, ModifyProjectCompany.Content.ToString(), ModifyProjectName.Content.ToString(), projectTargetPath, MigrateTargetVersionAndOption);
+        }
 
+        private void MigrateOpenFolder_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("explorer.exe", configuration.TmpFolderPath);
+        }
+
+        private async System.Threading.Tasks.Task ApplyDiff(string projectOriginalFolderName, string projectTargetFolderName)
+        {
             // Make the differential
             string migrateFilePath = configuration.TmpFolderPath + $"Migration_{projectOriginalFolderName}-{projectTargetFolderName}.patch";
             await gitService.DiffFolder(configuration.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath);
 
             //Apply the differential
             await gitService.ApplyDiff(modifyProjectPath, migrateFilePath);
-
-            Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
-            TabModify.IsEnabled = true;
-            TabConfig.IsEnabled = true;
-            Migrate.IsEnabled = true;
         }
 
         private void btnFileGenerator_OpenFolder_Click(object sender, RoutedEventArgs e)
@@ -460,7 +536,6 @@
                 txtFileGenerator_File.Text = filename;
                 btnFileGenerator_Generate.IsEnabled = true;
             }
-
         }
 
         private void btnFileGenerator_Generate_Click(object sender, RoutedEventArgs e)

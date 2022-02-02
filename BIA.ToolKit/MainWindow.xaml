@@ -64,10 +64,7 @@
             </TabItem>
             <TabItem Header="Modify existing project" Selector.Selected="OnTabModifySelected" >
                 <Grid Margin="10,10,10,10" x:Name="TabModify">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="160*"/>
-                        <ColumnDefinition Width="327*"/>
-                    </Grid.ColumnDefinitions>
+
                     <Grid.Background>
                         <ImageBrush ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
                     </Grid.Background>
@@ -77,25 +74,37 @@
                     </Grid.RowDefinitions>
                     <Label Content="Project parent path" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Foreground="White"/>
                     <TextBox HorizontalAlignment="Left" Margin="29,25,0,0" Text="D:\...\MyRootProjectPath" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="ModifyProjectRootFolderText" TextChanged="ModifyProjectRootFolderText_TextChanged" Grid.ColumnSpan="2"/>
-                    <Button Content="..." HorizontalAlignment="Left" Margin="19,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="ModifyProjectRootFolderBrowse" Click="CreateProjectRootFolderBrowse_Click" Grid.Column="1"/>
-                    <Label Content="Project Folder" HorizontalAlignment="Left" Margin="167,0,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
-                    <ComboBox HorizontalAlignment="Left" Margin="193,25,0,0" VerticalAlignment="Top" Width="120" x:Name="ModifyProjectFolder" SelectionChanged="ModifyProject_SelectionChanged" Grid.Column="1"/>
-                    <Label Content="Version detected : " HorizontalAlignment="Left" Margin="367,0,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
-                    <Label Content="???" HorizontalAlignment="Left" Margin="500,0,0,0" VerticalAlignment="Top" Foreground="White" x:Name="ModifyProjectVersion" Grid.Column="1"/>
-                    <Label Content="Project name detected : " HorizontalAlignment="Left" Margin="367,25,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
-                    <Label Content="???" HorizontalAlignment="Left" Margin="500,25,0,0" VerticalAlignment="Top" Foreground="White" x:Name="ModifyProjectName" Grid.Column="1"/>
-                    <Label Content="Company detected : " HorizontalAlignment="Left" Margin="367,0,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1" Grid.Row="1"/>
-                    <Label Content="???" HorizontalAlignment="Left" Margin="500,0,0,0" VerticalAlignment="Top" Foreground="White" x:Name="ModifyProjectCompany" Grid.Column="1" Grid.Row="1"/>
-                    <TabControl Grid.Row="1" Background="Transparent" Grid.ColumnSpan="2">
+                    <Button Content="..." HorizontalAlignment="Left" Margin="339,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="ModifyProjectRootFolderBrowse" Click="CreateProjectRootFolderBrowse_Click"/>
+                    <Label Content="Project Folder" HorizontalAlignment="Left" Margin="494,0,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
+                    <ComboBox HorizontalAlignment="Left" Margin="520,25,0,0" VerticalAlignment="Top" Width="120" x:Name="ModifyProjectFolder" SelectionChanged="ModifyProject_SelectionChanged" Grid.Column="1"/>
+                    <Label Content="Version detected : " HorizontalAlignment="Left" Margin="694,0,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
+                    <Label Content="???" HorizontalAlignment="Left" Margin="827,0,0,0" VerticalAlignment="Top" Foreground="White" x:Name="ModifyProjectVersion" Grid.Column="1"/>
+                    <Label Content="Project name detected : " HorizontalAlignment="Left" Margin="694,25,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
+                    <Label Content="???" HorizontalAlignment="Left" Margin="827,25,0,0" VerticalAlignment="Top" Foreground="White" x:Name="ModifyProjectName" Grid.Column="1"/>
+                    <Label Content="Company detected : " HorizontalAlignment="Left" Margin="694,0,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1" Grid.Row="1"/>
+                    <Label Content="???" HorizontalAlignment="Left" Margin="827,0,0,0" VerticalAlignment="Top" Foreground="White" x:Name="ModifyProjectCompany" Grid.Column="1" Grid.Row="1"/>
+                    <TabControl Grid.Row="1" Background="Transparent" >
                         <TabItem Header="Migration">
                             <Grid Background="Transparent" VerticalAlignment="Top">
-                                <GroupBox Header="Origial" Margin="0,0,150,0" Foreground="White" BorderBrush="White" Name="CompanyFileGroup" Visibility="Visible">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="170"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="150"/>
+                                </Grid.ColumnDefinitions>
+                                <GroupBox Header="Origial" Margin="0,0,0,0" Foreground="White" BorderBrush="White" Name="CompanyFileGroup" Visibility="Visible" Grid.Row="0">
                                     <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption" />
                                 </GroupBox>
-                                <GroupBox Header="Target" Margin="0,173,150,-173" Foreground="White" BorderBrush="White" Visibility="Visible">
+                                <GroupBox Header="Target" Margin="0,0,0,0" Foreground="White" BorderBrush="White" Visibility="Visible" Grid.Row="1">
                                     <uc:VersionAndOptionUserControl x:Name="MigrateTargetVersionAndOption"/>
                                 </GroupBox>
-                                <Button Content="Migrate" HorizontalAlignment="Left"  Width="123" x:Name="Migrate" Margin="835,0,0,0" Height="69" VerticalAlignment="Center" Grid.RowSpan="2" Click="Migrate_Click"/>
+                                <Button Content="Migrate" HorizontalAlignment="Center"  Width="123" x:Name="Migrate" Margin="0,0,0,0" Height="69" VerticalAlignment="Center" Grid.Row="0" Grid.Column="1" Click="Migrate_Click"/>
+                                <Label Content="Or by step :" Margin="0,133,0,0" VerticalAlignment="Top" Foreground="White" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center"/>
+                                <Button Content="1 - Generate Only" HorizontalAlignment="Center"  Width="122" x:Name="MigrateGenerateOnly" Height="35" VerticalAlignment="Top" Grid.Row="1" Grid.Column="1" Click="MigrateGenerateOnly_Click"/>
+                                <Button Content="2 - Open Folder" HorizontalAlignment="Center"  Width="122" x:Name="MigrateOpenFolder" Height="35" VerticalAlignment="Center" Grid.Row="1" Grid.Column="1" Click="MigrateOpenFolder_Click" Margin="0,0,0,0" IsEnabled="False"/>
+                                <Button Content="3 - Apply Diff" HorizontalAlignment="Center"  Width="122" x:Name="MigrateApplyDiff" Height="35" VerticalAlignment="Bottom" Grid.Row="1" Grid.Column="1" Click="MigrateApplyDiff_Click" Margin="0,98,0,0" IsEnabled="False"/>
                             </Grid>
                         </TabItem>
                         <TabItem Header="Rename project">
