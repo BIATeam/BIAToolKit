@@ -132,12 +132,12 @@
 
                     foreach (CFOption option in CfSettings.Options)
                     {
-                        option.IsChecked = true;
+                        option.IsChecked = (!(option?.Default == 0));
 
                         //  <CheckBox Content="Otpion2" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CFOption_Otpion2" Margin="0,25,0,0" />
                         CheckBox checkbox = new CheckBox();
                         checkbox.Content = option.Name;
-                        checkbox.IsChecked = true;
+                        checkbox.IsChecked = option.IsChecked;
                         checkbox.Foreground = Brushes.White;
                         checkbox.Height = 16;
                         checkbox.Name = "CFOption_" + option.Key;

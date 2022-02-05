@@ -22,6 +22,7 @@
         /// <param name="newString">new string.</param>
         static public void ReplaceInFileAndFileName(string sourceDir, string oldString, string newString, IList<string> replaceInFileExtenssions)
         {
+            if (oldString == newString) return;
             foreach (var dir in Directory.GetDirectories(sourceDir))
             {
                 var name = Path.GetFileName(dir);
