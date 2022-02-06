@@ -475,9 +475,9 @@
 
         private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectTargetFolderName, out string projectTargetPath)
         {
-            projectOriginalFolderName = "From_" + ModifyProjectName.Content + "_" + MigrateOriginVersionAndOption.FrameworkVersion.SelectedValue.ToString();
+            projectOriginalFolderName = ModifyProjectName.Content + "_" + MigrateOriginVersionAndOption.FrameworkVersion.SelectedValue.ToString() + "_From";
             projectOriginPath = configuration.TmpFolderPath + projectOriginalFolderName;
-            projectTargetFolderName = "To___" + ModifyProjectName.Content + "_" + MigrateTargetVersionAndOption.FrameworkVersion.SelectedValue.ToString();
+            projectTargetFolderName = ModifyProjectName.Content + "_" + MigrateTargetVersionAndOption.FrameworkVersion.SelectedValue.ToString() + "_To";
             projectTargetPath = configuration.TmpFolderPath + projectTargetFolderName;
         }
 
