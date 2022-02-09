@@ -13,6 +13,7 @@
     <None Remove="Images\fileGenerator.jpg" />
     <None Remove="Images\LogoBIA.png" />
     <None Remove="Images\Tools.ico" />
+    <None Remove="Images\Warning.png" />
     <None Remove="Images\workOnComputer2.jpg" />
     <None Remove="Test4.gif" />
   </ItemGroup>
@@ -35,6 +36,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\Tools.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Warning.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\workOnComputer2.jpg">

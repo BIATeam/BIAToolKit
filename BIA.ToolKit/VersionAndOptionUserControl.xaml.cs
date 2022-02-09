@@ -70,7 +70,8 @@
             if (configuration.UseCompanyFileIsChecked)
             {
                 CompanyFileGroup.Visibility = Visibility.Visible;
-
+                Warning.Visibility = Visibility.Hidden;
+                WarningLabel.Visibility = Visibility.Hidden;
 
                 if (Directory.Exists(configuration.RootCompanyFilesPath))
                 {
@@ -88,6 +89,8 @@
             else
             {
                 CompanyFileGroup.Visibility = Visibility.Hidden;
+                Warning.Visibility = Visibility.Visible;
+                WarningLabel.Visibility = Visibility.Visible;
             }
 
             if (lastItemFrameworkVersion != -1) FrameworkVersion.SelectedIndex = lastItemFrameworkVersion;

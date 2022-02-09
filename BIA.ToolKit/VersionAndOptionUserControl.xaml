@@ -31,5 +31,7 @@
                 </ScrollViewer>
             </Grid>
         </GroupBox>
+        <Image Name="Warning" Source=".\Images\Warning.png" HorizontalAlignment="Left" Height="100" Margin="173,20,0,0" VerticalAlignment="Top" Width="100"/>
+        <Label Name="WarningLabel"  Content="You haven't select Company Files in config screen." HorizontalAlignment="Left" Margin="255,20,0,0" VerticalAlignment="Top" Foreground="White" FontSize="24"/>
     </Grid>
 </UserControl>
