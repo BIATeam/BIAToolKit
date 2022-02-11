@@ -412,6 +412,9 @@
 
             await ApplyDiff(projectOriginalFolderName, projectTargetFolderName);
 
+            MigrateOpenFolder.IsEnabled = true;
+            MigrateMergeRejected.IsEnabled = true;
+
             Enable(true);
         }
 
@@ -435,6 +438,7 @@
         {
             if (MigrateOpenFolder!= null) MigrateOpenFolder.IsEnabled = false;
             if (MigrateApplyDiff != null) MigrateApplyDiff.IsEnabled = false;
+            if (MigrateMergeRejected != null) MigrateMergeRejected.IsEnabled = false;
         }
 
         private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
@@ -455,6 +459,7 @@
 
             MigrateOpenFolder.IsEnabled = true;
             MigrateApplyDiff.IsEnabled = true;
+            MigrateMergeRejected.IsEnabled = true;
             Enable(true);
         }
 
@@ -469,6 +474,16 @@
 
             await ApplyDiff(projectOriginalFolderName, projectTargetFolderName);
 
+            Enable(true);
+        }
+
+        private async void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
+        {
+            Enable(false);
+
+            await MergeRejected();
+
+            MigrateMergeRejected.IsEnabled = false;
             Enable(true);
         }
 
@@ -511,6 +526,20 @@
 
             //Apply the differential
             await gitService.ApplyDiff(modifyProjectPath, migrateFilePath);
+        }
+
+        private async System.Threading.Tasks.Task MergeRejected()
+        {
+            string projectOriginalFolderName, projectOriginPath, projectTargetFolderName, projectTargetPath;
+
+            MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectTargetFolderName, out projectTargetPath);
+
+            await gitService.MergeRejeted(new GitService.MergeParameter()
+            {
+                ProjectPath = modifyProjectPath,
+                ProjectOriginPath = projectOriginPath,
+                ProjectTargetPath = projectTargetPath,
+            });;
         }
 
         private void btnFileGenerator_OpenFolder_Click(object sender, RoutedEventArgs e)

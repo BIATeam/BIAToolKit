@@ -77,8 +77,6 @@
 
             FileTransform.ReplaceInFile(migrateFilePath, $"rename to {name2}/", "rename to ");
 
-
-
             FileTransform.ReplaceInFile(migrateFilePath, $"\r\n", "\n");
 
             outPut.AddMessageLine("Diff folder finished", "Green");
@@ -93,6 +91,54 @@
 
             outPut.AddMessageLine("Apply diff finished", "Green");
         }
+
+        public class MergeParameter
+        {
+            public string ProjectOriginPath { get; set; }
+            public string ProjectTargetPath { get; set; }
+            public string ProjectPath { get; set; }
+        }
+
+        public async Task MergeRejeted(MergeParameter param)
+        {
+            outPut.AddMessageLine($"Apply merge on rejected", "Pink");
+
+            await MergeRejetedDirectory(param.ProjectPath, param);
+
+            outPut.AddMessageLine("Apply merge on rejected", "Green");
+        }
+
+        // Process all files in the directory passed in, recurse on any directories
+        // that are found, and process the files they contain.
+        public async Task MergeRejetedDirectory(string targetDirectory, MergeParameter param)
+        {
+            // Process the list of files found in the directory.
+            string[] fileEntries = Directory.GetFiles(targetDirectory, "*.rej");
+            foreach (string fileName in fileEntries)
+                await MergeRejetedFileAsync(fileName, param);
+
+            // Recurse into subdirectories of this directory.
+            string[] subdirectoryEntries = Directory.GetDirectories(targetDirectory);
+            foreach (string subdirectory in subdirectoryEntries)
+                await MergeRejetedDirectory(subdirectory, param);
+        }
+
+        // Insert logic for processing found files here.
+        public async Task MergeRejetedFileAsync(string path, MergeParameter param)
+        {
+            outPut.AddMessageLine("Merge file '" + path + "'.", "White");
+
+            string finalFile = path.Substring(0, path.Length - 4);
+            string originalFile = param.ProjectOriginPath + finalFile.Substring(param.ProjectPath.Length);
+            string additionnalFile = param.ProjectTargetPath + finalFile.Substring(param.ProjectPath.Length);
+
+            if (File.Exists(finalFile) && File.Exists(originalFile) && File.Exists(additionnalFile))
+            {
+                await RunScript($"git merge-file '{finalFile}' '{originalFile}' '{additionnalFile}'");
+            }
+        }
+
+
         /// <summary>
         /// Runs a PowerShell script with parameters and prints the resulting pipeline objects to the console output. 
         /// </summary>
