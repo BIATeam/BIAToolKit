@@ -8,13 +8,10 @@
     using System.Windows.Controls;
     using System.Windows.Input;
     using System.Windows.Media;
-    using System.Text.Json;
-    using BIA.ToolKit.Application.CompanyFiles;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using System.Collections.Generic;
     using System;
-    using BIA.ToolKit.Application.Helper;
     using System.Text.RegularExpressions;
     using System.Diagnostics;
 
@@ -38,6 +35,13 @@
 
         public MainWindow(Configuration configuration, GitService gitService,GenerateFilesService genFilesService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
         {
+            //if (Settings.Default.UpdateSettings)
+            //{
+            //    Settings.Default.Upgrade();
+            //    Settings.Default.UpdateSettings = false;
+            //    Settings.Default.Save();
+            //}
+
             this.configuration = configuration;
             this.gitService = gitService;
             this.projectCreatorService = projectCreatorService;

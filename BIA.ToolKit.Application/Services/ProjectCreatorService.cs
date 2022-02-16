@@ -3,16 +3,11 @@
     using BIA.ToolKit.Application.CompanyFiles;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Common;
-    using BIA.ToolKit.Application.Helper;
     using LibGit2Sharp;
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.IO.Compression;
-    using System.Linq;
     using System.Net;
-    using System.Text;
-    using System.Threading.Tasks;
 
     public class ProjectCreatorService
     {

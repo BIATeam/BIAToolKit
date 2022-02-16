@@ -38,6 +38,7 @@
                     <TextBox HorizontalAlignment="Left" Margin="37,0,0,63" Text="D:\...\BIACompanyFiles" TextWrapping="Wrap" Width="310" Grid.Column="2" Name="CompanyFilesLocalFolderText" IsEnabled="False" Height="18" VerticalAlignment="Bottom"/>
                     <Button Content="..." HorizontalAlignment="Left" Margin="347,0,0,62" RenderTransformOrigin="0.429,2.91" Width="35" Grid.Column="2" Name="CompanyFilesLocalFolderBrowse" IsEnabled="False" Click="CompanyFilesLocalFolderBrowse_Click" Height="20" VerticalAlignment="Bottom"/>
                     <Button Content="Synchronize" HorizontalAlignment="Center" Margin="0,0,0,12" RenderTransformOrigin="0.429,2.91" Width="206" Grid.Column="2" Name="CompanyFilesLocalFolderSync" Click="CompanyFilesLocalFolderSync_Click" Height="20" VerticalAlignment="Bottom"/>
+                    <Label Content="V1.0.0.9" Grid.Column="2" Margin="322,2,0,0" VerticalAlignment="Top" Foreground="#FFF0F0F0" HorizontalAlignment="Right"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Create project" Selector.Selected="OnTabCreateSelected">
