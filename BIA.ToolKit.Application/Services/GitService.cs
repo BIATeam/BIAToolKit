@@ -22,7 +22,7 @@
         public async Task Synchronize(string repoName, string localPath)
         {
             outPut.AddMessageLine("Synchronize " + repoName + " local folder...", "Pink");
-            await RunScript($"cd \"" + localPath + $"\" \r\n" + $"git pull");
+            RunScript("git", "pull", localPath);
 
             /*using (var repo = new Repository(localPath))
             {
@@ -30,7 +30,7 @@
                 outPut.AddMessageLine(result.Status.ToString(), "White");
             }*/
 
-            outPut.AddMessageLine("Synchronize BIADemo local folder finished", "Green");
+            outPut.AddMessageLine("Synchronize " + repoName + " local folder finished", "Green");
         }
 
         public async Task Clone(string repoName, string url, string localPath)
@@ -39,7 +39,7 @@
             //var cloneResult = Repository.Clone(url, localPath);
             outPut.AddMessageLine("Clone " + repoName + " local folder...", "Pink");
 
-            await RunScript($"git clone \"" + url+"\" \"" + localPath + "\"");
+            RunScript("git", $"clone \"" + url+"\" \"" + localPath + "\"");
 
             outPut.AddMessageLine("Clone BIADemo local folder finished", "Green");
         }
@@ -63,7 +63,7 @@
 
             // git diff --no-index V3.3.3 V3.4.0 > .\\Migration\\CF_3.3.3-3.4.0.patch
             //await RunScript($"cd {rootPath} \r\n git diff --no-index --binary {name1} {name2} > {migrateFilePath}");
-            await RunScript($"cd \"{rootPath}\" \r\n git diff --no-index --binary {name1} {name2} | Out-File -encoding OEM {migrateFilePath}");
+            RunScript("git", $"diff --no-index --binary {name1} {name2} --output={migrateFilePath}", rootPath );
 
             // Replace a/{name1}/ by a/
             FileTransform.ReplaceInFile(migrateFilePath, $"a/{name1}/", "a/");
@@ -87,7 +87,7 @@
             outPut.AddMessageLine($"Apply diff", "Pink");
 
             // cd "...\\YourProject" git apply --reject --whitespace=fix "3.2.2-3.3.0.patch" \
-            await RunScript($"cd \"{projectPath}\" \r\n git apply --reject --whitespace=fix --binary {migrateFilePath} \\ ");
+            RunScript("git", $"apply --reject --whitespace=fix --binary {migrateFilePath} \\ ", projectPath);
 
             outPut.AddMessageLine("Apply diff finished", "Green");
         }
@@ -134,7 +134,7 @@
 
             if (File.Exists(finalFile) && File.Exists(originalFile) && File.Exists(additionnalFile))
             {
-                await RunScript($"git merge-file '{finalFile}' '{originalFile}' '{additionnalFile}'");
+                RunScript("git", $"merge-file '{finalFile}' '{originalFile}' '{additionnalFile}'");
             }
         }
 
@@ -142,32 +142,46 @@
         /// <summary>
         /// Runs a PowerShell script with parameters and prints the resulting pipeline objects to the console output. 
         /// </summary>
-        /// <param name="scriptContents">The script file contents.</param>
-        /// <param name="scriptParameters">A dictionary of parameter names and parameter values.</param>
-        private async Task<string> RunScript(string scriptContents, Dictionary<string, object> scriptParameters = null)
+        /// <param name="program">The program name.</param>
+        /// <param name="arguments">The argument.</param>
+        /// <param name="workingDirectory">The working directory.</param>
+        private void  RunScript(string program, string arguments, string workingDirectory = null)
         {
-            string output = "";
-            // create a new hosted PowerShell instance using the default runspace.
-            // wrap in a using statement to ensure resources are cleaned up.
-
-            using (PowerShell ps = PowerShell.Create())
+            try
             {
-                // specify the script code to run.
-                ps.AddScript(scriptContents);
-
-                // specify the parameters to pass into the script.
-                if (scriptParameters != null) ps.AddParameters(scriptParameters);
-
-                // execute the script and await the result.
-                var pipelineObjects = await ps.InvokeAsync().ConfigureAwait(true);
-
-                // print the resulting pipeline objects to the console.
-                foreach (var item in pipelineObjects)
+                ProcessStartInfo startInfo = new ProcessStartInfo()
                 {
-                    outPut.AddMessageLine(item.BaseObject.ToString(), "White");
+                    FileName = program/*"git"*/,
+                    Arguments = arguments/*"pull"*/,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true
+                };
+                if (workingDirectory != null)
+                {
+                    startInfo.WorkingDirectory = workingDirectory/*"C:\\Users\\L025308\\AppData\\Roaming\\BIA.ToolKit\\1.0.0.0\\BIATemplate\\Repo"*/;
                 }
+
+                var process = new Process
+                {
+                    StartInfo = startInfo
+                };
+                process.Start();
+                while (!process.StandardOutput.EndOfStream)
+                {
+                    string line = process.StandardOutput.ReadLine();
+                    outPut.AddMessageLine(line, "White");
+                    // do something with line
+                }
+                process.WaitForExit();
             }
-            return output;
+            catch (Exception e)
+            {
+                outPut.AddMessageLine($"Error in RunScript", "Red");
+                outPut.AddMessageLine(e.Message, "Red");
+                if (e.InnerException != null) outPut.AddMessageLine(e.InnerException.Message, "Red");
+                if (e.StackTrace != null) outPut.AddMessageLine(e.StackTrace, "Red");
+            }
         }
     }
 }

@@ -177,7 +177,6 @@
                 {
                     await this.gitService.Synchronize("BIATemplate", configuration.BIATemplatePath);
                 }
-
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
                 BIATemplateLocalFolderSync.IsEnabled = true;
             }
@@ -192,7 +191,7 @@
 
                 if (configuration.CompanyFilesLocalFolderIsChecked)
                 {
-                    await this.gitService.Synchronize("Company files", configuration.RootCompanyFilesPath);
+                    await this.gitService.Synchronize("BIACompanyFiles", configuration.RootCompanyFilesPath);
                 }
                 else
                 {
@@ -325,7 +324,7 @@
             }
             else
             {
-                Color col = (Color)ColorConverter.ConvertFromString("Red");
+                Color col = (Color)ColorConverter.ConvertFromString(color);
                 brush = new SolidColorBrush(col);
             }
             consoleWriter.AddMessageLine(message, brush);
