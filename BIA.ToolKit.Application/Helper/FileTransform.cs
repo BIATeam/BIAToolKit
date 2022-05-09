@@ -212,14 +212,14 @@
             }
         }
 
-        static public void CopyFilesRecursively(string sourcePath, string targetPath, string profile, IList<string> filesToExclude)
+        static public void CopyFilesRecursively(string sourcePath, string targetPath, string profile ="", IList<string> filesToExclude = null)
         {
             //Now Create all of the directories
             foreach (string sourceDir in Directory.GetDirectories(sourcePath, "*", SearchOption.TopDirectoryOnly))
             {
                 string sourceDirName = Path.GetFileName(sourceDir);
 
-                if (!filesToExclude.Any(s => Regex.Match(sourceDirName, s, RegexOptions.IgnoreCase).Success))
+                if (filesToExclude == null || !filesToExclude.Any(s => Regex.Match(sourceDirName, s, RegexOptions.IgnoreCase).Success))
                 {
                     var subTargetPath = sourceDir.Replace(sourcePath, targetPath);
                     Directory.CreateDirectory(sourceDir.Replace(sourcePath, targetPath));
@@ -233,9 +233,9 @@
 
                 string sourceFileName = Path.GetFileName(sourceFile);
 
-                if (!filesToExclude.Any( s => Regex.Match(sourceFileName, s, RegexOptions.IgnoreCase).Success))
+                if (filesToExclude == null || !filesToExclude.Any( s => Regex.Match(sourceFileName, s, RegexOptions.IgnoreCase).Success))
                 {
-                    if (Regex.Match(sourceFile, "\\[.*\\]", RegexOptions.IgnoreCase).Success)
+                    if (profile != "" && Regex.Match(sourceFile, "\\[.*\\]", RegexOptions.IgnoreCase).Success)
                     {
                         if (sourceFile.Contains("["+ profile + "]"))
                         {

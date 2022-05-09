@@ -19,7 +19,8 @@
 
         public void Create(bool actionFinishedAtEnd, string companyName, string projectName, string projectPath, string biaTemplatePath, string frameworkVersion /*frameworkVersion;*/,
             bool useCompanyFile, CFSettings cfSettings, string companyFilesPath, string companyFileProfile /* CreateCompanyFileProfile.Text*/,
-            string appFolderPath
+            string appFolderPath,
+            string[] angularFronts
             )
         {
 
@@ -138,6 +139,27 @@
 
             consoleWriter.AddMessageLine("Start remove BIATemplate only.", "Pink");
             FileTransform.RemoveTemplateOnly(projectPath, "# Begin BIATemplate only", "# End BIATemplate only", new List<string>() { ".gitignore" });
+
+            bool containsFrontAngular = false;
+            if (angularFronts?.Length > 0)
+            {
+                foreach (var angularFront in angularFronts)
+                {
+                    if (angularFront.ToLower() != "angular")
+                    {
+                        Directory.CreateDirectory(projectPath + "\\" + angularFront );
+                        FileTransform.CopyFilesRecursively(projectPath + "\\Angular", projectPath + "\\" + angularFront);
+                    }
+                    else
+                    {
+                        containsFrontAngular = true;
+                    }
+                }
+            }
+            if (!containsFrontAngular)
+            {
+                Directory.Delete(projectPath + "\\Angular", true);
+            }
 
             consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd? "Green": "Blue");
         }

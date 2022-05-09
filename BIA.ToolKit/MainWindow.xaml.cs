@@ -287,13 +287,13 @@
                 MessageBox.Show("The project path is not empty : " + projectPath);
                 return;
             }
-            CreateProject(true, CreateCompanyName.Text, CreateProjectName.Text, projectPath, CreateVersionAndOption);
+            CreateProject(true, CreateCompanyName.Text, CreateProjectName.Text, projectPath, CreateVersionAndOption, new string[] { "Angular" } );
         }
 
-        private void CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption)
+        private void CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
         {
             this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, configuration.BIATemplatePath, versionAndOption.FrameworkVersion.SelectedValue.ToString(),
-            configuration.UseCompanyFileIsChecked, versionAndOption.CfSettings, versionAndOption.CompanyFilesPath, versionAndOption.CompanyFileProfile.Text, configuration.AppFolderPath);
+            configuration.UseCompanyFileIsChecked, versionAndOption.CfSettings, versionAndOption.CompanyFilesPath, versionAndOption.CompanyFileProfile.Text, configuration.AppFolderPath, fronts);
         }
 
         private bool IsDirectoryEmpty(string path)
@@ -376,7 +376,7 @@
             ModifyProjectVersion.Content = "???";
 
             modifyProjectPath = ModifyProjectRootFolderText.Text + "\\" + ModifyProjectFolder.SelectedValue;
-            Regex reg = new Regex(modifyProjectPath.Replace("\\","\\\\") + @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$");
+            Regex reg = new Regex(modifyProjectPath.Replace("\\","\\\\") + @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$", RegexOptions.IgnoreCase);
             string file = Directory.GetFiles(modifyProjectPath, "Constants.cs", SearchOption.AllDirectories)?.Where(path => reg.IsMatch(path))?.FirstOrDefault();
             if (file != null)
             {
@@ -394,7 +394,23 @@
                         break;
                     }
                 }
-            } 
+            }
+
+            Regex reg2 = new Regex(modifyProjectPath.Replace("\\", "\\\\") + @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$", RegexOptions.IgnoreCase);
+            List<string> filesFront = Directory.GetFiles(modifyProjectPath, "bia-core.module.ts", SearchOption.AllDirectories)?.Where(path => reg2.IsMatch(path)).ToList();
+            ModifyBIAFronts.Content = "";
+            if (filesFront != null)
+            {
+                foreach(var fileFront in filesFront)
+                {
+                    var match = reg2.Match(fileFront);
+                    if (ModifyBIAFronts.Content.ToString() != "")
+                    {
+                        ModifyBIAFronts.Content += ", ";
+                    }
+                    ModifyBIAFronts.Content += match.Groups[1].Value;
+                }
+            }
         }
 
         private async void Migrate_Click(object sender, RoutedEventArgs e)
@@ -506,14 +522,17 @@
             {
                 FileTransform.ForceDeleteDirectory(projectOriginPath);
             }
-            CreateProject(false, ModifyProjectCompany.Content.ToString(), ModifyProjectName.Content.ToString(), projectOriginPath, MigrateOriginVersionAndOption);
+
+            string []fronts = ModifyBIAFronts.Content.ToString().Split(", ");
+
+            CreateProject(false, ModifyProjectCompany.Content.ToString(), ModifyProjectName.Content.ToString(), projectOriginPath, MigrateOriginVersionAndOption, fronts);
 
             // Create project at target version.
             if (Directory.Exists(projectTargetPath))
             {
                 FileTransform.ForceDeleteDirectory(projectTargetPath);
             }
-            CreateProject(false, ModifyProjectCompany.Content.ToString(), ModifyProjectName.Content.ToString(), projectTargetPath, MigrateTargetVersionAndOption);
+            CreateProject(false, ModifyProjectCompany.Content.ToString(), ModifyProjectName.Content.ToString(), projectTargetPath, MigrateTargetVersionAndOption, fronts);
         }
 
         private void MigrateOpenFolder_Click(object sender, RoutedEventArgs e)
