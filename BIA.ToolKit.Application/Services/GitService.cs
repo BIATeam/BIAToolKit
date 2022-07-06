@@ -56,7 +56,7 @@
             return release;
         }
 
-        public async Task DiffFolder(string rootPath, string name1, string name2, string migrateFilePath)
+        public async Task DiffFolder(bool actionFinishedAtEnd, string rootPath, string name1, string name2, string migrateFilePath)
         {
             outPut.AddMessageLine($"Diff {name1} <> {name2}", "Pink");
 
@@ -79,33 +79,35 @@
 
             FileTransform.ReplaceInFile(migrateFilePath, $"\r\n", "\n");
 
-            outPut.AddMessageLine("Diff folder finished", "Green");
+            outPut.AddMessageLine("Diff folder finished", actionFinishedAtEnd ? "Green" : "Blue");
         }
 
-        public async Task ApplyDiff(string projectPath, string migrateFilePath)
+        public async Task ApplyDiff(bool actionFinishedAtEnd,string projectPath, string migrateFilePath)
         {
             outPut.AddMessageLine($"Apply diff", "Pink");
 
             // cd "...\\YourProject" git apply --reject --whitespace=fix "3.2.2-3.3.0.patch" \
             RunScript("git", $"apply --reject --whitespace=fix --binary {migrateFilePath} \\ ", projectPath);
 
-            outPut.AddMessageLine("Apply diff finished", "Green");
+            outPut.AddMessageLine("Apply diff finished", actionFinishedAtEnd ? "Green" : "Blue");
         }
 
         public class MergeParameter
         {
             public string ProjectOriginPath { get; set; }
+            public string ProjectOriginVersion { get; set; }
             public string ProjectTargetPath { get; set; }
+            public string ProjectTargetVersion { get; set; }
             public string ProjectPath { get; set; }
         }
 
-        public async Task MergeRejeted(MergeParameter param)
+        public async Task MergeRejeted(bool actionFinishedAtEnd, MergeParameter param)
         {
             outPut.AddMessageLine($"Apply merge on rejected", "Pink");
 
             await MergeRejetedDirectory(param.ProjectPath, param);
 
-            outPut.AddMessageLine("Apply merge on rejected", "Green");
+            outPut.AddMessageLine("Apply merge on rejected", actionFinishedAtEnd ? "Green" : "Blue");
         }
 
         // Process all files in the directory passed in, recurse on any directories
@@ -134,7 +136,7 @@
 
             if (File.Exists(finalFile) && File.Exists(originalFile) && File.Exists(additionnalFile))
             {
-                RunScript("git", $"merge-file '{finalFile}' '{originalFile}' '{additionnalFile}'");
+                RunScript("git", $"merge-file -L Src -L {param.ProjectOriginVersion} -L {param.ProjectTargetVersion} \"{finalFile}\" \"{originalFile}\" \"{additionnalFile}\"");
             }
         }
 
@@ -155,6 +157,7 @@
                     Arguments = arguments/*"pull"*/,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
+                    //RedirectStandardError = true,
                     CreateNoWindow = true
                 };
                 if (workingDirectory != null)
@@ -167,17 +170,31 @@
                     StartInfo = startInfo
                 };
                 process.Start();
-                while (!process.StandardOutput.EndOfStream)
+                while (!process.StandardOutput.EndOfStream /*&& process.StandardError.EndOfStream*/)
                 {
-                    string line = process.StandardOutput.ReadLine();
-                    outPut.AddMessageLine(line, "White");
+                    if (!process.StandardOutput.EndOfStream)
+                    {
+                        outPut.AddMessageLine(process.StandardOutput.ReadLine(), "White");
+                    }
+                    /*if (!process.StandardError.EndOfStream)
+                    {
+                        outPut.AddMessageLine(process.StandardError.ReadLine(), "Red");
+                    }*/
                     // do something with line
                 }
                 process.WaitForExit();
+                if (process.ExitCode != 0)
+                {
+                    outPut.AddMessageLine("Exit code :" + process.ExitCode, "Pink");
+                    /*while (!process.StandardError.EndOfStream)
+                    {
+                        outPut.AddMessageLine(process.StandardError.ReadLine(), "Red");
+                    }*/
+                }
             }
             catch (Exception e)
             {
-                outPut.AddMessageLine($"Error in RunScript", "Red");
+                outPut.AddMessageLine("Error in RunScript", "Red");
                 outPut.AddMessageLine(e.Message, "Red");
                 if (e.InnerException != null) outPut.AddMessageLine(e.InnerException.Message, "Red");
                 if (e.StackTrace != null) outPut.AddMessageLine(e.StackTrace, "Red");

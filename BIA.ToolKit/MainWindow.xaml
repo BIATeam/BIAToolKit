@@ -76,36 +76,49 @@
                     <TabControl Grid.Row="1" Background="Transparent" >
                         <TabItem Header="Migration" Margin="5,0,-5,0">
                             <Grid Background="Transparent" VerticalAlignment="Top">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="170"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="150"/>
                                 </Grid.ColumnDefinitions>
-                                <GroupBox Header="Origial" Margin="0,0,0,0" Foreground="White" BorderBrush="White" x:Name="CompanyFileGroup" Visibility="Visible" Grid.Row="0">
-                                    <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption" />
-                                </GroupBox>
-                                <GroupBox Header="Target" Margin="0,0,0,0" Foreground="White" BorderBrush="White" Visibility="Visible" Grid.Row="1">
-                                    <uc:VersionAndOptionUserControl x:Name="MigrateTargetVersionAndOption"/>
-                                </GroupBox>
-                                <Button Content="Migrate" HorizontalAlignment="Center"  Width="123" x:Name="Migrate" Margin="0,0,0,0" Height="69" VerticalAlignment="Center" Grid.Row="0" Grid.Column="1" Click="Migrate_Click"/>
-                                <Label Content="Or by step :" Margin="0,133,0,0" VerticalAlignment="Top" Foreground="White" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center"/>
-                                <Grid Background="Transparent" Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,0" >
+                                <Grid Background="Transparent" VerticalAlignment="Top">
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="170"/>
+                                        <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
-                                    <Button Content="1 - Generate Only" HorizontalAlignment="Center"  Width="122" x:Name="MigrateGenerateOnly" Height="35" VerticalAlignment="Top" Grid.Row="0" Click="MigrateGenerateOnly_Click"/>
-                                    <Button Content="2 - Open Folder" HorizontalAlignment="Center"  Width="122" x:Name="MigrateOpenFolder" Height="35" VerticalAlignment="Center" Grid.Row="1" Click="MigrateOpenFolder_Click" IsEnabled="False"/>
-                                    <Button Content="3 - Apply Diff" HorizontalAlignment="Center"  Width="122" x:Name="MigrateApplyDiff"  Height="35" Grid.Row="2" Click="MigrateApplyDiff_Click" VerticalAlignment="Center" IsEnabled="False"/>
-                                    <Button Content="4 - Merge Rejected" HorizontalAlignment="Center"  Width="122" x:Name="MigrateMergeRejected" Height="35" VerticalAlignment="Bottom" Grid.Row="3" Click="MigrateMergeRejected_Click" IsEnabled="True"/>
-
+                                    <GroupBox Header="Origial" Margin="0,0,0,0" Foreground="White" BorderBrush="White" x:Name="CompanyFileGroup" Visibility="Visible" Grid.Row="0">
+                                        <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption" />
+                                    </GroupBox>
+                                    <GroupBox Header="Target" Margin="0,0,0,0" Foreground="White" BorderBrush="White" Visibility="Visible" Grid.Row="1">
+                                        <uc:VersionAndOptionUserControl x:Name="MigrateTargetVersionAndOption"/>
+                                    </GroupBox>
+                                </Grid>
+                                <Grid Background="Transparent" VerticalAlignment="Top" Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="100"/>
+                                        <RowDefinition Height="40"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <Button Content="Migrate" HorizontalAlignment="Center"  Width="123" x:Name="Migrate"  Height="69" VerticalAlignment="Center" Grid.Row="0" Click="Migrate_Click"/>
+                                    <Label Content="Or by step :" VerticalAlignment="Top" Foreground="White" Grid.Row="1" HorizontalAlignment="Center"/>
+                                    <Grid Background="Transparent" Grid.Row="2" VerticalAlignment="Center" >
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Button Content="1 - Generate Only" HorizontalAlignment="Center"  Width="122" x:Name="MigrateGenerateOnly" Height="35" VerticalAlignment="Top" Grid.Row="0" Click="MigrateGenerateOnly_Click"/>
+                                        <Button Content="2 - Open Folder" HorizontalAlignment="Center"  Width="122" x:Name="MigrateOpenFolder" Height="35" VerticalAlignment="Center" Grid.Row="1" Click="MigrateOpenFolder_Click" IsEnabled="False"/>
+                                        <Button Content="3 - Apply Diff" HorizontalAlignment="Center"  Width="122" x:Name="MigrateApplyDiff"  Height="35" Grid.Row="2" Click="MigrateApplyDiff_Click" VerticalAlignment="Center" IsEnabled="False"/>
+                                        <Button Content="4 - Merge Rejected" HorizontalAlignment="Center"  Width="122" x:Name="MigrateMergeRejected" Height="35" VerticalAlignment="Bottom" Grid.Row="3" Click="MigrateMergeRejected_Click" IsEnabled="True"/>
+                                        <Button Content="5 - Overwrite '\BIA-.*'" HorizontalAlignment="Center"  Width="122" x:Name="MigrateOverwriteBIAFolder" Height="35" VerticalAlignment="Bottom" Grid.Row="4" Click="MigrateOverwriteBIAFolder_Click" IsEnabled="True"/>
+                                    </Grid>
                                 </Grid>
                             </Grid>
+
+
+                             
                         </TabItem>
                         <TabItem Header="Rename project" Margin="5,0,-5,0">
                             <Grid Background="Transparent"/>

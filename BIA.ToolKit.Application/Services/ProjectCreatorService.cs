@@ -8,6 +8,7 @@
     using System.IO;
     using System.IO.Compression;
     using System.Net;
+    using System.Text.RegularExpressions;
 
     public class ProjectCreatorService
     {
@@ -61,9 +62,7 @@
 
                             if (!Directory.Exists(biaTemplatePathVersion))
                             {
-                                
                                 ZipFile.ExtractToDirectory(zipPath, biaTemplatePathVersion);
-
                                 FileTransform.FolderUnix2Dos(biaTemplatePathVersion);
                             }
                             var dirContent = Directory.GetDirectories(biaTemplatePathVersion, "*.*", SearchOption.TopDirectoryOnly);
@@ -163,5 +162,32 @@
 
             consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd? "Green": "Blue");
         }
+
+        public void OverwriteBIAFolder(string sourceFolder, string targetFolder, bool actionFinishedAtEnd)
+        {
+            consoleWriter.AddMessageLine("Start overwrite BIA Folder.", "Pink");
+            Regex reg = new Regex( @"\\bia-.*\\", RegexOptions.IgnoreCase);
+            string[] biaDirectories = Directory.GetDirectories(sourceFolder, "bia-*", SearchOption.AllDirectories);
+            foreach (var biaDirectory in biaDirectories)
+            {
+                var relativePath = biaDirectory.Substring(sourceFolder.Length);
+                var matchBia = reg.Match(relativePath);
+
+                // treat only root folder 
+                if (matchBia.Length == 0)
+                {
+                    var targetDirectory = targetFolder + relativePath;
+
+                    Directory.Delete(targetDirectory, true);
+                    Directory.CreateDirectory(targetDirectory);
+                    FileTransform.CopyFilesRecursively(biaDirectory, targetDirectory);
+                }
+
+
+            }
+            consoleWriter.AddMessageLine("Overwrite BIA Folder finished.", actionFinishedAtEnd ? "Green" : "Blue");
+
+        }
+
     }
 }
