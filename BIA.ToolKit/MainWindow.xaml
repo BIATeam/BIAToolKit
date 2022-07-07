@@ -118,10 +118,20 @@
                             </Grid>
 
 
-                             
+
                         </TabItem>
                         <TabItem Header="Rename project" Margin="5,0,-5,0">
                             <Grid Background="Transparent"/>
+                        </TabItem>
+                        <TabItem Header="Add DTO" Margin="3,0,-7,0">
+                            <Grid Background="Transparent">
+                                <Label Content="Entity file" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" />
+                                <TextBox HorizontalAlignment="Left" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="861" x:Name="ModifyProjectAddDTOEntity" Height="21"  Margin="10,31,0,0"/>
+                                <Button Content="..." VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" x:Name="ModifyProjectAddDTOEntityBrowse" Margin="0,31,62,0" Click="ModifyProjectAddDTOEntityBrowse_Click" HorizontalAlignment="Right" Width="35"/>
+
+
+
+                            </Grid>
                         </TabItem>
                         <TabItem Header="Add crud" Margin="3,0,-7,0">
                             <Grid Background="Transparent">

@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.Helper
 {
+    using Microsoft.Win32;
     using System.IO;
     using System.Windows.Controls;
 
@@ -20,6 +21,25 @@
                     destTextBox.Text = openFileDlg.SelectedPath;
                 }
             }
+        }
+        public static bool BrowseFile(TextBox destTextBox, string projectDir)
+        {
+            OpenFileDialog openFileDlg = new OpenFileDialog();
+
+            if (Directory.Exists(projectDir))
+            {
+                openFileDlg.InitialDirectory = projectDir;
+                openFileDlg.RestoreDirectory = true;
+            }
+
+            var result = openFileDlg.ShowDialog();
+            if (result == true)
+            {
+                destTextBox.Text = openFileDlg.FileName;
+                return true;
+            }
+            return false;
+
         }
     }
 }

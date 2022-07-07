@@ -32,6 +32,7 @@
             services.AddSingleton<GitService>();
             services.AddSingleton<ProjectCreatorService>();
             services.AddSingleton<GenerateFilesService>();
+            services.AddSingleton<CSharpParserService>();
         }
         private void OnStartup(object sender, StartupEventArgs e)
         {

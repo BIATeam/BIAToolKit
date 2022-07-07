@@ -14,7 +14,10 @@
     using System;
     using System.Text.RegularExpressions;
     using System.Diagnostics;
-
+    using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
+    using System.Threading;
+    using BIA.ToolKit.Application.Parser;
 
 
     /// <summary>
@@ -25,6 +28,7 @@
         GitService gitService;
         ProjectCreatorService projectCreatorService;
         GenerateFilesService generateFilesService;
+        CSharpParserService cSharpParserService;
         ConsoleWriter consoleWriter;
         bool isCreateTabInitialized = false;
         bool isModifyTabInitialized = false;
@@ -33,7 +37,7 @@
 
         string modifyProjectPath = "";
 
-        public MainWindow(Configuration configuration, GitService gitService,GenerateFilesService genFilesService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
+        public MainWindow(Configuration configuration, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
         {
             //if (Settings.Default.UpdateSettings)
             //{
@@ -46,6 +50,7 @@
             this.gitService = gitService;
             this.projectCreatorService = projectCreatorService;
             this.generateFilesService = genFilesService;
+            this.cSharpParserService = cSharpParserService;
 
             InitializeComponent();
             MigrateOriginVersionAndOption.Inject(configuration, gitService, consoleWriter);
@@ -644,6 +649,37 @@
             else
             {
                 MessageBox.Show("Select the folder to save the files", "Generate files", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ModifyProjectAddDTOEntityBrowse_Click(object sender, RoutedEventArgs e)
+        {
+
+            string projectDir = "";
+            string path = CreateProjectRootFolderText.Text;
+            if (Directory.Exists(path))
+            {
+                projectDir = path;
+                path = projectDir + "\\" + ModifyProjectName.Content;
+                if (Directory.Exists(path))
+                {
+                    projectDir = path;
+                    path = projectDir + "\\DotNet";
+                    if (Directory.Exists(path))
+                    {
+                        projectDir = path;
+                        path = projectDir + "\\" + ModifyProjectCompany.Content.ToString() + "." + ModifyProjectName.Content + ".Domain";
+                        if (Directory.Exists(path))
+                        {
+                            projectDir = path;
+                        }
+                    }
+                }
+            }
+            
+            if (FileDialog.BrowseFile(ModifyProjectAddDTOEntity, projectDir))
+            {
+                cSharpParserService.ParseEntity(ModifyProjectAddDTOEntity.Text);
             }
         }
     }
