@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:gif="http://wpfanimatedgif.codeplex.com"
         xmlns:local="clr-namespace:BIA.ToolKit"
-        xmlns:uc="clr-namespace:BIA.ToolKit"
+        xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
         mc:Ignorable="d"
         Title="BIA Toolkit" Height="765" Width="1035" Icon="/Images/Tools.ico" MaxWidth="1035" MaxHeight="765" WindowStartupLocation="CenterScreen">
     <Grid Background="#FFE5E5E5" Width="1000" Margin="10,11,10,14">
@@ -46,7 +46,7 @@
                     <Grid.Background>
                         <ImageBrush ImageSource="/Images/bg-default.jpg"/>
                     </Grid.Background>
-                    <Label Content="Project parent path" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Foreground="White"/>
+                    <Label Content="Projects parent path" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Foreground="White"/>
                     <TextBox HorizontalAlignment="Left" Margin="29,25,0,0" Text="D:\...\MyRootProjectPath" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="CreateProjectRootFolderText" TextChanged="CreateProjectRootFolderText_TextChanged"/>
                     <Button Content="..." HorizontalAlignment="Left" Margin="339,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="CreateProjectRootFolderBrowse" Click="CreateProjectRootFolderBrowse_Click"/>
                     <Label Content="Company name" HorizontalAlignment="Left" Margin="406,1,0,0" VerticalAlignment="Top" Foreground="White"/>
@@ -64,98 +64,7 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Modify existing project" Selector.Selected="OnTabModifySelected" >
-                <Grid Margin="10,10,10,10" x:Name="TabModify">
-
-                    <Grid.Background>
-                        <ImageBrush ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
-                    </Grid.Background>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="50"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <TabControl Grid.Row="1" Background="Transparent" >
-                        <TabItem Header="Migration" Margin="5,0,-5,0">
-                            <Grid Background="Transparent" VerticalAlignment="Top">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="150"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid Background="Transparent" VerticalAlignment="Top">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="170"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-                                    <GroupBox Header="Origial" Margin="0,0,0,0" Foreground="White" BorderBrush="White" x:Name="CompanyFileGroup" Visibility="Visible" Grid.Row="0">
-                                        <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption" />
-                                    </GroupBox>
-                                    <GroupBox Header="Target" Margin="0,0,0,0" Foreground="White" BorderBrush="White" Visibility="Visible" Grid.Row="1">
-                                        <uc:VersionAndOptionUserControl x:Name="MigrateTargetVersionAndOption"/>
-                                    </GroupBox>
-                                </Grid>
-                                <Grid Background="Transparent" VerticalAlignment="Top" Grid.Column="1">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="100"/>
-                                        <RowDefinition Height="40"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-                                    <Button Content="Migrate" HorizontalAlignment="Center"  Width="123" x:Name="Migrate"  Height="69" VerticalAlignment="Center" Grid.Row="0" Click="Migrate_Click"/>
-                                    <Label Content="Or by step :" VerticalAlignment="Top" Foreground="White" Grid.Row="1" HorizontalAlignment="Center"/>
-                                    <Grid Background="Transparent" Grid.Row="2" VerticalAlignment="Center" >
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <Button Content="1 - Generate Only" HorizontalAlignment="Center"  Width="122" x:Name="MigrateGenerateOnly" Height="35" VerticalAlignment="Top" Grid.Row="0" Click="MigrateGenerateOnly_Click"/>
-                                        <Button Content="2 - Open Folder" HorizontalAlignment="Center"  Width="122" x:Name="MigrateOpenFolder" Height="35" VerticalAlignment="Center" Grid.Row="1" Click="MigrateOpenFolder_Click" IsEnabled="False"/>
-                                        <Button Content="3 - Apply Diff" HorizontalAlignment="Center"  Width="122" x:Name="MigrateApplyDiff"  Height="35" Grid.Row="2" Click="MigrateApplyDiff_Click" VerticalAlignment="Center" IsEnabled="False"/>
-                                        <Button Content="4 - Merge Rejected" HorizontalAlignment="Center"  Width="122" x:Name="MigrateMergeRejected" Height="35" VerticalAlignment="Bottom" Grid.Row="3" Click="MigrateMergeRejected_Click" IsEnabled="True"/>
-                                        <Button Content="5 - Overwrite '\BIA-.*'" HorizontalAlignment="Center"  Width="122" x:Name="MigrateOverwriteBIAFolder" Height="35" VerticalAlignment="Bottom" Grid.Row="4" Click="MigrateOverwriteBIAFolder_Click" IsEnabled="True"/>
-                                    </Grid>
-                                </Grid>
-                            </Grid>
-
-
-
-                        </TabItem>
-                        <TabItem Header="Rename project" Margin="5,0,-5,0">
-                            <Grid Background="Transparent"/>
-                        </TabItem>
-                        <TabItem Header="Add DTO" Margin="3,0,-7,0">
-                            <Grid Background="Transparent">
-                                <Label Content="Entity file" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" />
-                                <TextBox HorizontalAlignment="Left" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="861" x:Name="ModifyProjectAddDTOEntity" Height="21"  Margin="10,31,0,0"/>
-                                <Button Content="..." VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" x:Name="ModifyProjectAddDTOEntityBrowse" Margin="0,31,62,0" Click="ModifyProjectAddDTOEntityBrowse_Click" HorizontalAlignment="Right" Width="35"/>
-
-
-
-                            </Grid>
-                        </TabItem>
-                        <TabItem Header="Add crud" Margin="3,0,-7,0">
-                            <Grid Background="Transparent">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="7*"/>
-                                    <ColumnDefinition Width="50*"/>
-                                </Grid.ColumnDefinitions>
-                            </Grid>
-                        </TabItem>
-                    </TabControl>
-                    <Label Content="Project parent path" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Foreground="White"/>
-                    <TextBox HorizontalAlignment="Left" Margin="29,23,0,0" Text="D:\...\MyRootProjectPath" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="ModifyProjectRootFolderText" TextChanged="ModifyProjectRootFolderText_TextChanged" Height="21"/>
-                    <Button Content="..." HorizontalAlignment="Left" Margin="339,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="ModifyProjectRootFolderBrowse" Click="CreateProjectRootFolderBrowse_Click"/>
-                    <Label Content="Project Folder" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="384,0,0,0"/>
-                    <ComboBox HorizontalAlignment="Left" Margin="402,23,0,0" VerticalAlignment="Top" Width="120" x:Name="ModifyProjectFolder" SelectionChanged="ModifyProject_SelectionChanged"/>
-                    <Label Content="Version detected : " HorizontalAlignment="Left" Margin="542,0,0,0" VerticalAlignment="Top" Foreground="White"/>
-                    <Label Content="???" HorizontalAlignment="Left" Margin="675,0,0,0" VerticalAlignment="Top" Foreground="White" x:Name="ModifyProjectVersion"/>
-                    <Label Content="Project name detected : " HorizontalAlignment="Left" Margin="542,15,0,0" VerticalAlignment="Top" Foreground="White"/>
-                    <Label Content="???" HorizontalAlignment="Left" Margin="675,15,0,0" VerticalAlignment="Top" Foreground="White" x:Name="ModifyProjectName"/>
-                    <Label Content="Company detected : " HorizontalAlignment="Left" Margin="542,31,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
-                    <Label Content="???" HorizontalAlignment="Left" Margin="675,31,0,0" VerticalAlignment="Top" Foreground="White" x:Name="ModifyProjectCompany" Grid.RowSpan="2"/>
-                    <Label Content="BIA front(s) folder(s) : " HorizontalAlignment="Left" Margin="542,47,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
-                    <Label Content="???" HorizontalAlignment="Left" Margin="675,47,0,0" VerticalAlignment="Top" Foreground="White" x:Name="ModifyBIAFronts" Grid.RowSpan="2"/>
-                </Grid>
+                <uc:ModifyProjectUC x:Name="ModifyProject"/>
             </TabItem>
             <TabItem Header="File Generator">
                 <Grid Margin="10,10,10,10"  x:Name="TabFileGenerator">

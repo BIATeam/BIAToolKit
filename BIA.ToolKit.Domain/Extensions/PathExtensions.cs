@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Extensions
+﻿namespace BIA.ToolKit.Domain.Extensions
 { 
     public static class PathExtensions
     {

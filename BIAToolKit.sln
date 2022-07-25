@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31424.327
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32516.85
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BIA.ToolKit", "BIA.ToolKit\BIA.ToolKit.csproj", "{9E2816DA-B405-454D-B1B0-7FE651681BF5}"
 EndProject
@@ -13,7 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BIA.ToolKit.Application", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10 - Common", "10 - Common", "{E28E73C7-F7B0-422D-B3F0-DF1694528290}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BIA.ToolKit.Common", "BIA.ToolKit.Common\BIA.ToolKit.Common.csproj", "{CCEB7B77-6072-4875-891E-018BD3B1628B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BIA.ToolKit.Common", "BIA.ToolKit.Common\BIA.ToolKit.Common.csproj", "{CCEB7B77-6072-4875-891E-018BD3B1628B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03 - Domain", "03 - Domain", "{2EB2D33B-9160-48E8-A005-9A9FEC718C15}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BIA.ToolKit.Domain", "BIA.ToolKit.Domain\BIA.ToolKit.Domain.csproj", "{9748E10E-15E5-4912-8D42-D751305BC82D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +37,10 @@ Global
 		{CCEB7B77-6072-4875-891E-018BD3B1628B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCEB7B77-6072-4875-891E-018BD3B1628B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCEB7B77-6072-4875-891E-018BD3B1628B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9748E10E-15E5-4912-8D42-D751305BC82D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9748E10E-15E5-4912-8D42-D751305BC82D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9748E10E-15E5-4912-8D42-D751305BC82D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9748E10E-15E5-4912-8D42-D751305BC82D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -41,6 +49,7 @@ Global
 		{9E2816DA-B405-454D-B1B0-7FE651681BF5} = {C2814EF5-0393-49A6-806B-9331A33B281A}
 		{5F8ED59F-AB50-4238-95E1-B1823885B04F} = {9F8F7BB7-618A-48F5-AA18-267B9684BBFE}
 		{CCEB7B77-6072-4875-891E-018BD3B1628B} = {E28E73C7-F7B0-422D-B3F0-DF1694528290}
+		{9748E10E-15E5-4912-8D42-D751305BC82D} = {2EB2D33B-9160-48E8-A005-9A9FEC718C15}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7B77949D-BFAE-4C14-B9E8-0BD523B72096}

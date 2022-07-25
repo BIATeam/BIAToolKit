@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using BIA.ToolKit.Application.Extensions;
-using Humanizer;
-
-namespace BIA.ToolKit.Application.Models
+﻿
+namespace BIA.ToolKit.Domain.DtoGenerator
 {
+    using Humanizer;
     public class EntityInfo
     {
         public EntityInfo(string @namespace, string name, string? baseType, string? primaryKey/*, string relativeDirectory*/)

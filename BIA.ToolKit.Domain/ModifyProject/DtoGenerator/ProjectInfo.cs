@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace BIA.ToolKit.Application.Models
+namespace BIA.ToolKit.Domain.DtoGenerator
 {
     public class ProjectInfo
     {

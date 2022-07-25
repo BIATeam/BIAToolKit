@@ -2,7 +2,6 @@
 {
     using BIA.ToolKit.Application.Extensions;
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Models;
     using BIA.ToolKit.Application.Parser;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,6 +12,15 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Diagnostics;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.Build.Locator;
+    using BIA.ToolKit.Domain.DtoGenerator;
+
+    /*   using Roslyn.Compilers;
+using Roslyn.Compilers.Common;
+using Roslyn.Compilers.CSharp;
+using Roslyn.Services;*/
 
     public class CSharpParserService
     {
@@ -102,9 +110,68 @@
                 entityInfo.CompositeKeys.AddRange(
                     keyNames.Select(k => properties.Single(prop => prop.Name == k)));
             }
-
-
         }
 
+        public async Task ParseSolution(string projectPath)
+        {
+            try
+            {
+                MSBuildLocator.RegisterDefaults();
+                var workspace = Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create();
+                var project = await workspace.OpenProjectAsync(projectPath);
+                var compilation = await project.GetCompilationAsync();
+
+                foreach (var diagnostic in compilation.GetDiagnostics()
+                    .Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error))
+                {
+                    Console.WriteLine(diagnostic);
+                }
+            }
+            catch(Exception e)
+            {
+                throw e;
+            }
+            /*            var workspace = Workspace.LoadSolution(projectPath);
+                       var solution = workspace.CurrentSolution;
+
+                        foreach (var projectId in solution.ProjectIds)
+                        {
+                            var project = solution.GetProject(projectId);
+                            foreach (var documentId in project.DocumentIds)
+                            {
+                                var document = project.GetDocument(documentId);
+                                CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)document.GetSyntaxRoot();
+                                Debug.WriteLine(String.Format("compilationUnit={0} before", compilationUnit.GetHashCode()));
+                                Debug.WriteLine(String.Format("project={0} before", project.GetHashCode()));
+                                Debug.WriteLine(String.Format("solution={0} before", solution.GetHashCode()));
+                                var mcu = new AnnotatorSyntaxRewritter().Visit(compilationUnit);
+                                var project2 = document.UpdateSyntaxRoot(mcu).Project;
+                                if (mcu != compilationUnit)
+                                {
+                                    solution = project2.Solution;
+                                }
+                                Debug.WriteLine(String.Format("compilationUnit={0} after", mcu.GetHashCode()));
+                                Debug.WriteLine(String.Format("project={0} after", project2.GetHashCode()));
+                                Debug.WriteLine(String.Format("solution={0} after", solution.GetHashCode()));
+                            }
+                        }
+
+                        foreach (var projectId in solution.ProjectIds)
+                        {
+                            var project = solution.GetProject(projectId);
+                            foreach (var documentId in project.DocumentIds)
+                            {
+                                var document = project.GetDocument(documentId);
+                                var compilationUnit = document.GetSyntaxRoot();
+                                var semanticModel = document.GetSemanticModel();
+                                Debug.WriteLine(String.Format("compilationUnit={0} stage", compilationUnit.GetHashCode()));
+                                Debug.WriteLine(String.Format("project={0} stage", project.GetHashCode()));
+                                Debug.WriteLine(String.Format("solution={0}", solution.GetHashCode()));
+
+                                MySyntaxWalker sw = new MySyntaxWalker(semanticModel);
+                                sw.Visit((SyntaxNode)compilationUnit);
+                            }
+                        }*/
+        }
     }
 }

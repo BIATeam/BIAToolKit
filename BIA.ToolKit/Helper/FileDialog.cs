@@ -1,7 +1,9 @@
 ﻿namespace BIA.ToolKit.Helper
 {
     using Microsoft.Win32;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Windows.Controls;
 
     static class FileDialog
@@ -40,6 +42,20 @@
             }
             return false;
 
+        }
+
+        public static bool IsDirectoryEmpty(string path)
+        {
+            string[] files = System.IO.Directory.GetFiles(path);
+            if (files.Length != 0) return false;
+
+            List<string> dirs = System.IO.Directory.GetDirectories(path).ToList();
+
+            if (dirs.Where(d => !d.EndsWith("\\.git")).Count() != 0) return false;
+
+            return true;
+
+            //return !Directory.EnumerateFileSystemEntries(path).Any();
         }
     }
 }

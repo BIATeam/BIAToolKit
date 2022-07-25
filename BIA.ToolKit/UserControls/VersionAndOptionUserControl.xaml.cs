@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit
+﻿namespace BIA.ToolKit.UserControls
 {
     using BIA.ToolKit.Application.CompanyFiles;
     using BIA.ToolKit.Application.Services;

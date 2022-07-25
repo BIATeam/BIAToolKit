@@ -18,6 +18,7 @@
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System.Threading;
     using BIA.ToolKit.Application.Parser;
+    using BIA.ToolKit.UserControls;
 
 
     /// <summary>
@@ -35,8 +36,6 @@
 
         Configuration configuration;
 
-        string modifyProjectPath = "";
-
         public MainWindow(Configuration configuration, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
         {
             //if (Settings.Default.UpdateSettings)
@@ -53,9 +52,8 @@
             this.cSharpParserService = cSharpParserService;
 
             InitializeComponent();
-            MigrateOriginVersionAndOption.Inject(configuration, gitService, consoleWriter);
-            MigrateTargetVersionAndOption.Inject(configuration, gitService, consoleWriter);
             CreateVersionAndOption.Inject(configuration,gitService,consoleWriter);
+            ModifyProject.Inject(configuration, gitService, consoleWriter, cSharpParserService, projectCreatorService);
 
             this.consoleWriter = (ConsoleWriter) consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer);
@@ -71,7 +69,6 @@
             CompanyFilesLocalFolderText.Text = Settings.Default.CompanyFilesLocalFolderText;
 
             CreateProjectRootFolderText.Text = Settings.Default.CreateProjectRootFolderText;
-            ModifyProjectRootFolderText.Text = Settings.Default.CreateProjectRootFolderText;
             CreateCompanyName.Text = Settings.Default.CreateCompanyName;
 
             txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
@@ -238,8 +235,7 @@
                 {
                     if (RefreshConfiguration())
                     {
-                        MigrateOriginVersionAndOption.refreshConfig();
-                        MigrateTargetVersionAndOption.refreshConfig();
+                        ModifyProject.RefreshConfiguration();
                         isModifyTabInitialized = true;
                     }
                 }
@@ -287,7 +283,7 @@
             }
 
             string projectPath = CreateProjectRootFolderText.Text + "\\" + CreateProjectName.Text;
-            if (Directory.Exists(projectPath) && !IsDirectoryEmpty(projectPath))
+            if (Directory.Exists(projectPath) && !FileDialog.IsDirectoryEmpty(projectPath))
             {
                 MessageBox.Show("The project path is not empty : " + projectPath);
                 return;
@@ -299,20 +295,6 @@
         {
             this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, configuration.BIATemplatePath, versionAndOption.FrameworkVersion.SelectedValue.ToString(),
             configuration.UseCompanyFileIsChecked, versionAndOption.CfSettings, versionAndOption.CompanyFilesPath, versionAndOption.CompanyFileProfile.Text, configuration.AppFolderPath, fronts);
-        }
-
-        private bool IsDirectoryEmpty(string path)
-        {
-            string[] files = System.IO.Directory.GetFiles(path);
-            if (files.Length != 0) return false;
-
-            List<string> dirs = System.IO.Directory.GetDirectories(path).ToList();
-
-            if(dirs.Where(d => !d.EndsWith("\\.git")).Count() != 0) return false;
-
-            return true;
-
-            //return !Directory.EnumerateFileSystemEntries(path).Any();
         }
 
         private void UseCompanyFile_Checked(object sender, RoutedEventArgs e)
@@ -337,267 +319,14 @@
 
         private void CreateProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (ModifyProjectRootFolderText != null && CreateProjectRootFolderText != null && ModifyProjectRootFolderText.Text != CreateProjectRootFolderText.Text)
+            //TODO recabler:
+            /*if (ModifyProjectRootFolderText != null && CreateProjectRootFolderText != null && ModifyProjectRootFolderText.Text != CreateProjectRootFolderText.Text)
             {
                 ModifyProjectRootFolderText.Text = CreateProjectRootFolderText.Text;
-            }
+            }*/
         }
 
-        private void ModifyProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            ParameterModifyChange();
 
-            if (ModifyProjectFolder != null)
-            {
-                ModifyProjectCompany.Content = "???";
-                ModifyProjectName.Content = "???";
-                ModifyProjectVersion.Content = "???";
-                ModifyProjectFolder.Items.Clear();
-            }
-            if (ModifyProjectRootFolderText != null && CreateProjectRootFolderText != null && ModifyProjectRootFolderText.Text != CreateProjectRootFolderText.Text)
-            {
-                CreateProjectRootFolderText.Text = ModifyProjectRootFolderText.Text;
-            }
-            if (Directory.Exists(ModifyProjectRootFolderText.Text))
-            {
-                DirectoryInfo di = new DirectoryInfo(ModifyProjectRootFolderText.Text);
-                // Create an array representing the files in the current directory.
-                DirectoryInfo[] versionDirectories = di.GetDirectories("*", SearchOption.TopDirectoryOnly);
-                // Print out the names of the files in the current directory.
-                foreach (DirectoryInfo dir in versionDirectories)
-                {
-                    //Add and select the last added
-                    ModifyProjectFolder.Items.Add(dir.Name);
-                }
-            }
-        }
-
-        private void ModifyProject_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            ParameterModifyChange();
-
-            ModifyProjectCompany.Content = "???";
-            ModifyProjectName.Content = "???";
-            ModifyProjectVersion.Content = "???";
-
-            modifyProjectPath = ModifyProjectRootFolderText.Text + "\\" + ModifyProjectFolder.SelectedValue;
-            Regex reg = new Regex(modifyProjectPath.Replace("\\","\\\\") + @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$", RegexOptions.IgnoreCase);
-            string file = Directory.GetFiles(modifyProjectPath, "Constants.cs", SearchOption.AllDirectories)?.Where(path => reg.IsMatch(path))?.FirstOrDefault();
-            if (file != null)
-            {
-                var match = reg.Match(file);
-                ModifyProjectCompany.Content = match.Groups[1].Value;
-                ModifyProjectName.Content = match.Groups[2].Value;
-                Regex regVersion = new Regex(@" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$");
-
-                foreach (var line in File.ReadAllLines(file))
-                {
-                    var matchVersion = regVersion.Match(line);
-                    if (matchVersion.Success )
-                    {
-                        ModifyProjectVersion.Content = matchVersion.Groups[1].Value;
-                        break;
-                    }
-                }
-            }
-
-            Regex reg2 = new Regex(modifyProjectPath.Replace("\\", "\\\\") + @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$", RegexOptions.IgnoreCase);
-            List<string> filesFront = Directory.GetFiles(modifyProjectPath, "bia-core.module.ts", SearchOption.AllDirectories)?.Where(path => reg2.IsMatch(path)).ToList();
-            ModifyBIAFronts.Content = "";
-            if (filesFront != null)
-            {
-                foreach(var fileFront in filesFront)
-                {
-                    var match = reg2.Match(fileFront);
-                    if (ModifyBIAFronts.Content.ToString() != "")
-                    {
-                        ModifyBIAFronts.Content += ", ";
-                    }
-                    ModifyBIAFronts.Content += match.Groups[1].Value;
-                }
-            }
-        }
-
-        private async void Migrate_Click(object sender, RoutedEventArgs e)
-        {
-
-            if (!Directory.Exists(modifyProjectPath) || IsDirectoryEmpty(modifyProjectPath))
-            {
-                MessageBox.Show("The project path is empty : " + modifyProjectPath);
-                return;
-            }
-
-            Enable(false);
-
-            string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
-            MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
-
-            GenerateProjects(false, projectOriginPath, projectTargetPath);
-
-            await ApplyDiff(false,  projectOriginalFolderName, projectTargetFolderName);
-
-            await MergeRejected(false);
-
-            consoleWriter.AddMessageLine("Migration finished.", "Green" );
-
-            MigrateOpenFolder.IsEnabled = true;
-            MigrateMergeRejected.IsEnabled = true;
-
-            Enable(true);
-        }
-
-        private void Enable(bool isEnabled)
-        {
-            //Migrate.IsEnabled = false;
-            if (isEnabled)
-            {
-                Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
-            }
-            else
-            {
-                Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
-            }
-
-            MainTab.IsEnabled = isEnabled;
-            System.Windows.Forms.Application.DoEvents();
-        }
-
-        private void ParameterModifyChange()
-        {
-            if (MigrateOpenFolder!= null) MigrateOpenFolder.IsEnabled = false;
-            if (MigrateApplyDiff != null) MigrateApplyDiff.IsEnabled = false;
-            if (MigrateMergeRejected != null) MigrateMergeRejected.IsEnabled = false;
-            if (MigrateOverwriteBIAFolder != null) MigrateOverwriteBIAFolder.IsEnabled = false;
-        }
-
-        private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
-        {
-
-            if (!Directory.Exists(modifyProjectPath) || IsDirectoryEmpty(modifyProjectPath))
-            {
-                MessageBox.Show("The project path is empty : " + modifyProjectPath);
-                return;
-            }
-
-            Enable(false);
-
-            string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
-            MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
-
-            GenerateProjects(true, projectOriginPath, projectTargetPath);
-
-            MigrateOpenFolder.IsEnabled = true;
-            MigrateApplyDiff.IsEnabled = true;
-            MigrateMergeRejected.IsEnabled = true;
-            MigrateOverwriteBIAFolder.IsEnabled = true;
-            Enable(true);
-        }
-
-        private async void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
-        {
-            Enable(false);
-
-            string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
-            MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
-
-
-            await ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName);
-
-            Enable(true);
-        }
-
-        private async void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
-        {
-            Enable(false);
-
-            await MergeRejected(true);
-
-            MigrateMergeRejected.IsEnabled = false;
-            Enable(true);
-        }
-
-        private async void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
-        {
-            Enable(false);
-
-            await OverwriteBIAFolder(true);
-
-            MigrateOverwriteBIAFolder.IsEnabled = false;
-
-            Enable(true);
-        }
-
-        private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion)
-        {
-            projectOriginalVersion = MigrateOriginVersionAndOption.FrameworkVersion.SelectedValue.ToString();
-            projectOriginalFolderName = ModifyProjectName.Content + "_" + projectOriginalVersion + "_From";
-            projectOriginPath = configuration.TmpFolderPath + projectOriginalFolderName;
-
-            projectTargetVersion = MigrateTargetVersionAndOption.FrameworkVersion.SelectedValue.ToString();
-            projectTargetFolderName = ModifyProjectName.Content + "_" + projectTargetVersion + "_To";
-            projectTargetPath = configuration.TmpFolderPath + projectTargetFolderName;
-        }
-
-        private void GenerateProjects(bool actionFinishedAtEnd, string projectOriginPath, string projectTargetPath)
-        {
-            // Create project at original version.
-            if (Directory.Exists(projectOriginPath))
-            {
-                FileTransform.ForceDeleteDirectory(projectOriginPath);
-            }
-
-            string []fronts = ModifyBIAFronts.Content.ToString().Split(", ");
-
-            CreateProject(false, ModifyProjectCompany.Content.ToString(), ModifyProjectName.Content.ToString(), projectOriginPath, MigrateOriginVersionAndOption, fronts);
-
-            // Create project at target version.
-            if (Directory.Exists(projectTargetPath))
-            {
-                FileTransform.ForceDeleteDirectory(projectTargetPath);
-            }
-            CreateProject(false, ModifyProjectCompany.Content.ToString(), ModifyProjectName.Content.ToString(), projectTargetPath, MigrateTargetVersionAndOption, fronts);
-
-            consoleWriter.AddMessageLine("Generate projects finished.", actionFinishedAtEnd ? "Green" : "Blue");
-        }
-
-        private void MigrateOpenFolder_Click(object sender, RoutedEventArgs e)
-        {
-            Process.Start("explorer.exe", configuration.TmpFolderPath);
-        }
-
-        private async System.Threading.Tasks.Task ApplyDiff(bool actionFinishedAtEnd, string projectOriginalFolderName, string projectTargetFolderName)
-        {
-            // Make the differential
-            string migrateFilePath = configuration.TmpFolderPath + $"Migration_{projectOriginalFolderName}-{projectTargetFolderName}.patch";
-            await gitService.DiffFolder(false, configuration.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath);
-
-            //Apply the differential
-            await gitService.ApplyDiff(actionFinishedAtEnd, modifyProjectPath, migrateFilePath);
-        }
-
-        private async System.Threading.Tasks.Task MergeRejected(bool actionFinishedAtEnd)
-        {
-            string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
-            MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
-
-            await gitService.MergeRejeted(actionFinishedAtEnd, new GitService.MergeParameter()
-            {
-                ProjectPath = modifyProjectPath,
-                ProjectOriginPath = projectOriginPath,
-                ProjectOriginVersion = projectOriginalVersion,
-                ProjectTargetPath = projectTargetPath,
-                ProjectTargetVersion = projectTargetVersion
-            });;
-        }
-
-        private async System.Threading.Tasks.Task OverwriteBIAFolder(bool actionFinishedAtEnd)
-        {
-            string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
-            MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
-
-            projectCreatorService.OverwriteBIAFolder(projectTargetPath, modifyProjectPath, actionFinishedAtEnd);
-
-        }
 
         private void btnFileGenerator_OpenFolder_Click(object sender, RoutedEventArgs e)
         {
@@ -649,37 +378,6 @@
             else
             {
                 MessageBox.Show("Select the folder to save the files", "Generate files", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void ModifyProjectAddDTOEntityBrowse_Click(object sender, RoutedEventArgs e)
-        {
-
-            string projectDir = "";
-            string path = CreateProjectRootFolderText.Text;
-            if (Directory.Exists(path))
-            {
-                projectDir = path;
-                path = projectDir + "\\" + ModifyProjectName.Content;
-                if (Directory.Exists(path))
-                {
-                    projectDir = path;
-                    path = projectDir + "\\DotNet";
-                    if (Directory.Exists(path))
-                    {
-                        projectDir = path;
-                        path = projectDir + "\\" + ModifyProjectCompany.Content.ToString() + "." + ModifyProjectName.Content + ".Domain";
-                        if (Directory.Exists(path))
-                        {
-                            projectDir = path;
-                        }
-                    }
-                }
-            }
-            
-            if (FileDialog.BrowseFile(ModifyProjectAddDTOEntity, projectDir))
-            {
-                cSharpParserService.ParseEntity(ModifyProjectAddDTOEntity.Text);
             }
         }
     }
