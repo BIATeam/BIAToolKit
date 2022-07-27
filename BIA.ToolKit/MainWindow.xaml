@@ -4,10 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:gif="http://wpfanimatedgif.codeplex.com"
-        xmlns:local="clr-namespace:BIA.ToolKit"
+        xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
         xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
         mc:Ignorable="d"
         Title="BIA Toolkit" Height="765" Width="1035" Icon="/Images/Tools.ico" MaxWidth="1035" MaxHeight="765" WindowStartupLocation="CenterScreen">
+    <Window.DataContext>
+        <!-- Declaratively create an instance of our SongViewModel -->
+        <local:MainViewModel />
+    </Window.DataContext>
     <Grid Background="#FFE5E5E5" Width="1000" Margin="10,11,10,14">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -47,7 +51,7 @@
                         <ImageBrush ImageSource="/Images/bg-default.jpg"/>
                     </Grid.Background>
                     <Label Content="Projects parent path" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Foreground="White"/>
-                    <TextBox HorizontalAlignment="Left" Margin="29,25,0,0" Text="D:\...\MyRootProjectPath" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="CreateProjectRootFolderText" TextChanged="CreateProjectRootFolderText_TextChanged"/>
+                    <TextBox HorizontalAlignment="Left" Margin="29,25,0,0" Text="{Binding RootProjectsPath}" TextWrapping="Wrap" VerticalAlignment="Top" Width="310"/>
                     <Button Content="..." HorizontalAlignment="Left" Margin="339,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="CreateProjectRootFolderBrowse" Click="CreateProjectRootFolderBrowse_Click"/>
                     <Label Content="Company name" HorizontalAlignment="Left" Margin="406,1,0,0" VerticalAlignment="Top" Foreground="White"/>
                     <TextBox HorizontalAlignment="Left" Margin="425,26,0,0" Text="MyCompany" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="CreateCompanyName" IsEnabled="True"/>
@@ -64,7 +68,12 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Modify existing project" Selector.Selected="OnTabModifySelected" >
-                <uc:ModifyProjectUC x:Name="ModifyProject"/>
+                <Grid>
+                    <Grid.Background>
+                        <ImageBrush ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
+                    </Grid.Background>
+                    <uc:ModifyProjectUC x:Name="ModifyProject"/>
+                </Grid>
             </TabItem>
             <TabItem Header="File Generator">
                 <Grid Margin="10,10,10,10"  x:Name="TabFileGenerator">

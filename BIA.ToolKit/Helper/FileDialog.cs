@@ -24,6 +24,28 @@
                 }
             }
         }
+        public static string BrowseFolder(string defaultFolder)
+        {
+            using (System.Windows.Forms.FolderBrowserDialog openFileDlg = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                if (Directory.Exists(defaultFolder))
+                {
+                    openFileDlg.SelectedPath = defaultFolder;
+                }
+
+                var result = openFileDlg.ShowDialog();
+                if (result == System.Windows.Forms.DialogResult.OK)
+                {
+                    return openFileDlg.SelectedPath;
+                }
+                else
+                {
+                    return defaultFolder;
+                }
+            }
+        }
+
+
         public static bool BrowseFile(TextBox destTextBox, string projectDir)
         {
             OpenFileDialog openFileDlg = new OpenFileDialog();

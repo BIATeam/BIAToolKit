@@ -40,7 +40,7 @@
         {
             InitializeComponent();
             _viewModel = (ModifyProjectViewModel)base.DataContext;
-            ModifyProjectRootFolderText.Text = Settings.Default.CreateProjectRootFolderText;
+            _viewModel.RootProjectsPath = Settings.Default.CreateProjectRootFolderText;
         }
 
         public void Inject(Configuration configuration, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService, ProjectCreatorService projectCreatorService)
@@ -63,83 +63,14 @@
         private void ModifyProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)
         {
             ParameterModifyChange();
-
-            if (ModifyProjectFolder != null)
-            {
-                _viewModel.CurrentProject = null;
-                ModifyProjectFolder.Items.Clear();
-            }
-            /* TODO recabler cela
-            if (ModifyProjectRootFolderText != null && CreateProjectRootFolderText != null && ModifyProjectRootFolderText.Text != CreateProjectRootFolderText.Text)
-            {
-                CreateProjectRootFolderText.Text = ModifyProjectRootFolderText.Text;
-            }
-            */
-            if (Directory.Exists(ModifyProjectRootFolderText.Text))
-            {
-                DirectoryInfo di = new DirectoryInfo(ModifyProjectRootFolderText.Text);
-                // Create an array representing the files in the current directory.
-                DirectoryInfo[] versionDirectories = di.GetDirectories("*", SearchOption.TopDirectoryOnly);
-                // Print out the names of the files in the current directory.
-                foreach (DirectoryInfo dir in versionDirectories)
-                {
-                    //Add and select the last added
-                    ModifyProjectFolder.Items.Add(dir.Name);
-                }
-            }
         }
 
         private void ModifyProject_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ParameterModifyChange();
-            Project currentProject = null;
-
-            if (ModifyProjectFolder.SelectedValue != null)
-            {
-
-                currentProject = new Domain.ModifyProject.Project();
-
-                currentProject.Name = ModifyProjectFolder.SelectedValue.ToString();
-                currentProject.Folder = ModifyProjectRootFolderText.Text + "\\" + currentProject.Name;
-
-                Regex reg = new Regex(currentProject.Folder.Replace("\\", "\\\\") + @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$", RegexOptions.IgnoreCase);
-                string file = Directory.GetFiles(currentProject.Folder, "Constants.cs", SearchOption.AllDirectories)?.Where(path => reg.IsMatch(path))?.FirstOrDefault();
-                if (file != null)
-                {
-                    var match = reg.Match(file);
-                    currentProject.CompanyName = match.Groups[1].Value;
-                    currentProject.Name = match.Groups[2].Value;
-                    Regex regVersion = new Regex(@" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$");
-
-                    foreach (var line in File.ReadAllLines(file))
-                    {
-                        var matchVersion = regVersion.Match(line);
-                        if (matchVersion.Success)
-                        {
-                            currentProject.FrameworkVersion = matchVersion.Groups[1].Value;
-                            break;
-                        }
-                    }
-                }
-
-                Regex reg2 = new Regex(currentProject.Folder.Replace("\\", "\\\\") + @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$", RegexOptions.IgnoreCase);
-                List<string> filesFront = Directory.GetFiles(currentProject.Folder, "bia-core.module.ts", SearchOption.AllDirectories)?.Where(path => reg2.IsMatch(path)).ToList();
-                currentProject.BIAFronts = "";
-                if (filesFront != null)
-                {
-                    foreach (var fileFront in filesFront)
-                    {
-                        var match = reg2.Match(fileFront);
-                        if (currentProject.BIAFronts != "")
-                        {
-                            currentProject.BIAFronts += ", ";
-                        }
-                        currentProject.BIAFronts += match.Groups[1].Value;
-                    }
-                }
-            }
-            _viewModel.CurrentProject = currentProject;
         }
+
+
 
         private async void Migrate_Click(object sender, RoutedEventArgs e)
         {
@@ -332,7 +263,7 @@
 
         private void ModifyProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
-            FileDialog.BrowseFolder(ModifyProjectRootFolderText);
+            _viewModel.RootProjectsPath = FileDialog.BrowseFolder(_viewModel.RootProjectsPath);
         }
     }
 }

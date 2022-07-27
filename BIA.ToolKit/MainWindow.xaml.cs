@@ -19,6 +19,7 @@
     using System.Threading;
     using BIA.ToolKit.Application.Parser;
     using BIA.ToolKit.UserControls;
+    using BIA.ToolKit.Application.ViewModel;
 
 
     /// <summary>
@@ -26,6 +27,8 @@
     /// </summary>
     public partial class MainWindow : Window
     {
+        public MainViewModel _viewModel;
+
         GitService gitService;
         ProjectCreatorService projectCreatorService;
         GenerateFilesService generateFilesService;
@@ -52,6 +55,7 @@
             this.cSharpParserService = cSharpParserService;
 
             InitializeComponent();
+            _viewModel = (MainViewModel)base.DataContext;
             CreateVersionAndOption.Inject(configuration,gitService,consoleWriter);
             ModifyProject.Inject(configuration, gitService, consoleWriter, cSharpParserService, projectCreatorService);
 
@@ -68,12 +72,10 @@
             CompanyFilesGitRepo.Text = Settings.Default.CompanyFilesGitRepo;
             CompanyFilesLocalFolderText.Text = Settings.Default.CompanyFilesLocalFolderText;
 
-            CreateProjectRootFolderText.Text = Settings.Default.CreateProjectRootFolderText;
+            _viewModel.RootProjectsPath = Settings.Default.CreateProjectRootFolderText;
             CreateCompanyName.Text = Settings.Default.CreateCompanyName;
 
             txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
-
-
         }
 
         public bool RefreshConfiguration()
@@ -125,7 +127,7 @@
             Settings.Default.CompanyFilesGitRepo = CompanyFilesGitRepo.Text;
             Settings.Default.CompanyFilesLocalFolderText = CompanyFilesLocalFolderText.Text;
 
-            Settings.Default.CreateProjectRootFolderText = CreateProjectRootFolderText.Text;
+            Settings.Default.CreateProjectRootFolderText = _viewModel.RootProjectsPath;
             Settings.Default.CreateCompanyName = CreateCompanyName.Text;
 
             Settings.Default.Save();
@@ -222,7 +224,7 @@
 
         private void CreateProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
-            FileDialog.BrowseFolder(CreateProjectRootFolderText);
+            _viewModel.RootProjectsPath = FileDialog.BrowseFolder(_viewModel.RootProjectsPath);
         }
 
 
@@ -261,7 +263,7 @@
 
         private void Create_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(CreateProjectRootFolderText.Text))
+            if (string.IsNullOrEmpty(_viewModel.RootProjectsPath))
             {
                 MessageBox.Show("Please select root path.");
                 return;
@@ -282,7 +284,7 @@
                 return;
             }
 
-            string projectPath = CreateProjectRootFolderText.Text + "\\" + CreateProjectName.Text;
+            string projectPath = _viewModel.RootProjectsPath + "\\" + CreateProjectName.Text;
             if (Directory.Exists(projectPath) && !FileDialog.IsDirectoryEmpty(projectPath))
             {
                 MessageBox.Show("The project path is not empty : " + projectPath);

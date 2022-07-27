@@ -9,13 +9,10 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.DataContext>
         <!-- Declaratively create an instance of our SongViewModel -->
-        <local:ModifyProjectViewModel />
+        <!--<local:ModifyProjectViewModel RootProjectsPath="{Binding DataContext.RootProjectsPath, ElementName=mainWindow}" />-->
+        <local:ModifyProjectViewModel/>
     </UserControl.DataContext>
     <Grid Margin="10,10,10,10" x:Name="TabModify">
-
-        <Grid.Background>
-            <ImageBrush ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
-        </Grid.Background>
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
             <RowDefinition Height="*"/>
@@ -91,10 +88,10 @@
             </TabItem>
         </TabControl>
         <Label Content="Projects parent path" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Foreground="White"/>
-        <TextBox HorizontalAlignment="Left" Margin="29,23,0,0" Text="D:\...\MyRootProjectPath" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="ModifyProjectRootFolderText" TextChanged="ModifyProjectRootFolderText_TextChanged" Height="21"/>
+        <TextBox HorizontalAlignment="Left" Margin="29,23,0,0" Text="{Binding RootProjectsPath}" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" TextChanged="ModifyProjectRootFolderText_TextChanged" Height="21"/>
         <Button Content="..." HorizontalAlignment="Left" Margin="339,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="ModifyProjectRootFolderBrowse" Click="ModifyProjectRootFolderBrowse_Click"/>
         <Label Content="Project Folder" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="384,0,0,0"/>
-        <ComboBox HorizontalAlignment="Left" Margin="402,23,0,0" VerticalAlignment="Top" Width="120" x:Name="ModifyProjectFolder" SelectionChanged="ModifyProject_SelectionChanged"/>
+        <ComboBox ItemsSource="{Binding Projects}" SelectedValue="{Binding Folder}" HorizontalAlignment="Left" Margin="402,23,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="ModifyProject_SelectionChanged"/>
         <Label Content="Version detected : " HorizontalAlignment="Left" Margin="542,0,0,0" VerticalAlignment="Top" Foreground="White"/>
         <Label Content="{Binding FrameworkVersion}" HorizontalAlignment="Left" Margin="676,0,0,0" VerticalAlignment="Top" Foreground="White" Width="25"/>
         <Label Content="Project name detected : " HorizontalAlignment="Left" Margin="542,15,0,0" VerticalAlignment="Top" Foreground="White"/>
