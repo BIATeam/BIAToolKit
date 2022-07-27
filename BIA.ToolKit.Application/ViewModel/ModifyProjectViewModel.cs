@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
+    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.ModifyProject;
     using System;
@@ -13,6 +14,7 @@
         public ModifyProjectViewModel()
         {
             ModifyProject = new ModifyProject();
+            SynchronizeSettings.AddCallBack("RootProjectsPath", DelegateSetRootProjectsPath);
         }
 
         //public IProductRepository Repository { get; set; }
@@ -31,6 +33,34 @@
             }
         }
 
+        public void DelegateSetRootProjectsPath(string value)
+        {
+            ModifyProject.RootProjectsPath = value;
+            CurrentProject = null;
+
+            if (Directory.Exists(value))
+            {
+                DirectoryInfo di = new DirectoryInfo(value);
+                // Create an array representing the files in the current directory.
+                DirectoryInfo[] versionDirectories = di.GetDirectories("*", SearchOption.TopDirectoryOnly);
+
+                var projectList = new List<string>();
+                foreach (DirectoryInfo dir in versionDirectories)
+                {
+                    //Add and select the last added
+                    projectList.Add(dir.Name);
+                }
+                Projects = projectList;
+            }
+            else
+            {
+                Projects = null;
+            }
+
+
+            RaisePropertyChanged("RootProjectsPath");
+        }
+
         public string RootProjectsPath
         {
             get { return ModifyProject.RootProjectsPath; }
@@ -38,36 +68,7 @@
             {
                 if (ModifyProject.RootProjectsPath != value)
                 {
-                    ModifyProject.RootProjectsPath = value;
-                    CurrentProject = null;
-
-                    /* TODO recabler cela
-                    if (ModifyProjectRootFolderText != null && CreateProjectRootFolderText != null && ModifyProjectRootFolderText.Text != CreateProjectRootFolderText.Text)
-                    {
-                        CreateProjectRootFolderText.Text = ModifyProjectRootFolderText.Text;
-                    }
-                    */
-                    if (Directory.Exists(value))
-                    {
-                        DirectoryInfo di = new DirectoryInfo(value);
-                        // Create an array representing the files in the current directory.
-                        DirectoryInfo[] versionDirectories = di.GetDirectories("*", SearchOption.TopDirectoryOnly);
-
-                        var projectList = new List<string>();
-                        foreach (DirectoryInfo dir in versionDirectories)
-                        {
-                            //Add and select the last added
-                            projectList.Add(dir.Name);
-                        }
-                        Projects = projectList;
-                    }
-                    else
-                    {
-                        Projects = null;
-                    }
-
-
-                    RaisePropertyChanged("RootProjectsPath");
+                    SynchronizeSettings.SettingChange("RootProjectsPath", value);
                 }
             }
         }

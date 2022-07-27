@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
+    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.Main;
 
@@ -8,10 +9,17 @@
         public MainViewModel()
         {
             Main = new Main();
+            SynchronizeSettings.AddCallBack("RootProjectsPath", DelegateSetRootProjectsPath);
         }
 
         //public IProductRepository Repository { get; set; }
         public Main Main { get; set; }
+
+        public void DelegateSetRootProjectsPath(string value)
+        {
+            Main.RootProjectsPath = value;
+            RaisePropertyChanged("RootProjectsPath");
+        }
 
         public string RootProjectsPath
         {
@@ -20,8 +28,9 @@
             {
                 if (Main.RootProjectsPath != value)
                 {
-                    Main.RootProjectsPath = value;
-                    RaisePropertyChanged("RootProjectsPath");
+                    SynchronizeSettings.SettingChange("RootProjectsPath", value);
+                    /*Main.RootProjectsPath = value;
+                    RaisePropertyChanged("RootProjectsPath");*/
                 }
             }
         }

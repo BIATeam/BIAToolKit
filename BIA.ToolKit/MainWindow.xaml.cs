@@ -319,17 +319,6 @@
             consoleWriter.AddMessageLine(message, brush);
         }
 
-        private void CreateProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            //TODO recabler:
-            /*if (ModifyProjectRootFolderText != null && CreateProjectRootFolderText != null && ModifyProjectRootFolderText.Text != CreateProjectRootFolderText.Text)
-            {
-                ModifyProjectRootFolderText.Text = CreateProjectRootFolderText.Text;
-            }*/
-        }
-
-
-
         private void btnFileGenerator_OpenFolder_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new System.Windows.Forms.FolderBrowserDialog();
