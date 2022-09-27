@@ -22,15 +22,10 @@
         public async Task Synchronize(string repoName, string localPath)
         {
             outPut.AddMessageLine("Synchronize " + repoName + " local folder...", "Pink");
-            RunScript("git", "pull", localPath);
-
-            /*using (var repo = new Repository(localPath))
+            if( RunScript("git", "pull", localPath))
             {
-                var result = Commands.Pull(repo, new LibGit2Sharp.Signature("BIAToolKit", "BIAToolKit", DateTimeOffset.Now), new PullOptions());
-                outPut.AddMessageLine(result.Status.ToString(), "White");
-            }*/
-
-            outPut.AddMessageLine("Synchronize " + repoName + " local folder finished", "Green");
+                outPut.AddMessageLine("Synchronize " + repoName + " local folder finished", "Green");
+            }
         }
 
         public async Task Clone(string repoName, string url, string localPath)
@@ -39,9 +34,10 @@
             //var cloneResult = Repository.Clone(url, localPath);
             outPut.AddMessageLine("Clone " + repoName + " local folder...", "Pink");
 
-            RunScript("git", $"clone \"" + url+"\" \"" + localPath + "\"");
-
-            outPut.AddMessageLine("Clone BIADemo local folder finished", "Green");
+            if (RunScript("git", $"clone \"" + url+"\" \"" + localPath + "\""))
+            {
+                outPut.AddMessageLine("Clone BIADemo local folder finished", "Green");
+            }
         }
 
         public List<string> GetRelease(string localPath)
@@ -147,8 +143,9 @@
         /// <param name="program">The program name.</param>
         /// <param name="arguments">The argument.</param>
         /// <param name="workingDirectory">The working directory.</param>
-        private void  RunScript(string program, string arguments, string workingDirectory = null)
+        private bool RunScript(string program, string arguments, string workingDirectory = null)
         {
+            bool ret = true;
             try
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo()
@@ -157,7 +154,7 @@
                     Arguments = arguments/*"pull"*/,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
-                    //RedirectStandardError = true,
+                    RedirectStandardError = true,
                     CreateNoWindow = true
                 };
                 if (workingDirectory != null)
@@ -170,26 +167,26 @@
                     StartInfo = startInfo
                 };
                 process.Start();
-                while (!process.StandardOutput.EndOfStream /*&& process.StandardError.EndOfStream*/)
+                while (!process.StandardOutput.EndOfStream && !process.StandardError.EndOfStream)
                 {
                     if (!process.StandardOutput.EndOfStream)
                     {
                         outPut.AddMessageLine(process.StandardOutput.ReadLine(), "White");
                     }
-                    /*if (!process.StandardError.EndOfStream)
+                    if (!process.StandardError.EndOfStream)
                     {
                         outPut.AddMessageLine(process.StandardError.ReadLine(), "Red");
-                    }*/
-                    // do something with line
+                    }
                 }
                 process.WaitForExit();
                 if (process.ExitCode != 0)
                 {
-                    outPut.AddMessageLine("Exit code :" + process.ExitCode, "Pink");
-                    /*while (!process.StandardError.EndOfStream)
+                    outPut.AddMessageLine("Exit code :" + process.ExitCode, "Red");
+                    while (!process.StandardError.EndOfStream)
                     {
                         outPut.AddMessageLine(process.StandardError.ReadLine(), "Red");
-                    }*/
+                    }
+                    ret = false;
                 }
             }
             catch (Exception e)
@@ -198,7 +195,9 @@
                 outPut.AddMessageLine(e.Message, "Red");
                 if (e.InnerException != null) outPut.AddMessageLine(e.InnerException.Message, "Red");
                 if (e.StackTrace != null) outPut.AddMessageLine(e.StackTrace, "Red");
+                ret = false;
             }
+            return ret;
         }
     }
 }
