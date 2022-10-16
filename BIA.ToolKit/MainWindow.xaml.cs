@@ -391,12 +391,7 @@
 
             if (result == true)
             {
-
-            }
-            else
-            {
-                // User cancelled the dialog box
-                MessageBox.Show("Sorry it didn't work out, we'll try again later.");
+                configuration.customTemplates = dialog.CustomsRepoTemplate.ToList();
             }
         }
     }
