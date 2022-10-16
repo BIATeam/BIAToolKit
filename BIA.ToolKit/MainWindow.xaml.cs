@@ -20,6 +20,9 @@
     using BIA.ToolKit.Application.Parser;
     using BIA.ToolKit.UserControls;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Dialogs;
+    using System.Text.Json;
+    using BIA.ToolKit.Domain.Settings;
 
 
     /// <summary>
@@ -75,6 +78,11 @@
             _viewModel.RootProjectsPath = Settings.Default.CreateProjectRootFolderText;
             CreateCompanyName.Text = Settings.Default.CreateCompanyName;
 
+            if(!string.IsNullOrEmpty(Settings.Default.CustomTemplates))
+            {
+                configuration.customTemplates = JsonSerializer.Deserialize<List<CustomRepoTemplate>>(Settings.Default.CustomTemplates);
+            }
+
             txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
         }
 
@@ -129,6 +137,8 @@
 
             Settings.Default.CreateProjectRootFolderText = _viewModel.RootProjectsPath;
             Settings.Default.CreateCompanyName = CreateCompanyName.Text;
+
+            Settings.Default.CustomTemplates = JsonSerializer.Serialize(configuration.customTemplates);
 
             Settings.Default.Save();
         }
@@ -369,6 +379,24 @@
             else
             {
                 MessageBox.Show("Select the folder to save the files", "Generate files", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void CustomRepoTemplate_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new CustomsRepoTemplateUC { Owner = this };
+
+            // Display the dialog box and read the response
+            bool? result = dialog.ShowDialog(configuration.customTemplates);
+
+            if (result == true)
+            {
+
+            }
+            else
+            {
+                // User cancelled the dialog box
+                MessageBox.Show("Sorry it didn't work out, we'll try again later.");
             }
         }
     }

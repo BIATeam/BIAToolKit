@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BIA.ToolKit.Domain.Settings;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,6 +14,8 @@ namespace BIA.ToolKit
     public class Configuration
     {
         public string BIATemplatePath { get; private set; }
+        public List<CustomRepoTemplate> customTemplates;
+
         public string RootCompanyFilesPath { get; private set; }
         public string AppFolderPath { get; private set; }
         public string TmpFolderPath { get; private set; }
@@ -26,6 +29,7 @@ namespace BIA.ToolKit
         public Configuration()
         {
             BIATemplatePath = "";
+            customTemplates = new List<CustomRepoTemplate>();
             RootCompanyFilesPath = "";
             AppFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
             TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
