@@ -2,37 +2,64 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
-    using BIA.ToolKit.Domain.Main;
+    using BIA.ToolKit.Domain.Settings;
 
     public class MainViewModel : ObservableObject
     {
+        public BIATKSettings Settings { get; set; }
+
+        public bool Test { get; set; }
+
         public MainViewModel()
         {
-            Main = new Main();
+            Settings = new BIATKSettings();
+            // Because the RootProjects is in 2 VM (create and modify)
             SynchronizeSettings.AddCallBack("RootProjectsPath", DelegateSetRootProjectsPath);
         }
 
-        //public IProductRepository Repository { get; set; }
-        public Main Main { get; set; }
-
         public void DelegateSetRootProjectsPath(string value)
         {
-            Main.RootProjectsPath = value;
-            RaisePropertyChanged("RootProjectsPath");
+            Settings_RootProjectsPath = value;
         }
 
-        public string RootProjectsPath
+        public string Settings_RootProjectsPath
         {
-            get { return Main.RootProjectsPath; }
+            get { return Settings.RootProjectsPath; }
             set
             {
-                if (Main.RootProjectsPath != value)
+                if (Settings.RootProjectsPath != value)
                 {
-                    SynchronizeSettings.SettingChange("RootProjectsPath", value);
-                    /*Main.RootProjectsPath = value;
-                    RaisePropertyChanged("RootProjectsPath");*/
+                    Settings.RootProjectsPath = value;
+                    RaisePropertyChanged("Settings_RootProjectsPath");
                 }
             }
         }
+
+        public string Settings_BIATemplateRepository_LocalFolderPath
+        {
+            get { return Settings.BIATemplateRepository.LocalFolderPath; }
+            set
+            {
+                if (Settings.BIATemplateRepository.LocalFolderPath != value)
+                {
+                    Settings.BIATemplateRepository.LocalFolderPath = value;
+                    RaisePropertyChanged("Settings_BIATemplateRepository_LocalFolderPath");
+                }
+            }
+        }
+
+        public string Settings_CompanyFiles_LocalFolderPath
+        {
+            get { return Settings.CompanyFiles.LocalFolderPath; }
+            set
+            {
+                if (Settings.CompanyFiles.LocalFolderPath != value)
+                {
+                    Settings.CompanyFiles.LocalFolderPath = value;
+                    RaisePropertyChanged("Settings_CompanyFiles_LocalFolderPath");
+                }
+            }
+        }
+
     }
 }

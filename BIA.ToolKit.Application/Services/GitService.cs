@@ -40,7 +40,7 @@
             }
         }
 
-        public List<string> GetRelease(string localPath)
+        public List<string> GetTags(string localPath)
         {
             List<string> release = new List<string>();
 

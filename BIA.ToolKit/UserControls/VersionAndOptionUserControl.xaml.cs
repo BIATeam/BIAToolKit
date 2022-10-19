@@ -29,6 +29,9 @@
         GitService gitService;
         IConsoleWriter consoleWriter;
 
+
+
+
         public string CompanyFilesPath { get; private set; }
         public CFSettings CfSettings { get; private set; }
 
@@ -53,10 +56,24 @@
             FrameworkVersion.Items.Clear();
             CompanyFileVersion.Items.Clear();
 
+/*
+            if (configuration.CustomTemplates.Count > 0)
+            {
+                foreach(var customTemplate in configuration.CustomTemplates)
+                {
+                    List<string> versions = gitService.GetTags(customTemplate.FolderPath).OrderBy(q => q).ToList();
+
+                    foreach (string version in versions)
+                    {
+                        lastItemFrameworkVersion = FrameworkVersion.Items.Add(version);
+                    }
+                }
+            }*/
+
 
             if (Directory.Exists(configuration.BIATemplatePath))
             {
-                List<string> versions = gitService.GetRelease(configuration.BIATemplatePath).OrderBy(q => q).ToList();
+                List<string> versions = gitService.GetTags(configuration.BIATemplatePath).OrderBy(q => q).ToList();
 
                 foreach (string version in versions)
                 {

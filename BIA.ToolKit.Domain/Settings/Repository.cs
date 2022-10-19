@@ -1,12 +1,6 @@
 ﻿namespace BIA.ToolKit.Domain.Settings
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-
-    public class CustomRepoTemplate
+    public class Repository
     {
         /// The folder of the project.
         public string? Name { get; set; }
@@ -15,9 +9,12 @@
         public string? UrlRepo { get; set; }
 
         /// The name of the project.
-        public string? FolderPath { get; set; }
+        public string? LocalFolderPath { get; set; }
 
         /// The Bia framework version of the project.
-        public bool UseFolder { get; set; }
+        public bool UseLocalFolder { get; set; }
+
+        /// Specify if we use tag or sub folder
+        public bool WorkWithSubFolder { get; set; }
     }
 }

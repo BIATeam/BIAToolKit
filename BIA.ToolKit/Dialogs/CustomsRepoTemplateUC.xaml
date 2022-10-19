@@ -42,10 +42,15 @@
             <DataGrid Name="dgCustomsRepoTemplate" AutoGenerateColumns="False" Grid.Column="0" Grid.Row="0" Margin="0,0,0,0" Grid.RowSpan="2" HorizontalAlignment="Left" Width="570" IsReadOnly="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
-                    <DataGridTextColumn Header="Url Repo" Binding="{Binding UrlRepo}" />
-                    <DataGridTextColumn Header="Folder Path" Binding="{Binding FolderPath}" />
-                    <DataGridTextColumn Header="Use Folder" Binding="{Binding UseFolder}" />
+                    <DataGridTextColumn Header="Url Repo" Binding="{Binding UrlRepo}" Width="100" />
+                    <DataGridTextColumn Header="Folder Path" Binding="{Binding LocalFolderPath}" Width="100" />
+                    <DataGridTextColumn Header="Use Folder" Binding="{Binding UseLocalFolder}" />
                 </DataGrid.Columns>
+                <DataGrid.RowDetailsTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding UrlRepo}" Margin="10" />
+                    </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
             </DataGrid>
 
 

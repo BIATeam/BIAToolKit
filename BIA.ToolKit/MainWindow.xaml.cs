@@ -30,7 +30,7 @@
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainViewModel _viewModel;
+        public MainViewModel _viewModel = new MainViewModel();
 
         GitService gitService;
         ProjectCreatorService projectCreatorService;
@@ -44,13 +44,6 @@
 
         public MainWindow(Configuration configuration, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
         {
-            //if (Settings.Default.UpdateSettings)
-            //{
-            //    Settings.Default.Upgrade();
-            //    Settings.Default.UpdateSettings = false;
-            //    Settings.Default.Save();
-            //}
-
             this.configuration = configuration;
             this.gitService = gitService;
             this.projectCreatorService = projectCreatorService;
@@ -58,32 +51,36 @@
             this.cSharpParserService = cSharpParserService;
 
             InitializeComponent();
-            _viewModel = (MainViewModel)base.DataContext;
+
             CreateVersionAndOption.Inject(configuration,gitService,consoleWriter);
             ModifyProject.Inject(configuration, gitService, consoleWriter, cSharpParserService, projectCreatorService);
 
             this.consoleWriter = (ConsoleWriter) consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer);
 
-            BIATemplateGitHub.IsChecked = Settings.Default.BIATemplateGitHub;
-            BIATemplateLocalFolder.IsChecked = Settings.Default.BIATemplateLocalFolder;
-            BIATemplateLocalFolderText.Text = Settings.Default.BIATemplateLocalFolderText;
+            _viewModel.Test = true;
+            _viewModel.Settings.BIATemplateRepository.UrlRepo = "https://github.com/BIATeam/BIATemplate.git";
+            _viewModel.Settings.BIATemplateRepository.UseLocalFolder = Properties.Settings.Default.BIATemplateLocalFolder;
+            _viewModel.Settings.BIATemplateRepository.LocalFolderPath = Properties.Settings.Default.BIATemplateLocalFolderText;
 
-            UseCompanyFile.IsChecked = Settings.Default.UseCompanyFile;
-            CompanyFilesGit.IsChecked = Settings.Default.CompanyFilesGit;
-            CompanyFilesLocalFolder.IsChecked = Settings.Default.CompanyFilesLocalFolder;
-            CompanyFilesGitRepo.Text = Settings.Default.CompanyFilesGitRepo;
-            CompanyFilesLocalFolderText.Text = Settings.Default.CompanyFilesLocalFolderText;
 
-            _viewModel.RootProjectsPath = Settings.Default.CreateProjectRootFolderText;
-            CreateCompanyName.Text = Settings.Default.CreateCompanyName;
+            _viewModel.Settings.UseCompanyFiles = Properties.Settings.Default.UseCompanyFile;
+            _viewModel.Settings.CompanyFiles.UseLocalFolder = Properties.Settings.Default.CompanyFilesLocalFolder;
+            _viewModel.Settings.CompanyFiles.UrlRepo = Properties.Settings.Default.CompanyFilesGitRepo;
+            _viewModel.Settings.CompanyFiles.LocalFolderPath = Properties.Settings.Default.CompanyFilesLocalFolderText;
 
-            if(!string.IsNullOrEmpty(Settings.Default.CustomTemplates))
+            _viewModel.Settings.RootProjectsPath = Properties.Settings.Default.CreateProjectRootFolderText;
+            _viewModel.Settings.CreateCompanyName = Properties.Settings.Default.CreateCompanyName;
+
+            if(!string.IsNullOrEmpty(Properties.Settings.Default.CustomTemplates))
             {
-                configuration.customTemplates = JsonSerializer.Deserialize<List<CustomRepoTemplate>>(Settings.Default.CustomTemplates);
+                _viewModel.Settings.CustomRepoTemplates = JsonSerializer.Deserialize<List<Repository>>(Properties.Settings.Default.CustomTemplates);
             }
 
             txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
+
+            base.DataContext = _viewModel;
+
         }
 
         public bool RefreshConfiguration()
@@ -98,12 +95,16 @@
         public bool RefreshBIATemplateConfiguration(bool inSync)
         {
             Configurationchange(); 
-            if (!configuration.RefreshBIATemplate(MainTab, BIATemplateLocalFolder.IsChecked == true, BIATemplateLocalFolderText.Text, inSync))
+            if (!configuration.RefreshBIATemplate(_viewModel.Settings.BIATemplateRepository.UseLocalFolder, _viewModel.Settings.BIATemplateRepository.LocalFolderPath, inSync))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
                 return false;
             }
             return true;
+        }
+        public void ConfigurationChange(object sender, RoutedEventArgs e)
+        {
+            Configurationchange();
         }
 
         private void Configurationchange()
@@ -115,7 +116,7 @@
         public bool RefreshCompanyFilesConfiguration(bool inSync)
         {
             Configurationchange(); 
-            if (!configuration.RefreshCompanyFiles(MainTab, UseCompanyFile.IsChecked == true, CompanyFilesLocalFolder.IsChecked == true, CompanyFilesLocalFolderText.Text, inSync))
+            if (!configuration.RefreshCompanyFiles(_viewModel.Settings.UseCompanyFiles, _viewModel.Settings.CompanyFiles.UseLocalFolder, _viewModel.Settings.CompanyFiles.LocalFolderPath, inSync))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
                 return false;
@@ -125,55 +126,20 @@
 
         private void SaveSettings_Click(object sender, RoutedEventArgs e)
         {
-            Settings.Default.BIATemplateGitHub = BIATemplateGitHub.IsChecked == true;
-            Settings.Default.BIATemplateLocalFolder = BIATemplateLocalFolder.IsChecked == true;
-            Settings.Default.BIATemplateLocalFolderText = BIATemplateLocalFolderText.Text;
+            Properties.Settings.Default.BIATemplateLocalFolder = _viewModel.Settings.BIATemplateRepository.UseLocalFolder;
+            Properties.Settings.Default.BIATemplateLocalFolderText = _viewModel.Settings.BIATemplateRepository.LocalFolderPath;
 
-            Settings.Default.UseCompanyFile = UseCompanyFile.IsChecked == true;
-            Settings.Default.CompanyFilesGit = CompanyFilesGit.IsChecked == true;
-            Settings.Default.CompanyFilesLocalFolder = CompanyFilesLocalFolder.IsChecked == true;
-            Settings.Default.CompanyFilesGitRepo = CompanyFilesGitRepo.Text;
-            Settings.Default.CompanyFilesLocalFolderText = CompanyFilesLocalFolderText.Text;
+            Properties.Settings.Default.UseCompanyFile = _viewModel.Settings.UseCompanyFiles;
+            Properties.Settings.Default.CompanyFilesLocalFolder = _viewModel.Settings.CompanyFiles.UseLocalFolder;
+            Properties.Settings.Default.CompanyFilesGitRepo = _viewModel.Settings.CompanyFiles.UrlRepo;
+            Properties.Settings.Default.CompanyFilesLocalFolderText = _viewModel.Settings.CompanyFiles.LocalFolderPath;
 
-            Settings.Default.CreateProjectRootFolderText = _viewModel.RootProjectsPath;
-            Settings.Default.CreateCompanyName = CreateCompanyName.Text;
+            Properties.Settings.Default.CreateProjectRootFolderText = _viewModel.Settings.RootProjectsPath;
+            Properties.Settings.Default.CreateCompanyName = _viewModel.Settings.CreateCompanyName;
 
-            Settings.Default.CustomTemplates = JsonSerializer.Serialize(configuration.customTemplates);
+            Properties.Settings.Default.CustomTemplates = JsonSerializer.Serialize(_viewModel.Settings.CustomRepoTemplates);
 
-            Settings.Default.Save();
-        }
-
-        private void BIATemplateLocalFolder_Checked(object sender, RoutedEventArgs e)
-        {
-            BIATemplateLocalFolderText.IsEnabled = true;
-            BIATemplateLocalFolderBrowse.IsEnabled = true;
-            Configurationchange();
-        }
-
-        private void BIATemplateGitHub_Checked(object sender, RoutedEventArgs e)
-        {
-            BIATemplateLocalFolderText.IsEnabled = false;
-            BIATemplateLocalFolderBrowse.IsEnabled = false;
-            Configurationchange();
-        }
-
-        private void BIATemplateLocalFolderText_TextChanged(object sender, RoutedEventArgs e)
-        {
-            Configurationchange();
-        }
-
-        private void CompanyFilesLocalFolder_Checked(object sender, RoutedEventArgs e)
-        {
-            CompanyFilesLocalFolderText.IsEnabled = true;
-            CompanyFilesLocalFolderBrowse.IsEnabled = true;
-            Configurationchange();
-        }
-
-        private void CompanyFilesGit_Checked(object sender, RoutedEventArgs e)
-        {
-            CompanyFilesLocalFolderText.IsEnabled = false;
-            CompanyFilesLocalFolderBrowse.IsEnabled = false;
-            Configurationchange(); 
+            Properties.Settings.Default.Save();
         }
 
         private async void BIATemplateLocalFolderSync_Click(object sender, RoutedEventArgs e)
@@ -223,18 +189,18 @@
 
         private void BIATemplateLocalFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
-            FileDialog.BrowseFolder(BIATemplateLocalFolderText);
+            _viewModel.Settings_BIATemplateRepository_LocalFolderPath = FileDialog.BrowseFolder(_viewModel.Settings.BIATemplateRepository.LocalFolderPath);
         }
 
         private void CompanyFilesLocalFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
-            FileDialog.BrowseFolder(CompanyFilesLocalFolderText);
+            _viewModel.Settings_CompanyFiles_LocalFolderPath = FileDialog.BrowseFolder(_viewModel.Settings.CompanyFiles.LocalFolderPath);
         }
 
 
         private void CreateProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.RootProjectsPath = FileDialog.BrowseFolder(_viewModel.RootProjectsPath);
+            _viewModel.Settings_RootProjectsPath = FileDialog.BrowseFolder(_viewModel.Settings.RootProjectsPath);
         }
 
 
@@ -273,12 +239,12 @@
 
         private void Create_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(_viewModel.RootProjectsPath))
+            if (string.IsNullOrEmpty(_viewModel.Settings.RootProjectsPath))
             {
                 MessageBox.Show("Please select root path.");
                 return;
             }
-            if (string.IsNullOrEmpty(CreateCompanyName.Text))
+            if (string.IsNullOrEmpty(_viewModel.Settings.CreateCompanyName))
             {
                 MessageBox.Show("Please select company name.");
                 return;
@@ -294,24 +260,19 @@
                 return;
             }
 
-            string projectPath = _viewModel.RootProjectsPath + "\\" + CreateProjectName.Text;
+            string projectPath = _viewModel.Settings.RootProjectsPath + "\\" + CreateProjectName.Text;
             if (Directory.Exists(projectPath) && !FileDialog.IsDirectoryEmpty(projectPath))
             {
                 MessageBox.Show("The project path is not empty : " + projectPath);
                 return;
             }
-            CreateProject(true, CreateCompanyName.Text, CreateProjectName.Text, projectPath, CreateVersionAndOption, new string[] { "Angular" } );
+            CreateProject(true, _viewModel.Settings.CreateCompanyName, CreateProjectName.Text, projectPath, CreateVersionAndOption, new string[] { "Angular" } );
         }
 
         private void CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
         {
             this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, configuration.BIATemplatePath, versionAndOption.FrameworkVersion.SelectedValue.ToString(),
             configuration.UseCompanyFileIsChecked, versionAndOption.CfSettings, versionAndOption.CompanyFilesPath, versionAndOption.CompanyFileProfile.Text, configuration.AppFolderPath, fronts);
-        }
-
-        private void UseCompanyFile_Checked(object sender, RoutedEventArgs e)
-        {
-           Configurationchange(); 
         }
 
         public void AddMessageLine(string message,  string color= null)
@@ -387,11 +348,11 @@
             var dialog = new CustomsRepoTemplateUC { Owner = this };
 
             // Display the dialog box and read the response
-            bool? result = dialog.ShowDialog(configuration.customTemplates);
+            bool? result = dialog.ShowDialog(_viewModel.Settings.CustomRepoTemplates);
 
             if (result == true)
             {
-                configuration.customTemplates = dialog.CustomsRepoTemplate.ToList();
+                _viewModel.Settings.CustomRepoTemplates = dialog.CustomsRepoTemplate.ToList();
             }
         }
     }

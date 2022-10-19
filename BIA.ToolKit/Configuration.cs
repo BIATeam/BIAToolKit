@@ -13,8 +13,8 @@ namespace BIA.ToolKit
 {
     public class Configuration
     {
+        // Work value
         public string BIATemplatePath { get; private set; }
-        public List<CustomRepoTemplate> customTemplates;
 
         public string RootCompanyFilesPath { get; private set; }
         public string AppFolderPath { get; private set; }
@@ -29,13 +29,12 @@ namespace BIA.ToolKit
         public Configuration()
         {
             BIATemplatePath = "";
-            customTemplates = new List<CustomRepoTemplate>();
             RootCompanyFilesPath = "";
             AppFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
             TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
         }
 
-        public bool RefreshBIATemplate(TabControl MainTab,
+        public bool RefreshBIATemplate(
             bool biaTemplateLocalFolderIsChecked, string biaTemplateLocalFolderText, bool inSync)
         {
             BIATemplateLocalFolderIsChecked = biaTemplateLocalFolderIsChecked;
@@ -63,7 +62,7 @@ namespace BIA.ToolKit
             return true;
         }
 
-        public bool RefreshCompanyFiles(TabControl MainTab,
+        public bool RefreshCompanyFiles(
             bool useCompanyFileIsChecked,
             bool companyFilesLocalFolderIsChecked, string companyFilesLocalFolderText, bool inSync)
          {
