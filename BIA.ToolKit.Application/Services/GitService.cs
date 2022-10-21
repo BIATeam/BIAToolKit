@@ -10,6 +10,7 @@
     using LibGit2Sharp.Handlers;
     using System.Diagnostics;
     using System.IO;
+    using BIA.ToolKit.Domain.Settings;
 
     public class GitService
     {
@@ -18,6 +19,19 @@
         {
             this.outPut = outPut;
         }
+
+        public async Task Synchronize(Domain.Settings.RepositorySettings repository)
+        {
+            if (!repository.UseLocalFolder && !Directory.Exists(repository.RootFolderPath))
+            {
+                await this.Clone(repository.Name, repository.UrlRepo, repository.RootFolderPath);
+            }
+            else
+            {
+                await this.Synchronize(repository.Name, repository.RootFolderPath);
+            }
+        }
+
 
         public async Task Synchronize(string repoName, string localPath)
         {
@@ -51,6 +65,19 @@
             
             return release;
         }
+
+
+        public void GetCheckoutTags(RepositorySettings repoSettings, string tag)
+        {
+            // git checkout tags/1.1.4
+            outPut.AddMessageLine("GetCheckoutTags " + repoSettings.Name + " tags " + tag + ".", "Pink");
+
+            if (RunScript("git", $"checkout tags/" + tag, repoSettings.RootFolderPath))
+            {
+                outPut.AddMessageLine("Clone BIADemo local folder finished", "Green");
+            }
+        }
+        
 
         public async Task DiffFolder(bool actionFinishedAtEnd, string rootPath, string name1, string name2, string migrateFilePath)
         {

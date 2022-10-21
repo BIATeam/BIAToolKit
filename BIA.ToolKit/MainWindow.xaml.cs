@@ -23,6 +23,8 @@
     using BIA.ToolKit.Dialogs;
     using System.Text.Json;
     using BIA.ToolKit.Domain.Settings;
+    using BIA.ToolKit.Common;
+    using static BIA.ToolKit.Domain.Settings.RepositorySettings;
 
 
     /// <summary>
@@ -32,6 +34,7 @@
     {
         public MainViewModel _viewModel = new MainViewModel();
 
+        RepositoryService repositoryService;
         GitService gitService;
         ProjectCreatorService projectCreatorService;
         GenerateFilesService generateFilesService;
@@ -40,11 +43,12 @@
         bool isCreateTabInitialized = false;
         bool isModifyTabInitialized = false;
 
-        Configuration configuration;
-
-        public MainWindow(Configuration configuration, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
+        public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
         {
-            this.configuration = configuration;
+            AppSettings.AppFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
+            AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
+
+            this.repositoryService = repositoryService;
             this.gitService = gitService;
             this.projectCreatorService = projectCreatorService;
             this.generateFilesService = genFilesService;
@@ -52,19 +56,23 @@
 
             InitializeComponent();
 
-            CreateVersionAndOption.Inject(configuration,gitService,consoleWriter);
-            ModifyProject.Inject(configuration, gitService, consoleWriter, cSharpParserService, projectCreatorService);
+            CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService,consoleWriter);
+            ModifyProject.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, cSharpParserService, projectCreatorService);
 
             this.consoleWriter = (ConsoleWriter) consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer);
 
-            _viewModel.Test = true;
-            _viewModel.Settings.BIATemplateRepository.UrlRepo = "https://github.com/BIATeam/BIATemplate.git";
+            _viewModel.Settings.BIATemplateRepository.Name = "BIATemplate";
+            _viewModel.Settings.BIATemplateRepository.Versioning = VersioningType.Release;
+            _viewModel.Settings.BIATemplateRepository.UrlRelease = Constants.BIATemplateReleaseUrl;
+            _viewModel.Settings.BIATemplateRepository.UrlRepo = Constants.BIATemplateRepoUrl;
             _viewModel.Settings.BIATemplateRepository.UseLocalFolder = Properties.Settings.Default.BIATemplateLocalFolder;
             _viewModel.Settings.BIATemplateRepository.LocalFolderPath = Properties.Settings.Default.BIATemplateLocalFolderText;
 
 
             _viewModel.Settings.UseCompanyFiles = Properties.Settings.Default.UseCompanyFile;
+            _viewModel.Settings.CompanyFiles.Name = "BIACompanyFiles";
+            _viewModel.Settings.CompanyFiles.Versioning = VersioningType.Folder;
             _viewModel.Settings.CompanyFiles.UseLocalFolder = Properties.Settings.Default.CompanyFilesLocalFolder;
             _viewModel.Settings.CompanyFiles.UrlRepo = Properties.Settings.Default.CompanyFilesGitRepo;
             _viewModel.Settings.CompanyFiles.LocalFolderPath = Properties.Settings.Default.CompanyFilesLocalFolderText;
@@ -74,7 +82,7 @@
 
             if(!string.IsNullOrEmpty(Properties.Settings.Default.CustomTemplates))
             {
-                _viewModel.Settings.CustomRepoTemplates = JsonSerializer.Deserialize<List<Repository>>(Properties.Settings.Default.CustomTemplates);
+                _viewModel.Settings.CustomRepoTemplates = JsonSerializer.Deserialize<List<RepositorySettings>>(Properties.Settings.Default.CustomTemplates);
             }
 
             txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
@@ -95,7 +103,7 @@
         public bool RefreshBIATemplateConfiguration(bool inSync)
         {
             Configurationchange(); 
-            if (!configuration.RefreshBIATemplate(_viewModel.Settings.BIATemplateRepository.UseLocalFolder, _viewModel.Settings.BIATemplateRepository.LocalFolderPath, inSync))
+            if (!CheckBIATemplate(_viewModel.Settings, inSync))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
                 return false;
@@ -116,10 +124,37 @@
         public bool RefreshCompanyFilesConfiguration(bool inSync)
         {
             Configurationchange(); 
-            if (!configuration.RefreshCompanyFiles(_viewModel.Settings.UseCompanyFiles, _viewModel.Settings.CompanyFiles.UseLocalFolder, _viewModel.Settings.CompanyFiles.LocalFolderPath, inSync))
+            if (!CheckCompanyFiles(_viewModel.Settings, inSync))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
                 return false;
+            }
+            return true;
+        }
+
+        public bool CheckBIATemplate(BIATKSettings biaTKsettings, bool inSync)
+        {
+            if (!repositoryService.CheckRepoFolder(biaTKsettings.BIATemplateRepository, inSync))
+            {
+                return false;
+            }
+            foreach (var customRepo in
+                biaTKsettings.CustomRepoTemplates)
+            {
+                if (!repositoryService.CheckRepoFolder(customRepo, inSync))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public bool CheckCompanyFiles(BIATKSettings biaTKsettings, bool inSync)
+        {
+            if (biaTKsettings.UseCompanyFiles)
+            {
+                return repositoryService.CheckRepoFolder(biaTKsettings.CompanyFiles, inSync);
             }
             return true;
         }
@@ -149,14 +184,8 @@
                 BIATemplateLocalFolderSync.IsEnabled = false;
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
 
-                if (!configuration.BIATemplateLocalFolderIsChecked && !Directory.Exists(configuration.BIATemplatePath))
-                {
-                    await this.gitService.Clone("BIATemplate", "https://github.com/BIATeam/BIATemplate.git", configuration.BIATemplatePath);
-                }
-                else
-                {
-                    await this.gitService.Synchronize("BIATemplate", configuration.BIATemplatePath);
-                }
+                await this.gitService.Synchronize(_viewModel.Settings.BIATemplateRepository);
+
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
                 BIATemplateLocalFolderSync.IsEnabled = true;
             }
@@ -169,18 +198,7 @@
                 CompanyFilesLocalFolderSync.IsEnabled = false;
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
 
-                if (configuration.CompanyFilesLocalFolderIsChecked)
-                {
-                    await this.gitService.Synchronize("BIACompanyFiles", configuration.RootCompanyFilesPath);
-                }
-                else
-                {
-                    if (Directory.Exists(configuration.RootCompanyFilesPath))
-                    {
-                        FileTransform.ForceDeleteDirectory(configuration.RootCompanyFilesPath);
-                    }
-                    await this.gitService.Clone("BIACompanyFiles", CompanyFilesGitRepo.Text, configuration.RootCompanyFilesPath);
-                }
+                await this.gitService.Synchronize(_viewModel.Settings.CompanyFiles);
 
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
                 CompanyFilesLocalFolderSync.IsEnabled = true;
@@ -254,7 +272,7 @@
                 MessageBox.Show("Please select project name.");
                 return;
             }
-            if (CreateVersionAndOption.FrameworkVersion.SelectedValue == null)
+            if (CreateVersionAndOption.vm.WorkTemplate == null)
             {
                 MessageBox.Show("Please select framework version.");
                 return;
@@ -271,8 +289,7 @@
 
         private void CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
         {
-            this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, configuration.BIATemplatePath, versionAndOption.FrameworkVersion.SelectedValue.ToString(),
-            configuration.UseCompanyFileIsChecked, versionAndOption.CfSettings, versionAndOption.CompanyFilesPath, versionAndOption.CompanyFileProfile.Text, configuration.AppFolderPath, fronts);
+            this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
         }
 
         public void AddMessageLine(string message,  string color= null)

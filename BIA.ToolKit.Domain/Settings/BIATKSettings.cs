@@ -8,10 +8,10 @@
 
     public class BIATKSettings
     {
-        public Repository BIATemplateRepository  { get; set; }
+        public RepositorySettings BIATemplateRepository  { get; set; }
         public bool UseCompanyFiles { get; set; }
-        public Repository CompanyFiles { get; set; }
-        public List<Repository> CustomRepoTemplates { get; set; }
+        public RepositorySettings CompanyFiles { get; set; }
+        public List<RepositorySettings> CustomRepoTemplates { get; set; }
 
         public string RootProjectsPath { get; set; }
         public string CreateCompanyName { get; set; }
@@ -20,9 +20,9 @@
         {
             RootProjectsPath = "D:\\...\\MyRootProjectPath";
             CreateCompanyName = "";
-            BIATemplateRepository  = new Repository();
-            CustomRepoTemplates = new List<Repository>();
-            CompanyFiles = new Repository();
+            BIATemplateRepository  = new RepositorySettings();
+            CustomRepoTemplates = new List<RepositorySettings>();
+            CompanyFiles = new RepositorySettings();
         }
     }
 }

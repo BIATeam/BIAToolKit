@@ -5,16 +5,31 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
              mc:Ignorable="d" d:DesignWidth="800" Height="150">
+    <UserControl.DataContext>
+        <!-- Declaratively create an instance of our SongViewModel -->
+        <local:VersionAndOptionViewModel />
+    </UserControl.DataContext>
     <Grid Margin="0">
         <Label Content="Framework version" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Foreground="White"/>
-        <ComboBox HorizontalAlignment="Left" Margin="20,25,0,0" VerticalAlignment="Top" Width="120" Name="FrameworkVersion" SelectionChanged="FrameworkVersion_SelectionChanged"/>
+        <ComboBox ItemsSource="{Binding WorkTemplates}" 
+                  DisplayMemberPath="Version"
+                  SelectedItem="{Binding WorkTemplate}"
+                  SelectionChanged="FrameworkVersion_SelectionChanged"
+                  HorizontalAlignment="Left" Margin="20,25,0,0" VerticalAlignment="Top" Width="120"/>
+        <CheckBox IsChecked="{Binding UseCompanyFiles}" Name="UseCompanyFiles" Content="Use Company Files" Foreground="White"  Height="16" VerticalAlignment="Top" Margin="10,58,-10,0" Checked="UseCompanyFile_Checked" Unchecked="UseCompanyFile_Checked" />
         <GroupBox Header="Company files" Margin="0,0,0,10" Foreground="White" BorderBrush="White" Name="CompanyFileGroup" HorizontalAlignment="Right" Width="642" Visibility="Visible">
             <Grid Margin="10,10,10,10">
                 <Label Content="Company file version" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Foreground="White" Name="CompanyFileVersionLabel"/>
-                <ComboBox HorizontalAlignment="Left" Margin="20,25,0,0" VerticalAlignment="Top" Width="120" Name="CompanyFileVersion" SelectionChanged="CompanyFileVersion_SelectionChanged"/>
+                <ComboBox 
+                    ItemsSource="{Binding WorkCompanyFiles}" 
+                    DisplayMemberPath="Version"
+                    SelectedItem="{Binding WorkCompanyFile}"
+                    
+                    HorizontalAlignment="Left" Margin="20,25,0,0" VerticalAlignment="Top" Width="120"  SelectionChanged="CompanyFileVersion_SelectionChanged"/>
 
                 <Label Content="Profile" HorizontalAlignment="Left" Margin="0,50,0,0" VerticalAlignment="Top" Foreground="White" Name="CompanyFileProfileLabel"/>
-                <ComboBox HorizontalAlignment="Left" Margin="20,75,0,0" VerticalAlignment="Top" Width="120" Name="CompanyFileProfile"/>
+                <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding Profile}" 
+                          HorizontalAlignment="Left" Margin="20,75,0,0" VerticalAlignment="Top" Width="120"/>
 
                 <Label Content="Options" HorizontalAlignment="Left" Margin="200,0,0,0" VerticalAlignment="Top" Foreground="White" Name="CompanyFileOptionLabel"/>
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="260,0,0,0" Name="CompanyFileOptionViewer">
@@ -31,7 +46,7 @@
                 </ScrollViewer>
             </Grid>
         </GroupBox>
-        <Image Name="Warning" Source=".\Images\Warning.png" HorizontalAlignment="Left" Height="100" Margin="173,20,0,0" VerticalAlignment="Top" Width="100"/>
+        <Image Name="Warning" Source="..\Images\Warning.png" HorizontalAlignment="Left" Height="100" Margin="173,20,0,0" VerticalAlignment="Top" Width="100"/>
         <Label Name="WarningLabel"  Content="You haven't select Company Files in config screen." HorizontalAlignment="Left" Margin="255,20,0,0" VerticalAlignment="Top" Foreground="White" FontSize="24"/>
     </Grid>
 </UserControl>

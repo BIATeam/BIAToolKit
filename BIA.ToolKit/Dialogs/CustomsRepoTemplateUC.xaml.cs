@@ -23,16 +23,16 @@
     public partial class CustomsRepoTemplateUC : Window
     {
         //List<CustomRepoTemplate> CustomsRepoTemplate = new List<CustomRepoTemplate>();
-        public ObservableCollection<Repository> CustomsRepoTemplate = new ObservableCollection<Repository>();
+        public ObservableCollection<RepositorySettings> CustomsRepoTemplate = new ObservableCollection<RepositorySettings>();
 
         public CustomsRepoTemplateUC()
         {
             InitializeComponent();
         }
 
-        internal bool? ShowDialog(List<Repository> customsRepoTemplate)
+        internal bool? ShowDialog(List<RepositorySettings> customsRepoTemplate)
         {
-            CustomsRepoTemplate = new ObservableCollection<Repository>(customsRepoTemplate);
+            CustomsRepoTemplate = new ObservableCollection<RepositorySettings>(customsRepoTemplate);
             dgCustomsRepoTemplate.ItemsSource = CustomsRepoTemplate;
             return ShowDialog();
         }
@@ -53,7 +53,7 @@
 
             if (result == true)
             {
-                CustomsRepoTemplate.Add((Repository) dialog.DataContext);
+                CustomsRepoTemplate.Add((RepositorySettings) dialog.DataContext);
             }
 
         }
@@ -62,17 +62,17 @@
         {
             if (dgCustomsRepoTemplate.SelectedIndex >= 0)
             {
-                Repository selectedItem = (Repository) dgCustomsRepoTemplate.Items[dgCustomsRepoTemplate.SelectedIndex];
+                RepositorySettings selectedItem = (RepositorySettings) dgCustomsRepoTemplate.Items[dgCustomsRepoTemplate.SelectedIndex];
                 if (selectedItem != null)
                 {
-                    Repository clonedSelectedItem = JsonSerializer.Deserialize<Repository>(JsonSerializer.Serialize(selectedItem));
+                    RepositorySettings clonedSelectedItem = JsonSerializer.Deserialize<RepositorySettings>(JsonSerializer.Serialize(selectedItem));
                     var dialog = new CustomRepoTemplateUC { Owner = this };
                     // Display the dialog box and read the response
-                    bool? result = dialog.ShowDialog((Repository)clonedSelectedItem);
+                    bool? result = dialog.ShowDialog((RepositorySettings)clonedSelectedItem);
 
                     if (result == true)
                     {
-                        CustomsRepoTemplate[dgCustomsRepoTemplate.SelectedIndex] = (Repository) dialog.DataContext;
+                        CustomsRepoTemplate[dgCustomsRepoTemplate.SelectedIndex] = (RepositorySettings) dialog.DataContext;
                     }
                 }
             }

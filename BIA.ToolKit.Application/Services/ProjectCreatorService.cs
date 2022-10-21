@@ -1,8 +1,10 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
-    using BIA.ToolKit.Application.CompanyFiles;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain.Model;
+    using BIA.ToolKit.Domain.Settings;
+    using BIA.ToolKit.Domain.Work;
     using LibGit2Sharp;
     using System.Collections.Generic;
     using System.IO;
@@ -13,91 +15,55 @@
     public class ProjectCreatorService
     {
         private IConsoleWriter consoleWriter;
-        public ProjectCreatorService(IConsoleWriter consoleWriter)
+        private RepositoryService repositoryService;
+
+        public ProjectCreatorService(IConsoleWriter consoleWriter, RepositoryService repositoryService)
         {
             this.consoleWriter = consoleWriter;
+            this.repositoryService = repositoryService;
         }
 
-        public void Create(bool actionFinishedAtEnd, string companyName, string projectName, string projectPath, string biaTemplatePath, string frameworkVersion /*frameworkVersion;*/,
-            bool useCompanyFile, CFSettings cfSettings, string companyFilesPath, string companyFileProfile /* CreateCompanyFileProfile.Text*/,
-            string appFolderPath,
+        public void Create(
+            bool actionFinishedAtEnd, 
+            string companyName, 
+            string projectName, 
+            string projectPath,
+
+            VersionAndOption versionAndOption,
+
             string[] angularFronts
             )
         {
 
-            string biaTemplatePathVersion = biaTemplatePath;
+            versionAndOption.WorkTemplate.VersionFolderPath = "";
             IList<string> localFilesToExclude = new List<string> ();
 
-            if (frameworkVersion == "VX.Y.Z")
+            if (versionAndOption.WorkTemplate.Version == "VX.Y.Z")
             {
                 // Copy from local folder
-                biaTemplatePathVersion = biaTemplatePath;
+                versionAndOption.WorkTemplate.VersionFolderPath = versionAndOption.WorkTemplate.RepositorySettings.RootFolderPath;
                 localFilesToExclude = new List<string>() { "^\\.git$", "^\\.vs$" , "\\.csproj\\.user$" , "^bin$", "^obj$", "^node_modules$", "^dist$" };
             }
             else
             {
-                using (var repo = new Repository(biaTemplatePath))
-                {
-                    foreach (var tag in repo.Tags)
-                    {
-                        if (tag.FriendlyName == frameworkVersion)
-                        {
-                            var zipPath = appFolderPath + "\\BIATemplate\\" + tag.FriendlyName + ".zip";
-                            string biaTemplatePathVersionUnzip = appFolderPath + "\\BIATemplate\\" + tag.FriendlyName;
-                            Directory.CreateDirectory(appFolderPath + "\\BIATemplate\\");
-                            if (!File.Exists(zipPath))
-                            {
-                                var zipUrl = Constants.BIATemplateReleaseUrl + tag.CanonicalName + ".zip";
-                                using (var client = new WebClient())
-                                {
-                                    client.DownloadFile(zipUrl, zipPath);
-                                }
-                            }
-
-                            if (!File.Exists(zipPath))
-                            {
-                                consoleWriter.AddMessageLine("Cannot download release: "+ frameworkVersion, "Red");
-                            }
-                            else
-                            {
-                                //Force clean
-                                if (Directory.Exists(biaTemplatePathVersionUnzip))
-                                {
-                                    Directory.Delete(biaTemplatePathVersionUnzip, true);
-                                }
-
-                                if (!Directory.Exists(biaTemplatePathVersionUnzip))
-                                {
-                                    ZipFile.ExtractToDirectory(zipPath, biaTemplatePathVersionUnzip);
-                                    FileTransform.FolderUnix2Dos(biaTemplatePathVersionUnzip);
-                                }
-                                var dirContent = Directory.GetDirectories(biaTemplatePathVersionUnzip, "*.*", SearchOption.TopDirectoryOnly);
-                                if (dirContent.Length == 1)
-                                {
-                                    biaTemplatePathVersion = dirContent[0];
-                                }
-                            }
-                            break;
-                        }
-                    }
-                }
+                versionAndOption.WorkTemplate.VersionFolderPath = this.repositoryService.PrepareVersionFolder(versionAndOption.WorkTemplate.RepositorySettings, versionAndOption.WorkTemplate.Version);
             }
 
-            if (!Directory.Exists(biaTemplatePathVersion))
+            if (!Directory.Exists(versionAndOption.WorkTemplate.VersionFolderPath))
             {
-                consoleWriter.AddMessageLine("The template source folder do not exist: " + biaTemplatePathVersion, "Red");
+                consoleWriter.AddMessageLine("The template source folder do not exist: " + versionAndOption.WorkTemplate.VersionFolderPath, "Red");
             }
             else
             {
                 consoleWriter.AddMessageLine("Start copy template files.", "Pink");
-                FileTransform.CopyFilesRecursively(biaTemplatePathVersion, projectPath, "", localFilesToExclude);
+                FileTransform.CopyFilesRecursively(versionAndOption.WorkTemplate.VersionFolderPath, projectPath, "", localFilesToExclude);
 
                 IList<string> filesToRemove = new List<string>() { "^new-angular-project\\.ps1$" };
 
-                if (useCompanyFile)
+                if (versionAndOption.UseCompanyFiles)
                 {
                     IList<string> filesToExclude = new List<string>() { "^biaCompanyFiles\\.json$" };
-                    foreach (CFOption option in cfSettings.Options)
+                    foreach (CFOption option in versionAndOption.Options)
                     {
                         if (option.IsChecked)
                         {
@@ -123,7 +89,7 @@
                         }
                     }
                     consoleWriter.AddMessageLine("Start copy company files.", "Pink");
-                    FileTransform.CopyFilesRecursively(companyFilesPath, projectPath, companyFileProfile, filesToExclude);
+                    FileTransform.CopyFilesRecursively(versionAndOption.WorkCompanyFile.VersionFolderPath, projectPath, versionAndOption.Profile, filesToExclude);
                 }
 
                 if (filesToRemove.Count > 0)

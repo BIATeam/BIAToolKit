@@ -24,7 +24,7 @@
         public CustomRepoTemplateUC()
         {
             InitializeComponent();
-            this.DataContext = new Repository() { UseLocalFolder = false };
+            this.DataContext = new RepositorySettings() { UseLocalFolder = false };
         }
 
         private void okButton_Click(object sender, RoutedEventArgs e) =>
@@ -33,7 +33,7 @@
         private void cancelButton_Click(object sender, RoutedEventArgs e) =>
             DialogResult = false;
 
-        internal bool? ShowDialog(Repository currentItem)
+        internal bool? ShowDialog(RepositorySettings currentItem)
         {
             this.DataContext = currentItem;
             return ShowDialog();

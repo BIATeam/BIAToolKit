@@ -1,6 +1,5 @@
 ﻿namespace BIA.ToolKit.UserControls
 {
-    using BIA.ToolKit.Application.CompanyFiles;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Helper;
     using System;
@@ -19,140 +18,169 @@
     using System.Windows.Media.Imaging;
     using System.Windows.Navigation;
     using System.Windows.Shapes;
-    
+    using BIA.ToolKit.Domain.Work;
+    using BIA.ToolKit.Domain.Settings;
+    using System.Collections.ObjectModel;
+    using BIA.ToolKit.Application.ViewModel;
+
     /// <summary>
     /// Interaction logic for VersionAndOptionView.xaml
     /// </summary>
     public partial class VersionAndOptionUserControl : UserControl
     {
-        Configuration configuration;
+        BIATKSettings settings;
         GitService gitService;
+        RepositoryService repositoryService;
         IConsoleWriter consoleWriter;
 
-
-
-
-        public string CompanyFilesPath { get; private set; }
-        public CFSettings CfSettings { get; private set; }
+        public VersionAndOptionViewModel vm;
 
         public VersionAndOptionUserControl()
         {
             InitializeComponent();
-            this.DataContext = this;
+            vm = (VersionAndOptionViewModel) base.DataContext;
         }
 
-        public void Inject(Configuration configuration, GitService gitService, IConsoleWriter consoleWriter)
+        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter)
         {
-            this.configuration = configuration;
+            this.settings = settings;
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
+            this.repositoryService = repositoryService;
         }
 
         public void refreshConfig()
         {
-            int lastItemCompanyFileVersion = -1;
-            int lastItemFrameworkVersion = -1;
+            var listCompanyFiles = new List<WorkRepository>();
+            var listWorkTemplates = new List<WorkRepository>();
 
-            FrameworkVersion.Items.Clear();
-            CompanyFileVersion.Items.Clear();
 
-/*
-            if (configuration.CustomTemplates.Count > 0)
+            if (settings.CustomRepoTemplates?.Count > 0)
             {
-                foreach(var customTemplate in configuration.CustomTemplates)
+                foreach(var repositorySettings in settings.CustomRepoTemplates)
                 {
-                    List<string> versions = gitService.GetTags(customTemplate.FolderPath).OrderBy(q => q).ToList();
-
-                    foreach (string version in versions)
-                    {
-                        lastItemFrameworkVersion = FrameworkVersion.Items.Add(version);
-                    }
+                    AddTemplatesVersion(listWorkTemplates, repositorySettings);
                 }
-            }*/
-
-
-            if (Directory.Exists(configuration.BIATemplatePath))
-            {
-                List<string> versions = gitService.GetTags(configuration.BIATemplatePath).OrderBy(q => q).ToList();
-
-                foreach (string version in versions)
-                {
-                    //Add and select the last added
-                    lastItemFrameworkVersion = FrameworkVersion.Items.Add(version);
-                }
-
-                FrameworkVersion.Items.Add("VX.Y.Z");
             }
 
-            if (configuration.UseCompanyFileIsChecked)
+            if (Directory.Exists(settings.BIATemplateRepository.RootFolderPath))
             {
+                AddTemplatesVersion(listWorkTemplates, settings.BIATemplateRepository);
+                listWorkTemplates.Add(new WorkRepository(settings.BIATemplateRepository, "VX.Y.Z"));
+            }
+
+            vm.WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
+            if (listWorkTemplates.Count >= 2)
+            {
+                vm.WorkTemplate = listWorkTemplates[listWorkTemplates.Count - 2];
+            }
+
+            vm.UseCompanyFiles = settings.UseCompanyFiles;
+            if (settings.UseCompanyFiles)
+            {
+                UseCompanyFiles.Visibility = Visibility.Visible;
                 CompanyFileGroup.Visibility = Visibility.Visible;
+                
                 Warning.Visibility = Visibility.Hidden;
                 WarningLabel.Visibility = Visibility.Hidden;
 
-                if (Directory.Exists(configuration.RootCompanyFilesPath))
+                AddTemplatesVersion(listCompanyFiles, settings.CompanyFiles);
+                vm.WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
+                if (listCompanyFiles.Count >= 1)
                 {
-                    DirectoryInfo di = new DirectoryInfo(configuration.RootCompanyFilesPath);
+                    vm.WorkCompanyFile = listCompanyFiles[listCompanyFiles.Count - 2];
+                }
+            }
+            else
+            {
+                UseCompanyFiles.Visibility = Visibility.Hidden;
+                CompanyFileGroup.Visibility = Visibility.Hidden;
+                Warning.Visibility = Visibility.Visible;
+                WarningLabel.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void UseCompanyFile_Checked(object sender, RoutedEventArgs e)
+        {
+            if (vm.UseCompanyFiles)
+            {
+                CompanyFileGroup.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                CompanyFileGroup.Visibility = Visibility.Hidden;
+            }
+        }
+
+        private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, RepositorySettings repositorySettings)
+        {
+            if (repositorySettings.Versioning == RepositorySettings.VersioningType.Folder)
+            {
+                if (Directory.Exists(repositorySettings.RootFolderPath))
+                {
+                    DirectoryInfo di = new DirectoryInfo(repositorySettings.RootFolderPath);
                     //  an array representing the files in the current directory.
                     DirectoryInfo[] versionDirectories = di.GetDirectories("V*.*.*", SearchOption.TopDirectoryOnly);
                     // Print out the names of the files in the current directory.
                     foreach (DirectoryInfo dir in versionDirectories)
                     {
                         //Add and select the last added
-                        lastItemCompanyFileVersion = CompanyFileVersion.Items.Add(dir.Name);
+                        WorkTemplates.Add(new WorkRepository(repositorySettings, dir.Name));
                     }
                 }
             }
             else
             {
-                CompanyFileGroup.Visibility = Visibility.Hidden;
-                Warning.Visibility = Visibility.Visible;
-                WarningLabel.Visibility = Visibility.Visible;
-            }
+                List<string> versions = gitService.GetTags(repositorySettings.RootFolderPath).OrderBy(q => q).ToList();
 
-            if (lastItemFrameworkVersion != -1) FrameworkVersion.SelectedIndex = lastItemFrameworkVersion;
-            if (lastItemCompanyFileVersion != -1) CompanyFileVersion.SelectedIndex = lastItemCompanyFileVersion;
+                foreach (string version in versions)
+                {
+                    WorkTemplates.Add(new WorkRepository(repositorySettings, version));
+                }
+            }
         }
 
         private void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            for (int i = 0; i < CompanyFileVersion.Items.Count; i++)
+            foreach(var WorkCompanyFile in vm.WorkCompanyFiles)
             {
-                if (FrameworkVersion.SelectedValue?.ToString() == CompanyFileVersion.Items[i].ToString())
+                if (vm.WorkTemplate?.Version == WorkCompanyFile.Version)
                 {
-                    CompanyFileVersion.SelectedIndex = i;
+                    vm.WorkCompanyFile = WorkCompanyFile;
                 }
             }
         }
 
         private void CompanyFileVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            CompanyFileProfile.Items.Clear();
+            var listProfiles = new List<string>();
+
             GridOption.Children.Clear();
-            if (!string.IsNullOrEmpty(CompanyFileVersion.SelectedValue?.ToString()))
+
+            if (vm.WorkCompanyFile != null)
             {
-                CompanyFilesPath = configuration.CompanyFilesLocalFolderText + "\\" + CompanyFileVersion.SelectedValue;
-                string fileName = CompanyFilesPath + "\\biaCompanyFiles.json";
+                vm.WorkCompanyFile.VersionFolderPath = repositoryService.PrepareVersionFolder(vm.WorkCompanyFile.RepositorySettings, vm.WorkCompanyFile.Version);
+                string fileName = vm.WorkCompanyFile.VersionFolderPath + "\\biaCompanyFiles.json";
 
                 try
                 {
                     string jsonString = File.ReadAllText(fileName);
 
-                    CfSettings = JsonSerializer.Deserialize<CFSettings>(jsonString);
+                    CFSettings cfSetting = JsonSerializer.Deserialize<CFSettings>(jsonString);
 
-                    int lastIndex = -1;
-                    foreach (string profile in CfSettings.Profiles)
+                    foreach (string profile in cfSetting.Profiles)
                     {
-                        lastIndex = CompanyFileProfile.Items.Add(profile);
+                        listProfiles.Add(profile);
+                        vm.Profile = profile;
                     }
-                    if (lastIndex != -1) CompanyFileProfile.SelectedIndex = lastIndex;
-
+                    vm.Profiles = new ObservableCollection<string>(listProfiles);
 
                     int top = 0;
-
-                    foreach (CFOption option in CfSettings.Options)
+                    vm.Options = new List<CFOption>();
+                    foreach (CFOption option in cfSetting.Options)
                     {
                         option.IsChecked = (!(option?.Default == 0));
+                        vm.Options.Add(option);
 
                         //  <CheckBox Content="Otpion2" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CFOption_Otpion2" Margin="0,25,0,0" />
                         CheckBox checkbox = new CheckBox();
@@ -162,8 +190,8 @@
                         checkbox.Height = 16;
                         checkbox.Name = "CFOption_" + option.Key;
                         checkbox.Margin = new Thickness(0, top, 0, 0);
-                        checkbox.Checked += CompanyFileOtption_Checked;
-                        checkbox.Unchecked += CompanyFileOtption_Checked;
+                        checkbox.Checked += CompanyFileOption_Checked;
+                        checkbox.Unchecked += CompanyFileOption_Checked;
                         top += 25;
                         checkbox.VerticalAlignment = VerticalAlignment.Top;
                         GridOption.Children.Add(checkbox);
@@ -177,12 +205,12 @@
 
         }
 
-        private void CompanyFileOtption_Checked(object sender, RoutedEventArgs e)
+        private void CompanyFileOption_Checked(object sender, RoutedEventArgs e)
         {
             if (sender is CheckBox)
             {
                 CheckBox chx = (CheckBox)sender;
-                foreach (CFOption option in CfSettings.Options)
+                foreach (CFOption option in vm.Options)
                 {
                     if ("CFOption_" + option.Key == chx.Name)
                     {

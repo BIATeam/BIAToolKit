@@ -18,4 +18,8 @@
     <ProjectReference Include="..\BIA.ToolKit.Domain\BIA.ToolKit.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="CompanyFiles\" />
+  </ItemGroup>
+
 </Project>

@@ -7,8 +7,7 @@
     public class MainViewModel : ObservableObject
     {
         public BIATKSettings Settings { get; set; }
-
-        public bool Test { get; set; }
+        public VersionAndOptionViewModel VersionAndOptionViewModel { get; set; }
 
         public MainViewModel()
         {

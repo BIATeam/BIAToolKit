@@ -4,6 +4,7 @@
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.ModifyProject;
+    using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.Properties;
     using System;
@@ -29,10 +30,11 @@
     /// </summary>
     public partial class ModifyProjectUC : UserControl
     {
+        BIATKSettings settings;
         public ModifyProjectViewModel _viewModel;
         IConsoleWriter consoleWriter;
+        RepositoryService repositoryService;
         GitService gitService;
-        Configuration configuration;
         CSharpParserService cSharpParserService;
         ProjectCreatorService projectCreatorService;
 
@@ -43,15 +45,16 @@
             _viewModel.RootProjectsPath = Settings.Default.CreateProjectRootFolderText;
         }
 
-        public void Inject(Configuration configuration, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService, ProjectCreatorService projectCreatorService)
+        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService, ProjectCreatorService projectCreatorService)
         {
-            this.configuration = configuration;
+            this.settings = settings;
+            this.repositoryService = repositoryService;
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
-            MigrateOriginVersionAndOption.Inject(configuration, gitService, consoleWriter);
-            MigrateTargetVersionAndOption.Inject(configuration, gitService, consoleWriter);
+            MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
+            MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
         }
 
         public void RefreshConfiguration()
@@ -184,13 +187,13 @@
 
         private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion)
         {
-            projectOriginalVersion = MigrateOriginVersionAndOption.FrameworkVersion.SelectedValue.ToString();
+            projectOriginalVersion = MigrateOriginVersionAndOption.vm.WorkTemplate.Version;
             projectOriginalFolderName = _viewModel.Name + "_" + projectOriginalVersion + "_From";
-            projectOriginPath = configuration.TmpFolderPath + projectOriginalFolderName;
+            projectOriginPath = AppSettings.TmpFolderPath + projectOriginalFolderName;
 
-            projectTargetVersion = MigrateTargetVersionAndOption.FrameworkVersion.SelectedValue.ToString();
+            projectTargetVersion = MigrateTargetVersionAndOption.vm.WorkTemplate.Version;
             projectTargetFolderName = _viewModel.Name + "_" + projectTargetVersion + "_To";
-            projectTargetPath = configuration.TmpFolderPath + projectTargetFolderName;
+            projectTargetPath = AppSettings.TmpFolderPath + projectTargetFolderName;
         }
 
         private void GenerateProjects(bool actionFinishedAtEnd, string projectOriginPath, string projectTargetPath)
@@ -218,20 +221,19 @@
         //TODO mutualiser avec celle de MainWindows
         private void CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
         {
-            this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, configuration.BIATemplatePath, versionAndOption.FrameworkVersion.SelectedValue.ToString(),
-            configuration.UseCompanyFileIsChecked, versionAndOption.CfSettings, versionAndOption.CompanyFilesPath, versionAndOption.CompanyFileProfile.Text, configuration.AppFolderPath, fronts);
+            this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
         }
 
         private void MigrateOpenFolder_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start("explorer.exe", configuration.TmpFolderPath);
+            Process.Start("explorer.exe", AppSettings.TmpFolderPath);
         }
 
         private async System.Threading.Tasks.Task ApplyDiff(bool actionFinishedAtEnd, string projectOriginalFolderName, string projectTargetFolderName)
         {
             // Make the differential
-            string migrateFilePath = configuration.TmpFolderPath + $"Migration_{projectOriginalFolderName}-{projectTargetFolderName}.patch";
-            await gitService.DiffFolder(false, configuration.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath);
+            string migrateFilePath = AppSettings.TmpFolderPath + $"Migration_{projectOriginalFolderName}-{projectTargetFolderName}.patch";
+            await gitService.DiffFolder(false, AppSettings.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath);
 
             //Apply the differential
             await gitService.ApplyDiff(actionFinishedAtEnd, _viewModel.ModifyProject.CurrentProject.Folder, migrateFilePath);
