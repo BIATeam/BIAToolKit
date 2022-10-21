@@ -67,14 +67,14 @@
         }
 
 
-        public void GetCheckoutTags(RepositorySettings repoSettings, string tag)
+        public void CheckoutTag(RepositorySettings repoSettings, string tag)
         {
             // git checkout tags/1.1.4
-            outPut.AddMessageLine("GetCheckoutTags " + repoSettings.Name + " tags " + tag + ".", "Pink");
+            outPut.AddMessageLine("Checkout Tag " + tag + "  for repo : " + repoSettings.Name + ".", "Pink");
 
             if (RunScript("git", $"checkout tags/" + tag, repoSettings.RootFolderPath))
             {
-                outPut.AddMessageLine("Clone BIADemo local folder finished", "Green");
+                outPut.AddMessageLine("Checkout Tag " + tag + "  for repo : " + repoSettings.Name + "finished", "Green");
             }
         }
         

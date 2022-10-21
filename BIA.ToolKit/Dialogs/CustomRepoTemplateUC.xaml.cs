@@ -24,7 +24,7 @@
         public CustomRepoTemplateUC()
         {
             InitializeComponent();
-            this.DataContext = new RepositorySettings() { UseLocalFolder = false };
+
         }
 
         private void okButton_Click(object sender, RoutedEventArgs e) =>

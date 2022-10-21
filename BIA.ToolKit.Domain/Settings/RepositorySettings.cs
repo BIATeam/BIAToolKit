@@ -1,32 +1,44 @@
 ﻿namespace BIA.ToolKit.Domain.Settings
 {
+    using System.Text.Json.Serialization;
+
+    public enum VersioningType
+    {
+        Folder,
+        Tag,
+        Release
+    }
+
     public class RepositorySettings
     {
-        public enum VersioningType
-        {
-            Folder,
-            Tag,
-            Release
-        }
-
-        /// The folder of the project.
+        /// The folder of the repository.
         public string? Name { get; set; }
 
-        /// The name of the project.
+        /// The url of the repository.
         public string? UrlRepo { get; set; }
 
-        /// The name of the project. Do not use this path for manipulation on repo => use RootFolderPath
-        public string? LocalFolderPath { get; set; }
-
-        /// The Bia framework version of the project.
+        /// true if use a local cloned folder.
         public bool UseLocalFolder { get; set; }
 
-        /// Specify if we use tag or sub folder
+        /// The local cloned folder path. Do not use this path for manipulation on repo => use RootFolderPath
+        public string? LocalFolderPath { get; set; }
+
+        /// Specify if we use release, tag or sub folder
         public VersioningType Versioning { get; set; }
 
-        /// The name of the project.
+        /// Url where to find release.
         public string? UrlRelease { get; set; }
 
+        /// The name of the company to rename.
+        public string? CompanyName { get; set; }
+
+        /// The name of the project to rename.
+        public string? ProjectName { get; set; }
+
+        /// The name of the project to rename.
+        public bool? CompatibleWithCompanyFiles { get; set; }
+
+        [JsonIgnore]
         // The path where is the root repository (it can be LocalFolderPath or in AppFolder is not UseLocalFolder)
         public string? RootFolderPath
         {

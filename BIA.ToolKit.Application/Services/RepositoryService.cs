@@ -47,11 +47,11 @@
 
         public string PrepareVersionFolder (RepositorySettings repository, string version)
         {
-            if (repository.Versioning == RepositorySettings.VersioningType.Folder)
+            if (repository.Versioning == VersioningType.Folder)
             {
                 return repository.RootFolderPath + "\\" + version;
             }
-            else if (repository.Versioning == RepositorySettings.VersioningType.Release)
+            else if (repository.Versioning == VersioningType.Release)
             {
                 using (var repo = new Repository(repository.RootFolderPath))
                 {
@@ -102,7 +102,7 @@
             }
             else
             {
-                this.gitService.GetCheckoutTags(repository, version);
+                this.gitService.CheckoutTag(repository, version);
                 return repository.RootFolderPath;
             }
         }

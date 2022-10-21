@@ -66,6 +66,10 @@
             _viewModel.Settings.BIATemplateRepository.Versioning = VersioningType.Release;
             _viewModel.Settings.BIATemplateRepository.UrlRelease = Constants.BIATemplateReleaseUrl;
             _viewModel.Settings.BIATemplateRepository.UrlRepo = Constants.BIATemplateRepoUrl;
+            _viewModel.Settings.BIATemplateRepository.CompanyName = "TheBIADevCompany";
+            _viewModel.Settings.BIATemplateRepository.ProjectName = "BIATemplate";
+            _viewModel.Settings.BIATemplateRepository.CompatibleWithCompanyFiles = true;
+
             _viewModel.Settings.BIATemplateRepository.UseLocalFolder = Properties.Settings.Default.BIATemplateLocalFolder;
             _viewModel.Settings.BIATemplateRepository.LocalFolderPath = Properties.Settings.Default.BIATemplateLocalFolderText;
 
@@ -73,6 +77,8 @@
             _viewModel.Settings.UseCompanyFiles = Properties.Settings.Default.UseCompanyFile;
             _viewModel.Settings.CompanyFiles.Name = "BIACompanyFiles";
             _viewModel.Settings.CompanyFiles.Versioning = VersioningType.Folder;
+            _viewModel.Settings.CompanyFiles.CompanyName = "TheBIADevCompany";
+            _viewModel.Settings.CompanyFiles.ProjectName = "BIATemplate";
             _viewModel.Settings.CompanyFiles.UseLocalFolder = Properties.Settings.Default.CompanyFilesLocalFolder;
             _viewModel.Settings.CompanyFiles.UrlRepo = Properties.Settings.Default.CompanyFilesGitRepo;
             _viewModel.Settings.CompanyFiles.LocalFolderPath = Properties.Settings.Default.CompanyFilesLocalFolderText;

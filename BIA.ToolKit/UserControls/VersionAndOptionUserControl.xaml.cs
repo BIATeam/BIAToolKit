@@ -114,7 +114,7 @@
 
         private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, RepositorySettings repositorySettings)
         {
-            if (repositorySettings.Versioning == RepositorySettings.VersioningType.Folder)
+            if (repositorySettings.Versioning == VersioningType.Folder)
             {
                 if (Directory.Exists(repositorySettings.RootFolderPath))
                 {

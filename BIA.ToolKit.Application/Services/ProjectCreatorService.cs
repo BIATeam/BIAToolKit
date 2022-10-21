@@ -35,7 +35,6 @@
             )
         {
 
-            versionAndOption.WorkTemplate.VersionFolderPath = "";
             IList<string> localFilesToExclude = new List<string> ();
 
             if (versionAndOption.WorkTemplate.Version == "VX.Y.Z")
@@ -47,6 +46,11 @@
             else
             {
                 versionAndOption.WorkTemplate.VersionFolderPath = this.repositoryService.PrepareVersionFolder(versionAndOption.WorkTemplate.RepositorySettings, versionAndOption.WorkTemplate.Version);
+
+                if (versionAndOption.WorkTemplate.RepositorySettings.Versioning == VersioningType.Tag)
+                {
+                    localFilesToExclude = new List<string>() { "^\\.git$", "^\\.vs$", "\\.csproj\\.user$", "^bin$", "^obj$", "^node_modules$", "^dist$" };
+                }
             }
 
             if (!Directory.Exists(versionAndOption.WorkTemplate.VersionFolderPath))
@@ -98,10 +102,10 @@
                 }
 
                 consoleWriter.AddMessageLine("Start rename.", "Pink");
-                FileTransform.ReplaceInFileAndFileName(projectPath, "TheBIADevCompany", companyName, FileTransform.replaceInFileExtensions);
-                FileTransform.ReplaceInFileAndFileName(projectPath, "BIATemplate", projectName, FileTransform.replaceInFileExtensions);
-                FileTransform.ReplaceInFileAndFileName(projectPath, "thebiadevcompany", companyName.ToLower(), FileTransform.replaceInFileExtensions);
-                FileTransform.ReplaceInFileAndFileName(projectPath, "biatemplate", projectName.ToLower(), FileTransform.replaceInFileExtensions);
+                FileTransform.ReplaceInFileAndFileName(projectPath, versionAndOption.WorkTemplate.RepositorySettings.CompanyName, companyName, FileTransform.projectFileExtensions);
+                FileTransform.ReplaceInFileAndFileName(projectPath, versionAndOption.WorkTemplate.RepositorySettings.ProjectName, projectName, FileTransform.projectFileExtensions);
+                FileTransform.ReplaceInFileAndFileName(projectPath, versionAndOption.WorkTemplate.RepositorySettings.CompanyName.ToLower(), companyName.ToLower(), FileTransform.projectFileExtensions);
+                FileTransform.ReplaceInFileAndFileName(projectPath, versionAndOption.WorkTemplate.RepositorySettings.ProjectName.ToLower(), projectName.ToLower(), FileTransform.projectFileExtensions);
 
 
                 consoleWriter.AddMessageLine("Start remove BIATemplate only.", "Pink");
