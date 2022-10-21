@@ -68,7 +68,6 @@
             _viewModel.Settings.BIATemplateRepository.UrlRepo = Constants.BIATemplateRepoUrl;
             _viewModel.Settings.BIATemplateRepository.CompanyName = "TheBIADevCompany";
             _viewModel.Settings.BIATemplateRepository.ProjectName = "BIATemplate";
-            _viewModel.Settings.BIATemplateRepository.CompatibleWithCompanyFiles = true;
 
             _viewModel.Settings.BIATemplateRepository.UseLocalFolder = Properties.Settings.Default.BIATemplateLocalFolder;
             _viewModel.Settings.BIATemplateRepository.LocalFolderPath = Properties.Settings.Default.BIATemplateLocalFolderText;

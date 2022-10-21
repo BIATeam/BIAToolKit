@@ -64,10 +64,10 @@
 
 
             </TabItem>
-            <TabItem Header="Rename project" Margin="5,0,-5,0">
+            <TabItem Header="Rename project" Margin="5,0,-5,0" Visibility="Hidden">
                 <Grid Background="Transparent"/>
             </TabItem>
-            <TabItem Header="Add DTO" Margin="3,0,-7,0">
+            <TabItem Header="Add DTO" Margin="3,0,-7,0" Visibility="Hidden">
                 <Grid Background="Transparent">
                     <!--<Label Content="Entity file" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" />
                                 <TextBox HorizontalAlignment="Left" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="861" x:Name="ModifyProjectAddDTOEntity" Height="21"  Margin="10,31,0,0"/>
@@ -78,7 +78,7 @@
 
                 </Grid>
             </TabItem>
-            <TabItem Header="Add crud" Margin="3,0,-7,0">
+            <TabItem Header="Add crud" Margin="3,0,-7,0" Visibility="Hidden">
                 <Grid Background="Transparent">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="7*"/>

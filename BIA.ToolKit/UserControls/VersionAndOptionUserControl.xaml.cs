@@ -142,6 +142,15 @@
 
         private void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (vm.WorkTemplate.RepositorySettings.Name =="BIATemplate")
+            {
+                vm.UseCompanyFiles = true;
+            }
+            else
+            {
+                vm.UseCompanyFiles = false;
+            }
+
             foreach(var WorkCompanyFile in vm.WorkCompanyFiles)
             {
                 if (vm.WorkTemplate?.Version == WorkCompanyFile.Version)
