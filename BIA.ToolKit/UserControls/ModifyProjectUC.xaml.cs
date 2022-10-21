@@ -204,7 +204,12 @@
                 FileTransform.ForceDeleteDirectory(projectOriginPath);
             }
 
-            string[] fronts = _viewModel.BIAFronts.Split(", ");
+            string[] fronts = new string[0];
+            if (_viewModel.BIAFronts != "???" && !string.IsNullOrEmpty(_viewModel.BIAFronts))
+            {
+                _viewModel.BIAFronts.Split(", ");
+            }
+            
 
             CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, fronts);
 

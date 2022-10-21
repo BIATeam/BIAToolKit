@@ -142,7 +142,7 @@
 
         private void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (vm.WorkTemplate.RepositorySettings.Name =="BIATemplate")
+            if (vm.WorkTemplate?.RepositorySettings?.Name =="BIATemplate")
             {
                 vm.UseCompanyFiles = true;
             }

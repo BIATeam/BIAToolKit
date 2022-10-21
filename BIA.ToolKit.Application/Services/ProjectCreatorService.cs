@@ -129,7 +129,10 @@
                 }
                 if (!containsFrontAngular)
                 {
-                    Directory.Delete(projectPath + "\\Angular", true);
+                    if (Directory.Exists(projectPath + "\\Angular"))
+                    {
+                        Directory.Delete(projectPath + "\\Angular", true);
+                    }
                 }
 
                 consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd ? "Green" : "Blue");

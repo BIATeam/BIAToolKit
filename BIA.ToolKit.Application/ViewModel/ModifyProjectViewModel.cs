@@ -73,6 +73,67 @@
             }
         }
 
+        public class NamesAndVersionResolver
+        {
+            // RegExp for path to find a file that contain FrameworkVersion. Param1 in Path is the Company, Param2 in Path is the ProjectName
+            public string ConstantFileRegExpPath { get; set; }
+            // Pattern corresponding to the name of the file that contain FrameworkVersion.
+            public string ConstantFileNameSearchPattern { get; set; }
+            // RegExp to determine de Framewprkversion in the file: It is the Param 1
+            public string ConstantFileRegExpVersion { get; set; }
+
+            // RegExp for path of an unique file in Front 
+            public string FrontFileRegExpPath { get; set; }
+            // Pattern corresponding to the name of the file unique file in Front.
+            public string FrontFileNameSearchPattern { get; set; }
+
+            public void ResolveNamesAndVersion(Project currentProject)
+            {
+                if (!string.IsNullOrEmpty(ConstantFileNameSearchPattern))
+                {
+                    Regex reg = new Regex(currentProject.Folder.Replace("\\", "\\\\") + ConstantFileRegExpPath, RegexOptions.IgnoreCase);
+                    string file = Directory.GetFiles(currentProject.Folder, ConstantFileNameSearchPattern, SearchOption.AllDirectories)?.Where(path => reg.IsMatch(path))?.FirstOrDefault();
+                    if (file != null)
+                    {
+                        var match = reg.Match(file);
+                        currentProject.CompanyName = match.Groups[1].Value;
+                        currentProject.Name = match.Groups[2].Value;
+                        Regex regVersion = new Regex(ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$");
+
+                        foreach (var line in File.ReadAllLines(file))
+                        {
+                            var matchVersion = regVersion.Match(line);
+                            if (matchVersion.Success)
+                            {
+                                currentProject.FrameworkVersion = matchVersion.Groups[1].Value;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!string.IsNullOrEmpty(FrontFileNameSearchPattern))
+                {
+                    Regex reg2 = new Regex(currentProject.Folder.Replace("\\", "\\\\") + FrontFileRegExpPath, RegexOptions.IgnoreCase);
+                    List<string> filesFront = Directory.GetFiles(currentProject.Folder, FrontFileNameSearchPattern, SearchOption.AllDirectories)?.Where(path => reg2.IsMatch(path)).ToList();
+                    currentProject.BIAFronts = "";
+                    if (filesFront != null)
+                    {
+                        foreach (var fileFront in filesFront)
+                        {
+                            var match = reg2.Match(fileFront);
+                            if (currentProject.BIAFronts != "")
+                            {
+                                currentProject.BIAFronts += ", ";
+                            }
+                            currentProject.BIAFronts += match.Groups[1].Value;
+                        }
+                    }
+                }
+            }
+        }
+
+        public Dictionary<string, NamesAndVersionResolver> CurrentProjectDetections { get; set; }
+
         public string Folder
         {
             get { return ModifyProject.CurrentProject?.Folder; }
@@ -88,45 +149,31 @@
                     currentProject.Name = value;
                     currentProject.Folder = RootProjectsPath + "\\" + currentProject.Name;
 
-                    Regex reg = new Regex(currentProject.Folder.Replace("\\", "\\\\") + @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$", RegexOptions.IgnoreCase);
-                    string file = Directory.GetFiles(currentProject.Folder, "Constants.cs", SearchOption.AllDirectories)?.Where(path => reg.IsMatch(path))?.FirstOrDefault();
-                    if (file != null)
+                    NamesAndVersionResolver nvResolver2 = new NamesAndVersionResolver()
                     {
-                        var match = reg.Match(file);
-                        currentProject.CompanyName = match.Groups[1].Value;
-                        currentProject.Name = match.Groups[2].Value;
-                        Regex regVersion = new Regex(@" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$");
+                        ConstantFileRegExpPath = @"\\.*\\(.*)\.(.*)\.Common\\Constants\.cs$",
+                        ConstantFileNameSearchPattern = "Constants.cs",
+                        ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
+                        FrontFileRegExpPath = null,
+                        FrontFileNameSearchPattern = null
+                    };
+                    nvResolver2.ResolveNamesAndVersion(currentProject);
 
-                        foreach (var line in File.ReadAllLines(file))
-                        {
-                            var matchVersion = regVersion.Match(line);
-                            if (matchVersion.Success)
-                            {
-                                currentProject.FrameworkVersion = matchVersion.Groups[1].Value;
-                                break;
-                            }
-                        }
-                    }
-
-                    Regex reg2 = new Regex(currentProject.Folder.Replace("\\", "\\\\") + @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$", RegexOptions.IgnoreCase);
-                    List<string> filesFront = Directory.GetFiles(currentProject.Folder, "bia-core.module.ts", SearchOption.AllDirectories)?.Where(path => reg2.IsMatch(path)).ToList();
-                    currentProject.BIAFronts = "";
-                    if (filesFront != null)
+                    NamesAndVersionResolver nvResolver = new NamesAndVersionResolver()
                     {
-                        foreach (var fileFront in filesFront)
-                        {
-                            var match = reg2.Match(fileFront);
-                            if (currentProject.BIAFronts != "")
-                            {
-                                currentProject.BIAFronts += ", ";
-                            }
-                            currentProject.BIAFronts += match.Groups[1].Value;
-                        }
-                    }
+                        ConstantFileRegExpPath = @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$",
+                        ConstantFileNameSearchPattern = "Constants.cs",
+                        ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
+                        FrontFileRegExpPath = @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$",
+                        FrontFileNameSearchPattern = "bia-core.module.ts"
+                    };
+                    nvResolver.ResolveNamesAndVersion(currentProject);
                 }
                 CurrentProject = currentProject;
             }
         }
+
+
 
         public string FrameworkVersion
         {
