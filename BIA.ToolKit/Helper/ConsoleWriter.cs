@@ -2,6 +2,7 @@
 {
     using BIA.ToolKit.Application.Helper;
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
@@ -16,9 +17,11 @@
     {
         TextBlock OutputText;
         ScrollViewer OutputTextViewer;
+        Queue queue = new Queue();
 
         public ConsoleWriter()
         {
+
         }
 
         public void InitOutput(TextBlock _outputText, ScrollViewer _outputTextViewer)
@@ -27,7 +30,31 @@
             OutputTextViewer = _outputTextViewer;
         }
 
-        public void AddMessageLine(string message, string color = null)
+        struct Message
+        {
+            public string message;
+            public string color;
+        }
+
+        public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
+        {
+            if (!refreshimediate)
+            {
+                queue.Enqueue(new Message { message = message, color = color });
+            }
+            else
+            {
+                foreach (Message msg in queue)
+                {
+                    _AddMsgLine(msg.message, msg.color, refreshimediate);
+                }
+                queue.Clear();
+                _AddMsgLine(message, color, refreshimediate);
+            }
+            
+        }
+
+        private void _AddMsgLine(string message, string color, bool refreshimediate)
         {
             Brush brush = null;
             if (string.IsNullOrEmpty(color))
@@ -39,10 +66,10 @@
                 Color col = (Color)ColorConverter.ConvertFromString(color);
                 brush = new SolidColorBrush(col);
             }
-            AddMessageLine(message, brush);
+            AddMessageLine(message, brush, refreshimediate);
         }
 
-        public void AddMessageLine(string message, Brush brush)
+        public void AddMessageLine(string message, Brush brush, bool refreshimediate = true)
         {
             System.Windows.Application.Current.Dispatcher.Invoke(
                 DispatcherPriority.Normal,
@@ -52,11 +79,14 @@
                 Run run = new Run(message + "\r\n");
                 run.Foreground = brush;
                 OutputText.Inlines.Add(run);
-                if (OutputTextViewer.VerticalOffset == OutputTextViewer.ScrollableHeight)
+                if (refreshimediate)
                 {
-                    OutputTextViewer.ScrollToEnd();
+                    if (OutputTextViewer.VerticalOffset == OutputTextViewer.ScrollableHeight)
+                    {
+                        OutputTextViewer.ScrollToEnd();
+                    }
+                    System.Windows.Forms.Application.DoEvents();
                 }
-                System.Windows.Forms.Application.DoEvents();
             });
         }
     }

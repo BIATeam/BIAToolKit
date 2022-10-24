@@ -75,7 +75,7 @@
 
 
 
-        private async void Migrate_Click(object sender, RoutedEventArgs e)
+        private void Migrate_Click(object sender, RoutedEventArgs e)
         {
 
             if (!Directory.Exists(_viewModel.ModifyProject.CurrentProject.Folder) || FileDialog.IsDirectoryEmpty(_viewModel.ModifyProject.CurrentProject.Folder))
@@ -91,9 +91,12 @@
 
             GenerateProjects(false, projectOriginPath, projectTargetPath);
 
-            await ApplyDiff(false, projectOriginalFolderName, projectTargetFolderName);
+            if (ApplyDiff(false, projectOriginalFolderName, projectTargetFolderName))
+            {
+                MergeRejected(false);
+            }
 
-            await MergeRejected(false);
+            
 
             consoleWriter.AddMessageLine("Migration finished.", "Green");
 
@@ -151,7 +154,7 @@
             Enable(true);
         }
 
-        private async void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
+        private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
         {
             Enable(false);
 
@@ -159,26 +162,26 @@
             MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
 
 
-            await ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName);
+            ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName);
 
             Enable(true);
         }
 
-        private async void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
+        private void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
         {
             Enable(false);
 
-            await MergeRejected(true);
+            MergeRejected(true);
 
             MigrateMergeRejected.IsEnabled = false;
             Enable(true);
         }
 
-        private async void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
+        private void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
         {
             Enable(false);
 
-            await OverwriteBIAFolder(true);
+            OverwriteBIAFolder(true);
 
             MigrateOverwriteBIAFolder.IsEnabled = false;
 
@@ -234,22 +237,24 @@
             Process.Start("explorer.exe", AppSettings.TmpFolderPath);
         }
 
-        private async System.Threading.Tasks.Task ApplyDiff(bool actionFinishedAtEnd, string projectOriginalFolderName, string projectTargetFolderName)
+        private bool ApplyDiff(bool actionFinishedAtEnd, string projectOriginalFolderName, string projectTargetFolderName)
         {
             // Make the differential
             string migrateFilePath = AppSettings.TmpFolderPath + $"Migration_{projectOriginalFolderName}-{projectTargetFolderName}.patch";
-            await gitService.DiffFolder(false, AppSettings.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath);
-
-            //Apply the differential
-            await gitService.ApplyDiff(actionFinishedAtEnd, _viewModel.ModifyProject.CurrentProject.Folder, migrateFilePath);
+            if (!gitService.DiffFolder(false, AppSettings.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath))
+            {
+                return false;
+            }
+                        //Apply the differential
+            return gitService.ApplyDiff(actionFinishedAtEnd, _viewModel.ModifyProject.CurrentProject.Folder, migrateFilePath);
         }
 
-        private async System.Threading.Tasks.Task MergeRejected(bool actionFinishedAtEnd)
+        private void MergeRejected(bool actionFinishedAtEnd)
         {
             string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
             MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
 
-            await gitService.MergeRejeted(actionFinishedAtEnd, new GitService.MergeParameter()
+            gitService.MergeRejeted(actionFinishedAtEnd, new GitService.MergeParameter()
             {
                 ProjectPath = _viewModel.ModifyProject.CurrentProject.Folder,
                 ProjectOriginPath = projectOriginPath,
@@ -259,7 +264,7 @@
             }); ;
         }
 
-        private async System.Threading.Tasks.Task OverwriteBIAFolder(bool actionFinishedAtEnd)
+        private void OverwriteBIAFolder(bool actionFinishedAtEnd)
         {
             string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
             MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
