@@ -25,6 +25,7 @@
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Common;
     using static BIA.ToolKit.Domain.Settings.RepositorySettings;
+    using System.Windows.Documents;
 
 
     /// <summary>
@@ -60,7 +61,7 @@
             ModifyProject.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, cSharpParserService, projectCreatorService);
 
             this.consoleWriter = (ConsoleWriter) consoleWriter;
-            this.consoleWriter.InitOutput(OutputText, OutputTextViewer);
+            this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
 
             _viewModel.Settings.BIATemplateRepository.Name = "BIATemplate";
             _viewModel.Settings.BIATemplateRepository.Versioning = VersioningType.Release;
@@ -220,12 +221,10 @@
             _viewModel.Settings_CompanyFiles_LocalFolderPath = FileDialog.BrowseFolder(_viewModel.Settings.CompanyFiles.LocalFolderPath);
         }
 
-
         private void CreateProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.Settings_RootProjectsPath = FileDialog.BrowseFolder(_viewModel.Settings.RootProjectsPath);
         }
-
 
         private void OnTabModifySelected(object sender, RoutedEventArgs e)
         {
@@ -258,7 +257,6 @@
                 }
             }
         }
-
 
         private void Create_Click(object sender, RoutedEventArgs e)
         {
@@ -297,20 +295,6 @@
             this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
         }
 
-        public void AddMessageLine(string message,  string color= null)
-        {
-            Brush brush = null;
-            if (string.IsNullOrEmpty(color))
-            {
-                brush = Brushes.White;
-            }
-            else
-            {
-                Color col = (Color)ColorConverter.ConvertFromString(color);
-                brush = new SolidColorBrush(col);
-            }
-            consoleWriter.AddMessageLine(message, brush);
-        }
 
         private void btnFileGenerator_OpenFolder_Click(object sender, RoutedEventArgs e)
         {
