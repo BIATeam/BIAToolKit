@@ -272,23 +272,6 @@
             return -1;
         }
 
-
-        public async Task<int> RunProcessAsync(string fileName, string args)
-        {
-            using (var process = new Process
-            {
-                StartInfo =
-        {
-            FileName = fileName, Arguments = args,
-            UseShellExecute = false, CreateNoWindow = true,
-            RedirectStandardOutput = true, RedirectStandardError = true
-        },
-                EnableRaisingEvents = true
-            })
-            {
-                return await RunProcessAsync(process).ConfigureAwait(false);
-            }
-        }
         private Task<int> RunProcessAsync(Process process)
         {
             var tcs = new TaskCompletionSource<int>();
