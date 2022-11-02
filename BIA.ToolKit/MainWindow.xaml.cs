@@ -351,7 +351,7 @@
 
         private void CustomRepoTemplate_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new CustomsRepoTemplateUC { Owner = this };
+            var dialog = new CustomsRepoTemplateUC(gitService) { Owner = this };
 
             // Display the dialog box and read the response
             bool? result = dialog.ShowDialog(_viewModel.Settings.CustomRepoTemplates);
