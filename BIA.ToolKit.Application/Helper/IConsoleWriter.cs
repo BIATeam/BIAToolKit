@@ -2,6 +2,6 @@
 {
     public interface IConsoleWriter
     {
-        public void AddMessageLine(string message, string color = null);
+        public void AddMessageLine(string message, string color = null, bool refreshimediate = true);
     }
 }

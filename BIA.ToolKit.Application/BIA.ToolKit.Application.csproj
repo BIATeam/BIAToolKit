@@ -1,16 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.2.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.2.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.2.0" />
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.1.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BIA.ToolKit.Common\BIA.ToolKit.Common.csproj" />
+    <ProjectReference Include="..\BIA.ToolKit.Domain\BIA.ToolKit.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="CompanyFiles\" />
   </ItemGroup>
 
 </Project>

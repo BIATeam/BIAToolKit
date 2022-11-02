@@ -12,10 +12,10 @@ namespace BIA.ToolKit.Common
         /// <summary>
         /// The BIA Template repositoty URL
         /// </summary>
-        public const string BIATemplateRepoUrl = "https://github.com/BIATeam/BIATemplate";
+        public const string BIATemplateRepoUrl = "https://github.com/BIATeam/BIATemplate.git";
 
         /// <summary>
-        /// The BIA Template repositoty URL
+        /// The BIA Template realese URL
         /// </summary>
         public const string BIATemplateReleaseUrl = "https://github.com/BIATeam/BIATemplate/archive/";
 
