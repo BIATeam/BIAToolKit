@@ -25,19 +25,18 @@
     public partial class CustomsRepoTemplateUC : Window
     {
         GitService gitService;
-        //List<CustomRepoTemplate> CustomsRepoTemplate = new List<CustomRepoTemplate>();
-        public ObservableCollection<RepositorySettings> CustomsRepoTemplate = new ObservableCollection<RepositorySettings>();
+        public RepositoriesSettingsVM vm;
 
         public CustomsRepoTemplateUC(GitService gitService)
         {
-            this.gitService = gitService;
             InitializeComponent();
+            this.gitService = gitService;
+            vm = (RepositoriesSettingsVM) base.DataContext;
         }
 
         internal bool? ShowDialog(List<RepositorySettings> customsRepoTemplate)
         {
-            CustomsRepoTemplate = new ObservableCollection<RepositorySettings>(customsRepoTemplate);
-            dgCustomsRepoTemplate.ItemsSource = CustomsRepoTemplate;
+            vm.LoadSettings(customsRepoTemplate);
             return ShowDialog();
         }
 
@@ -49,7 +48,6 @@
 
         private void addButton_Click(object sender, RoutedEventArgs e)
         {
-
             var dialog = new CustomRepoTemplateUC { Owner = this };
 
             // Display the dialog box and read the response
@@ -57,50 +55,40 @@
 
             if (result == true)
             {
-                CustomsRepoTemplate.Add(((RepositorySettingsVM) dialog.DataContext).RepositorySettings);
+                vm.RepositoriesSettings.Add(((RepositorySettingsVM) dialog.DataContext).RepositorySettings);
             }
-
         }
 
         private void editButton_Click(object sender, RoutedEventArgs e)
         {
-            if (dgCustomsRepoTemplate.SelectedIndex >= 0)
+            if (vm.RepositorySettings != null)
             {
-                RepositorySettings selectedItem = (RepositorySettings) dgCustomsRepoTemplate.Items[dgCustomsRepoTemplate.SelectedIndex];
-                if (selectedItem != null)
-                {
-                    RepositorySettings clonedSelectedItem = JsonSerializer.Deserialize<RepositorySettings>(JsonSerializer.Serialize(selectedItem));
-                    var dialog = new CustomRepoTemplateUC { Owner = this };
-                    // Display the dialog box and read the response
-                    bool? result = dialog.ShowDialog((RepositorySettings)clonedSelectedItem);
+                RepositorySettings clonedSelectedItem = JsonSerializer.Deserialize<RepositorySettings>(JsonSerializer.Serialize(vm.RepositorySettings));
+                var dialog = new CustomRepoTemplateUC { Owner = this };
+                // Display the dialog box and read the response
+                bool? result = dialog.ShowDialog((RepositorySettings)clonedSelectedItem);
 
-                    if (result == true)
-                    {
-                        CustomsRepoTemplate[dgCustomsRepoTemplate.SelectedIndex] = ((RepositorySettingsVM) dialog.DataContext).RepositorySettings;
-                    }
+                if (result == true)
+                {
+                    vm.RepositoriesSettings[vm.RepositoriesSettings.IndexOf(vm.RepositorySettings)] = ((RepositorySettingsVM) dialog.DataContext).RepositorySettings;
                 }
             }
         }
 
         private void deleteButton_Click(object sender, RoutedEventArgs e)
         {
-            if (dgCustomsRepoTemplate.SelectedIndex >= 0)
+            if (vm.RepositorySettings != null)
             {
-                RepositorySettings selectedItem = (RepositorySettings)dgCustomsRepoTemplate.Items[dgCustomsRepoTemplate.SelectedIndex];
-                if (selectedItem != null)
-                {
-                    CustomsRepoTemplate.Remove(selectedItem);
-                }
+                vm.RepositoriesSettings.Remove(vm.RepositorySettings);
             }
         }
 
 
         private void synchronizeButton_Click(object sender, RoutedEventArgs e)
         {
-            if (dgCustomsRepoTemplate.SelectedIndex >= 0)
+            if (vm.RepositorySettings != null)
             {
-                RepositorySettings selectedItem = (RepositorySettings)dgCustomsRepoTemplate.Items[dgCustomsRepoTemplate.SelectedIndex];
-                _ = gitService.Synchronize(selectedItem);
+                _ = gitService.Synchronize(vm.RepositorySettings);
             }
         }
     }
