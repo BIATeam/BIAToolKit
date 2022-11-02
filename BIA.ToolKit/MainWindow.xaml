@@ -35,7 +35,7 @@
                     <Button Content="..." HorizontalAlignment="Left" Margin="283,108,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" Name="BIATemplateLocalFolderBrowse" IsEnabled="{Binding Settings.BIATemplateRepository.UseLocalFolder}" Click="BIATemplateLocalFolderBrowse_Click" Grid.Column="1"/>
                     <Button Content="Synchronize" HorizontalAlignment="Left" Margin="26,162,0,0" RenderTransformOrigin="0.429,2.91" Width="206" Name="BIATemplateLocalFolderSync" Click="BIATemplateLocalFolderSync_Click" Height="20" VerticalAlignment="Top" Grid.Column="1"/>
 
-                    <Button Content="Customs BIA Template repository" Margin="20,0,161,26" Click="CustomRepoTemplate_Click" RenderTransformOrigin="0.429,2.91" Width="206" Grid.ColumnSpan="2" Height="20" VerticalAlignment="Bottom"/>
+                    <Button Content="Custom templates repositories settings" Margin="20,0,125,26" Click="CustomRepoTemplate_Click" RenderTransformOrigin="0.429,2.91" Grid.ColumnSpan="2" Height="20" VerticalAlignment="Bottom"/>
 
                     <CheckBox IsChecked="{Binding Settings.UseCompanyFiles}" HorizontalAlignment="Left" Margin="83,0,0,189" Checked="ConfigurationChange" Unchecked="ConfigurationChange" Grid.Column="3" Height="15" VerticalAlignment="Bottom"/>
                     <Label Foreground="White" Content="Use company files" HorizontalAlignment="Center" Margin="0,0,0,178" FontSize="20" FontWeight="Bold" Grid.Column="3" Height="37" VerticalAlignment="Bottom"/>

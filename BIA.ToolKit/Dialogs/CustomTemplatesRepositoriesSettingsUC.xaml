@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:BIA.ToolKit.Dialogs"
         xmlns:vm="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
         mc:Ignorable="d"
-        Title="Custom Repositories Templates" Height="200" Width="300"
+        Title="Custom templates repositories settings" Height="200" Width="300"
         MinHeight="500"
         MinWidth="600"
         SizeToContent="WidthAndHeight"
