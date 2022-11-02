@@ -5,11 +5,31 @@
 
     public class RepositorySettingsVM : ObservableObject
     {
-        public RepositorySettings RepositorySettings { get; set; }
 
         public RepositorySettingsVM()
         {
             RepositorySettings = new RepositorySettings();
+        }
+
+        private RepositorySettings repositorySettings { get; set; }
+
+        public RepositorySettings RepositorySettings {
+            get { return repositorySettings; }
+            set
+            {
+                if (repositorySettings != value)
+                {
+                    repositorySettings = value;
+                    RaisePropertyChanged("Name");
+                    RaisePropertyChanged("UrlRepo");
+                    RaisePropertyChanged("UseLocalFolder");
+                    RaisePropertyChanged("LocalFolderPath");
+                    RaisePropertyChanged("Versioning");
+                    RaisePropertyChanged("UrlRelease");
+                    RaisePropertyChanged("CompanyName");
+                    RaisePropertyChanged("ProjectName");
+                }
+            }
         }
 
         public string Name

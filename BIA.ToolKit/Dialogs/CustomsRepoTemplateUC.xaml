@@ -58,6 +58,8 @@
             <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Name="addButton" Click="addButton_Click">Add</Button>
                 <Button Name="editButton" Click="editButton_Click">Edit</Button>
+                <Button Name="deleteButton" Click="deleteButton_Click">Remove</Button>
+
                 <Button Name="synchronizeButton" Click="synchronizeButton_Click">Synchronize All</Button>
                 <Button Name="okButton" Click="okButton_Click" IsDefault="True">OK</Button>
                 <Button Name="cancelButton" IsCancel="True">Cancel</Button>

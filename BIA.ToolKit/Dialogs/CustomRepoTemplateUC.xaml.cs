@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.Dialogs
 {
+    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.Settings;
     using System;
     using System.Collections.Generic;
@@ -24,7 +25,6 @@
         public CustomRepoTemplateUC()
         {
             InitializeComponent();
-
         }
 
         private void okButton_Click(object sender, RoutedEventArgs e) =>
@@ -35,7 +35,7 @@
 
         internal bool? ShowDialog(RepositorySettings currentItem)
         {
-            this.DataContext = currentItem;
+            ((RepositorySettingsVM)this.DataContext).RepositorySettings = currentItem;
             return ShowDialog();
         }
     }

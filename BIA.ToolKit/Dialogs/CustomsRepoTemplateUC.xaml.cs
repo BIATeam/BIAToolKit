@@ -1,5 +1,7 @@
 ﻿namespace BIA.ToolKit.Dialogs
 {
+    using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.Settings;
     using System;
     using System.Collections.Generic;
@@ -22,11 +24,13 @@
     /// </summary>
     public partial class CustomsRepoTemplateUC : Window
     {
+        GitService gitService;
         //List<CustomRepoTemplate> CustomsRepoTemplate = new List<CustomRepoTemplate>();
         public ObservableCollection<RepositorySettings> CustomsRepoTemplate = new ObservableCollection<RepositorySettings>();
 
-        public CustomsRepoTemplateUC()
+        public CustomsRepoTemplateUC(GitService gitService)
         {
+            this.gitService = gitService;
             InitializeComponent();
         }
 
@@ -53,7 +57,7 @@
 
             if (result == true)
             {
-                CustomsRepoTemplate.Add((RepositorySettings) dialog.DataContext);
+                CustomsRepoTemplate.Add(((RepositorySettingsVM) dialog.DataContext).RepositorySettings);
             }
 
         }
@@ -72,15 +76,32 @@
 
                     if (result == true)
                     {
-                        CustomsRepoTemplate[dgCustomsRepoTemplate.SelectedIndex] = (RepositorySettings) dialog.DataContext;
+                        CustomsRepoTemplate[dgCustomsRepoTemplate.SelectedIndex] = ((RepositorySettingsVM) dialog.DataContext).RepositorySettings;
                     }
                 }
             }
-
         }
+
+        private void deleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (dgCustomsRepoTemplate.SelectedIndex >= 0)
+            {
+                RepositorySettings selectedItem = (RepositorySettings)dgCustomsRepoTemplate.Items[dgCustomsRepoTemplate.SelectedIndex];
+                if (selectedItem != null)
+                {
+                    CustomsRepoTemplate.Remove(selectedItem);
+                }
+            }
+        }
+
+
         private void synchronizeButton_Click(object sender, RoutedEventArgs e)
         {
-
+            if (dgCustomsRepoTemplate.SelectedIndex >= 0)
+            {
+                RepositorySettings selectedItem = (RepositorySettings)dgCustomsRepoTemplate.Items[dgCustomsRepoTemplate.SelectedIndex];
+                _ = gitService.Synchronize(selectedItem);
+            }
         }
     }
 }
