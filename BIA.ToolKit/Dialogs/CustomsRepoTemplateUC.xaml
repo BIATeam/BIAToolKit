@@ -4,15 +4,18 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BIA.ToolKit.Dialogs"
+        xmlns:vm="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
         mc:Ignorable="d"
-        Title="CustomRepoTemplate" Height="200" Width="300"
+        Title="Custom Repositories Templates" Height="200" Width="300"
         MinHeight="500"
         MinWidth="600"
         SizeToContent="WidthAndHeight"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         >
-
+    <Window.DataContext>
+        <vm:RepositoriesSettingsVM />
+    </Window.DataContext>
     <Grid>
         <Grid Margin="10">
             <Grid.Resources>
@@ -39,7 +42,8 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="35"/>
             </Grid.RowDefinitions>
-            <DataGrid Name="dgCustomsRepoTemplate" AutoGenerateColumns="False" Grid.Column="0" Grid.Row="0" Margin="0,0,0,0" Grid.RowSpan="2" HorizontalAlignment="Left" Width="570" IsReadOnly="True">
+            <DataGrid AutoGenerateColumns="False" Grid.Column="0" Grid.Row="0" Margin="0,0,0,0" Grid.RowSpan="2" HorizontalAlignment="Left" Width="580" IsReadOnly="True"
+                      ItemsSource="{Binding RepositoriesSettings}" SelectedItem="{Binding RepositorySettings}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
                     <DataGridTextColumn Header="Url Repo" Binding="{Binding UrlRepo}" Width="100" />
@@ -57,10 +61,10 @@
             <!-- Accept or Cancel -->
             <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Name="addButton" Click="addButton_Click">Add</Button>
-                <Button Name="editButton" Click="editButton_Click">Edit</Button>
-                <Button Name="deleteButton" Click="deleteButton_Click">Remove</Button>
+                <Button Name="editButton" Click="editButton_Click" IsEnabled="{Binding IsRepoSelected}">Edit</Button>
+                <Button Name="deleteButton" Click="deleteButton_Click" IsEnabled="{Binding IsRepoSelected}">Remove</Button>
 
-                <Button Name="synchronizeButton" Click="synchronizeButton_Click">Synchronize All</Button>
+                <Button Name="synchronizeButton" Click="synchronizeButton_Click" IsEnabled="{Binding IsRepoSelected}">Synchronize</Button>
                 <Button Name="okButton" Click="okButton_Click" IsDefault="True">OK</Button>
                 <Button Name="cancelButton" IsCancel="True">Cancel</Button>
             </StackPanel>

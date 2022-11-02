@@ -358,7 +358,7 @@
 
             if (result == true)
             {
-                _viewModel.Settings.CustomRepoTemplates = dialog.CustomsRepoTemplate.ToList();
+                _viewModel.Settings.CustomRepoTemplates = dialog.vm.RepositoriesSettings.ToList();
             }
         }
     }
