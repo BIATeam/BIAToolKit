@@ -45,7 +45,7 @@
                     <TextBox Text="{Binding Settings_CompanyFiles_LocalFolderPath}"  IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Left" Margin="37,0,0,63" TextWrapping="Wrap" Width="310" Grid.Column="3" Height="18" VerticalAlignment="Bottom"/>
                     <Button Content="..." IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Left" Margin="347,0,0,62" RenderTransformOrigin="0.429,2.91" Width="35" Grid.Column="3" Click="CompanyFilesLocalFolderBrowse_Click" Height="20" VerticalAlignment="Bottom"/>
                     <Button Content="Synchronize" HorizontalAlignment="Left" Margin="89,0,0,26" RenderTransformOrigin="0.429,2.91" Width="206" Grid.Column="3" Name="CompanyFilesLocalFolderSync" Click="CompanyFilesLocalFolderSync_Click" Height="20" VerticalAlignment="Bottom"/>
-                    <Label Content="V1.2.0" Grid.Column="3" Margin="0,2,0,0" VerticalAlignment="Top" Foreground="#FFF0F0F0" HorizontalAlignment="Right"/>
+                    <Label Content="V1.4.0" Grid.Column="3" Margin="0,2,0,0" VerticalAlignment="Top" Foreground="#FFF0F0F0" HorizontalAlignment="Right"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Create project" Selector.Selected="OnTabCreateSelected">
