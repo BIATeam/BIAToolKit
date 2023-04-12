@@ -210,7 +210,7 @@
             string[] fronts = new string[0];
             if (_viewModel.BIAFronts != "???" && !string.IsNullOrEmpty(_viewModel.BIAFronts))
             {
-                _viewModel.BIAFronts.Split(", ");
+                fronts = _viewModel.BIAFronts.Split(", ");
             }
             
 
