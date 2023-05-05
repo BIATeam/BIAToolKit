@@ -1,14 +1,18 @@
 ﻿namespace BIA.ToolKit.Helper
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Dialogs;
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Documents;
+    using System.Windows.Input;
     using System.Windows.Media;
     using System.Windows.Threading;
 
@@ -16,18 +20,65 @@
     {
         TextBlock OutputText;
         ScrollViewer OutputTextViewer;
+        Window WindowOwner;
+        List<Message> messages = new List<Message>();
 
         public ConsoleWriter()
         {
+
         }
 
-        public void InitOutput(TextBlock _outputText, ScrollViewer _outputTextViewer)
+        public void InitOutput(TextBlock _outputText, ScrollViewer _outputTextViewer, Window _windowOwner)
         {
             OutputText = _outputText;
             OutputTextViewer = _outputTextViewer;
+            WindowOwner = _windowOwner;
         }
 
-        public void AddMessageLine(string message, string color = null)
+        public struct Message
+        {
+            public string message;
+            public string color;
+        }
+
+        public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
+        {
+            if (!refreshimediate)
+            {
+                messages.Add(new Message { message = message, color = color });
+            }
+            else
+            {
+                if (messages.Count >0)
+                {
+                    Run run = new Run(@"(...details...)" + "\r\n");
+                    run.Foreground = Brushes.Red;
+                    run.Cursor = Cursors.Hand;
+                    run.TextDecorations = TextDecorations.Underline;
+                    run.MouseDown += new MouseButtonEventHandler(OpenDetail);
+                    run.DataContext = messages;
+                    OutputText.Inlines.Add(run);
+
+                    messages = new List<Message>();
+                }
+                //foreach (Message msg in messages)
+                //{
+                //    _AddMsgLine(msg.message, msg.color, refreshimediate);
+                //}
+                //messages.Clear();
+                AddMsgLine(OutputText, OutputTextViewer, message, color, refreshimediate);
+            }
+        }
+
+        private void OpenDetail(object sender, MouseButtonEventArgs e)
+        {
+            var dialog = new LogDetailUC { Owner = WindowOwner };
+
+            // Display the dialog box and read the response
+            bool? result = dialog.ShowDialog((List<Message>)((Run)sender).DataContext);
+        }
+
+        public static void AddMsgLine(TextBlock OutputText, ScrollViewer OutputTextViewer, string message, string color, bool refreshimediate = true)
         {
             Brush brush = null;
             if (string.IsNullOrEmpty(color))
@@ -39,10 +90,10 @@
                 Color col = (Color)ColorConverter.ConvertFromString(color);
                 brush = new SolidColorBrush(col);
             }
-            AddMessageLine(message, brush);
+            AddMessageLine(OutputText, OutputTextViewer, message, brush, refreshimediate);
         }
 
-        public void AddMessageLine(string message, Brush brush)
+        public static void AddMessageLine(TextBlock OutputText, ScrollViewer OutputTextViewer, string message, Brush brush, bool refreshimediate = true)
         {
             System.Windows.Application.Current.Dispatcher.Invoke(
                 DispatcherPriority.Normal,
@@ -52,11 +103,14 @@
                 Run run = new Run(message + "\r\n");
                 run.Foreground = brush;
                 OutputText.Inlines.Add(run);
-                if (OutputTextViewer.VerticalOffset == OutputTextViewer.ScrollableHeight)
+                if (refreshimediate)
                 {
-                    OutputTextViewer.ScrollToEnd();
+                    if (OutputTextViewer.VerticalOffset == OutputTextViewer.ScrollableHeight)
+                    {
+                        OutputTextViewer.ScrollToEnd();
+                    }
+                    System.Windows.Forms.Application.DoEvents();
                 }
-                System.Windows.Forms.Application.DoEvents();
             });
         }
     }

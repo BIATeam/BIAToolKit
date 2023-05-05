@@ -28,10 +28,11 @@
         {
             services.AddSingleton<IConsoleWriter, ConsoleWriter> ();
             services.AddSingleton<MainWindow>();
-            services.AddSingleton<Configuration>();
+            services.AddSingleton<RepositoryService>();
             services.AddSingleton<GitService>();
             services.AddSingleton<ProjectCreatorService>();
             services.AddSingleton<GenerateFilesService>();
+            services.AddSingleton<CSharpParserService>();
         }
         private void OnStartup(object sender, StartupEventArgs e)
         {

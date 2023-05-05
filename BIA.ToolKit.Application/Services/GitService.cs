@@ -10,6 +10,7 @@
     using LibGit2Sharp.Handlers;
     using System.Diagnostics;
     using System.IO;
+    using BIA.ToolKit.Domain.Settings;
 
     public class GitService
     {
@@ -19,18 +20,30 @@
             this.outPut = outPut;
         }
 
+        public async Task Synchronize(Domain.Settings.RepositorySettings repository)
+        {
+            if (!repository.UseLocalFolder && !Directory.Exists(repository.RootFolderPath))
+            {
+                await this.Clone(repository.Name, repository.UrlRepo, repository.RootFolderPath);
+            }
+            else
+            {
+                await this.Synchronize(repository.Name, repository.RootFolderPath);
+            }
+        }
+
+
         public async Task Synchronize(string repoName, string localPath)
         {
             outPut.AddMessageLine("Synchronize " + repoName + " local folder...", "Pink");
-            RunScript("git", "pull", localPath);
-
-            /*using (var repo = new Repository(localPath))
+            if( RunScript("git", "pull", localPath).Result == 0)
             {
-                var result = Commands.Pull(repo, new LibGit2Sharp.Signature("BIAToolKit", "BIAToolKit", DateTimeOffset.Now), new PullOptions());
-                outPut.AddMessageLine(result.Status.ToString(), "White");
-            }*/
-
-            outPut.AddMessageLine("Synchronize " + repoName + " local folder finished", "Green");
+                outPut.AddMessageLine("Synchronize " + repoName + " local folder finished", "Green");
+            }
+            else
+            {
+                outPut.AddMessageLine("Error durring synchronize " + repoName + " local folder", "Red");
+            }
         }
 
         public async Task Clone(string repoName, string url, string localPath)
@@ -39,12 +52,17 @@
             //var cloneResult = Repository.Clone(url, localPath);
             outPut.AddMessageLine("Clone " + repoName + " local folder...", "Pink");
 
-            RunScript("git", $"clone \"" + url+"\" \"" + localPath + "\"");
-
-            outPut.AddMessageLine("Clone BIADemo local folder finished", "Green");
+            if (RunScript("git", $"clone \"" + url+"\" \"" + localPath + "\"").Result == 0)
+            {
+                outPut.AddMessageLine("Clone BIADemo local folder finished", "Green");
+            }
+            else
+            {
+                outPut.AddMessageLine("Error durring clone BIADemo local folder.", "Red");
+            }
         }
 
-        public List<string> GetRelease(string localPath)
+        public List<string> GetTags(string localPath)
         {
             List<string> release = new List<string>();
 
@@ -56,40 +74,78 @@
             return release;
         }
 
-        public async Task DiffFolder(bool actionFinishedAtEnd, string rootPath, string name1, string name2, string migrateFilePath)
+
+        public void CheckoutTag(RepositorySettings repoSettings, string tag)
+        {
+            // git checkout tags/1.1.4
+            outPut.AddMessageLine("Checkout Tag " + tag + "  for repo : " + repoSettings.Name + ".", "Pink");
+
+            if (RunScript("git", $"checkout tags/" + tag, repoSettings.RootFolderPath).Result == 0)
+            {
+                outPut.AddMessageLine("Checkout Tag " + tag + "  for repo : " + repoSettings.Name + "finished", "Green");
+            }
+            else
+            {
+                outPut.AddMessageLine("Error durring Checkout Tag " + tag + "  for repo : " + repoSettings.Name, "Red");
+            }
+        }
+        
+
+        public bool DiffFolder(bool actionFinishedAtEnd, string rootPath, string name1, string name2, string migrateFilePath)
         {
             outPut.AddMessageLine($"Diff {name1} <> {name2}", "Pink");
 
 
             // git diff --no-index V3.3.3 V3.4.0 > .\\Migration\\CF_3.3.3-3.4.0.patch
             //await RunScript($"cd {rootPath} \r\n git diff --no-index --binary {name1} {name2} > {migrateFilePath}");
-            RunScript("git", $"diff --no-index --binary {name1} {name2} --output={migrateFilePath}", rootPath );
+            int result = RunScript("git", $"diff --no-index --binary {name1} {name2} --output={migrateFilePath}", rootPath).Result;
+            if (result == 0)
+            {
+                outPut.AddMessageLine("Error durring diff folder: No difference found ", "Red");
+                return false;
+            }
+            else if (result == 1)
+            { 
+                // Replace a/{name1}/ by a/
+                FileTransform.ReplaceInFile(migrateFilePath, $"a/{name1}/", "a/");
+                FileTransform.ReplaceInFile(migrateFilePath, $"a/{name2}/", "a/");
 
-            // Replace a/{name1}/ by a/
-            FileTransform.ReplaceInFile(migrateFilePath, $"a/{name1}/", "a/");
-            FileTransform.ReplaceInFile(migrateFilePath, $"a/{name2}/", "a/");
+                FileTransform.ReplaceInFile(migrateFilePath, $"rename from {name1}/", "rename from ");
 
-            FileTransform.ReplaceInFile(migrateFilePath, $"rename from {name1}/", "rename from ");
+                // Replace b/{name2}/ by b/
+                FileTransform.ReplaceInFile(migrateFilePath, $"b/{name2}/", "b/");
+                FileTransform.ReplaceInFile(migrateFilePath, $"b/{name1}/", "b/");
 
-            // Replace b/{name2}/ by b/
-            FileTransform.ReplaceInFile(migrateFilePath, $"b/{name2}/", "b/");
-            FileTransform.ReplaceInFile(migrateFilePath, $"b/{name1}/", "b/");
+                FileTransform.ReplaceInFile(migrateFilePath, $"rename to {name2}/", "rename to ");
 
-            FileTransform.ReplaceInFile(migrateFilePath, $"rename to {name2}/", "rename to ");
+                FileTransform.ReplaceInFile(migrateFilePath, $"\r\n", "\n");
 
-            FileTransform.ReplaceInFile(migrateFilePath, $"\r\n", "\n");
-
-            outPut.AddMessageLine("Diff folder finished", actionFinishedAtEnd ? "Green" : "Blue");
+                outPut.AddMessageLine("Diff folder finished", actionFinishedAtEnd ? "Green" : "Blue");
+                return true;
+            }
+            else
+            {
+                outPut.AddMessageLine("Error " + result + " durring diff folder", "Red");
+                return false;
+            }
         }
 
-        public async Task ApplyDiff(bool actionFinishedAtEnd,string projectPath, string migrateFilePath)
+        public bool ApplyDiff(bool actionFinishedAtEnd,string projectPath, string migrateFilePath)
         {
             outPut.AddMessageLine($"Apply diff", "Pink");
 
             // cd "...\\YourProject" git apply --reject --whitespace=fix "3.2.2-3.3.0.patch" \
-            RunScript("git", $"apply --reject --whitespace=fix --binary {migrateFilePath} \\ ", projectPath);
-
-            outPut.AddMessageLine("Apply diff finished", actionFinishedAtEnd ? "Green" : "Blue");
+            int result = RunScript("git", $"apply --reject --whitespace=fix --binary {migrateFilePath}", projectPath).Result;
+            if  (result==0)
+            {
+                outPut.AddMessageLine("Apply diff finished", actionFinishedAtEnd ? "Green" : "Blue");
+                return true;
+            }
+            else
+            {
+                outPut.AddMessageLine("Error " + result + " durring apply diff.", "Red");
+                return true;
+            }
         }
 
         public class MergeParameter
@@ -101,32 +157,32 @@
             public string ProjectPath { get; set; }
         }
 
-        public async Task MergeRejeted(bool actionFinishedAtEnd, MergeParameter param)
+        public void MergeRejeted(bool actionFinishedAtEnd, MergeParameter param)
         {
             outPut.AddMessageLine($"Apply merge on rejected", "Pink");
 
-            await MergeRejetedDirectory(param.ProjectPath, param);
+            MergeRejetedDirectory(param.ProjectPath, param);
 
             outPut.AddMessageLine("Apply merge on rejected", actionFinishedAtEnd ? "Green" : "Blue");
         }
 
         // Process all files in the directory passed in, recurse on any directories
         // that are found, and process the files they contain.
-        public async Task MergeRejetedDirectory(string targetDirectory, MergeParameter param)
+        public void MergeRejetedDirectory(string targetDirectory, MergeParameter param)
         {
             // Process the list of files found in the directory.
             string[] fileEntries = Directory.GetFiles(targetDirectory, "*.rej");
             foreach (string fileName in fileEntries)
-                await MergeRejetedFileAsync(fileName, param);
+                MergeRejetedFileAsync(fileName, param);
 
             // Recurse into subdirectories of this directory.
             string[] subdirectoryEntries = Directory.GetDirectories(targetDirectory);
             foreach (string subdirectory in subdirectoryEntries)
-                await MergeRejetedDirectory(subdirectory, param);
+                MergeRejetedDirectory(subdirectory, param);
         }
 
         // Insert logic for processing found files here.
-        public async Task MergeRejetedFileAsync(string path, MergeParameter param)
+        public void MergeRejetedFileAsync(string path, MergeParameter param)
         {
             outPut.AddMessageLine("Merge file '" + path + "'.", "White");
 
@@ -136,7 +192,11 @@
 
             if (File.Exists(finalFile) && File.Exists(originalFile) && File.Exists(additionnalFile))
             {
-                RunScript("git", $"merge-file -L Src -L {param.ProjectOriginVersion} -L {param.ProjectTargetVersion} \"{finalFile}\" \"{originalFile}\" \"{additionnalFile}\"");
+                int result = RunScript("git", $"merge-file -L Src -L {param.ProjectOriginVersion} -L {param.ProjectTargetVersion} \"{finalFile}\" \"{originalFile}\" \"{additionnalFile}\"").Result;
+                if (result !=0)
+                {
+                    outPut.AddMessageLine("Error " + result + " durring Merge file '" + path + "'.", "Red");
+                }
             }
         }
 
@@ -147,8 +207,9 @@
         /// <param name="program">The program name.</param>
         /// <param name="arguments">The argument.</param>
         /// <param name="workingDirectory">The working directory.</param>
-        private void  RunScript(string program, string arguments, string workingDirectory = null)
+        private async Task<int> RunScript(string program, string arguments, string workingDirectory = null)
         {
+            //bool ret = true;
             try
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo()
@@ -157,7 +218,7 @@
                     Arguments = arguments/*"pull"*/,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
-                    //RedirectStandardError = true,
+                    RedirectStandardError = true,
                     CreateNoWindow = true
                 };
                 if (workingDirectory != null)
@@ -167,30 +228,39 @@
 
                 var process = new Process
                 {
-                    StartInfo = startInfo
+                    StartInfo = startInfo,
+                    EnableRaisingEvents = true
                 };
+
+                return await RunProcessAsync(process).ConfigureAwait(false);
+                /*
                 process.Start();
-                while (!process.StandardOutput.EndOfStream /*&& process.StandardError.EndOfStream*/)
+                while (!process.StandardOutput.EndOfStream && !process.StandardError.EndOfStream)
                 {
                     if (!process.StandardOutput.EndOfStream)
                     {
                         outPut.AddMessageLine(process.StandardOutput.ReadLine(), "White");
                     }
-                    /*if (!process.StandardError.EndOfStream)
+                    if (!process.StandardError.EndOfStream)
                     {
                         outPut.AddMessageLine(process.StandardError.ReadLine(), "Red");
-                    }*/
-                    // do something with line
+                    }
                 }
-                process.WaitForExit();
+                process.WaitForExitAsync();
                 if (process.ExitCode != 0)
                 {
-                    outPut.AddMessageLine("Exit code :" + process.ExitCode, "Pink");
-                    /*while (!process.StandardError.EndOfStream)
+                    outPut.AddMessageLine("Exit code :" + process.ExitCode, "Red");
+                    while (!process.StandardError.EndOfStream)
                     {
-                        outPut.AddMessageLine(process.StandardError.ReadLine(), "Red");
-                    }*/
-                }
+                        string message = process.StandardError.ReadLine();
+                        if (message.Length> 200)
+                        {
+                            message = message.Substring(0, 200) + "...";
+                        }
+                        outPut.AddMessageLine(message, "Red");
+                    }
+                    ret = false;
+                }*/
             }
             catch (Exception e)
             {
@@ -199,6 +269,43 @@
                 if (e.InnerException != null) outPut.AddMessageLine(e.InnerException.Message, "Red");
                 if (e.StackTrace != null) outPut.AddMessageLine(e.StackTrace, "Red");
             }
+            return -1;
+        }
+
+        private Task<int> RunProcessAsync(Process process)
+        {
+            var tcs = new TaskCompletionSource<int>();
+
+            process.Exited += (s, ea) => tcs.SetResult(process.ExitCode);
+            process.OutputDataReceived += (s, ea) =>
+            {
+                if (!string.IsNullOrEmpty(ea.Data))
+                {
+                    outPut.AddMessageLine(ea.Data, "White", false);
+                    // Console.WriteLine(ea.Data);
+                }
+            };
+            process.ErrorDataReceived += (s, ea) =>
+            {
+                if (!string.IsNullOrEmpty(ea.Data))
+                {
+                    outPut.AddMessageLine(ea.Data, "Red", false);
+                    // Console.WriteLine("ERR: " + ea.Data);
+                }
+            };
+
+            bool started = process.Start();
+            if (!started)
+            {
+                //you may allow for the process to be re-used (started = false) 
+                //but I'm not sure about the guarantees of the Exited event in such a case
+                throw new InvalidOperationException("Could not start process: " + process);
+            }
+
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            return tcs.Task;
         }
     }
 }

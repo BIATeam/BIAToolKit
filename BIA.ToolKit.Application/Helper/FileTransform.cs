@@ -9,8 +9,8 @@
 
     static public class FileTransform
     {
-        static public IList<string> replaceInFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md" };
-        static public IList<string> allTextFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md", 
+        static public IList<string> projectFileExtensions = new List<string>() { ".csproj", ".cs",  ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md" , ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml" };
+        static public IList<string> allTextFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md" , ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml", 
             ".editorconfig", ".gitignore" , ".prettierrc", ".html" ,".css" ,".scss", ".svg" , ".js", ".ruleset", ".props" };
         static public IList<string> allTextFileNameWithoutExtension = new List<string>() { "browserslist" };
 
