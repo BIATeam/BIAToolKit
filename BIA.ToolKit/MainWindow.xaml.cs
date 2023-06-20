@@ -72,6 +72,7 @@
 
             _viewModel.Settings.BIATemplateRepository.UseLocalFolder = Properties.Settings.Default.BIATemplateLocalFolder;
             _viewModel.Settings.BIATemplateRepository.LocalFolderPath = Properties.Settings.Default.BIATemplateLocalFolderText;
+            _viewModel.Settings.BIATemplateRepository.AlwaysRefreshCache = Properties.Settings.Default.BIATemplateAlwaysRefreshCache;
 
 
             _viewModel.Settings.UseCompanyFiles = Properties.Settings.Default.UseCompanyFile;
@@ -169,6 +170,7 @@
         {
             Properties.Settings.Default.BIATemplateLocalFolder = _viewModel.Settings.BIATemplateRepository.UseLocalFolder;
             Properties.Settings.Default.BIATemplateLocalFolderText = _viewModel.Settings.BIATemplateRepository.LocalFolderPath;
+            Properties.Settings.Default.BIATemplateAlwaysRefreshCache = _viewModel.Settings.BIATemplateRepository.AlwaysRefreshCache;
 
             Properties.Settings.Default.UseCompanyFile = _viewModel.Settings.UseCompanyFiles;
             Properties.Settings.Default.CompanyFilesLocalFolder = _viewModel.Settings.CompanyFiles.UseLocalFolder;

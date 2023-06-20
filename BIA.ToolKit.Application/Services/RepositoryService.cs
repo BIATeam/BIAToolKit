@@ -62,7 +62,7 @@
                             var zipPath = AppSettings.AppFolderPath + "\\" + repository.Name + "\\" + tag.FriendlyName + ".zip";
                             string biaTemplatePathVersionUnzip = AppSettings.AppFolderPath + "\\" + repository.Name + "\\" + tag.FriendlyName;
                             Directory.CreateDirectory(AppSettings.AppFolderPath + "\\" + repository.Name + "\\");
-                            if (!File.Exists(zipPath))
+                            if (!File.Exists(zipPath) || repository.AlwaysRefreshCache)
                             {
                                 var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
                                 using (var client = new WebClient())

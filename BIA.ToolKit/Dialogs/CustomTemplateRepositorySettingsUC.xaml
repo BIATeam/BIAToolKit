@@ -59,6 +59,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition />
             </Grid.RowDefinitions>
 
@@ -78,8 +79,10 @@
             <TextBox Grid.Column="1" Grid.Row="6"  Text="{Binding CompanyName}"/>
             <Label Grid.Column="0" Grid.Row="7" Content="Project Name (to replace):"/>
             <TextBox Grid.Column="1" Grid.Row="7"  Text="{Binding ProjectName}"/>
+            <Label Grid.Column="0" Grid.Row="8" Content="Always refresh release cache:"/>
+            <CheckBox IsChecked="{Binding AlwaysRefreshRelease}" Grid.Column="1" Grid.Row="8" />
             <!-- Accept or Cancel -->
-            <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="8" Orientation="Horizontal" HorizontalAlignment="Right">
+            <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Name="okButton" Click="okButton_Click" IsDefault="True">OK</Button>
                 <Button Name="cancelButton" IsCancel="True">Cancel</Button>
             </StackPanel>

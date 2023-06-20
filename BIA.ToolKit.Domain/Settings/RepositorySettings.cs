@@ -35,6 +35,9 @@
         /// The name of the project to rename.
         public string? ProjectName { get; set; }
 
+        /// true for always refresh release cache
+        public bool AlwaysRefreshCache { get; set; }
+
         [JsonIgnore]
         // The path where is the root repository (it can be LocalFolderPath or in AppFolder is not UseLocalFolder)
         public string? RootFolderPath
@@ -45,7 +48,7 @@
                 {
                     return LocalFolderPath;
                 }
-                else 
+                else
                 {
                     return AppSettings.AppFolderPath + "\\" + Name + "\\Repo";
                 }

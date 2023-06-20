@@ -28,6 +28,7 @@
                     RaisePropertyChanged("UrlRelease");
                     RaisePropertyChanged("CompanyName");
                     RaisePropertyChanged("ProjectName");
+                    RaisePropertyChanged("AlwaysRefreshRelease");
                 }
             }
         }
@@ -142,6 +143,19 @@
             get
             {
                 return Versioning==VersioningType.Release;
+            }
+        }
+
+        public bool AlwaysRefreshRelease
+        {
+            get { return RepositorySettings.AlwaysRefreshCache; }
+            set
+            {
+                if (RepositorySettings.AlwaysRefreshCache != value)
+                {
+                    RepositorySettings.AlwaysRefreshCache = value;
+                    RaisePropertyChanged("AlwaysRefreshRelease");
+                }
             }
         }
     }
