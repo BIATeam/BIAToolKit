@@ -26,11 +26,13 @@
     {
         GitService gitService;
         public RepositoriesSettingsVM vm;
+        private RepositoryService repositoryService;
 
-        public CustomsRepoTemplateUC(GitService gitService)
+        public CustomsRepoTemplateUC(GitService gitService, RepositoryService repositoryService)
         {
             InitializeComponent();
             this.gitService = gitService;
+            this.repositoryService = repositoryService;
             vm = (RepositoriesSettingsVM) base.DataContext;
         }
 
@@ -89,6 +91,7 @@
             if (vm.RepositorySettings != null)
             {
                 _ = gitService.Synchronize(vm.RepositorySettings);
+                this.repositoryService.CleanVersionFolder(vm.RepositorySettings);
             }
         }
     }

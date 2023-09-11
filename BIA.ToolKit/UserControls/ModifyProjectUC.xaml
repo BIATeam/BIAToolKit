@@ -93,7 +93,7 @@
         <Label Content="Project Folder" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="384,0,0,0"/>
         <ComboBox ItemsSource="{Binding Projects}" SelectedValue="{Binding Folder}" HorizontalAlignment="Left" Margin="402,23,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="ModifyProject_SelectionChanged"/>
         <Label Content="Version detected : " HorizontalAlignment="Left" Margin="542,0,0,0" VerticalAlignment="Top" Foreground="White"/>
-        <Label Content="{Binding FrameworkVersion}" HorizontalAlignment="Left" Margin="676,0,0,0" VerticalAlignment="Top" Foreground="White" Width="25"/>
+        <Label Content="{Binding FrameworkVersion}" HorizontalAlignment="Left" Margin="676,0,0,0" VerticalAlignment="Top" Foreground="White" Width="84"/>
         <Label Content="Project name detected : " HorizontalAlignment="Left" Margin="542,15,0,0" VerticalAlignment="Top" Foreground="White"/>
         <Label Content="{Binding Name}" HorizontalAlignment="Left" Margin="675,15,0,0" VerticalAlignment="Top" Foreground="White"/>
         <Label Content="Company detected : " HorizontalAlignment="Left" Margin="542,31,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>

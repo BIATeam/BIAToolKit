@@ -191,6 +191,7 @@
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
 
                 await this.gitService.Synchronize(_viewModel.Settings.BIATemplateRepository);
+                this.repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
 
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
                 BIATemplateLocalFolderSync.IsEnabled = true;
@@ -205,6 +206,7 @@
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
 
                 await this.gitService.Synchronize(_viewModel.Settings.CompanyFiles);
+                this.repositoryService.CleanVersionFolder(_viewModel.Settings.CompanyFiles);
 
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
                 CompanyFilesLocalFolderSync.IsEnabled = true;
@@ -351,7 +353,7 @@
 
         private void CustomRepoTemplate_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new CustomsRepoTemplateUC(gitService) { Owner = this };
+            var dialog = new CustomsRepoTemplateUC(gitService, repositoryService) { Owner = this };
 
             // Display the dialog box and read the response
             bool? result = dialog.ShowDialog(_viewModel.Settings.CustomRepoTemplates);

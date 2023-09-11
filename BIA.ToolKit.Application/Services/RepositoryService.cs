@@ -45,6 +45,18 @@
             return true;
         }
 
+        public void CleanVersionFolder(RepositorySettings repository)
+        {
+            if (repository.Versioning == VersioningType.Release)
+            {
+                var releasePath = AppSettings.AppFolderPath + "\\" + repository.Name;
+                if (Directory.Exists(releasePath))
+                {
+                    Directory.Delete(releasePath,true);
+                }
+            }
+        }
+
         public string PrepareVersionFolder (RepositorySettings repository, string version)
         {
             if (repository.Versioning == VersioningType.Folder)
