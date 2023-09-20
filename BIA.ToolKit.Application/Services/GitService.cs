@@ -193,7 +193,16 @@
             if (File.Exists(finalFile) && File.Exists(originalFile) && File.Exists(additionnalFile))
             {
                 int result = RunScript("git", $"merge-file -L Src -L {param.ProjectOriginVersion} -L {param.ProjectTargetVersion} \"{finalFile}\" \"{originalFile}\" \"{additionnalFile}\"").Result;
-                if (result !=0)
+                if (result == 0)
+                {
+                    File.Delete(path);
+                }
+                if (result > 0)
+                {
+                    outPut.AddMessageLine(result + " conflict to solve in file '" + path + "'.", "Yellow");
+                    File.Delete(path);
+                }
+                else if (result < 0)
                 {
                     outPut.AddMessageLine("Error " + result + " durring Merge file '" + path + "'.", "Red");
                 }

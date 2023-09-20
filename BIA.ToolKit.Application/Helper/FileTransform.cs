@@ -173,35 +173,36 @@
             File.WriteAllLines(filename, list_of_string);*/
 
             ReplaceInFile(filename, "\n", "\r\n");
+            ReplaceInFile(filename, "\r\r\n", "\r\n");
         }
-/*
-        static public void Dos2Unix(string fileName)
-        {
-            const byte CR = 0x0D;
-            const byte LF = 0x0A;
-            byte[] data = File.ReadAllBytes(fileName);
-            using (FileStream fileStream = File.OpenWrite(fileName))
-            {
-                BinaryWriter bw = new BinaryWriter(fileStream);
-                int position = 0;
-                int index = 0;
-                do
+        /*
+                static public void Dos2Unix(string fileName)
                 {
-                    index = Array.IndexOf<byte>(data, CR, position);
-                    if ((index >= 0) && (data[index + 1] == LF))
+                    const byte CR = 0x0D;
+                    const byte LF = 0x0A;
+                    byte[] data = File.ReadAllBytes(fileName);
+                    using (FileStream fileStream = File.OpenWrite(fileName))
                     {
-                        // Write before the CR
-                        bw.Write(data, position, index - position);
-                        // from LF
-                        position = index + 1;
+                        BinaryWriter bw = new BinaryWriter(fileStream);
+                        int position = 0;
+                        int index = 0;
+                        do
+                        {
+                            index = Array.IndexOf<byte>(data, CR, position);
+                            if ((index >= 0) && (data[index + 1] == LF))
+                            {
+                                // Write before the CR
+                                bw.Write(data, position, index - position);
+                                // from LF
+                                position = index + 1;
+                            }
+                        }
+                        while (index >= 0);
+                        bw.Write(data, position, data.Length - position);
+                        fileStream.SetLength(fileStream.Position);
                     }
                 }
-                while (index >= 0);
-                bw.Write(data, position, data.Length - position);
-                fileStream.SetLength(fileStream.Position);
-            }
-        }
-*/
+        */
         static public void ReplaceInFile(string filePath, string oldValue, string newValue)
         {
             string text = File.ReadAllText(filePath);

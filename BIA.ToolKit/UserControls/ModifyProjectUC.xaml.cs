@@ -77,33 +77,11 @@
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {
-
-            if (!Directory.Exists(_viewModel.ModifyProject.CurrentProject.Folder) || FileDialog.IsDirectoryEmpty(_viewModel.ModifyProject.CurrentProject.Folder))
+            if (MigrateGenerateOnly_Run() == 0)
             {
-                MessageBox.Show("The project path is empty : " + _viewModel.ModifyProject.CurrentProject.Folder);
-                return;
+                MigrateApplyDiff_Click(sender, e);
+                MigrateMergeRejected_Click(sender, e);
             }
-
-            Enable(false);
-
-            string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
-            MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
-
-            GenerateProjects(false, projectOriginPath, projectTargetPath);
-
-            if (ApplyDiff(false, projectOriginalFolderName, projectTargetFolderName))
-            {
-                MergeRejected(false);
-            }
-
-            
-
-            consoleWriter.AddMessageLine("Migration finished.", "Green");
-
-            MigrateOpenFolder.IsEnabled = true;
-            MigrateMergeRejected.IsEnabled = true;
-
-            Enable(true);
         }
 
         private void Enable(bool isEnabled)
@@ -128,16 +106,24 @@
             if (MigrateOpenFolder != null) MigrateOpenFolder.IsEnabled = false;
             if (MigrateApplyDiff != null) MigrateApplyDiff.IsEnabled = false;
             if (MigrateMergeRejected != null) MigrateMergeRejected.IsEnabled = false;
-            if (MigrateOverwriteBIAFolder != null) MigrateOverwriteBIAFolder.IsEnabled = false;
         }
 
         private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
         {
+            MigrateGenerateOnly_Run();
+        }
 
+        private int MigrateGenerateOnly_Run()
+        {
+            if (_viewModel.ModifyProject.CurrentProject == null)
+            {
+                MessageBox.Show("Select a project before click migrate.");
+                return -1;
+            }
             if (!Directory.Exists(_viewModel.ModifyProject.CurrentProject.Folder) || FileDialog.IsDirectoryEmpty(_viewModel.ModifyProject.CurrentProject.Folder))
             {
                 MessageBox.Show("The project path is empty : " + _viewModel.ModifyProject.CurrentProject.Folder);
-                return;
+                return -1;
             }
 
             Enable(false);
@@ -149,9 +135,8 @@
 
             MigrateOpenFolder.IsEnabled = true;
             MigrateApplyDiff.IsEnabled = true;
-            MigrateMergeRejected.IsEnabled = true;
-            MigrateOverwriteBIAFolder.IsEnabled = true;
             Enable(true);
+            return 0;
         }
 
         private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
@@ -164,6 +149,7 @@
 
             ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName);
 
+            MigrateMergeRejected.IsEnabled = true;
             Enable(true);
         }
 
@@ -182,8 +168,6 @@
             Enable(false);
 
             OverwriteBIAFolder(true);
-
-            MigrateOverwriteBIAFolder.IsEnabled = false;
 
             Enable(true);
         }
