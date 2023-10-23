@@ -3,19 +3,17 @@
     using BIA.ToolKit.Application.Extensions;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Parser;
+    using BIA.ToolKit.Domain.DtoGenerator;
+    using Microsoft.Build.Locator;
+    using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Diagnostics;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.Build.Locator;
-    using BIA.ToolKit.Domain.DtoGenerator;
 
     /*   using Roslyn.Compilers;
 using Roslyn.Compilers.Common;
@@ -31,7 +29,7 @@ using Roslyn.Services;*/
             this.consoleWriter = consoleWriter;
         }
 
-        public void ParseEntity(string fileName)
+        public EntityInfo ParseEntity(string fileName)
         {
             var cancellationToken = new CancellationToken();
 
@@ -89,7 +87,7 @@ using Roslyn.Services;*/
                     .First()
                     .Descendants<IdentifierNameSyntax>()
                     .Select(id => id.Identifier.ToString());*/
-                keyNames = new List<string>() { "Id"};
+                keyNames = new List<string>() { "Id" };
             }
             else
             {
@@ -110,6 +108,8 @@ using Roslyn.Services;*/
                 entityInfo.CompositeKeys.AddRange(
                     keyNames.Select(k => properties.Single(prop => prop.Name == k)));
             }
+
+            return entityInfo;
         }
 
         public async Task ParseSolution(string projectPath)
@@ -127,7 +127,7 @@ using Roslyn.Services;*/
                     Console.WriteLine(diagnostic);
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw e;
             }
