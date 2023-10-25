@@ -147,7 +147,7 @@
                     currentProject = new Domain.ModifyProject.Project();
 
                     currentProject.Name = value;
-                    currentProject.Folder = RootProjectsPath + "\\" + currentProject.Name;
+                    currentProject.Folder = RootProjectsPath;   // used with regex
 
                     NamesAndVersionResolver nvResolver2 = new NamesAndVersionResolver()
                     {
@@ -168,6 +168,9 @@
                         FrontFileNameSearchPattern = "bia-core.module.ts"
                     };
                     nvResolver.ResolveNamesAndVersion(currentProject);
+
+                    // set absolute path to folder
+                    currentProject.Folder = Path.Combine(RootProjectsPath, currentProject.Name);
                 }
                 CurrentProject = currentProject;
             }
