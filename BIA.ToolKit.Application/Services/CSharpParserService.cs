@@ -22,7 +22,7 @@ using Roslyn.Services;*/
 
     public class CSharpParserService
     {
-        private IConsoleWriter consoleWriter;
+        private readonly IConsoleWriter consoleWriter;
 
         public CSharpParserService(IConsoleWriter consoleWriter)
         {
@@ -31,6 +31,10 @@ using Roslyn.Services;*/
 
         public EntityInfo ParseEntity(string fileName)
         {
+#if DEBUG
+            consoleWriter.AddMessageLine($"*** Parse file: '{fileName}' ***", "Green");
+#endif
+
             var cancellationToken = new CancellationToken();
 
             var fileText = File.ReadAllText(fileName);

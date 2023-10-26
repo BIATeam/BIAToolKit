@@ -14,47 +14,35 @@
         <Label Content="Dto file:" HorizontalAlignment="Left" Margin="20,0,0,0" VerticalAlignment="Top" Foreground="White"  />
         <TextBox HorizontalAlignment="Left" Margin="40,23,0,0" Text="{Binding DtoRootFilePath}" TextWrapping="Wrap" VerticalAlignment="Top" Width="650" TextChanged="ModifyDtoRootFile_TextChanged" Height="21" Name="ModifyDtoRootFileText"/>
         <Button Content="..." HorizontalAlignment="Left" Margin="690,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="ModifyDtoRootFileBrowse" Click="ModifyDtoRootFileBrowse_Click"/>
+ 
+        <Label Content="Dto properties:" HorizontalAlignment="Left" Margin="20,40,0,0" VerticalAlignment="Top" Foreground="White"  />
+        <Grid >
+            <ListView Name="DtoParsedPanel" Margin="40,63,320,70" ItemsSource="{Binding DtoProperties}">
+                <ListView.View>
+                    <GridView >
+                        <GridViewColumn Header="Property" Width="255" DisplayMemberBinding="{Binding Name}" />
+                        <GridViewColumn Header="Type found" Width="200" DisplayMemberBinding="{Binding Type}"/>
+                        <GridViewColumn Header="Type wanted" Width="200">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <!--<TextBlock Text="{Binding Type}" />-->
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
 
-        <Button Content="Parse Dto" HorizontalAlignment="Right" Margin="0,13,150,0" Width="100" x:Name="ParseDto"  Height="35" VerticalAlignment="Top" Click="ParseDto_Click" IsEnabled="{Binding IsButtonParseDtoEnable}"/>
+        <Label Content="Data model zip file:" HorizontalAlignment="Left" Margin="20,260,0,0" VerticalAlignment="Top" Foreground="White"  />
+        <TextBox HorizontalAlignment="Left" Margin="40,283,0,0" Text="{Binding ZipRootFilePath}" TextWrapping="Wrap" VerticalAlignment="Top" Width="650" TextChanged="ModifyZipRootFile_TextChanged" Height="21" Name="ModifyZipRootFileText"/>
+        <Button Content="..." HorizontalAlignment="Left" Margin="690,283,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="ModifyZipRootFileBrowse" Click="ModifyZipRootFileBrowse_Click"/>
 
-        <Label Content="Data model zip file:" HorizontalAlignment="Left" Margin="20,50,0,0" VerticalAlignment="Top" Foreground="White"  />
-        <TextBox HorizontalAlignment="Left" Margin="40,73,0,0" Text="{Binding ZipRootFilePath}" TextWrapping="Wrap" VerticalAlignment="Top" Width="650" TextChanged="ModifyZipRootFile_TextChanged" Height="21" Name="ModifyZipRootFileText"/>
-        <Button Content="..." HorizontalAlignment="Left" Margin="690,73,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="ModifyZipRootFileBrowse" Click="ModifyZipRootFileBrowse_Click"/>
 
-        <Button Content="Parse Zip" HorizontalAlignment="Right" Margin="0,63,150,0" Width="100" x:Name="ParseZip"  Height="35" VerticalAlignment="Top" Click="ParseZip_Click"  IsEnabled="{Binding IsButtonParseZipEnable}"/>
+        <Button Content="1. Parse Dto" HorizontalAlignment="Right" Margin="0,90,140,0" Width="120" x:Name="ParseDto"  Height="40" VerticalAlignment="Top" Click="ParseDto_Click" IsEnabled="{Binding IsButtonParseDtoEnable}"/>
+        <Button Content="2. Parse Zip" HorizontalAlignment="Right" Margin="0,140,140,0" Width="120" x:Name="ParseZip"  Height="40" VerticalAlignment="Top" Click="ParseZip_Click"  IsEnabled="{Binding IsButtonParseZipEnable}"/>
+        <Button Content="3. Generate CRUD" HorizontalAlignment="Right" Margin="0,190,140,0" Width="120" x:Name="GenerateCrud"  Height="40" VerticalAlignment="Top" Click="GenerateCrud_Click" IsEnabled="{Binding IsButtonGenerateCrudEnable}"/>
 
-        <Label Content="Dto properties:" HorizontalAlignment="Left" Margin="20,100,0,0" VerticalAlignment="Top" Foreground="White"  />
-
-        <ListView Name="DtoParsedPanel" ItemsSource="{Binding DtoProperties}" Margin="40,125,350,20">
-            <!--<ListView.HeaderTemplate>
-                <DataTemplate>
-                    <Grid Background="Gray">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="200"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Property name"/>
-                        <TextBlock Grid.Column="1" Text="Type parsed"/>
-                        <TextBlock Grid.Column="2" Text="Type wanted"/>
-                    </Grid>
-                </DataTemplate>
-            </ListView.HeaderTemplate>-->
-            <ListView.ItemTemplate>
-                <DataTemplate x:Name="SingleLineDataTemplate" >
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="250"/>
-                            <ColumnDefinition Width="200"/>
-                            <!--<ColumnDefinition Width="200"/>-->
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding Name}" Grid.Column="0" />
-                        <TextBlock Text="{Binding Type}" Grid.Column="1" />
-                        <!--<TextBlock Text="{Binding Type}" Grid.Column="2" />-->
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
 
     </Grid>
 </UserControl>

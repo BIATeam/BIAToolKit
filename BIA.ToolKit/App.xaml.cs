@@ -1,15 +1,10 @@
 ﻿namespace BIA.ToolKit
 {
+    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Helper;
-    using BIA.ToolKit.Application.Helper;
     using Microsoft.Extensions.DependencyInjection;
     using System;
-    using System.Collections.Generic;
-    using System.Configuration;
-    using System.Data;
-    using System.Linq;
-    using System.Threading.Tasks;
     using System.Windows;
 
     /// <summary>
@@ -26,13 +21,15 @@
         }
         private void ConfigureServices(ServiceCollection services)
         {
-            services.AddSingleton<IConsoleWriter, ConsoleWriter> ();
+            services.AddSingleton<IConsoleWriter, ConsoleWriter>();
             services.AddSingleton<MainWindow>();
             services.AddSingleton<RepositoryService>();
             services.AddSingleton<GitService>();
             services.AddSingleton<ProjectCreatorService>();
             services.AddSingleton<GenerateFilesService>();
             services.AddSingleton<CSharpParserService>();
+            services.AddSingleton<ZipParserService>();
+            services.AddSingleton<GenerateCrudService>();
         }
         private void OnStartup(object sender, StartupEventArgs e)
         {

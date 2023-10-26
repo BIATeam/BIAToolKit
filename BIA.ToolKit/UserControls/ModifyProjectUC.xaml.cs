@@ -18,12 +18,14 @@
     public partial class ModifyProjectUC : UserControl
     {
         BIATKSettings settings;
-        public ModifyProjectViewModel _viewModel;
+        ModifyProjectViewModel _viewModel;
         IConsoleWriter consoleWriter;
         RepositoryService repositoryService;
         GitService gitService;
         CSharpParserService cSharpParserService;
         ProjectCreatorService projectCreatorService;
+        ZipParserService zipService;
+        GenerateCrudService crudService;
 
         public ModifyProjectUC()
         {
@@ -32,7 +34,8 @@
             _viewModel.RootProjectsPath = Settings.Default.CreateProjectRootFolderText;
         }
 
-        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService, ProjectCreatorService projectCreatorService)
+        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter,
+            CSharpParserService cSharpParserService, ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService)
         {
             this.settings = settings;
             this.repositoryService = repositoryService;
@@ -40,9 +43,11 @@
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
+            this.zipService = zipService;
+            this.crudService = crudService;
             MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
             MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
-            CRUDGenerator.Inject(cSharpParserService, consoleWriter);
+            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, consoleWriter);
         }
 
         public void RefreshConfiguration()
@@ -59,9 +64,9 @@
         private void ModifyProject_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ParameterModifyChange();
+            _viewModel.ModifyProject.CurrentProject.Folder = _viewModel.ModifyProject.RootProjectsPath;
+            CRUDGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
         }
-
-
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {

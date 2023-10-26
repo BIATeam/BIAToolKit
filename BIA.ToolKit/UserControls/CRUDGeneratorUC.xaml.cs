@@ -3,9 +3,9 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Helper;
-    using System.Linq;
+    using System;
     using System.Windows;
     using System.Windows.Controls;
 
@@ -16,9 +16,10 @@
     {
         IConsoleWriter consoleWriter;
         CSharpParserService service;
+        ZipParserService zipService;
+        GenerateCrudService crudService;
 
-        public CRUDGeneratorViewModel vm;
-
+        private CRUDGeneratorViewModel vm;
 
         /// <summary>
         /// Constructor
@@ -29,10 +30,17 @@
             vm = (CRUDGeneratorViewModel)base.DataContext;
         }
 
-        public void Inject(CSharpParserService service, IConsoleWriter consoleWriter)
+        public void Inject(CSharpParserService service, ZipParserService zipService, GenerateCrudService crudService, IConsoleWriter consoleWriter)
         {
             this.service = service;
+            this.zipService = zipService;
+            this.crudService = crudService;
             this.consoleWriter = consoleWriter;
+        }
+
+        public void SetCurrentProject(Project currentProject)
+        {
+            vm.CurrentProject = currentProject;
         }
 
         #region Action
@@ -57,14 +65,23 @@
         private void ParseDto_Click(object sender, RoutedEventArgs e)
         {
             ParseDtoFile(vm.DtoRootFilePath);
+            vm.IsDtoParsed = true;
         }
 
         private void ParseZip_Click(object sender, RoutedEventArgs e)
         {
-            ParseZipFile(vm.ZipRootFilePath);
+            // TODO NMA
+            ParseZipFile(vm.ZipRootFilePath, vm.DtoEntity.NamespaceLastPart);
+            vm.IsZipParsed = true;
+        }
+
+        private void GenerateCrud_Click(object sender, RoutedEventArgs e)
+        {
+            crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity);
         }
         #endregion
 
+        #region Private method
         private void ParseDtoFile(string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
@@ -72,37 +89,40 @@
                 return;
             }
 
-            CSharpParserService service = new CSharpParserService(new ConsoleWriter());
-            EntityInfo dtoEntity = service.ParseEntity(fileName);
-
-            if (dtoEntity != null && dtoEntity.Properties != null)
+            try
             {
-                //dtoEntity.Properties.OrderBy(x => x.Name);
-                vm.DtoProperties = dtoEntity.Properties.OrderBy(x => x.Name).ToList();
+                vm.DtoEntity = this.service.ParseEntity(fileName);
+                if (vm.DtoEntity == null || vm.DtoEntity.Properties == null || vm.DtoEntity.Properties.Count <= 0)
+                {
+                    consoleWriter.AddMessageLine("No properties found on Dto file.", "Orange");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // TODO NMA: add logs
+                consoleWriter.AddMessageLine(ex.Message, "Red");
             }
         }
 
-        private void ParseZipFile(string fileName)
+        private void ParseZipFile(string fileName, string entityName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
                 return;
             }
 
+            try
+            {
+                var res = this.zipService.ReadZip(fileName, entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name);
+                if (!res)
+                {
+                    consoleWriter.AddMessageLine("All files not found on zip archive.", "Orange");
+                }
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine(ex.Message, "Red");
+            }
         }
-
+        #endregion
     }
-
-
-    //public class DataModelZip
-    //{
-    //    public List<string> dtoFiles { get; set; }
-    //    public List<string> controlerFiles { get; set; }
-    //    public List<string> applicationFiles { get; set; }
-    //    public List<string> moduleFiles { get; set; }
-    //}
 }
