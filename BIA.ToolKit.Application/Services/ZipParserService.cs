@@ -51,6 +51,13 @@
                 consoleWriter.AddMessageLine($"*** Parse zip file: '{zipPath}' ***", "Green");
 #endif
 
+                string tempDir = Path.Combine(Path.GetTempPath(), "BiaToolKit_CRUDGenerator");
+                if (Directory.Exists(tempDir))
+                {
+                    Directory.Delete(tempDir, true);
+                }
+                Directory.CreateDirectory(tempDir);
+
                 List<string> files = new();
                 using ZipArchive archive = ZipFile.OpenRead(zipPath);
                 foreach (ZipArchiveEntry entry in archive.Entries)
@@ -63,6 +70,10 @@
 #if DEBUG
                     consoleWriter.AddMessageLine($"File found: '{entry.FullName}'", "Green");
 #endif
+
+                    // TODO: read and parse file
+                    entry.ExtractToFile(Path.Combine(tempDir, entry.Name));
+
                     files.Add(entry.FullName);
                 }
 
