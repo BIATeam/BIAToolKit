@@ -71,6 +71,8 @@
             controllerFolder = $@"{compagnyName}.{projectName}.Presentation.Api/Controllers/{entityName}";
         }
 
+
+
         private void PrepareFolders(string dotnetDir, string angularDir)
         {
             // Clean destination directory if already exist
@@ -91,6 +93,15 @@
             Directory.CreateDirectory(angularDir);
         }
 
+        private string GenerateFileHeader(string fileName, string companyName)
+        {
+            StringBuilder sb = new();
+            sb.AppendLine($"// <copyright file=\"{fileName}\" company=\"{companyName}\">");
+            sb.AppendLine($"//     Copyright (c) {companyName}. All rights reserved.");
+            sb.AppendLine($"// </copyright>");
+            return sb.ToString();
+        }
+
         #region Entity
         private void GenerateEntityFile(string destDir, Project currentProject, EntityInfo dtoEntity)
         {
@@ -99,10 +110,7 @@
             StringBuilder sb = new();
 
             // Generate file header
-            sb.AppendLine($"// <copyright file=\"{fileName}\" company=\"{currentProject.CompanyName}\">");
-            sb.AppendLine($"//     Copyright (c) {currentProject.CompanyName}. All rights reserved.");
-            sb.AppendLine($"// </copyright>");
-            sb.AppendLine();
+            sb.AppendLine(GenerateFileHeader(fileName, currentProject.CompanyName));
 
             // Generate namespace + using
             sb.AppendLine($"namespace {currentProject.CompanyName}.{currentProject.Name}.Domain.{entityName}Module.Aggregate");
@@ -152,10 +160,7 @@
             StringBuilder sb = new();
 
             // Generate file header
-            sb.AppendLine($"// <copyright file=\"{fileName}\" company=\"{currentProject.CompanyName}\">");
-            sb.AppendLine($"//     Copyright (c) {currentProject.CompanyName}. All rights reserved.");
-            sb.AppendLine($"// </copyright>");
-            sb.AppendLine();
+            sb.AppendLine(GenerateFileHeader(fileName, currentProject.CompanyName));
 
             // TODO NMA
 
@@ -172,10 +177,7 @@
             StringBuilder sb = new();
 
             // Generate file header
-            sb.AppendLine($"// <copyright file=\"{fileName}\" company=\"{currentProject.CompanyName}\">");
-            sb.AppendLine($"//     Copyright (c) {currentProject.CompanyName}. All rights reserved.");
-            sb.AppendLine($"// </copyright>");
-            sb.AppendLine();
+            sb.AppendLine(GenerateFileHeader(fileName, currentProject.CompanyName));
 
             // Generate namespace + using
             sb.AppendLine($"namespace {currentProject.CompanyName}.{currentProject.Name}.Application.{entityName}");
@@ -210,10 +212,7 @@
             StringBuilder sb = new();
 
             // Generate file header
-            sb.AppendLine($"// <copyright file=\"{fileName}\" company=\"{currentProject.CompanyName}\">");
-            sb.AppendLine($"//     Copyright (c) {currentProject.CompanyName}. All rights reserved.");
-            sb.AppendLine($"// </copyright>");
-            sb.AppendLine();
+            sb.AppendLine(GenerateFileHeader(fileName, currentProject.CompanyName));
 
             // Generate namespace + using
             sb.AppendLine($"namespace {currentProject.CompanyName}.{currentProject.Name}.Application.{entityName}");
@@ -255,10 +254,7 @@
             StringBuilder sb = new();
 
             // Generate file header
-            sb.AppendLine($"// <copyright file=\"{fileName}\" company=\"{currentProject.CompanyName}\">");
-            sb.AppendLine($"//     Copyright (c) {currentProject.CompanyName}. All rights reserved.");
-            sb.AppendLine($"// </copyright>");
-            sb.AppendLine();
+            sb.AppendLine(GenerateFileHeader(fileName, currentProject.CompanyName));
 
             // TODO NMA
 
