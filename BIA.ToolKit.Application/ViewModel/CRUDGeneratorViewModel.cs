@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using System.Collections.Generic;
@@ -13,6 +14,7 @@
         /// </summary>
         public CRUDGeneratorViewModel()
         {
+            ZipFilesContent = new();
         }
 
         #region CurrentProject
@@ -143,6 +145,8 @@
             }
         }
         #endregion
+
+        public List<ClassDefinition> ZipFilesContent { get; private set; }
 
         public string GetEntityFileName()
         {

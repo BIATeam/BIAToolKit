@@ -10,48 +10,29 @@
     {
         private readonly IConsoleWriter consoleWriter;
 
-        private string applicationIFile;
-        private string applicationFile;
-        private string domainFile;
-        private string domainMapperFile;
-        private string domainDtoFile;
-        private string controllerFile;
-
 
         public ZipParserService(IConsoleWriter consoleWriter)
         {
             this.consoleWriter = consoleWriter;
         }
 
-        private void InitPath(string entityName, string compagnyName, string projectName)
+        public string ReadZip(string zipPath, string entityName, string compagnyName, string projectName)
         {
-            applicationIFile = $@"{compagnyName}.{projectName}.Application/{entityName}/I{entityName}AppService.cs";
-            applicationFile = $@"{compagnyName}.{projectName}.Application/{entityName}/{entityName}AppService.cs";
-            domainFile = $@"{compagnyName}.{projectName}.Domain/{entityName}Module/Aggregate/{entityName}.cs";
-            domainMapperFile = $@"{compagnyName}.{projectName}.Domain/{entityName}Module/Aggregate/{entityName}Mapper.cs";
-            domainDtoFile = $@"{compagnyName}.{projectName}.Domain.Dto/{entityName}/{entityName}Dto.cs";
-            controllerFile = $@"{compagnyName}.{projectName}.Presentation.Api/Controllers/{entityName}/{entityName}sController.cs";
-        }
-
-        public bool ReadZip(string zipPath, string entityName, string compagnyName, string projectName)
-        {
-            bool allFilesFound = false;
+            string tempDir = null;
 
             try
             {
                 if (!File.Exists(zipPath))
                 {
                     consoleWriter.AddMessageLine("Zip file path not exist", "Red");
-                    return false;
+                    return null;
                 }
-
-                InitPath(entityName, compagnyName, projectName);
 
 #if DEBUG
                 consoleWriter.AddMessageLine($"*** Parse zip file: '{zipPath}' ***", "Green");
 #endif
 
-                string tempDir = Path.Combine(Path.GetTempPath(), "BiaToolKit_CRUDGenerator");
+                tempDir = Path.Combine(Path.GetTempPath(), "BiaToolKit_CRUDGenerator");
                 if (Directory.Exists(tempDir))
                 {
                     Directory.Delete(tempDir, true);
@@ -70,30 +51,44 @@
 #if DEBUG
                     consoleWriter.AddMessageLine($"File found: '{entry.FullName}'", "Green");
 #endif
-
-                    // TODO: read and parse file
                     entry.ExtractToFile(Path.Combine(tempDir, entry.Name));
-
                     files.Add(entry.FullName);
                 }
 
-                if (files.Contains(applicationIFile) &&
-                    files.Contains(applicationFile) &&
-                    files.Contains(domainFile) &&
-                    files.Contains(domainMapperFile) &&
-                    files.Contains(domainDtoFile) &&
-                    files.Contains(controllerFile)
-                    )
-                {
-                    allFilesFound = true;
-                }
+                CheckZipArchive(entityName, compagnyName, projectName, files);
             }
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"An error has occurred in zip file parsing process: {ex.Message}", "Red");
             }
 
-            return allFilesFound;
+            return tempDir;
+        }
+
+        private bool CheckZipArchive(string entityName, string compagnyName, string projectName, List<string> files)
+        {
+            string applicationIFile = $@"{compagnyName}.{projectName}.Application/{entityName}/I{entityName}AppService.cs";
+            string applicationFile = $@"{compagnyName}.{projectName}.Application/{entityName}/{entityName}AppService.cs";
+            string domainFile = $@"{compagnyName}.{projectName}.Domain/{entityName}Module/Aggregate/{entityName}.cs";
+            string domainMapperFile = $@"{compagnyName}.{projectName}.Domain/{entityName}Module/Aggregate/{entityName}Mapper.cs";
+            string domainDtoFile = $@"{compagnyName}.{projectName}.Domain.Dto/{entityName}/{entityName}Dto.cs";
+            string controllerFile = $@"{compagnyName}.{projectName}.Presentation.Api/Controllers/{entityName}/{entityName}sController.cs";
+
+            if (!files.Contains(applicationIFile) ||
+                !files.Contains(applicationFile) ||
+                !files.Contains(domainFile) ||
+                !files.Contains(domainMapperFile) ||
+                !files.Contains(domainDtoFile) ||
+                !files.Contains(controllerFile))
+            {
+                consoleWriter.AddMessageLine($"All files not found on zip archive.", "Orange");
+                return false;
+            }
+
+#if DEBUG
+            consoleWriter.AddMessageLine($"All files found on zip archive.", "Green");
+#endif
+            return true;
         }
     }
 }

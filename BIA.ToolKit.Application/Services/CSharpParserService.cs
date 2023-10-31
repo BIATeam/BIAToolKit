@@ -3,6 +3,7 @@
     using BIA.ToolKit.Application.Extensions;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Parser;
+    using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.DtoGenerator;
     using Microsoft.Build.Locator;
     using Microsoft.CodeAnalysis;
@@ -114,6 +115,66 @@ using Roslyn.Services;*/
             }
 
             return entityInfo;
+        }
+
+        public ClassDefinition ParseClassFile(string fileName)
+        {
+#if DEBUG
+            consoleWriter.AddMessageLine($"*** Parse file: '{fileName}' ***", "Green");
+#endif
+
+            var cancellationToken = new CancellationToken();
+
+            var fileText = File.ReadAllText(fileName);
+
+            var tree = CSharpSyntaxTree.ParseText(fileText, cancellationToken: cancellationToken);
+            var root = tree.GetCompilationUnitRoot(cancellationToken: cancellationToken);
+            if (root.ContainsDiagnostics)
+            {
+                // source contains syntax error
+                throw new ParseException(root.GetDiagnostics().Select(diag => diag.ToString()));
+            }
+
+            TypeDeclarationSyntax typeDeclaration = root.Descendants<TypeDeclarationSyntax>().SingleOrDefault();
+            NamespaceDeclarationSyntax namespaceSyntax = root.Descendants<NamespaceDeclarationSyntax>().SingleOrDefault();
+
+            //if (typeDeclaration.IsKind(SyntaxKind.ClassDeclaration))
+            //{
+            //    ClassDeclarationSyntax classDeclaration = (ClassDeclarationSyntax)typeDeclaration;
+            //}
+            //if (typeDeclaration.IsKind(SyntaxKind.InterfaceDeclaration))
+            //{
+            //    InterfaceDeclarationSyntax interfaceDeclaration = (InterfaceDeclarationSyntax)typeDeclaration;
+            //}
+
+            ClassDefinition classDefinition = new(fileName)
+            {
+                NamespaceSyntax = namespaceSyntax,
+                Name = typeDeclaration.Identifier,
+                Type = typeDeclaration.Kind(),
+                BaseList = typeDeclaration.BaseList,
+                VisibilityList = typeDeclaration.Modifiers,
+            };
+
+            List<MemberDeclarationSyntax> propertyList = typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.FieldDeclaration).ToList();
+            if (propertyList != null && propertyList.Any())
+            {
+                propertyList.ForEach(x => classDefinition.PropertyList.Add((FieldDeclarationSyntax)x));
+            }
+
+            List<MemberDeclarationSyntax> constructorList = typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.ConstructorDeclaration).ToList();
+            if (constructorList != null && constructorList.Any())
+            {
+                constructorList.ForEach(x => classDefinition.ConstructorList.Add((ConstructorDeclarationSyntax)x));
+            }
+
+            List<MemberDeclarationSyntax> methodList = typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.MethodDeclaration).ToList();
+            if (methodList != null && methodList.Any())
+            {
+                methodList.ForEach(x => classDefinition.MethodList.Add((MethodDeclarationSyntax)x));
+            }
+
+            return classDefinition;
         }
 
         public async Task ParseSolution(string projectPath)

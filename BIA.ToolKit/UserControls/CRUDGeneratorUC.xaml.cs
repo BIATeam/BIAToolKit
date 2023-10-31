@@ -6,6 +6,7 @@
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Helper;
     using System;
+    using System.IO;
     using System.Windows;
     using System.Windows.Controls;
 
@@ -70,7 +71,6 @@
 
         private void ParseZip_Click(object sender, RoutedEventArgs e)
         {
-            // TODO NMA
             ParseZipFile(vm.ZipRootFilePath, vm.DtoEntity.NamespaceLastPart);
             vm.IsZipParsed = true;
         }
@@ -91,7 +91,7 @@
 
             try
             {
-                vm.DtoEntity = this.service.ParseEntity(fileName);
+                vm.DtoEntity = service.ParseEntity(fileName);
                 if (vm.DtoEntity == null || vm.DtoEntity.Properties == null || vm.DtoEntity.Properties.Count <= 0)
                 {
                     consoleWriter.AddMessageLine("No properties found on Dto file.", "Orange");
@@ -112,10 +112,15 @@
 
             try
             {
-                var res = this.zipService.ReadZip(fileName, entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name);
-                if (!res)
+                string workingDir = zipService.ReadZip(fileName, entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name);
+                if (string.IsNullOrWhiteSpace(workingDir))
                 {
                     consoleWriter.AddMessageLine("All files not found on zip archive.", "Orange");
+                }
+
+                foreach (FileInfo fi in new DirectoryInfo(workingDir).GetFiles())
+                {
+                    vm.ZipFilesContent.Add(service.ParseClassFile(fi.FullName));
                 }
             }
             catch (Exception ex)
