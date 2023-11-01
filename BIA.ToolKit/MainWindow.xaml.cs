@@ -192,11 +192,15 @@
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
 
                 await this.gitService.Synchronize(_viewModel.Settings.BIATemplateRepository);
-                this.repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
 
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
                 BIATemplateLocalFolderSync.IsEnabled = true;
             }
+        }
+
+        private void BIATemplateLocalCleanRelease_Click(object sender, RoutedEventArgs e)
+        {
+            this.repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
         }
 
         private async void CompanyFilesLocalFolderSync_Click(object sender, RoutedEventArgs e)
@@ -392,5 +396,6 @@
 
             System.Windows.Forms.Application.DoEvents();
         }
+
     }
 }

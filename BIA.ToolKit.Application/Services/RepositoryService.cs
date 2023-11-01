@@ -56,6 +56,7 @@
                 {
                     Directory.Delete(releasePath,true);
                 }
+                outPut.AddMessageLine("Release Cleaned.", "Pink");
             }
         }
 
