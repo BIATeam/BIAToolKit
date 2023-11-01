@@ -26,6 +26,7 @@
     using BIA.ToolKit.Common;
     using static BIA.ToolKit.Domain.Settings.RepositorySettings;
     using System.Windows.Documents;
+    using System.Threading.Tasks;
 
 
     /// <summary>
@@ -259,26 +260,35 @@
                 }
             }
         }
-
         private void Create_Click(object sender, RoutedEventArgs e)
         {
+            _ = Create_Run();
+        }
+        
+        private async Task Create_Run()
+        {
+            Enable(false);
             if (string.IsNullOrEmpty(_viewModel.Settings.RootProjectsPath))
             {
+                Enable(true);
                 MessageBox.Show("Please select root path.");
                 return;
             }
             if (string.IsNullOrEmpty(_viewModel.Settings.CreateCompanyName))
             {
+                Enable(true);
                 MessageBox.Show("Please select company name.");
                 return;
             }
             if (string.IsNullOrEmpty(CreateProjectName.Text))
             {
+                Enable(true);
                 MessageBox.Show("Please select project name.");
                 return;
             }
             if (CreateVersionAndOption.vm.WorkTemplate == null)
             {
+                Enable(true);
                 MessageBox.Show("Please select framework version.");
                 return;
             }
@@ -286,15 +296,17 @@
             string projectPath = _viewModel.Settings.RootProjectsPath + "\\" + CreateProjectName.Text;
             if (Directory.Exists(projectPath) && !FileDialog.IsDirectoryEmpty(projectPath))
             {
+                Enable(true);
                 MessageBox.Show("The project path is not empty : " + projectPath);
                 return;
             }
-            CreateProject(true, _viewModel.Settings.CreateCompanyName, CreateProjectName.Text, projectPath, CreateVersionAndOption, new string[] { "Angular" } );
+            await CreateProject(true, _viewModel.Settings.CreateCompanyName, CreateProjectName.Text, projectPath, CreateVersionAndOption, new string[] { "Angular" } );
+            Enable(true);
         }
 
-        private void CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
+        private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
         {
-            this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
+            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
         }
 
 
@@ -362,6 +374,23 @@
             {
                 _viewModel.Settings.CustomRepoTemplates = dialog.vm.RepositoriesSettings.ToList();
             }
+        }
+
+        private void Enable(bool isEnabled)
+        {
+            //Migrate.IsEnabled = false;
+            if (isEnabled)
+            {
+                Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
+            }
+            else
+            {
+                Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
+            }
+            //TODO recabler
+            //MainTab.IsEnabled = isEnabled;
+
+            System.Windows.Forms.Application.DoEvents();
         }
     }
 }

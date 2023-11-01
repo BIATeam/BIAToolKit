@@ -11,6 +11,7 @@
     using System.IO.Compression;
     using System.Net;
     using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
 
     public class ProjectCreatorService
     {
@@ -23,7 +24,7 @@
             this.repositoryService = repositoryService;
         }
 
-        public void Create(
+        public async Task Create(
             bool actionFinishedAtEnd, 
             string companyName, 
             string projectName, 
@@ -45,7 +46,7 @@
             }
             else
             {
-                versionAndOption.WorkTemplate.VersionFolderPath = this.repositoryService.PrepareVersionFolder(versionAndOption.WorkTemplate.RepositorySettings, versionAndOption.WorkTemplate.Version);
+                versionAndOption.WorkTemplate.VersionFolderPath = await this.repositoryService.PrepareVersionFolder(versionAndOption.WorkTemplate.RepositorySettings, versionAndOption.WorkTemplate.Version);
 
                 if (versionAndOption.WorkTemplate.RepositorySettings.Versioning == VersioningType.Tag)
                 {

@@ -59,7 +59,7 @@
             }
         }
 
-        public string PrepareVersionFolder (RepositorySettings repository, string version)
+        public async Task<string> PrepareVersionFolder (RepositorySettings repository, string version)
         {
             if (repository.Versioning == VersioningType.Folder)
             {
@@ -87,6 +87,7 @@
 
                             if (!File.Exists(zipPath))
                             {
+                                outPut.AddMessageLine("Begin dowloading " + tag.CanonicalName + ".zip", "Pink");
                                 var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
                                 HttpClientHandler httpClientHandler = new HttpClientHandler
                                 {
@@ -94,14 +95,15 @@
                                 };
                                 using (var httpClient = new HttpClient(httpClientHandler))
                                 {
-                                    var response = httpClient.GetAsync(zipUrl).Result;
+                                    var response = await httpClient.GetAsync(zipUrl);
                                     using (var fs = new FileStream(
                                         zipPath,
                                         FileMode.CreateNew))
                                     {
-                                        response.Content.CopyToAsync(fs);
+                                        await response.Content.CopyToAsync(fs);
                                     }
                                 }
+                                outPut.AddMessageLine("Dowloaded.", "Pink");
                             }
 
                             if (!File.Exists(zipPath))
