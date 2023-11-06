@@ -4,9 +4,10 @@
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.ModifyProject;
-    using BIA.ToolKit.Helper;
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Windows;
     using System.Windows.Controls;
 
@@ -31,6 +32,9 @@
             vm = (CRUDGeneratorViewModel)base.DataContext;
         }
 
+        /// <summary>
+        /// Injection of services.
+        /// </summary>
         public void Inject(CSharpParserService service, ZipParserService zipService, GenerateCrudService crudService, IConsoleWriter consoleWriter)
         {
             this.service = service;
@@ -39,28 +43,25 @@
             this.consoleWriter = consoleWriter;
         }
 
+        /// <summary>
+        /// Update CurrentProject value.
+        /// </summary>
         public void SetCurrentProject(Project currentProject)
         {
             vm.CurrentProject = currentProject;
+            vm.DtoFiles = ListDtoFiles();
+            vm.ZipFiles = ListZipFiles();
         }
 
         #region Action
-        private void ModifyDtoRootFile_TextChanged(object sender, TextChangedEventArgs e)
+        private void ModifyDto_SelectionChanged(object sender, RoutedEventArgs e)
         {
+            vm.DtoRootFilePath = vm.DtoFiles[vm.DtoSelected];
         }
 
-        private void ModifyDtoRootFileBrowse_Click(object sender, RoutedEventArgs e)
+        private void ModifyZip_SelectionChanged(object sender, RoutedEventArgs e)
         {
-            vm.DtoRootFilePath = FileDialog.BrowseFile(vm.DtoRootFilePath, "cs");
-        }
-
-        private void ModifyZipRootFile_TextChanged(object sender, TextChangedEventArgs e)
-        {
-        }
-
-        private void ModifyZipRootFileBrowse_Click(object sender, RoutedEventArgs e)
-        {
-            vm.ZipRootFilePath = FileDialog.BrowseFile(vm.ZipRootFilePath, "zip");
+            vm.ZipRootFilePath = vm.ZipFiles[vm.ZipSelected];
         }
 
         private void ParseDto_Click(object sender, RoutedEventArgs e)
@@ -82,6 +83,42 @@
         #endregion
 
         #region Private method
+        /// <summary>
+        /// List all Dto files from current project.
+        /// </summary>
+        private Dictionary<string, string> ListDtoFiles()
+        {
+            Dictionary<string, string> dtoFiles = new();
+
+            string dtoFolder = $"{vm.CurrentProject.CompanyName}.{vm.CurrentProject.Name}.Domain.Dto";
+            string path = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, "DotNet", dtoFolder);
+
+            // List files
+            var files = Directory.GetFiles(path, "*Dto.cs", SearchOption.AllDirectories).ToList();
+            // Build dictionnary: key = file Name, Value = full path
+            files.ForEach(x => dtoFiles.Add(new FileInfo(x).Name, new FileInfo(x).FullName));
+
+            return dtoFiles;
+        }
+
+        /// <summary>
+        /// List all Zip files from Dotnet and Angular folders.
+        /// </summary>
+        private Dictionary<string, string> ListZipFiles()
+        {
+            Dictionary<string, string> zipFiles = new();
+            foreach (var dir in new List<string>() { "Angular", "DotNet" })
+            {
+                string path = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, dir, "docs");
+                // List files
+                var files = Directory.GetFiles(path, "*.zip").ToList();
+                // Build dictionnary: key = file Name, Value = full path
+                files.ForEach(x => zipFiles.Add($@"{dir}\{new FileInfo(x).Name}", new FileInfo(x).FullName));
+            }
+
+            return zipFiles;
+        }
+
         private void ParseDtoFile(string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName))

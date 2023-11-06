@@ -30,43 +30,6 @@
         }
         #endregion
 
-        #region DtoRootFilePath
-        private string dtoRootFilePath;
-        public string DtoRootFilePath
-        {
-            get { return dtoRootFilePath; }
-            set
-            {
-                if (dtoRootFilePath != value)
-                {
-                    dtoRootFilePath = value;
-                    RaisePropertyChanged(nameof(DtoRootFilePath));
-                    RaisePropertyChanged(nameof(IsButtonParseDtoEnable));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                }
-            }
-        }
-        #endregion
-
-        #region ZipRootFilePath
-        private string zipRootFilePath;
-        public string ZipRootFilePath
-        {
-            get { return zipRootFilePath; }
-            set
-            {
-                if (zipRootFilePath != value)
-                {
-                    zipRootFilePath = value;
-                    //zipContent?.ZipPath = value;
-                    RaisePropertyChanged(nameof(ZipRootFilePath));
-                    RaisePropertyChanged(nameof(IsButtonParseZipEnable));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                }
-            }
-        }
-        #endregion
-
         #region DtoEntity DtoProperties
         private EntityInfo dtoEntity;
         public EntityInfo DtoEntity
@@ -145,6 +108,98 @@
             }
         }
         #endregion
+
+        #region DtoFile
+        private Dictionary<string, string> dtoFiles;
+        public Dictionary<string, string> DtoFiles
+        {
+            get { return dtoFiles; }
+            set
+            {
+                if (dtoFiles != value)
+                {
+                    dtoFiles = value;
+                    RaisePropertyChanged("DtoFiles");
+                }
+            }
+        }
+
+        private string dtoSelected;
+        public string DtoSelected
+        {
+            get { return dtoSelected; }
+            set
+            {
+                if (dtoSelected != value)
+                {
+                    dtoSelected = value;
+                }
+            }
+        }
+
+        private string dtoRootFilePath;
+        public string DtoRootFilePath
+        {
+            get { return dtoRootFilePath; }
+            set
+            {
+                if (dtoRootFilePath != value)
+                {
+                    dtoRootFilePath = value;
+                    RaisePropertyChanged(nameof(DtoRootFilePath));
+                    RaisePropertyChanged(nameof(IsButtonParseDtoEnable));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                }
+            }
+        }
+        #endregion
+
+        #region ZipFile
+        Dictionary<string, string> zipFiles;
+        public Dictionary<string, string> ZipFiles
+        {
+            get { return zipFiles; }
+            set
+            {
+                if (zipFiles != value)
+                {
+                    zipFiles = value;
+                    RaisePropertyChanged("ZipFiles");
+                }
+            }
+        }
+
+        private string zipSelected;
+        public string ZipSelected
+        {
+            get { return zipSelected; }
+            set
+            {
+                if (zipSelected != value)
+                {
+                    zipSelected = value;
+                }
+            }
+        }
+
+        private string zipRootFilePath;
+        public string ZipRootFilePath
+        {
+            get { return zipRootFilePath; }
+            set
+            {
+                if (zipRootFilePath != value)
+                {
+                    zipRootFilePath = value;
+                    //zipContent?.ZipPath = value;
+                    RaisePropertyChanged(nameof(ZipRootFilePath));
+                    RaisePropertyChanged(nameof(IsButtonParseZipEnable));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                }
+            }
+        }
+        #endregion
+
 
         public List<ClassDefinition> ZipFilesContent { get; private set; }
 

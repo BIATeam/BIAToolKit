@@ -12,9 +12,11 @@
     <Grid Margin="0,0,-120,0">
 
         <Label Content="Dto file:" HorizontalAlignment="Left" Margin="20,0,0,0" VerticalAlignment="Top" Foreground="White"  />
-        <TextBox HorizontalAlignment="Left" Margin="40,23,0,0" Text="{Binding DtoRootFilePath}" TextWrapping="Wrap" VerticalAlignment="Top" Width="650" TextChanged="ModifyDtoRootFile_TextChanged" Height="21" Name="ModifyDtoRootFileText"/>
-        <Button Content="..." HorizontalAlignment="Left" Margin="690,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="ModifyDtoRootFileBrowse" Click="ModifyDtoRootFileBrowse_Click"/>
- 
+        <ComboBox ItemsSource="{Binding DtoFiles.Keys}" SelectedValue="{Binding DtoSelected}" HorizontalAlignment="Left" Margin="40,23,0,0" VerticalAlignment="Top" Width="300" SelectionChanged="ModifyDto_SelectionChanged"/>
+
+        <Label Content="Data model zip file:" HorizontalAlignment="Left" Margin="400,0,0,0" VerticalAlignment="Top" Foreground="White"  />
+        <ComboBox ItemsSource="{Binding ZipFiles.Keys}" SelectedValue="{Binding ZipSelected}" HorizontalAlignment="Left" Margin="420,23,0,0" VerticalAlignment="Top" Width="300" SelectionChanged="ModifyZip_SelectionChanged"/>
+
         <Label Content="Dto properties:" HorizontalAlignment="Left" Margin="20,40,0,0" VerticalAlignment="Top" Foreground="White"  />
         <Grid >
             <ListView Name="DtoParsedPanel" Margin="40,63,320,70" ItemsSource="{Binding DtoProperties}">
@@ -33,11 +35,6 @@
                 </ListView.View>
             </ListView>
         </Grid>
-
-        <Label Content="Data model zip file:" HorizontalAlignment="Left" Margin="20,260,0,0" VerticalAlignment="Top" Foreground="White"  />
-        <TextBox HorizontalAlignment="Left" Margin="40,283,0,0" Text="{Binding ZipRootFilePath}" TextWrapping="Wrap" VerticalAlignment="Top" Width="650" TextChanged="ModifyZipRootFile_TextChanged" Height="21" Name="ModifyZipRootFileText"/>
-        <Button Content="..." HorizontalAlignment="Left" Margin="690,283,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="ModifyZipRootFileBrowse" Click="ModifyZipRootFileBrowse_Click"/>
-
 
         <Button Content="1. Parse Dto" HorizontalAlignment="Right" Margin="0,90,140,0" Width="120" x:Name="ParseDto"  Height="40" VerticalAlignment="Top" Click="ParseDto_Click" IsEnabled="{Binding IsButtonParseDtoEnable}"/>
         <Button Content="2. Parse Zip" HorizontalAlignment="Right" Margin="0,140,140,0" Width="120" x:Name="ParseZip"  Height="40" VerticalAlignment="Top" Click="ParseZip_Click"  IsEnabled="{Binding IsButtonParseZipEnable}"/>

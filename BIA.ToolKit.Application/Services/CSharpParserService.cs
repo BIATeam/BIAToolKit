@@ -70,19 +70,18 @@ using Roslyn.Services;*/
             var className = classDeclarationSyntax.Identifier.ToString();
             var baseList = classDeclarationSyntax.BaseList!;
 
-            var genericNameSyntax = baseList
-                .Descendants<SimpleBaseTypeSyntax>()
-                .First(node => !node.ToFullString().StartsWith("I")) // Not interface
-                .Descendants<GenericNameSyntax>()
-                .FirstOrDefault();
+            var genericNameSyntax = baseList?.Descendants<SimpleBaseTypeSyntax>()
+                 .First(node => !node.ToFullString().StartsWith("I")) // Not interface
+                 .Descendants<GenericNameSyntax>()
+                 .FirstOrDefault();
 
             string baseType;
-            string? primaryKey;
-            IEnumerable<string>? keyNames = null;
+            string primaryKey;
+            IEnumerable<string> keyNames = null;
             if (genericNameSyntax == null)
             {
                 // No generic parameter -> Entity with Composite Keys
-                baseType = baseList.Descendants<SimpleBaseTypeSyntax>().Single(node => !node.ToFullString().StartsWith("I")).Type.ToString();
+                baseType = baseList?.Descendants<SimpleBaseTypeSyntax>().Single(node => !node.ToFullString().StartsWith("I")).Type.ToString();
                 primaryKey = null;
 
                 // Get composite keys
@@ -135,7 +134,25 @@ using Roslyn.Services;*/
                 throw new ParseException(root.GetDiagnostics().Select(diag => diag.ToString()));
             }
 
-            TypeDeclarationSyntax typeDeclaration = root.Descendants<TypeDeclarationSyntax>().SingleOrDefault();
+            TypeDeclarationSyntax typeDeclaration;
+            var descendants = root.Descendants<TypeDeclarationSyntax>();
+            if (descendants.Count() == 1)
+            {
+                typeDeclaration = descendants.Single();
+            }
+            else if (descendants.Count() > 1)
+            {
+                consoleWriter.AddMessageLine($"More of one declaration found on file '{fileName}' :", "Orange");
+                descendants.ToList().ForEach(x => consoleWriter.AddMessageLine($"   - {x.Identifier} ({x.Kind()})", "Orange"));
+                // TODO NMA 
+                typeDeclaration = descendants.Where(x => x.IsKind(SyntaxKind.ClassDeclaration)).Single();
+            }
+            else
+            {
+                consoleWriter.AddMessageLine($"No declaration found on file '{fileName}' :", "Orange");
+                // TODO NMA
+                typeDeclaration = null;
+            }
             NamespaceDeclarationSyntax namespaceSyntax = root.Descendants<NamespaceDeclarationSyntax>().SingleOrDefault();
 
             //if (typeDeclaration.IsKind(SyntaxKind.ClassDeclaration))
