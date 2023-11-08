@@ -4,6 +4,7 @@
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using System;
     using System.Collections.Generic;
@@ -159,7 +160,9 @@
                 foreach (FileInfo fi in new DirectoryInfo(workingDir).GetFiles())
                 {
                     var classFile = service.ParseClassFile(fi.FullName);
-                    classFile.FileType = zipService.GetFileType(fi.Name);
+                    FileType? type = zipService.GetFileType(fi.Name);
+                    classFile.FileType = type;
+                    classFile.EntityName = zipService.GetEntityName(fi.Name, type);
                     vm.ZipFilesContent.Add(classFile);
                 }
             }

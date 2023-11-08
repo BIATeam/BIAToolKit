@@ -11,7 +11,26 @@
 
         public FileType? FileType { get; set; }
 
-        public NamespaceDeclarationSyntax? NamespaceSyntax { get; set; }
+        public string? EntityName { get; set; }
+
+        public string? CompagnyName { get; private set; }
+
+        public string? ProjectName { get; private set; }
+
+        private NamespaceDeclarationSyntax? namespaceSyntax;
+        public NamespaceDeclarationSyntax? NamespaceSyntax
+        {
+            get { return namespaceSyntax; }
+            set
+            {
+                if (namespaceSyntax != value)
+                {
+                    namespaceSyntax = value;
+                    CompagnyName = namespaceSyntax?.Name.ToString().Split('.')[0];
+                    ProjectName = namespaceSyntax?.Name.ToString().Split('.')[1];
+                }
+            }
+        }
 
         public SyntaxTokenList VisibilityList { get; set; }
 
@@ -30,9 +49,9 @@
         public ClassDefinition(string fileName)
         {
             this.FileName = fileName;
-            PropertyList = new();
-            ConstructorList = new();
-            MethodList = new();
+            this.PropertyList = new();
+            this.ConstructorList = new();
+            this.MethodList = new();
         }
     }
 

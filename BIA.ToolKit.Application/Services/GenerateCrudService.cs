@@ -98,7 +98,7 @@
             }
             Directory.CreateDirectory(Path.Combine(dotnetDir, applicationFolder));
             Directory.CreateDirectory(Path.Combine(dotnetDir, domainFolder));
-            Directory.CreateDirectory(Path.Combine(dotnetDir, domainDtoFolder));
+            //Directory.CreateDirectory(Path.Combine(dotnetDir, domainDtoFolder));
             Directory.CreateDirectory(Path.Combine(dotnetDir, controllerFolder));
 
             // Clean destination directory if already exist
@@ -109,51 +109,30 @@
             Directory.CreateDirectory(angularDir);
         }
 
-        private string GenerateFileHeader(string fileName, string companyName)
-        {
-            StringBuilder sb = new();
-            sb.AppendLine($"// <copyright file=\"{fileName}\" company=\"{companyName}\">");
-            sb.AppendLine($"//     Copyright (c) {companyName}. All rights reserved.");
-            sb.AppendLine($"// </copyright>");
-            return sb.ToString();
-        }
+
 
         #region Entity
-        private void GenerateEntityFile(string entityName, string destDir, Project currentProject, EntityInfo dtoEntity, ClassDefinition entityClass)
+        private void GenerateEntityFile(string entityName, string destDir, Project currentProject, EntityInfo dtoEntity, ClassDefinition classDefinition)
         {
             string fileName = $"{entityName}.cs";
             StringBuilder sb = new();
 
             // Generate file header
-            sb.AppendLine(GenerateFileHeader(fileName, currentProject.CompanyName));
+            GenerateFileHeader(sb, fileName, currentProject.CompanyName);
 
-            // Generate namespace + using   
-            sb.AppendLine($"{entityClass.NamespaceSyntax.Name}");
-
-            sb.AppendLine($"{{");
-            for (int i = 0; i < entityClass.NamespaceSyntax.Usings.Count; i++)
-            {
-                sb.AppendLine($"   {entityClass.NamespaceSyntax.Usings[i]}");
-            }
-            sb.AppendLine();
+            // Generate namespace + using
+            GenerateNamespaceUsing(sb, entityName, dtoEntity, classDefinition);
 
             // Generate class declaration
-            sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// The {entityName} entity.");
-            sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    {entityClass.VisibilityList} class {entityName}{entityClass.BaseList}");
-            sb.AppendLine($"    {{");
+            GenerateClassDeclaration(sb, entityName, classDefinition);
 
             // Generate primary key
             if (dtoEntity.PrimaryKey.ToLower() == "int")
             {
-                var prop = entityClass.PropertyList.Where(x => x.Identifier.Text.ToLower() == "id").First();
+                var prop = classDefinition.PropertyList.Where(x => x.Identifier.Text.ToLower() == "id").First();
                 if (prop != null)
                 {
-                    sb.AppendLine($"        /// <summary>");
-                    sb.AppendLine($"        /// Gets or Sets the id.");
-                    sb.AppendLine($"        /// </summary>");
-                    sb.AppendLine($"        {prop}{Environment.NewLine}");
+                    GenerateProperty(sb, prop.Type.ToString(), prop.Identifier.ToString(), string.Join(' ', prop.Modifiers.ToList()));
                 }
             }
 
@@ -162,54 +141,34 @@
             {
                 if (p.Type == "int" && p.Name.ToLower() == "siteid")    // int SiteId
                 {
-                    string tmp = p.Name[..^2];
-                    sb.AppendLine($"        /// <summary>");
-                    sb.AppendLine($"        /// Gets or Sets {tmp}.");
-                    sb.AppendLine($"        /// </summary>");
-                    sb.AppendLine($"        public virtual {tmp} {tmp} {{ get; set; }}{Environment.NewLine}");
-                    sb.AppendLine($"        /// <summary>");
-                    sb.AppendLine($"        /// Gets or Sets {p.Name}.");
-                    sb.AppendLine($"        /// </summary>");
-                    sb.AppendLine($"        public {p.Type} {p.Name} {{ get; set; }}{Environment.NewLine}");
+                    string newName = p.Name[..^2]; // Name without "Id" suffix
+                    GenerateProperty(sb, $"{newName}", $"{newName}", "public virtual");
+                    GenerateProperty(sb, p.Type, p.Name);
                 }
-                else if (p.Type == "OptionDto")    // Type OptionDto  
+                else if (p.Type == "OptionDto")                         // Type OptionDto  
                 {
-                    sb.AppendLine($"        /// <summary>");
-                    sb.AppendLine($"        /// Gets or Sets {p.Name}.");
-                    sb.AppendLine($"        /// </summary>");
+                    GenerateProperty(sb, p.Type, p.Name);
                     sb.AppendLine($"        //****************************************************************************************");
                     sb.AppendLine($"        //****************** Rework OptionDto by 2 lines: type + id ******************************");
                     sb.AppendLine($"        // public int {p.Name}Id {{ get; set; }}");
                     sb.AppendLine($"        // public virtual {p.Name} {p.Name} {{ get; set; }}");
                     sb.AppendLine($"        //****************************************************************************************");
-                    sb.AppendLine($"        public {p.Type} {p.Name} {{ get; set; }}{Environment.NewLine}");
+                    sb.AppendLine($"        //****************************************************************************************");
                 }
-                else if (p.Type.EndsWith("Dto"))    // Type XXXDto
+                else if (p.Type.EndsWith("Dto"))                        // Type XXXDto
                 {
-                    string tmp = p.Type[..^3];
-                    sb.AppendLine($"        /// <summary>");
-                    sb.AppendLine($"        /// Gets or Sets {p.Name}.");
-                    sb.AppendLine($"        /// </summary>");
-                    sb.AppendLine($"        public virtual {tmp} {p.Name} {{ get; set; }}{Environment.NewLine}");
-                    sb.AppendLine($"        /// <summary>");
-                    sb.AppendLine($"        /// Gets or Sets {p.Name}.");
-                    sb.AppendLine($"        /// </summary>");
-                    sb.AppendLine($"        public int {p.Name}Id {{ get; set; }}{Environment.NewLine}");
+                    string newType = p.Type[..^3]; // Type without "Dto" suffix
+                    GenerateProperty(sb, $"{newType}", p.Name, "public virtual");
+                    GenerateProperty(sb, "int", $"{p.Name}Id");
                 }
-                else if (p.Type.EndsWith("Dto>"))   // Collection of XXXDto
+                else if (p.Type.EndsWith("Dto>"))                       // Collection of XXXDto
                 {
-                    string tmp = p.Type.Replace("Dto", "");
-                    sb.AppendLine($"        /// <summary>");
-                    sb.AppendLine($"        /// Gets or Sets {p.Name}.");
-                    sb.AppendLine($"        /// </summary>");
-                    sb.AppendLine($"        public {tmp} {p.Name} {{ get; set; }}{Environment.NewLine}");
+                    string newType = p.Type.Replace("Dto", ""); // Type without "Dto" suffix
+                    GenerateProperty(sb, $"{newType}", p.Name);
                 }
-                else                                // All others cases     
+                else                                                    // All others cases     
                 {
-                    sb.AppendLine($"        /// <summary>");
-                    sb.AppendLine($"        /// Gets or Sets {p.Name}.");
-                    sb.AppendLine($"        /// </summary>");
-                    sb.AppendLine($"        public {p.Type} {p.Name} {{ get; set; }}{Environment.NewLine}");
+                    GenerateProperty(sb, p.Type, p.Name);
                 }
             }
             sb.AppendLine($"    }}");
@@ -226,7 +185,7 @@
             StringBuilder sb = new();
 
             // Generate file header
-            sb.AppendLine(GenerateFileHeader(fileName, currentProject.CompanyName));
+            GenerateFileHeader(sb, fileName, currentProject.CompanyName);
 
             // TODO NMA
 
@@ -243,7 +202,7 @@
             StringBuilder sb = new();
 
             // Generate file header
-            sb.AppendLine(GenerateFileHeader(fileName, currentProject.CompanyName));
+            GenerateFileHeader(sb, fileName, currentProject.CompanyName);
 
             // Generate namespace + using
             sb.AppendLine($"namespace {currentProject.CompanyName}.{currentProject.Name}.Application.{entityName}");
@@ -278,7 +237,7 @@
             StringBuilder sb = new();
 
             // Generate file header
-            sb.AppendLine(GenerateFileHeader(fileName, currentProject.CompanyName));
+            GenerateFileHeader(sb, fileName, currentProject.CompanyName);
 
             // Generate namespace + using
             sb.AppendLine($"namespace {currentProject.CompanyName}.{currentProject.Name}.Application.{entityName}");
@@ -320,7 +279,7 @@
             StringBuilder sb = new();
 
             // Generate file header
-            sb.AppendLine(GenerateFileHeader(fileName, currentProject.CompanyName));
+            GenerateFileHeader(sb, fileName, currentProject.CompanyName);
 
             // TODO NMA
 
@@ -406,5 +365,50 @@
             CommonMethods.CreateFile(sb, Path.Combine(destDir, "UPDATE__bianetconfig.txt__.txt"));
         }
         #endregion
+
+        private void GenerateFileHeader(StringBuilder sb, string fileName, string companyName)
+        {
+            sb.AppendLine($"// <copyright file=\"{fileName}\" company=\"{companyName}\">");
+            sb.AppendLine($"//     Copyright (c) {companyName}. All rights reserved.");
+            sb.AppendLine($"// </copyright>");
+        }
+
+        private void GenerateNamespaceUsing(StringBuilder sb, string entityName, EntityInfo dtoEntity, ClassDefinition classDefinition)
+        {
+            // Generate namespace
+            var @namespace = classDefinition.NamespaceSyntax.Name.ToString().
+                Replace(classDefinition.CompagnyName, dtoEntity.CompagnyName).
+                Replace(classDefinition.ProjectName, dtoEntity.ProjectName).
+                Replace(classDefinition.EntityName, entityName);
+            sb.AppendLine($"{classDefinition.NamespaceSyntax.NamespaceKeyword} {@namespace}");
+
+            // Generate using
+            sb.AppendLine($"{{");
+            for (int i = 0; i < classDefinition.NamespaceSyntax.Usings.Count; i++)
+            {
+                var @using = classDefinition.NamespaceSyntax.Usings[i].ToString().
+                    Replace(classDefinition.CompagnyName, dtoEntity.CompagnyName).
+                    Replace(classDefinition.ProjectName, dtoEntity.ProjectName);
+                sb.AppendLine($"   {@using}");
+            }
+            sb.AppendLine();
+        }
+
+        private void GenerateClassDeclaration(StringBuilder sb, string entityName, ClassDefinition classDefinition)
+        {
+            sb.AppendLine($"    /// <summary>");
+            sb.AppendLine($"    /// The {entityName} entity.");
+            sb.AppendLine($"    /// </summary>");
+            sb.AppendLine($"    {classDefinition.VisibilityList} class {entityName}{classDefinition.BaseList}");
+            sb.AppendLine($"    {{");
+        }
+
+        private void GenerateProperty(StringBuilder sb, string type, string property, string modifier = "public")
+        {
+            sb.AppendLine($"        /// <summary>");
+            sb.AppendLine($"        /// Gets or Sets {property}.");
+            sb.AppendLine($"        /// </summary>");
+            sb.AppendLine($"        {modifier} {type} {property} {{ get; set; }}{Environment.NewLine}");
+        }
     }
 }

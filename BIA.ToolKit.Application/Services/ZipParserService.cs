@@ -6,6 +6,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.IO.Compression;
+    using System.Text.RegularExpressions;
 
     public class ZipParserService
     {
@@ -100,6 +101,51 @@
             {
                 return FileType.Entity;
             }
+        }
+
+        public string GetEntityName(string fileName, FileType? type)
+        {
+            if (fileName == null || type == null)
+            {
+                return null;
+            }
+
+            string name = null;
+            string pattern = "";
+            switch (type)
+            {
+                case FileType.AppService:
+                case FileType.IAppService:
+                    pattern = @"^I?(\w+)AppService\.cs$";
+                    break;
+                case FileType.Dto:
+                    pattern = @"^(\w+)Dto\.cs$";
+                    break;
+                case FileType.Controller:
+                    pattern = @"^(\w+)s?Controller\.cs$";
+                    break;
+                case FileType.Mapper:
+                    pattern = @"^(\w+)Mapper\.cs$";
+                    break;
+                case FileType.Entity:
+                    pattern = @"^(\w+)\.cs$";
+                    break;
+                default:
+                    consoleWriter.AddMessageLine($"Get entity name not implemented for type: '{type}' and file '{fileName}'", "Orange");
+                    break;
+            }
+
+            MatchCollection matches = new Regex(pattern).Matches(fileName);
+            if (matches != null && matches.Count > 0)
+            {
+                GroupCollection groups = matches[0].Groups;
+                if (groups.Count > 0)
+                {
+                    name = groups[1].Value;
+                }
+            }
+
+            return name;
         }
 
         private bool CheckZipArchive(string entityName, string compagnyName, string projectName, List<string> files)
