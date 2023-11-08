@@ -37,6 +37,11 @@ namespace BIA.ToolKit.Common
         /// <summary>
         /// Folder name for Net Core files
         /// </summary>
+        public const string FolderDotNet = "DotNet";
+
+        /// <summary>
+        /// Folder name for Net Core files
+        /// </summary>
         public const string FolderNetCore = "NetCore";
     }
 }

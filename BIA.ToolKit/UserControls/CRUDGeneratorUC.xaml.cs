@@ -3,6 +3,7 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
     using System;
     using System.Collections.Generic;
@@ -78,7 +79,7 @@
 
         private void GenerateCrud_Click(object sender, RoutedEventArgs e)
         {
-            crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity);
+            crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFilesContent);
         }
         #endregion
 
@@ -91,7 +92,7 @@
             Dictionary<string, string> dtoFiles = new();
 
             string dtoFolder = $"{vm.CurrentProject.CompanyName}.{vm.CurrentProject.Name}.Domain.Dto";
-            string path = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, "DotNet", dtoFolder);
+            string path = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet, dtoFolder);
 
             // List files
             var files = Directory.GetFiles(path, "*Dto.cs", SearchOption.AllDirectories).ToList();
@@ -107,7 +108,7 @@
         private Dictionary<string, string> ListZipFiles()
         {
             Dictionary<string, string> zipFiles = new();
-            foreach (var dir in new List<string>() { "Angular", "DotNet" })
+            foreach (var dir in new List<string>() { Constants.FolderAngular, Constants.FolderDotNet })
             {
                 string path = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, dir, "docs");
                 // List files
@@ -157,7 +158,9 @@
 
                 foreach (FileInfo fi in new DirectoryInfo(workingDir).GetFiles())
                 {
-                    vm.ZipFilesContent.Add(service.ParseClassFile(fi.FullName));
+                    var classFile = service.ParseClassFile(fi.FullName);
+                    classFile.FileType = zipService.GetFileType(fi.Name);
+                    vm.ZipFilesContent.Add(classFile);
                 }
             }
             catch (Exception ex)

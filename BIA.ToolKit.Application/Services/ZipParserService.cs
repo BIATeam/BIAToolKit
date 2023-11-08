@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Domain.CRUDGenerator;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -55,7 +56,7 @@
                     files.Add(entry.FullName);
                 }
 
-                CheckZipArchive(entityName, compagnyName, projectName, files);
+                //CheckZipArchive(entityName, compagnyName, projectName, files);
             }
             catch (Exception ex)
             {
@@ -63,6 +64,42 @@
             }
 
             return tempDir;
+        }
+
+        public FileType? GetFileType(string fileName)
+        {
+            if (fileName == null)
+            {
+                consoleWriter.AddMessageLine($"File type not found for: '{fileName}'", "Orange");
+                return null;
+            }
+            else if (fileName.EndsWith("AppService.cs"))
+            {
+                if (fileName.StartsWith("I"))
+                {
+                    return FileType.IAppService;
+                }
+                else
+                {
+                    return FileType.AppService;
+                }
+            }
+            else if (fileName.EndsWith("Dto.cs"))
+            {
+                return FileType.Dto;
+            }
+            else if (fileName.EndsWith("Controller.cs"))
+            {
+                return FileType.Controller;
+            }
+            else if (fileName.EndsWith("Mapper.cs"))
+            {
+                return FileType.Mapper;
+            }
+            else
+            {
+                return FileType.Entity;
+            }
         }
 
         private bool CheckZipArchive(string entityName, string compagnyName, string projectName, List<string> files)

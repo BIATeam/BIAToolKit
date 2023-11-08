@@ -9,6 +9,8 @@
     {
         public string FileName { get; set; }
 
+        public FileType? FileType { get; set; }
+
         public NamespaceDeclarationSyntax? NamespaceSyntax { get; set; }
 
         public SyntaxTokenList VisibilityList { get; set; }
@@ -19,7 +21,7 @@
 
         public BaseListSyntax? BaseList { get; set; }
 
-        public List<FieldDeclarationSyntax> PropertyList { get; set; }
+        public List<PropertyDeclarationSyntax> PropertyList { get; set; }
 
         public List<ConstructorDeclarationSyntax> ConstructorList { get; set; }
 
@@ -32,5 +34,15 @@
             ConstructorList = new();
             MethodList = new();
         }
+    }
+
+    public enum FileType
+    {
+        AppService,
+        Controller,
+        Dto,
+        Entity,
+        IAppService,
+        Mapper
     }
 }

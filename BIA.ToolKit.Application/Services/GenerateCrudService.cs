@@ -2,10 +2,13 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Text;
 
     public class GenerateCrudService
@@ -24,43 +27,58 @@
             this.consoleWriter = consoleWriter;
         }
 
-        public void GenerateCrudFiles(Project currentProject, EntityInfo dtoEntity)
+        public void GenerateCrudFiles(Project currentProject, EntityInfo dtoEntity, List<ClassDefinition> classDefinitionFromZip)
         {
-
 #if DEBUG
             consoleWriter.AddMessageLine($"*** Generate CRUD files on '{Path.Combine(currentProject.Folder, GENERATED_FOLDER)}' ***", "Green");
 #endif
 
             try
             {
-                string dotnetDir = Path.Combine(currentProject.Folder, GENERATED_FOLDER, Constants.FolderNetCore);
-                string angularDir = Path.Combine(currentProject.Folder, GENERATED_FOLDER, Constants.FolderAngular);
+                string generatedFolder = Path.Combine(currentProject.Folder, currentProject.Name, GENERATED_FOLDER);
+                string dotnetDir = Path.Combine(generatedFolder, Constants.FolderDotNet);
+                string angularDir = Path.Combine(generatedFolder, Constants.FolderAngular);
+                string entityName = GetEntityNameFromDto(dtoEntity.Name);
 
-                InitPath(dtoEntity.NamespaceLastPart, currentProject.CompanyName, currentProject.Name);
+                InitPath(entityName, currentProject.CompanyName, currentProject.Name);
                 PrepareFolders(dotnetDir, angularDir);
 
+                // Copy Dto file
+
                 // Entity
-                GenerateEntityFile(dotnetDir, currentProject, dtoEntity);
-                GenerateEntityMapperFile(dotnetDir, currentProject, dtoEntity);
+                GenerateEntityFile(entityName, dotnetDir, currentProject, dtoEntity, classDefinitionFromZip.Where(x => x.FileType == FileType.Entity).First());
+                //GenerateEntityMapperFile(dotnetDir, currentProject, dtoEntity);
 
                 // Application
-                GenerateIApplicationFile(dotnetDir, currentProject, dtoEntity);
-                GenerateApplicationFile(dotnetDir, currentProject, dtoEntity);
+                //GenerateIApplicationFile(dotnetDir, currentProject, dtoEntity);
+                //GenerateApplicationFile(dotnetDir, currentProject, dtoEntity);
 
                 // Controller
-                GenerateControllerFile(dotnetDir, currentProject, dtoEntity);
+                //GenerateControllerFile(dotnetDir, currentProject, dtoEntity);
 
                 // IocContainer
-                CreateIocContainerFile(dotnetDir, dtoEntity.NamespaceLastPart);
+                CreateIocContainerFile(dotnetDir, entityName);
 
                 // Rights
                 CreateRightsFile(dotnetDir, currentProject, dtoEntity);
                 CreateBIANETConfigFile(dotnetDir, currentProject, dtoEntity);
+
+                System.Diagnostics.Process.Start("explorer.exe", generatedFolder);
             }
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"An error has occurred in CRUD generation process: {ex.Message}", "Red");
             }
+        }
+
+        private string GetEntityNameFromDto(string dtoFileName)
+        {
+            if (dtoFileName.ToLower().EndsWith("dto"))
+            {
+                return dtoFileName[..^3];   // name without 'dto' suffix
+            }
+
+            return dtoFileName;
         }
 
         private void InitPath(string entityName, string compagnyName, string projectName)
@@ -71,8 +89,6 @@
             controllerFolder = $@"{compagnyName}.{projectName}.Presentation.Api/Controllers/{entityName}";
         }
 
-
-
         private void PrepareFolders(string dotnetDir, string angularDir)
         {
             // Clean destination directory if already exist
@@ -82,7 +98,7 @@
             }
             Directory.CreateDirectory(Path.Combine(dotnetDir, applicationFolder));
             Directory.CreateDirectory(Path.Combine(dotnetDir, domainFolder));
-            //Directory.CreateDirectory(Path.Combine(dotnetDir, domainDtoFolder));
+            Directory.CreateDirectory(Path.Combine(dotnetDir, domainDtoFolder));
             Directory.CreateDirectory(Path.Combine(dotnetDir, controllerFolder));
 
             // Clean destination directory if already exist
@@ -103,48 +119,98 @@
         }
 
         #region Entity
-        private void GenerateEntityFile(string destDir, Project currentProject, EntityInfo dtoEntity)
+        private void GenerateEntityFile(string entityName, string destDir, Project currentProject, EntityInfo dtoEntity, ClassDefinition entityClass)
         {
-            string entityName = dtoEntity.NamespaceLastPart;
             string fileName = $"{entityName}.cs";
             StringBuilder sb = new();
 
             // Generate file header
             sb.AppendLine(GenerateFileHeader(fileName, currentProject.CompanyName));
 
-            // Generate namespace + using
-            sb.AppendLine($"namespace {currentProject.CompanyName}.{currentProject.Name}.Domain.{entityName}Module.Aggregate");
+            // Generate namespace + using   
+            sb.AppendLine($"{entityClass.NamespaceSyntax.Name}");
+
             sb.AppendLine($"{{");
-            sb.AppendLine($"    using System;");
-            sb.AppendLine($"    using System.Collections.Generic;");
-            sb.AppendLine($"    using System.ComponentModel.DataAnnotations.Schema;");
-            sb.AppendLine($"    using BIA.Net.Core.Domain;");
-            sb.AppendLine($"    using {currentProject.CompanyName}.{currentProject.Name}.Domain.SiteModule.Aggregate;");
+            for (int i = 0; i < entityClass.NamespaceSyntax.Usings.Count; i++)
+            {
+                sb.AppendLine($"   {entityClass.NamespaceSyntax.Usings[i]}");
+            }
             sb.AppendLine();
 
             // Generate class declaration
             sb.AppendLine($"    /// <summary>");
             sb.AppendLine($"    /// The {entityName} entity.");
             sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    public class {entityName} : VersionedTable, IEntity<{dtoEntity.PrimaryKey}>");
+            sb.AppendLine($"    {entityClass.VisibilityList} class {entityName}{entityClass.BaseList}");
             sb.AppendLine($"    {{");
 
             // Generate primary key
             if (dtoEntity.PrimaryKey.ToLower() == "int")
             {
-                sb.AppendLine($"        /// <summary>");
-                sb.AppendLine($"        /// Gets or Sets the id.");
-                sb.AppendLine($"        /// </summary>");
-                sb.AppendLine($"        public {dtoEntity.PrimaryKey} Id {{ get; set; }}{Environment.NewLine}");
+                var prop = entityClass.PropertyList.Where(x => x.Identifier.Text.ToLower() == "id").First();
+                if (prop != null)
+                {
+                    sb.AppendLine($"        /// <summary>");
+                    sb.AppendLine($"        /// Gets or Sets the id.");
+                    sb.AppendLine($"        /// </summary>");
+                    sb.AppendLine($"        {prop}{Environment.NewLine}");
+                }
             }
 
             // Generate properties
             foreach (PropertyInfo p in dtoEntity.Properties)
             {
-                sb.AppendLine($"        /// <summary>");
-                sb.AppendLine($"        /// Gets or Sets {p.Name}.");
-                sb.AppendLine($"        /// </summary>");
-                sb.AppendLine($"        public {p.Type} {p.Name} {{ get; set; }}{Environment.NewLine}");
+                if (p.Type == "int" && p.Name.ToLower() == "siteid")    // int SiteId
+                {
+                    string tmp = p.Name[..^2];
+                    sb.AppendLine($"        /// <summary>");
+                    sb.AppendLine($"        /// Gets or Sets {tmp}.");
+                    sb.AppendLine($"        /// </summary>");
+                    sb.AppendLine($"        public virtual {tmp} {tmp} {{ get; set; }}{Environment.NewLine}");
+                    sb.AppendLine($"        /// <summary>");
+                    sb.AppendLine($"        /// Gets or Sets {p.Name}.");
+                    sb.AppendLine($"        /// </summary>");
+                    sb.AppendLine($"        public {p.Type} {p.Name} {{ get; set; }}{Environment.NewLine}");
+                }
+                else if (p.Type == "OptionDto")    // Type OptionDto  
+                {
+                    sb.AppendLine($"        /// <summary>");
+                    sb.AppendLine($"        /// Gets or Sets {p.Name}.");
+                    sb.AppendLine($"        /// </summary>");
+                    sb.AppendLine($"        //****************************************************************************************");
+                    sb.AppendLine($"        //****************** Rework OptionDto by 2 lines: type + id ******************************");
+                    sb.AppendLine($"        // public int {p.Name}Id {{ get; set; }}");
+                    sb.AppendLine($"        // public virtual {p.Name} {p.Name} {{ get; set; }}");
+                    sb.AppendLine($"        //****************************************************************************************");
+                    sb.AppendLine($"        public {p.Type} {p.Name} {{ get; set; }}{Environment.NewLine}");
+                }
+                else if (p.Type.EndsWith("Dto"))    // Type XXXDto
+                {
+                    string tmp = p.Type[..^3];
+                    sb.AppendLine($"        /// <summary>");
+                    sb.AppendLine($"        /// Gets or Sets {p.Name}.");
+                    sb.AppendLine($"        /// </summary>");
+                    sb.AppendLine($"        public virtual {tmp} {p.Name} {{ get; set; }}{Environment.NewLine}");
+                    sb.AppendLine($"        /// <summary>");
+                    sb.AppendLine($"        /// Gets or Sets {p.Name}.");
+                    sb.AppendLine($"        /// </summary>");
+                    sb.AppendLine($"        public int {p.Name}Id {{ get; set; }}{Environment.NewLine}");
+                }
+                else if (p.Type.EndsWith("Dto>"))   // Collection of XXXDto
+                {
+                    string tmp = p.Type.Replace("Dto", "");
+                    sb.AppendLine($"        /// <summary>");
+                    sb.AppendLine($"        /// Gets or Sets {p.Name}.");
+                    sb.AppendLine($"        /// </summary>");
+                    sb.AppendLine($"        public {tmp} {p.Name} {{ get; set; }}{Environment.NewLine}");
+                }
+                else                                // All others cases     
+                {
+                    sb.AppendLine($"        /// <summary>");
+                    sb.AppendLine($"        /// Gets or Sets {p.Name}.");
+                    sb.AppendLine($"        /// </summary>");
+                    sb.AppendLine($"        public {p.Type} {p.Name} {{ get; set; }}{Environment.NewLine}");
+                }
             }
             sb.AppendLine($"    }}");
             sb.AppendLine($"}}");

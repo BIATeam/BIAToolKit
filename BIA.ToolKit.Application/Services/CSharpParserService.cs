@@ -173,10 +173,10 @@ using Roslyn.Services;*/
                 VisibilityList = typeDeclaration.Modifiers,
             };
 
-            List<MemberDeclarationSyntax> propertyList = typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.FieldDeclaration).ToList();
+            List<MemberDeclarationSyntax> propertyList = typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.PropertyDeclaration).ToList();
             if (propertyList != null && propertyList.Any())
             {
-                propertyList.ForEach(x => classDefinition.PropertyList.Add((FieldDeclarationSyntax)x));
+                propertyList.ForEach(x => classDefinition.PropertyList.Add((PropertyDeclarationSyntax)x));
             }
 
             List<MemberDeclarationSyntax> constructorList = typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.ConstructorDeclaration).ToList();
@@ -193,6 +193,8 @@ using Roslyn.Services;*/
 
             return classDefinition;
         }
+
+
 
         public async Task ParseSolution(string projectPath)
         {
