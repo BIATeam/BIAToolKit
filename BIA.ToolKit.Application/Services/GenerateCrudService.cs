@@ -50,8 +50,8 @@
                 //GenerateEntityMapperFile(dotnetDir, currentProject, dtoEntity);
 
                 // Application
-                //GenerateIApplicationFile(dotnetDir, currentProject, dtoEntity);
-                //GenerateApplicationFile(dotnetDir, currentProject, dtoEntity);
+                GenerateIApplicationFile(entityName, dotnetDir, currentProject, dtoEntity, classDefinitionFromZip.Where(x => x.FileType == FileType.IAppService).First());
+                GenerateApplicationFile(entityName, dotnetDir, currentProject, dtoEntity, classDefinitionFromZip.Where(x => x.FileType == FileType.AppService).First());
 
                 // Controller
                 //GenerateControllerFile(dotnetDir, currentProject, dtoEntity);
@@ -124,7 +124,7 @@
             GenerateNamespaceUsing(sb, entityName, dtoEntity, classDefinition);
 
             // Generate class declaration
-            GenerateClassDeclaration(sb, entityName, classDefinition);
+            GenerateClassDeclaration(sb, entityName, classDefinition, entityName);
 
             // Generate primary key
             if (dtoEntity.PrimaryKey.ToLower() == "int")
@@ -178,9 +178,8 @@
             CommonMethods.CreateFile(sb, Path.Combine(destDir, domainFolder, fileName));
         }
 
-        private void GenerateEntityMapperFile(string destDir, Project currentProject, EntityInfo dtoEntity)
+        private void GenerateEntityMapperFile(string entityName, string destDir, Project currentProject, EntityInfo dtoEntity)
         {
-            string entityName = dtoEntity.NamespaceLastPart;
             string fileName = $"{entityName}Mapper.cs";
             StringBuilder sb = new();
 
@@ -195,31 +194,20 @@
         #endregion
 
         #region Application
-        private void GenerateIApplicationFile(string destDir, Project currentProject, EntityInfo dtoEntity)
+        private void GenerateIApplicationFile(string entityName, string destDir, Project currentProject, EntityInfo dtoEntity, ClassDefinition classDefinition)
         {
-            string entityName = dtoEntity.NamespaceLastPart;
-            string fileName = $"I{entityName}AppService.cs";
+            string className = $"I{entityName}AppService";
+            string fileName = $"{className}.cs";
             StringBuilder sb = new();
 
             // Generate file header
             GenerateFileHeader(sb, fileName, currentProject.CompanyName);
 
             // Generate namespace + using
-            sb.AppendLine($"namespace {currentProject.CompanyName}.{currentProject.Name}.Application.{entityName}");
-            sb.AppendLine($"{{");
-            sb.AppendLine($"    using System.Collections.Generic;");
-            sb.AppendLine($"    using System.Threading.Tasks;");
-            sb.AppendLine($"    using BIA.Net.Core.Application;");
-            sb.AppendLine($"    using BIA.Net.Core.Domain.Dto.Base;");
-            sb.AppendLine($"    using Safran.PAS.Domain.{entityName};");
-            sb.AppendLine($"    using Safran.PAS.Domain.Dto.{entityName};");
+            GenerateNamespaceUsing(sb, entityName, dtoEntity, classDefinition);
 
             // Generate class declaration
-            sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// The interface defining the application service for {entityName}.");
-            sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    public interface I{entityName}AppService : ICrudAppServiceBase<{entityName}Dto, {entityName}, {dtoEntity.PrimaryKey}, PagingFilterFormatDto>");
-            sb.AppendLine($"    {{");
+            GenerateInterfaceDeclaration(sb, entityName, classDefinition, className);
 
             // TODO NMA
 
@@ -230,36 +218,20 @@
             CommonMethods.CreateFile(sb, Path.Combine(destDir, applicationFolder, fileName));
         }
 
-        private void GenerateApplicationFile(string destDir, Project currentProject, EntityInfo dtoEntity)
+        private void GenerateApplicationFile(string entityName, string destDir, Project currentProject, EntityInfo dtoEntity, ClassDefinition classDefinition)
         {
-            string entityName = dtoEntity.NamespaceLastPart;
-            string fileName = $"{entityName}AppService.cs";
+            string className = $"{entityName}AppService";
+            string fileName = $"{className}.cs";
             StringBuilder sb = new();
 
             // Generate file header
             GenerateFileHeader(sb, fileName, currentProject.CompanyName);
 
             // Generate namespace + using
-            sb.AppendLine($"namespace {currentProject.CompanyName}.{currentProject.Name}.Application.{entityName}");
-            sb.AppendLine($"{{");
-            sb.AppendLine($"    using System.Collections.Generic;");
-            sb.AppendLine($"    using System.Security.Principal;");
-            sb.AppendLine($"    using System.Threading.Tasks;");
-            sb.AppendLine($"    using BIA.Net.Core.Domain.Dto.Base;");
-            sb.AppendLine($"    using BIA.Net.Core.Domain.Dto.User;");
-            sb.AppendLine($"    using BIA.Net.Core.Domain.RepoContract;");
-            sb.AppendLine($"    using BIA.Net.Core.Domain.Specification;");
-            sb.AppendLine($"    using Safran.PAS.Domain.Dto.{entityName};");
-            sb.AppendLine($"    using Safran.PAS.Domain.{entityName};");
-            sb.AppendLine($"    using BIA.Net.Core.Application;");
-            sb.AppendLine($"    using BIA.Net.Core.Application.Authentication;");
+            GenerateNamespaceUsing(sb, entityName, dtoEntity, classDefinition);
 
             // Generate class declaration
-            sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// The application service used for {entityName}.");
-            sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    public class {entityName}AppService : CrudAppServiceBase<{entityName}Dto, {entityName}, {dtoEntity.PrimaryKey}, PagingFilterFormatDto, {entityName}Mapper>, I{entityName}AppService");
-            sb.AppendLine($"    {{");
+            GenerateClassDeclaration(sb, entityName, classDefinition, className);
 
             // TODO NMA
 
@@ -272,9 +244,8 @@
         #endregion
 
         #region Controller
-        private void GenerateControllerFile(string destDir, Project currentProject, EntityInfo dtoEntity)
+        private void GenerateControllerFile(string entityName, string destDir, Project currentProject, EntityInfo dtoEntity)
         {
-            string entityName = dtoEntity.NamespaceLastPart;
             string fileName = $"{entityName}sController.cs";
             StringBuilder sb = new();
 
@@ -388,18 +359,34 @@
             {
                 var @using = classDefinition.NamespaceSyntax.Usings[i].ToString().
                     Replace(classDefinition.CompagnyName, dtoEntity.CompagnyName).
-                    Replace(classDefinition.ProjectName, dtoEntity.ProjectName);
+                    Replace(classDefinition.ProjectName, dtoEntity.ProjectName).
+                    Replace(classDefinition.EntityName, entityName);
                 sb.AppendLine($"   {@using}");
             }
             sb.AppendLine();
         }
 
-        private void GenerateClassDeclaration(StringBuilder sb, string entityName, ClassDefinition classDefinition)
+        private void GenerateClassDeclaration(StringBuilder sb, string entityName, ClassDefinition classDefinition, string className)
         {
+            string baselist = classDefinition.BaseList.ToString().
+               Replace(classDefinition.EntityName, entityName);
+
             sb.AppendLine($"    /// <summary>");
             sb.AppendLine($"    /// The {entityName} entity.");
             sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    {classDefinition.VisibilityList} class {entityName}{classDefinition.BaseList}");
+            sb.AppendLine($"    {classDefinition.VisibilityList} class {className} {baselist}");
+            sb.AppendLine($"    {{");
+        }
+
+        private void GenerateInterfaceDeclaration(StringBuilder sb, string entityName, ClassDefinition classDefinition, string className)
+        {
+            string baselist = classDefinition.BaseList.ToString().
+                Replace(classDefinition.EntityName, entityName);
+
+            sb.AppendLine($"    /// <summary>");
+            sb.AppendLine($"    /// The {entityName} interface.");
+            sb.AppendLine($"    /// </summary>");
+            sb.AppendLine($"    {classDefinition.VisibilityList} interface {className} {baselist}");
             sb.AppendLine($"    {{");
         }
 
