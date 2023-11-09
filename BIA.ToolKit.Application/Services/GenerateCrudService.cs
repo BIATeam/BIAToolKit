@@ -5,6 +5,8 @@
     using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
+    using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -206,8 +208,8 @@
             // Generate namespace + using
             GenerateNamespaceUsing(sb, entityName, dtoEntity, classDefinition);
 
-            // Generate class declaration
-            GenerateInterfaceDeclaration(sb, entityName, classDefinition, className);
+            // Generate interface declaration
+            GenerateClassDeclaration(sb, entityName, classDefinition, className);
 
             // TODO NMA
 
@@ -232,6 +234,19 @@
 
             // Generate class declaration
             GenerateClassDeclaration(sb, entityName, classDefinition, className);
+
+            // Generate class fields
+            foreach (FieldDeclarationSyntax field in classDefinition.FieldList)
+            {
+                GenerateField(sb, field.Declaration.ToString(), string.Join(' ', field.Modifiers.ToList()));
+            }
+
+            // Generate class constructors
+            foreach (ConstructorDeclarationSyntax cd in classDefinition.ConstructorList)
+            {
+                GenerateConstructor(sb, entityName, classDefinition.EntityName, cd.Identifier.ToString(), string.Join(' ', cd.ParameterList),
+                    cd.Initializer.ToFullString(), cd.Body.ToFullString(), string.Join(' ', cd.Modifiers.ToList()));
+            }
 
             // TODO NMA
 
@@ -371,22 +386,27 @@
             string baselist = classDefinition.BaseList.ToString().
                Replace(classDefinition.EntityName, entityName);
 
-            sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// The {entityName} entity.");
-            sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    {classDefinition.VisibilityList} class {className} {baselist}");
-            sb.AppendLine($"    {{");
-        }
+            string type = "class";
+            switch (classDefinition.Type)
+            {
+                case SyntaxKind.ClassDeclaration:
+                    type = "class";
+                    break;
+                case SyntaxKind.InterfaceDeclaration:
+                    type = "interface";
+                    break;
+                case SyntaxKind.EnumDeclaration:
+                    type = "enum";
+                    break;
+                case SyntaxKind.StructDeclaration:
+                    type = "struct";
+                    break;
+            }
 
-        private void GenerateInterfaceDeclaration(StringBuilder sb, string entityName, ClassDefinition classDefinition, string className)
-        {
-            string baselist = classDefinition.BaseList.ToString().
-                Replace(classDefinition.EntityName, entityName);
-
             sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// The {entityName} interface.");
+            sb.AppendLine($"    /// The {entityName} {type}.");
             sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    {classDefinition.VisibilityList} interface {className} {baselist}");
+            sb.AppendLine($"    {classDefinition.VisibilityList} {type} {className} {baselist}");
             sb.AppendLine($"    {{");
         }
 
@@ -397,5 +417,32 @@
             sb.AppendLine($"        /// </summary>");
             sb.AppendLine($"        {modifier} {type} {property} {{ get; set; }}{Environment.NewLine}");
         }
+
+        private void GenerateField(StringBuilder sb, string fieldDef, string modifier = "public")
+        {
+            var tmp = fieldDef.Split(' ');
+            string type = tmp[0];
+            string field = tmp[1];
+
+            sb.AppendLine($"        /// <summary>");
+            sb.AppendLine($"        /// The {field}.");
+            sb.AppendLine($"        /// </summary>");
+            sb.AppendLine($"        {modifier} {type} {field}{Environment.NewLine}");
+        }
+
+        private void GenerateConstructor(StringBuilder sb, string dtoEntityName, string classDefEntityName, string constructorName, string parameters, string baseList, string body, string modifier = "public")
+        {
+            constructorName = constructorName.Replace(classDefEntityName, dtoEntityName);
+            parameters = parameters.Replace(classDefEntityName, dtoEntityName);
+            baseList = baseList.Replace(classDefEntityName, dtoEntityName);
+            body = body.Replace(classDefEntityName, dtoEntityName);
+
+            sb.AppendLine($"        /// <summary>");
+            sb.AppendLine($"        /// Initializes a new instance of the <see cref=\"{constructorName}\"/> class.");
+            sb.AppendLine($"        /// </summary>");
+            sb.AppendLine($"        {modifier} {constructorName}{parameters}");
+            sb.AppendLine($"{baseList}{body}{Environment.NewLine}");
+        }
+
     }
 }

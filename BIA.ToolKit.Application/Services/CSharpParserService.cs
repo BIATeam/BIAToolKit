@@ -179,6 +179,12 @@ using Roslyn.Services;*/
                 propertyList.ForEach(x => classDefinition.PropertyList.Add((PropertyDeclarationSyntax)x));
             }
 
+            List<MemberDeclarationSyntax> fieldList = typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.FieldDeclaration).ToList();
+            if (fieldList != null && fieldList.Any())
+            {
+                fieldList.ForEach(x => classDefinition.FieldList.Add((FieldDeclarationSyntax)x));
+            }
+
             List<MemberDeclarationSyntax> constructorList = typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.ConstructorDeclaration).ToList();
             if (constructorList != null && constructorList.Any())
             {

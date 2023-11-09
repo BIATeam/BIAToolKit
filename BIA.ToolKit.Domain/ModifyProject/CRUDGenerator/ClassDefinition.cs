@@ -42,6 +42,8 @@
 
         public List<PropertyDeclarationSyntax> PropertyList { get; set; }
 
+        public List<FieldDeclarationSyntax> FieldList { get; set; }
+
         public List<ConstructorDeclarationSyntax> ConstructorList { get; set; }
 
         public List<MethodDeclarationSyntax> MethodList { get; set; }
@@ -50,6 +52,7 @@
         {
             this.FileName = fileName;
             this.PropertyList = new();
+            this.FieldList = new();
             this.ConstructorList = new();
             this.MethodList = new();
         }
