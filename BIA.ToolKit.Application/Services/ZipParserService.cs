@@ -122,7 +122,7 @@
                     pattern = @"^(\w+)Dto\.cs$";
                     break;
                 case FileType.Controller:
-                    pattern = @"^(\w+)s?Controller\.cs$";
+                    pattern = @"^((\w+)s|(\w+))Controller\.cs$";
                     break;
                 case FileType.Mapper:
                     pattern = @"^(\w+)Mapper\.cs$";
@@ -141,7 +141,14 @@
                 GroupCollection groups = matches[0].Groups;
                 if (groups.Count > 0)
                 {
-                    name = groups[1].Value;
+                    if (groups.Count > 2)
+                    {
+                        name = groups[2].Value; // Used only for controllers
+                    }
+                    else
+                    {
+                        name = groups[1].Value;
+                    }
                 }
             }
 

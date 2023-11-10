@@ -45,8 +45,6 @@
                 InitPath(entityName, currentProject.CompanyName, currentProject.Name);
                 PrepareFolders(dotnetDir, angularDir);
 
-                // Copy Dto file
-
                 // Entity
                 GenerateEntityFile(entityName, dotnetDir, currentProject, dtoEntity, classDefinitionFromZip.Where(x => x.FileType == FileType.Entity).First());
                 //GenerateEntityMapperFile(dotnetDir, currentProject, dtoEntity);
@@ -56,7 +54,7 @@
                 GenerateApplicationFile(entityName, dotnetDir, currentProject, dtoEntity, classDefinitionFromZip.Where(x => x.FileType == FileType.AppService).First());
 
                 // Controller
-                //GenerateControllerFile(dotnetDir, currentProject, dtoEntity);
+                GenerateControllerFile(entityName, dotnetDir, currentProject, dtoEntity, classDefinitionFromZip.Where(x => x.FileType == FileType.Controller).First());
 
                 // IocContainer
                 CreateIocContainerFile(dotnetDir, entityName);
@@ -111,8 +109,6 @@
             Directory.CreateDirectory(angularDir);
         }
 
-
-
         #region Entity
         private void GenerateEntityFile(string entityName, string destDir, Project currentProject, EntityInfo dtoEntity, ClassDefinition classDefinition)
         {
@@ -126,7 +122,7 @@
             GenerateNamespaceUsing(sb, entityName, dtoEntity, classDefinition);
 
             // Generate class declaration
-            GenerateClassDeclaration(sb, entityName, classDefinition, entityName);
+            GenerateClassDeclaration(sb, entityName, classDefinition, entityName, $"The {entityName} entity");
 
             // Generate primary key
             if (dtoEntity.PrimaryKey.ToLower() == "int")
@@ -209,7 +205,7 @@
             GenerateNamespaceUsing(sb, entityName, dtoEntity, classDefinition);
 
             // Generate interface declaration
-            GenerateClassDeclaration(sb, entityName, classDefinition, className);
+            GenerateClassDeclaration(sb, entityName, classDefinition, className, $"The interface defining the application service for {entityName}");
 
             // TODO NMA
 
@@ -233,19 +229,19 @@
             GenerateNamespaceUsing(sb, entityName, dtoEntity, classDefinition);
 
             // Generate class declaration
-            GenerateClassDeclaration(sb, entityName, classDefinition, className);
+            GenerateClassDeclaration(sb, entityName, classDefinition, className, $"The application service used for {entityName}");
 
             // Generate class fields
-            foreach (FieldDeclarationSyntax field in classDefinition.FieldList)
+            foreach (FieldDeclarationSyntax fd in classDefinition.FieldList)
             {
-                GenerateField(sb, field.Declaration.ToString(), string.Join(' ', field.Modifiers.ToList()));
+                GenerateField(sb, fd.Declaration.ToString(), entityName, classDefinition.EntityName, string.Join(' ', fd.Modifiers.ToList()));
             }
 
             // Generate class constructors
             foreach (ConstructorDeclarationSyntax cd in classDefinition.ConstructorList)
             {
                 GenerateConstructor(sb, entityName, classDefinition.EntityName, cd.Identifier.ToString(), string.Join(' ', cd.ParameterList),
-                    cd.Initializer.ToFullString(), cd.Body.ToFullString(), string.Join(' ', cd.Modifiers.ToList()));
+                    cd.Initializer?.ToFullString(), cd.Body?.ToFullString(), string.Join(' ', cd.Modifiers.ToList()));
             }
 
             // TODO NMA
@@ -259,15 +255,45 @@
         #endregion
 
         #region Controller
-        private void GenerateControllerFile(string entityName, string destDir, Project currentProject, EntityInfo dtoEntity)
+        private void GenerateControllerFile(string entityName, string destDir, Project currentProject, EntityInfo dtoEntity, ClassDefinition classDefinition)
         {
-            string fileName = $"{entityName}sController.cs";
+            string className = $"{entityName}sController";
+            string fileName = $"{className}.cs";
             StringBuilder sb = new();
 
             // Generate file header
             GenerateFileHeader(sb, fileName, currentProject.CompanyName);
 
+            // Generate namespace + using
+            GenerateNamespaceUsing(sb, entityName, dtoEntity, classDefinition);
+
+            // Generate class declaration
+            GenerateClassDeclaration(sb, entityName, classDefinition, className, $"The API controller used to manage {entityName}");
+
+            // Generate class fields
+            foreach (FieldDeclarationSyntax fd in classDefinition.FieldList)
+            {
+                GenerateField(sb, fd.Declaration.ToString(), entityName, classDefinition.EntityName, string.Join(' ', fd.Modifiers.ToList()));
+            }
+
+            // Generate class constructors
+            foreach (ConstructorDeclarationSyntax cd in classDefinition.ConstructorList)
+            {
+                // TODO NMA
+                GenerateConstructor(sb, entityName, classDefinition.EntityName, cd.Identifier.ToString(), string.Join(' ', cd.ParameterList),
+                    cd.Initializer?.ToFullString(), cd.Body?.ToString(), string.Join(' ', cd.Modifiers.ToList()));
+            }
+
+            foreach (MethodDeclarationSyntax md in classDefinition.MethodList)
+            {
+                GenerateMethod(sb, entityName, classDefinition.EntityName, md.AttributeLists.ToList(), md.ReturnType.ToString(),
+                    md.Identifier.ToString(), string.Join(' ', md.ParameterList), md.Body?.ToString(), string.Join(' ', md.Modifiers.ToList()));
+            }
+
             // TODO NMA
+
+            sb.AppendLine($"    }}");
+            sb.AppendLine($"}}");
 
             // Create generated file on disk            
             CommonMethods.CreateFile(sb, Path.Combine(destDir, controllerFolder, fileName));
@@ -352,6 +378,7 @@
         }
         #endregion
 
+        #region Tools
         private void GenerateFileHeader(StringBuilder sb, string fileName, string companyName)
         {
             sb.AppendLine($"// <copyright file=\"{fileName}\" company=\"{companyName}\">");
@@ -370,18 +397,20 @@
 
             // Generate using
             sb.AppendLine($"{{");
-            for (int i = 0; i < classDefinition.NamespaceSyntax.Usings.Count; i++)
+
+            classDefinition.NamespaceSyntax.Usings.ToList().ForEach(@using =>
             {
-                var @using = classDefinition.NamespaceSyntax.Usings[i].ToString().
-                    Replace(classDefinition.CompagnyName, dtoEntity.CompagnyName).
-                    Replace(classDefinition.ProjectName, dtoEntity.ProjectName).
-                    Replace(classDefinition.EntityName, entityName);
-                sb.AppendLine($"   {@using}");
-            }
+                var usingFormated = @using.ToString().
+                   Replace(classDefinition.CompagnyName, dtoEntity.CompagnyName).
+                   Replace(classDefinition.ProjectName, dtoEntity.ProjectName).
+                   Replace(classDefinition.EntityName, entityName);
+                sb.AppendLine($"   {usingFormated}");
+            });
+
             sb.AppendLine();
         }
 
-        private void GenerateClassDeclaration(StringBuilder sb, string entityName, ClassDefinition classDefinition, string className)
+        private void GenerateClassDeclaration(StringBuilder sb, string entityName, ClassDefinition classDefinition, string className, string comment)
         {
             string baselist = classDefinition.BaseList.ToString().
                Replace(classDefinition.EntityName, entityName);
@@ -404,7 +433,7 @@
             }
 
             sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// The {entityName} {type}.");
+            sb.AppendLine($"    /// {comment}.");
             sb.AppendLine($"    /// </summary>");
             sb.AppendLine($"    {classDefinition.VisibilityList} {type} {className} {baselist}");
             sb.AppendLine($"    {{");
@@ -418,11 +447,11 @@
             sb.AppendLine($"        {modifier} {type} {property} {{ get; set; }}{Environment.NewLine}");
         }
 
-        private void GenerateField(StringBuilder sb, string fieldDef, string modifier = "public")
+        private void GenerateField(StringBuilder sb, string fieldDef, string dtoEntityName, string classDefEntityName, string modifier = "public")
         {
             var tmp = fieldDef.Split(' ');
-            string type = tmp[0];
-            string field = tmp[1];
+            string type = TransformValue(tmp[0], dtoEntityName, classDefEntityName);
+            string field = TransformValue(tmp[1], dtoEntityName, classDefEntityName, true);
 
             sb.AppendLine($"        /// <summary>");
             sb.AppendLine($"        /// The {field}.");
@@ -432,10 +461,10 @@
 
         private void GenerateConstructor(StringBuilder sb, string dtoEntityName, string classDefEntityName, string constructorName, string parameters, string baseList, string body, string modifier = "public")
         {
-            constructorName = constructorName.Replace(classDefEntityName, dtoEntityName);
-            parameters = parameters.Replace(classDefEntityName, dtoEntityName);
-            baseList = baseList.Replace(classDefEntityName, dtoEntityName);
-            body = body.Replace(classDefEntityName, dtoEntityName);
+            constructorName = TransformValue(constructorName, dtoEntityName, classDefEntityName);
+            parameters = TransformValue(parameters, dtoEntityName, classDefEntityName);
+            baseList = TransformValue(baseList, dtoEntityName, classDefEntityName);
+            body = TransformValue(body, dtoEntityName, classDefEntityName);
 
             sb.AppendLine($"        /// <summary>");
             sb.AppendLine($"        /// Initializes a new instance of the <see cref=\"{constructorName}\"/> class.");
@@ -444,5 +473,34 @@
             sb.AppendLine($"{baseList}{body}{Environment.NewLine}");
         }
 
+        private void GenerateMethod(StringBuilder sb, string dtoEntityName, string classDefEntityName, List<AttributeListSyntax> attributeList, string type, string methodName, string parameters, string body, string modifier = "public")
+        {
+            parameters = TransformValue(parameters, dtoEntityName, classDefEntityName);
+            body = TransformValue(body, dtoEntityName, classDefEntityName);
+
+            sb.AppendLine($"        /// <summary>");
+            sb.AppendLine($"        /// XXXX");
+            sb.AppendLine($"        /// </summary>");
+            attributeList.ForEach(attr =>
+            {
+                string attrFormated = TransformValue(attr.ToString(), dtoEntityName, classDefEntityName);
+                sb.AppendLine($"        {attrFormated}");
+            });
+            sb.AppendLine($"        {modifier} {type} {methodName}{parameters}");
+            sb.AppendLine($"        {body}{Environment.NewLine}");
+        }
+
+        private string TransformValue(string value, string dtoEntityName, string classDefEntityName, bool format = false)
+        {
+            if (string.IsNullOrEmpty(value))
+                return null;
+
+            string transform = value.Replace(classDefEntityName, dtoEntityName, StringComparison.InvariantCultureIgnoreCase);
+            if (format) // Set first character to lower
+                return Char.ToLowerInvariant(transform[0]) + transform.Substring(1);
+
+            return transform;
+        }
+        #endregion
     }
 }
