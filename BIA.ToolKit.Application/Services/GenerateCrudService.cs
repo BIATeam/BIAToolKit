@@ -33,8 +33,7 @@
 #endif
             try
             {
-                var classNameDef = classDefinitionFromZip.Where(x => x.FileType == FileType.Entity).First();
-                this.entityNameReference = classNameDef?.Name.Text;
+                this.entityNameReference = ExtractEntityNameReference(classDefinitionFromZip);
                 this.entityNameGenerated = entityName;
 
                 string generatedFolder = Path.Combine(currentProject.Folder, currentProject.Name, Constants.FolderCrudGeneration);
@@ -438,6 +437,35 @@
         #endregion
 
         #region Tools
+        private string ExtractEntityNameReference(List<ClassDefinition> classDefinitionFromZip)
+        {
+            ClassDefinition classNameDef = classDefinitionFromZip.Where(x => x.FileType == FileType.Entity).FirstOrDefault();
+            if (classNameDef != null)
+            {
+                return classNameDef.Name.Text;
+            }
+
+            classNameDef = classDefinitionFromZip.Where(x => x.FileType == FileType.Dto).FirstOrDefault();
+            if (classNameDef != null)
+            {
+                return GetEntityNameFromDto(classNameDef.Name.Text);
+            }
+
+            throw new Exception("Zip not contains Entity or Dto file.");
+        }
+
+        private string GetFinalFilePath(string destDir, EntityInfo dtoEntity, ClassDefinition classDefinition)
+        {
+            // Get final path
+            string pathOnZip = TransformCompleteValue(classDefinition.PathOnZip, dtoEntity, classDefinition);
+            string destinationPath = Path.Combine(destDir, pathOnZip);
+
+            // Get parent folder and create it
+            Directory.CreateDirectory(new FileInfo(destinationPath).DirectoryName);
+
+            return destinationPath;
+        }
+
         private string TransformCompleteValue(string value, EntityInfo dtoEntity, ClassDefinition classDefinition)
         {
             string formatedValue = value.Replace(classDefinition.CompagnyName, dtoEntity.CompagnyName).
@@ -473,6 +501,7 @@
         #endregion
         #endregion
 
+
         #region Folder Tools
         private void PrepareFolder(string dir)
         {
@@ -483,18 +512,17 @@
             }
             Directory.CreateDirectory(dir);
         }
-
-        private string GetFinalFilePath(string destDir, EntityInfo dtoEntity, ClassDefinition classDefinition)
-        {
-            // Get final path
-            string pathOnZip = TransformCompleteValue(classDefinition.PathOnZip, dtoEntity, classDefinition);
-            string destinationPath = Path.Combine(destDir, pathOnZip);
-
-            // Get parent folder and create it
-            Directory.CreateDirectory(new FileInfo(destinationPath).DirectoryName);
-
-            return destinationPath;
-        }
         #endregion
+
+        public string GetEntityNameFromDto(string dtoFileName)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(dtoFileName);
+            if (fileName.ToLower().EndsWith("dto"))
+            {
+                return fileName[..^3];   // name without 'dto' suffix
+            }
+
+            return fileName;
+        }
     }
 }

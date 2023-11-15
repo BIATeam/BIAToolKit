@@ -71,7 +71,7 @@
 
         private void ParseDto_Click(object sender, RoutedEventArgs e)
         {
-            this.entityName = GetEntityNameFromDto(vm.DtoSelected);
+            this.entityName = crudService.GetEntityNameFromDto(vm.DtoSelected);
             ParseDtoFile(vm.DtoRootFilePath);
             vm.IsDtoParsed = true;
         }
@@ -230,17 +230,6 @@
             {
                 consoleWriter.AddMessageLine(ex.Message, "Red");
             }
-        }
-
-        private string GetEntityNameFromDto(string dtoFileName)
-        {
-            var fileName = Path.GetFileNameWithoutExtension(dtoFileName);
-            if (fileName.ToLower().EndsWith("dto"))
-            {
-                return fileName[..^3];   // name without 'dto' suffix
-            }
-
-            return fileName;
         }
         #endregion
     }
