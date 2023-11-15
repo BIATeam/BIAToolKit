@@ -9,6 +9,8 @@
     {
         public string FileName { get; set; }
 
+        public string PathOnZip { get; set; }
+
         public FileType? FileType { get; set; }
 
         public string? EntityName { get; set; }

@@ -22,6 +22,7 @@
         CSharpParserService service;
         ZipParserService zipService;
         GenerateCrudService crudService;
+        private string entityName;
 
         private CRUDGeneratorViewModel vm;
 
@@ -58,29 +59,61 @@
         #region Action
         private void ModifyDto_SelectionChanged(object sender, RoutedEventArgs e)
         {
+            vm.IsDtoParsed = false;
             vm.DtoRootFilePath = vm.DtoFiles[vm.DtoSelected];
         }
 
         private void ModifyZip_SelectionChanged(object sender, RoutedEventArgs e)
         {
+            vm.IsZipParsed = false;
             vm.ZipRootFilePath = vm.ZipFiles[vm.ZipSelected];
         }
 
         private void ParseDto_Click(object sender, RoutedEventArgs e)
         {
+            this.entityName = GetEntityNameFromDto(vm.DtoSelected);
             ParseDtoFile(vm.DtoRootFilePath);
             vm.IsDtoParsed = true;
         }
 
         private void ParseZip_Click(object sender, RoutedEventArgs e)
         {
-            ParseZipFile(vm.ZipRootFilePath, vm.DtoEntity.NamespaceLastPart);
+            if (vm.ZipSelected.StartsWith(Constants.FolderAngular))
+            {
+                // Parse Angular Zip files
+                ParseAngularZipFile();
+            }
+            else if (vm.ZipSelected.StartsWith(Constants.FolderDotNet))
+            {
+                // Parse DotNet Zip files
+                ParseDotNetZipFile();
+            }
+            else
+            {
+                consoleWriter.AddMessageLine($"*** Parsing Zip files not implemented ***", "Orange");
+                return;
+            }
+
             vm.IsZipParsed = true;
         }
 
         private void GenerateCrud_Click(object sender, RoutedEventArgs e)
         {
-            crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFilesContent);
+            if (vm.ZipSelected.StartsWith(Constants.FolderAngular))
+            {
+                // Generation Angular files
+                crudService.GenerateAngularCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity);
+            }
+            else if (vm.ZipSelected.StartsWith(Constants.FolderDotNet))
+            {
+                // Generation DotNet files
+                crudService.GenerateDotNetCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity, vm.DotNetZipFilesContent);
+            }
+            else
+            {
+                consoleWriter.AddMessageLine($"*** Generation CRUD files not implemented ***", "Orange");
+                return;
+            }
         }
         #endregion
 
@@ -142,8 +175,9 @@
             }
         }
 
-        private void ParseZipFile(string fileName, string entityName)
+        private void ParseDotNetZipFile()
         {
+            string fileName = vm.ZipRootFilePath;
             if (string.IsNullOrWhiteSpace(fileName))
             {
                 return;
@@ -151,25 +185,62 @@
 
             try
             {
-                string workingDir = zipService.ReadZip(fileName, entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name);
-                if (string.IsNullOrWhiteSpace(workingDir))
+                (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZip(fileName, this.entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderDotNet);
+                if (string.IsNullOrWhiteSpace(workingDirectoryPath))
                 {
-                    consoleWriter.AddMessageLine("All files not found on zip archive.", "Orange");
+                    consoleWriter.AddMessageLine($"Zip archive not found: '{fileName}'.", "Orange");
                 }
 
-                foreach (FileInfo fi in new DirectoryInfo(workingDir).GetFiles())
+                foreach (FileInfo fi in new DirectoryInfo(workingDirectoryPath).GetFiles())
                 {
-                    var classFile = service.ParseClassFile(fi.FullName);
+                    ClassDefinition classFile = service.ParseClassFile(fi.FullName);
+                    classFile.PathOnZip = fileList[fi.Name];
                     FileType? type = zipService.GetFileType(fi.Name);
                     classFile.FileType = type;
                     classFile.EntityName = zipService.GetEntityName(fi.Name, type);
-                    vm.ZipFilesContent.Add(classFile);
+                    vm.DotNetZipFilesContent.Add(classFile);
                 }
             }
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine(ex.Message, "Red");
             }
+        }
+
+        private void ParseAngularZipFile()
+        {
+            string fileName = vm.ZipRootFilePath;
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return;
+            }
+
+            try
+            {
+                (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZip(fileName, this.entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderAngular);
+                if (string.IsNullOrWhiteSpace(workingDirectoryPath))
+                {
+                    consoleWriter.AddMessageLine($"Zip archive not found: '{fileName}'.", "Orange");
+                }
+
+                // TODO NMA
+
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine(ex.Message, "Red");
+            }
+        }
+
+        private string GetEntityNameFromDto(string dtoFileName)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(dtoFileName);
+            if (fileName.ToLower().EndsWith("dto"))
+            {
+                return fileName[..^3];   // name without 'dto' suffix
+            }
+
+            return fileName;
         }
         #endregion
     }

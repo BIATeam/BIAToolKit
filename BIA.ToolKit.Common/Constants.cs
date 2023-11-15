@@ -43,5 +43,10 @@ namespace BIA.ToolKit.Common
         /// Folder name for Net Core files
         /// </summary>
         public const string FolderNetCore = "NetCore";
+
+        /// <summary>
+        /// Folder name for CRUD generated files
+        /// </summary>
+        public const string FolderCrudGeneration = "GeneratedCRUD";
     }
 }

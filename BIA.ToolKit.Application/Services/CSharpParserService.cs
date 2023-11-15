@@ -150,19 +150,9 @@ using Roslyn.Services;*/
             else
             {
                 consoleWriter.AddMessageLine($"No declaration found on file '{fileName}' :", "Orange");
-                // TODO NMA
                 typeDeclaration = null;
             }
             NamespaceDeclarationSyntax namespaceSyntax = root.Descendants<NamespaceDeclarationSyntax>().SingleOrDefault();
-
-            //if (typeDeclaration.IsKind(SyntaxKind.ClassDeclaration))
-            //{
-            //    ClassDeclarationSyntax classDeclaration = (ClassDeclarationSyntax)typeDeclaration;
-            //}
-            //if (typeDeclaration.IsKind(SyntaxKind.InterfaceDeclaration))
-            //{
-            //    InterfaceDeclarationSyntax interfaceDeclaration = (InterfaceDeclarationSyntax)typeDeclaration;
-            //}
 
             ClassDefinition classDefinition = new(fileName)
             {

@@ -5,7 +5,6 @@
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using System.Collections.Generic;
-    using System.IO;
 
     public class CRUDGeneratorViewModel : ObservableObject
     {
@@ -14,7 +13,7 @@
         /// </summary>
         public CRUDGeneratorViewModel()
         {
-            ZipFilesContent = new();
+            DotNetZipFilesContent = new();
         }
 
         #region CurrentProject
@@ -64,6 +63,7 @@
         private bool isDtoParsed = false;
         public bool IsDtoParsed
         {
+            get { return isDtoParsed; }
             set
             {
                 isDtoParsed = value;
@@ -75,6 +75,7 @@
         private bool isZipParsed = false;
         public bool IsZipParsed
         {
+            get { return isZipParsed; }
             set
             {
                 isZipParsed = value;
@@ -200,25 +201,6 @@
         }
         #endregion
 
-
-        public List<ClassDefinition> ZipFilesContent { get; private set; }
-
-        public string GetEntityFileName()
-        {
-            if (string.IsNullOrWhiteSpace(dtoRootFilePath))
-            {
-                return null;
-            }
-
-            string fileName = Path.GetFileNameWithoutExtension(dtoRootFilePath);
-            if (fileName.ToLower().EndsWith("dto"))
-            {
-                return fileName.Substring(0, fileName.Length - 3);
-            }
-            else
-            {
-                return fileName;
-            }
-        }
+        public List<ClassDefinition> DotNetZipFilesContent { get; }
     }
 }
