@@ -5,6 +5,7 @@
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
 
     public class CRUDGeneratorViewModel : ObservableObject
     {
@@ -14,6 +15,8 @@
         public CRUDGeneratorViewModel()
         {
             DotNetZipFilesContent = new();
+            ZipDotNetSelected = new();
+            ZipAngularSelected = new();
         }
 
         #region CurrentProject
@@ -29,7 +32,7 @@
         }
         #endregion
 
-        #region DtoEntity DtoProperties
+        #region Dto
         private EntityInfo dtoEntity;
         public EntityInfo DtoEntity
         {
@@ -57,7 +60,128 @@
                 }
             }
         }
+
+        private Dictionary<string, string> dtoFiles;
+        public Dictionary<string, string> DtoFiles
+        {
+            get { return dtoFiles; }
+            set
+            {
+                if (dtoFiles != value)
+                {
+                    dtoFiles = value;
+                    RaisePropertyChanged("DtoFiles");
+                }
+            }
+        }
+
+        private string dtoSelected;
+        public string DtoSelected
+        {
+            get { return dtoSelected; }
+            set
+            {
+                if (dtoSelected != value)
+                {
+                    dtoSelected = value;
+                    RaisePropertyChanged(nameof(IsButtonParseDtoEnable));
+                }
+            }
+        }
         #endregion
+
+        #region ZipFile
+        Dictionary<string, string> zipDotNetFiles;
+        public Dictionary<string, string> ZipDotNetFiles
+        {
+            get { return zipDotNetFiles; }
+            set
+            {
+                if (zipDotNetFiles != value)
+                {
+                    zipDotNetFiles = value;
+                    RaisePropertyChanged("ZipDotNetFiles");
+                }
+            }
+        }
+
+        Dictionary<string, string> zipAngularFiles;
+        public Dictionary<string, string> ZipAngularFiles
+        {
+            get { return zipAngularFiles; }
+            set
+            {
+                if (zipAngularFiles != value)
+                {
+                    zipAngularFiles = value;
+                    RaisePropertyChanged("ZipAngularFiles");
+                }
+            }
+        }
+
+        private ObservableCollection<string> zipDotNetSelected;
+        public ObservableCollection<string> ZipDotNetSelected
+        {
+            get { return zipDotNetSelected; }
+            set
+            {
+                if (zipDotNetSelected != value)
+                {
+                    zipDotNetSelected = value;
+                    RaisePropertyChanged(nameof(ZipDotNetSelected));
+                }
+            }
+        }
+
+        private ObservableCollection<string> zipAngularSelected;
+        public ObservableCollection<string> ZipAngularSelected
+        {
+            get { return zipAngularSelected; }
+            set
+            {
+                if (zipAngularSelected != value)
+                {
+                    zipAngularSelected = value;
+                    RaisePropertyChanged(nameof(ZipAngularSelected));
+                }
+            }
+        }
+        #endregion
+
+
+        private bool generateCrudFeature = false;
+        public bool GenerateCrudFeature
+        {
+            get { return generateCrudFeature; }
+            set
+            {
+                generateCrudFeature = value;
+                RaisePropertyChanged(nameof(GenerateCrudFeature));
+            }
+        }
+
+        private bool generateCrudTeam = false;
+        public bool GenerateCrudTeam
+        {
+            get { return generateCrudTeam; }
+            set
+            {
+                generateCrudTeam = value;
+                RaisePropertyChanged(nameof(GenerateCrudTeam));
+            }
+        }
+
+        private bool generateCrudOption = false;
+        public bool GenerateCrudOption
+        {
+            get { return generateCrudOption; }
+            set
+            {
+                generateCrudOption = value;
+                RaisePropertyChanged(nameof(GenerateCrudOption));
+            }
+        }
+
 
         #region Button
         private bool isDtoParsed = false;
@@ -87,7 +211,7 @@
         {
             get
             {
-                return !string.IsNullOrWhiteSpace(dtoRootFilePath);
+                return !string.IsNullOrWhiteSpace(DtoSelected);
             }
         }
 
@@ -95,8 +219,9 @@
         {
             get
             {
-                return !string.IsNullOrWhiteSpace(zipRootFilePath) && isDtoParsed &&
-                    CurrentProject != null && !string.IsNullOrWhiteSpace(CurrentProject.Folder);
+                return isDtoParsed
+                    && (ZipDotNetSelected.Count > 0)
+                    && (ZipAngularSelected.Count > 0);
             }
         }
 
@@ -104,102 +229,13 @@
         {
             get
             {
-                return IsButtonParseDtoEnable && isDtoParsed
-                    && IsButtonParseZipEnable && isZipParsed;
+                return isDtoParsed && isZipParsed;
             }
         }
         #endregion
 
-        #region DtoFile
-        private Dictionary<string, string> dtoFiles;
-        public Dictionary<string, string> DtoFiles
-        {
-            get { return dtoFiles; }
-            set
-            {
-                if (dtoFiles != value)
-                {
-                    dtoFiles = value;
-                    RaisePropertyChanged("DtoFiles");
-                }
-            }
-        }
 
-        private string dtoSelected;
-        public string DtoSelected
-        {
-            get { return dtoSelected; }
-            set
-            {
-                if (dtoSelected != value)
-                {
-                    dtoSelected = value;
-                }
-            }
-        }
 
-        private string dtoRootFilePath;
-        public string DtoRootFilePath
-        {
-            get { return dtoRootFilePath; }
-            set
-            {
-                if (dtoRootFilePath != value)
-                {
-                    dtoRootFilePath = value;
-                    RaisePropertyChanged(nameof(DtoRootFilePath));
-                    RaisePropertyChanged(nameof(IsButtonParseDtoEnable));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                }
-            }
-        }
-        #endregion
-
-        #region ZipFile
-        Dictionary<string, string> zipFiles;
-        public Dictionary<string, string> ZipFiles
-        {
-            get { return zipFiles; }
-            set
-            {
-                if (zipFiles != value)
-                {
-                    zipFiles = value;
-                    RaisePropertyChanged("ZipFiles");
-                }
-            }
-        }
-
-        private string zipSelected;
-        public string ZipSelected
-        {
-            get { return zipSelected; }
-            set
-            {
-                if (zipSelected != value)
-                {
-                    zipSelected = value;
-                }
-            }
-        }
-
-        private string zipRootFilePath;
-        public string ZipRootFilePath
-        {
-            get { return zipRootFilePath; }
-            set
-            {
-                if (zipRootFilePath != value)
-                {
-                    zipRootFilePath = value;
-                    //zipContent?.ZipPath = value;
-                    RaisePropertyChanged(nameof(ZipRootFilePath));
-                    RaisePropertyChanged(nameof(IsButtonParseZipEnable));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                }
-            }
-        }
-        #endregion
 
         public List<ClassDefinition> DotNetZipFilesContent { get; }
     }

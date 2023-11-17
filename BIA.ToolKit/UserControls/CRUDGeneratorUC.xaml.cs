@@ -8,6 +8,7 @@
     using BIA.ToolKit.Domain.ModifyProject;
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.IO;
     using System.Linq;
     using System.Windows;
@@ -23,8 +24,8 @@
         ZipParserService zipService;
         GenerateCrudService crudService;
         private string entityName;
-
-        private CRUDGeneratorViewModel vm;
+        private CRUDSettings crudSettings;
+        private readonly CRUDGeneratorViewModel vm;
 
         /// <summary>
         /// Constructor
@@ -53,67 +54,99 @@
         {
             vm.CurrentProject = currentProject;
             vm.DtoFiles = ListDtoFiles();
-            vm.ZipFiles = ListZipFiles();
+            vm.ZipDotNetFiles = ListZipFiles(Constants.FolderDotNet);
+            vm.ZipAngularFiles = ListZipFiles(Constants.FolderAngular);
+
+            crudSettings = new(consoleWriter);
         }
 
-        #region Action
+        #region State change
         private void ModifyDto_SelectionChanged(object sender, RoutedEventArgs e)
         {
+            if (vm == null) return;
             vm.IsDtoParsed = false;
-            vm.DtoRootFilePath = vm.DtoFiles[vm.DtoSelected];
         }
 
-        private void ModifyZip_SelectionChanged(object sender, RoutedEventArgs e)
+        private void GenerateCrudFeature_Change(object sender, RoutedEventArgs e)
         {
-            vm.IsZipParsed = false;
-            vm.ZipRootFilePath = vm.ZipFiles[vm.ZipSelected];
-        }
+            if (vm == null) return;
 
+            if ((bool)((CheckBox)sender).IsChecked)
+            {
+                vm.ZipDotNetSelected.Add(crudSettings.Feature_DotNet);
+                vm.ZipAngularSelected.Add(crudSettings.Feature_Angular);
+            }
+            else
+            {
+                vm.ZipDotNetSelected.Remove(crudSettings.Feature_DotNet);
+                vm.ZipAngularSelected.Remove(crudSettings.Feature_Angular);
+            }
+
+            vm.IsZipParsed = false;
+        }
+        private void GenerateCrudTeam_Change(object sender, RoutedEventArgs e)
+        {
+            if (vm == null) return;
+
+            if ((bool)((CheckBox)sender).IsChecked)
+            {
+                vm.ZipDotNetSelected.Add(crudSettings.Team_DotNet);
+                vm.ZipAngularSelected.Add(crudSettings.Team_Angular);
+            }
+            else
+            {
+                vm.ZipDotNetSelected.Remove(crudSettings.Team_DotNet);
+                vm.ZipAngularSelected.Remove(crudSettings.Team_Angular);
+            }
+
+            vm.IsZipParsed = false;
+        }
+        private void GenerateCrudOption_Change(object sender, RoutedEventArgs e)
+        {
+            if (vm == null) return;
+
+            if ((bool)((CheckBox)sender).IsChecked)
+            {
+                vm.ZipDotNetSelected.Add(crudSettings.Option_DotNet);
+                vm.ZipAngularSelected.Add(crudSettings.Option_Angular);
+            }
+            else
+            {
+                vm.ZipDotNetSelected.Remove(crudSettings.Option_DotNet);
+                vm.ZipAngularSelected.Remove(crudSettings.Option_Angular);
+            }
+
+            vm.IsZipParsed = false;
+        }
+        #endregion
+
+
+        #region Button Action
         private void ParseDto_Click(object sender, RoutedEventArgs e)
         {
             this.entityName = crudService.GetEntityNameFromDto(vm.DtoSelected);
-            ParseDtoFile(vm.DtoRootFilePath);
+            ParseDtoFile();
             vm.IsDtoParsed = true;
         }
 
         private void ParseZip_Click(object sender, RoutedEventArgs e)
         {
-            if (vm.ZipSelected.StartsWith(Constants.FolderAngular))
-            {
-                // Parse Angular Zip files
-                ParseAngularZipFile();
-            }
-            else if (vm.ZipSelected.StartsWith(Constants.FolderDotNet))
-            {
-                // Parse DotNet Zip files
-                ParseDotNetZipFile();
-            }
-            else
-            {
-                consoleWriter.AddMessageLine($"*** Parsing Zip files not implemented ***", "Orange");
-                return;
-            }
+            // Parse DotNet Zip files
+            ParseDotNetZipFile();
+
+            // Parse Angular Zip files
+            ParseAngularZipFile();
 
             vm.IsZipParsed = true;
         }
 
         private void GenerateCrud_Click(object sender, RoutedEventArgs e)
         {
-            if (vm.ZipSelected.StartsWith(Constants.FolderAngular))
-            {
-                // Generation Angular files
-                crudService.GenerateAngularCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity);
-            }
-            else if (vm.ZipSelected.StartsWith(Constants.FolderDotNet))
-            {
-                // Generation DotNet files
-                crudService.GenerateDotNetCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity, vm.DotNetZipFilesContent);
-            }
-            else
-            {
-                consoleWriter.AddMessageLine($"*** Generation CRUD files not implemented ***", "Orange");
-                return;
-            }
+            // Generation DotNet files
+            crudService.GenerateDotNetCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity, vm.DotNetZipFilesContent);
+
+            // Generation Angular files
+            crudService.GenerateAngularCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity);
         }
         #endregion
 
@@ -139,25 +172,24 @@
         /// <summary>
         /// List all Zip files from Dotnet and Angular folders.
         /// </summary>
-        private Dictionary<string, string> ListZipFiles()
+        private Dictionary<string, string> ListZipFiles(string dir)
         {
             Dictionary<string, string> zipFiles = new();
-            foreach (var dir in new List<string>() { Constants.FolderAngular, Constants.FolderDotNet })
-            {
-                string path = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, dir, "docs");
-                // List files
-                var files = Directory.GetFiles(path, "*.zip").ToList();
-                // Build dictionnary: key = file Name, Value = full path
-                files.ForEach(x => zipFiles.Add($@"{dir}\{new FileInfo(x).Name}", new FileInfo(x).FullName));
-            }
+            string path = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, dir, "docs");
+            // List files
+            var files = Directory.GetFiles(path, "*.zip").ToList();
+            // Build dictionnary: key = file Name, Value = full path
+            files.ForEach(x => zipFiles.Add($"{new FileInfo(x).Name}", new FileInfo(x).FullName));
 
             return zipFiles;
         }
 
-        private void ParseDtoFile(string fileName)
+        private void ParseDtoFile()
         {
+            string fileName = vm.DtoFiles[vm.DtoSelected];
             if (string.IsNullOrWhiteSpace(fileName))
             {
+                consoleWriter.AddMessageLine("Dto file not found to parse.", "Orange");
                 return;
             }
 
@@ -177,15 +209,21 @@
 
         private void ParseDotNetZipFile()
         {
-            string fileName = vm.ZipRootFilePath;
-            if (string.IsNullOrWhiteSpace(fileName))
+            List<string> fileName = new();
+            var tmp = vm.ZipDotNetFiles.Where(x => vm.ZipDotNetSelected.Contains(x.Key)).ToList();
+            tmp.ForEach(x => fileName.Add(x.Value));
+
+            if (fileName.Count < 1)
             {
+                consoleWriter.AddMessageLine("No DotNet Zip files found to parse.", "Orange");
                 return;
             }
 
             try
             {
-                (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZip(fileName, this.entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderDotNet);
+                // TODO NMA : gérer multiple zip
+
+                (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZip(fileName[0], this.entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderDotNet);
                 if (string.IsNullOrWhiteSpace(workingDirectoryPath))
                 {
                     consoleWriter.AddMessageLine($"Zip archive not found: '{fileName}'.", "Orange");
@@ -209,15 +247,21 @@
 
         private void ParseAngularZipFile()
         {
-            string fileName = vm.ZipRootFilePath;
-            if (string.IsNullOrWhiteSpace(fileName))
+            List<string> fileName = new();
+            var tmp = vm.ZipDotNetFiles.Where(x => vm.ZipDotNetSelected.Contains(x.Key)).ToList();
+            tmp.ForEach(x => fileName.Add(x.Value));
+
+            if (fileName.Count < 1)
             {
+                consoleWriter.AddMessageLine("No Angular Zip files found to parse.", "Orange");
                 return;
             }
 
             try
             {
-                (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZip(fileName, this.entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderAngular);
+                // TODO NMA : gérer multiple zip
+
+                (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZip(fileName[0], this.entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderAngular);
                 if (string.IsNullOrWhiteSpace(workingDirectoryPath))
                 {
                     consoleWriter.AddMessageLine($"Zip archive not found: '{fileName}'.", "Orange");
@@ -231,6 +275,44 @@
                 consoleWriter.AddMessageLine(ex.Message, "Red");
             }
         }
+
         #endregion
+    }
+
+    class CRUDSettings
+    {
+        private readonly IConsoleWriter consoleWriter;
+        public string Feature_DotNet { get; }
+        public string Feature_Angular { get; }
+        public string Option_DotNet { get; }
+        public string Option_Angular { get; }
+        public string Team_DotNet { get; }
+        public string Team_Angular { get; }
+
+        public CRUDSettings(IConsoleWriter consoleWriter)
+        {
+            this.consoleWriter = consoleWriter;
+
+            Feature_DotNet = ReadSetting("CRUD_Feature_DotNet");
+            Feature_Angular = ReadSetting("CRUD_Feature_Angular");
+            Option_DotNet = ReadSetting("CRUD_Option_DotNet");
+            Option_Angular = ReadSetting("CRUD_Option_Angular");
+            Team_DotNet = ReadSetting("CRUD_Team_DotNet");
+            Team_Angular = ReadSetting("CRUD_Team_Angular");
+        }
+
+        private string ReadSetting(string key)
+        {
+            string result = null;
+            try
+            {
+                result = ConfigurationManager.AppSettings[key] ?? "Not Found";
+            }
+            catch (ConfigurationErrorsException)
+            {
+                consoleWriter.AddMessageLine("Error reading app settings", "Red");
+            }
+            return result;
+        }
     }
 }
