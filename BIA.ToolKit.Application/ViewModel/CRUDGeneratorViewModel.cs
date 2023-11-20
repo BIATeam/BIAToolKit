@@ -42,21 +42,6 @@
                 if (dtoEntity != value)
                 {
                     dtoEntity = value;
-                    DtoProperties = dtoEntity.Properties;
-                }
-            }
-        }
-
-        private List<PropertyInfo> dtoProperties;
-        public List<PropertyInfo> DtoProperties
-        {
-            get { return dtoProperties; }
-            private set
-            {
-                if (dtoProperties != value)
-                {
-                    dtoProperties = value;
-                    RaisePropertyChanged(nameof(DtoProperties));
                 }
             }
         }
@@ -91,30 +76,41 @@
         #endregion
 
         #region ZipFile
-        Dictionary<string, string> zipDotNetFiles;
-        public Dictionary<string, string> ZipDotNetFiles
+        CRUDTypeData crudDataFeature;
+        public CRUDTypeData CRUDDataFeature
         {
-            get { return zipDotNetFiles; }
+            get { return crudDataFeature; }
             set
             {
-                if (zipDotNetFiles != value)
+                if (crudDataFeature != value)
                 {
-                    zipDotNetFiles = value;
-                    RaisePropertyChanged("ZipDotNetFiles");
+                    crudDataFeature = value;
                 }
             }
         }
 
-        Dictionary<string, string> zipAngularFiles;
-        public Dictionary<string, string> ZipAngularFiles
+        CRUDTypeData crudDataOption;
+        public CRUDTypeData CRUDDataOption
         {
-            get { return zipAngularFiles; }
+            get { return crudDataOption; }
             set
             {
-                if (zipAngularFiles != value)
+                if (crudDataOption != value)
                 {
-                    zipAngularFiles = value;
-                    RaisePropertyChanged("ZipAngularFiles");
+                    crudDataOption = value;
+                }
+            }
+        }
+
+        CRUDTypeData crudDataTeam;
+        public CRUDTypeData CRUDDataTeam
+        {
+            get { return crudDataTeam; }
+            set
+            {
+                if (crudDataTeam != value)
+                {
+                    crudDataTeam = value;
                 }
             }
         }
@@ -147,41 +143,6 @@
             }
         }
         #endregion
-
-
-        private bool generateCrudFeature = false;
-        public bool GenerateCrudFeature
-        {
-            get { return generateCrudFeature; }
-            set
-            {
-                generateCrudFeature = value;
-                RaisePropertyChanged(nameof(GenerateCrudFeature));
-            }
-        }
-
-        private bool generateCrudTeam = false;
-        public bool GenerateCrudTeam
-        {
-            get { return generateCrudTeam; }
-            set
-            {
-                generateCrudTeam = value;
-                RaisePropertyChanged(nameof(GenerateCrudTeam));
-            }
-        }
-
-        private bool generateCrudOption = false;
-        public bool GenerateCrudOption
-        {
-            get { return generateCrudOption; }
-            set
-            {
-                generateCrudOption = value;
-                RaisePropertyChanged(nameof(GenerateCrudOption));
-            }
-        }
-
 
         #region Button
         private bool isDtoParsed = false;
@@ -234,9 +195,37 @@
         }
         #endregion
 
-
-
-
         public List<ClassDefinition> DotNetZipFilesContent { get; }
+    }
+
+    public class CRUDTypeData
+    {
+        public bool IsChecked { get; set; }
+
+        public CRUDType Type { get; }
+
+        public string DotNetZipName { get; }
+
+        public string AngularZipName { get; }
+
+        public string DotNetZipPath { get; }
+
+        public string AngularZipPath { get; }
+
+        public CRUDTypeData(CRUDType Type, string dotNetName, string dotNetPath, string angularName, string angularPath)
+        {
+            this.Type = Type;
+            this.DotNetZipName = dotNetName;
+            this.AngularZipName = angularName;
+            this.DotNetZipPath = dotNetPath;
+            this.AngularZipPath = angularPath;
+        }
+    }
+
+    public enum CRUDType
+    {
+        Feature,
+        Option,
+        Team
     }
 }

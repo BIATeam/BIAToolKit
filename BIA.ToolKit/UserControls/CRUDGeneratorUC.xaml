@@ -14,9 +14,9 @@
         <Label Content="Dto file:" HorizontalAlignment="Left" Margin="20,0,0,0" VerticalAlignment="Top" Foreground="White"  />
         <ComboBox ItemsSource="{Binding DtoFiles.Keys}" SelectedValue="{Binding DtoSelected}" HorizontalAlignment="Left" Margin="40,25,0,0" VerticalAlignment="Top" Width="500" SelectionChanged="ModifyDto_SelectionChanged"/>
 
-        <CheckBox IsChecked="{Binding GenerateCrudFeature}" Foreground="White" Content="Generate CRUD" HorizontalAlignment="Left" Margin="100,75,0,0" VerticalAlignment="Top" Checked="GenerateCrudFeature_Change" Unchecked="GenerateCrudFeature_Change" />
-        <CheckBox IsChecked="{Binding GenerateCrudTeam}" Foreground="White" Content="Generate Team" HorizontalAlignment="Left" Margin="250,75,0,0" VerticalAlignment="Top" Checked="GenerateCrudTeam_Change" Unchecked="GenerateCrudTeam_Change" />
-        <CheckBox IsChecked="{Binding GenerateCrudOption}" Foreground="White" Content="Generate Option" HorizontalAlignment="Left" Margin="400,75,0,0" VerticalAlignment="Top" Checked="GenerateCrudOption_Change" Unchecked="GenerateCrudOption_Change" />
+        <CheckBox IsChecked="{Binding CRUDDataFeature.IsChecked}" Foreground="White" Content="Generate CRUD" HorizontalAlignment="Left" Margin="100,75,0,0" VerticalAlignment="Top" Checked="GenerateCrudFeature_Change" Unchecked="GenerateCrudFeature_Change" />
+        <CheckBox IsChecked="{Binding CRUDDataTeam.IsChecked}" Foreground="White" Content="Generate Team" HorizontalAlignment="Left" Margin="250,75,0,0" VerticalAlignment="Top" Checked="GenerateCrudTeam_Change" Unchecked="GenerateCrudTeam_Change" />
+        <CheckBox IsChecked="{Binding CRUDDataOption.IsChecked}" Foreground="White" Content="Generate Option" HorizontalAlignment="Left" Margin="400,75,0,0" VerticalAlignment="Top" Checked="GenerateCrudOption_Change" Unchecked="GenerateCrudOption_Change" />
 
         <Label Content="Data model zip file (DotNet):" HorizontalAlignment="Left" Margin="20,110,0,0" VerticalAlignment="Top" Foreground="White"  />
         <ListBox ItemsSource="{Binding ZipDotNetSelected}" HorizontalAlignment="Left" Margin="40,135,0,0" Width="300" Name="ZipDotNetSelectedTB" Height="75" VerticalAlignment="Top"/>
