@@ -75,6 +75,36 @@
         }
         #endregion
 
+        #region Entity Name
+        private string entityNameSingular;
+        public string EntityNameSingular
+        {
+            get { return entityNameSingular; }
+            set
+            {
+                if (entityNameSingular != value)
+                {
+                    entityNameSingular = value;
+                    RaisePropertyChanged(nameof(EntityNameSingular));
+                }
+            }
+        }
+
+        private string entityNamePlurial;
+        public string EntityNamePlurial
+        {
+            get { return entityNamePlurial; }
+            set
+            {
+                if (entityNamePlurial != value)
+                {
+                    entityNamePlurial = value;
+                    RaisePropertyChanged(nameof(EntityNamePlurial));
+                }
+            }
+        }
+        #endregion
+
         #region ZipFile
         CRUDTypeData crudDataFeature;
         public CRUDTypeData CRUDDataFeature
@@ -181,8 +211,9 @@
             get
             {
                 return isDtoParsed
-                    && (ZipDotNetSelected.Count > 0)
-                    && (ZipAngularSelected.Count > 0);
+                    && ZipDotNetSelected.Count > 0
+                    && ZipAngularSelected.Count > 0
+                    && !string.IsNullOrWhiteSpace(EntityNamePlurial);
             }
         }
 
@@ -191,6 +222,14 @@
             get
             {
                 return isDtoParsed && isZipParsed;
+            }
+        }
+
+        public bool IsCheckedAction
+        {
+            set
+            {
+                RaisePropertyChanged(nameof(IsButtonParseZipEnable));
             }
         }
         #endregion

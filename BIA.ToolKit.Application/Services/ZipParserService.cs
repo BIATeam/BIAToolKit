@@ -12,10 +12,36 @@
     {
         private readonly IConsoleWriter consoleWriter;
 
+        private const string ANGULAR_MARKER = "BIAToolKit - Begin XXXXX block";
+
+        private string OldValuePascalSingular = "Plane";
+        private string OldValuePascalPlural = "Planes";
+        private string NewValuePascalSingular = "Plane";
+        private string NewValuePascalPlural = "Planes";
+
+        private string OldValueKebabSingular;
+        private string OldValueKebabPlural;
+        private string NewValueKebabSingular;
+        private string NewValueKebabPlural;
 
         public ZipParserService(IConsoleWriter consoleWriter)
         {
             this.consoleWriter = consoleWriter;
+        }
+
+        public void InitRenameValues(string newValueSingular, string newValuePlurial, string oldValueSingular = "Plane", string oldValuePlurial = "Planes")
+        {
+            this.OldValuePascalSingular = oldValueSingular;
+            this.OldValuePascalPlural = oldValuePlurial;
+
+            this.NewValuePascalSingular = newValueSingular;
+            this.NewValuePascalPlural = newValuePlurial;
+
+            this.OldValueKebabSingular = ConvertPascalToKebabCase(OldValuePascalSingular);
+            this.OldValueKebabPlural = ConvertPascalToKebabCase(OldValuePascalPlural);
+
+            this.NewValueKebabSingular = ConvertPascalToKebabCase(NewValuePascalSingular);
+            this.NewValueKebabPlural = ConvertPascalToKebabCase(NewValuePascalPlural);
         }
 
         public (string, Dictionary<string, string>) ReadZip(string zipPath, string entityName, string compagnyName, string projectName, string folderType)
@@ -52,7 +78,7 @@
                     }
 
 #if DEBUG
-                    consoleWriter.AddMessageLine($"File found: '{entry.FullName}'", "Green");
+                    //consoleWriter.AddMessageLine($"File found: '{entry.FullName}'", "Green");
 #endif
                     entry.ExtractToFile(Path.Combine(tempDir, entry.Name));
                     files.Add(entry.Name, entry.FullName);
@@ -155,5 +181,43 @@
 
             return name;
         }
+
+
+        private string RenameFile(string fileName)
+        {
+            if (fileName.Contains(OldValuePascalPlural))
+            {
+                return fileName.Replace(OldValuePascalPlural, NewValuePascalPlural);
+            }
+            else if (fileName.Contains(OldValueKebabPlural))
+            {
+                return fileName.Replace(OldValueKebabPlural, NewValueKebabPlural);
+            }
+            else if (fileName.Contains(OldValuePascalSingular))
+            {
+                return fileName.Replace(OldValuePascalSingular, NewValuePascalSingular);
+            }
+            else if (fileName.Contains(OldValueKebabSingular))
+            {
+                return fileName.Replace(OldValueKebabSingular, NewValueKebabSingular);
+            }
+
+            return fileName;
+        }
+
+        private void ReplaceInFile()
+        {
+
+        }
+
+        private string ConvertPascalToKebabCase(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return value;
+
+            return Regex.Replace(value, "(?<!^)([A-Z][a-z]|(?<=[a-z])[A-Z0-9])", "-$1", RegexOptions.Compiled)
+                .Trim().ToLower();
+        }
+
     }
 }

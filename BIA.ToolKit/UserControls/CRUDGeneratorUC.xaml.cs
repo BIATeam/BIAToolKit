@@ -73,6 +73,18 @@
         {
             if (vm == null) return;
             vm.IsDtoParsed = false;
+            this.entityName = crudService.GetEntityNameFromDto(vm.DtoSelected);
+            vm.EntityNameSingular = this.entityName;
+        }
+
+        private void ModifyEntitySingularText_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            vm.EntityNamePlurial = string.Empty;
+        }
+
+        private void ModifyEntityPlurialText_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            vm.IsCheckedAction = true;
         }
 
         private void GenerateCrudFeature_Change(object sender, RoutedEventArgs e)
@@ -91,6 +103,7 @@
             }
 
             vm.IsZipParsed = false;
+            vm.IsCheckedAction = true;
         }
 
         private void GenerateCrudTeam_Change(object sender, RoutedEventArgs e)
@@ -109,6 +122,7 @@
             }
 
             vm.IsZipParsed = false;
+            vm.IsCheckedAction = true;
         }
 
         private void GenerateCrudOption_Change(object sender, RoutedEventArgs e)
@@ -127,19 +141,23 @@
             }
 
             vm.IsZipParsed = false;
+            vm.IsCheckedAction = true;
         }
+
         #endregion
 
         #region Button Action
         private void ParseDto_Click(object sender, RoutedEventArgs e)
         {
-            this.entityName = crudService.GetEntityNameFromDto(vm.DtoSelected);
             ParseDtoFile();
             vm.IsDtoParsed = true;
         }
 
         private void ParseZip_Click(object sender, RoutedEventArgs e)
         {
+            // TODO NMA
+            zipService.InitRenameValues(vm.EntityNameSingular, vm.EntityNamePlurial /* ,"Plane", "Planes" */);
+
             // Parse DotNet Zip files
             ParseDotNetZipFile();
 
