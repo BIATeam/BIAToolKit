@@ -1,50 +1,32 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.IO.Compression;
+    using System.Linq;
+    using System.Text;
     using System.Text.RegularExpressions;
 
     public class ZipParserService
     {
         private readonly IConsoleWriter consoleWriter;
-
-        private const string ANGULAR_MARKER = "BIAToolKit - Begin XXXXX block";
-
-        private string OldValuePascalSingular = "Plane";
-        private string OldValuePascalPlural = "Planes";
-        private string NewValuePascalSingular = "Plane";
-        private string NewValuePascalPlural = "Planes";
-
-        private string OldValueKebabSingular;
-        private string OldValueKebabPlural;
-        private string NewValueKebabSingular;
-        private string NewValueKebabPlural;
+        private const string TMP_FOLDER_NAME = "BiaToolKit_CRUDGenerator";
+        private const string ATTRIBUE_MARKER = "XXXXX";
+        private const string ANGULAR_MARKER = "BIAToolKit -";
+        private const string ANGULAR_MARKER_BEGIN = ANGULAR_MARKER + " Begin " + ATTRIBUE_MARKER + " block";
+        private const string ANGULAR_MARKER_END = ANGULAR_MARKER + " End " + ATTRIBUE_MARKER + " block";
 
         public ZipParserService(IConsoleWriter consoleWriter)
         {
             this.consoleWriter = consoleWriter;
         }
 
-        public void InitRenameValues(string newValueSingular, string newValuePlurial, string oldValueSingular = "Plane", string oldValuePlurial = "Planes")
-        {
-            this.OldValuePascalSingular = oldValueSingular;
-            this.OldValuePascalPlural = oldValuePlurial;
-
-            this.NewValuePascalSingular = newValueSingular;
-            this.NewValuePascalPlural = newValuePlurial;
-
-            this.OldValueKebabSingular = ConvertPascalToKebabCase(OldValuePascalSingular);
-            this.OldValueKebabPlural = ConvertPascalToKebabCase(OldValuePascalPlural);
-
-            this.NewValueKebabSingular = ConvertPascalToKebabCase(NewValuePascalSingular);
-            this.NewValueKebabPlural = ConvertPascalToKebabCase(NewValuePascalPlural);
-        }
-
-        public (string, Dictionary<string, string>) ReadZip(string zipPath, string entityName, string compagnyName, string projectName, string folderType)
+        public (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string entityName, string compagnyName, string projectName, string folderType)
         {
             string tempDir = null;
             Dictionary<string, string> files = null;
@@ -61,7 +43,7 @@
                 consoleWriter.AddMessageLine($"*** Parse zip file: '{zipPath}' ***", "Green");
 #endif
 
-                tempDir = Path.Combine(Path.GetTempPath(), "BiaToolKit_CRUDGenerator", folderType);
+                tempDir = Path.Combine(Path.GetTempPath(), TMP_FOLDER_NAME, folderType);
                 if (Directory.Exists(tempDir))
                 {
                     Directory.Delete(tempDir, true);
@@ -77,9 +59,6 @@
                         continue;
                     }
 
-#if DEBUG
-                    //consoleWriter.AddMessageLine($"File found: '{entry.FullName}'", "Green");
-#endif
                     entry.ExtractToFile(Path.Combine(tempDir, entry.Name));
                     files.Add(entry.Name, entry.FullName);
                 }
@@ -92,6 +71,43 @@
             }
 
             return (tempDir, files);
+        }
+
+        public Dictionary<string, List<string>> AnalyzeAngularFile(string fileName, Dictionary<string, List<string>> planeDtoProperties)
+        {
+            if (!File.Exists(fileName))
+            {
+                consoleWriter.AddMessageLine($"Error on analysing angular file: file not exist on disk: '{fileName}'", "Orange");
+                return null;
+            }
+
+            // Read file
+            string fileContent = File.ReadAllText(fileName);
+
+            Dictionary<string, List<string>> extractBlocks = new();
+            if (fileContent.Contains(ANGULAR_MARKER))
+            {
+                // File to update
+                if (planeDtoProperties != null && planeDtoProperties.Count > 0)
+                {
+                    List<string> fileLines = File.ReadLines(fileName).ToList();
+
+                    foreach (KeyValuePair<string, List<string>> dtoProperty in planeDtoProperties)
+                    {
+                        dtoProperty.Value.ForEach(att =>
+                        {
+                            string block = FindBlock(fileLines, att);
+                            CommonTools.AddToDictionnary(extractBlocks, dtoProperty.Key, block);
+                        });
+                    }
+                }
+                else
+                {
+                    consoleWriter.AddMessageLine("Can't read plane dto properties.", "Orange");
+                }
+            }
+
+            return extractBlocks;
         }
 
         public FileType? GetFileType(string fileName)
@@ -182,42 +198,44 @@
             return name;
         }
 
-
-        private string RenameFile(string fileName)
+        private string FindBlock(List<string> lines, string attributeName)
         {
-            if (fileName.Contains(OldValuePascalPlural))
+            // Convert to camel case
+            attributeName = CommonTools.ConvertToCamelCase(attributeName);
+
+            // Set start and stop block
+            string markerBegin = ANGULAR_MARKER_BEGIN.Replace(ATTRIBUE_MARKER, attributeName);
+            string markerEnd = ANGULAR_MARKER_END.Replace(ATTRIBUE_MARKER, attributeName);
+
+            // Find start and stop block
+            int start = lines.FindIndex(l => l.Contains(markerBegin));
+            int end = lines.FindIndex(l => l.Contains(markerEnd));
+
+            if (start < 0 || end < 0)
             {
-                return fileName.Replace(OldValuePascalPlural, NewValuePascalPlural);
-            }
-            else if (fileName.Contains(OldValueKebabPlural))
-            {
-                return fileName.Replace(OldValueKebabPlural, NewValueKebabPlural);
-            }
-            else if (fileName.Contains(OldValuePascalSingular))
-            {
-                return fileName.Replace(OldValuePascalSingular, NewValuePascalSingular);
-            }
-            else if (fileName.Contains(OldValueKebabSingular))
-            {
-                return fileName.Replace(OldValueKebabSingular, NewValueKebabSingular);
+                consoleWriter.AddMessageLine($"Block not correctly found for {attributeName}", "Orange");
+                return null;
             }
 
-            return fileName;
+            // Keep block contains
+            StringBuilder sb = new();
+            for (int i = start + 1; i < end; i++)
+            {
+                sb.AppendLine(lines[i]);
+            }
+
+            return sb.ToString();
         }
 
-        private void ReplaceInFile()
+        public Dictionary<string, List<string>> GetDtoProperties(List<PropertyDeclarationSyntax> list)
         {
+            Dictionary<string, List<string>> dico = new();
+            list.ForEach(p =>
+            {
+                CommonTools.AddToDictionnary(dico, p.Type.ToString(), p.Identifier.ToString());
+            });
 
+            return dico;
         }
-
-        private string ConvertPascalToKebabCase(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-                return value;
-
-            return Regex.Replace(value, "(?<!^)([A-Z][a-z]|(?<=[a-z])[A-Z0-9])", "-$1", RegexOptions.Compiled)
-                .Trim().ToLower();
-        }
-
     }
 }

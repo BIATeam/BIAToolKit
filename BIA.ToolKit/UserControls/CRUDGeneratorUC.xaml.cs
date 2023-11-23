@@ -74,12 +74,12 @@
             if (vm == null) return;
             vm.IsDtoParsed = false;
             this.entityName = crudService.GetEntityNameFromDto(vm.DtoSelected);
-            vm.EntityNameSingular = this.entityName;
+            vm.CRUDNameSingular = this.entityName;
         }
 
         private void ModifyEntitySingularText_TextChanged(object sender, TextChangedEventArgs e)
         {
-            vm.EntityNamePlurial = string.Empty;
+            vm.CRUDNamePlurial = string.Empty;
         }
 
         private void ModifyEntityPlurialText_TextChanged(object sender, TextChangedEventArgs e)
@@ -143,7 +143,6 @@
             vm.IsZipParsed = false;
             vm.IsCheckedAction = true;
         }
-
         #endregion
 
         #region Button Action
@@ -155,9 +154,6 @@
 
         private void ParseZip_Click(object sender, RoutedEventArgs e)
         {
-            // TODO NMA
-            zipService.InitRenameValues(vm.EntityNameSingular, vm.EntityNamePlurial /* ,"Plane", "Planes" */);
-
             // Parse DotNet Zip files
             ParseDotNetZipFile();
 
@@ -169,11 +165,17 @@
 
         private void GenerateCrud_Click(object sender, RoutedEventArgs e)
         {
+            // TODO NMA
+            crudService.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlurial /* ,"Plane", "Planes" */);
+
             // Generation DotNet files
-            crudService.GenerateDotNetCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity, vm.DotNetZipFilesContent);
+            string path = crudService.GenerateDotNetCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity, vm.DotNetZipFilesContent);
 
             // Generation Angular files
-            crudService.GenerateAngularCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity);
+            ClassDefinition cd = vm.DotNetZipFilesContent.Where(x => x.FileType == FileType.Dto).First();
+            crudService.GenerateAngularCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity, vm.AngularZipContentFiles, cd);
+
+            System.Diagnostics.Process.Start("explorer.exe", path);
         }
         #endregion
 
@@ -231,7 +233,7 @@
             try
             {
                 // Parse Feature Zip file
-                (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZip(fileName, this.entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderDotNet);
+                (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, this.entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderDotNet);
                 if (string.IsNullOrWhiteSpace(workingDirectoryPath))
                 {
                     consoleWriter.AddMessageLine($"Zip archive not found: '{fileName}'.", "Orange");
@@ -269,10 +271,24 @@
             try
             {
                 // Parse Feature Zip file
-                (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZip(fileName, this.entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderAngular);
-                if (string.IsNullOrWhiteSpace(workingDirectoryPath))
+                (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, this.entityName,
+                    vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderAngular);
+
+                ClassDefinition cd = vm.DotNetZipFilesContent.Where(x => x.FileType == FileType.Dto).First();
+                if (cd != null)
                 {
-                    consoleWriter.AddMessageLine($"Zip archive not found: '{fileName}'.", "Orange");
+                    Dictionary<string, List<string>> planeDtoProperties = zipService.GetDtoProperties(cd.PropertyList);
+                    foreach (KeyValuePair<string, string> file in fileList)
+                    {
+                        CRUDAngularData data = new(file.Key, file.Value, workingDirectoryPath);
+                        data.ExtractBlocks = zipService.AnalyzeAngularFile(Path.Combine(workingDirectoryPath, file.Key), planeDtoProperties);
+
+                        vm.AngularZipContentFiles.Add(data);
+                    }
+                }
+                else
+                {
+                    consoleWriter.AddMessageLine("Can't parse angular files, Dto 'plane' file not found.", "Orange");
                 }
 
                 // TODO NMA : 

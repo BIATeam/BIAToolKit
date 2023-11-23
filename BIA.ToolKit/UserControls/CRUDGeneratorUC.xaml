@@ -15,9 +15,9 @@
         <ComboBox ItemsSource="{Binding DtoFiles.Keys}" SelectedValue="{Binding DtoSelected}" Margin="40,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="500" SelectionChanged="ModifyDto_SelectionChanged"/>
 
         <Label Content="Entity name (singular):" Margin="20,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
-        <TextBox Text="{Binding EntityNameSingular,UpdateSourceTrigger=PropertyChanged}" Margin="40,75,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntitySingularText_TextChanged" Height="21"/>
+        <TextBox Text="{Binding CRUDNameSingular,UpdateSourceTrigger=PropertyChanged}" Margin="40,75,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntitySingularText_TextChanged" Height="21"/>
         <Label Content="Entity name (plurial):" Margin="370,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
-        <TextBox Text="{Binding EntityNamePlurial,UpdateSourceTrigger=PropertyChanged}" Margin="390,75,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntityPlurialText_TextChanged" Height="21"/>
+        <TextBox Text="{Binding CRUDNamePlurial,UpdateSourceTrigger=PropertyChanged}" Margin="390,75,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntityPlurialText_TextChanged" Height="21"/>
 
         <CheckBox IsChecked="{Binding CRUDDataFeature.IsChecked}" Margin="150,120,0,0" Content="Generate CRUD" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Checked="GenerateCrudFeature_Change" Unchecked="GenerateCrudFeature_Change" />
         <CheckBox IsChecked="{Binding CRUDDataTeam.IsChecked}" Margin="300,120,0,0" Content="Generate Team" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Checked="GenerateCrudTeam_Change" Unchecked="GenerateCrudTeam_Change" />

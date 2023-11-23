@@ -119,7 +119,7 @@ using Roslyn.Services;*/
         public ClassDefinition ParseClassFile(string fileName)
         {
 #if DEBUG
-            consoleWriter.AddMessageLine($"*** Parse file: '{fileName}' ***", "Green");
+            consoleWriter.AddMessageLine($"Parse file: '{fileName}'", "Green");
 #endif
 
             var cancellationToken = new CancellationToken();

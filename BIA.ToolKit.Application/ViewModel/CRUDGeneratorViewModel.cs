@@ -15,6 +15,7 @@
         public CRUDGeneratorViewModel()
         {
             DotNetZipFilesContent = new();
+            AngularZipContentFiles = new();
             ZipDotNetSelected = new();
             ZipAngularSelected = new();
         }
@@ -75,9 +76,9 @@
         }
         #endregion
 
-        #region Entity Name
+        #region CRUD Name
         private string entityNameSingular;
-        public string EntityNameSingular
+        public string CRUDNameSingular
         {
             get { return entityNameSingular; }
             set
@@ -85,13 +86,13 @@
                 if (entityNameSingular != value)
                 {
                     entityNameSingular = value;
-                    RaisePropertyChanged(nameof(EntityNameSingular));
+                    RaisePropertyChanged(nameof(CRUDNameSingular));
                 }
             }
         }
 
         private string entityNamePlurial;
-        public string EntityNamePlurial
+        public string CRUDNamePlurial
         {
             get { return entityNamePlurial; }
             set
@@ -99,7 +100,7 @@
                 if (entityNamePlurial != value)
                 {
                     entityNamePlurial = value;
-                    RaisePropertyChanged(nameof(EntityNamePlurial));
+                    RaisePropertyChanged(nameof(CRUDNamePlurial));
                 }
             }
         }
@@ -212,8 +213,7 @@
             {
                 return isDtoParsed
                     && ZipDotNetSelected.Count > 0
-                    && ZipAngularSelected.Count > 0
-                    && !string.IsNullOrWhiteSpace(EntityNamePlurial);
+                    && ZipAngularSelected.Count > 0;
             }
         }
 
@@ -221,7 +221,9 @@
         {
             get
             {
-                return isDtoParsed && isZipParsed;
+                return isDtoParsed
+                    && isZipParsed
+                    && !string.IsNullOrWhiteSpace(CRUDNamePlurial);
             }
         }
 
@@ -230,11 +232,14 @@
             set
             {
                 RaisePropertyChanged(nameof(IsButtonParseZipEnable));
+                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
         #endregion
 
         public List<ClassDefinition> DotNetZipFilesContent { get; }
+
+        public List<CRUDAngularData> AngularZipContentFiles { get; }
     }
 
     public class CRUDTypeData
@@ -258,6 +263,24 @@
             this.AngularZipName = angularName;
             this.DotNetZipPath = dotNetPath;
             this.AngularZipPath = angularPath;
+        }
+    }
+
+    public class CRUDAngularData
+    {
+        public string FileName { get; }
+
+        public string FilePathDest { get; }
+
+        public string TempDirPath { get; }
+
+        public Dictionary<string, List<string>> ExtractBlocks { get; set; }
+
+        public CRUDAngularData(string fileName, string filePath, string tmpDir)
+        {
+            this.FileName = fileName;
+            this.FilePathDest = filePath;
+            this.TempDirPath = tmpDir;
         }
     }
 

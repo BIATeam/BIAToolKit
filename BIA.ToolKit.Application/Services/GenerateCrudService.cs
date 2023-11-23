@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.DtoGenerator;
@@ -15,8 +16,23 @@
 
     public class GenerateCrudService
     {
-        //private const string GENERATED_FOLDER = "GeneratedCRUD";
         private readonly IConsoleWriter consoleWriter;
+
+        private const string ATTRIBUE_MARKER = "XXXXX";
+        private const string ANGULAR_MARKER = "BIAToolKit -";
+        private const string ANGULAR_MARKER_BEGIN = ANGULAR_MARKER + " Begin " + ATTRIBUE_MARKER + " block";
+        private const string ANGULAR_MARKER_END = ANGULAR_MARKER + " End " + ATTRIBUE_MARKER + " block";
+        private string OldCrudNamePascalSingular = "Plane";
+        private string OldCrudNamePascalPlural = "Planes";
+        private string OldCrudNameLowerSingular = "plane";
+        private string OldCrudNameLowerPlural = "planes";
+        //private string OldCrudNameKebabSingular;
+        //private string OldCrudNameKebabPlural;
+
+        private string NewCrudNamePascalSingular = "Plane";
+        private string NewCrudNamePascalPlural = "Planes";
+        private string NewCrudNameKebabSingular;
+        private string NewCrudNameKebabPlural;
 
         private string entityNameReference;
         private string entityNameGenerated;
@@ -26,17 +42,19 @@
             this.consoleWriter = consoleWriter;
         }
 
-        public void GenerateDotNetCrudFiles(string entityName, Project currentProject, EntityInfo dtoEntity, List<ClassDefinition> classDefinitionFromZip)
+        public string GenerateDotNetCrudFiles(string entityName, Project currentProject, EntityInfo dtoEntity, List<ClassDefinition> classDefinitionFromZip)
         {
 #if DEBUG
             consoleWriter.AddMessageLine($"*** Generate DotNet CRUD files on '{Path.Combine(currentProject.Folder, Constants.FolderCrudGeneration)}' ***", "Green");
 #endif
+
+            string generatedFolder = null;
             try
             {
                 this.entityNameReference = ExtractEntityNameReference(classDefinitionFromZip);
                 this.entityNameGenerated = entityName;
 
-                string generatedFolder = Path.Combine(currentProject.Folder, currentProject.Name, Constants.FolderCrudGeneration);
+                generatedFolder = Path.Combine(currentProject.Folder, currentProject.Name, Constants.FolderCrudGeneration);
                 string dotnetDir = Path.Combine(generatedFolder, Constants.FolderDotNet);
                 PrepareFolder(dotnetDir);
 
@@ -53,16 +71,16 @@
                 // Rights
                 CreateRightsFile(dotnetDir, currentProject);
                 CreateBIANETConfigFile(dotnetDir, currentProject);
-
-                System.Diagnostics.Process.Start("explorer.exe", generatedFolder);
             }
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"An error has occurred in DotNet CRUD generation process: {ex.Message}", "Red");
             }
+
+            return generatedFolder;
         }
 
-        public void GenerateAngularCrudFiles(string entityName, Project currentProject, EntityInfo dtoEntity)
+        public void GenerateAngularCrudFiles(string entityName, Project currentProject, EntityInfo dtoEntity, List<CRUDAngularData> angularFilesFromZip, ClassDefinition cd)
         {
 #if DEBUG
             consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{Path.Combine(currentProject.Folder, Constants.FolderCrudGeneration)}' ***", "Green");
@@ -73,9 +91,16 @@
                 string angularDir = Path.Combine(generatedFolder, Constants.FolderAngular);
                 PrepareFolder(angularDir);
 
-                // TODO NMA
+                //Dictionary<string, List<string>> crudDtoProperties = GetDtoProperties(dtoEntity);
+                //Dictionary<string, List<string>> planeDtoProperties = GetDtoProperties(cd.PropertyList);
 
-                System.Diagnostics.Process.Start("explorer.exe", generatedFolder);
+                //foreach (CRUDAngularData angularFile in angularFilesFromZip)
+                //{
+                //    string src = Path.Combine(angularFile.TempDirPath, angularFile.FileName);
+                //    string dest = ConvertOldCrudNameToNewCrudName(Path.Combine(angularDir, angularFile.FilePathDest));
+
+                //    UpdateFile(src, dest, crudDtoProperties, planeDtoProperties);
+                //}
             }
             catch (Exception ex)
             {
@@ -501,6 +526,32 @@
         #endregion
         #endregion
 
+        #region Angular Files
+        private void UpdateFile(string fileName, string newFileName, Dictionary<string, List<string>> crudDtoProperties, Dictionary<string, List<string>> planeDtoProperties)
+        {
+            if (!File.Exists(fileName))
+            {
+                consoleWriter.AddMessageLine($"Error on generating angular CRUD: file not exist on disk: '{fileName}'", "Orange");
+                return;
+            }
+
+            // Prepare destination folder
+            CheckFolder(new FileInfo(newFileName).DirectoryName);
+
+            // Read file
+            string fileContent = File.ReadAllText(fileName);
+
+            // TODO
+
+            // Replace on file content
+            fileContent = ConvertOldCrudNameToNewCrudName(fileContent);
+
+            // Genrate new file
+            File.WriteAllText(newFileName, fileContent);
+        }
+
+
+        #endregion
 
         #region Folder Tools
         private void PrepareFolder(string dir)
@@ -511,6 +562,15 @@
                 Directory.Delete(dir, true);
             }
             Directory.CreateDirectory(dir);
+        }
+
+        private void CheckFolder(string dir)
+        {
+            // Create directory if not exist
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
         }
         #endregion
 
@@ -524,5 +584,65 @@
 
             return fileName;
         }
+
+        #region Rename CRUD
+        public void InitRenameValues(string newValueSingular, string newValuePlurial, string oldValueSingular = "Plane", string oldValuePlurial = "Planes")
+        {
+            this.OldCrudNamePascalSingular = oldValueSingular;
+            this.OldCrudNamePascalPlural = oldValuePlurial;
+            this.OldCrudNameLowerSingular = OldCrudNamePascalSingular.ToLower();
+            this.OldCrudNameLowerPlural = OldCrudNamePascalPlural.ToLower();
+            //this.OldCrudNameKebabSingular = ConvertPascalToKebabCase(OldCrudNamePascalSingular);
+            //this.OldCrudNameKebabPlural = ConvertPascalToKebabCase(OldCrudNamePascalPlural);
+
+            this.NewCrudNamePascalSingular = newValueSingular;
+            this.NewCrudNamePascalPlural = newValuePlurial;
+            this.NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);
+            this.NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
+        }
+
+        private string ConvertOldCrudNameToNewCrudName(string value)
+        {
+            if (value.Contains(OldCrudNamePascalPlural))
+            {
+                value = value.Replace(OldCrudNamePascalPlural, NewCrudNamePascalPlural);
+            }
+            if (value.Contains(OldCrudNameLowerPlural))
+            {
+                value = value.Replace(OldCrudNameLowerPlural, NewCrudNameKebabPlural);
+            }
+            if (value.Contains(OldCrudNamePascalSingular))
+            {
+                value = value.Replace(OldCrudNamePascalSingular, NewCrudNamePascalSingular);
+            }
+            if (value.Contains(OldCrudNameLowerSingular))
+            {
+                value = value.Replace(OldCrudNameLowerSingular, NewCrudNameKebabSingular);
+            }
+
+            return value;
+        }
+
+        //private Dictionary<string, List<string>> GetDtoProperties(EntityInfo dtoEntity)
+        //{
+        //    Dictionary<string, List<string>> dico = new();
+        //    dtoEntity.Properties.ForEach(p =>
+        //    {
+        //        AddToDictionnary(dico, p.Type.ToString(), p.Name);
+        //    });
+        //    return dico;
+        //}
+
+        //private Dictionary<string, List<string>> GetDtoProperties(List<PropertyDeclarationSyntax> list)
+        //{
+        //    Dictionary<string, List<string>> dico = new();
+        //    list.ForEach(p =>
+        //    {
+        //        AddToDictionnary(dico, p.Type.ToString(), p.Identifier.ToString());
+        //    });
+        //    return dico;
+        //}
+
+        #endregion
     }
 }
