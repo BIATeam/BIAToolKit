@@ -18,19 +18,16 @@
     {
         private readonly IConsoleWriter consoleWriter;
 
-        private const string ATTRIBUE_MARKER = "XXXXX";
-        private const string ANGULAR_MARKER = "BIAToolKit -";
-        private const string ANGULAR_MARKER_BEGIN = ANGULAR_MARKER + " Begin " + ATTRIBUE_MARKER + " block";
-        private const string ANGULAR_MARKER_END = ANGULAR_MARKER + " End " + ATTRIBUE_MARKER + " block";
+        private const string ATTRIBUTE_TYPE_NOT_MANAGED = "// CRUD GENERATOR FOR PLANE TO REVIEW : Field XXX ot type YYY not managed.";
         private string OldCrudNamePascalSingular = "Plane";
         private string OldCrudNamePascalPlural = "Planes";
-        private string OldCrudNameLowerSingular = "plane";
-        private string OldCrudNameLowerPlural = "planes";
-        //private string OldCrudNameKebabSingular;
-        //private string OldCrudNameKebabPlural;
+        private string OldCrudNameCamelSingular = "plane";
+        private string OldCrudNameCamelPlural = "planes";
 
         private string NewCrudNamePascalSingular = "Plane";
         private string NewCrudNamePascalPlural = "Planes";
+        private string NewCrudNameCamelSingular = "plane";
+        private string NewCrudNameCamelPlural = "planes";
         private string NewCrudNameKebabSingular;
         private string NewCrudNameKebabPlural;
 
@@ -56,7 +53,7 @@
 
                 generatedFolder = Path.Combine(currentProject.Folder, currentProject.Name, Constants.FolderCrudGeneration);
                 string dotnetDir = Path.Combine(generatedFolder, Constants.FolderDotNet);
-                PrepareFolder(dotnetDir);
+                CommonTools.PrepareFolder(dotnetDir);
 
                 // Application
                 GenerateIApplicationFile(dotnetDir, currentProject, dtoEntity, classDefinitionFromZip.Where(x => x.FileType == FileType.IAppService).First());
@@ -80,7 +77,7 @@
             return generatedFolder;
         }
 
-        public void GenerateAngularCrudFiles(string entityName, Project currentProject, EntityInfo dtoEntity, List<CRUDAngularData> angularFilesFromZip, ClassDefinition cd)
+        public void GenerateAngularCrudFiles(string entityName, Project currentProject, EntityInfo dtoEntity, List<CRUDAngularData> angularFilesFromZip/*, ClassDefinition cd*/)
         {
 #if DEBUG
             consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{Path.Combine(currentProject.Folder, Constants.FolderCrudGeneration)}' ***", "Green");
@@ -89,18 +86,38 @@
             {
                 string generatedFolder = Path.Combine(currentProject.Folder, currentProject.Name, Constants.FolderCrudGeneration);
                 string angularDir = Path.Combine(generatedFolder, Constants.FolderAngular);
-                PrepareFolder(angularDir);
+                CommonTools.PrepareFolder(angularDir);
 
-                //Dictionary<string, List<string>> crudDtoProperties = GetDtoProperties(dtoEntity);
-                //Dictionary<string, List<string>> planeDtoProperties = GetDtoProperties(cd.PropertyList);
+                Dictionary<string, List<string>> crudDtoProperties = GetDtoProperties(dtoEntity);
 
-                //foreach (CRUDAngularData angularFile in angularFilesFromZip)
-                //{
-                //    string src = Path.Combine(angularFile.TempDirPath, angularFile.FileName);
-                //    string dest = ConvertOldCrudNameToNewCrudName(Path.Combine(angularDir, angularFile.FilePathDest));
+                foreach (CRUDAngularData angularFile in angularFilesFromZip)
+                {
+                    List<string> blocksToAdd = new();
+                    //List<string> blocksToRemove = new();
+                    if (angularFile.ExtractBlocks != null && angularFile.ExtractBlocks.Count > 0)
+                    {
+                        // Generate new blocks to add
+                        foreach (KeyValuePair<string, List<string>> crudDtoProperty in crudDtoProperties)
+                        {
+                            blocksToAdd.AddRange(GenerateBlocksToAdd(angularFile, crudDtoProperty));
+                        }
 
-                //    UpdateFile(src, dest, crudDtoProperties, planeDtoProperties);
-                //}
+                        //// List blocks to remove
+                        //foreach (ExtractBlocks planeDtoProperty in angularFile.ExtractBlocks)
+                        //{
+                        //    StringBuilder sb = new();
+                        //    planeDtoProperty.BlockLines.ForEach(line => sb.AppendLine(line));
+                        //    blocksToRemove.Add(sb.ToString());
+                        //}
+                    }
+
+                    // Create file
+                    string src = Path.Combine(angularFile.TempDirPath, angularFile.FileName);
+                    string dest = ConvertOldCrudNameToNewCrudName(Path.Combine(angularDir, angularFile.FilePathDest));
+
+                    // replace blocks !
+                    UpdateFile(src, dest, blocksToAdd);
+                }
             }
             catch (Exception ex)
             {
@@ -504,73 +521,16 @@
             if (string.IsNullOrEmpty(value))
                 return null;
 
-            string referenceFormated = SetFirstCharacterToLower(entityNameReference);
-            string generatedFormated = SetFirstCharacterToLower(entityNameGenerated);
+            string referenceFormated = CommonTools.ConvertToCamelCase(entityNameReference);
+            string generatedFormated = CommonTools.ConvertToCamelCase(entityNameGenerated);
 
             return value.Replace(entityNameReference, entityNameGenerated).Replace(referenceFormated, generatedFormated);
-        }
-
-        private string SetFirstCharacterToLower(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-                return null;
-
-            return Char.ToLowerInvariant(value[0]) + value.Substring(1);
         }
 
         private string GetFileName(string value)
         {
             string className = TransformValue(value);
             return $"{className}.cs";
-        }
-        #endregion
-        #endregion
-
-        #region Angular Files
-        private void UpdateFile(string fileName, string newFileName, Dictionary<string, List<string>> crudDtoProperties, Dictionary<string, List<string>> planeDtoProperties)
-        {
-            if (!File.Exists(fileName))
-            {
-                consoleWriter.AddMessageLine($"Error on generating angular CRUD: file not exist on disk: '{fileName}'", "Orange");
-                return;
-            }
-
-            // Prepare destination folder
-            CheckFolder(new FileInfo(newFileName).DirectoryName);
-
-            // Read file
-            string fileContent = File.ReadAllText(fileName);
-
-            // TODO
-
-            // Replace on file content
-            fileContent = ConvertOldCrudNameToNewCrudName(fileContent);
-
-            // Genrate new file
-            File.WriteAllText(newFileName, fileContent);
-        }
-
-
-        #endregion
-
-        #region Folder Tools
-        private void PrepareFolder(string dir)
-        {
-            // Clean destination directory if already exist
-            if (Directory.Exists(dir))
-            {
-                Directory.Delete(dir, true);
-            }
-            Directory.CreateDirectory(dir);
-        }
-
-        private void CheckFolder(string dir)
-        {
-            // Create directory if not exist
-            if (!Directory.Exists(dir))
-            {
-                Directory.CreateDirectory(dir);
-            }
         }
         #endregion
 
@@ -584,19 +544,146 @@
 
             return fileName;
         }
+        #endregion
+
+        #region Angular Files
+        private void UpdateFile(string fileName, string newFileName, List<string> blocksToAdd)
+        {
+            if (!File.Exists(fileName))
+            {
+                consoleWriter.AddMessageLine($"Error on generating angular CRUD: file not exist on disk: '{fileName}'", "Orange");
+                return;
+            }
+
+            // Prepare destination folder
+            CommonTools.CheckFolder(new FileInfo(newFileName).DirectoryName);
+
+            // Read file
+            List<string> fileLinesContent = File.ReadAllLines(fileName).ToList();
+
+            // Replace blocks
+            if (blocksToAdd.Count > 0)
+            {
+                StringBuilder sb = new();
+                int indexFirst = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER)).First());
+                int indexLast = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER)).Last());
+
+                // Write lines before first block
+                for (int i = 0; i < indexFirst; i++)
+                {
+                    sb.AppendLine(fileLinesContent[i]);
+                }
+
+                // Write new blocks to add
+                for (int i = 0; i < blocksToAdd.Count; i++)
+                {
+                    sb.Append(blocksToAdd[i]);
+                    if (i != blocksToAdd.Count - 1)
+                        sb.AppendLine("    ,");
+                }
+
+                // Write lines after last block
+                for (int i = indexLast + 1; i < fileLinesContent.Count; i++)
+                {
+                    sb.AppendLine(fileLinesContent[i]);
+                }
+
+                // Create file with all lines
+                File.WriteAllText(fileName, sb.ToString());
+            }
+
+            // Replace on file content
+            string fileContent = File.ReadAllText(fileName);
+            fileContent = ConvertOldCrudNameToNewCrudName(fileContent);
+
+            // Generate new file
+            File.WriteAllText(newFileName, fileContent);
+        }
+
+        private List<string> GenerateBlocksToAdd(CRUDAngularData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
+        {
+            List<string> blocksToAdd = new();
+
+            ExtractBlocks extractBlock = angularFile.ExtractBlocks.Find(x => x.Type == crudDtoProperty.Key);
+            if (extractBlock != null)
+            {
+                if (extractBlock.BlockLines == null || extractBlock.BlockLines.Count <= 0)
+                {
+                    // TODO NMA!
+                    consoleWriter.AddMessageLine("Error 'extractBlock' is empty.", "Red");
+                    return null;
+                }
+
+                // Generate block based on dto model
+                foreach (string attrName in crudDtoProperty.Value)
+                {
+                    blocksToAdd.Add(ReplaceBlock(extractBlock, attrName));
+                }
+            }
+            else
+            {
+                // Generate "empty" block
+                foreach (string attrName in crudDtoProperty.Value)
+                {
+                    blocksToAdd.Add(CreateEmptyBlock(angularFile.ExtractBlocks.First(), crudDtoProperty.Key, attrName));
+                }
+            }
+
+            return blocksToAdd;
+        }
+
+        private string ReplaceBlock(ExtractBlocks extractBlock, string crudAttributeName, string dtoAttributeName = null)
+        {
+            if (string.IsNullOrWhiteSpace(dtoAttributeName))
+                dtoAttributeName = extractBlock.Name;
+
+            dtoAttributeName = CommonTools.ConvertToCamelCase(dtoAttributeName);
+            crudAttributeName = CommonTools.ConvertToCamelCase(crudAttributeName);
+
+            StringBuilder sb = new();
+            extractBlock.BlockLines.ForEach(line => sb.AppendLine(line));
+
+            string newBlock = sb.ToString().Replace(dtoAttributeName, crudAttributeName);
+            newBlock = newBlock.Replace(OldCrudNameCamelPlural, NewCrudNameCamelPlural);
+            newBlock = newBlock.Replace(OldCrudNameCamelSingular, NewCrudNameCamelSingular);
+
+            return newBlock;
+        }
+
+        private string CreateEmptyBlock(ExtractBlocks extractBlock, string attributeType, string attributeName)
+        {
+            List<string> newBlockLines = new();
+            int length = extractBlock.BlockLines.Count;
+
+            if (length > 2)
+            {
+                extractBlock.BlockLines.RemoveAll(line => string.IsNullOrEmpty(line));
+                string startBLockComment = extractBlock.BlockLines.First();
+                string endBLockComment = extractBlock.BlockLines.Last();
+
+                newBlockLines.Add(ATTRIBUTE_TYPE_NOT_MANAGED.Replace("XXX", attributeName).Replace("YYY", attributeType));
+                newBlockLines.Add(extractBlock.BlockLines[0]);              // start block comment
+                newBlockLines.Add(extractBlock.BlockLines[1]);              // first block code line
+                newBlockLines.Add(extractBlock.BlockLines[length - 2]);     // last block code line
+                newBlockLines.Add(extractBlock.BlockLines[length - 1]);     // end block comment
+            }
+
+            ExtractBlocks newBlock = new(attributeType, attributeName, newBlockLines);
+            return ReplaceBlock(newBlock, attributeName, extractBlock.Name);
+        }
 
         #region Rename CRUD
         public void InitRenameValues(string newValueSingular, string newValuePlurial, string oldValueSingular = "Plane", string oldValuePlurial = "Planes")
         {
             this.OldCrudNamePascalSingular = oldValueSingular;
             this.OldCrudNamePascalPlural = oldValuePlurial;
-            this.OldCrudNameLowerSingular = OldCrudNamePascalSingular.ToLower();
-            this.OldCrudNameLowerPlural = OldCrudNamePascalPlural.ToLower();
-            //this.OldCrudNameKebabSingular = ConvertPascalToKebabCase(OldCrudNamePascalSingular);
-            //this.OldCrudNameKebabPlural = ConvertPascalToKebabCase(OldCrudNamePascalPlural);
+            this.OldCrudNameCamelSingular = CommonTools.ConvertToCamelCase(OldCrudNamePascalSingular);
+            this.OldCrudNameCamelPlural = CommonTools.ConvertToCamelCase(OldCrudNamePascalPlural);
 
             this.NewCrudNamePascalSingular = newValueSingular;
             this.NewCrudNamePascalPlural = newValuePlurial;
+            this.NewCrudNameCamelSingular = CommonTools.ConvertToCamelCase(NewCrudNamePascalSingular);
+            this.NewCrudNameCamelPlural = CommonTools.ConvertToCamelCase(NewCrudNamePascalPlural);
             this.NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);
             this.NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
         }
@@ -607,31 +694,31 @@
             {
                 value = value.Replace(OldCrudNamePascalPlural, NewCrudNamePascalPlural);
             }
-            if (value.Contains(OldCrudNameLowerPlural))
+            if (value.Contains(OldCrudNameCamelPlural))
             {
-                value = value.Replace(OldCrudNameLowerPlural, NewCrudNameKebabPlural);
+                value = value.Replace(OldCrudNameCamelPlural, NewCrudNameKebabPlural);
             }
             if (value.Contains(OldCrudNamePascalSingular))
             {
                 value = value.Replace(OldCrudNamePascalSingular, NewCrudNamePascalSingular);
             }
-            if (value.Contains(OldCrudNameLowerSingular))
+            if (value.Contains(OldCrudNameCamelSingular))
             {
-                value = value.Replace(OldCrudNameLowerSingular, NewCrudNameKebabSingular);
+                value = value.Replace(OldCrudNameCamelSingular, NewCrudNameKebabSingular);
             }
 
             return value;
         }
 
-        //private Dictionary<string, List<string>> GetDtoProperties(EntityInfo dtoEntity)
-        //{
-        //    Dictionary<string, List<string>> dico = new();
-        //    dtoEntity.Properties.ForEach(p =>
-        //    {
-        //        AddToDictionnary(dico, p.Type.ToString(), p.Name);
-        //    });
-        //    return dico;
-        //}
+        private Dictionary<string, List<string>> GetDtoProperties(EntityInfo dtoEntity)
+        {
+            Dictionary<string, List<string>> dico = new();
+            dtoEntity.Properties.ForEach(p =>
+            {
+                CommonTools.AddToDictionnary(dico, p.Type.ToString(), p.Name);
+            });
+            return dico;
+        }
 
         //private Dictionary<string, List<string>> GetDtoProperties(List<PropertyDeclarationSyntax> list)
         //{
@@ -642,7 +729,7 @@
         //    });
         //    return dico;
         //}
-
+        #endregion
         #endregion
     }
 }

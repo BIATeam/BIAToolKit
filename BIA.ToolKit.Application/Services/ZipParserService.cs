@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,7 +10,6 @@
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
-    using System.Text;
     using System.Text.RegularExpressions;
 
     public class ZipParserService
@@ -17,7 +17,7 @@
         private readonly IConsoleWriter consoleWriter;
         private const string TMP_FOLDER_NAME = "BiaToolKit_CRUDGenerator";
         private const string ATTRIBUE_MARKER = "XXXXX";
-        private const string ANGULAR_MARKER = "BIAToolKit -";
+        public const string ANGULAR_MARKER = "BIAToolKit -";
         private const string ANGULAR_MARKER_BEGIN = ANGULAR_MARKER + " Begin " + ATTRIBUE_MARKER + " block";
         private const string ANGULAR_MARKER_END = ANGULAR_MARKER + " End " + ATTRIBUE_MARKER + " block";
 
@@ -73,7 +73,7 @@
             return (tempDir, files);
         }
 
-        public Dictionary<string, List<string>> AnalyzeAngularFile(string fileName, Dictionary<string, List<string>> planeDtoProperties)
+        public List<ExtractBlocks> AnalyzeAngularFile(string fileName, Dictionary<string, List<string>> planeDtoProperties)
         {
             if (!File.Exists(fileName))
             {
@@ -83,27 +83,24 @@
 
             // Read file
             string fileContent = File.ReadAllText(fileName);
-
-            Dictionary<string, List<string>> extractBlocks = new();
-            if (fileContent.Contains(ANGULAR_MARKER))
+            if (!fileContent.Contains(ANGULAR_MARKER))
             {
-                // File to update
-                if (planeDtoProperties != null && planeDtoProperties.Count > 0)
-                {
-                    List<string> fileLines = File.ReadLines(fileName).ToList();
+                return null;
+            }
 
-                    foreach (KeyValuePair<string, List<string>> dtoProperty in planeDtoProperties)
-                    {
-                        dtoProperty.Value.ForEach(att =>
-                        {
-                            string block = FindBlock(fileLines, att);
-                            CommonTools.AddToDictionnary(extractBlocks, dtoProperty.Key, block);
-                        });
-                    }
-                }
-                else
+            // File to update
+            List<ExtractBlocks> extractBlocks = new();
+            List<string> fileLines = File.ReadAllLines(fileName).ToList();
+            foreach (KeyValuePair<string, List<string>> dtoProperty in planeDtoProperties)
+            {
+                foreach (string attribute in dtoProperty.Value)
                 {
-                    consoleWriter.AddMessageLine("Can't read plane dto properties.", "Orange");
+                    List<string> block = FindBlock(fileLines, attribute);
+                    if (block != null && block.Count > 0)
+                    {
+                        // Add only if block found
+                        extractBlocks.Add(new ExtractBlocks(dtoProperty.Key, attribute, block));
+                    }
                 }
             }
 
@@ -198,7 +195,7 @@
             return name;
         }
 
-        private string FindBlock(List<string> lines, string attributeName)
+        private List<string> FindBlock(List<string> lines, string attributeName)
         {
             // Convert to camel case
             attributeName = CommonTools.ConvertToCamelCase(attributeName);
@@ -218,13 +215,7 @@
             }
 
             // Keep block contains
-            StringBuilder sb = new();
-            for (int i = start + 1; i < end; i++)
-            {
-                sb.AppendLine(lines[i]);
-            }
-
-            return sb.ToString();
+            return lines.ToArray()[start..++end].ToList();  // array with start and end lines included
         }
 
         public Dictionary<string, List<string>> GetDtoProperties(List<PropertyDeclarationSyntax> list)

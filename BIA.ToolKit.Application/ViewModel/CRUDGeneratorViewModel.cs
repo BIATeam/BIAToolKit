@@ -244,18 +244,39 @@
 
     public class CRUDTypeData
     {
+        /// <summary>
+        /// Is to generate?
+        /// </summary>
         public bool IsChecked { get; set; }
 
+        /// <summary>
+        /// The CRUD type.
+        /// </summary>
         public CRUDType Type { get; }
 
+        /// <summary>
+        /// DotNet zip file name.
+        /// </summary>
         public string DotNetZipName { get; }
 
+        /// <summary>
+        /// Angular zip file name.
+        /// </summary>
         public string AngularZipName { get; }
 
+        /// <summary>
+        /// DotNet zip file path.
+        /// </summary>
         public string DotNetZipPath { get; }
 
+        /// <summary>
+        /// Angular zip file path.
+        /// </summary>
         public string AngularZipPath { get; }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public CRUDTypeData(CRUDType Type, string dotNetName, string dotNetPath, string angularName, string angularPath)
         {
             this.Type = Type;
@@ -268,19 +289,50 @@
 
     public class CRUDAngularData
     {
+        /// <summary>
+        /// File name (only).
+        /// </summary>
         public string FileName { get; }
 
+        /// <summary>
+        /// File destination path.
+        /// </summary>
         public string FilePathDest { get; }
 
+        /// <summary>
+        /// Temporary working directory full path.
+        /// </summary>
         public string TempDirPath { get; }
 
-        public Dictionary<string, List<string>> ExtractBlocks { get; set; }
+        /// <summary>
+        /// List of ExtractBlocks.
+        /// </summary>
+        public List<ExtractBlocks> ExtractBlocks { get; set; }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public CRUDAngularData(string fileName, string filePath, string tmpDir)
         {
             this.FileName = fileName;
             this.FilePathDest = filePath;
             this.TempDirPath = tmpDir;
+        }
+    }
+
+    public class ExtractBlocks
+    {
+        public string Type { get; }
+
+        public string Name { get; }
+
+        public List<string> BlockLines { get; }
+
+        public ExtractBlocks(string type, string name, List<string> lines)
+        {
+            this.Type = type;
+            this.Name = name;
+            this.BlockLines = lines;
         }
     }
 

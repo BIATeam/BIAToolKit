@@ -173,7 +173,7 @@
 
             // Generation Angular files
             ClassDefinition cd = vm.DotNetZipFilesContent.Where(x => x.FileType == FileType.Dto).First();
-            crudService.GenerateAngularCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity, vm.AngularZipContentFiles, cd);
+            crudService.GenerateAngularCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity, vm.AngularZipContentFiles/*, cd*/);
 
             System.Diagnostics.Process.Start("explorer.exe", path);
         }
@@ -237,6 +237,7 @@
                 if (string.IsNullOrWhiteSpace(workingDirectoryPath))
                 {
                     consoleWriter.AddMessageLine($"Zip archive not found: '{fileName}'.", "Orange");
+                    return;
                 }
 
                 foreach (FileInfo fi in new DirectoryInfo(workingDirectoryPath).GetFiles())
@@ -275,20 +276,27 @@
                     vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderAngular);
 
                 ClassDefinition cd = vm.DotNetZipFilesContent.Where(x => x.FileType == FileType.Dto).First();
-                if (cd != null)
-                {
-                    Dictionary<string, List<string>> planeDtoProperties = zipService.GetDtoProperties(cd.PropertyList);
-                    foreach (KeyValuePair<string, string> file in fileList)
-                    {
-                        CRUDAngularData data = new(file.Key, file.Value, workingDirectoryPath);
-                        data.ExtractBlocks = zipService.AnalyzeAngularFile(Path.Combine(workingDirectoryPath, file.Key), planeDtoProperties);
-
-                        vm.AngularZipContentFiles.Add(data);
-                    }
-                }
-                else
+                if (cd == null)
                 {
                     consoleWriter.AddMessageLine("Can't parse angular files, Dto 'plane' file not found.", "Orange");
+                    return;
+                }
+
+                Dictionary<string, List<string>> planeDtoProperties = zipService.GetDtoProperties(cd.PropertyList);
+                if (planeDtoProperties == null || planeDtoProperties.Count <= 0)
+                {
+                    consoleWriter.AddMessageLine("Can't read plane dto properties.", "Orange");
+                    return;
+                }
+
+                // Analyze angular files
+                foreach (KeyValuePair<string, string> file in fileList)
+                {
+                    CRUDAngularData data = new(file.Key, file.Value, workingDirectoryPath)
+                    {
+                        ExtractBlocks = zipService.AnalyzeAngularFile(Path.Combine(workingDirectoryPath, file.Key), planeDtoProperties)
+                    };
+                    vm.AngularZipContentFiles.Add(data);
                 }
 
                 // TODO NMA : 
