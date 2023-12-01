@@ -13,12 +13,15 @@
     using System.IO;
     using System.Linq;
     using System.Text;
+    using System.Text.RegularExpressions;
 
     public class GenerateCrudService
     {
         private readonly IConsoleWriter consoleWriter;
 
-        private const string ATTRIBUTE_TYPE_NOT_MANAGED = "// CRUD GENERATOR FOR PLANE TO REVIEW : Field XXX ot type YYY not managed.";
+        private const string ATTRIBUTE_TYPE_NOT_MANAGED = "// CRUD GENERATOR FOR PLANE TO REVIEW : Field " + ATTRIBUTE_TYPE_NOT_MANAGED_FIELD + " or type " + ATTRIBUTE_TYPE_NOT_MANAGED_TYPE + " not managed.";
+        private const string ATTRIBUTE_TYPE_NOT_MANAGED_FIELD = "XXX";
+        private const string ATTRIBUTE_TYPE_NOT_MANAGED_TYPE = "YYY";
         private string OldCrudNamePascalSingular = "Plane";
         private string OldCrudNamePascalPlural = "Planes";
         private string OldCrudNameCamelSingular = "plane";
@@ -93,22 +96,16 @@
                 foreach (CRUDAngularData angularFile in angularFilesFromZip)
                 {
                     List<string> blocksToAdd = new();
-                    //List<string> blocksToRemove = new();
+                    List<string> propertiesToAdd = new();
                     if (angularFile.ExtractBlocks != null && angularFile.ExtractBlocks.Count > 0)
                     {
-                        // Generate new blocks to add
                         foreach (KeyValuePair<string, List<string>> crudDtoProperty in crudDtoProperties)
                         {
+                            // Generate new properties to add
+                            propertiesToAdd.AddRange(GeneratePropertiesToAdd(angularFile, crudDtoProperty));
+                            // Generate new blocks to add
                             blocksToAdd.AddRange(GenerateBlocksToAdd(angularFile, crudDtoProperty));
                         }
-
-                        //// List blocks to remove
-                        //foreach (ExtractBlocks planeDtoProperty in angularFile.ExtractBlocks)
-                        //{
-                        //    StringBuilder sb = new();
-                        //    planeDtoProperty.BlockLines.ForEach(line => sb.AppendLine(line));
-                        //    blocksToRemove.Add(sb.ToString());
-                        //}
                     }
 
                     // Create file
@@ -116,7 +113,7 @@
                     string dest = ConvertOldCrudNameToNewCrudName(Path.Combine(angularDir, angularFile.FilePathDest));
 
                     // replace blocks !
-                    UpdateFile(src, dest, blocksToAdd);
+                    UpdateFile(src, dest, propertiesToAdd, blocksToAdd);
                 }
             }
             catch (Exception ex)
@@ -547,7 +544,7 @@
         #endregion
 
         #region Angular Files
-        private void UpdateFile(string fileName, string newFileName, List<string> blocksToAdd)
+        private void UpdateFile(string fileName, string newFileName, List<string> propertiesToAdd, List<string> blocksToAdd)
         {
             if (!File.Exists(fileName))
             {
@@ -564,12 +561,32 @@
             // Replace blocks
             if (blocksToAdd.Count > 0)
             {
-                StringBuilder sb = new();
-                int indexFirst = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER)).First());
-                int indexLast = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER)).Last());
+                int indexBeginProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_PROPERTIES)).FirstOrDefault());
+                int indexEndProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_END_PROPERTIES)).LastOrDefault());
 
-                // Write lines before first block
-                for (int i = 0; i < indexFirst; i++)
+                int indexFirstBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_BLOCK)).FirstOrDefault());
+                int indexLastBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_END_BLOCK)).LastOrDefault());
+
+                StringBuilder sb = new();
+
+                // Write lines before properties
+                for (int i = 0; i < indexBeginProperty; i++)
+                {
+                    sb.AppendLine(fileLinesContent[i]);
+                }
+
+                // Write new properties to add
+                sb.AppendLine($"  /// {ZipParserService.ANGULAR_MARKER_BEGIN_PROPERTIES}");
+                for (int i = 0; i < propertiesToAdd.Count; i++)
+                {
+                    sb.AppendLine(propertiesToAdd[i]);
+                }
+                sb.AppendLine($"  /// {ZipParserService.ANGULAR_MARKER_END_PROPERTIES}");
+
+                // TODO NMA
+
+                // Write lines between properties and first block
+                for (int i = indexEndProperty + 1; i < indexFirstBlock; i++)
                 {
                     sb.AppendLine(fileLinesContent[i]);
                 }
@@ -583,7 +600,7 @@
                 }
 
                 // Write lines after last block
-                for (int i = indexLast + 1; i < fileLinesContent.Count; i++)
+                for (int i = indexLastBlock + 1; i < fileLinesContent.Count; i++)
                 {
                     sb.AppendLine(fileLinesContent[i]);
                 }
@@ -600,17 +617,49 @@
             File.WriteAllText(newFileName, fileContent);
         }
 
+        private List<string> GeneratePropertiesToAdd(CRUDAngularData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
+        {
+            List<string> propertiesToAdd = new();
+
+            List<ExtractBlocks> extractBlocksList = angularFile.ExtractBlocks.Where(x => x.DataUpdateType == CRUDDataUpdateType.Property).ToList();
+            if (extractBlocksList != null && extractBlocksList.Count > 0)
+            {
+                string type = ConvertDotNetToAngularType(crudDtoProperty.Key);
+                foreach (string attrName in crudDtoProperty.Value)
+                {
+                    ExtractBlocks block = extractBlocksList.FirstOrDefault(block => block.Type == type);
+                    if (block == null)
+                    {
+                        // Generate empty property
+                        block = extractBlocksList[0];
+                    }
+
+                    string line = block.BlockLines.FirstOrDefault();
+                    // Generate property
+                    propertiesToAdd.Add(line.Replace(block.Name, CommonTools.ConvertToCamelCase(attrName)).Replace(block.Type, type));
+                }
+            }
+            else
+            {
+                // TODO NMA!
+                consoleWriter.AddMessageLine("Error 'extractBlock' (property) is empty.", "Red");
+                return null;
+            }
+
+            return propertiesToAdd;
+        }
+
         private List<string> GenerateBlocksToAdd(CRUDAngularData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
         {
             List<string> blocksToAdd = new();
 
-            ExtractBlocks extractBlock = angularFile.ExtractBlocks.Find(x => x.Type == crudDtoProperty.Key);
+            ExtractBlocks extractBlock = angularFile.ExtractBlocks.Find(x => x.DataUpdateType == CRUDDataUpdateType.Block && x.Type == crudDtoProperty.Key);
             if (extractBlock != null)
             {
                 if (extractBlock.BlockLines == null || extractBlock.BlockLines.Count <= 0)
                 {
                     // TODO NMA!
-                    consoleWriter.AddMessageLine("Error 'extractBlock' is empty.", "Red");
+                    consoleWriter.AddMessageLine("Error 'extractBlock' (block) is empty.", "Red");
                     return null;
                 }
 
@@ -625,11 +674,66 @@
                 // Generate "empty" block
                 foreach (string attrName in crudDtoProperty.Value)
                 {
-                    blocksToAdd.Add(CreateEmptyBlock(angularFile.ExtractBlocks.First(), crudDtoProperty.Key, attrName));
+                    ExtractBlocks defaultBlock = angularFile.ExtractBlocks.FirstOrDefault(x => x.DataUpdateType == CRUDDataUpdateType.Block);
+                    blocksToAdd.Add(CreateEmptyBlock(defaultBlock, crudDtoProperty.Key, attrName));
                 }
             }
 
             return blocksToAdd;
+        }
+
+        public string ConvertDotNetToAngularType(string dotnetType)
+        {
+            if (dotnetType == null) { return null; }
+
+            string angularType = dotnetType;
+
+            // In first : manage case of "Collection"
+            string match = GetMatchRegexValue(@"<(\w+)>", angularType);
+            if (!string.IsNullOrEmpty(match))
+            {
+                angularType = $"{match}[]";
+            }
+
+            // After verify other types
+            match = GetMatchRegexValue(@"(\w+)(\W*)", angularType);
+            if (!string.IsNullOrEmpty(match))
+            {
+                // Integer
+                if (match.ToLower() == "int" || match.ToLower() == "long" || match.ToLower() == "float" || match.ToLower() == "double")
+                    angularType = angularType.Replace(match, "number");
+
+                // Boolean
+                else if (match.ToLower() == "bool")
+                    angularType = angularType.Replace(match, "boolean");
+
+                // Date
+                else if (match == "DateTime")
+                    angularType = angularType.Replace(match, "Date");
+
+                // XXXDto
+                else if (match.EndsWith("Dto"))
+                    angularType = angularType.Replace(match, "OptionDto");
+            }
+
+            if (angularType.EndsWith('?'))
+                angularType = angularType.Replace("?", " | null");
+
+            return angularType;
+        }
+
+        private string GetMatchRegexValue(string pattern, string data)
+        {
+            MatchCollection matches = new Regex(pattern).Matches(data);
+            if (matches != null && matches.Count > 0)
+            {
+                GroupCollection groups = matches[0].Groups;
+                if (groups.Count > 0)
+                {
+                    return groups[1].Value;
+                }
+            }
+            return null;
         }
 
         private string ReplaceBlock(ExtractBlocks extractBlock, string crudAttributeName, string dtoAttributeName = null)
@@ -661,14 +765,14 @@
                 string startBLockComment = extractBlock.BlockLines.First();
                 string endBLockComment = extractBlock.BlockLines.Last();
 
-                newBlockLines.Add(ATTRIBUTE_TYPE_NOT_MANAGED.Replace("XXX", attributeName).Replace("YYY", attributeType));
+                newBlockLines.Add(ATTRIBUTE_TYPE_NOT_MANAGED.Replace(ATTRIBUTE_TYPE_NOT_MANAGED_FIELD, attributeName).Replace(ATTRIBUTE_TYPE_NOT_MANAGED_TYPE, attributeType));
                 newBlockLines.Add(extractBlock.BlockLines[0]);              // start block comment
                 newBlockLines.Add(extractBlock.BlockLines[1]);              // first block code line
                 newBlockLines.Add(extractBlock.BlockLines[length - 2]);     // last block code line
                 newBlockLines.Add(extractBlock.BlockLines[length - 1]);     // end block comment
             }
 
-            ExtractBlocks newBlock = new(attributeType, attributeName, newBlockLines);
+            ExtractBlocks newBlock = new(CRUDDataUpdateType.Block, attributeType, attributeName, newBlockLines);
             return ReplaceBlock(newBlock, attributeName, extractBlock.Name);
         }
 
@@ -719,16 +823,6 @@
             });
             return dico;
         }
-
-        //private Dictionary<string, List<string>> GetDtoProperties(List<PropertyDeclarationSyntax> list)
-        //{
-        //    Dictionary<string, List<string>> dico = new();
-        //    list.ForEach(p =>
-        //    {
-        //        AddToDictionnary(dico, p.Type.ToString(), p.Identifier.ToString());
-        //    });
-        //    return dico;
-        //}
         #endregion
         #endregion
     }

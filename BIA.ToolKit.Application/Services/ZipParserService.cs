@@ -15,11 +15,16 @@
     public class ZipParserService
     {
         private readonly IConsoleWriter consoleWriter;
-        private const string TMP_FOLDER_NAME = "BiaToolKit_CRUDGenerator";
+
+        public const string ANGULAR_MARKER = "BIAToolKit - ";
+        public const string ANGULAR_MARKER_BEGIN_PROPERTIES = ANGULAR_MARKER + "Begin properties";
+        public const string ANGULAR_MARKER_END_PROPERTIES = ANGULAR_MARKER + "End properties";
+        public const string ANGULAR_MARKER_BEGIN_BLOCK = ANGULAR_MARKER + "Begin block ";
+        public const string ANGULAR_MARKER_END_BLOCK = ANGULAR_MARKER + "End block ";
+
         private const string ATTRIBUE_MARKER = "XXXXX";
-        public const string ANGULAR_MARKER = "BIAToolKit -";
-        private const string ANGULAR_MARKER_BEGIN = ANGULAR_MARKER + " Begin " + ATTRIBUE_MARKER + " block";
-        private const string ANGULAR_MARKER_END = ANGULAR_MARKER + " End " + ATTRIBUE_MARKER + " block";
+        private const string ANGULAR_MARKER_BEGIN = ANGULAR_MARKER_BEGIN_BLOCK + ATTRIBUE_MARKER;
+        private const string ANGULAR_MARKER_END = ANGULAR_MARKER_END_BLOCK + ATTRIBUE_MARKER;
 
         public ZipParserService(IConsoleWriter consoleWriter)
         {
@@ -43,7 +48,7 @@
                 consoleWriter.AddMessageLine($"*** Parse zip file: '{zipPath}' ***", "Green");
 #endif
 
-                tempDir = Path.Combine(Path.GetTempPath(), TMP_FOLDER_NAME, folderType);
+                tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType);
                 if (Directory.Exists(tempDir))
                 {
                     Directory.Delete(tempDir, true);
@@ -88,23 +93,37 @@
                 return null;
             }
 
-            // File to update
-            List<ExtractBlocks> extractBlocks = new();
+            List<ExtractBlocks> extractBlocksList = new();
+
+            // Read file to update
             List<string> fileLines = File.ReadAllLines(fileName).ToList();
+
+            // Extract properties to update
+            List<string> properties = FindBlock(CRUDDataUpdateType.Property, fileLines, null);
+            foreach (string prop in properties)
+            {
+                ExtractBlocks block = DecomposeProperty(prop);
+                if (block != null)
+                {
+                    extractBlocksList.Add(block);
+                }
+            }
+
+            // Extract block to update
             foreach (KeyValuePair<string, List<string>> dtoProperty in planeDtoProperties)
             {
                 foreach (string attribute in dtoProperty.Value)
                 {
-                    List<string> block = FindBlock(fileLines, attribute);
+                    List<string> block = FindBlock(CRUDDataUpdateType.Block, fileLines, attribute);
                     if (block != null && block.Count > 0)
                     {
                         // Add only if block found
-                        extractBlocks.Add(new ExtractBlocks(dtoProperty.Key, attribute, block));
+                        extractBlocksList.Add(new ExtractBlocks(CRUDDataUpdateType.Block, dtoProperty.Key, attribute, block));
                     }
                 }
             }
 
-            return extractBlocks;
+            return extractBlocksList;
         }
 
         public FileType? GetFileType(string fileName)
@@ -195,27 +214,61 @@
             return name;
         }
 
-        private List<string> FindBlock(List<string> lines, string attributeName)
+        private ExtractBlocks DecomposeProperty(string property)
+        {
+            if (string.IsNullOrEmpty(property)) { return null; }
+
+            if (property.Trim().StartsWith("//")) { return null; }
+
+            MatchCollection matches = new Regex(@"^\s*(\w+):\s(\w+\W*\w*);$").Matches(property);
+            if (matches != null && matches.Count > 0)
+            {
+                GroupCollection groups = matches[0].Groups;
+                if (groups.Count > 2)
+                {
+                    return new ExtractBlocks(CRUDDataUpdateType.Property, groups[2].Value, groups[1].Value, new List<string>() { property });
+                }
+            }
+
+            consoleWriter.AddMessageLine($"Property not correctly formated, not possible to decompose: '{property}'", "Orange");
+            return null;
+        }
+
+        private List<string> FindBlock(CRUDDataUpdateType type, List<string> lines, string attributeName)
         {
             // Convert to camel case
             attributeName = CommonTools.ConvertToCamelCase(attributeName);
 
-            // Set start and stop block
-            string markerBegin = ANGULAR_MARKER_BEGIN.Replace(ATTRIBUE_MARKER, attributeName);
-            string markerEnd = ANGULAR_MARKER_END.Replace(ATTRIBUE_MARKER, attributeName);
+            string markerBegin;
+            string markerEnd;
+
+            // Set start and stop marker
+            switch (type)
+            {
+                case CRUDDataUpdateType.Block:
+                    markerBegin = ANGULAR_MARKER_BEGIN.Replace(ATTRIBUE_MARKER, attributeName);
+                    markerEnd = ANGULAR_MARKER_END.Replace(ATTRIBUE_MARKER, attributeName);
+                    break;
+                case CRUDDataUpdateType.Property:
+                    markerBegin = ANGULAR_MARKER_BEGIN_PROPERTIES;
+                    markerEnd = ANGULAR_MARKER_END_PROPERTIES;
+                    break;
+                default:
+                    throw new Exception($"Error on FindBlock: '{type}' case not implemented.");
+            }
 
             // Find start and stop block
-            int start = lines.FindIndex(l => l.Contains(markerBegin));
-            int end = lines.FindIndex(l => l.Contains(markerEnd));
+            int indexStart = lines.FindIndex(l => l.Contains(markerBegin));
+            int indexEnd = lines.FindIndex(l => l.Contains(markerEnd));
 
-            if (start < 0 || end < 0)
+            if (indexStart < 0 || indexEnd < 0)
             {
-                consoleWriter.AddMessageLine($"Block not correctly found for {attributeName}", "Orange");
+                consoleWriter.AddMessageLine($"{type} not correctly found ({attributeName})", "Orange");
                 return null;
             }
 
             // Keep block contains
-            return lines.ToArray()[start..++end].ToList();  // array with start and end lines included
+            return lines.ToArray()[indexStart..++indexEnd].ToList();  // array with start and end lines included
         }
 
         public Dictionary<string, List<string>> GetDtoProperties(List<PropertyDeclarationSyntax> list)

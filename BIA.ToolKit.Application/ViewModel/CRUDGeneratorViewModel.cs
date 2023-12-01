@@ -14,6 +14,7 @@
         /// </summary>
         public CRUDGeneratorViewModel()
         {
+            CRUDZipDataList = new();
             DotNetZipFilesContent = new();
             AngularZipContentFiles = new();
             ZipDotNetSelected = new();
@@ -107,41 +108,26 @@
         #endregion
 
         #region ZipFile
-        CRUDTypeData crudDataFeature;
-        public CRUDTypeData CRUDDataFeature
+        private bool isEnable;
+        public bool IsEnable
         {
-            get { return crudDataFeature; }
+            get { return isEnable; }
             set
             {
-                if (crudDataFeature != value)
-                {
-                    crudDataFeature = value;
-                }
+                isEnable = value;
+                RaisePropertyChanged(nameof(IsEnable));
             }
         }
 
-        CRUDTypeData crudDataOption;
-        public CRUDTypeData CRUDDataOption
+        private List<CRUDTypeData> crudZipDataList;
+        public List<CRUDTypeData> CRUDZipDataList
         {
-            get { return crudDataOption; }
+            get { return crudZipDataList; }
             set
             {
-                if (crudDataOption != value)
+                if (crudZipDataList != value)
                 {
-                    crudDataOption = value;
-                }
-            }
-        }
-
-        CRUDTypeData crudDataTeam;
-        public CRUDTypeData CRUDDataTeam
-        {
-            get { return crudDataTeam; }
-            set
-            {
-                if (crudDataTeam != value)
-                {
-                    crudDataTeam = value;
+                    crudZipDataList = value;
                 }
             }
         }
@@ -212,8 +198,7 @@
             get
             {
                 return isDtoParsed
-                    && ZipDotNetSelected.Count > 0
-                    && ZipAngularSelected.Count > 0;
+                    && (ZipDotNetSelected.Count > 0 || ZipAngularSelected.Count > 0);
             }
         }
 
@@ -255,35 +240,23 @@
         public CRUDType Type { get; }
 
         /// <summary>
-        /// DotNet zip file name.
-        /// </summary>
-        public string DotNetZipName { get; }
-
-        /// <summary>
         /// Angular zip file name.
         /// </summary>
-        public string AngularZipName { get; }
-
-        /// <summary>
-        /// DotNet zip file path.
-        /// </summary>
-        public string DotNetZipPath { get; }
+        public string ZipName { get; }
 
         /// <summary>
         /// Angular zip file path.
         /// </summary>
-        public string AngularZipPath { get; }
+        public string ZipPath { get; }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public CRUDTypeData(CRUDType Type, string dotNetName, string dotNetPath, string angularName, string angularPath)
+        public CRUDTypeData(CRUDType Type, string name, string path)
         {
             this.Type = Type;
-            this.DotNetZipName = dotNetName;
-            this.AngularZipName = angularName;
-            this.DotNetZipPath = dotNetPath;
-            this.AngularZipPath = angularPath;
+            this.ZipName = name;
+            this.ZipPath = path;
         }
     }
 
@@ -322,14 +295,17 @@
 
     public class ExtractBlocks
     {
+        public CRUDDataUpdateType DataUpdateType { get; }
+
         public string Type { get; }
 
         public string Name { get; }
 
         public List<string> BlockLines { get; }
 
-        public ExtractBlocks(string type, string name, List<string> lines)
+        public ExtractBlocks(CRUDDataUpdateType dataUpdateType, string type, string name, List<string> lines)
         {
+            this.DataUpdateType = dataUpdateType;
             this.Type = type;
             this.Name = name;
             this.BlockLines = lines;
@@ -338,8 +314,15 @@
 
     public enum CRUDType
     {
+        Back,
         Feature,
         Option,
         Team
+    }
+
+    public enum CRUDDataUpdateType
+    {
+        Property,
+        Block
     }
 }

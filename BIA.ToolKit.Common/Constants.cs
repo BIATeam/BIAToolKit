@@ -35,7 +35,7 @@ namespace BIA.ToolKit.Common
         public const string FolderAngular = "Angular";
 
         /// <summary>
-        /// Folder name for Net Core files
+        /// Folder name for DotNet files
         /// </summary>
         public const string FolderDotNet = "DotNet";
 
@@ -45,8 +45,19 @@ namespace BIA.ToolKit.Common
         public const string FolderNetCore = "NetCore";
 
         /// <summary>
+        /// Folder name for "doc" folder on DotNet and Angular parent folder
+        /// </summary>
+        public const string FolderDoc = "docs";
+
+        /// <summary>
         /// Folder name for CRUD generated files
         /// </summary>
         public const string FolderCrudGeneration = "GeneratedCRUD";
+
+        /// <summary>
+        /// Folder name for CRUD generated files
+        /// </summary>
+        public const string FolderCrudGenerationTmp = "BiaToolKit_CRUDGenerator";
+
     }
 }
