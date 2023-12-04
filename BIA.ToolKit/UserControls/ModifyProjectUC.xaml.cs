@@ -64,8 +64,11 @@
         private void ModifyProject_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ParameterModifyChange();
-            _viewModel.ModifyProject.CurrentProject.Folder = _viewModel.ModifyProject.RootProjectsPath;
-            CRUDGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
+            if (_viewModel.ModifyProject.CurrentProject != null)
+            {
+                _viewModel.ModifyProject.CurrentProject.Folder = _viewModel.ModifyProject.RootProjectsPath;
+                CRUDGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
+            }
         }
 
         private void Migrate_Click(object sender, RoutedEventArgs e)

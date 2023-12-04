@@ -534,7 +534,7 @@
         public string GetEntityNameFromDto(string dtoFileName)
         {
             var fileName = Path.GetFileNameWithoutExtension(dtoFileName);
-            if (fileName.ToLower().EndsWith("dto"))
+            if (!string.IsNullOrWhiteSpace(fileName) && fileName.ToLower().EndsWith("dto"))
             {
                 return fileName[..^3];   // name without 'dto' suffix
             }
@@ -559,50 +559,100 @@
             List<string> fileLinesContent = File.ReadAllLines(fileName).ToList();
 
             // Replace blocks
-            if (blocksToAdd.Count > 0)
+            if (propertiesToAdd.Count > 0 || blocksToAdd.Count > 0)
             {
                 int indexBeginProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_PROPERTIES)).FirstOrDefault());
-                int indexEndProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_END_PROPERTIES)).LastOrDefault());
+                int indexEndProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_END_PROPERTIES)).FirstOrDefault());
 
-                int indexFirstBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_BLOCK)).FirstOrDefault());
-                int indexLastBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_END_BLOCK)).LastOrDefault());
+                int indexBeginFirstBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_BLOCK)).FirstOrDefault());
+                int indexEndLastBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_END_BLOCK)).LastOrDefault());
 
                 StringBuilder sb = new();
-
-                // Write lines before properties
-                for (int i = 0; i < indexBeginProperty; i++)
+                // Writes properties ?
+                if (indexBeginProperty != -1 && indexEndProperty != -1)
                 {
-                    sb.AppendLine(fileLinesContent[i]);
+                    // Write lines before properties
+                    for (int i = 0; i < indexBeginProperty; i++)
+                    {
+                        sb.AppendLine(fileLinesContent[i]);
+                    }
+
+                    // Write new properties to add
+                    sb.AppendLine($"  /// {ZipParserService.ANGULAR_MARKER_BEGIN_PROPERTIES}");
+                    for (int i = 0; i < propertiesToAdd.Count; i++)
+                    {
+                        sb.AppendLine(propertiesToAdd[i]);
+                    }
+                    sb.AppendLine($"  /// {ZipParserService.ANGULAR_MARKER_END_PROPERTIES}");
+
+                    // Write blocks ?
+                    if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
+                    {
+                        // Write lines between properties and first block
+                        for (int i = indexEndProperty + 1; i < indexBeginFirstBlock; i++)
+                        {
+                            sb.AppendLine(fileLinesContent[i]);
+                        }
+
+                        // Write blocks to add
+                        for (int i = 0; i < blocksToAdd.Count; i++)
+                        {
+                            sb.Append(blocksToAdd[i]);
+                            if (i != blocksToAdd.Count - 1)
+                                sb.AppendLine("    ,");
+                        }
+
+                        // Write lines after last block
+                        for (int i = indexEndLastBlock + 1; i < fileLinesContent.Count; i++)
+                        {
+                            sb.AppendLine(fileLinesContent[i]);
+                        }
+                    }
+                    else
+                    {
+                        // Writes lines until the end
+                        for (int i = indexEndProperty + 1; i < fileLinesContent.Count; i++)
+                        {
+                            sb.AppendLine(fileLinesContent[i]);
+                        }
+                    }
                 }
-
-                // Write new properties to add
-                sb.AppendLine($"  /// {ZipParserService.ANGULAR_MARKER_BEGIN_PROPERTIES}");
-                for (int i = 0; i < propertiesToAdd.Count; i++)
+                else
                 {
-                    sb.AppendLine(propertiesToAdd[i]);
-                }
-                sb.AppendLine($"  /// {ZipParserService.ANGULAR_MARKER_END_PROPERTIES}");
+                    // Write blocks ?
+                    if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
+                    {
+                        // Write lines 
+                        for (int i = 0; i < indexBeginFirstBlock; i++)
+                        {
+                            sb.AppendLine(fileLinesContent[i]);
+                        }
 
-                // TODO NMA
+                        // Write blocks to add
+                        for (int i = 0; i < blocksToAdd.Count; i++)
+                        {
+                            sb.Append(blocksToAdd[i]);
+                            if (i != blocksToAdd.Count - 1)
+                                sb.AppendLine("    ,");
+                        }
 
-                // Write lines between properties and first block
-                for (int i = indexEndProperty + 1; i < indexFirstBlock; i++)
-                {
-                    sb.AppendLine(fileLinesContent[i]);
-                }
+                        // Write lines after last block
+                        for (int i = indexEndLastBlock + 1; i < fileLinesContent.Count; i++)
+                        {
+                            sb.AppendLine(fileLinesContent[i]);
+                        }
+                    }
+                    else
+                    {
+                        // Error
+                        consoleWriter.AddMessageLine($"Update File '{fileName}', index not found (Property: begin={indexBeginProperty}, end={indexEndProperty}; Block: begin={indexBeginFirstBlock}, end={indexEndLastBlock})", "Orange");
 
-                // Write new blocks to add
-                for (int i = 0; i < blocksToAdd.Count; i++)
-                {
-                    sb.Append(blocksToAdd[i]);
-                    if (i != blocksToAdd.Count - 1)
-                        sb.AppendLine("    ,");
-                }
-
-                // Write lines after last block
-                for (int i = indexLastBlock + 1; i < fileLinesContent.Count; i++)
-                {
-                    sb.AppendLine(fileLinesContent[i]);
+                        // Write lines 
+                        for (int i = 0; i < fileLinesContent.Count; i++)
+                        {
+                            sb.AppendLine(fileLinesContent[i]);
+                        }
+                    }
                 }
 
                 // Create file with all lines
@@ -639,12 +689,6 @@
                     propertiesToAdd.Add(line.Replace(block.Name, CommonTools.ConvertToCamelCase(attrName)).Replace(block.Type, type));
                 }
             }
-            else
-            {
-                // TODO NMA!
-                consoleWriter.AddMessageLine("Error 'extractBlock' (property) is empty.", "Red");
-                return null;
-            }
 
             return propertiesToAdd;
         }
@@ -675,7 +719,10 @@
                 foreach (string attrName in crudDtoProperty.Value)
                 {
                     ExtractBlocks defaultBlock = angularFile.ExtractBlocks.FirstOrDefault(x => x.DataUpdateType == CRUDDataUpdateType.Block);
-                    blocksToAdd.Add(CreateEmptyBlock(defaultBlock, crudDtoProperty.Key, attrName));
+                    if (defaultBlock != null)
+                    {
+                        blocksToAdd.Add(CreateEmptyBlock(defaultBlock, crudDtoProperty.Key, attrName));
+                    }
                 }
             }
 

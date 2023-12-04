@@ -40,7 +40,7 @@
             {
                 if (!File.Exists(zipPath))
                 {
-                    consoleWriter.AddMessageLine("Zip file path not exist", "Red");
+                    consoleWriter.AddMessageLine($"Zip file path '{zipPath}' not exist", "Red");
                     return (tempDir, files);
                 }
 
@@ -67,8 +67,6 @@
                     entry.ExtractToFile(Path.Combine(tempDir, entry.Name));
                     files.Add(entry.Name, entry.FullName);
                 }
-
-                return (tempDir, files);
             }
             catch (Exception ex)
             {
@@ -100,14 +98,22 @@
 
             // Extract properties to update
             List<string> properties = FindBlock(CRUDDataUpdateType.Property, fileLines, null);
-            foreach (string prop in properties)
+            if (properties != null)
             {
-                ExtractBlocks block = DecomposeProperty(prop);
-                if (block != null)
+                foreach (string prop in properties)
                 {
-                    extractBlocksList.Add(block);
+                    ExtractBlocks block = DecomposeProperty(prop);
+                    if (block != null)
+                    {
+                        extractBlocksList.Add(block);
+                    }
                 }
             }
+            else
+            {
+                consoleWriter.AddMessageLine($"Properties not found on file '{fileName}'.", "Orange");
+            }
+
 
             // Extract block to update
             foreach (KeyValuePair<string, List<string>> dtoProperty in planeDtoProperties)
@@ -119,6 +125,10 @@
                     {
                         // Add only if block found
                         extractBlocksList.Add(new ExtractBlocks(CRUDDataUpdateType.Block, dtoProperty.Key, attribute, block));
+                    }
+                    else
+                    {
+                        consoleWriter.AddMessageLine($"Block not found for '{attribute}' on file '{fileName}'", "Orange");
                     }
                 }
             }
@@ -263,7 +273,6 @@
 
             if (indexStart < 0 || indexEnd < 0)
             {
-                consoleWriter.AddMessageLine($"{type} not correctly found ({attributeName})", "Orange");
                 return null;
             }
 
