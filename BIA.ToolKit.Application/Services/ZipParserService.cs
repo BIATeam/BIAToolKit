@@ -31,7 +31,7 @@
             this.consoleWriter = consoleWriter;
         }
 
-        public (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string entityName, string compagnyName, string projectName, string folderType)
+        public (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string entityName, string compagnyName, string projectName, string folderType, CRUDType crudType)
         {
             string tempDir = null;
             Dictionary<string, string> files = null;
@@ -48,7 +48,7 @@
                 consoleWriter.AddMessageLine($"*** Parse zip file: '{zipPath}' ***", "Green");
 #endif
 
-                tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType);
+                tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType, crudType.ToString());
                 if (Directory.Exists(tempDir))
                 {
                     Directory.Delete(tempDir, true);

@@ -178,7 +178,7 @@
         {
             if (vm == null || vm.CRUDZipDataList == null) return;
 
-            CRUDTypeData crudZipData = vm.CRUDZipDataList.Where(x => x.Type == CRUDType.Back).FirstOrDefault();
+            CRUDTypeData crudZipData = vm.CRUDZipDataList.Where(x => x.Type == CRUDType.Team).FirstOrDefault();
             if (crudZipData != null)
             {
                 crudZipData.IsChecked = (bool)((CheckBox)sender).IsChecked;
@@ -207,7 +207,7 @@
         {
             if (vm == null || vm.CRUDZipDataList == null) return;
 
-            CRUDTypeData crudZipData = vm.CRUDZipDataList.Where(x => x.Type == CRUDType.Back).FirstOrDefault();
+            CRUDTypeData crudZipData = vm.CRUDZipDataList.Where(x => x.Type == CRUDType.Option).FirstOrDefault();
             if (crudZipData != null)
             {
                 crudZipData.IsChecked = (bool)((CheckBox)sender).IsChecked;
@@ -350,7 +350,7 @@
                     }
 
                     // Parse Feature Zip file
-                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, this.entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderDotNet);
+                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, this.entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderDotNet, CRUDType.Back);
                     if (string.IsNullOrWhiteSpace(workingDirectoryPath))
                     {
                         consoleWriter.AddMessageLine($"Zip archive not found: '{fileName}'.", "Orange");
@@ -360,18 +360,6 @@
                     vm.DotNetZipFilesContent.Clear();
                     if (fileList.Count > 0)
                     {
-                        //List<FileInfo> files = new DirectoryInfo(workingDirectoryPath).GetFiles().ToList();
-                        //foreach (KeyValuePair<string, string> file in fileList)
-                        //{
-                        //    FileInfo fi = files.Find(f => f.Name == file.Key);
-                        //    ClassDefinition classFile = service.ParseClassFile(fi.FullName);
-                        //    classFile.PathOnZip = file.Value;
-                        //    FileType? type = zipService.GetFileType(file.Key);
-                        //    classFile.FileType = type;
-                        //    classFile.EntityName = zipService.GetEntityName(file.Key, type);
-                        //    vm.DotNetZipFilesContent.Add(classFile);
-                        //}
-
                         foreach (FileInfo fi in new DirectoryInfo(workingDirectoryPath).GetFiles())
                         {
                             ClassDefinition classFile = service.ParseClassFile(fi.FullName);
@@ -414,7 +402,7 @@
 
                     // Parse Feature Zip file
                     (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, this.entityName,
-                        vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderAngular);
+                        vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderAngular, CRUDType.Feature);
                     if (string.IsNullOrWhiteSpace(workingDirectoryPath))
                     {
                         consoleWriter.AddMessageLine($"Zip archive '{fileName}' not found.", "Orange");
@@ -459,7 +447,24 @@
                 CRUDTypeData crudZipDataOpt = GetCRUDTypeData(CRUDType.Option, vm.ZipAngularSelected.ToList());
                 if (crudZipDataOpt != null)
                 {
-                    consoleWriter.AddMessageLine("Parsing Option Zip file not implemented.", "Red");
+                    string fileName = Path.Combine(crudZipDataOpt.ZipPath, crudZipDataOpt.ZipName);
+                    if (string.IsNullOrWhiteSpace(fileName))
+                    {
+                        consoleWriter.AddMessageLine("No Angular Zip files found to parse.", "Orange");
+                        return;
+                    }
+
+                    // Parse Option Zip file
+                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, this.entityName,
+                        vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderAngular, CRUDType.Option);
+                    if (string.IsNullOrWhiteSpace(workingDirectoryPath))
+                    {
+                        consoleWriter.AddMessageLine($"Zip archive '{fileName}' not found.", "Orange");
+                        return;
+                    }
+
+
+
                 }
 
                 // TODO NMA : 

@@ -110,10 +110,10 @@
 
                     // Create file
                     string src = Path.Combine(angularFile.TempDirPath, angularFile.FileName);
-                    string dest = ConvertOldCrudNameToNewCrudName(Path.Combine(angularDir, angularFile.FilePathDest));
+                    string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FilePathDest));
 
                     // replace blocks !
-                    UpdateFile(src, dest, propertiesToAdd, blocksToAdd);
+                    GenerateFile(src, dest, propertiesToAdd, blocksToAdd);
                 }
             }
             catch (Exception ex)
@@ -544,7 +544,7 @@
         #endregion
 
         #region Angular Files
-        private void UpdateFile(string fileName, string newFileName, List<string> propertiesToAdd, List<string> blocksToAdd)
+        private void GenerateFile(string fileName, string newFileName, List<string> propertiesToAdd, List<string> blocksToAdd)
         {
             if (!File.Exists(fileName))
             {
@@ -558,113 +558,119 @@
             // Read file
             List<string> fileLinesContent = File.ReadAllLines(fileName).ToList();
 
-            // Replace blocks
-            if (propertiesToAdd.Count > 0 || blocksToAdd.Count > 0)
+            // Replace properties and blocks
+            fileLinesContent = ReplacePorpertiesAndBlocks(fileName, fileLinesContent, propertiesToAdd, blocksToAdd);
+
+            // Update file content
+            UpdateFileLinesContent(fileLinesContent);
+
+            // Generate new file
+            StringBuilder sb = new();
+            fileLinesContent.ForEach(line => sb.AppendLine(line));
+
+            File.WriteAllText(newFileName, sb.ToString());
+        }
+
+        private List<string> ReplacePorpertiesAndBlocks(string fileName, List<string> fileLinesContent, List<string> propertiesToAdd, List<string> blocksToAdd)
+        {
+            if ((propertiesToAdd == null || propertiesToAdd.Count <= 0) && (blocksToAdd == null || blocksToAdd.Count <= 0)) return fileLinesContent;
+
+
+            int indexBeginProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_PROPERTIES)).FirstOrDefault());
+            int indexEndProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_END_PROPERTIES)).FirstOrDefault());
+
+            int indexBeginFirstBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_BLOCK)).FirstOrDefault());
+            int indexEndLastBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_END_BLOCK)).LastOrDefault());
+
+            List<string> newFileLinesContent = new();
+            // Writes properties ?
+            if (indexBeginProperty != -1 && indexEndProperty != -1)
             {
-                int indexBeginProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_PROPERTIES)).FirstOrDefault());
-                int indexEndProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_END_PROPERTIES)).FirstOrDefault());
-
-                int indexBeginFirstBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_BLOCK)).FirstOrDefault());
-                int indexEndLastBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_END_BLOCK)).LastOrDefault());
-
-                StringBuilder sb = new();
-                // Writes properties ?
-                if (indexBeginProperty != -1 && indexEndProperty != -1)
+                // Write lines before properties
+                for (int i = 0; i < indexBeginProperty; i++)
                 {
-                    // Write lines before properties
-                    for (int i = 0; i < indexBeginProperty; i++)
+                    newFileLinesContent.Add(fileLinesContent[i]);
+                }
+
+                // Write new properties to add
+                newFileLinesContent.Add($"  /// {ZipParserService.ANGULAR_MARKER_BEGIN_PROPERTIES}");
+                for (int i = 0; i < propertiesToAdd.Count; i++)
+                {
+                    newFileLinesContent.Add(propertiesToAdd[i]);
+                }
+                newFileLinesContent.Add($"  /// {ZipParserService.ANGULAR_MARKER_END_PROPERTIES}");
+
+                // Write blocks ?
+                if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
+                {
+                    // Write lines between properties and first block
+                    for (int i = indexEndProperty + 1; i < indexBeginFirstBlock; i++)
                     {
-                        sb.AppendLine(fileLinesContent[i]);
+                        newFileLinesContent.Add(fileLinesContent[i]);
                     }
 
-                    // Write new properties to add
-                    sb.AppendLine($"  /// {ZipParserService.ANGULAR_MARKER_BEGIN_PROPERTIES}");
-                    for (int i = 0; i < propertiesToAdd.Count; i++)
+                    // Write blocks to add
+                    for (int i = 0; i < blocksToAdd.Count; i++)
                     {
-                        sb.AppendLine(propertiesToAdd[i]);
+                        newFileLinesContent.Append(blocksToAdd[i]);
+                        if (i != blocksToAdd.Count - 1)
+                            newFileLinesContent.Add("    ,");
                     }
-                    sb.AppendLine($"  /// {ZipParserService.ANGULAR_MARKER_END_PROPERTIES}");
 
-                    // Write blocks ?
-                    if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
+                    // Write lines after last block
+                    for (int i = indexEndLastBlock + 1; i < fileLinesContent.Count; i++)
                     {
-                        // Write lines between properties and first block
-                        for (int i = indexEndProperty + 1; i < indexBeginFirstBlock; i++)
-                        {
-                            sb.AppendLine(fileLinesContent[i]);
-                        }
-
-                        // Write blocks to add
-                        for (int i = 0; i < blocksToAdd.Count; i++)
-                        {
-                            sb.Append(blocksToAdd[i]);
-                            if (i != blocksToAdd.Count - 1)
-                                sb.AppendLine("    ,");
-                        }
-
-                        // Write lines after last block
-                        for (int i = indexEndLastBlock + 1; i < fileLinesContent.Count; i++)
-                        {
-                            sb.AppendLine(fileLinesContent[i]);
-                        }
-                    }
-                    else
-                    {
-                        // Writes lines until the end
-                        for (int i = indexEndProperty + 1; i < fileLinesContent.Count; i++)
-                        {
-                            sb.AppendLine(fileLinesContent[i]);
-                        }
+                        newFileLinesContent.Add(fileLinesContent[i]);
                     }
                 }
                 else
                 {
-                    // Write blocks ?
-                    if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
+                    // Writes lines until the end
+                    for (int i = indexEndProperty + 1; i < fileLinesContent.Count; i++)
                     {
-                        // Write lines 
-                        for (int i = 0; i < indexBeginFirstBlock; i++)
-                        {
-                            sb.AppendLine(fileLinesContent[i]);
-                        }
-
-                        // Write blocks to add
-                        for (int i = 0; i < blocksToAdd.Count; i++)
-                        {
-                            sb.Append(blocksToAdd[i]);
-                            if (i != blocksToAdd.Count - 1)
-                                sb.AppendLine("    ,");
-                        }
-
-                        // Write lines after last block
-                        for (int i = indexEndLastBlock + 1; i < fileLinesContent.Count; i++)
-                        {
-                            sb.AppendLine(fileLinesContent[i]);
-                        }
-                    }
-                    else
-                    {
-                        // Error
-                        consoleWriter.AddMessageLine($"Update File '{fileName}', index not found (Property: begin={indexBeginProperty}, end={indexEndProperty}; Block: begin={indexBeginFirstBlock}, end={indexEndLastBlock})", "Orange");
-
-                        // Write lines 
-                        for (int i = 0; i < fileLinesContent.Count; i++)
-                        {
-                            sb.AppendLine(fileLinesContent[i]);
-                        }
+                        newFileLinesContent.Add(fileLinesContent[i]);
                     }
                 }
+            }
+            else
+            {
+                // Write blocks ?
+                if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
+                {
+                    // Write lines 
+                    for (int i = 0; i < indexBeginFirstBlock; i++)
+                    {
+                        newFileLinesContent.Add(fileLinesContent[i]);
+                    }
 
-                // Create file with all lines
-                File.WriteAllText(fileName, sb.ToString());
+                    // Write blocks to add
+                    for (int i = 0; i < blocksToAdd.Count; i++)
+                    {
+                        newFileLinesContent.Append(blocksToAdd[i]);
+                        if (i != blocksToAdd.Count - 1)
+                            newFileLinesContent.Add("    ,");
+                    }
+
+                    // Write lines after last block
+                    for (int i = indexEndLastBlock + 1; i < fileLinesContent.Count; i++)
+                    {
+                        newFileLinesContent.Add(fileLinesContent[i]);
+                    }
+                }
+                else
+                {
+                    // Error
+                    consoleWriter.AddMessageLine($"Update File '{fileName}', index not found (Property: begin={indexBeginProperty}, end={indexEndProperty}; Block: begin={indexBeginFirstBlock}, end={indexEndLastBlock})", "Orange");
+
+                    // Write lines 
+                    for (int i = 0; i < fileLinesContent.Count; i++)
+                    {
+                        newFileLinesContent.Add(fileLinesContent[i]);
+                    }
+                }
             }
 
-            // Replace on file content
-            string fileContent = File.ReadAllText(fileName);
-            fileContent = ConvertOldCrudNameToNewCrudName(fileContent);
-
-            // Generate new file
-            File.WriteAllText(newFileName, fileContent);
+            return newFileLinesContent;
         }
 
         private List<string> GeneratePropertiesToAdd(CRUDAngularData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
@@ -823,6 +829,23 @@
             return ReplaceBlock(newBlock, attributeName, extractBlock.Name);
         }
 
+        private void UpdateFileLinesContent(List<string> lines)
+        {
+            if (lines == null) return;
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (lines[i].StartsWith("import"))
+                {
+                    lines[i] = ConvertOldCrudNameToNewCrudName(lines[i]);
+                }
+                else
+                {
+                    lines[i] = ConvertPascalOldToNewCrudName(lines[i]);
+                }
+            }
+        }
+
         #region Rename CRUD
         public void InitRenameValues(string newValueSingular, string newValuePlurial, string oldValueSingular = "Plane", string oldValuePlurial = "Planes")
         {
@@ -841,17 +864,31 @@
 
         private string ConvertOldCrudNameToNewCrudName(string value)
         {
+            value = ConvertPascalOldToNewCrudName(value);
+            value = ConvertCamelToKebabCrudName(value);
+
+            return value;
+        }
+
+        private string ConvertPascalOldToNewCrudName(string value)
+        {
             if (value.Contains(OldCrudNamePascalPlural))
             {
                 value = value.Replace(OldCrudNamePascalPlural, NewCrudNamePascalPlural);
             }
-            if (value.Contains(OldCrudNameCamelPlural))
-            {
-                value = value.Replace(OldCrudNameCamelPlural, NewCrudNameKebabPlural);
-            }
             if (value.Contains(OldCrudNamePascalSingular))
             {
                 value = value.Replace(OldCrudNamePascalSingular, NewCrudNamePascalSingular);
+            }
+
+            return value;
+        }
+
+        private string ConvertCamelToKebabCrudName(string value)
+        {
+            if (value.Contains(OldCrudNameCamelPlural))
+            {
+                value = value.Replace(OldCrudNameCamelPlural, NewCrudNameKebabPlural);
             }
             if (value.Contains(OldCrudNameCamelSingular))
             {
