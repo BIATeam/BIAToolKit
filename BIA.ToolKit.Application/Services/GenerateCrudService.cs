@@ -27,6 +27,11 @@
         private string OldCrudNameCamelSingular = "plane";
         private string OldCrudNameCamelPlural = "planes";
 
+        private string OldOptionNamePascalSingular = "Airport";
+        private string OldOptionNamePascalPlural = "Airports";
+        private string OldOptionNameCamelSingular = "airport";
+        private string OldOptionNameCamelPlural = "airports";
+
         private string NewCrudNamePascalSingular = "Plane";
         private string NewCrudNamePascalPlural = "Planes";
         private string NewCrudNameCamelSingular = "plane";
@@ -80,20 +85,19 @@
             return generatedFolder;
         }
 
-        public void GenerateAngularCrudFiles(string entityName, Project currentProject, EntityInfo dtoEntity, List<CRUDAngularData> angularFilesFromZip/*, ClassDefinition cd*/)
+        public void GenerateAngularCrudFiles(string entityName, Project currentProject, EntityInfo dtoEntity, List<AngularFeatureData> angularFilesFromZip)
         {
 #if DEBUG
             consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{Path.Combine(currentProject.Folder, Constants.FolderCrudGeneration)}' ***", "Green");
 #endif
             try
             {
-                string generatedFolder = Path.Combine(currentProject.Folder, currentProject.Name, Constants.FolderCrudGeneration);
-                string angularDir = Path.Combine(generatedFolder, Constants.FolderAngular);
+                string angularDir = Path.Combine(currentProject.Folder, currentProject.Name, Constants.FolderCrudGeneration, Constants.FolderAngular);
                 CommonTools.PrepareFolder(angularDir);
 
                 Dictionary<string, List<string>> crudDtoProperties = GetDtoProperties(dtoEntity);
 
-                foreach (CRUDAngularData angularFile in angularFilesFromZip)
+                foreach (AngularFeatureData angularFile in angularFilesFromZip)
                 {
                     List<string> blocksToAdd = new();
                     List<string> propertiesToAdd = new();
@@ -109,8 +113,8 @@
                     }
 
                     // Create file
-                    string src = Path.Combine(angularFile.TempDirPath, angularFile.FileName);
-                    string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FilePathDest));
+                    string src = Path.Combine(angularFile.TempDirPath, angularFile.FileFullPath);
+                    string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FileFullPath));
 
                     // replace blocks !
                     GenerateFile(src, dest, propertiesToAdd, blocksToAdd);
@@ -612,7 +616,7 @@
                     // Write blocks to add
                     for (int i = 0; i < blocksToAdd.Count; i++)
                     {
-                        newFileLinesContent.Append(blocksToAdd[i]);
+                        newFileLinesContent.Add(blocksToAdd[i]);
                         if (i != blocksToAdd.Count - 1)
                             newFileLinesContent.Add("    ,");
                     }
@@ -646,7 +650,7 @@
                     // Write blocks to add
                     for (int i = 0; i < blocksToAdd.Count; i++)
                     {
-                        newFileLinesContent.Append(blocksToAdd[i]);
+                        newFileLinesContent.Add(blocksToAdd[i]);
                         if (i != blocksToAdd.Count - 1)
                             newFileLinesContent.Add("    ,");
                     }
@@ -673,7 +677,7 @@
             return newFileLinesContent;
         }
 
-        private List<string> GeneratePropertiesToAdd(CRUDAngularData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
+        private List<string> GeneratePropertiesToAdd(AngularFeatureData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
         {
             List<string> propertiesToAdd = new();
 
@@ -699,7 +703,7 @@
             return propertiesToAdd;
         }
 
-        private List<string> GenerateBlocksToAdd(CRUDAngularData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
+        private List<string> GenerateBlocksToAdd(AngularFeatureData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
         {
             List<string> blocksToAdd = new();
 
@@ -798,7 +802,12 @@
             crudAttributeName = CommonTools.ConvertToCamelCase(crudAttributeName);
 
             StringBuilder sb = new();
-            extractBlock.BlockLines.ForEach(line => sb.AppendLine(line));
+            int count;
+            for (count = 0; count < extractBlock.BlockLines.Count - 1; count++)
+            {
+                sb.AppendLine(extractBlock.BlockLines[count]);  // Add all lines except the last
+            }
+            sb.Append(extractBlock.BlockLines[count]);          // Add the last
 
             string newBlock = sb.ToString().Replace(dtoAttributeName, crudAttributeName);
             newBlock = newBlock.Replace(OldCrudNameCamelPlural, NewCrudNameCamelPlural);

@@ -14,9 +14,9 @@
         /// </summary>
         public CRUDGeneratorViewModel()
         {
-            CRUDZipDataList = new();
+            FeatureTypeDataList = new();
             DotNetZipFilesContent = new();
-            AngularZipContentFiles = new();
+            AngularZipFilesContent = new();
             ZipDotNetSelected = new();
             ZipAngularSelected = new();
         }
@@ -30,6 +30,17 @@
             {
                 currentProject = value;
                 RaisePropertyChanged(nameof(IsButtonParseZipEnable));
+            }
+        }
+
+        private bool isProjectChosen;
+        public bool IsProjectChosen
+        {
+            get { return isProjectChosen; }
+            set
+            {
+                isProjectChosen = value;
+                RaisePropertyChanged(nameof(IsProjectChosen));
             }
         }
         #endregion
@@ -75,6 +86,18 @@
                 }
             }
         }
+
+        private bool isDtoParsed = false;
+        public bool IsDtoParsed
+        {
+            get { return isDtoParsed; }
+            set
+            {
+                isDtoParsed = value;
+                RaisePropertyChanged(nameof(IsButtonParseZipEnable));
+                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+            }
+        }
         #endregion
 
         #region CRUD Name
@@ -108,26 +131,15 @@
         #endregion
 
         #region ZipFile
-        private bool isEnable;
-        public bool IsEnable
+        private List<FeatureTypeData> featureTypeDataList;
+        public List<FeatureTypeData> FeatureTypeDataList
         {
-            get { return isEnable; }
+            get { return featureTypeDataList; }
             set
             {
-                isEnable = value;
-                RaisePropertyChanged(nameof(IsEnable));
-            }
-        }
-
-        private List<CRUDTypeData> crudZipDataList;
-        public List<CRUDTypeData> CRUDZipDataList
-        {
-            get { return crudZipDataList; }
-            set
-            {
-                if (crudZipDataList != value)
+                if (featureTypeDataList != value)
                 {
-                    crudZipDataList = value;
+                    featureTypeDataList = value;
                 }
             }
         }
@@ -159,20 +171,6 @@
                 }
             }
         }
-        #endregion
-
-        #region Button
-        private bool isDtoParsed = false;
-        public bool IsDtoParsed
-        {
-            get { return isDtoParsed; }
-            set
-            {
-                isDtoParsed = value;
-                RaisePropertyChanged(nameof(IsButtonParseZipEnable));
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-            }
-        }
 
         private bool isZipParsed = false;
         public bool IsZipParsed
@@ -184,7 +182,9 @@
                 RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
+        #endregion
 
+        #region Button
         public bool IsButtonParseDtoEnable
         {
             get
@@ -224,10 +224,10 @@
 
         public List<ClassDefinition> DotNetZipFilesContent { get; }
 
-        public List<CRUDAngularData> AngularZipContentFiles { get; }
+        public List<AngularFeatureData> AngularZipFilesContent { get; }
     }
 
-    public class CRUDTypeData
+    public class FeatureTypeData
     {
         /// <summary>
         /// Is to generate?
@@ -237,7 +237,7 @@
         /// <summary>
         /// The CRUD type.
         /// </summary>
-        public CRUDType Type { get; }
+        public FeatureType Type { get; }
 
         /// <summary>
         /// Angular zip file name.
@@ -252,25 +252,27 @@
         /// <summary>
         /// Constructor.
         /// </summary>
-        public CRUDTypeData(CRUDType Type, string name, string path)
+        public FeatureTypeData(FeatureType type, string name, string path)
         {
-            this.Type = Type;
+            this.Type = type;
             this.ZipName = name;
             this.ZipPath = path;
         }
     }
 
-    public class CRUDAngularData
+    public class AngularFeatureData
     {
+        public FeatureType Type { get; }
+
         /// <summary>
         /// File name (only).
         /// </summary>
         public string FileName { get; }
 
         /// <summary>
-        /// File destination path.
+        /// File full path on Temporary working directory.
         /// </summary>
-        public string FilePathDest { get; }
+        public string FileFullPath { get; }
 
         /// <summary>
         /// Temporary working directory full path.
@@ -285,10 +287,11 @@
         /// <summary>
         /// Constructor.
         /// </summary>
-        public CRUDAngularData(string fileName, string filePath, string tmpDir)
+        public AngularFeatureData(FeatureType type, string fileName, string filePath, string tmpDir)
         {
+            this.Type = type;
             this.FileName = fileName;
-            this.FilePathDest = filePath;
+            this.FileFullPath = filePath;
             this.TempDirPath = tmpDir;
         }
     }
@@ -312,10 +315,10 @@
         }
     }
 
-    public enum CRUDType
+    public enum FeatureType
     {
         Back,
-        Feature,
+        CRUD,
         Option,
         Team
     }

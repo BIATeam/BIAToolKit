@@ -26,12 +26,19 @@
         private const string ANGULAR_MARKER_BEGIN = ANGULAR_MARKER_BEGIN_BLOCK + ATTRIBUE_MARKER;
         private const string ANGULAR_MARKER_END = ANGULAR_MARKER_END_BLOCK + ATTRIBUE_MARKER;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public ZipParserService(IConsoleWriter consoleWriter)
         {
             this.consoleWriter = consoleWriter;
         }
 
-        public (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string entityName, string compagnyName, string projectName, string folderType, CRUDType crudType)
+        /// <summary>
+        /// Read Zip archive and extract files on temporary working directory.
+        /// </summary>
+        /// <returns>A tuple with working temporary directory and a dictionnary of files contains (key: file full path on archive, value : file name) in zip archives.</returns>
+        public (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string entityName, string compagnyName, string projectName, string folderType, FeatureType crudType)
         {
             string tempDir = null;
             Dictionary<string, string> files = null;
@@ -48,6 +55,7 @@
                 consoleWriter.AddMessageLine($"*** Parse zip file: '{zipPath}' ***", "Green");
 #endif
 
+                // Create working temporary folder
                 tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType, crudType.ToString());
                 if (Directory.Exists(tempDir))
                 {
@@ -55,17 +63,20 @@
                 }
                 Directory.CreateDirectory(tempDir);
 
+                // Extract and list files from archive to temprory folder
                 files = new();
                 using ZipArchive archive = ZipFile.OpenRead(zipPath);
                 foreach (ZipArchiveEntry entry in archive.Entries)
                 {
-                    if (string.IsNullOrWhiteSpace(entry.Name))   // entry is folder
+                    if (string.IsNullOrWhiteSpace(entry.Name))
                     {
+                        // if entry is folder, create it
+                        CommonTools.CheckFolder(Path.Combine(tempDir, entry.FullName));
                         continue;
                     }
 
-                    entry.ExtractToFile(Path.Combine(tempDir, entry.Name));
-                    files.Add(entry.Name, entry.FullName);
+                    entry.ExtractToFile(Path.Combine(tempDir, entry.FullName));
+                    files.Add(entry.FullName, entry.Name);
                 }
             }
             catch (Exception ex)
@@ -76,6 +87,9 @@
             return (tempDir, files);
         }
 
+        /// <summary>
+        /// Analyze and extract angular file.
+        /// </summary>
         public List<ExtractBlocks> AnalyzeAngularFile(string fileName, Dictionary<string, List<string>> planeDtoProperties)
         {
             if (!File.Exists(fileName))
@@ -136,6 +150,9 @@
             return extractBlocksList;
         }
 
+        /// <summary>
+        /// Get the type of DotNet file.
+        /// </summary>
         public FileType? GetFileType(string fileName)
         {
             if (fileName == null)
@@ -172,6 +189,9 @@
             }
         }
 
+        /// <summary>
+        /// Get the "entity" name from DotNet file.
+        /// </summary>
         public string GetEntityName(string fileName, FileType? type)
         {
             if (fileName == null || type == null)
@@ -224,6 +244,9 @@
             return name;
         }
 
+        /// <summary>
+        /// Extract and format property.
+        /// </summary>
         private ExtractBlocks DecomposeProperty(string property)
         {
             if (string.IsNullOrEmpty(property)) { return null; }
@@ -244,6 +267,9 @@
             return null;
         }
 
+        /// <summary>
+        /// Find and extract block of lines from file content in function to DataType (Property or block).
+        /// </summary>
         private List<string> FindBlock(CRUDDataUpdateType type, List<string> lines, string attributeName)
         {
             // Convert to camel case
@@ -264,7 +290,7 @@
                     markerEnd = ANGULAR_MARKER_END_PROPERTIES;
                     break;
                 default:
-                    throw new Exception($"Error on FindBlock: '{type}' case not implemented.");
+                    throw new Exception($"Error on FindBlock: case {type}' not implemented.");
             }
 
             // Find start and stop block
@@ -280,10 +306,13 @@
             return lines.ToArray()[indexStart..++indexEnd].ToList();  // array with start and end lines included
         }
 
-        public Dictionary<string, List<string>> GetDtoProperties(List<PropertyDeclarationSyntax> list)
+        /// <summary>
+        /// Get and format list of properties of Dto file.
+        /// </summary>
+        public Dictionary<string, List<string>> GetDtoProperties(List<PropertyDeclarationSyntax> propertyList)
         {
             Dictionary<string, List<string>> dico = new();
-            list.ForEach(p =>
+            propertyList.ForEach(p =>
             {
                 CommonTools.AddToDictionnary(dico, p.Type.ToString(), p.Identifier.ToString());
             });

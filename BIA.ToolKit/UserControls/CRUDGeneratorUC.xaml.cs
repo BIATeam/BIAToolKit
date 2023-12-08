@@ -63,11 +63,11 @@
         private void CurrentProjectChange()
         {
             // Clean all lists (in case of current project change)
-            vm.CRUDZipDataList.Clear();
+            vm.FeatureTypeDataList.Clear();
             vm.ZipDotNetSelected.Clear();
             vm.ZipAngularSelected.Clear();
             vm.DotNetZipFilesContent.Clear();
-            vm.AngularZipContentFiles.Clear();
+            vm.AngularZipFilesContent.Clear();
 
             // List Dto files from Dto folder
             vm.DtoFiles = ListDtoFiles();
@@ -75,13 +75,13 @@
             // Read settings
             string dotnetFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet, Constants.FolderDoc);
             string angularFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderAngular, Constants.FolderDoc);
-            vm.CRUDZipDataList.Add(new CRUDTypeData(CRUDType.Back, this.crudSettings.Back_DotNet, dotnetFolderPath));
-            vm.CRUDZipDataList.Add(new CRUDTypeData(CRUDType.Feature, this.crudSettings.Feature_Angular, angularFolderPath));
-            vm.CRUDZipDataList.Add(new CRUDTypeData(CRUDType.Option, this.crudSettings.Option_Angular, angularFolderPath));
-            vm.CRUDZipDataList.Add(new CRUDTypeData(CRUDType.Team, this.crudSettings.Team_Angular, angularFolderPath));
+            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Back, this.crudSettings.Back_DotNet, dotnetFolderPath));
+            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.CRUD, this.crudSettings.Feature_Angular, angularFolderPath));
+            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Option, this.crudSettings.Option_Angular, angularFolderPath));
+            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Team, this.crudSettings.Team_Angular, angularFolderPath));
 
             // Set combobobox and checkbox enabled
-            vm.IsEnable = true;
+            vm.IsProjectChosen = true;
         }
 
         #region State change
@@ -116,11 +116,11 @@
         /// <summary>
         /// Action linked with "Generate back" checkbox.
         /// </summary>
-        private void GenerateCrudBack_Change(object sender, RoutedEventArgs e)
+        private void GenerateBackChk_Change(object sender, RoutedEventArgs e)
         {
-            if (vm == null || vm.CRUDZipDataList == null) return;
+            if (vm == null || vm.FeatureTypeDataList == null) return;
 
-            CRUDTypeData crudZipData = vm.CRUDZipDataList.Where(x => x.Type == CRUDType.Back).FirstOrDefault();
+            FeatureTypeData crudZipData = vm.FeatureTypeDataList.Where(x => x.Type == FeatureType.Back).FirstOrDefault();
             if (crudZipData != null)
             {
                 crudZipData.IsChecked = (bool)((CheckBox)sender).IsChecked;
@@ -145,11 +145,11 @@
         /// <summary>
         /// Action linked with "Generate feature" checkbox.
         /// </summary>
-        private void GenerateCrudFeature_Change(object sender, RoutedEventArgs e)
+        private void GenerateCrudChk_Change(object sender, RoutedEventArgs e)
         {
-            if (vm == null || vm.CRUDZipDataList == null) return;
+            if (vm == null || vm.FeatureTypeDataList == null) return;
 
-            CRUDTypeData crudZipData = vm.CRUDZipDataList.Where(x => x.Type == CRUDType.Feature).FirstOrDefault();
+            FeatureTypeData crudZipData = vm.FeatureTypeDataList.Where(x => x.Type == FeatureType.CRUD).FirstOrDefault();
             if (crudZipData != null)
             {
                 crudZipData.IsChecked = (bool)((CheckBox)sender).IsChecked;
@@ -174,11 +174,11 @@
         /// <summary>
         /// Action linked with "Generate team" checkbox.
         /// </summary>
-        private void GenerateCrudTeam_Change(object sender, RoutedEventArgs e)
+        private void GenerateTeamChk_Change(object sender, RoutedEventArgs e)
         {
-            if (vm == null || vm.CRUDZipDataList == null) return;
+            if (vm == null || vm.FeatureTypeDataList == null) return;
 
-            CRUDTypeData crudZipData = vm.CRUDZipDataList.Where(x => x.Type == CRUDType.Team).FirstOrDefault();
+            FeatureTypeData crudZipData = vm.FeatureTypeDataList.Where(x => x.Type == FeatureType.Team).FirstOrDefault();
             if (crudZipData != null)
             {
                 crudZipData.IsChecked = (bool)((CheckBox)sender).IsChecked;
@@ -203,11 +203,11 @@
         /// <summary>
         /// Action linked with "Generate option" checkbox.
         /// </summary>
-        private void GenerateCrudOption_Change(object sender, RoutedEventArgs e)
+        private void GenerateOptionChk_Change(object sender, RoutedEventArgs e)
         {
-            if (vm == null || vm.CRUDZipDataList == null) return;
+            if (vm == null || vm.FeatureTypeDataList == null) return;
 
-            CRUDTypeData crudZipData = vm.CRUDZipDataList.Where(x => x.Type == CRUDType.Option).FirstOrDefault();
+            FeatureTypeData crudZipData = vm.FeatureTypeDataList.Where(x => x.Type == FeatureType.Option).FirstOrDefault();
             if (crudZipData != null)
             {
                 crudZipData.IsChecked = (bool)((CheckBox)sender).IsChecked;
@@ -245,6 +245,9 @@
         /// </summary>
         private void ParseZip_Click(object sender, RoutedEventArgs e)
         {
+            vm.DotNetZipFilesContent.Clear();
+            vm.AngularZipFilesContent.Clear();
+
             // Parse DotNet Zip files
             if (vm.ZipDotNetSelected.Count > 0)
             {
@@ -254,7 +257,14 @@
             // Parse Angular Zip files
             if (vm.ZipAngularSelected.Count > 0)
             {
-                ParseAngularZipFile();
+                // Parse CRUD Zip file
+                ParseAngularZipFile(FeatureType.CRUD);
+
+                // Parse Option Zip file
+                ParseAngularZipFile(FeatureType.Option);
+
+                // Parse Team Zip file
+                ParseAngularZipFile(FeatureType.Team);
             }
 
             vm.IsZipParsed = true;
@@ -271,8 +281,8 @@
             string path = crudService.GenerateDotNetCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity, vm.DotNetZipFilesContent);
 
             // Generation Angular files
-            ClassDefinition cd = vm.DotNetZipFilesContent.Where(x => x.FileType == FileType.Dto).First();
-            crudService.GenerateAngularCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity, vm.AngularZipContentFiles/*, cd*/);
+            ClassDefinition cd = vm.DotNetZipFilesContent.Where(x => x.FileType == FileType.Dto).FirstOrDefault();
+            crudService.GenerateAngularCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity, vm.AngularZipFilesContent);
 
             System.Diagnostics.Process.Start("explorer.exe", path);
         }
@@ -312,7 +322,7 @@
             string fileName = vm.DtoFiles[vm.DtoSelected];
             if (string.IsNullOrWhiteSpace(fileName))
             {
-                consoleWriter.AddMessageLine("Dto file not found to parse.", "Orange");
+                consoleWriter.AddMessageLine($"Dto file '{fileName}' not found to parse.", "Orange");
                 return;
             }
 
@@ -337,7 +347,7 @@
         {
             try
             {
-                CRUDTypeData crudZipData = GetCRUDTypeData(CRUDType.Back, vm.ZipDotNetSelected.ToList());
+                FeatureTypeData crudZipData = GetFeatureTypeData(FeatureType.Back, vm.ZipDotNetSelected.ToList());
                 // TODO NMA : if ZipDotNetSelected contains more of 1 zip file
 
                 if (crudZipData != null)
@@ -350,24 +360,24 @@
                     }
 
                     // Parse Feature Zip file
-                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, this.entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderDotNet, CRUDType.Back);
+                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, this.entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderDotNet, FeatureType.Back);
                     if (string.IsNullOrWhiteSpace(workingDirectoryPath))
                     {
                         consoleWriter.AddMessageLine($"Zip archive not found: '{fileName}'.", "Orange");
                         return;
                     }
 
-                    vm.DotNetZipFilesContent.Clear();
                     if (fileList.Count > 0)
                     {
-                        foreach (FileInfo fi in new DirectoryInfo(workingDirectoryPath).GetFiles())
+                        foreach (KeyValuePair<string, string> file in fileList)
                         {
-                            ClassDefinition classFile = service.ParseClassFile(fi.FullName);
-                            classFile.PathOnZip = fileList[fi.Name];
-                            FileType? type = zipService.GetFileType(fi.Name);
+                            ClassDefinition classFile = service.ParseClassFile(Path.Combine(workingDirectoryPath, file.Key));
+                            classFile.PathOnZip = file.Key;
+                            FileType? type = zipService.GetFileType(file.Value);
                             classFile.FileType = type;
-                            classFile.EntityName = zipService.GetEntityName(fi.Name, type);
+                            classFile.EntityName = zipService.GetEntityName(file.Value, type);
                             vm.DotNetZipFilesContent.Add(classFile);
+
                         }
                     }
                     else
@@ -383,96 +393,67 @@
         }
 
         /// <summary>
-        /// Parse Angular Zip files (feature, option team).
+        /// Parse Angular Zip files (CRUD, option or team).
         /// </summary>
-        private void ParseAngularZipFile()
+        private void ParseAngularZipFile(FeatureType type)
         {
+            Dictionary<string, List<string>> planeDtoProperties = null;
+
             try
             {
-                // Parse Feature Zip file
-                CRUDTypeData crudZipDataFtr = GetCRUDTypeData(CRUDType.Feature, vm.ZipAngularSelected.ToList());
-                if (crudZipDataFtr != null)
+                FeatureTypeData zipData = GetFeatureTypeData(type, vm.ZipAngularSelected.ToList());
+                if (zipData != null)
                 {
-                    string fileName = Path.Combine(crudZipDataFtr.ZipPath, crudZipDataFtr.ZipName);
+                    string fileName = Path.Combine(zipData.ZipPath, zipData.ZipName);
                     if (string.IsNullOrWhiteSpace(fileName))
                     {
-                        consoleWriter.AddMessageLine("No Angular Zip files found to parse.", "Orange");
+                        consoleWriter.AddMessageLine($"No {type} Zip files found to parse.", "Orange");
                         return;
                     }
 
-                    // Parse Feature Zip file
+                    // Parse Zip file
                     (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, this.entityName,
-                        vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderAngular, CRUDType.Feature);
+                        vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderAngular, type);
                     if (string.IsNullOrWhiteSpace(workingDirectoryPath))
                     {
                         consoleWriter.AddMessageLine($"Zip archive '{fileName}' not found.", "Orange");
                         return;
                     }
 
-                    ClassDefinition cd = vm.DotNetZipFilesContent.Where(x => x.FileType == FileType.Dto).FirstOrDefault();
-                    if (cd == null)
+                    if (type == FeatureType.CRUD)
                     {
-                        consoleWriter.AddMessageLine("Can't parse angular files, 'PlaneDto' file not found.", "Orange");
-                        return;
-                    }
+                        ClassDefinition cd = vm.DotNetZipFilesContent.Where(x => x.FileType == FileType.Dto).FirstOrDefault();
+                        if (cd == null)
+                        {
+                            consoleWriter.AddMessageLine("Can't parse angular files, 'PlaneDto' file not found.", "Orange");
+                            return;
+                        }
 
-                    Dictionary<string, List<string>> planeDtoProperties = zipService.GetDtoProperties(cd.PropertyList);
-                    if (planeDtoProperties == null || planeDtoProperties.Count <= 0)
-                    {
-                        consoleWriter.AddMessageLine("Can't read plane dto properties.", "Orange");
-                        return;
+                        planeDtoProperties = zipService.GetDtoProperties(cd.PropertyList);
+                        if (planeDtoProperties == null || planeDtoProperties.Count <= 0)
+                        {
+                            consoleWriter.AddMessageLine("Can't read plane dto properties.", "Orange");
+                            return;
+                        }
                     }
 
                     // Analyze angular files
-                    vm.AngularZipContentFiles.Clear();
                     if (fileList.Count > 0)
                     {
                         foreach (KeyValuePair<string, string> file in fileList)
                         {
-                            CRUDAngularData data = new(file.Key, file.Value, workingDirectoryPath)
+                            AngularFeatureData data = new(type, file.Value, file.Key, workingDirectoryPath);
+                            if (type == FeatureType.CRUD)
                             {
-                                ExtractBlocks = zipService.AnalyzeAngularFile(Path.Combine(workingDirectoryPath, file.Key), planeDtoProperties)
-                            };
-                            vm.AngularZipContentFiles.Add(data);
+                                data.ExtractBlocks = zipService.AnalyzeAngularFile(Path.Combine(workingDirectoryPath, file.Key), planeDtoProperties);
+                            }
+                            vm.AngularZipFilesContent.Add(data);
                         }
                     }
                     else
                     {
                         consoleWriter.AddMessageLine($"Zip archive '{fileName}' is empty.", "Orange");
                     }
-                }
-
-                // TODO NMA : 
-                // Parse Option Zip file
-                CRUDTypeData crudZipDataOpt = GetCRUDTypeData(CRUDType.Option, vm.ZipAngularSelected.ToList());
-                if (crudZipDataOpt != null)
-                {
-                    string fileName = Path.Combine(crudZipDataOpt.ZipPath, crudZipDataOpt.ZipName);
-                    if (string.IsNullOrWhiteSpace(fileName))
-                    {
-                        consoleWriter.AddMessageLine("No Angular Zip files found to parse.", "Orange");
-                        return;
-                    }
-
-                    // Parse Option Zip file
-                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, this.entityName,
-                        vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderAngular, CRUDType.Option);
-                    if (string.IsNullOrWhiteSpace(workingDirectoryPath))
-                    {
-                        consoleWriter.AddMessageLine($"Zip archive '{fileName}' not found.", "Orange");
-                        return;
-                    }
-
-
-
-                }
-
-                // TODO NMA : 
-                // Parse Team Zip file
-                CRUDTypeData crudZipDataTm = GetCRUDTypeData(CRUDType.Team, vm.ZipAngularSelected.ToList());
-                if (crudZipDataTm != null)
-                {
-                    consoleWriter.AddMessageLine("Parsing Team Zip file not implemented.", "Red");
                 }
             }
             catch (Exception ex)
@@ -481,12 +462,12 @@
             }
         }
 
-        private CRUDTypeData GetCRUDTypeData(CRUDType type, List<string> zipSelected)
+        private FeatureTypeData GetFeatureTypeData(FeatureType type, List<string> zipSelected)
         {
             if (zipSelected == null || zipSelected.Count <= 0) { return null; }
 
             bool found = false;
-            CRUDTypeData crudZipData = vm.CRUDZipDataList.Where(x => x.Type == type && x.IsChecked).FirstOrDefault();
+            FeatureTypeData crudZipData = vm.FeatureTypeDataList.Where(x => x.Type == type && x.IsChecked).FirstOrDefault();
             if (crudZipData != null)
             {
                 zipSelected.ForEach(x =>
