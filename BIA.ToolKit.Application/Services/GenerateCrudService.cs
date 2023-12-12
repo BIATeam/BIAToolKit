@@ -22,6 +22,14 @@
         private const string ATTRIBUTE_TYPE_NOT_MANAGED = "// CRUD GENERATOR FOR PLANE TO REVIEW : Field " + ATTRIBUTE_TYPE_NOT_MANAGED_FIELD + " or type " + ATTRIBUTE_TYPE_NOT_MANAGED_TYPE + " not managed.";
         private const string ATTRIBUTE_TYPE_NOT_MANAGED_FIELD = "XXX";
         private const string ATTRIBUTE_TYPE_NOT_MANAGED_TYPE = "YYY";
+
+        private string NewCrudNamePascalSingular = "Plane";
+        private string NewCrudNamePascalPlural = "Planes";
+        private string NewCrudNameCamelSingular = "plane";
+        private string NewCrudNameCamelPlural = "planes";
+        private string NewCrudNameKebabSingular;
+        private string NewCrudNameKebabPlural;
+
         private string OldCrudNamePascalSingular = "Plane";
         private string OldCrudNamePascalPlural = "Planes";
         private string OldCrudNameCamelSingular = "plane";
@@ -32,12 +40,10 @@
         private string OldOptionNameCamelSingular = "airport";
         private string OldOptionNameCamelPlural = "airports";
 
-        private string NewCrudNamePascalSingular = "Plane";
-        private string NewCrudNamePascalPlural = "Planes";
-        private string NewCrudNameCamelSingular = "plane";
-        private string NewCrudNameCamelPlural = "planes";
-        private string NewCrudNameKebabSingular;
-        private string NewCrudNameKebabPlural;
+        private string OldTeamNamePascalSingular = "XXX";
+        private string OldTeamNamePascalPlural = "XXXs";
+        private string OldTeamNameCamelSingular = "xxx";
+        private string OldTeamNameCamelPlural = "xxxs";
 
         private string entityNameReference;
         private string entityNameGenerated;
@@ -114,10 +120,10 @@
 
                     // Create file
                     string src = Path.Combine(angularFile.TempDirPath, angularFile.FileFullPath);
-                    string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FileFullPath));
+                    string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FileFullPath), angularFile.Type);
 
                     // replace blocks !
-                    GenerateFile(src, dest, propertiesToAdd, blocksToAdd);
+                    GenerateFile(src, dest, propertiesToAdd, blocksToAdd, angularFile.Type);
                 }
             }
             catch (Exception ex)
@@ -548,7 +554,7 @@
         #endregion
 
         #region Angular Files
-        private void GenerateFile(string fileName, string newFileName, List<string> propertiesToAdd, List<string> blocksToAdd)
+        private void GenerateFile(string fileName, string newFileName, List<string> propertiesToAdd, List<string> blocksToAdd, FeatureType type)
         {
             if (!File.Exists(fileName))
             {
@@ -566,7 +572,7 @@
             fileLinesContent = ReplacePorpertiesAndBlocks(fileName, fileLinesContent, propertiesToAdd, blocksToAdd);
 
             // Update file content
-            UpdateFileLinesContent(fileLinesContent);
+            UpdateFileLinesContent(fileLinesContent, type);
 
             // Generate new file
             StringBuilder sb = new();
@@ -838,7 +844,7 @@
             return ReplaceBlock(newBlock, attributeName, extractBlock.Name);
         }
 
-        private void UpdateFileLinesContent(List<string> lines)
+        private void UpdateFileLinesContent(List<string> lines, FeatureType type)
         {
             if (lines == null) return;
 
@@ -846,62 +852,135 @@
             {
                 if (lines[i].StartsWith("import"))
                 {
-                    lines[i] = ConvertOldCrudNameToNewCrudName(lines[i]);
+                    lines[i] = ConvertOldCrudNameToNewCrudName(lines[i], type);
                 }
                 else
                 {
-                    lines[i] = ConvertPascalOldToNewCrudName(lines[i]);
+                    lines[i] = ConvertPascalOldToNewCrudName(lines[i], type);
                 }
             }
         }
 
         #region Rename CRUD
-        public void InitRenameValues(string newValueSingular, string newValuePlurial, string oldValueSingular = "Plane", string oldValuePlurial = "Planes")
+        public void InitRenameValues(string newValueSingular, string newValuePlurial,
+            string oldCrudValueSingular = "Plane", string oldCrudValuePlurial = "Planes",
+            string oldOptionValueSingular = "Airport", string oldOptionValuePlurial = "Airports",
+            string oldTeamValueSingular = "XXX", string oldTeamValuePlurial = "XXXs")
         {
-            this.OldCrudNamePascalSingular = oldValueSingular;
-            this.OldCrudNamePascalPlural = oldValuePlurial;
-            this.OldCrudNameCamelSingular = CommonTools.ConvertToCamelCase(OldCrudNamePascalSingular);
-            this.OldCrudNameCamelPlural = CommonTools.ConvertToCamelCase(OldCrudNamePascalPlural);
-
             this.NewCrudNamePascalSingular = newValueSingular;
             this.NewCrudNamePascalPlural = newValuePlurial;
             this.NewCrudNameCamelSingular = CommonTools.ConvertToCamelCase(NewCrudNamePascalSingular);
             this.NewCrudNameCamelPlural = CommonTools.ConvertToCamelCase(NewCrudNamePascalPlural);
             this.NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);
             this.NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
+
+            this.OldCrudNamePascalSingular = oldCrudValueSingular;
+            this.OldCrudNamePascalPlural = oldCrudValuePlurial;
+            this.OldOptionNamePascalSingular = oldOptionValueSingular;
+            this.OldOptionNamePascalPlural = oldOptionValuePlurial;
+            this.OldTeamNamePascalSingular = oldTeamValueSingular;
+            this.OldTeamNamePascalPlural = oldTeamValuePlurial;
+
+            this.OldCrudNameCamelSingular = CommonTools.ConvertToCamelCase(OldCrudNamePascalSingular);
+            this.OldCrudNameCamelPlural = CommonTools.ConvertToCamelCase(OldCrudNamePascalPlural);
+            this.OldOptionNameCamelSingular = CommonTools.ConvertToCamelCase(OldOptionNamePascalSingular);
+            this.OldOptionNameCamelPlural = CommonTools.ConvertToCamelCase(OldOptionNamePascalPlural);
+            this.OldTeamNameCamelSingular = CommonTools.ConvertToCamelCase(OldTeamNamePascalSingular);
+            this.OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
         }
 
-        private string ConvertOldCrudNameToNewCrudName(string value)
+        private string ConvertOldCrudNameToNewCrudName(string value, FeatureType type)
         {
-            value = ConvertPascalOldToNewCrudName(value);
-            value = ConvertCamelToKebabCrudName(value);
+            value = ConvertPascalOldToNewCrudName(value, type, false);
+            value = ConvertCamelToKebabCrudName(value, type);
 
             return value;
         }
 
-        private string ConvertPascalOldToNewCrudName(string value)
+
+        private string ConvertPascalOldToNewCrudName(string value, FeatureType type, bool camel = true)
         {
-            if (value.Contains(OldCrudNamePascalPlural))
+            switch (type)
             {
-                value = value.Replace(OldCrudNamePascalPlural, NewCrudNamePascalPlural);
-            }
-            if (value.Contains(OldCrudNamePascalSingular))
-            {
-                value = value.Replace(OldCrudNamePascalSingular, NewCrudNamePascalSingular);
+                case FeatureType.CRUD:
+                    value = ReplaceOldToNewPascalValue(value, OldCrudNamePascalPlural, NewCrudNamePascalPlural, OldCrudNamePascalSingular, NewCrudNamePascalSingular);
+                    if (camel)
+                    {
+                        value = ReplaceOldToNewPascalValue(value, OldCrudNameCamelPlural, NewCrudNameCamelPlural, OldCrudNameCamelSingular, NewCrudNameCamelSingular);
+                    }
+                    break;
+                case FeatureType.Option:
+                    value = ReplaceOldToNewPascalValue(value, OldOptionNamePascalPlural, NewCrudNamePascalPlural, OldOptionNamePascalSingular, NewCrudNamePascalSingular);
+                    if (camel)
+                    {
+                        value = ReplaceOldToNewPascalValue(value, OldOptionNameCamelPlural, NewCrudNameCamelPlural, OldOptionNameCamelSingular, NewCrudNameCamelSingular);
+                    }
+                    break;
+                case FeatureType.Team:
+                    value = ReplaceOldToNewPascalValue(value, OldTeamNamePascalPlural, NewCrudNamePascalPlural, OldTeamNamePascalSingular, NewCrudNamePascalSingular);
+                    if (camel)
+                    {
+                        value = ReplaceOldToNewPascalValue(value, OldTeamNameCamelPlural, NewCrudNameCamelPlural, OldTeamNameCamelSingular, NewCrudNameCamelSingular);
+                    }
+                    break;
             }
 
             return value;
         }
 
-        private string ConvertCamelToKebabCrudName(string value)
+        private string ReplaceOldToNewPascalValue(string value, string oldValuePlurial, string newValuePlurial, string oldValueSingulier, string newValueSingulier)
         {
-            if (value.Contains(OldCrudNameCamelPlural))
+            if (string.IsNullOrWhiteSpace(value)) return value;
+
+            if (value.Contains(oldValuePlurial))
             {
-                value = value.Replace(OldCrudNameCamelPlural, NewCrudNameKebabPlural);
+                value = value.Replace(oldValuePlurial, newValuePlurial);
             }
-            if (value.Contains(OldCrudNameCamelSingular))
+            if (value.Contains(oldValueSingulier))
             {
-                value = value.Replace(OldCrudNameCamelSingular, NewCrudNameKebabSingular);
+                value = value.Replace(oldValueSingulier, newValueSingulier);
+            }
+
+            return value;
+        }
+
+        /// <summary>
+        /// Convert value form Camel case to Kebab case
+        /// </summary>
+        private string ConvertCamelToKebabCrudName(string value, FeatureType type)
+        {
+            switch (type)
+            {
+                case FeatureType.CRUD:
+                    if (value.Contains(OldCrudNameCamelPlural))
+                    {
+                        value = value.Replace(OldCrudNameCamelPlural, NewCrudNameKebabPlural);
+                    }
+                    if (value.Contains(OldCrudNameCamelSingular))
+                    {
+                        value = value.Replace(OldCrudNameCamelSingular, NewCrudNameKebabSingular);
+                    }
+                    break;
+                case FeatureType.Option:
+                    if (value.Contains(OldOptionNameCamelPlural))
+                    {
+                        value = value.Replace(OldOptionNameCamelPlural, NewCrudNameKebabPlural);
+                    }
+                    if (value.Contains(OldOptionNameCamelSingular))
+                    {
+                        value = value.Replace(OldOptionNameCamelSingular, NewCrudNameKebabSingular);
+                    }
+                    break;
+                case FeatureType.Team:
+                    if (value.Contains(OldTeamNameCamelPlural))
+                    {
+                        value = value.Replace(OldTeamNameCamelPlural, NewCrudNameKebabPlural);
+                    }
+                    if (value.Contains(OldTeamNameCamelSingular))
+                    {
+                        value = value.Replace(OldTeamNameCamelSingular, NewCrudNameKebabSingular);
+                    }
+                    break;
             }
 
             return value;

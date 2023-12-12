@@ -75,10 +75,10 @@
             // Read settings
             string dotnetFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet, Constants.FolderDoc);
             string angularFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderAngular, Constants.FolderDoc);
-            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Back, this.crudSettings.Back_DotNet, dotnetFolderPath));
-            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.CRUD, this.crudSettings.Feature_Angular, angularFolderPath));
-            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Option, this.crudSettings.Option_Angular, angularFolderPath));
-            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Team, this.crudSettings.Team_Angular, angularFolderPath));
+            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Back, this.crudSettings.ZipNameBack, dotnetFolderPath));
+            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.CRUD, this.crudSettings.ZipNameFeature, angularFolderPath));
+            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Option, this.crudSettings.ZipNameOption, angularFolderPath));
+            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Team, this.crudSettings.ZipNameTeam, angularFolderPath));
 
             // Set combobobox and checkbox enabled
             vm.IsProjectChosen = true;
@@ -275,7 +275,7 @@
         /// </summary>
         private void GenerateCrud_Click(object sender, RoutedEventArgs e)
         {
-            crudService.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlurial, crudSettings.DtoReferenceSingular, crudSettings.DtoReferencePlurial);
+            crudService.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlurial, crudSettings.CRUDReferenceSingular, crudSettings.CRUDReferencePlurial);
 
             // Generation DotNet files
             string path = crudService.GenerateDotNetCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity, vm.DotNetZipFilesContent);
@@ -489,23 +489,32 @@
     {
         private readonly IConsoleWriter consoleWriter;
 
-        public string DtoReferenceSingular { get; }
-        public string DtoReferencePlurial { get; }
-        public string Back_DotNet { get; }
-        public string Feature_Angular { get; }
-        public string Option_Angular { get; }
-        public string Team_Angular { get; }
+        public string CRUDReferenceSingular { get; }
+        public string CRUDReferencePlurial { get; }
+        public string OptionReferenceSingular { get; }
+        public string OptionReferencePlurial { get; }
+        public string TeamReferenceSingular { get; }
+        public string TeamReferencePlurial { get; }
+        public string ZipNameBack { get; }
+        public string ZipNameFeature { get; }
+        public string ZipNameOption { get; }
+        public string ZipNameTeam { get; }
 
         public CRUDSettings(IConsoleWriter consoleWriter)
         {
             this.consoleWriter = consoleWriter;
 
-            DtoReferenceSingular = ReadSetting("DtoReferenceSingular");
-            DtoReferencePlurial = ReadSetting("DtoReferencePlurial");
-            Back_DotNet = ReadSetting("CRUD_Back_DotNet");
-            Feature_Angular = ReadSetting("CRUD_Feature_Angular");
-            Option_Angular = ReadSetting("CRUD_Option_Angular");
-            Team_Angular = ReadSetting("CRUD_Team_Angular");
+            CRUDReferenceSingular = ReadSetting("CrudReferenceSingular");
+            CRUDReferencePlurial = ReadSetting("CrudReferencePlurial");
+            OptionReferenceSingular = ReadSetting("OptionReferenceSingular");
+            OptionReferencePlurial = ReadSetting("OptionReferencePlurial");
+            TeamReferenceSingular = ReadSetting("TeamReferenceSingular");
+            TeamReferencePlurial = ReadSetting("TeamReferencePlurial");
+
+            ZipNameBack = ReadSetting("ZipNameBack_DotNet");
+            ZipNameFeature = ReadSetting("ZipNameFeature_Angular");
+            ZipNameOption = ReadSetting("ZipNameOption_Angular");
+            ZipNameTeam = ReadSetting("ZipNameTeam_Angular");
         }
 
         private string ReadSetting(string key)
