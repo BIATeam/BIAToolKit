@@ -397,8 +397,6 @@
         /// </summary>
         private void ParseAngularZipFile(FeatureType type)
         {
-            Dictionary<string, List<string>> planeDtoProperties = null;
-
             try
             {
                 FeatureTypeData zipData = GetFeatureTypeData(type, vm.ZipAngularSelected.ToList());
@@ -429,32 +427,64 @@
                             return;
                         }
 
-                        planeDtoProperties = zipService.GetDtoProperties(cd.PropertyList);
+                        Dictionary<string, List<string>> planeDtoProperties = zipService.GetDtoProperties(cd.PropertyList);
                         if (planeDtoProperties == null || planeDtoProperties.Count <= 0)
                         {
                             consoleWriter.AddMessageLine("Can't read plane dto properties.", "Orange");
                             return;
                         }
-                    }
 
-                    // Analyze angular files
-                    if (fileList.Count > 0)
-                    {
-                        foreach (KeyValuePair<string, string> file in fileList)
+                        List<string> options = null;
+                        KeyValuePair<string, string> textFile = fileList.Where(x => x.Value.EndsWith(".txt")).FirstOrDefault();
+                        if (textFile.Key != null && textFile.Value != null)
                         {
-                            AngularFeatureData data = new(type, file.Value, file.Key, workingDirectoryPath);
-                            if (type == FeatureType.CRUD)
+                            options = zipService.ExtractLineFromTextFile(Path.Combine(workingDirectoryPath, textFile.Key));
+                            fileList.Remove(textFile.Key);
+                        }
+
+                        if (fileList.Count > 0)
+                        {
+                            AngularZipFilesContent crudFilesContent = new(type);
+                            foreach (KeyValuePair<string, string> file in fileList)
                             {
-                                data.ExtractBlocks = zipService.AnalyzeAngularFile(Path.Combine(workingDirectoryPath, file.Key), planeDtoProperties);
+                                string filePath = Path.Combine(workingDirectoryPath, file.Key);
+                                AngularCRUDData data = new(file.Value, file.Key, workingDirectoryPath)
+                                {
+                                    ExtractBlocks = zipService.AnalyzeAngularFile(filePath, planeDtoProperties)
+                                };
+                                if (options != null && options.Count > 0)
+                                {
+                                    data.OptionToDelete = zipService.ExtractLinesContainsOptions(filePath, options);
+                                }
+                                crudFilesContent.AngularFeatureDataList.Add(data);
                             }
-                            vm.AngularZipFilesContent.Add(data);
+
+                            vm.AngularZipFilesContent.Add(crudFilesContent);
                         }
                     }
                     else
                     {
-                        consoleWriter.AddMessageLine($"Zip archive '{fileName}' is empty.", "Orange");
+                        // Analyze angular files
+                        if (fileList.Count > 0)
+                        {
+                            AngularZipFilesContent filesContent = new(type);
+                            foreach (KeyValuePair<string, string> file in fileList)
+                            {
+                                AngularFeatureData data = new(file.Value, file.Key, workingDirectoryPath)
+                                {
+                                    ExtractBlocks = zipService.AnalyzeAngularFile(Path.Combine(workingDirectoryPath, file.Key), null)
+                                };
+                                filesContent.AngularFeatureDataList.Add(data);
+                            }
+
+                            vm.AngularZipFilesContent.Add(filesContent);
+                        }
                     }
                 }
+                //else
+                //{
+                //    consoleWriter.AddMessageLine($"Zip archive '{fileName}' is empty.", "Orange");
+                //}
             }
             catch (Exception ex)
             {

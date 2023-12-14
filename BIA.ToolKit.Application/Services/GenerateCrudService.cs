@@ -40,8 +40,8 @@
         private string OldOptionNameCamelSingular = "airport";
         private string OldOptionNameCamelPlural = "airports";
 
-        private string OldTeamNamePascalSingular = "XXX";
-        private string OldTeamNamePascalPlural = "XXXs";
+        private string OldTeamNamePascalSingular = "AircraftMaintenanceCompany";
+        private string OldTeamNamePascalPlural = "AircraftMaintenanceCompanies";
         private string OldTeamNameCamelSingular = "xxx";
         private string OldTeamNameCamelPlural = "xxxs";
 
@@ -91,7 +91,7 @@
             return generatedFolder;
         }
 
-        public void GenerateAngularCrudFiles(string entityName, Project currentProject, EntityInfo dtoEntity, List<AngularFeatureData> angularFilesFromZip)
+        public void GenerateAngularCrudFiles(string entityName, Project currentProject, EntityInfo dtoEntity, List<AngularZipFilesContent> angularFilesFromZip)
         {
 #if DEBUG
             consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{Path.Combine(currentProject.Folder, Constants.FolderCrudGeneration)}' ***", "Green");
@@ -101,12 +101,52 @@
                 string angularDir = Path.Combine(currentProject.Folder, currentProject.Name, Constants.FolderCrudGeneration, Constants.FolderAngular);
                 CommonTools.PrepareFolder(angularDir);
 
-                Dictionary<string, List<string>> crudDtoProperties = GetDtoProperties(dtoEntity);
-
-                foreach (AngularFeatureData angularFile in angularFilesFromZip)
+                // Generate CRUD angular files
+                AngularZipFilesContent crudFilesContent = angularFilesFromZip.Where(x => x.Type == FeatureType.CRUD).FirstOrDefault();
+                if (crudFilesContent != null)
                 {
-                    List<string> blocksToAdd = new();
-                    List<string> propertiesToAdd = new();
+                    // Get CRUD dto properties
+                    Dictionary<string, List<string>> crudDtoProperties = GetDtoProperties(dtoEntity);
+
+                    GenerateCRUD(angularDir, crudDtoProperties, crudFilesContent, crudFilesContent.Type);
+                }
+
+                // Generate Option angular files
+                AngularZipFilesContent optionFilesContent = angularFilesFromZip.Where(x => x.Type == FeatureType.Option).FirstOrDefault();
+                if (optionFilesContent != null)
+                {
+                    GenerateOption(angularDir, optionFilesContent, optionFilesContent.Type);
+                }
+
+                // TODO NMA
+                // Generate Team angular files
+                //AngularZipFilesContent teamFilesContent = angularFilesFromZip.Where(x => x.Type == FeatureType.Team).FirstOrDefault();
+                //if (crudFilesContent != null)
+                //{
+                //    toto(angularDir, crudDtoProperties, crudFilesContent);
+                //}
+
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"An error has occurred in Angular CRUD generation process: {ex.Message}", "Red");
+            }
+        }
+
+
+        private void GenerateCRUD(string angularDir, Dictionary<string, List<string>> crudDtoProperties, AngularZipFilesContent zipFilesContent, FeatureType type)
+        {
+            try
+            {
+                List<string> blocksToAdd;
+                List<string> propertiesToAdd;
+                List<string> optionToDelete;
+
+                foreach (AngularCRUDData angularFile in zipFilesContent.AngularFeatureDataList)
+                {
+                    blocksToAdd = new();
+                    propertiesToAdd = new();
+                    optionToDelete = new();
                     if (angularFile.ExtractBlocks != null && angularFile.ExtractBlocks.Count > 0)
                     {
                         foreach (KeyValuePair<string, List<string>> crudDtoProperty in crudDtoProperties)
@@ -118,12 +158,38 @@
                         }
                     }
 
+                    if (angularFile.OptionToDelete != null && angularFile.OptionToDelete.Count > 0)
+                    {
+                        // Get lines to delete
+                        optionToDelete = angularFile.OptionToDelete;
+                    }
+
                     // Create file
-                    string src = Path.Combine(angularFile.TempDirPath, angularFile.FileFullPath);
-                    string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FileFullPath), angularFile.Type);
+                    string src = Path.Combine(angularFile.ExtractDirPath, angularFile.FilePath);
+                    string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FilePath), type);
 
                     // replace blocks !
-                    GenerateFile(src, dest, propertiesToAdd, blocksToAdd, angularFile.Type);
+                    GenerateFile(type, src, dest, propertiesToAdd, blocksToAdd, optionToDelete);
+                }
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"An error has occurred in Angular CRUD generation process: {ex.Message}", "Red");
+            }
+        }
+
+        private void GenerateOption(string angularDir, AngularZipFilesContent zipFilesContent, FeatureType type)
+        {
+            try
+            {
+                foreach (AngularFeatureData angularFile in zipFilesContent.AngularFeatureDataList)
+                {
+                    // Create file
+                    string src = Path.Combine(angularFile.ExtractDirPath, angularFile.FilePath);
+                    string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FilePath), type);
+
+                    // replace blocks !
+                    GenerateFile(type, src, dest);
                 }
             }
             catch (Exception ex)
@@ -554,7 +620,7 @@
         #endregion
 
         #region Angular Files
-        private void GenerateFile(string fileName, string newFileName, List<string> propertiesToAdd, List<string> blocksToAdd, FeatureType type)
+        private void GenerateFile(FeatureType type, string fileName, string newFileName, List<string> propertiesToAdd = null, List<string> blocksToAdd = null, List<string> optionToDelete = null)
         {
             if (!File.Exists(fileName))
             {
@@ -570,6 +636,12 @@
 
             // Replace properties and blocks
             fileLinesContent = ReplacePorpertiesAndBlocks(fileName, fileLinesContent, propertiesToAdd, blocksToAdd);
+
+            // Rmove all options
+            if (optionToDelete != null)
+            {
+                optionToDelete.ForEach(line => fileLinesContent.Remove(line));
+            }
 
             // Update file content
             UpdateFileLinesContent(fileLinesContent, type);
@@ -745,6 +817,8 @@
             return blocksToAdd;
         }
 
+
+
         public string ConvertDotNetToAngularType(string dotnetType)
         {
             if (dotnetType == null) { return null; }
@@ -897,28 +971,29 @@
             return value;
         }
 
-
-        private string ConvertPascalOldToNewCrudName(string value, FeatureType type, bool camel = true)
+        private string ConvertPascalOldToNewCrudName(string value, FeatureType type, bool convertCamel = true)
         {
+            if (string.IsNullOrWhiteSpace(value)) return value;
+
             switch (type)
             {
                 case FeatureType.CRUD:
                     value = ReplaceOldToNewPascalValue(value, OldCrudNamePascalPlural, NewCrudNamePascalPlural, OldCrudNamePascalSingular, NewCrudNamePascalSingular);
-                    if (camel)
+                    if (convertCamel)
                     {
                         value = ReplaceOldToNewPascalValue(value, OldCrudNameCamelPlural, NewCrudNameCamelPlural, OldCrudNameCamelSingular, NewCrudNameCamelSingular);
                     }
                     break;
                 case FeatureType.Option:
                     value = ReplaceOldToNewPascalValue(value, OldOptionNamePascalPlural, NewCrudNamePascalPlural, OldOptionNamePascalSingular, NewCrudNamePascalSingular);
-                    if (camel)
+                    if (convertCamel)
                     {
                         value = ReplaceOldToNewPascalValue(value, OldOptionNameCamelPlural, NewCrudNameCamelPlural, OldOptionNameCamelSingular, NewCrudNameCamelSingular);
                     }
                     break;
                 case FeatureType.Team:
                     value = ReplaceOldToNewPascalValue(value, OldTeamNamePascalPlural, NewCrudNamePascalPlural, OldTeamNamePascalSingular, NewCrudNamePascalSingular);
-                    if (camel)
+                    if (convertCamel)
                     {
                         value = ReplaceOldToNewPascalValue(value, OldTeamNameCamelPlural, NewCrudNameCamelPlural, OldTeamNameCamelSingular, NewCrudNameCamelSingular);
                     }
@@ -949,6 +1024,8 @@
         /// </summary>
         private string ConvertCamelToKebabCrudName(string value, FeatureType type)
         {
+            if (string.IsNullOrWhiteSpace(value)) return value;
+
             switch (type)
             {
                 case FeatureType.CRUD:

@@ -57,11 +57,7 @@
 
                 // Create working temporary folder
                 tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType, crudType.ToString());
-                if (Directory.Exists(tempDir))
-                {
-                    Directory.Delete(tempDir, true);
-                }
-                Directory.CreateDirectory(tempDir);
+                CommonTools.PrepareFolder(tempDir);
 
                 // Extract and list files from archive to temprory folder
                 files = new();
@@ -98,9 +94,8 @@
                 return null;
             }
 
-            // Read file
-            string fileContent = File.ReadAllText(fileName);
-            if (!fileContent.Contains(ANGULAR_MARKER))
+            // Read file to verify if marker is present
+            if (!IsFileContains(fileName, new List<string> { ANGULAR_MARKER }))
             {
                 return null;
             }
@@ -128,7 +123,6 @@
                 consoleWriter.AddMessageLine($"Properties not found on file '{fileName}'.", "Orange");
             }
 
-
             // Extract block to update
             foreach (KeyValuePair<string, List<string>> dtoProperty in planeDtoProperties)
             {
@@ -148,6 +142,76 @@
             }
 
             return extractBlocksList;
+        }
+
+        /// <summary>
+        /// Extract lines (without empty lines) contains in text file.
+        /// </summary>
+        /// <param name="fileName"></param>
+        public List<string> ExtractLineFromTextFile(string fileName)
+        {
+            if (!File.Exists(fileName))
+            {
+                consoleWriter.AddMessageLine($"Error on analysing text file: file not exist on disk: '{fileName}'", "Orange");
+                return null;
+            }
+
+            // Get text file content
+            List<string> lines = File.ReadAllLines(fileName).ToList();
+
+            // Extract empty lines
+            List<string> emptyLines = new();
+            lines.ForEach(l =>
+            {
+                string line = l.Trim();
+                if (string.IsNullOrEmpty(line))
+                    emptyLines.Add(l);
+            });
+
+            // Delete empty lines
+            emptyLines.ForEach(line => lines.Remove(line));
+
+            return lines;
+        }
+
+        /// <summary>
+        /// Extract lines that contains options.
+        /// </summary>
+        public List<string> ExtractLinesContainsOptions(string fileName, List<string> options)
+        {
+            if (options == null || options.Count <= 0) return null;
+
+            if (!File.Exists(fileName))
+            {
+                consoleWriter.AddMessageLine($"Error on analysing angular file: file not exist on disk: '{fileName}'", "Orange");
+                return null;
+            }
+
+            // Read file to verify if option are present
+            if (!IsFileContains(fileName, options))
+            {
+                return null;
+            }
+
+            List<string> linesToDelete = new();
+
+            // Read file in detail
+            List<string> fileLines = File.ReadAllLines(fileName).ToList();
+
+            // Extract lines to delete
+            foreach (string line in fileLines)
+            {
+                foreach (string option in options)
+                {
+                    if (line.Contains(option, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        linesToDelete.Add(line);
+                        continue;
+                    }
+                }
+            }
+
+            return linesToDelete;
         }
 
         /// <summary>
@@ -304,6 +368,25 @@
 
             // Keep block contains
             return lines.ToArray()[indexStart..++indexEnd].ToList();  // array with start and end lines included
+        }
+
+        /// <summary>
+        /// Verify if file contains occurence of datas.
+        /// </summary>
+        private bool IsFileContains(string fileName, List<string> dataList)
+        {
+            // Read file
+            string fileContent = File.ReadAllText(fileName);
+
+            foreach (string data in dataList)
+            {
+                if (fileContent.Contains(data))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

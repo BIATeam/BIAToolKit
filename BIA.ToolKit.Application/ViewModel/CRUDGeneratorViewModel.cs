@@ -224,7 +224,7 @@
 
         public List<ClassDefinition> DotNetZipFilesContent { get; }
 
-        public List<AngularFeatureData> AngularZipFilesContent { get; }
+        public List<AngularZipFilesContent> AngularZipFilesContent { get; }
     }
 
     public class FeatureTypeData
@@ -260,10 +260,25 @@
         }
     }
 
-    public class AngularFeatureData
+
+    public class AngularZipFilesContent
     {
         public FeatureType Type { get; }
 
+        public List<AngularFeatureData> AngularFeatureDataList { get; }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public AngularZipFilesContent(FeatureType type)
+        {
+            this.Type = type;
+            this.AngularFeatureDataList = new();
+        }
+    }
+
+    public class AngularFeatureData
+    {
         /// <summary>
         /// File name (only).
         /// </summary>
@@ -272,12 +287,12 @@
         /// <summary>
         /// File full path on Temporary working directory.
         /// </summary>
-        public string FileFullPath { get; }
+        public string FilePath { get; }
 
         /// <summary>
         /// Temporary working directory full path.
         /// </summary>
-        public string TempDirPath { get; }
+        public string ExtractDirPath { get; }
 
         /// <summary>
         /// List of ExtractBlocks.
@@ -287,12 +302,26 @@
         /// <summary>
         /// Constructor.
         /// </summary>
-        public AngularFeatureData(FeatureType type, string fileName, string filePath, string tmpDir)
+        public AngularFeatureData(string fileName, string filePath, string tmpDir)
         {
-            this.Type = type;
             this.FileName = fileName;
-            this.FileFullPath = filePath;
-            this.TempDirPath = tmpDir;
+            this.FilePath = filePath;
+            this.ExtractDirPath = tmpDir;
+        }
+    }
+
+    public class AngularCRUDData : AngularFeatureData
+    {
+        /// <summary>
+        /// List of Options to delete.
+        /// </summary>
+        public List<string> OptionToDelete { get; set; }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public AngularCRUDData(string fileName, string filePath, string tmpDir) : base(fileName, filePath, tmpDir)
+        {
         }
     }
 
