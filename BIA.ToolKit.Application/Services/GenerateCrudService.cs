@@ -639,7 +639,9 @@
                             string[] splitEnd = line.Split(ZipParserService.ANGULAR_MARKER_END_CHILDREN);
                             if (!string.IsNullOrWhiteSpace(splitEnd[1]))
                             {
-                                updateLines.Add(splitEnd[1]);
+                                // Get firsts space characters (space + tabulations) to keep formating
+                                string match = GetMatchRegexValue(@"^([\s\t]+)(\w+)", splitEnd[0]);
+                                updateLines.Add(match + splitEnd[1]);
                             }
 
                             endFound = true;

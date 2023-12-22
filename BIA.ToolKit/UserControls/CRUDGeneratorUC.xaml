@@ -22,7 +22,7 @@
         <CheckBox  Margin="100,120,0,0" Content="Generate Back" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Checked="GenerateBackChk_Change" Unchecked="GenerateBackChk_Change" IsEnabled="{Binding IsProjectChosen}"/>
         <CheckBox  Margin="230,120,0,0" Content="Generate CRUD" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Checked="GenerateCrudChk_Change" Unchecked="GenerateCrudChk_Change" IsEnabled="{Binding IsProjectChosen}"/>
         <CheckBox  Margin="380,120,0,0" Content="Generate Option" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Checked="GenerateOptionChk_Change" Unchecked="GenerateOptionChk_Change" IsEnabled="{Binding IsProjectChosen}"/>
-        <CheckBox  Margin="520,120,0,0" Content="Generate Team" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Checked="GenerateTeamChk_Change" Unchecked="GenerateTeamChk_Change" IsEnabled="{Binding IsProjectChosen}"/>
+        <CheckBox  Margin="520,120,0,0" Content="Generate Team" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Checked="GenerateTeamChk_Change" Unchecked="GenerateTeamChk_Change" IsEnabled="False"/>
 
         <Label Content="Data model zip file (DotNet):" Margin="20,150,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
         <ListBox ItemsSource="{Binding ZipDotNetSelected}" Margin="40,175,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Name="ZipDotNetSelectedTB" Height="75"/>
