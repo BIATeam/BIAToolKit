@@ -6,8 +6,6 @@
     using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
-    using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -42,110 +40,240 @@
 
         private string OldTeamNamePascalSingular = "AircraftMaintenanceCompany";
         private string OldTeamNamePascalPlural = "AircraftMaintenanceCompanies";
-        private string OldTeamNameCamelSingular = "xxx";
-        private string OldTeamNameCamelPlural = "xxxs";
-
-        private string entityNameReference;
-        private string entityNameGenerated;
+        private string OldTeamNameCamelSingular = "aircraftMaintenanceCompany";
+        private string OldTeamNameCamelPlural = "aircraftMaintenanceCompanies";
 
         public GenerateCrudService(IConsoleWriter consoleWriter)
         {
             this.consoleWriter = consoleWriter;
         }
 
-        public string GenerateDotNetCrudFiles(string entityName, Project currentProject, EntityInfo dtoEntity, List<ClassDefinition> classDefinitionFromZip)
+        public string GenerateCrudFiles(Project currentProject, EntityInfo dtoEntity, List<ZipFilesContent> fileListFromZip, bool generateInCurrentProject = true)
         {
-#if DEBUG
-            consoleWriter.AddMessageLine($"*** Generate DotNet CRUD files on '{Path.Combine(currentProject.Folder, Constants.FolderCrudGeneration)}' ***", "Green");
-#endif
-
-            string generatedFolder = null;
+            string generationFolder = null;
             try
             {
-                this.entityNameReference = ExtractEntityNameReference(classDefinitionFromZip);
-                this.entityNameGenerated = entityName;
+                generationFolder = GetGenerationFolder(currentProject, generateInCurrentProject);
 
-                generatedFolder = Path.Combine(currentProject.Folder, currentProject.Name, Constants.FolderCrudGeneration);
-                string dotnetDir = Path.Combine(generatedFolder, Constants.FolderDotNet);
-                CommonTools.PrepareFolder(dotnetDir);
+                string dotnetDir = Path.Combine(generationFolder, Constants.FolderDotNet);
+                string angularDir = Path.Combine(generationFolder, Constants.FolderAngular);
+                if (!generateInCurrentProject)
+                {
+                    // If generation not in current project, clean folders
+                    CommonTools.PrepareFolder(dotnetDir);
+                    CommonTools.PrepareFolder(angularDir);
+                }
 
-                // Application
-                GenerateIApplicationFile(dotnetDir, currentProject, dtoEntity, classDefinitionFromZip.Where(x => x.FileType == FileType.IAppService).First());
-                GenerateApplicationFile(dotnetDir, currentProject, dtoEntity, classDefinitionFromZip.Where(x => x.FileType == FileType.AppService).First());
+                // Generate CRUD DotNet files
+                ZipFilesContent backFilesContent = fileListFromZip.Where(x => x.Type == FeatureType.Back).FirstOrDefault();
+                if (backFilesContent != null)
+                {
+                    consoleWriter.AddMessageLine($"*** Generate DotNet files on '{dotnetDir}' ***", "Green");
 
-                // Controller
-                GenerateControllerFile(dotnetDir, currentProject, dtoEntity, classDefinitionFromZip.Where(x => x.FileType == FileType.Controller).First());
+                    GenerateBack(dotnetDir, backFilesContent, currentProject);
+                }
+
+                // Generate CRUD angular files
+                ZipFilesContent crudFilesContent = fileListFromZip.Where(x => x.Type == FeatureType.CRUD).FirstOrDefault();
+                if (crudFilesContent != null)
+                {
+                    consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{angularDir}' ***", "Green");
+
+                    // Get CRUD dto properties
+                    Dictionary<string, List<string>> crudDtoProperties = GetDtoProperties(dtoEntity);
+
+                    GenerateCRUD(angularDir, crudDtoProperties, crudFilesContent);
+                }
+
+                // Generate Option angular files
+                ZipFilesContent optionFilesContent = fileListFromZip.Where(x => x.Type == FeatureType.Option).FirstOrDefault();
+                if (optionFilesContent != null)
+                {
+                    consoleWriter.AddMessageLine($"*** Generate Angular Option files on '{angularDir}' ***", "Green");
+
+                    GenerateOption(angularDir, optionFilesContent);
+                }
+
+                // Generate Team angular files
+                ZipFilesContent teamFilesContent = fileListFromZip.Where(x => x.Type == FeatureType.Team).FirstOrDefault();
+                if (teamFilesContent != null)
+                {
+                    consoleWriter.AddMessageLine($"Team generation not yet implemented!", "Orange");
+
+                    GenerateTeam(angularDir, teamFilesContent);
+                }
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"An error has occurred in CRUD generation process: {ex.Message}", "Red");
+            }
+
+            return generationFolder;
+        }
+
+        public void InitRenameValues(string newValueSingular, string newValuePlurial,
+            string oldCrudValueSingular = "Plane", string oldCrudValuePlurial = "Planes",
+            string oldOptionValueSingular = "Airport", string oldOptionValuePlurial = "Airports",
+            string oldTeamValueSingular = "XXX", string oldTeamValuePlurial = "XXXs")
+        {
+            this.NewCrudNamePascalSingular = newValueSingular;
+            this.NewCrudNamePascalPlural = newValuePlurial;
+            this.NewCrudNameCamelSingular = CommonTools.ConvertToCamelCase(NewCrudNamePascalSingular);
+            this.NewCrudNameCamelPlural = CommonTools.ConvertToCamelCase(NewCrudNamePascalPlural);
+            this.NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);
+            this.NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
+
+            this.OldCrudNamePascalSingular = oldCrudValueSingular;
+            this.OldCrudNamePascalPlural = oldCrudValuePlurial;
+            this.OldOptionNamePascalSingular = oldOptionValueSingular;
+            this.OldOptionNamePascalPlural = oldOptionValuePlurial;
+            this.OldTeamNamePascalSingular = oldTeamValueSingular;
+            this.OldTeamNamePascalPlural = oldTeamValuePlurial;
+
+            this.OldCrudNameCamelSingular = CommonTools.ConvertToCamelCase(OldCrudNamePascalSingular);
+            this.OldCrudNameCamelPlural = CommonTools.ConvertToCamelCase(OldCrudNamePascalPlural);
+            this.OldOptionNameCamelSingular = CommonTools.ConvertToCamelCase(OldOptionNamePascalSingular);
+            this.OldOptionNameCamelPlural = CommonTools.ConvertToCamelCase(OldOptionNamePascalPlural);
+            this.OldTeamNameCamelSingular = CommonTools.ConvertToCamelCase(OldTeamNamePascalSingular);
+            this.OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
+        }
+
+        //        public string GenerateDotNetCrudFiles(Project currentProject, EntityInfo dtoEntity, List<ZipFilesContent> dotNetFilesFromZip, bool generateInCurrentProject = true)
+        //        {
+        //#if DEBUG
+        //            consoleWriter.AddMessageLine($"*** Generate DotNet CRUD files on '{Path.Combine(currentProject.Folder, Constants.FolderCrudGeneration)}' ***", "Green");
+        //#endif
+        //            string generatedFolder = null;
+        //            try
+        //            {
+        //                this.entityNameReference = ExtractEntityNameReference(classDefinitionFromZip);
+
+        //                generatedFolder = GetGenerationFolder(currentProject, generateInCurrentProject);
+        //                string dotnetDir = Path.Combine(generatedFolder, Constants.FolderDotNet);
+        //                if (!generateInCurrentProject)
+        //                    CommonTools.PrepareFolder(dotnetDir);
+
+        //                // Application
+        //                var cdias = classDefinitionFromZip.Where(x => x.FileType == FileType.IAppService).FirstOrDefault();
+        //                if (cdias != null)
+        //                {
+        //                    GenerateIApplicationFile(dotnetDir, currentProject, dtoEntity, cdias);
+        //                }
+
+        //                var cdas = classDefinitionFromZip.Where(x => x.FileType == FileType.AppService).FirstOrDefault();
+        //                if (cdas != null)
+        //                {
+        //                    GenerateApplicationFile(dotnetDir, currentProject, dtoEntity, cdas);
+        //                }
+
+        //                // Controller
+        //                var cdc = classDefinitionFromZip.Where(x => x.FileType == FileType.Controller).FirstOrDefault();
+        //                if (cdc != null)
+        //                {
+        //                    GenerateControllerFile(dotnetDir, currentProject, dtoEntity, cdc);
+        //                }
+
+        //                // IocContainer
+        //                CreateIocContainerFile(dotnetDir);
+
+        //                // Rights
+        //                CreateRightsFile(dotnetDir, currentProject);
+        //                CreateBIANETConfigFile(dotnetDir, currentProject);
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                consoleWriter.AddMessageLine($"An error has occurred in DotNet CRUD generation process: {ex.Message}", "Red");
+        //            }
+
+        //            return generatedFolder;
+        //        }
+
+        //        public void GenerateAngularCrudFiles(Project currentProject, EntityInfo dtoEntity, List<ZipFilesContent> angularFilesFromZip, bool generateInCurrentProject = true)
+        //        {
+        //#if DEBUG
+        //            consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{Path.Combine(currentProject.Folder, Constants.FolderCrudGeneration)}' ***", "Green");
+        //#endif
+        //            string generatedFolder = null;
+        //            try
+        //            {
+        //                generatedFolder = GetGenerationFolder(currentProject, generateInCurrentProject);
+        //                string angularDir = Path.Combine(generatedFolder, Constants.FolderAngular);
+        //                if (!generateInCurrentProject)
+        //                    CommonTools.PrepareFolder(angularDir);
+
+        //                // Generate CRUD angular files
+        //                ZipFilesContent crudFilesContent = angularFilesFromZip.Where(x => x.Type == FeatureType.CRUD).FirstOrDefault();
+        //                if (crudFilesContent != null)
+        //                {
+        //                    // Get CRUD dto properties
+        //                    Dictionary<string, List<string>> crudDtoProperties = GetDtoProperties(dtoEntity);
+
+        //                    GenerateCRUD(angularDir, crudDtoProperties, crudFilesContent, crudFilesContent.Type);
+        //                }
+
+        //                // Generate Option angular files
+        //                ZipFilesContent optionFilesContent = angularFilesFromZip.Where(x => x.Type == FeatureType.Option).FirstOrDefault();
+        //                if (optionFilesContent != null)
+        //                {
+        //                    GenerateOption(angularDir, optionFilesContent, optionFilesContent.Type);
+        //                }
+
+        //                // TODO NMA
+        //                // Generate Team angular files
+        //                //AngularZipFilesContent teamFilesContent = angularFilesFromZip.Where(x => x.Type == FeatureType.Team).FirstOrDefault();
+        //                //if (crudFilesContent != null)
+        //                //{
+        //                //    toto(angularDir, crudDtoProperties, crudFilesContent);
+        //                //}
+
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                consoleWriter.AddMessageLine($"An error has occurred in Angular CRUD generation process: {ex.Message}", "Red");
+        //            }
+        //        }
+
+
+        private void GenerateBack(string dotNetDir, ZipFilesContent zipFilesContent, Project currentProject)
+        {
+            try
+            {
+                foreach (DotNetCRUDData crudData in zipFilesContent.FeatureDataList)
+                {
+                    // Ignore Dto file : not necessary to regenerate it
+                    if (crudData.ClassFileDefinition.FileType == FileType.Dto) { continue; }
+
+                    GenerateDotNetCrudFile(dotNetDir, currentProject, crudData);
+                }
 
                 // IocContainer
-                CreateIocContainerFile(dotnetDir);
+                CreateIocContainerFile(dotNetDir);
 
                 // Rights
-                CreateRightsFile(dotnetDir, currentProject);
-                CreateBIANETConfigFile(dotnetDir, currentProject);
+                CreateRightsFile(dotNetDir, currentProject);
+                CreateBIANETConfigFile(dotNetDir, currentProject);
             }
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"An error has occurred in DotNet CRUD generation process: {ex.Message}", "Red");
             }
-
-            return generatedFolder;
         }
 
-        public void GenerateAngularCrudFiles(string entityName, Project currentProject, EntityInfo dtoEntity, List<AngularZipFilesContent> angularFilesFromZip)
-        {
-#if DEBUG
-            consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{Path.Combine(currentProject.Folder, Constants.FolderCrudGeneration)}' ***", "Green");
-#endif
-            try
-            {
-                string angularDir = Path.Combine(currentProject.Folder, currentProject.Name, Constants.FolderCrudGeneration, Constants.FolderAngular);
-                CommonTools.PrepareFolder(angularDir);
-
-                // Generate CRUD angular files
-                AngularZipFilesContent crudFilesContent = angularFilesFromZip.Where(x => x.Type == FeatureType.CRUD).FirstOrDefault();
-                if (crudFilesContent != null)
-                {
-                    // Get CRUD dto properties
-                    Dictionary<string, List<string>> crudDtoProperties = GetDtoProperties(dtoEntity);
-
-                    GenerateCRUD(angularDir, crudDtoProperties, crudFilesContent, crudFilesContent.Type);
-                }
-
-                // Generate Option angular files
-                AngularZipFilesContent optionFilesContent = angularFilesFromZip.Where(x => x.Type == FeatureType.Option).FirstOrDefault();
-                if (optionFilesContent != null)
-                {
-                    GenerateOption(angularDir, optionFilesContent, optionFilesContent.Type);
-                }
-
-                // TODO NMA
-                // Generate Team angular files
-                //AngularZipFilesContent teamFilesContent = angularFilesFromZip.Where(x => x.Type == FeatureType.Team).FirstOrDefault();
-                //if (crudFilesContent != null)
-                //{
-                //    toto(angularDir, crudDtoProperties, crudFilesContent);
-                //}
-
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine($"An error has occurred in Angular CRUD generation process: {ex.Message}", "Red");
-            }
-        }
-
-
-        private void GenerateCRUD(string angularDir, Dictionary<string, List<string>> crudDtoProperties, AngularZipFilesContent zipFilesContent, FeatureType type)
+        #region Angular
+        private void GenerateCRUD(string angularDir, Dictionary<string, List<string>> crudDtoProperties, ZipFilesContent zipFilesContent)
         {
             try
             {
                 List<string> blocksToAdd;
                 List<string> propertiesToAdd;
+                List<string> childrenToDelete;
                 List<string> optionToDelete;
 
-                foreach (AngularCRUDData angularFile in zipFilesContent.AngularFeatureDataList)
+                foreach (AngularCRUDData angularFile in zipFilesContent.FeatureDataList)
                 {
                     blocksToAdd = new();
                     propertiesToAdd = new();
+                    childrenToDelete = new();
                     optionToDelete = new();
                     if (angularFile.ExtractBlocks != null && angularFile.ExtractBlocks.Count > 0)
                     {
@@ -155,6 +283,13 @@
                             propertiesToAdd.AddRange(GeneratePropertiesToAdd(angularFile, crudDtoProperty));
                             // Generate new blocks to add
                             blocksToAdd.AddRange(GenerateBlocksToAdd(angularFile, crudDtoProperty));
+                        }
+
+                        // Get Children line to delete
+                        var childrenBlocs = angularFile.ExtractBlocks.Where(l => l.DataUpdateType == CRUDDataUpdateType.Children);
+                        if (childrenBlocs != null)
+                        {
+                            childrenBlocs.ToList().ForEach(b => childrenToDelete.AddRange(b.BlockLines));
                         }
                     }
 
@@ -166,10 +301,10 @@
 
                     // Create file
                     string src = Path.Combine(angularFile.ExtractDirPath, angularFile.FilePath);
-                    string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FilePath), type);
+                    string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FilePath), FeatureType.CRUD);
 
                     // replace blocks !
-                    GenerateFile(type, src, dest, propertiesToAdd, blocksToAdd, optionToDelete);
+                    GenerateAngularFile(FeatureType.CRUD, src, dest, propertiesToAdd, blocksToAdd, childrenToDelete, optionToDelete);
                 }
             }
             catch (Exception ex)
@@ -178,195 +313,54 @@
             }
         }
 
-        private void GenerateOption(string angularDir, AngularZipFilesContent zipFilesContent, FeatureType type)
+        private void GenerateOption(string angularDir, ZipFilesContent zipFilesContent)
         {
             try
             {
-                foreach (AngularFeatureData angularFile in zipFilesContent.AngularFeatureDataList)
+                foreach (FeatureData angularFile in zipFilesContent.FeatureDataList)
                 {
                     // Create file
                     string src = Path.Combine(angularFile.ExtractDirPath, angularFile.FilePath);
-                    string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FilePath), type);
+                    string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FilePath), FeatureType.Option);
 
                     // replace blocks !
-                    GenerateFile(type, src, dest);
+                    GenerateAngularFile(FeatureType.Option, src, dest);
                 }
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"An error has occurred in Angular CRUD generation process: {ex.Message}", "Red");
+                consoleWriter.AddMessageLine($"An error has occurred in Angular Option generation process: {ex.Message}", "Red");
             }
         }
+
+        private void GenerateTeam(string angularDir, ZipFilesContent zipFilesContent)
+        {
+            // TODO NMA
+        }
+        #endregion
 
         #region DotNet Files
-        #region Entity
-        private void GenerateEntityFile(string destDir, Project currentProject, EntityInfo dtoEntity, ClassDefinition classDefinition)
+        private void GenerateDotNetCrudFile(string destDir, Project currentProject, DotNetCRUDData crudData)
         {
-            //this.entityNameReference = classDefinition.Name.Text;
-            //string fileName = $"{entityNameGenerated}.cs";
-            //StringBuilder sb = new();
+            string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
+            string dest = ConvertPascalOldToNewCrudName(Path.Combine(destDir, crudData.FilePath), FeatureType.Back);
+            dest = ReplaceCompagnyNameProjetName(dest, currentProject, crudData.ClassFileDefinition);
 
-            //// Generate file header
-            //GenerateFileHeader(sb, fileName, currentProject.CompanyName);
+            // Prepare destination folder
+            CommonTools.CheckFolder(new FileInfo(dest).DirectoryName);
 
-            //// Generate namespace + using
-            //GenerateNamespaceUsing(sb, dtoEntity, classDefinition);
+            // Read file
+            List<string> fileLinesContent = File.ReadAllLines(src).ToList();
 
-            //// Generate class declaration
-            //GenerateClassDeclaration(sb, classDefinition, $"The {entityNameGenerated} entity");
-
-            //// Generate primary key
-            //if (dtoEntity.PrimaryKey.ToLower() == "int")
-            //{
-            //    var prop = classDefinition.PropertyList.Where(x => x.Identifier.Text.ToLower() == "id").First();
-            //    if (prop != null)
-            //    {
-            //        GenerateProperty(sb, prop.Type.ToFullString(), prop.Identifier.ToFullString(), string.Join(' ', prop.Modifiers.ToList()));
-            //    }
-            //}
-
-            //// Generate properties
-            //foreach (PropertyInfo p in dtoEntity.Properties)
-            //{
-            //    if (p.Type == "int" && p.Name.ToLower() == "siteid")    // int SiteId
-            //    {
-            //        string newName = p.Name[..^2]; // Name without "Id" suffix
-            //        GenerateProperty(sb, $"{newName}", $"{newName}", "public virtual");
-            //        GenerateProperty(sb, p.Type, p.Name);
-            //    }
-            //    else if (p.Type == "OptionDto")                         // Type OptionDto  
-            //    {
-            //        GenerateProperty(sb, p.Type, p.Name);
-            //        sb.AppendLine($"        //****************************************************************************************");
-            //        sb.AppendLine($"        //****************** Rework OptionDto by 2 lines: type + id ******************************");
-            //        sb.AppendLine($"        // public int {p.Name}Id {{ get; set; }}");
-            //        sb.AppendLine($"        // public virtual {p.Name} {p.Name} {{ get; set; }}");
-            //        sb.AppendLine($"        //****************************************************************************************");
-            //        sb.AppendLine($"        //****************************************************************************************");
-            //    }
-            //    else if (p.Type.EndsWith("Dto"))                        // Type XXXDto
-            //    {
-            //        string newType = p.Type[..^3]; // Type without "Dto" suffix
-            //        GenerateProperty(sb, $"{newType}", p.Name, "public virtual");
-            //        GenerateProperty(sb, "int", $"{p.Name}Id");
-            //    }
-            //    else if (p.Type.EndsWith("Dto>"))                       // Collection of XXXDto
-            //    {
-            //        string newType = p.Type.Replace("Dto", ""); // Type without "Dto" suffix
-            //        GenerateProperty(sb, $"{newType}", p.Name);
-            //    }
-            //    else                                                    // All others cases     
-            //    {
-            //        GenerateProperty(sb, p.Type, p.Name);
-            //    }
-            //}
-            //sb.AppendLine($"    }}");
-            //sb.AppendLine($"}}");
-
-            //// Create generated file on disk            
-            //CommonMethods.CreateFile(sb, Path.Combine(destDir, domainFolder, fileName));
-        }
-        #endregion
-
-        #region Application
-        private void GenerateIApplicationFile(string destDir, Project currentProject, EntityInfo dtoEntity, ClassDefinition classDefinition)
-        {
-            string fileName = GetFileName(classDefinition.Name.Text);
-            string destinationPath = GetFinalFilePath(destDir, dtoEntity, classDefinition);
-            StringBuilder sb = new();
-
-            // Generate file header
-            GenerateFileHeader(sb, fileName, currentProject.CompanyName);
-
-            // Generate namespace + using
-            GenerateNamespaceUsing(sb, dtoEntity, classDefinition);
-
-            // Generate interface declaration
-            GenerateClassDeclaration(sb, classDefinition, $"The interface defining the application service for {entityNameGenerated}");
-
-            sb.AppendLine($"    }}");
-            sb.AppendLine($"}}");
-
-            // Create generated file on disk            
-            CommonMethods.CreateFile(sb, destinationPath);
-        }
-
-        private void GenerateApplicationFile(string destDir, Project currentProject, EntityInfo dtoEntity, ClassDefinition classDefinition)
-        {
-            string fileName = GetFileName(classDefinition.Name.Text);
-            string destinationPath = GetFinalFilePath(destDir, dtoEntity, classDefinition);
-            StringBuilder sb = new();
-
-            // Generate file header
-            GenerateFileHeader(sb, fileName, currentProject.CompanyName);
-
-            // Generate namespace + using
-            GenerateNamespaceUsing(sb, dtoEntity, classDefinition);
-
-            // Generate class declaration
-            GenerateClassDeclaration(sb, classDefinition, $"The application service used for {entityNameGenerated}");
-
-            // Generate class fields
-            foreach (FieldDeclarationSyntax fd in classDefinition.FieldList)
+            // Replace Compagny name and Project name
+            for (int i = 0; i < fileLinesContent.Count; i++)
             {
-                GenerateField(sb, fd.Declaration.ToString(), string.Join(' ', fd.Modifiers.ToList()));
+                fileLinesContent[i] = ReplaceCompagnyNameProjetName(fileLinesContent[i], currentProject, crudData.ClassFileDefinition);
+                fileLinesContent[i] = ConvertPascalOldToNewCrudName(fileLinesContent[i], FeatureType.Back);
             }
 
-            // Generate class constructors
-            foreach (ConstructorDeclarationSyntax cd in classDefinition.ConstructorList)
-            {
-                GenerateConstructor(sb, cd.Identifier.ToString(), string.Join(' ', cd.ParameterList),
-                    cd.Initializer?.ToFullString(), cd.Body?.ToFullString(), string.Join(' ', cd.Modifiers.ToList()));
-            }
-
-            sb.AppendLine($"    }}");
-            sb.AppendLine($"}}");
-
-            // Create generated file on disk            
-            CommonMethods.CreateFile(sb, destinationPath);
-        }
-        #endregion
-
-        #region Controller
-        private void GenerateControllerFile(string destDir, Project currentProject, EntityInfo dtoEntity, ClassDefinition classDefinition)
-        {
-            string fileName = GetFileName(classDefinition.Name.Text);
-            string destinationPath = GetFinalFilePath(destDir, dtoEntity, classDefinition);
-            StringBuilder sb = new();
-
-            // Generate file header
-            GenerateFileHeader(sb, fileName, currentProject.CompanyName);
-
-            // Generate namespace + using
-            GenerateNamespaceUsing(sb, dtoEntity, classDefinition);
-
-            // Generate class declaration
-            GenerateClassDeclaration(sb, classDefinition, $"The API controller used to manage {entityNameGenerated}");
-
-            // Generate class fields
-            foreach (FieldDeclarationSyntax fd in classDefinition.FieldList)
-            {
-                GenerateField(sb, fd.Declaration.ToFullString(), string.Join(' ', fd.Modifiers.ToList()));
-            }
-
-            // Generate class constructors
-            foreach (ConstructorDeclarationSyntax cd in classDefinition.ConstructorList)
-            {
-                GenerateConstructor(sb, cd.Identifier.ToFullString(), string.Join(' ', cd.ParameterList),
-                    cd.Initializer?.ToFullString(), cd.Body?.ToFullString(), string.Join(' ', cd.Modifiers.ToList()));
-            }
-
-            foreach (MethodDeclarationSyntax md in classDefinition.MethodList)
-            {
-                GenerateMethod(sb, md.AttributeLists.ToList(), md.ReturnType.ToFullString(),
-                    md.Identifier.ToFullString(), string.Join(' ', md.ParameterList), md.Body?.ToFullString(), string.Join(' ', md.Modifiers.ToList()));
-            }
-
-            sb.AppendLine($"    }}");
-            sb.AppendLine($"}}");
-
-            // Create generated file on disk            
-            CommonMethods.CreateFile(sb, destinationPath);
+            // Generate new file
+            GenerateFile(dest, fileLinesContent);
         }
         #endregion
 
@@ -375,7 +369,7 @@
         {
             StringBuilder sb = new();
             sb.AppendLine("***** Add the following line(s) at the end of 'ConfigureApplicationContainer' method : ");
-            sb.Append($"collection.AddTransient<I{entityNameGenerated}AppService, {entityNameGenerated}AppService>();");
+            sb.Append($"collection.AddTransient<I{this.NewCrudNamePascalSingular}AppService, {this.NewCrudNamePascalSingular}AppService>();");
 
             CommonMethods.CreateFile(sb, Path.Combine(destDir, "UPDATE__IocContainer.cs__.txt"));
         }
@@ -387,40 +381,40 @@
             StringBuilder sb = new();
             sb.AppendLine($"***** Add the following line(s) at the end of '{currentProject.CompanyName}.{currentProject.Name}.Crosscutting.Common/Rights.cs' file:");
 
-            sb.AppendLine($"/// <summary>");
-            sb.AppendLine($"/// The {entityNameGenerated} rights.");
-            sb.AppendLine($"/// </summary>");
-            sb.AppendLine($"public static class {entityNameGenerated}");
-            sb.AppendLine($"{{");
-            sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// The right to access to the list of {entityNameGenerated}s.");
-            sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    public const string List = \"{entityNameGenerated}_List\";{Environment.NewLine}");
-            sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// The right to read {entityNameGenerated}s.");
-            sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    public const string Read = \"{entityNameGenerated}_Read\";{Environment.NewLine}");
-            sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// The right to create {entityNameGenerated}s.");
-            sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    public const string Create = \"{entityNameGenerated}_Create\";{Environment.NewLine}");
-            sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// The right to update {entityNameGenerated}s.");
-            sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    public const string Update = \"{entityNameGenerated}_Update\";{Environment.NewLine}");
-            sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// The right to delete {entityNameGenerated}s.");
-            sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    public const string Delete = \"{entityNameGenerated}_Delete\";{Environment.NewLine}");
-            sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// The right to save {entityNameGenerated}s.");
-            sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    public const string Save = \"{entityNameGenerated}_Save\";{Environment.NewLine}");
-            sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// The right to access to the list of {entityNameGenerated}s.");
-            sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    public const string ListAccess = \"{entityNameGenerated}_List_Access\";");
-            sb.AppendLine($"}}");
+            sb.AppendLine("/// <summary>");
+            sb.AppendLine($"/// The {this.NewCrudNamePascalSingular} rights.");
+            sb.AppendLine("/// </summary>");
+            sb.AppendLine($"public static class {this.NewCrudNamePascalPlural}");
+            sb.AppendLine("{");
+            sb.AppendLine("    /// <summary>");
+            sb.AppendLine($"    /// The right to access to the list of {this.NewCrudNamePascalPlural}.");
+            sb.AppendLine("    /// </summary>");
+            sb.AppendLine($"    public const string List = \"{this.NewCrudNamePascalSingular}_List\";{Environment.NewLine}");
+            sb.AppendLine("    /// <summary>");
+            sb.AppendLine($"    /// The right to read {this.NewCrudNamePascalPlural}.");
+            sb.AppendLine("    /// </summary>");
+            sb.AppendLine($"    public const string Read = \"{this.NewCrudNamePascalSingular}_Read\";{Environment.NewLine}");
+            sb.AppendLine("    /// <summary>");
+            sb.AppendLine($"    /// The right to create {this.NewCrudNamePascalPlural}.");
+            sb.AppendLine("    /// </summary>");
+            sb.AppendLine($"    public const string Create = \"{this.NewCrudNamePascalSingular}_Create\";{Environment.NewLine}");
+            sb.AppendLine("    /// <summary>");
+            sb.AppendLine($"    /// The right to update {this.NewCrudNamePascalPlural}.");
+            sb.AppendLine("    /// </summary>");
+            sb.AppendLine($"    public const string Update = \"{this.NewCrudNamePascalSingular}_Update\";{Environment.NewLine}");
+            sb.AppendLine("    /// <summary>");
+            sb.AppendLine($"    /// The right to delete {this.NewCrudNamePascalPlural}.");
+            sb.AppendLine("    /// </summary>");
+            sb.AppendLine($"    public const string Delete = \"{this.NewCrudNamePascalSingular}_Delete\";{Environment.NewLine}");
+            sb.AppendLine("    /// <summary>");
+            sb.AppendLine($"    /// The right to save {this.NewCrudNamePascalPlural}.");
+            sb.AppendLine("    /// </summary>");
+            sb.AppendLine($"    public const string Save = \"{this.NewCrudNamePascalSingular}_Save\";{Environment.NewLine}");
+            sb.AppendLine("    /// <summary>");
+            sb.AppendLine($"    /// The right to access to the list of {this.NewCrudNamePascalPlural}.");
+            sb.AppendLine("    /// </summary>");
+            sb.AppendLine($"    public const string ListAccess = \"{this.NewCrudNamePascalSingular}_List_Access\";");
+            sb.AppendLine("}");
 
             CommonMethods.CreateFile(sb, Path.Combine(destDir, "UPDATE__Rights.cs__.txt"));
         }
@@ -428,199 +422,46 @@
         private void CreateBIANETConfigFile(string destDir, Project currentProject)
         {
             StringBuilder sb = new();
-            sb.AppendLine($"***** Add the following line(s) at the end of '{currentProject.CompanyName}.{currentProject.Name}.Presentation.Api/bianetconfig.txt' file:");
+            sb.AppendLine($"***** Add the following line(s) at the end of '{currentProject.CompanyName}.{currentProject.Name}.Presentation.Api/bianetconfig.json' file:");
 
-            sb.AppendLine($"// {entityNameGenerated}");
-            sb.AppendLine($"{{");
-            sb.AppendLine($"\"Names\": [ \"{entityNameGenerated}_Create\", \"{entityNameGenerated}_Update\", \"{entityNameGenerated}_Delete\", \"{entityNameGenerated}_Save\", \"{entityNameGenerated}_List_Access\" ],");
-            sb.AppendLine($"\"Roles\": [ \"Admin\", \"Site_Admin\" ]");
-            sb.AppendLine($"}},");
-            sb.AppendLine($"{{");
-            sb.AppendLine($"\"Names\": [ \"{entityNameGenerated}_List\", \"{entityNameGenerated}_Read\" ]");
-            sb.AppendLine($"\"Roles\": [ \"Admin\", \"Site_Admin\", \"User\" ]");
-            sb.AppendLine($"}}");
+            sb.AppendLine($"// {this.NewCrudNamePascalSingular}");
+            sb.AppendLine("{");
+            sb.AppendLine($"\"Names\": [ \"{this.NewCrudNamePascalSingular}_Create\", \"{this.NewCrudNamePascalSingular}_Update\", \"{this.NewCrudNamePascalSingular}_Delete\", \"{this.NewCrudNamePascalSingular}_Save\", \"{this.NewCrudNamePascalSingular}_List_Access\" ],");
+            sb.AppendLine("\"Roles\": [ \"Admin\", \"Site_Admin\" ]");
+            sb.AppendLine("},");
+            sb.AppendLine("{");
+            sb.AppendLine($"\"Names\": [ \"{this.NewCrudNamePascalSingular}_List\", \"{this.NewCrudNamePascalSingular}_Read\" ]");
+            sb.AppendLine("\"Roles\": [ \"Admin\", \"Site_Admin\", \"User\" ]");
+            sb.AppendLine("}");
 
-            CommonMethods.CreateFile(sb, Path.Combine(destDir, "UPDATE__bianetconfig.txt__.txt"));
-        }
-        #endregion
-
-        #region File Generation Tools
-        private void GenerateFileHeader(StringBuilder sb, string fileName, string companyName)
-        {
-            sb.AppendLine($"// <copyright file=\"{fileName}\" company=\"{companyName}\">");
-            sb.AppendLine($"//     Copyright (c) {companyName}. All rights reserved.");
-            sb.AppendLine($"// </copyright>");
-        }
-
-        private void GenerateNamespaceUsing(StringBuilder sb, EntityInfo dtoEntity, ClassDefinition classDefinition)
-        {
-            // Generate namespace
-            var @namespace = TransformCompleteValue(classDefinition.NamespaceSyntax.Name.ToFullString(), dtoEntity, classDefinition);
-            sb.Append($"{classDefinition.NamespaceSyntax.NamespaceKeyword} {@namespace}");
-            sb.Append("{{");
-
-            // Generate using
-            sb.AppendLine();
-            classDefinition.NamespaceSyntax.Usings.ToList().ForEach(@using =>
-            {
-                var usingFormated = TransformCompleteValue(@using.ToFullString(), dtoEntity, classDefinition);
-                sb.Append($"{usingFormated}");
-            });
-
-            sb.AppendLine();
-        }
-
-        private void GenerateClassDeclaration(StringBuilder sb, ClassDefinition classDefinition, string comment)
-        {
-            string baselist = TransformValue(classDefinition.BaseList.ToFullString());
-            string className = TransformValue(classDefinition.Name.Text);
-
-            string type = "class";
-            switch (classDefinition.Type)
-            {
-                case SyntaxKind.ClassDeclaration:
-                    type = "class";
-                    break;
-                case SyntaxKind.InterfaceDeclaration:
-                    type = "interface";
-                    break;
-                case SyntaxKind.EnumDeclaration:
-                    type = "enum";
-                    break;
-                case SyntaxKind.StructDeclaration:
-                    type = "struct";
-                    break;
-            }
-
-            sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// {comment}.");
-            sb.AppendLine($"    /// </summary>");
-            sb.Append($"    {classDefinition.VisibilityList} {type} {className} {baselist}");
-            sb.AppendLine($"    {{");
-        }
-
-        private void GenerateProperty(StringBuilder sb, string type, string property, string modifier = "public")
-        {
-            sb.AppendLine($"        /// <summary>");
-            sb.AppendLine($"        /// Gets or Sets {property}.");
-            sb.AppendLine($"        /// </summary>");
-            sb.AppendLine($"        {modifier} {type} {property} {{ get; set; }}{Environment.NewLine}");
-        }
-
-        private void GenerateField(StringBuilder sb, string fieldDef, string modifier = "public")
-        {
-            var tmp = fieldDef.Split(' ');
-            string type = TransformValue(tmp[0]);
-            string field = TransformValue(tmp[1]);
-
-            sb.AppendLine($"        /// <summary>");
-            sb.AppendLine($"        /// The {field}.");
-            sb.AppendLine($"        /// </summary>");
-            sb.AppendLine($"        {modifier} {type} {field}{Environment.NewLine}");
-        }
-
-        private void GenerateConstructor(StringBuilder sb, string constructorName, string parameters, string baseList, string body, string modifier = "public")
-        {
-            constructorName = TransformValue(constructorName);
-            parameters = TransformValue(parameters);
-            baseList = TransformValue(baseList);
-            body = TransformValue(body);
-
-            sb.AppendLine($"        /// <summary>");
-            sb.AppendLine($"        /// Initializes a new instance of the <see cref=\"{constructorName}\"/> class.");
-            sb.AppendLine($"        /// </summary>");
-            sb.AppendLine($"        {modifier} {constructorName}{parameters}");
-            sb.AppendLine($"{baseList}{body}{Environment.NewLine}");
-        }
-
-        private void GenerateMethod(StringBuilder sb, List<AttributeListSyntax> attributeList, string type, string methodName, string parameters, string body, string modifier = "public")
-        {
-            parameters = TransformValue(parameters);
-            body = TransformValue(body);
-
-            //sb.AppendLine($"        /// <summary>");
-            //sb.AppendLine($"        /// XXXX");
-            //sb.AppendLine($"        /// </summary>");
-            attributeList.ForEach(attr =>
-            {
-                string attrFormated = TransformValue(attr.ToFullString());
-                sb.Append($"{attrFormated}");
-            });
-            sb.AppendLine($"        {modifier} {type}{methodName}{parameters}");
-            sb.AppendLine($"{body}{Environment.NewLine}");
+            CommonMethods.CreateFile(sb, Path.Combine(destDir, "UPDATE__bianetconfig.json__.txt"));
         }
         #endregion
 
         #region Tools
-        private string ExtractEntityNameReference(List<ClassDefinition> classDefinitionFromZip)
+        private string GetGenerationFolder(Project currentProject, bool generateInCurrentProject)
         {
-            ClassDefinition classNameDef = classDefinitionFromZip.Where(x => x.FileType == FileType.Entity).FirstOrDefault();
-            if (classNameDef != null)
-            {
-                return classNameDef.Name.Text;
-            }
+            string generatedFolder = Path.Combine(currentProject.Folder, currentProject.Name);
 
-            classNameDef = classDefinitionFromZip.Where(x => x.FileType == FileType.Dto).FirstOrDefault();
-            if (classNameDef != null)
-            {
-                return GetEntityNameFromDto(classNameDef.Name.Text);
-            }
+            if (!generateInCurrentProject)
+                generatedFolder = Path.Combine(generatedFolder, Constants.FolderCrudGeneration);
 
-            throw new Exception("Zip not contains Entity or Dto file.");
+            return generatedFolder;
         }
 
-        private string GetFinalFilePath(string destDir, EntityInfo dtoEntity, ClassDefinition classDefinition)
+        private void GenerateFile(string fileName, List<string> fileLinesContent)
         {
-            // Get final path
-            string pathOnZip = TransformCompleteValue(classDefinition.PathOnZip, dtoEntity, classDefinition);
-            string destinationPath = Path.Combine(destDir, pathOnZip);
+            // Generate new file
+            StringBuilder sb = new();
+            fileLinesContent.ForEach(line => sb.AppendLine(line));
 
-            // Get parent folder and create it
-            Directory.CreateDirectory(new FileInfo(destinationPath).DirectoryName);
-
-            return destinationPath;
-        }
-
-        private string TransformCompleteValue(string value, EntityInfo dtoEntity, ClassDefinition classDefinition)
-        {
-            string formatedValue = value.Replace(classDefinition.CompagnyName, dtoEntity.CompagnyName).
-                Replace(classDefinition.ProjectName, dtoEntity.ProjectName);
-
-            return TransformValue(formatedValue);
-        }
-
-        private string TransformValue(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-                return null;
-
-            string referenceFormated = CommonTools.ConvertToCamelCase(entityNameReference);
-            string generatedFormated = CommonTools.ConvertToCamelCase(entityNameGenerated);
-
-            return value.Replace(entityNameReference, entityNameGenerated).Replace(referenceFormated, generatedFormated);
-        }
-
-        private string GetFileName(string value)
-        {
-            string className = TransformValue(value);
-            return $"{className}.cs";
-        }
-        #endregion
-
-        public string GetEntityNameFromDto(string dtoFileName)
-        {
-            var fileName = Path.GetFileNameWithoutExtension(dtoFileName);
-            if (!string.IsNullOrWhiteSpace(fileName) && fileName.ToLower().EndsWith("dto"))
-            {
-                return fileName[..^3];   // name without 'dto' suffix
-            }
-
-            return fileName;
+            File.WriteAllText(fileName, sb.ToString());
         }
         #endregion
 
         #region Angular Files
-        private void GenerateFile(FeatureType type, string fileName, string newFileName, List<string> propertiesToAdd = null, List<string> blocksToAdd = null, List<string> optionToDelete = null)
+        private void GenerateAngularFile(FeatureType type, string fileName, string newFileName, List<string> propertiesToAdd = null,
+            List<string> blocksToAdd = null, List<string> childrenToDelete = null, List<string> optionToDelete = null)
         {
             if (!File.Exists(fileName))
             {
@@ -635,7 +476,10 @@
             List<string> fileLinesContent = File.ReadAllLines(fileName).ToList();
 
             // Replace properties and blocks
-            fileLinesContent = ReplacePorpertiesAndBlocks(fileName, fileLinesContent, propertiesToAdd, blocksToAdd);
+            fileLinesContent = ReplacePropertiesAndBlocks(fileName, fileLinesContent, propertiesToAdd, blocksToAdd);
+
+            // Remove children
+            fileLinesContent = DeleteChildrenBlocks(fileLinesContent);
 
             // Rmove all options
             if (optionToDelete != null)
@@ -647,13 +491,10 @@
             UpdateFileLinesContent(fileLinesContent, type);
 
             // Generate new file
-            StringBuilder sb = new();
-            fileLinesContent.ForEach(line => sb.AppendLine(line));
-
-            File.WriteAllText(newFileName, sb.ToString());
+            GenerateFile(newFileName, fileLinesContent);
         }
 
-        private List<string> ReplacePorpertiesAndBlocks(string fileName, List<string> fileLinesContent, List<string> propertiesToAdd, List<string> blocksToAdd)
+        private List<string> ReplacePropertiesAndBlocks(string fileName, List<string> fileLinesContent, List<string> propertiesToAdd, List<string> blocksToAdd)
         {
             if ((propertiesToAdd == null || propertiesToAdd.Count <= 0) && (blocksToAdd == null || blocksToAdd.Count <= 0)) return fileLinesContent;
 
@@ -755,7 +596,69 @@
             return newFileLinesContent;
         }
 
-        private List<string> GeneratePropertiesToAdd(AngularFeatureData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
+        private List<string> DeleteChildrenBlocks(List<string> fileLinesContent)
+        {
+            if (!fileLinesContent.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_CHILDREN))
+            {
+                return fileLinesContent;
+            }
+
+            List<string> updateLines = new();
+            for (int i = 0; i < fileLinesContent.Count; i++)
+            {
+                string line = fileLinesContent[i];
+
+                if (line.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_CHILDREN, StringComparison.InvariantCultureIgnoreCase) &&
+                    line.Contains(ZipParserService.ANGULAR_MARKER_END_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    // Get data before marker begin + data after marker end
+                    string[] splitBegin = line.Split(ZipParserService.ANGULAR_MARKER_BEGIN_CHILDREN);
+                    string[] splitEnd = line.Split(ZipParserService.ANGULAR_MARKER_END_CHILDREN);
+                    string update = splitBegin[0] + splitEnd[1];
+                    if (!string.IsNullOrWhiteSpace(update))
+                    {
+                        updateLines.Add(update);
+                    }
+                }
+                else if (line.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    // Get data before marker begin
+                    bool endFound = false;
+                    string[] splitBegin = line.Split(ZipParserService.ANGULAR_MARKER_BEGIN_CHILDREN);
+                    if (!string.IsNullOrWhiteSpace(splitBegin[0]))
+                    {
+                        updateLines.Add(splitBegin[0]);
+                    }
+
+                    for (int j = i; j < fileLinesContent.Count && !endFound; j++)
+                    {
+                        line = fileLinesContent[j];
+                        if (line.Contains(ZipParserService.ANGULAR_MARKER_END_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            // Get data after marker end                               
+                            string[] splitEnd = line.Split(ZipParserService.ANGULAR_MARKER_END_CHILDREN);
+                            if (!string.IsNullOrWhiteSpace(splitEnd[1]))
+                            {
+                                updateLines.Add(splitEnd[1]);
+                            }
+
+                            endFound = true;
+                            i = j;
+                        }
+                        // ignore lines between begin marker and end marker
+                    }
+                }
+                else
+                {
+                    // Keep data line without marker
+                    updateLines.Add(line);
+                }
+            }
+
+            return updateLines;
+        }
+
+        private List<string> GeneratePropertiesToAdd(FeatureData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
         {
             List<string> propertiesToAdd = new();
 
@@ -781,7 +684,7 @@
             return propertiesToAdd;
         }
 
-        private List<string> GenerateBlocksToAdd(AngularFeatureData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
+        private List<string> GenerateBlocksToAdd(FeatureData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
         {
             List<string> blocksToAdd = new();
 
@@ -817,9 +720,7 @@
             return blocksToAdd;
         }
 
-
-
-        public string ConvertDotNetToAngularType(string dotnetType)
+        private string ConvertDotNetToAngularType(string dotnetType)
         {
             if (dotnetType == null) { return null; }
 
@@ -934,34 +835,14 @@
                 }
             }
         }
+        #endregion
 
         #region Rename CRUD
-        public void InitRenameValues(string newValueSingular, string newValuePlurial,
-            string oldCrudValueSingular = "Plane", string oldCrudValuePlurial = "Planes",
-            string oldOptionValueSingular = "Airport", string oldOptionValuePlurial = "Airports",
-            string oldTeamValueSingular = "XXX", string oldTeamValuePlurial = "XXXs")
+        private string ReplaceCompagnyNameProjetName(string value, Project currentProject, ClassDefinition classDef)
         {
-            this.NewCrudNamePascalSingular = newValueSingular;
-            this.NewCrudNamePascalPlural = newValuePlurial;
-            this.NewCrudNameCamelSingular = CommonTools.ConvertToCamelCase(NewCrudNamePascalSingular);
-            this.NewCrudNameCamelPlural = CommonTools.ConvertToCamelCase(NewCrudNamePascalPlural);
-            this.NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);
-            this.NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
-
-            this.OldCrudNamePascalSingular = oldCrudValueSingular;
-            this.OldCrudNamePascalPlural = oldCrudValuePlurial;
-            this.OldOptionNamePascalSingular = oldOptionValueSingular;
-            this.OldOptionNamePascalPlural = oldOptionValuePlurial;
-            this.OldTeamNamePascalSingular = oldTeamValueSingular;
-            this.OldTeamNamePascalPlural = oldTeamValuePlurial;
-
-            this.OldCrudNameCamelSingular = CommonTools.ConvertToCamelCase(OldCrudNamePascalSingular);
-            this.OldCrudNameCamelPlural = CommonTools.ConvertToCamelCase(OldCrudNamePascalPlural);
-            this.OldOptionNameCamelSingular = CommonTools.ConvertToCamelCase(OldOptionNamePascalSingular);
-            this.OldOptionNameCamelPlural = CommonTools.ConvertToCamelCase(OldOptionNamePascalPlural);
-            this.OldTeamNameCamelSingular = CommonTools.ConvertToCamelCase(OldTeamNamePascalSingular);
-            this.OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
+            return value.Replace(classDef.CompagnyName, currentProject.CompanyName).Replace(classDef.ProjectName, currentProject.Name);
         }
+
 
         private string ConvertOldCrudNameToNewCrudName(string value, FeatureType type)
         {
@@ -977,6 +858,7 @@
 
             switch (type)
             {
+                case FeatureType.Back:
                 case FeatureType.CRUD:
                     value = ReplaceOldToNewPascalValue(value, OldCrudNamePascalPlural, NewCrudNamePascalPlural, OldCrudNamePascalSingular, NewCrudNamePascalSingular);
                     if (convertCamel)
@@ -1072,7 +954,6 @@
             });
             return dico;
         }
-        #endregion
         #endregion
     }
 }

@@ -16,15 +16,17 @@
     {
         private readonly IConsoleWriter consoleWriter;
 
-        public const string ANGULAR_MARKER = "BIAToolKit - ";
-        public const string ANGULAR_MARKER_BEGIN_PROPERTIES = ANGULAR_MARKER + "Begin properties";
-        public const string ANGULAR_MARKER_END_PROPERTIES = ANGULAR_MARKER + "End properties";
-        public const string ANGULAR_MARKER_BEGIN_BLOCK = ANGULAR_MARKER + "Begin block ";
-        public const string ANGULAR_MARKER_END_BLOCK = ANGULAR_MARKER + "End block ";
+        public const string ANGULAR_MARKER = "BIAToolKit -";
+        public const string ANGULAR_MARKER_BEGIN_PROPERTIES = $"{ANGULAR_MARKER} Begin properties";
+        public const string ANGULAR_MARKER_END_PROPERTIES = $"{ANGULAR_MARKER} End properties";
+        public const string ANGULAR_MARKER_BEGIN_BLOCK = $"{ANGULAR_MARKER} Begin block";
+        public const string ANGULAR_MARKER_END_BLOCK = $"{ANGULAR_MARKER} End block";
+        public const string ANGULAR_MARKER_BEGIN_CHILDREN = $"/* {ANGULAR_MARKER} Begin Children */";
+        public const string ANGULAR_MARKER_END_CHILDREN = $"/* {ANGULAR_MARKER} End Children */";
 
         private const string ATTRIBUE_MARKER = "XXXXX";
-        private const string ANGULAR_MARKER_BEGIN = ANGULAR_MARKER_BEGIN_BLOCK + ATTRIBUE_MARKER;
-        private const string ANGULAR_MARKER_END = ANGULAR_MARKER_END_BLOCK + ATTRIBUE_MARKER;
+        private const string ANGULAR_MARKER_BEGIN_ATTRIBUTE_BLOCK = $"{ANGULAR_MARKER_BEGIN_BLOCK} {ATTRIBUE_MARKER}";
+        private const string ANGULAR_MARKER_END_ATTRIBUTE_BLOCK = $"{ANGULAR_MARKER_END_BLOCK} {ATTRIBUE_MARKER}";
 
         /// <summary>
         /// Constructor.
@@ -38,7 +40,7 @@
         /// Read Zip archive and extract files on temporary working directory.
         /// </summary>
         /// <returns>A tuple with working temporary directory and a dictionnary of files contains (key: file full path on archive, value : file name) in zip archives.</returns>
-        public (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string entityName, string compagnyName, string projectName, string folderType, FeatureType crudType)
+        public (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string compagnyName, string projectName, string folderType, FeatureType crudType)
         {
             string tempDir = null;
             Dictionary<string, string> files = null;
@@ -66,11 +68,11 @@
                 {
                     if (string.IsNullOrWhiteSpace(entry.Name))
                     {
-                        // if entry is folder, create it
-                        CommonTools.CheckFolder(Path.Combine(tempDir, entry.FullName));
+                        // if entry is folder, ignore it
                         continue;
                     }
 
+                    CommonTools.CheckFolder(Path.Combine(tempDir, entry.FullName.Replace(entry.Name, "")));
                     entry.ExtractToFile(Path.Combine(tempDir, entry.FullName));
                     files.Add(entry.FullName, entry.Name);
                 }
@@ -118,10 +120,6 @@
                     }
                 }
             }
-            else
-            {
-                consoleWriter.AddMessageLine($"Properties not found on file '{fileName}'.", "Orange");
-            }
 
             // Extract block to update
             foreach (KeyValuePair<string, List<string>> dtoProperty in planeDtoProperties)
@@ -134,45 +132,57 @@
                         // Add only if block found
                         extractBlocksList.Add(new ExtractBlocks(CRUDDataUpdateType.Block, dtoProperty.Key, attribute, block));
                     }
-                    else
-                    {
-                        consoleWriter.AddMessageLine($"Block not found for '{attribute}' on file '{fileName}'", "Orange");
-                    }
                 }
             }
+
+            //// Extract children to delete
+            //List<ExtractBlocks> blocks = ExtractChildrenToDelete(fileName, fileLines);
+            //if (blocks != null && blocks.Count > 0)
+            //{
+            //    // Add only if block found
+            //    extractBlocksList.AddRange(blocks);
+            //}
 
             return extractBlocksList;
         }
 
-        /// <summary>
-        /// Extract lines (without empty lines) contains in text file.
-        /// </summary>
-        /// <param name="fileName"></param>
-        public List<string> ExtractLineFromTextFile(string fileName)
-        {
-            if (!File.Exists(fileName))
-            {
-                consoleWriter.AddMessageLine($"Error on analysing text file: file not exist on disk: '{fileName}'", "Orange");
-                return null;
-            }
+        ///// <summary>
+        ///// Extract block of lines between Children markers.
+        ///// </summary>
+        //public List<ExtractBlocks> ExtractChildrenToDelete(string fileName, List<string> fileLines)
+        //{
+        //    // Verify if marker is presentin file
+        //    if (!IsFileContains(fileName, new List<string> { ANGULAR_MARKER_BEGIN_CHILDREN }))
+        //    {
+        //        return null;
+        //    }
 
-            // Get text file content
-            List<string> lines = File.ReadAllLines(fileName).ToList();
+        //    // Find marker to extract lines
+        //    List<ExtractBlocks> childrenToDelete = new();
+        //    for (int i = 0; i < fileLines.Count; i++)
+        //    {
+        //        if (fileLines[i].Contains(ANGULAR_MARKER_BEGIN_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
+        //        {
+        //            bool endFound = false;
 
-            // Extract empty lines
-            List<string> emptyLines = new();
-            lines.ForEach(l =>
-            {
-                string line = l.Trim();
-                if (string.IsNullOrEmpty(line))
-                    emptyLines.Add(l);
-            });
+        //            List<string> lines = new();
+        //            for (int j = i; j < fileLines.Count && !endFound; j++)
+        //            {
+        //                string line = fileLines[j];
+        //                lines.Add(line);
+        //                if (line.Contains(ANGULAR_MARKER_END_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
+        //                {
+        //                    endFound = true;
+        //                    i = j;
+        //                }
+        //            }
 
-            // Delete empty lines
-            emptyLines.ForEach(line => lines.Remove(line));
+        //            childrenToDelete.Add(new ExtractBlocks(CRUDDataUpdateType.Children, null, null, lines));
+        //        }
+        //    }
 
-            return lines;
-        }
+        //    return childrenToDelete;
+        //}
 
         /// <summary>
         /// Extract lines that contains options.
@@ -346,8 +356,8 @@
             switch (type)
             {
                 case CRUDDataUpdateType.Block:
-                    markerBegin = ANGULAR_MARKER_BEGIN.Replace(ATTRIBUE_MARKER, attributeName);
-                    markerEnd = ANGULAR_MARKER_END.Replace(ATTRIBUE_MARKER, attributeName);
+                    markerBegin = ANGULAR_MARKER_BEGIN_ATTRIBUTE_BLOCK.Replace(ATTRIBUE_MARKER, attributeName);
+                    markerEnd = ANGULAR_MARKER_END_ATTRIBUTE_BLOCK.Replace(ATTRIBUE_MARKER, attributeName);
                     break;
                 case CRUDDataUpdateType.Property:
                     markerBegin = ANGULAR_MARKER_BEGIN_PROPERTIES;

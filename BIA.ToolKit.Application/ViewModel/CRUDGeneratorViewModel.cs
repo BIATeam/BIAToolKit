@@ -15,8 +15,7 @@
         public CRUDGeneratorViewModel()
         {
             FeatureTypeDataList = new();
-            DotNetZipFilesContent = new();
-            AngularZipFilesContent = new();
+            ZipFilesContent = new();
             ZipDotNetSelected = new();
             ZipAngularSelected = new();
         }
@@ -222,9 +221,9 @@
         }
         #endregion
 
-        public List<ClassDefinition> DotNetZipFilesContent { get; }
+        //public List<ClassDefinition> DotNetZipFilesContent { get; }
 
-        public List<AngularZipFilesContent> AngularZipFilesContent { get; }
+        public List<ZipFilesContent> ZipFilesContent { get; }
     }
 
     public class FeatureTypeData
@@ -261,23 +260,23 @@
     }
 
 
-    public class AngularZipFilesContent
+    public class ZipFilesContent
     {
         public FeatureType Type { get; }
 
-        public List<AngularFeatureData> AngularFeatureDataList { get; }
+        public List<FeatureData> FeatureDataList { get; }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public AngularZipFilesContent(FeatureType type)
+        public ZipFilesContent(FeatureType type)
         {
             this.Type = type;
-            this.AngularFeatureDataList = new();
+            this.FeatureDataList = new();
         }
     }
 
-    public class AngularFeatureData
+    public class FeatureData
     {
         /// <summary>
         /// File name (only).
@@ -302,7 +301,7 @@
         /// <summary>
         /// Constructor.
         /// </summary>
-        public AngularFeatureData(string fileName, string filePath, string tmpDir)
+        public FeatureData(string fileName, string filePath, string tmpDir)
         {
             this.FileName = fileName;
             this.FilePath = filePath;
@@ -310,7 +309,7 @@
         }
     }
 
-    public class AngularCRUDData : AngularFeatureData
+    public class AngularCRUDData : FeatureData
     {
         /// <summary>
         /// List of Options to delete.
@@ -321,6 +320,21 @@
         /// Constructor.
         /// </summary>
         public AngularCRUDData(string fileName, string filePath, string tmpDir) : base(fileName, filePath, tmpDir)
+        {
+        }
+    }
+
+    public class DotNetCRUDData : FeatureData
+    {
+        /// <summary>
+        /// List of Options to delete.
+        /// </summary>
+        public ClassDefinition ClassFileDefinition { get; set; }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public DotNetCRUDData(string fileName, string filePath, string tmpDir) : base(fileName, filePath, tmpDir)
         {
         }
     }
@@ -355,6 +369,7 @@
     public enum CRUDDataUpdateType
     {
         Property,
-        Block
+        Block,
+        Children
     }
 }

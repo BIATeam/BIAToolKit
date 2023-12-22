@@ -6,6 +6,7 @@
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Configuration;
@@ -23,7 +24,6 @@
         CSharpParserService service;
         ZipParserService zipService;
         GenerateCrudService crudService;
-        private string entityName;
         private CRUDSettings crudSettings;
         private readonly CRUDGeneratorViewModel vm;
 
@@ -41,10 +41,10 @@
         /// </summary>
         public void Inject(CSharpParserService service, ZipParserService zipService, GenerateCrudService crudService, IConsoleWriter consoleWriter)
         {
+            this.consoleWriter = consoleWriter;
             this.service = service;
             this.zipService = zipService;
             this.crudService = crudService;
-            this.consoleWriter = consoleWriter;
             this.crudSettings = new(consoleWriter);
         }
 
@@ -66,8 +66,7 @@
             vm.FeatureTypeDataList.Clear();
             vm.ZipDotNetSelected.Clear();
             vm.ZipAngularSelected.Clear();
-            vm.DotNetZipFilesContent.Clear();
-            vm.AngularZipFilesContent.Clear();
+            vm.ZipFilesContent.Clear();
 
             // List Dto files from Dto folder
             vm.DtoFiles = ListDtoFiles();
@@ -92,8 +91,7 @@
         {
             if (vm == null) return;
             vm.IsDtoParsed = false;
-            this.entityName = crudService.GetEntityNameFromDto(vm.DtoSelected);
-            vm.CRUDNameSingular = this.entityName;
+            vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
         }
 
         /// <summary>
@@ -245,8 +243,7 @@
         /// </summary>
         private void ParseZip_Click(object sender, RoutedEventArgs e)
         {
-            vm.DotNetZipFilesContent.Clear();
-            vm.AngularZipFilesContent.Clear();
+            vm.ZipFilesContent.Clear();
 
             // Parse DotNet Zip files
             if (vm.ZipDotNetSelected.Count > 0)
@@ -277,12 +274,8 @@
         {
             crudService.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlurial, crudSettings.CRUDReferenceSingular, crudSettings.CRUDReferencePlurial);
 
-            // Generation DotNet files
-            string path = crudService.GenerateDotNetCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity, vm.DotNetZipFilesContent);
-
-            // Generation Angular files
-            ClassDefinition cd = vm.DotNetZipFilesContent.Where(x => x.FileType == FileType.Dto).FirstOrDefault();
-            crudService.GenerateAngularCrudFiles(this.entityName, vm.CurrentProject, vm.DtoEntity, vm.AngularZipFilesContent);
+            // Generation DotNet + Angular files
+            string path = crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFilesContent, crudSettings.GenerateInProjectFolder);
 
             System.Diagnostics.Process.Start("explorer.exe", path);
         }
@@ -360,7 +353,7 @@
                     }
 
                     // Parse Feature Zip file
-                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, this.entityName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderDotNet, FeatureType.Back);
+                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderDotNet, FeatureType.Back);
                     if (string.IsNullOrWhiteSpace(workingDirectoryPath))
                     {
                         consoleWriter.AddMessageLine($"Zip archive not found: '{fileName}'.", "Orange");
@@ -369,16 +362,35 @@
 
                     if (fileList.Count > 0)
                     {
+                        ZipFilesContent filesContent = new(FeatureType.Back);
                         foreach (KeyValuePair<string, string> file in fileList)
                         {
-                            ClassDefinition classFile = service.ParseClassFile(Path.Combine(workingDirectoryPath, file.Key));
-                            classFile.PathOnZip = file.Key;
                             FileType? type = zipService.GetFileType(file.Value);
-                            classFile.FileType = type;
-                            classFile.EntityName = zipService.GetEntityName(file.Value, type);
-                            vm.DotNetZipFilesContent.Add(classFile);
+                            // Ignore Dto, mapper and entity file
+                            if (type == FileType.Mapper || type == FileType.Entity)
+                            {
+                                continue;
+                            }
 
+                            ClassDefinition classFile = service.ParseClassFile(Path.Combine(workingDirectoryPath, file.Key));
+                            if (classFile != null)
+                            {
+                                classFile.PathOnZip = file.Key;
+                                classFile.FileType = type;
+                                classFile.EntityName = zipService.GetEntityName(file.Value, type);
+
+                                DotNetCRUDData data = new(file.Value, file.Key, workingDirectoryPath)
+                                {
+                                    ClassFileDefinition = classFile
+                                };
+                                filesContent.FeatureDataList.Add(data);
+                            }
+                            else
+                            {
+                                consoleWriter.AddMessageLine($"Parse class file ('{fileName}') return null.", "Orange");
+                            }
                         }
+                        vm.ZipFilesContent.Add(filesContent);
                     }
                     else
                     {
@@ -410,7 +422,7 @@
                     }
 
                     // Parse Zip file
-                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, this.entityName,
+                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName,
                         vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderAngular, type);
                     if (string.IsNullOrWhiteSpace(workingDirectoryPath))
                     {
@@ -420,7 +432,7 @@
 
                     if (type == FeatureType.CRUD)
                     {
-                        ClassDefinition cd = vm.DotNetZipFilesContent.Where(x => x.FileType == FileType.Dto).FirstOrDefault();
+                        ClassDefinition cd = GetDtoClassDefinition();
                         if (cd == null)
                         {
                             consoleWriter.AddMessageLine("Can't parse angular files, 'PlaneDto' file not found.", "Orange");
@@ -435,16 +447,20 @@
                         }
 
                         List<string> options = null;
-                        KeyValuePair<string, string> textFile = fileList.Where(x => x.Value.EndsWith(".txt")).FirstOrDefault();
+                        KeyValuePair<string, string> textFile = fileList.Where(x => x.Value.Equals(crudSettings.OptionsToRemoveFileName)).FirstOrDefault();
                         if (textFile.Key != null && textFile.Value != null)
                         {
-                            options = zipService.ExtractLineFromTextFile(Path.Combine(workingDirectoryPath, textFile.Key));
+                            BIAToolKitJson btkj = DeserializeJsonFile(Path.Combine(workingDirectoryPath, textFile.Key));
+                            if (btkj != null && btkj.OptionsToRemove != null)
+                            {
+                                options = btkj.OptionsToRemove.ToList();
+                            }
                             fileList.Remove(textFile.Key);
                         }
 
                         if (fileList.Count > 0)
                         {
-                            AngularZipFilesContent crudFilesContent = new(type);
+                            ZipFilesContent crudFilesContent = new(type);
                             foreach (KeyValuePair<string, string> file in fileList)
                             {
                                 string filePath = Path.Combine(workingDirectoryPath, file.Key);
@@ -456,10 +472,10 @@
                                 {
                                     data.OptionToDelete = zipService.ExtractLinesContainsOptions(filePath, options);
                                 }
-                                crudFilesContent.AngularFeatureDataList.Add(data);
+                                crudFilesContent.FeatureDataList.Add(data);
                             }
 
-                            vm.AngularZipFilesContent.Add(crudFilesContent);
+                            vm.ZipFilesContent.Add(crudFilesContent);
                         }
                     }
                     else
@@ -467,17 +483,17 @@
                         // Analyze angular files
                         if (fileList.Count > 0)
                         {
-                            AngularZipFilesContent filesContent = new(type);
+                            ZipFilesContent filesContent = new(type);
                             foreach (KeyValuePair<string, string> file in fileList)
                             {
-                                AngularFeatureData data = new(file.Value, file.Key, workingDirectoryPath)
+                                FeatureData data = new(file.Value, file.Key, workingDirectoryPath)
                                 {
                                     ExtractBlocks = zipService.AnalyzeAngularFile(Path.Combine(workingDirectoryPath, file.Key), null)
                                 };
-                                filesContent.AngularFeatureDataList.Add(data);
+                                filesContent.FeatureDataList.Add(data);
                             }
 
-                            vm.AngularZipFilesContent.Add(filesContent);
+                            vm.ZipFilesContent.Add(filesContent);
                         }
                     }
                 }
@@ -512,13 +528,64 @@
 
             return found ? crudZipData : null;
         }
+
+        private ClassDefinition GetDtoClassDefinition()
+        {
+            ZipFilesContent content = vm.ZipFilesContent.Where(x => x.Type == FeatureType.Back).FirstOrDefault();
+            if (content != null)
+            {
+                foreach (DotNetCRUDData angularFile in content.FeatureDataList)
+                {
+                    if (angularFile.ClassFileDefinition.FileType == FileType.Dto)
+                    {
+                        return angularFile.ClassFileDefinition;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Deserialize Json file to object.
+        /// </summary>
+        /// <param name="fileName"></param>
+        private BIAToolKitJson DeserializeJsonFile(string fileName)
+        {
+            if (!File.Exists(fileName))
+            {
+                consoleWriter.AddMessageLine($"Error on analysing json file: file not exist on disk: '{fileName}'", "Orange");
+                return null;
+            }
+
+            using StreamReader r = new(fileName);
+            string json = r.ReadToEnd();
+            return JsonConvert.DeserializeObject<BIAToolKitJson>(json);
+        }
+
+        private string GetEntityNameFromDto(string dtoFileName)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(dtoFileName);
+            if (!string.IsNullOrWhiteSpace(fileName) && fileName.ToLower().EndsWith("dto"))
+            {
+                return fileName[..^3];   // name without 'dto' suffix
+            }
+
+            return fileName;
+        }
         #endregion
+    }
+
+    class BIAToolKitJson
+    {
+        public IList<string> OptionsToRemove { get; set; }
     }
 
     class CRUDSettings
     {
         private readonly IConsoleWriter consoleWriter;
 
+        public bool GenerateInProjectFolder { get; } = true;
         public string CRUDReferenceSingular { get; }
         public string CRUDReferencePlurial { get; }
         public string OptionReferenceSingular { get; }
@@ -529,6 +596,7 @@
         public string ZipNameFeature { get; }
         public string ZipNameOption { get; }
         public string ZipNameTeam { get; }
+        public string OptionsToRemoveFileName { get; }
 
         public CRUDSettings(IConsoleWriter consoleWriter)
         {
@@ -545,6 +613,14 @@
             ZipNameFeature = ReadSetting("ZipNameFeature_Angular");
             ZipNameOption = ReadSetting("ZipNameOption_Angular");
             ZipNameTeam = ReadSetting("ZipNameTeam_Angular");
+
+            OptionsToRemoveFileName = ReadSetting("OptionsToRemove");
+
+            string generate = ReadSetting("GenerateInProjectFolder");
+            if (!string.IsNullOrWhiteSpace(generate))
+            {
+                GenerateInProjectFolder = Boolean.Parse(generate);
+            }
         }
 
         private string ReadSetting(string key)
@@ -552,7 +628,7 @@
             string result = null;
             try
             {
-                result = ConfigurationManager.AppSettings[key] ?? "Not Found";
+                result = ConfigurationManager.AppSettings[key];
             }
             catch (ConfigurationErrorsException)
             {
