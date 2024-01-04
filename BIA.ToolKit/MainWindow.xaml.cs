@@ -31,14 +31,13 @@
         ProjectCreatorService projectCreatorService;
         GenerateFilesService generateFilesService;
         CSharpParserService cSharpParserService;
-        ZipParserService zipParserService;
-        GenerateCrudService crudService;
         ConsoleWriter consoleWriter;
         bool isCreateTabInitialized = false;
         bool isModifyTabInitialized = false;
 
         public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
-            ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, IConsoleWriter consoleWriter)
+            ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
+            IConsoleWriter consoleWriter)
         {
             AppSettings.AppFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
@@ -48,14 +47,12 @@
             this.projectCreatorService = projectCreatorService;
             this.generateFilesService = genFilesService;
             this.cSharpParserService = cSharpParserService;
-            this.zipParserService = zipParserService;
-            this.crudService = crudService;
 
             InitializeComponent();
 
             CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter);
             ModifyProject.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, zipParserService, crudService);
+                projectCreatorService, zipParserService, crudService, settingsService);
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);

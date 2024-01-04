@@ -2,6 +2,7 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
@@ -9,7 +10,6 @@
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
-    using System.Configuration;
     using System.IO;
     using System.Linq;
     using System.Windows;
@@ -39,13 +39,16 @@
         /// <summary>
         /// Injection of services.
         /// </summary>
-        public void Inject(CSharpParserService service, ZipParserService zipService, GenerateCrudService crudService, IConsoleWriter consoleWriter)
+        public void Inject(CSharpParserService service, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
+            IConsoleWriter consoleWriter)
         {
             this.consoleWriter = consoleWriter;
             this.service = service;
             this.zipService = zipService;
             this.crudService = crudService;
-            this.crudSettings = new(consoleWriter);
+
+            this.crudSettings = new(settingsService);
+            crudService.SetSettings(this.crudSettings);
         }
 
         /// <summary>
@@ -62,6 +65,9 @@
         /// </summary>
         private void CurrentProjectChange()
         {
+            // Set combobobox and checkbox enabled
+            vm.IsProjectChosen = true;
+
             // Clean all lists (in case of current project change)
             vm.FeatureTypeDataList.Clear();
             vm.ZipDotNetSelected.Clear();
@@ -78,9 +84,6 @@
             vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.CRUD, this.crudSettings.ZipNameFeature, angularFolderPath));
             vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Option, this.crudSettings.ZipNameOption, angularFolderPath));
             vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Team, this.crudSettings.ZipNameTeam, angularFolderPath));
-
-            // Set combobobox and checkbox enabled
-            vm.IsProjectChosen = true;
         }
 
         #region State change
@@ -272,10 +275,10 @@
         /// </summary>
         private void GenerateCrud_Click(object sender, RoutedEventArgs e)
         {
-            crudService.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlurial, crudSettings.CRUDReferenceSingular, crudSettings.CRUDReferencePlurial);
+            crudService.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlurial);
 
             // Generation DotNet + Angular files
-            string path = crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFilesContent, crudSettings.GenerateInProjectFolder);
+            string path = crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFilesContent);
 
             System.Diagnostics.Process.Start("explorer.exe", path);
         }
@@ -581,60 +584,5 @@
         public IList<string> OptionsToRemove { get; set; }
     }
 
-    class CRUDSettings
-    {
-        private readonly IConsoleWriter consoleWriter;
 
-        public bool GenerateInProjectFolder { get; } = true;
-        public string CRUDReferenceSingular { get; }
-        public string CRUDReferencePlurial { get; }
-        public string OptionReferenceSingular { get; }
-        public string OptionReferencePlurial { get; }
-        public string TeamReferenceSingular { get; }
-        public string TeamReferencePlurial { get; }
-        public string ZipNameBack { get; }
-        public string ZipNameFeature { get; }
-        public string ZipNameOption { get; }
-        public string ZipNameTeam { get; }
-        public string OptionsToRemoveFileName { get; }
-
-        public CRUDSettings(IConsoleWriter consoleWriter)
-        {
-            this.consoleWriter = consoleWriter;
-
-            CRUDReferenceSingular = ReadSetting("CrudReferenceSingular");
-            CRUDReferencePlurial = ReadSetting("CrudReferencePlurial");
-            OptionReferenceSingular = ReadSetting("OptionReferenceSingular");
-            OptionReferencePlurial = ReadSetting("OptionReferencePlurial");
-            TeamReferenceSingular = ReadSetting("TeamReferenceSingular");
-            TeamReferencePlurial = ReadSetting("TeamReferencePlurial");
-
-            ZipNameBack = ReadSetting("ZipNameBack_DotNet");
-            ZipNameFeature = ReadSetting("ZipNameFeature_Angular");
-            ZipNameOption = ReadSetting("ZipNameOption_Angular");
-            ZipNameTeam = ReadSetting("ZipNameTeam_Angular");
-
-            OptionsToRemoveFileName = ReadSetting("OptionsToRemove");
-
-            string generate = ReadSetting("GenerateInProjectFolder");
-            if (!string.IsNullOrWhiteSpace(generate))
-            {
-                GenerateInProjectFolder = Boolean.Parse(generate);
-            }
-        }
-
-        private string ReadSetting(string key)
-        {
-            string result = null;
-            try
-            {
-                result = ConfigurationManager.AppSettings[key];
-            }
-            catch (ConfigurationErrorsException)
-            {
-                consoleWriter.AddMessageLine($"Error reading app settings (key={key})", "Red");
-            }
-            return result;
-        }
-    }
 }

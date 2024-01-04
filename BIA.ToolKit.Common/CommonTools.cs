@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Text;
     using System.Text.RegularExpressions;
 
     public static class CommonTools
@@ -81,5 +82,37 @@
             }
         }
 
+        /// <summary>
+        /// Generate a file with content and create parent folder if necessary.
+        /// </summary>
+        public static void GenerateFile(string fileName, List<string> fileLinesContent)
+        {
+            StringBuilder sb = new();
+            fileLinesContent.ForEach(line => sb.AppendLine(line));
+
+            // Verify if parent folder exist before create file
+            DirectoryInfo parent = Directory.GetParent(fileName);
+            CheckFolder(parent?.FullName);
+
+            // Generate new file
+            File.WriteAllText(fileName, sb.ToString());
+        }
+
+        /// <summary>
+        /// Get first group that match with regex.
+        /// </summary>
+        public static string GetMatchRegexValue(string pattern, string data)
+        {
+            MatchCollection matches = new Regex(pattern).Matches(data);
+            if (matches != null && matches.Count > 0)
+            {
+                GroupCollection groups = matches[0].Groups;
+                if (groups.Count > 0)
+                {
+                    return groups[1].Value;
+                }
+            }
+            return null;
+        }
     }
 }

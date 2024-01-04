@@ -67,7 +67,7 @@
                 if (dtoFiles != value)
                 {
                     dtoFiles = value;
-                    RaisePropertyChanged("DtoFiles");
+                    RaisePropertyChanged(nameof(DtoFiles));
                 }
             }
         }

@@ -24,8 +24,6 @@
         GitService gitService;
         CSharpParserService cSharpParserService;
         ProjectCreatorService projectCreatorService;
-        ZipParserService zipService;
-        GenerateCrudService crudService;
 
         public ModifyProjectUC()
         {
@@ -34,8 +32,8 @@
             _viewModel.RootProjectsPath = Settings.Default.CreateProjectRootFolderText;
         }
 
-        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter,
-            CSharpParserService cSharpParserService, ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService)
+        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
+            ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService)
         {
             this.settings = settings;
             this.repositoryService = repositoryService;
@@ -43,11 +41,9 @@
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
-            this.zipService = zipService;
-            this.crudService = crudService;
             MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
             MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
-            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, consoleWriter);
+            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter);
         }
 
         public void RefreshConfiguration()

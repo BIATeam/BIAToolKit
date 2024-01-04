@@ -30,6 +30,7 @@
             services.AddSingleton<CSharpParserService>();
             services.AddSingleton<ZipParserService>();
             services.AddSingleton<GenerateCrudService>();
+            services.AddSingleton<SettingsService>();
         }
         private void OnStartup(object sender, StartupEventArgs e)
         {

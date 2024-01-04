@@ -16,13 +16,20 @@
     {
         private readonly IConsoleWriter consoleWriter;
 
-        public const string ANGULAR_MARKER = "BIAToolKit -";
-        public const string ANGULAR_MARKER_BEGIN_PROPERTIES = $"{ANGULAR_MARKER} Begin properties";
-        public const string ANGULAR_MARKER_END_PROPERTIES = $"{ANGULAR_MARKER} End properties";
-        public const string ANGULAR_MARKER_BEGIN_BLOCK = $"{ANGULAR_MARKER} Begin block";
-        public const string ANGULAR_MARKER_END_BLOCK = $"{ANGULAR_MARKER} End block";
-        public const string ANGULAR_MARKER_BEGIN_CHILDREN = $"/* {ANGULAR_MARKER} Begin Children */";
-        public const string ANGULAR_MARKER_END_CHILDREN = $"/* {ANGULAR_MARKER} End Children */";
+        public const string BIA_MARKER = "BIAToolKit -";
+        public const string ANGULAR_MARKER_BEGIN_PROPERTIES = $"{BIA_MARKER} Begin properties";
+        public const string ANGULAR_MARKER_END_PROPERTIES = $"{BIA_MARKER} End properties";
+        public const string ANGULAR_MARKER_BEGIN_BLOCK = $"{BIA_MARKER} Begin block";
+        public const string ANGULAR_MARKER_END_BLOCK = $"{BIA_MARKER} End block";
+        public const string ANGULAR_MARKER_BEGIN_CHILDREN = $"/* {BIA_MARKER} Begin Children */";
+        public const string ANGULAR_MARKER_END_CHILDREN = $"/* {BIA_MARKER} End Children */";
+
+        public const string DOTNET_MARKER_BEGIN_RIGHTS = $"{BIA_MARKER} Begin rights";
+        public const string DOTNET_MARKER_END_RIGHTS = $"{BIA_MARKER} End rights";
+        public const string DOTNET_MARKER_BEGIN_DEPENDENCY = $"{BIA_MARKER} Begin dependency";
+        public const string DOTNET_MARKER_END_DEPENDENCY = $"{BIA_MARKER} End dependency";
+        public const string DOTNET_MARKER_BEGIN_CONFIG = $"{BIA_MARKER} Begin config";
+        public const string DOTNET_MARKER_END_CONFIG = $"{BIA_MARKER} End config";
 
         private const string ATTRIBUE_MARKER = "XXXXX";
         private const string ANGULAR_MARKER_BEGIN_ATTRIBUTE_BLOCK = $"{ANGULAR_MARKER_BEGIN_BLOCK} {ATTRIBUE_MARKER}";
@@ -97,7 +104,7 @@
             }
 
             // Read file to verify if marker is present
-            if (!IsFileContains(fileName, new List<string> { ANGULAR_MARKER }))
+            if (!IsFileContains(fileName, new List<string> { BIA_MARKER }))
             {
                 return null;
             }
@@ -130,7 +137,7 @@
                     if (block != null && block.Count > 0)
                     {
                         // Add only if block found
-                        extractBlocksList.Add(new ExtractBlocks(CRUDDataUpdateType.Block, dtoProperty.Key, attribute, block));
+                        extractBlocksList.Add(new ExtractBlocks(CRUDDataUpdateType.Block, dtoProperty.Key.TrimEnd('?'), attribute, block));
                     }
                 }
             }

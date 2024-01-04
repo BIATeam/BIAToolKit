@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
@@ -11,15 +12,17 @@
     using System.IO;
     using System.Linq;
     using System.Text;
-    using System.Text.RegularExpressions;
 
     public class GenerateCrudService
     {
         private readonly IConsoleWriter consoleWriter;
+        private CRUDSettings crudSettings;
 
         private const string ATTRIBUTE_TYPE_NOT_MANAGED = "// CRUD GENERATOR FOR PLANE TO REVIEW : Field " + ATTRIBUTE_TYPE_NOT_MANAGED_FIELD + " or type " + ATTRIBUTE_TYPE_NOT_MANAGED_TYPE + " not managed.";
-        private const string ATTRIBUTE_TYPE_NOT_MANAGED_FIELD = "XXX";
-        private const string ATTRIBUTE_TYPE_NOT_MANAGED_TYPE = "YYY";
+        private const string ATTRIBUTE_TYPE_NOT_MANAGED_FIELD = "XXXFieldXXX";
+        private const string ATTRIBUTE_TYPE_NOT_MANAGED_TYPE = "YYYTypeYYY";
+        private const string COMPAGNY_TAG = "XXXCompagnyXXX";
+        private const string PROJECT_NAME_TAG = "YYYProjectNameYYY";
 
         private string NewCrudNamePascalSingular = "Plane";
         private string NewCrudNamePascalPlural = "Planes";
@@ -48,16 +51,61 @@
             this.consoleWriter = consoleWriter;
         }
 
-        public string GenerateCrudFiles(Project currentProject, EntityInfo dtoEntity, List<ZipFilesContent> fileListFromZip, bool generateInCurrentProject = true)
+        public void SetSettings(CRUDSettings settings)
+        {
+            this.crudSettings = settings;
+            InitRenameValues();
+        }
+
+        private void InitRenameValues()
+        {
+            // Get Pascal case value
+            this.OldCrudNamePascalSingular = string.IsNullOrWhiteSpace(this.crudSettings.CRUDReferenceSingular) ? this.OldCrudNamePascalSingular : this.crudSettings.CRUDReferenceSingular;
+            this.OldCrudNamePascalPlural = string.IsNullOrWhiteSpace(this.crudSettings.CRUDReferencePlurial) ? this.OldCrudNamePascalPlural : this.crudSettings.CRUDReferencePlurial;
+            this.OldOptionNamePascalSingular = string.IsNullOrWhiteSpace(this.crudSettings.OptionReferenceSingular) ? this.OldOptionNamePascalSingular : this.crudSettings.OptionReferenceSingular;
+            this.OldOptionNamePascalPlural = string.IsNullOrWhiteSpace(this.crudSettings.OptionReferencePlurial) ? this.OldOptionNamePascalPlural : this.crudSettings.OptionReferencePlurial;
+            this.OldTeamNamePascalSingular = string.IsNullOrWhiteSpace(this.crudSettings.TeamReferenceSingular) ? this.OldTeamNamePascalSingular : this.crudSettings.TeamReferenceSingular;
+            this.OldTeamNamePascalPlural = string.IsNullOrWhiteSpace(this.crudSettings.TeamReferencePlurial) ? this.OldTeamNamePascalPlural : this.crudSettings.TeamReferencePlurial;
+
+            // Convert value to Camel case
+            this.OldCrudNameCamelSingular = CommonTools.ConvertToCamelCase(OldCrudNamePascalSingular);
+            this.OldCrudNameCamelPlural = CommonTools.ConvertToCamelCase(OldCrudNamePascalPlural);
+            this.OldOptionNameCamelSingular = CommonTools.ConvertToCamelCase(OldOptionNamePascalSingular);
+            this.OldOptionNameCamelPlural = CommonTools.ConvertToCamelCase(OldOptionNamePascalPlural);
+            this.OldTeamNameCamelSingular = CommonTools.ConvertToCamelCase(OldTeamNamePascalSingular);
+            this.OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
+        }
+
+        public void InitRenameValues(string newValueSingular, string newValuePlurial)
+        {
+            this.NewCrudNamePascalSingular = newValueSingular;
+            this.NewCrudNamePascalPlural = newValuePlurial;
+            this.NewCrudNameCamelSingular = CommonTools.ConvertToCamelCase(NewCrudNamePascalSingular);
+            this.NewCrudNameCamelPlural = CommonTools.ConvertToCamelCase(NewCrudNamePascalPlural);
+            this.NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);
+            this.NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
+        }
+
+        private void UpdateSettings(Project currentProject)
+        {
+            this.crudSettings.DotNetBianetConfigPath = this.crudSettings.DotNetBianetConfigPath.Replace(COMPAGNY_TAG, currentProject.CompanyName).Replace(PROJECT_NAME_TAG, currentProject.Name);
+            this.crudSettings.DotNetIocContainerPath = this.crudSettings.DotNetIocContainerPath.Replace(COMPAGNY_TAG, currentProject.CompanyName).Replace(PROJECT_NAME_TAG, currentProject.Name);
+            this.crudSettings.DotNetRightsPath = this.crudSettings.DotNetRightsPath.Replace(COMPAGNY_TAG, currentProject.CompanyName).Replace(PROJECT_NAME_TAG, currentProject.Name);
+        }
+
+        public string GenerateCrudFiles(Project currentProject, EntityInfo dtoEntity, List<ZipFilesContent> fileListFromZip)
         {
             string generationFolder = null;
             try
             {
-                generationFolder = GetGenerationFolder(currentProject, generateInCurrentProject);
+                // Replace tag with good value on settings
+                UpdateSettings(currentProject);
 
+                // Get generation folders
+                generationFolder = GetGenerationFolder(currentProject, this.crudSettings.GenerateInProjectFolder);
                 string dotnetDir = Path.Combine(generationFolder, Constants.FolderDotNet);
                 string angularDir = Path.Combine(generationFolder, Constants.FolderAngular);
-                if (!generateInCurrentProject)
+                if (!this.crudSettings.GenerateInProjectFolder)
                 {
                     // If generation not in current project, clean folders
                     CommonTools.PrepareFolder(dotnetDir);
@@ -81,8 +129,14 @@
 
                     // Get CRUD dto properties
                     Dictionary<string, List<string>> crudDtoProperties = GetDtoProperties(dtoEntity);
-
-                    GenerateCRUD(angularDir, crudDtoProperties, crudFilesContent);
+                    if (crudDtoProperties == null)
+                    {
+                        consoleWriter.AddMessageLine($"Can't generate Angular CRUD files: Dto properties are empty.", "Red");
+                    }
+                    else
+                    {
+                        GenerateCRUD(angularDir, crudDtoProperties, crudFilesContent);
+                    }
                 }
 
                 // Generate Option angular files
@@ -111,147 +165,29 @@
             return generationFolder;
         }
 
-        public void InitRenameValues(string newValueSingular, string newValuePlurial,
-            string oldCrudValueSingular = "Plane", string oldCrudValuePlurial = "Planes",
-            string oldOptionValueSingular = "Airport", string oldOptionValuePlurial = "Airports",
-            string oldTeamValueSingular = "XXX", string oldTeamValuePlurial = "XXXs")
-        {
-            this.NewCrudNamePascalSingular = newValueSingular;
-            this.NewCrudNamePascalPlural = newValuePlurial;
-            this.NewCrudNameCamelSingular = CommonTools.ConvertToCamelCase(NewCrudNamePascalSingular);
-            this.NewCrudNameCamelPlural = CommonTools.ConvertToCamelCase(NewCrudNamePascalPlural);
-            this.NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);
-            this.NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
-
-            this.OldCrudNamePascalSingular = oldCrudValueSingular;
-            this.OldCrudNamePascalPlural = oldCrudValuePlurial;
-            this.OldOptionNamePascalSingular = oldOptionValueSingular;
-            this.OldOptionNamePascalPlural = oldOptionValuePlurial;
-            this.OldTeamNamePascalSingular = oldTeamValueSingular;
-            this.OldTeamNamePascalPlural = oldTeamValuePlurial;
-
-            this.OldCrudNameCamelSingular = CommonTools.ConvertToCamelCase(OldCrudNamePascalSingular);
-            this.OldCrudNameCamelPlural = CommonTools.ConvertToCamelCase(OldCrudNamePascalPlural);
-            this.OldOptionNameCamelSingular = CommonTools.ConvertToCamelCase(OldOptionNamePascalSingular);
-            this.OldOptionNameCamelPlural = CommonTools.ConvertToCamelCase(OldOptionNamePascalPlural);
-            this.OldTeamNameCamelSingular = CommonTools.ConvertToCamelCase(OldTeamNamePascalSingular);
-            this.OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
-        }
-
-        //        public string GenerateDotNetCrudFiles(Project currentProject, EntityInfo dtoEntity, List<ZipFilesContent> dotNetFilesFromZip, bool generateInCurrentProject = true)
-        //        {
-        //#if DEBUG
-        //            consoleWriter.AddMessageLine($"*** Generate DotNet CRUD files on '{Path.Combine(currentProject.Folder, Constants.FolderCrudGeneration)}' ***", "Green");
-        //#endif
-        //            string generatedFolder = null;
-        //            try
-        //            {
-        //                this.entityNameReference = ExtractEntityNameReference(classDefinitionFromZip);
-
-        //                generatedFolder = GetGenerationFolder(currentProject, generateInCurrentProject);
-        //                string dotnetDir = Path.Combine(generatedFolder, Constants.FolderDotNet);
-        //                if (!generateInCurrentProject)
-        //                    CommonTools.PrepareFolder(dotnetDir);
-
-        //                // Application
-        //                var cdias = classDefinitionFromZip.Where(x => x.FileType == FileType.IAppService).FirstOrDefault();
-        //                if (cdias != null)
-        //                {
-        //                    GenerateIApplicationFile(dotnetDir, currentProject, dtoEntity, cdias);
-        //                }
-
-        //                var cdas = classDefinitionFromZip.Where(x => x.FileType == FileType.AppService).FirstOrDefault();
-        //                if (cdas != null)
-        //                {
-        //                    GenerateApplicationFile(dotnetDir, currentProject, dtoEntity, cdas);
-        //                }
-
-        //                // Controller
-        //                var cdc = classDefinitionFromZip.Where(x => x.FileType == FileType.Controller).FirstOrDefault();
-        //                if (cdc != null)
-        //                {
-        //                    GenerateControllerFile(dotnetDir, currentProject, dtoEntity, cdc);
-        //                }
-
-        //                // IocContainer
-        //                CreateIocContainerFile(dotnetDir);
-
-        //                // Rights
-        //                CreateRightsFile(dotnetDir, currentProject);
-        //                CreateBIANETConfigFile(dotnetDir, currentProject);
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                consoleWriter.AddMessageLine($"An error has occurred in DotNet CRUD generation process: {ex.Message}", "Red");
-        //            }
-
-        //            return generatedFolder;
-        //        }
-
-        //        public void GenerateAngularCrudFiles(Project currentProject, EntityInfo dtoEntity, List<ZipFilesContent> angularFilesFromZip, bool generateInCurrentProject = true)
-        //        {
-        //#if DEBUG
-        //            consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{Path.Combine(currentProject.Folder, Constants.FolderCrudGeneration)}' ***", "Green");
-        //#endif
-        //            string generatedFolder = null;
-        //            try
-        //            {
-        //                generatedFolder = GetGenerationFolder(currentProject, generateInCurrentProject);
-        //                string angularDir = Path.Combine(generatedFolder, Constants.FolderAngular);
-        //                if (!generateInCurrentProject)
-        //                    CommonTools.PrepareFolder(angularDir);
-
-        //                // Generate CRUD angular files
-        //                ZipFilesContent crudFilesContent = angularFilesFromZip.Where(x => x.Type == FeatureType.CRUD).FirstOrDefault();
-        //                if (crudFilesContent != null)
-        //                {
-        //                    // Get CRUD dto properties
-        //                    Dictionary<string, List<string>> crudDtoProperties = GetDtoProperties(dtoEntity);
-
-        //                    GenerateCRUD(angularDir, crudDtoProperties, crudFilesContent, crudFilesContent.Type);
-        //                }
-
-        //                // Generate Option angular files
-        //                ZipFilesContent optionFilesContent = angularFilesFromZip.Where(x => x.Type == FeatureType.Option).FirstOrDefault();
-        //                if (optionFilesContent != null)
-        //                {
-        //                    GenerateOption(angularDir, optionFilesContent, optionFilesContent.Type);
-        //                }
-
-        //                // TODO NMA
-        //                // Generate Team angular files
-        //                //AngularZipFilesContent teamFilesContent = angularFilesFromZip.Where(x => x.Type == FeatureType.Team).FirstOrDefault();
-        //                //if (crudFilesContent != null)
-        //                //{
-        //                //    toto(angularDir, crudDtoProperties, crudFilesContent);
-        //                //}
-
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                consoleWriter.AddMessageLine($"An error has occurred in Angular CRUD generation process: {ex.Message}", "Red");
-        //            }
-        //        }
-
-
-        private void GenerateBack(string dotNetDir, ZipFilesContent zipFilesContent, Project currentProject)
+        private void GenerateBack(string destDir, ZipFilesContent zipFilesContent, Project currentProject)
         {
             try
             {
+                string srcDir = Path.Combine(GetGenerationFolder(currentProject), Constants.FolderDotNet);
+
+                // Generate Crud files
                 foreach (DotNetCRUDData crudData in zipFilesContent.FeatureDataList)
                 {
                     // Ignore Dto file : not necessary to regenerate it
                     if (crudData.ClassFileDefinition.FileType == FileType.Dto) { continue; }
 
-                    GenerateDotNetCrudFile(dotNetDir, currentProject, crudData);
+                    GenerateDotNetCrudFile(destDir, currentProject, crudData);
                 }
 
-                // IocContainer
-                CreateIocContainerFile(dotNetDir);
+                // Update IocContainer
+                CreateIocContainerFile(srcDir, destDir);
 
-                // Rights
-                CreateRightsFile(dotNetDir, currentProject);
-                CreateBIANETConfigFile(dotNetDir, currentProject);
+                // Update Rights
+                CreateRightsFile(srcDir, destDir);
+
+                // Update Config
+                CreateBIANETConfigFile(srcDir, destDir);
             }
             catch (Exception ex)
             {
@@ -360,86 +296,102 @@
             }
 
             // Generate new file
-            GenerateFile(dest, fileLinesContent);
-        }
-        #endregion
-
-        #region IocContainer
-        private void CreateIocContainerFile(string destDir)
-        {
-            StringBuilder sb = new();
-            sb.AppendLine("***** Add the following line(s) at the end of 'ConfigureApplicationContainer' method : ");
-            sb.Append($"collection.AddTransient<I{this.NewCrudNamePascalSingular}AppService, {this.NewCrudNamePascalSingular}AppService>();");
-
-            CommonMethods.CreateFile(sb, Path.Combine(destDir, "UPDATE__IocContainer.cs__.txt"));
-        }
-        #endregion
-
-        #region Rights
-        private void CreateRightsFile(string destDir, Project currentProject)
-        {
-            StringBuilder sb = new();
-            sb.AppendLine($"***** Add the following line(s) at the end of '{currentProject.CompanyName}.{currentProject.Name}.Crosscutting.Common/Rights.cs' file:");
-
-            sb.AppendLine("/// <summary>");
-            sb.AppendLine($"/// The {this.NewCrudNamePascalSingular} rights.");
-            sb.AppendLine("/// </summary>");
-            sb.AppendLine($"public static class {this.NewCrudNamePascalPlural}");
-            sb.AppendLine("{");
-            sb.AppendLine("    /// <summary>");
-            sb.AppendLine($"    /// The right to access to the list of {this.NewCrudNamePascalPlural}.");
-            sb.AppendLine("    /// </summary>");
-            sb.AppendLine($"    public const string List = \"{this.NewCrudNamePascalSingular}_List\";{Environment.NewLine}");
-            sb.AppendLine("    /// <summary>");
-            sb.AppendLine($"    /// The right to read {this.NewCrudNamePascalPlural}.");
-            sb.AppendLine("    /// </summary>");
-            sb.AppendLine($"    public const string Read = \"{this.NewCrudNamePascalSingular}_Read\";{Environment.NewLine}");
-            sb.AppendLine("    /// <summary>");
-            sb.AppendLine($"    /// The right to create {this.NewCrudNamePascalPlural}.");
-            sb.AppendLine("    /// </summary>");
-            sb.AppendLine($"    public const string Create = \"{this.NewCrudNamePascalSingular}_Create\";{Environment.NewLine}");
-            sb.AppendLine("    /// <summary>");
-            sb.AppendLine($"    /// The right to update {this.NewCrudNamePascalPlural}.");
-            sb.AppendLine("    /// </summary>");
-            sb.AppendLine($"    public const string Update = \"{this.NewCrudNamePascalSingular}_Update\";{Environment.NewLine}");
-            sb.AppendLine("    /// <summary>");
-            sb.AppendLine($"    /// The right to delete {this.NewCrudNamePascalPlural}.");
-            sb.AppendLine("    /// </summary>");
-            sb.AppendLine($"    public const string Delete = \"{this.NewCrudNamePascalSingular}_Delete\";{Environment.NewLine}");
-            sb.AppendLine("    /// <summary>");
-            sb.AppendLine($"    /// The right to save {this.NewCrudNamePascalPlural}.");
-            sb.AppendLine("    /// </summary>");
-            sb.AppendLine($"    public const string Save = \"{this.NewCrudNamePascalSingular}_Save\";{Environment.NewLine}");
-            sb.AppendLine("    /// <summary>");
-            sb.AppendLine($"    /// The right to access to the list of {this.NewCrudNamePascalPlural}.");
-            sb.AppendLine("    /// </summary>");
-            sb.AppendLine($"    public const string ListAccess = \"{this.NewCrudNamePascalSingular}_List_Access\";");
-            sb.AppendLine("}");
-
-            CommonMethods.CreateFile(sb, Path.Combine(destDir, "UPDATE__Rights.cs__.txt"));
+            CommonTools.GenerateFile(dest, fileLinesContent);
         }
 
-        private void CreateBIANETConfigFile(string destDir, Project currentProject)
+        private void CreateIocContainerFile(string srcDir, string destDir)
         {
-            StringBuilder sb = new();
-            sb.AppendLine($"***** Add the following line(s) at the end of '{currentProject.CompanyName}.{currentProject.Name}.Presentation.Api/bianetconfig.json' file:");
+            string srcFile = Path.Combine(srcDir, crudSettings.DotNetIocContainerPath);
+            string destFile = Path.Combine(destDir, crudSettings.DotNetIocContainerPath);
 
-            sb.AppendLine($"// {this.NewCrudNamePascalSingular}");
-            sb.AppendLine("{");
-            sb.AppendLine($"\"Names\": [ \"{this.NewCrudNamePascalSingular}_Create\", \"{this.NewCrudNamePascalSingular}_Update\", \"{this.NewCrudNamePascalSingular}_Delete\", \"{this.NewCrudNamePascalSingular}_Save\", \"{this.NewCrudNamePascalSingular}_List_Access\" ],");
-            sb.AppendLine("\"Roles\": [ \"Admin\", \"Site_Admin\" ]");
-            sb.AppendLine("},");
-            sb.AppendLine("{");
-            sb.AppendLine($"\"Names\": [ \"{this.NewCrudNamePascalSingular}_List\", \"{this.NewCrudNamePascalSingular}_Read\" ]");
-            sb.AppendLine("\"Roles\": [ \"Admin\", \"Site_Admin\", \"User\" ]");
-            sb.AppendLine("}");
+            // Generate content to add
+            List<string> contentToAdd = new() { $"collection.AddTransient<I{this.NewCrudNamePascalSingular}AppService, {this.NewCrudNamePascalSingular}AppService>();" };
 
-            CommonMethods.CreateFile(sb, Path.Combine(destDir, "UPDATE__bianetconfig.json__.txt"));
+            UpdateDotDetCrudFile(srcFile, destFile, contentToAdd, ZipParserService.DOTNET_MARKER_BEGIN_DEPENDENCY, ZipParserService.DOTNET_MARKER_END_DEPENDENCY);
+        }
+
+        private void CreateRightsFile(string srcDir, string destDir)
+        {
+            string srcFile = Path.Combine(srcDir, crudSettings.DotNetRightsPath);
+            string destFile = Path.Combine(destDir, crudSettings.DotNetRightsPath);
+
+            // Generate content to add
+            List<string> contentToAdd = new() {
+                "/// <summary>",
+                $"/// The {this.NewCrudNamePascalSingular} rights.",
+                "/// </summary>",
+                $"public static class {this.NewCrudNamePascalPlural}",
+                "{",
+                "    /// <summary>",
+                $"    /// The right to access to the list of {this.NewCrudNamePascalPlural}.",
+                "    /// </summary>",
+                $"    public const string List = \"{this.NewCrudNamePascalSingular}_List\";",
+                "    /// <summary>",
+                $"    /// The right to read {this.NewCrudNamePascalPlural}.",
+                "    /// </summary>",
+                $"    public const string Read = \"{this.NewCrudNamePascalSingular}_Read\";",
+                "    /// <summary>",
+                $"    /// The right to create {this.NewCrudNamePascalPlural}.",
+                "    /// </summary>",
+                $"    public const string Create = \"{this.NewCrudNamePascalSingular}_Create\";",
+                "    /// <summary>",
+                $"    /// The right to update {this.NewCrudNamePascalPlural}.",
+                "    /// </summary>",
+                $"    public const string Update = \"{this.NewCrudNamePascalSingular}_Update\";",
+                "    /// <summary>",
+                $"    /// The right to delete {this.NewCrudNamePascalPlural}.",
+                "    /// </summary>",
+                $"    public const string Delete = \"{this.NewCrudNamePascalSingular}_Delete\";",
+                "    /// <summary>",
+                $"    /// The right to save {this.NewCrudNamePascalPlural}.",
+                "    /// </summary>",
+                $"    public const string Save = \"{this.NewCrudNamePascalSingular}_Save\";",
+                "    /// <summary>",
+                $"    /// The right to access to the list of {this.NewCrudNamePascalPlural}.",
+                "    /// </summary>",
+                $"    public const string ListAccess = \"{this.NewCrudNamePascalSingular}_List_Access\";",
+                "}"
+            };
+
+            UpdateDotDetCrudFile(srcFile, destFile, contentToAdd, ZipParserService.DOTNET_MARKER_BEGIN_RIGHTS, ZipParserService.DOTNET_MARKER_END_RIGHTS);
+        }
+
+        private void CreateBIANETConfigFile(string srcDir, string destDir)
+        {
+            string srcFile = Path.Combine(srcDir, crudSettings.DotNetBianetConfigPath);
+            string destFile = Path.Combine(destDir, crudSettings.DotNetBianetConfigPath);
+
+            // Generate content to add
+            List<string> contentToAdd = new() {
+                $"// {this.NewCrudNamePascalSingular}",
+                ",{",
+                $"\"Names\": [ \"{this.NewCrudNamePascalSingular}_Create\", \"{this.NewCrudNamePascalSingular}_Update\", \"{this.NewCrudNamePascalSingular}_Delete\", \"{this.NewCrudNamePascalSingular}_Save\", \"{this.NewCrudNamePascalSingular}_List_Access\" ],",
+                "\"Roles\": [ \"Admin\", \"Site_Admin\" ]",
+                "}",
+                ",{",
+                $"\"Names\": [ \"{this.NewCrudNamePascalSingular}_List\", \"{this.NewCrudNamePascalSingular}_Read\" ],",
+                "\"Roles\": [ \"Admin\", \"Site_Admin\", \"User\" ]",
+                "}",
+            };
+
+            UpdateDotDetCrudFile(srcFile, destFile, contentToAdd, ZipParserService.DOTNET_MARKER_BEGIN_CONFIG, ZipParserService.DOTNET_MARKER_END_CONFIG);
+        }
+
+        private void UpdateDotDetCrudFile(string srcFile, string destFile, List<string> contentToAdd, string markerBegin, string markerEnd)
+        {
+            // Read file
+            List<string> fileContent = File.ReadAllLines(srcFile).ToList();
+
+            // Insert data on file content
+            List<string> newContent = InsertContentBetweenMarkers(fileContent, contentToAdd, markerBegin, markerEnd);
+
+            // Generate file with new content
+            CommonTools.GenerateFile(destFile, newContent);
         }
         #endregion
 
         #region Tools
-        private string GetGenerationFolder(Project currentProject, bool generateInCurrentProject)
+        private string GetGenerationFolder(Project currentProject, bool generateInCurrentProject = true)
         {
             string generatedFolder = Path.Combine(currentProject.Folder, currentProject.Name);
 
@@ -449,13 +401,43 @@
             return generatedFolder;
         }
 
-        private void GenerateFile(string fileName, List<string> fileLinesContent)
+        private List<string> InsertContentBetweenMarkers(List<string> fileContent, List<string> contentToAdd, string markerBegin, string markerEnd)
         {
-            // Generate new file
-            StringBuilder sb = new();
-            fileLinesContent.ForEach(line => sb.AppendLine(line));
+            List<string> newContent = new();
 
-            File.WriteAllText(fileName, sb.ToString());
+            bool beginFound = false;
+            foreach (string line in fileContent)
+            {
+                if (!beginFound)
+                {
+                    if (!line.Contains(markerBegin))
+                    {
+                        // Keep file content line
+                        newContent.Add(line);
+                    }
+                    else
+                    {
+                        beginFound = true;
+                        // Add begin marker line
+                        newContent.Add(line);
+                    }
+                }
+                else
+                {
+                    if (line.Contains(markerEnd))
+                    {
+                        beginFound = false;
+                        // Get firsts space characters (space + tabulations) to keep formating
+                        string match = CommonTools.GetMatchRegexValue(@"^([\s\t]+)(\/+)", line);
+                        // Add new content between Begin and End markers
+                        contentToAdd.ForEach(c => newContent.Add(match + c));
+                        // Add end marker line
+                        newContent.Add(line);
+                    }
+                }
+            }
+
+            return newContent;
         }
         #endregion
 
@@ -491,7 +473,7 @@
             UpdateFileLinesContent(fileLinesContent, type);
 
             // Generate new file
-            GenerateFile(newFileName, fileLinesContent);
+            CommonTools.GenerateFile(newFileName, fileLinesContent);
         }
 
         private List<string> ReplacePropertiesAndBlocks(string fileName, List<string> fileLinesContent, List<string> propertiesToAdd, List<string> blocksToAdd)
@@ -640,7 +622,7 @@
                             if (!string.IsNullOrWhiteSpace(splitEnd[1]))
                             {
                                 // Get firsts space characters (space + tabulations) to keep formating
-                                string match = GetMatchRegexValue(@"^([\s\t]+)(\w+)", splitEnd[0]);
+                                string match = CommonTools.GetMatchRegexValue(@"^([\s\t]+)(\w+)", splitEnd[0]);
                                 updateLines.Add(match + splitEnd[1]);
                             }
 
@@ -670,7 +652,8 @@
                 string type = ConvertDotNetToAngularType(crudDtoProperty.Key);
                 foreach (string attrName in crudDtoProperty.Value)
                 {
-                    ExtractBlocks block = extractBlocksList.FirstOrDefault(block => block.Type == type);
+                    string[] tmpType = type.Split('|'); // keep only type before '|' (ex: XXX | null)
+                    ExtractBlocks block = extractBlocksList.FirstOrDefault(block => block.Type == tmpType[0].Trim());
                     if (block == null)
                     {
                         // Generate empty property
@@ -679,7 +662,7 @@
 
                     string line = block.BlockLines.FirstOrDefault();
                     // Generate property
-                    propertiesToAdd.Add(line.Replace(block.Name, CommonTools.ConvertToCamelCase(attrName)).Replace(block.Type, type));
+                    propertiesToAdd.Add(line.Replace(block.Name, CommonTools.ConvertToCamelCase(attrName)).Replace($" {block.Type}", $" {type}"));
                 }
             }
 
@@ -691,11 +674,13 @@
             List<string> blocksToAdd = new();
 
             ExtractBlocks extractBlock = angularFile.ExtractBlocks.Find(x => x.DataUpdateType == CRUDDataUpdateType.Block && x.Type == crudDtoProperty.Key);
+            // If not found try type without '?' if is present
+            extractBlock ??= angularFile.ExtractBlocks.Find(x => x.DataUpdateType == CRUDDataUpdateType.Block && x.Type == crudDtoProperty.Key.TrimEnd('?'));
+
             if (extractBlock != null)
             {
                 if (extractBlock.BlockLines == null || extractBlock.BlockLines.Count <= 0)
                 {
-                    // TODO NMA!
                     consoleWriter.AddMessageLine("Error 'extractBlock' (block) is empty.", "Red");
                     return null;
                 }
@@ -729,14 +714,14 @@
             string angularType = dotnetType;
 
             // In first : manage case of "Collection"
-            string match = GetMatchRegexValue(@"<(\w+)>", angularType);
+            string match = CommonTools.GetMatchRegexValue(@"<(\w+)>", angularType);
             if (!string.IsNullOrEmpty(match))
             {
                 angularType = $"{match}[]";
             }
 
             // After verify other types
-            match = GetMatchRegexValue(@"(\w+)(\W*)", angularType);
+            match = CommonTools.GetMatchRegexValue(@"(\w+)(\W*)", angularType);
             if (!string.IsNullOrEmpty(match))
             {
                 // Integer
@@ -760,20 +745,6 @@
                 angularType = angularType.Replace("?", " | null");
 
             return angularType;
-        }
-
-        private string GetMatchRegexValue(string pattern, string data)
-        {
-            MatchCollection matches = new Regex(pattern).Matches(data);
-            if (matches != null && matches.Count > 0)
-            {
-                GroupCollection groups = matches[0].Groups;
-                if (groups.Count > 0)
-                {
-                    return groups[1].Value;
-                }
-            }
-            return null;
         }
 
         private string ReplaceBlock(ExtractBlocks extractBlock, string crudAttributeName, string dtoAttributeName = null)
@@ -844,7 +815,6 @@
         {
             return value.Replace(classDef.CompagnyName, currentProject.CompanyName).Replace(classDef.ProjectName, currentProject.Name);
         }
-
 
         private string ConvertOldCrudNameToNewCrudName(string value, FeatureType type)
         {
@@ -949,6 +919,8 @@
 
         private Dictionary<string, List<string>> GetDtoProperties(EntityInfo dtoEntity)
         {
+            if (dtoEntity == null) { return null; }
+
             Dictionary<string, List<string>> dico = new();
             dtoEntity.Properties.ForEach(p =>
             {
