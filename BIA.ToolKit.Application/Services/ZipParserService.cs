@@ -3,7 +3,6 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain.CRUDGenerator;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System;
     using System.Collections.Generic;
@@ -16,24 +15,37 @@
     {
         private readonly IConsoleWriter consoleWriter;
 
-        public const string BIA_MARKER = "BIAToolKit -";
-        public const string ANGULAR_MARKER_BEGIN_PROPERTIES = $"{BIA_MARKER} Begin properties";
-        public const string ANGULAR_MARKER_END_PROPERTIES = $"{BIA_MARKER} End properties";
-        public const string ANGULAR_MARKER_BEGIN_BLOCK = $"{BIA_MARKER} Begin block";
-        public const string ANGULAR_MARKER_END_BLOCK = $"{BIA_MARKER} End block";
-        public const string ANGULAR_MARKER_BEGIN_CHILDREN = $"/* {BIA_MARKER} Begin Children */";
-        public const string ANGULAR_MARKER_END_CHILDREN = $"/* {BIA_MARKER} End Children */";
-
-        public const string DOTNET_MARKER_BEGIN_RIGHTS = $"{BIA_MARKER} Begin rights";
-        public const string DOTNET_MARKER_END_RIGHTS = $"{BIA_MARKER} End rights";
-        public const string DOTNET_MARKER_BEGIN_DEPENDENCY = $"{BIA_MARKER} Begin dependency";
-        public const string DOTNET_MARKER_END_DEPENDENCY = $"{BIA_MARKER} End dependency";
-        public const string DOTNET_MARKER_BEGIN_CONFIG = $"{BIA_MARKER} Begin config";
-        public const string DOTNET_MARKER_END_CONFIG = $"{BIA_MARKER} End config";
+        private const string BIA_MARKER = "BIAToolKit -";
+        private const string MARKER_BEGIN = $"{BIA_MARKER} Begin";
+        private const string MARKER_END = $"{BIA_MARKER} End";
+        // CRUD
+        public const string MARKER_BEGIN_PROPERTIES = $"{MARKER_BEGIN} Properties";
+        public const string MARKER_END_PROPERTIES = $"{MARKER_END} Properties";
+        public const string MARKER_BEGIN_BLOCK = $"{MARKER_BEGIN} Block";
+        public const string MARKER_END_BLOCK = $"{MARKER_END} Block";
+        public const string MARKER_BEGIN_CHILDREN = $"/* {MARKER_BEGIN} Children */";
+        public const string MARKER_END_CHILDREN = $"/* {MARKER_END} Children */";
+        // Back
+        public const string MARKER_BEGIN_RIGHTS = $"{MARKER_BEGIN} Rights";
+        public const string MARKER_END_RIGHTS = $"{MARKER_END} Rights";
+        public const string MARKER_BEGIN_DEPENDENCY = $"{MARKER_BEGIN} Dependency";
+        public const string MARKER_END_DEPENDENCY = $"{MARKER_END} Dependency";
+        public const string MARKER_BEGIN_CONFIG = $"{MARKER_BEGIN} Config";
+        public const string MARKER_END_CONFIG = $"{MARKER_END} Config";
+        // Angular
+        public const string MARKER_BEGIN_NAVIGATION = $"{MARKER_BEGIN} Navigation";
+        public const string MARKER_END_NAVIGATION = $"{MARKER_END} Navigation";
+        public const string MARKER_BEGIN_PERMISSION = $"{MARKER_BEGIN} Permission";
+        public const string MARKER_END_PERMISSION = $"{MARKER_END} Permission";
+        public const string MARKER_BEGIN_ROUTING = $"{MARKER_BEGIN} Routing";
+        public const string MARKER_END_ROUTING = $"{MARKER_END} Routing";
+        // Partial
+        public const string MARKER_BEGIN_PARTIAL = $"{MARKER_BEGIN} Partial";
+        public const string MARKER_END_PARTIAL = $"{MARKER_END} Partial";
 
         private const string ATTRIBUE_MARKER = "XXXXX";
-        private const string ANGULAR_MARKER_BEGIN_ATTRIBUTE_BLOCK = $"{ANGULAR_MARKER_BEGIN_BLOCK} {ATTRIBUE_MARKER}";
-        private const string ANGULAR_MARKER_END_ATTRIBUTE_BLOCK = $"{ANGULAR_MARKER_END_BLOCK} {ATTRIBUE_MARKER}";
+        private const string ANGULAR_MARKER_BEGIN_ATTRIBUTE_BLOCK = $"{MARKER_BEGIN_BLOCK} {ATTRIBUE_MARKER}";
+        private const string ANGULAR_MARKER_END_ATTRIBUTE_BLOCK = $"{MARKER_END_BLOCK} {ATTRIBUE_MARKER}";
 
         /// <summary>
         /// Constructor.
@@ -93,7 +105,42 @@
         }
 
         /// <summary>
-        /// Analyze and extract angular file.
+        /// Analyze partial file and extract blocks.
+        /// </summary>
+        public List<ExtractBlocks> AnalyzePartialFile(string fileName)
+        {
+            List<ExtractBlocks> extractBlocksList = new();
+            List<string> lines = new();
+            bool startFound = false;
+
+            // Read partial file
+            List<string> fileLines = File.ReadAllLines(fileName).ToList();
+
+            // Add blocks found between markers
+            foreach (string line in fileLines)
+            //for (int i = 0; i < fileLines.Count; i++)
+            {
+                if (line.Contains(MARKER_BEGIN_PARTIAL, StringComparison.InvariantCulture))
+                {
+                    lines = new();
+                    startFound = true;
+                }
+
+                if (startFound)
+                    lines.Add(line);
+
+                if (line.Contains(MARKER_END_PARTIAL, StringComparison.InvariantCulture))
+                {
+                    startFound = false;
+                    extractBlocksList.Add(new ExtractBlocks(CRUDDataUpdateType.Partial, null, null, lines));
+                }
+            }
+
+            return extractBlocksList;
+        }
+
+        /// <summary>
+        /// Analyze angular file and extract blocks.
         /// </summary>
         public List<ExtractBlocks> AnalyzeAngularFile(string fileName, Dictionary<string, List<string>> planeDtoProperties)
         {
@@ -142,54 +189,8 @@
                 }
             }
 
-            //// Extract children to delete
-            //List<ExtractBlocks> blocks = ExtractChildrenToDelete(fileName, fileLines);
-            //if (blocks != null && blocks.Count > 0)
-            //{
-            //    // Add only if block found
-            //    extractBlocksList.AddRange(blocks);
-            //}
-
             return extractBlocksList;
         }
-
-        ///// <summary>
-        ///// Extract block of lines between Children markers.
-        ///// </summary>
-        //public List<ExtractBlocks> ExtractChildrenToDelete(string fileName, List<string> fileLines)
-        //{
-        //    // Verify if marker is presentin file
-        //    if (!IsFileContains(fileName, new List<string> { ANGULAR_MARKER_BEGIN_CHILDREN }))
-        //    {
-        //        return null;
-        //    }
-
-        //    // Find marker to extract lines
-        //    List<ExtractBlocks> childrenToDelete = new();
-        //    for (int i = 0; i < fileLines.Count; i++)
-        //    {
-        //        if (fileLines[i].Contains(ANGULAR_MARKER_BEGIN_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
-        //        {
-        //            bool endFound = false;
-
-        //            List<string> lines = new();
-        //            for (int j = i; j < fileLines.Count && !endFound; j++)
-        //            {
-        //                string line = fileLines[j];
-        //                lines.Add(line);
-        //                if (line.Contains(ANGULAR_MARKER_END_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
-        //                {
-        //                    endFound = true;
-        //                    i = j;
-        //                }
-        //            }
-
-        //            childrenToDelete.Add(new ExtractBlocks(CRUDDataUpdateType.Children, null, null, lines));
-        //        }
-        //    }
-
-        //    return childrenToDelete;
-        //}
 
         /// <summary>
         /// Extract lines that contains options.
@@ -234,46 +235,51 @@
         /// <summary>
         /// Get the type of DotNet file.
         /// </summary>
-        public FileType? GetFileType(string fileName)
+        public BackFileType? GetFileType(string fileName)
         {
             if (fileName == null)
             {
                 consoleWriter.AddMessageLine($"File type not found for: '{fileName}'", "Orange");
                 return null;
             }
-            else if (fileName.EndsWith("AppService.cs"))
+            else if (fileName.EndsWith(".partial"))
             {
-                if (fileName.StartsWith("I"))
+                if (fileName.ToLower().StartsWith("bianetconfig.json"))
+                    return BackFileType.Config;
+                else if (fileName.ToLower().StartsWith("ioccontainer.cs"))
+                    return BackFileType.Dependency;
+                else if (fileName.ToLower().StartsWith("rights.cs"))
+                    return BackFileType.Rights;
+                else return null;
+            }
+            else if (fileName.EndsWith(".cs"))
+            {
+                if (fileName.EndsWith("AppService.cs"))
                 {
-                    return FileType.IAppService;
+                    if (fileName.StartsWith("I"))
+                        return BackFileType.IAppService;
+                    else
+                        return BackFileType.AppService;
                 }
+                else if (fileName.EndsWith("Dto.cs"))
+                    return BackFileType.Dto;
+                else if (fileName.EndsWith("Controller.cs"))
+                    return BackFileType.Controller;
+                else if (fileName.EndsWith("Mapper.cs"))
+                    return BackFileType.Mapper;
                 else
-                {
-                    return FileType.AppService;
-                }
-            }
-            else if (fileName.EndsWith("Dto.cs"))
-            {
-                return FileType.Dto;
-            }
-            else if (fileName.EndsWith("Controller.cs"))
-            {
-                return FileType.Controller;
-            }
-            else if (fileName.EndsWith("Mapper.cs"))
-            {
-                return FileType.Mapper;
+                    return BackFileType.Entity;
             }
             else
             {
-                return FileType.Entity;
+                return null;
             }
         }
 
         /// <summary>
         /// Get the "entity" name from DotNet file.
         /// </summary>
-        public string GetEntityName(string fileName, FileType? type)
+        public string GetEntityName(string fileName, BackFileType? type)
         {
             if (fileName == null || type == null)
             {
@@ -284,20 +290,20 @@
             string pattern = "";
             switch (type)
             {
-                case FileType.AppService:
-                case FileType.IAppService:
+                case BackFileType.AppService:
+                case BackFileType.IAppService:
                     pattern = @"^I?(\w+)AppService\.cs$";
                     break;
-                case FileType.Dto:
+                case BackFileType.Dto:
                     pattern = @"^(\w+)Dto\.cs$";
                     break;
-                case FileType.Controller:
+                case BackFileType.Controller:
                     pattern = @"^((\w+)s|(\w+))Controller\.cs$";
                     break;
-                case FileType.Mapper:
+                case BackFileType.Mapper:
                     pattern = @"^(\w+)Mapper\.cs$";
                     break;
-                case FileType.Entity:
+                case BackFileType.Entity:
                     pattern = @"^(\w+)\.cs$";
                     break;
                 default:
@@ -367,8 +373,8 @@
                     markerEnd = ANGULAR_MARKER_END_ATTRIBUTE_BLOCK.Replace(ATTRIBUE_MARKER, attributeName);
                     break;
                 case CRUDDataUpdateType.Property:
-                    markerBegin = ANGULAR_MARKER_BEGIN_PROPERTIES;
-                    markerEnd = ANGULAR_MARKER_END_PROPERTIES;
+                    markerBegin = MARKER_BEGIN_PROPERTIES;
+                    markerEnd = MARKER_END_PROPERTIES;
                     break;
                 default:
                     throw new Exception($"Error on FindBlock: case {type}' not implemented.");

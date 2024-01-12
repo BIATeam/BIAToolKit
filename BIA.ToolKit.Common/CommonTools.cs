@@ -114,5 +114,15 @@
             }
             return null;
         }
+
+        public static bool IsMatchRegexValue(string pattern, string data)
+        {
+            MatchCollection matches = new Regex(pattern).Matches(data);
+            if (matches != null && matches.Count > 0)
+            {
+                return true;
+            }
+            return false;
+        }
     }
 }

@@ -9,10 +9,6 @@
     {
         public string FileName { get; set; }
 
-        public string PathOnZip { get; set; }
-
-        public FileType? FileType { get; set; }
-
         public string? EntityName { get; set; }
 
         public string? CompagnyName { get; private set; }
@@ -58,15 +54,5 @@
             this.ConstructorList = new();
             this.MethodList = new();
         }
-    }
-
-    public enum FileType
-    {
-        AppService,
-        Controller,
-        Dto,
-        Entity,
-        IAppService,
-        Mapper
     }
 }

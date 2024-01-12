@@ -49,7 +49,7 @@ using Roslyn.Services;*/
                 throw ex;
             }
 
-            BaseNamespaceDeclarationSyntax? namespaceSyntax = root
+            BaseNamespaceDeclarationSyntax namespaceSyntax = root
                 .Descendants<NamespaceDeclarationSyntax>()
                 .SingleOrDefault();
 

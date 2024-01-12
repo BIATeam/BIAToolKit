@@ -105,12 +105,6 @@
                 generationFolder = GetGenerationFolder(currentProject, this.crudSettings.GenerateInProjectFolder);
                 string dotnetDir = Path.Combine(generationFolder, Constants.FolderDotNet);
                 string angularDir = Path.Combine(generationFolder, Constants.FolderAngular);
-                if (!this.crudSettings.GenerateInProjectFolder)
-                {
-                    // If generation not in current project, clean folders
-                    CommonTools.PrepareFolder(dotnetDir);
-                    CommonTools.PrepareFolder(angularDir);
-                }
 
                 // Generate CRUD DotNet files
                 ZipFilesContent backFilesContent = fileListFromZip.Where(x => x.Type == FeatureType.Back).FirstOrDefault();
@@ -171,23 +165,31 @@
             {
                 string srcDir = Path.Combine(GetGenerationFolder(currentProject), Constants.FolderDotNet);
 
+                DotNetCRUDData featureData = (DotNetCRUDData)zipFilesContent.FeatureDataList.FirstOrDefault(x => ((DotNetCRUDData)x).FileType == BackFileType.Dto);
+                ClassDefinition dtoClassDefiniton = featureData?.ClassFileDefinition;
+
                 // Generate Crud files
                 foreach (DotNetCRUDData crudData in zipFilesContent.FeatureDataList)
                 {
-                    // Ignore Dto file : not necessary to regenerate it
-                    if (crudData.ClassFileDefinition.FileType == FileType.Dto) { continue; }
-
-                    GenerateDotNetCrudFile(destDir, currentProject, crudData);
+                    if (crudData.FileType == BackFileType.Dto ||
+                        crudData.FileType == BackFileType.Entity ||
+                        crudData.FileType == BackFileType.Mapper)
+                    {
+                        // Ignore file : not necessary to regenerate it
+                        continue;
+                    }
+                    else if (crudData.FileType == BackFileType.Config ||
+                            crudData.FileType == BackFileType.Dependency ||
+                            crudData.FileType == BackFileType.Rights)
+                    {
+                        // Update with partial file
+                        UpdatePartialFile(srcDir, destDir, crudData);
+                    }
+                    else
+                    {
+                        GenerateDotNetCrudFile(destDir, currentProject, crudData, dtoClassDefiniton);
+                    }
                 }
-
-                // Update IocContainer
-                CreateIocContainerFile(srcDir, destDir);
-
-                // Update Rights
-                CreateRightsFile(srcDir, destDir);
-
-                // Update Config
-                CreateBIANETConfigFile(srcDir, destDir);
             }
             catch (Exception ex)
             {
@@ -271,16 +273,17 @@
 
         private void GenerateTeam(string angularDir, ZipFilesContent zipFilesContent)
         {
-            // TODO NMA
+            // TODO
+            consoleWriter.AddMessageLine("Generate Team not implemented!", "Orange");
         }
         #endregion
 
         #region DotNet Files
-        private void GenerateDotNetCrudFile(string destDir, Project currentProject, DotNetCRUDData crudData)
+        private void GenerateDotNetCrudFile(string destDir, Project currentProject, DotNetCRUDData crudData, ClassDefinition dtoClassDefiniton)
         {
             string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
             string dest = ConvertPascalOldToNewCrudName(Path.Combine(destDir, crudData.FilePath), FeatureType.Back);
-            dest = ReplaceCompagnyNameProjetName(dest, currentProject, crudData.ClassFileDefinition);
+            dest = ReplaceCompagnyNameProjetName(dest, currentProject, dtoClassDefiniton);
 
             // Prepare destination folder
             CommonTools.CheckFolder(new FileInfo(dest).DirectoryName);
@@ -291,7 +294,7 @@
             // Replace Compagny name and Project name
             for (int i = 0; i < fileLinesContent.Count; i++)
             {
-                fileLinesContent[i] = ReplaceCompagnyNameProjetName(fileLinesContent[i], currentProject, crudData.ClassFileDefinition);
+                fileLinesContent[i] = ReplaceCompagnyNameProjetName(fileLinesContent[i], currentProject, dtoClassDefiniton);
                 fileLinesContent[i] = ConvertPascalOldToNewCrudName(fileLinesContent[i], FeatureType.Back);
             }
 
@@ -299,82 +302,51 @@
             CommonTools.GenerateFile(dest, fileLinesContent);
         }
 
-        private void CreateIocContainerFile(string srcDir, string destDir)
+        private void UpdatePartialFile(string srcDir, string destDir, DotNetCRUDData crudData)
         {
-            string srcFile = Path.Combine(srcDir, crudSettings.DotNetIocContainerPath);
-            string destFile = Path.Combine(destDir, crudSettings.DotNetIocContainerPath);
+            string srcFile, destFile, markerBegin, markerEnd;
+            List<string> contentToAdd = new();
+
+            if (crudData.FileType == BackFileType.Config)
+            {
+                srcFile = Path.Combine(srcDir, crudSettings.DotNetBianetConfigPath);
+                destFile = Path.Combine(destDir, crudSettings.DotNetBianetConfigPath);
+                markerBegin = ZipParserService.MARKER_BEGIN_CONFIG;
+                markerEnd = ZipParserService.MARKER_END_CONFIG;
+                //markerBegin = $"{ZipParserService.MARKER_BEGIN_CONFIG} {NewCrudNamePascalSingular}";
+                //markerEnd = $"{ZipParserService.MARKER_END_CONFIG} {NewCrudNamePascalSingular}";
+            }
+            else if (crudData.FileType == BackFileType.Dependency)
+            {
+                srcFile = Path.Combine(srcDir, crudSettings.DotNetIocContainerPath);
+                destFile = Path.Combine(destDir, crudSettings.DotNetIocContainerPath);
+                markerBegin = ZipParserService.MARKER_BEGIN_DEPENDENCY;
+                markerEnd = ZipParserService.MARKER_END_DEPENDENCY;
+                //markerBegin = $"{ZipParserService.MARKER_BEGIN_DEPENDENCY} {NewCrudNamePascalSingular}";
+                //markerEnd = $"{ZipParserService.MARKER_END_DEPENDENCY} {NewCrudNamePascalSingular}";
+            }
+            else if (crudData.FileType == BackFileType.Rights)
+            {
+                srcFile = Path.Combine(srcDir, crudSettings.DotNetRightsPath);
+                destFile = Path.Combine(destDir, crudSettings.DotNetRightsPath);
+                markerBegin = ZipParserService.MARKER_BEGIN_RIGHTS;
+                markerEnd = ZipParserService.MARKER_END_RIGHTS;
+                //markerBegin = $"{ZipParserService.MARKER_BEGIN_RIGHTS} {NewCrudNamePascalSingular}";
+                //markerEnd = $"{ZipParserService.MARKER_END_RIGHTS} {NewCrudNamePascalSingular}";
+            }
+            else
+                return;
 
             // Generate content to add
-            List<string> contentToAdd = new() { $"collection.AddTransient<I{this.NewCrudNamePascalSingular}AppService, {this.NewCrudNamePascalSingular}AppService>();" };
+            if (crudData.ExtractBlocks != null &&
+                crudData.ExtractBlocks.Count > 0 &&
+                crudData.ExtractBlocks[0].BlockLines != null)
+            {
+                crudData.ExtractBlocks[0].BlockLines.ForEach(line => contentToAdd.Add(ConvertPascalOldToNewCrudName(line, FeatureType.Back)));
+            }
 
-            UpdateDotDetCrudFile(srcFile, destFile, contentToAdd, ZipParserService.DOTNET_MARKER_BEGIN_DEPENDENCY, ZipParserService.DOTNET_MARKER_END_DEPENDENCY);
-        }
-
-        private void CreateRightsFile(string srcDir, string destDir)
-        {
-            string srcFile = Path.Combine(srcDir, crudSettings.DotNetRightsPath);
-            string destFile = Path.Combine(destDir, crudSettings.DotNetRightsPath);
-
-            // Generate content to add
-            List<string> contentToAdd = new() {
-                "/// <summary>",
-                $"/// The {this.NewCrudNamePascalSingular} rights.",
-                "/// </summary>",
-                $"public static class {this.NewCrudNamePascalPlural}",
-                "{",
-                "    /// <summary>",
-                $"    /// The right to access to the list of {this.NewCrudNamePascalPlural}.",
-                "    /// </summary>",
-                $"    public const string List = \"{this.NewCrudNamePascalSingular}_List\";",
-                "    /// <summary>",
-                $"    /// The right to read {this.NewCrudNamePascalPlural}.",
-                "    /// </summary>",
-                $"    public const string Read = \"{this.NewCrudNamePascalSingular}_Read\";",
-                "    /// <summary>",
-                $"    /// The right to create {this.NewCrudNamePascalPlural}.",
-                "    /// </summary>",
-                $"    public const string Create = \"{this.NewCrudNamePascalSingular}_Create\";",
-                "    /// <summary>",
-                $"    /// The right to update {this.NewCrudNamePascalPlural}.",
-                "    /// </summary>",
-                $"    public const string Update = \"{this.NewCrudNamePascalSingular}_Update\";",
-                "    /// <summary>",
-                $"    /// The right to delete {this.NewCrudNamePascalPlural}.",
-                "    /// </summary>",
-                $"    public const string Delete = \"{this.NewCrudNamePascalSingular}_Delete\";",
-                "    /// <summary>",
-                $"    /// The right to save {this.NewCrudNamePascalPlural}.",
-                "    /// </summary>",
-                $"    public const string Save = \"{this.NewCrudNamePascalSingular}_Save\";",
-                "    /// <summary>",
-                $"    /// The right to access to the list of {this.NewCrudNamePascalPlural}.",
-                "    /// </summary>",
-                $"    public const string ListAccess = \"{this.NewCrudNamePascalSingular}_List_Access\";",
-                "}"
-            };
-
-            UpdateDotDetCrudFile(srcFile, destFile, contentToAdd, ZipParserService.DOTNET_MARKER_BEGIN_RIGHTS, ZipParserService.DOTNET_MARKER_END_RIGHTS);
-        }
-
-        private void CreateBIANETConfigFile(string srcDir, string destDir)
-        {
-            string srcFile = Path.Combine(srcDir, crudSettings.DotNetBianetConfigPath);
-            string destFile = Path.Combine(destDir, crudSettings.DotNetBianetConfigPath);
-
-            // Generate content to add
-            List<string> contentToAdd = new() {
-                $"// {this.NewCrudNamePascalSingular}",
-                ",{",
-                $"\"Names\": [ \"{this.NewCrudNamePascalSingular}_Create\", \"{this.NewCrudNamePascalSingular}_Update\", \"{this.NewCrudNamePascalSingular}_Delete\", \"{this.NewCrudNamePascalSingular}_Save\", \"{this.NewCrudNamePascalSingular}_List_Access\" ],",
-                "\"Roles\": [ \"Admin\", \"Site_Admin\" ]",
-                "}",
-                ",{",
-                $"\"Names\": [ \"{this.NewCrudNamePascalSingular}_List\", \"{this.NewCrudNamePascalSingular}_Read\" ],",
-                "\"Roles\": [ \"Admin\", \"Site_Admin\", \"User\" ]",
-                "}",
-            };
-
-            UpdateDotDetCrudFile(srcFile, destFile, contentToAdd, ZipParserService.DOTNET_MARKER_BEGIN_CONFIG, ZipParserService.DOTNET_MARKER_END_CONFIG);
+            // Update file
+            UpdateDotDetCrudFile(srcFile, destFile, contentToAdd, markerBegin, markerEnd);
         }
 
         private void UpdateDotDetCrudFile(string srcFile, string destFile, List<string> contentToAdd, string markerBegin, string markerEnd)
@@ -404,38 +376,44 @@
         private List<string> InsertContentBetweenMarkers(List<string> fileContent, List<string> contentToAdd, string markerBegin, string markerEnd)
         {
             List<string> newContent = new();
+            List<string> contentBetweenMarker = new();
 
-            bool beginFound = false;
-            foreach (string line in fileContent)
+            // Get content to replace
+            int indexBegin = fileContent.IndexOf(fileContent.FirstOrDefault(line => line.Contains(markerBegin)));
+            int indexEnd = fileContent.IndexOf(fileContent.FirstOrDefault(line => line.Contains(markerEnd)));
+            if (indexBegin < 0 || indexEnd < 0)
             {
-                if (!beginFound)
+                return fileContent;
+            }
+            List<string> contentToReplace = fileContent.ToArray()[indexBegin..++indexEnd].ToList();
+
+            // Update content to replace
+            int indexStart = contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.Contains(contentToAdd[0])));
+            if (indexStart >= 0)
+            {
+                int indexStop = contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.Contains(contentToAdd[contentToAdd.Count - 1])));
+
+                for (int i = 0; i < indexStart; i++)
                 {
-                    if (!line.Contains(markerBegin))
-                    {
-                        // Keep file content line
-                        newContent.Add(line);
-                    }
-                    else
-                    {
-                        beginFound = true;
-                        // Add begin marker line
-                        newContent.Add(line);
-                    }
+                    contentBetweenMarker.Add(contentToReplace[i]);
                 }
-                else
+
+                contentBetweenMarker.AddRange(contentToAdd);
+
+                for (int i = indexStop + 1; i < contentToReplace.Count; i++)
                 {
-                    if (line.Contains(markerEnd))
-                    {
-                        beginFound = false;
-                        // Get firsts space characters (space + tabulations) to keep formating
-                        string match = CommonTools.GetMatchRegexValue(@"^([\s\t]+)(\/+)", line);
-                        // Add new content between Begin and End markers
-                        contentToAdd.ForEach(c => newContent.Add(match + c));
-                        // Add end marker line
-                        newContent.Add(line);
-                    }
+                    contentBetweenMarker.Add(contentToReplace[i]);
                 }
             }
+            else
+            {
+                contentBetweenMarker.AddRange(contentToAdd);
+            }
+
+            // Replace content
+            newContent.AddRange(fileContent.ToArray()[0..indexBegin].ToList());
+            newContent.AddRange(contentBetweenMarker);
+            newContent.AddRange(fileContent.ToArray()[++indexEnd..fileContent.Count].ToList());
 
             return newContent;
         }
@@ -481,11 +459,11 @@
             if ((propertiesToAdd == null || propertiesToAdd.Count <= 0) && (blocksToAdd == null || blocksToAdd.Count <= 0)) return fileLinesContent;
 
 
-            int indexBeginProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_PROPERTIES)).FirstOrDefault());
-            int indexEndProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_END_PROPERTIES)).FirstOrDefault());
+            int indexBeginProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.MARKER_BEGIN_PROPERTIES)).FirstOrDefault());
+            int indexEndProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.MARKER_END_PROPERTIES)).FirstOrDefault());
 
-            int indexBeginFirstBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_BLOCK)).FirstOrDefault());
-            int indexEndLastBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.ANGULAR_MARKER_END_BLOCK)).LastOrDefault());
+            int indexBeginFirstBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.MARKER_BEGIN_BLOCK)).FirstOrDefault());
+            int indexEndLastBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.MARKER_END_BLOCK)).LastOrDefault());
 
             List<string> newFileLinesContent = new();
             // Writes properties ?
@@ -498,12 +476,12 @@
                 }
 
                 // Write new properties to add
-                newFileLinesContent.Add($"  /// {ZipParserService.ANGULAR_MARKER_BEGIN_PROPERTIES}");
+                newFileLinesContent.Add($"  /// {ZipParserService.MARKER_BEGIN_PROPERTIES}");
                 for (int i = 0; i < propertiesToAdd.Count; i++)
                 {
                     newFileLinesContent.Add(propertiesToAdd[i]);
                 }
-                newFileLinesContent.Add($"  /// {ZipParserService.ANGULAR_MARKER_END_PROPERTIES}");
+                newFileLinesContent.Add($"  /// {ZipParserService.MARKER_END_PROPERTIES}");
 
                 // Write blocks ?
                 if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
@@ -580,7 +558,7 @@
 
         private List<string> DeleteChildrenBlocks(List<string> fileLinesContent)
         {
-            if (!fileLinesContent.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_CHILDREN))
+            if (!fileLinesContent.Contains(ZipParserService.MARKER_BEGIN_CHILDREN))
             {
                 return fileLinesContent;
             }
@@ -590,23 +568,23 @@
             {
                 string line = fileLinesContent[i];
 
-                if (line.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_CHILDREN, StringComparison.InvariantCultureIgnoreCase) &&
-                    line.Contains(ZipParserService.ANGULAR_MARKER_END_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
+                if (line.Contains(ZipParserService.MARKER_BEGIN_CHILDREN, StringComparison.InvariantCultureIgnoreCase) &&
+                    line.Contains(ZipParserService.MARKER_END_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
                 {
                     // Get data before marker begin + data after marker end
-                    string[] splitBegin = line.Split(ZipParserService.ANGULAR_MARKER_BEGIN_CHILDREN);
-                    string[] splitEnd = line.Split(ZipParserService.ANGULAR_MARKER_END_CHILDREN);
+                    string[] splitBegin = line.Split(ZipParserService.MARKER_BEGIN_CHILDREN);
+                    string[] splitEnd = line.Split(ZipParserService.MARKER_END_CHILDREN);
                     string update = splitBegin[0] + splitEnd[1];
                     if (!string.IsNullOrWhiteSpace(update))
                     {
                         updateLines.Add(update);
                     }
                 }
-                else if (line.Contains(ZipParserService.ANGULAR_MARKER_BEGIN_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
+                else if (line.Contains(ZipParserService.MARKER_BEGIN_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
                 {
                     // Get data before marker begin
                     bool endFound = false;
-                    string[] splitBegin = line.Split(ZipParserService.ANGULAR_MARKER_BEGIN_CHILDREN);
+                    string[] splitBegin = line.Split(ZipParserService.MARKER_BEGIN_CHILDREN);
                     if (!string.IsNullOrWhiteSpace(splitBegin[0]))
                     {
                         updateLines.Add(splitBegin[0]);
@@ -615,10 +593,10 @@
                     for (int j = i; j < fileLinesContent.Count && !endFound; j++)
                     {
                         line = fileLinesContent[j];
-                        if (line.Contains(ZipParserService.ANGULAR_MARKER_END_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
+                        if (line.Contains(ZipParserService.MARKER_END_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
                         {
                             // Get data after marker end                               
-                            string[] splitEnd = line.Split(ZipParserService.ANGULAR_MARKER_END_CHILDREN);
+                            string[] splitEnd = line.Split(ZipParserService.MARKER_END_CHILDREN);
                             if (!string.IsNullOrWhiteSpace(splitEnd[1]))
                             {
                                 // Get firsts space characters (space + tabulations) to keep formating
@@ -642,7 +620,7 @@
             return updateLines;
         }
 
-        private List<string> GeneratePropertiesToAdd(FeatureData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
+        private List<string> GeneratePropertiesToAdd(AngularCRUDData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
         {
             List<string> propertiesToAdd = new();
 
@@ -669,7 +647,7 @@
             return propertiesToAdd;
         }
 
-        private List<string> GenerateBlocksToAdd(FeatureData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
+        private List<string> GenerateBlocksToAdd(AngularCRUDData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
         {
             List<string> blocksToAdd = new();
 

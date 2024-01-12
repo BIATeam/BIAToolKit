@@ -368,30 +368,34 @@
                         ZipFilesContent filesContent = new(FeatureType.Back);
                         foreach (KeyValuePair<string, string> file in fileList)
                         {
-                            FileType? type = zipService.GetFileType(file.Value);
+                            BackFileType? type = zipService.GetFileType(file.Value);
                             // Ignore Dto, mapper and entity file
-                            if (type == FileType.Mapper || type == FileType.Entity)
+                            if (type == BackFileType.Mapper || type == BackFileType.Entity)
                             {
                                 continue;
                             }
 
-                            ClassDefinition classFile = service.ParseClassFile(Path.Combine(workingDirectoryPath, file.Key));
-                            if (classFile != null)
+                            DotNetCRUDData data = new(file.Value, file.Key, workingDirectoryPath)
                             {
-                                classFile.PathOnZip = file.Key;
-                                classFile.FileType = type;
-                                classFile.EntityName = zipService.GetEntityName(file.Value, type);
+                                FileType = type
+                            };
 
-                                DotNetCRUDData data = new(file.Value, file.Key, workingDirectoryPath)
-                                {
-                                    ClassFileDefinition = classFile
-                                };
-                                filesContent.FeatureDataList.Add(data);
-                            }
-                            else
+                            if (type == BackFileType.Dto)
                             {
-                                consoleWriter.AddMessageLine($"Parse class file ('{fileName}') return null.", "Orange");
+                                ClassDefinition classFile = service.ParseClassFile(Path.Combine(workingDirectoryPath, file.Key));
+                                if (classFile != null)
+                                {
+                                    classFile.EntityName = zipService.GetEntityName(file.Value, type);
+                                }
+                                data.ClassFileDefinition = classFile;
                             }
+                            else if (type == BackFileType.Config || type == BackFileType.Dependency || type == BackFileType.Rights)
+                            {
+                                string filePath = Path.Combine(workingDirectoryPath, file.Key);
+                                data.ExtractBlocks = zipService.AnalyzePartialFile(filePath);
+                            }
+
+                            filesContent.FeatureDataList.Add(data);
                         }
                         vm.ZipFilesContent.Add(filesContent);
                     }
@@ -481,7 +485,7 @@
                             vm.ZipFilesContent.Add(crudFilesContent);
                         }
                     }
-                    else
+                    else if (type == FeatureType.Option)
                     {
                         // Analyze angular files
                         if (fileList.Count > 0)
@@ -489,7 +493,7 @@
                             ZipFilesContent filesContent = new(type);
                             foreach (KeyValuePair<string, string> file in fileList)
                             {
-                                FeatureData data = new(file.Value, file.Key, workingDirectoryPath)
+                                AngularCRUDData data = new(file.Value, file.Key, workingDirectoryPath)
                                 {
                                     ExtractBlocks = zipService.AnalyzeAngularFile(Path.Combine(workingDirectoryPath, file.Key), null)
                                 };
@@ -498,6 +502,10 @@
 
                             vm.ZipFilesContent.Add(filesContent);
                         }
+                    }
+                    else
+                    {
+                        throw new Exception("Parsing Team feature not implemented !");
                     }
                 }
                 //else
@@ -539,7 +547,7 @@
             {
                 foreach (DotNetCRUDData angularFile in content.FeatureDataList)
                 {
-                    if (angularFile.ClassFileDefinition.FileType == FileType.Dto)
+                    if (angularFile.FileType == BackFileType.Dto)
                     {
                         return angularFile.ClassFileDefinition;
                     }

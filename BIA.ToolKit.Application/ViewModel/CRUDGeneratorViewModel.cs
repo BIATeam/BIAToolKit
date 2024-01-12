@@ -221,8 +221,6 @@
         }
         #endregion
 
-        //public List<ClassDefinition> DotNetZipFilesContent { get; }
-
         public List<ZipFilesContent> ZipFilesContent { get; }
     }
 
@@ -327,6 +325,11 @@
     public class DotNetCRUDData : FeatureData
     {
         /// <summary>
+        /// File type.
+        /// </summary>
+        public BackFileType? FileType { get; set; }
+
+        /// <summary>
         /// List of Options to delete.
         /// </summary>
         public ClassDefinition ClassFileDefinition { get; set; }
@@ -368,8 +371,24 @@
 
     public enum CRUDDataUpdateType
     {
+        // Angular
         Property,
         Block,
-        Children
+        Children,
+        // DotNet
+        Partial
+    }
+
+    public enum BackFileType
+    {
+        AppService,
+        Controller,
+        Dto,
+        Entity,
+        IAppService,
+        Mapper,
+        Rights,
+        Config,
+        Dependency
     }
 }

@@ -3,10 +3,7 @@ using BIA.ToolKit.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
 
 namespace BIA.ToolKit.Application.Services
 {
@@ -16,7 +13,6 @@ namespace BIA.ToolKit.Application.Services
         List<string> _propertiesList = new List<string>();
         private string _projectName = string.Empty;
         DirectoryInfo _resultFolder = null;
-        string _tempName;
 
         public GenerateFilesService(IConsoleWriter consoleWriter)
         {
@@ -62,7 +58,7 @@ namespace BIA.ToolKit.Application.Services
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine("An error has occurred in the process. " + ex.Message, "Pink");
-                
+
             }
         }
 
@@ -118,7 +114,7 @@ namespace BIA.ToolKit.Application.Services
             consoleWriter.AddMessageLine("    => Create lines for Form Component HTML ", "Pink");
             CreateAngularFormComponentHtmlFile(className, tempFile.Name);
 
-            consoleWriter.AddMessageLine("Generate files finished.", "Green" );
+            consoleWriter.AddMessageLine("Generate files finished.", "Green");
         }
 
 
@@ -887,7 +883,7 @@ namespace BIA.ToolKit.Application.Services
             d.Append(CommonMethods.AddNewLine($"export interface {CommonMethods.FirstLetterUppercase(className)} {{"));
             foreach (string p in _propertiesList)
             {
-                d.Append(CommonMethods.AddNewLine($"  {CommonMethods.ToCamelCase(CommonMethods.GetValueFromList(p, 1))}: { CommonMethods.ToAngularTypes(CommonMethods.GetValueFromList(p, 0))};"));
+                d.Append(CommonMethods.AddNewLine($"  {CommonMethods.ToCamelCase(CommonMethods.GetValueFromList(p, 1))}: {CommonMethods.ToAngularTypes(CommonMethods.GetValueFromList(p, 0))};"));
 
             }
             d.Append(CommonMethods.AddNewLine($"}}"));
@@ -910,7 +906,7 @@ namespace BIA.ToolKit.Application.Services
 
             foreach (string p in _propertiesList)
             {
-                d.Append(CommonMethods.AddNewLine($"    \"{CommonMethods.ToCamelCase(CommonMethods.GetValueFromList(p, 1))}\": \"{ (CommonMethods.GetValueFromList(p, 1))}\","));
+                d.Append(CommonMethods.AddNewLine($"    \"{CommonMethods.ToCamelCase(CommonMethods.GetValueFromList(p, 1))}\": \"{(CommonMethods.GetValueFromList(p, 1))}\","));
 
             }
 
