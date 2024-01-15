@@ -21,10 +21,7 @@
         public string ZipNameTeam { get; private set; }
         // File name
         public string OptionsToRemoveFileName { get; private set; }
-        // DotNet files to update path
-        public string DotNetBianetConfigPath { get; set; }
-        public string DotNetRightsPath { get; set; }
-        public string DotNetIocContainerPath { get; set; }
+
 
         /// <summary>
         /// Constructor.
@@ -54,10 +51,6 @@
             ZipNameTeam = settingsService.ReadSetting("ZipNameTeam_Angular");
 
             OptionsToRemoveFileName = settingsService.ReadSetting("OptionsToRemove");
-
-            DotNetBianetConfigPath = settingsService.ReadSetting("DotNetBianetConfigPath");
-            DotNetRightsPath = settingsService.ReadSetting("DotNetRightsPath");
-            DotNetIocContainerPath = settingsService.ReadSetting("DotNetIocContainerPath");
 
             string generate = settingsService.ReadSetting("GenerateInProjectFolder");
             if (!string.IsNullOrWhiteSpace(generate))

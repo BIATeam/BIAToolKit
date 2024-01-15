@@ -59,7 +59,7 @@
         /// Read Zip archive and extract files on temporary working directory.
         /// </summary>
         /// <returns>A tuple with working temporary directory and a dictionnary of files contains (key: file full path on archive, value : file name) in zip archives.</returns>
-        public (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string compagnyName, string projectName, string folderType, FeatureType crudType)
+        public (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string folderType, FeatureType crudType)
         {
             string tempDir = null;
             Dictionary<string, string> files = null;
@@ -118,7 +118,6 @@
 
             // Add blocks found between markers
             foreach (string line in fileLines)
-            //for (int i = 0; i < fileLines.Count; i++)
             {
                 if (line.Contains(MARKER_BEGIN_PARTIAL, StringComparison.InvariantCulture))
                 {
@@ -150,18 +149,17 @@
                 return null;
             }
 
+            // Read file to update
+            List<string> fileLines = File.ReadAllLines(fileName).ToList();
+
             // Read file to verify if marker is present
-            if (!IsFileContains(fileName, new List<string> { BIA_MARKER }))
+            if (!IsFileContains(fileLines, new List<string> { MARKER_BEGIN }))
             {
                 return null;
             }
 
-            List<ExtractBlocks> extractBlocksList = new();
-
-            // Read file to update
-            List<string> fileLines = File.ReadAllLines(fileName).ToList();
-
             // Extract properties to update
+            List<ExtractBlocks> extractBlocksList = new();
             List<string> properties = FindBlock(CRUDDataUpdateType.Property, fileLines, null);
             if (properties != null)
             {
@@ -205,27 +203,23 @@
                 return null;
             }
 
+            // Read file in detail
+            List<string> fileLines = File.ReadAllLines(fileName).ToList();
+
             // Read file to verify if option are present
-            if (!IsFileContains(fileName, options))
+            if (!IsFileContains(fileLines, options))
             {
                 return null;
             }
 
-            List<string> linesToDelete = new();
-
-            // Read file in detail
-            List<string> fileLines = File.ReadAllLines(fileName).ToList();
-
             // Extract lines to delete
-            foreach (string line in fileLines)
+            List<string> linesToDelete = new();
+            foreach (string option in options)
             {
-                foreach (string option in options)
+                IEnumerable<string> linesFound = fileLines.Where(line => line.Contains(option, StringComparison.InvariantCultureIgnoreCase));
+                if (linesFound != null && linesFound.Any())
                 {
-                    if (line.Contains(option, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        linesToDelete.Add(line);
-                        continue;
-                    }
+                    linesToDelete.AddRange(linesFound);
                 }
             }
 
@@ -396,14 +390,11 @@
         /// <summary>
         /// Verify if file contains occurence of datas.
         /// </summary>
-        private bool IsFileContains(string fileName, List<string> dataList)
+        private bool IsFileContains(List<string> fileLines, List<string> dataList)
         {
-            // Read file
-            string fileContent = File.ReadAllText(fileName);
-
             foreach (string data in dataList)
             {
-                if (fileContent.Contains(data))
+                if (fileLines.Where(line => line.Contains(data)).Any())
                 {
                     return true;
                 }

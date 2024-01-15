@@ -59,5 +59,7 @@ namespace BIA.ToolKit.Common
         /// </summary>
         public const string FolderCrudGenerationTmp = "BiaToolKit_CRUDGenerator";
 
+        public const string PartialFileSuffix = ".partial";
+
     }
 }

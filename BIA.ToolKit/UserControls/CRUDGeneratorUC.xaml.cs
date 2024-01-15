@@ -356,7 +356,7 @@
                     }
 
                     // Parse Feature Zip file
-                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderDotNet, FeatureType.Back);
+                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, Constants.FolderDotNet, FeatureType.Back);
                     if (string.IsNullOrWhiteSpace(workingDirectoryPath))
                     {
                         consoleWriter.AddMessageLine($"Zip archive not found: '{fileName}'.", "Orange");
@@ -429,8 +429,7 @@
                     }
 
                     // Parse Zip file
-                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName,
-                        vm.CurrentProject.CompanyName, vm.CurrentProject.Name, Constants.FolderAngular, type);
+                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, Constants.FolderAngular, type);
                     if (string.IsNullOrWhiteSpace(workingDirectoryPath))
                     {
                         consoleWriter.AddMessageLine($"Zip archive '{fileName}' not found.", "Orange");

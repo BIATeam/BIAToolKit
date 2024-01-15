@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -286,6 +287,8 @@
         /// </summary>
         public string FilePath { get; }
 
+        public bool IsPartialFile { get; }
+
         /// <summary>
         /// Temporary working directory full path.
         /// </summary>
@@ -304,6 +307,7 @@
             this.FileName = fileName;
             this.FilePath = filePath;
             this.ExtractDirPath = tmpDir;
+            this.IsPartialFile = fileName.EndsWith(Constants.PartialFileSuffix);
         }
     }
 

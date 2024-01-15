@@ -86,21 +86,11 @@
             this.NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
         }
 
-        private void UpdateSettings(Project currentProject)
-        {
-            this.crudSettings.DotNetBianetConfigPath = this.crudSettings.DotNetBianetConfigPath.Replace(COMPAGNY_TAG, currentProject.CompanyName).Replace(PROJECT_NAME_TAG, currentProject.Name);
-            this.crudSettings.DotNetIocContainerPath = this.crudSettings.DotNetIocContainerPath.Replace(COMPAGNY_TAG, currentProject.CompanyName).Replace(PROJECT_NAME_TAG, currentProject.Name);
-            this.crudSettings.DotNetRightsPath = this.crudSettings.DotNetRightsPath.Replace(COMPAGNY_TAG, currentProject.CompanyName).Replace(PROJECT_NAME_TAG, currentProject.Name);
-        }
-
         public string GenerateCrudFiles(Project currentProject, EntityInfo dtoEntity, List<ZipFilesContent> fileListFromZip)
         {
             string generationFolder = null;
             try
             {
-                // Replace tag with good value on settings
-                UpdateSettings(currentProject);
-
                 // Get generation folders
                 generationFolder = GetGenerationFolder(currentProject, this.crudSettings.GenerateInProjectFolder);
                 string dotnetDir = Path.Combine(generationFolder, Constants.FolderDotNet);
@@ -159,6 +149,7 @@
             return generationFolder;
         }
 
+        #region Back
         private void GenerateBack(string destDir, ZipFilesContent zipFilesContent, Project currentProject)
         {
             try
@@ -178,12 +169,10 @@
                         // Ignore file : not necessary to regenerate it
                         continue;
                     }
-                    else if (crudData.FileType == BackFileType.Config ||
-                            crudData.FileType == BackFileType.Dependency ||
-                            crudData.FileType == BackFileType.Rights)
+                    else if (crudData.IsPartialFile)
                     {
                         // Update with partial file
-                        UpdatePartialFile(srcDir, destDir, crudData);
+                        UpdatePartialFile(srcDir, destDir, currentProject, crudData, dtoClassDefiniton);
                     }
                     else
                     {
@@ -196,8 +185,9 @@
                 consoleWriter.AddMessageLine($"An error has occurred in DotNet CRUD generation process: {ex.Message}", "Red");
             }
         }
+        #endregion
 
-        #region Angular
+        #region Front
         private void GenerateCRUD(string angularDir, Dictionary<string, List<string>> crudDtoProperties, ZipFilesContent zipFilesContent)
         {
             try
@@ -302,37 +292,32 @@
             CommonTools.GenerateFile(dest, fileLinesContent);
         }
 
-        private void UpdatePartialFile(string srcDir, string destDir, DotNetCRUDData crudData)
+        private void UpdatePartialFile(string srcDir, string destDir, Project currentProject, DotNetCRUDData crudData, ClassDefinition dtoClassDefiniton)
         {
             string srcFile, destFile, markerBegin, markerEnd;
             List<string> contentToAdd = new();
 
+            srcFile = Path.Combine(srcDir, crudData.FilePath.Replace(Constants.PartialFileSuffix, ""));
+            destFile = Path.Combine(destDir, crudData.FilePath.Replace(Constants.PartialFileSuffix, ""));
+
+            srcFile = ReplaceCompagnyNameProjetName(srcFile, currentProject, dtoClassDefiniton);
+            destFile = ReplaceCompagnyNameProjetName(destFile, currentProject, dtoClassDefiniton);
+
+
             if (crudData.FileType == BackFileType.Config)
             {
-                srcFile = Path.Combine(srcDir, crudSettings.DotNetBianetConfigPath);
-                destFile = Path.Combine(destDir, crudSettings.DotNetBianetConfigPath);
                 markerBegin = ZipParserService.MARKER_BEGIN_CONFIG;
                 markerEnd = ZipParserService.MARKER_END_CONFIG;
-                //markerBegin = $"{ZipParserService.MARKER_BEGIN_CONFIG} {NewCrudNamePascalSingular}";
-                //markerEnd = $"{ZipParserService.MARKER_END_CONFIG} {NewCrudNamePascalSingular}";
             }
             else if (crudData.FileType == BackFileType.Dependency)
             {
-                srcFile = Path.Combine(srcDir, crudSettings.DotNetIocContainerPath);
-                destFile = Path.Combine(destDir, crudSettings.DotNetIocContainerPath);
                 markerBegin = ZipParserService.MARKER_BEGIN_DEPENDENCY;
                 markerEnd = ZipParserService.MARKER_END_DEPENDENCY;
-                //markerBegin = $"{ZipParserService.MARKER_BEGIN_DEPENDENCY} {NewCrudNamePascalSingular}";
-                //markerEnd = $"{ZipParserService.MARKER_END_DEPENDENCY} {NewCrudNamePascalSingular}";
             }
             else if (crudData.FileType == BackFileType.Rights)
             {
-                srcFile = Path.Combine(srcDir, crudSettings.DotNetRightsPath);
-                destFile = Path.Combine(destDir, crudSettings.DotNetRightsPath);
                 markerBegin = ZipParserService.MARKER_BEGIN_RIGHTS;
                 markerEnd = ZipParserService.MARKER_END_RIGHTS;
-                //markerBegin = $"{ZipParserService.MARKER_BEGIN_RIGHTS} {NewCrudNamePascalSingular}";
-                //markerEnd = $"{ZipParserService.MARKER_END_RIGHTS} {NewCrudNamePascalSingular}";
             }
             else
                 return;
