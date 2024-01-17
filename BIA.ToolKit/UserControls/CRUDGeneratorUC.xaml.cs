@@ -370,7 +370,7 @@
                         {
                             BackFileType? type = zipService.GetFileType(file.Value);
                             // Ignore Dto, mapper and entity file
-                            if (type == BackFileType.Mapper || type == BackFileType.Entity)
+                            if (type != null && (type == BackFileType.Mapper || type == BackFileType.Entity))
                             {
                                 continue;
                             }
@@ -380,7 +380,12 @@
                                 FileType = type
                             };
 
-                            if (type == BackFileType.Dto)
+                            if (data.IsPartialFile)
+                            {
+                                string filePath = Path.Combine(workingDirectoryPath, file.Key);
+                                data.ExtractBlocks = zipService.AnalyzePartialFile(filePath);
+                            }
+                            else if (type == BackFileType.Dto)
                             {
                                 ClassDefinition classFile = service.ParseClassFile(Path.Combine(workingDirectoryPath, file.Key));
                                 if (classFile != null)
@@ -388,11 +393,6 @@
                                     classFile.EntityName = zipService.GetEntityName(file.Value, type);
                                 }
                                 data.ClassFileDefinition = classFile;
-                            }
-                            else if (type == BackFileType.Config || type == BackFileType.Dependency || type == BackFileType.Rights)
-                            {
-                                string filePath = Path.Combine(workingDirectoryPath, file.Key);
-                                data.ExtractBlocks = zipService.AnalyzePartialFile(filePath);
                             }
 
                             filesContent.FeatureDataList.Add(data);
@@ -474,6 +474,10 @@
                                 {
                                     ExtractBlocks = zipService.AnalyzeAngularFile(filePath, planeDtoProperties)
                                 };
+                                if (data.IsPartialFile)
+                                {
+                                    data.ExtractBlocks = zipService.AnalyzePartialFile(filePath);
+                                }
                                 if (options != null && options.Count > 0)
                                 {
                                     data.OptionToDelete = zipService.ExtractLinesContainsOptions(filePath, options);

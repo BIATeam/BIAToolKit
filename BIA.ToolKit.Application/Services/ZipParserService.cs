@@ -116,6 +116,7 @@
             // Read partial file
             List<string> fileLines = File.ReadAllLines(fileName).ToList();
 
+            string type = null;
             // Add blocks found between markers
             foreach (string line in fileLines)
             {
@@ -123,19 +124,42 @@
                 {
                     lines = new();
                     startFound = true;
+                    type = CommonTools.GetMatchRegexValue(@$"({MARKER_BEGIN_PARTIAL})[\s+](\w+)", line, 2);
                 }
 
                 if (startFound)
                     lines.Add(line);
 
-                if (line.Contains(MARKER_END_PARTIAL, StringComparison.InvariantCulture))
+                if (startFound && line.Contains(MARKER_END_PARTIAL, StringComparison.InvariantCulture))
                 {
                     startFound = false;
-                    extractBlocksList.Add(new ExtractBlocks(CRUDDataUpdateType.Partial, null, null, lines));
+                    extractBlocksList.Add(new ExtractBlocks(GetCRUDDataUpdateType(type), null, null, lines)); // todo type
                 }
             }
 
             return extractBlocksList;
+        }
+
+
+        private CRUDDataUpdateType GetCRUDDataUpdateType(string type)
+        {
+            if (type != null)
+            {
+                if (type == CRUDDataUpdateType.Config.ToString())
+                    return CRUDDataUpdateType.Config;
+                if (type == CRUDDataUpdateType.Dependency.ToString())
+                    return CRUDDataUpdateType.Dependency;
+                if (type == CRUDDataUpdateType.Navigation.ToString())
+                    return CRUDDataUpdateType.Navigation;
+                if (type == CRUDDataUpdateType.Permission.ToString())
+                    return CRUDDataUpdateType.Permission;
+                if (type == CRUDDataUpdateType.Rights.ToString())
+                    return CRUDDataUpdateType.Rights;
+                if (type == CRUDDataUpdateType.Routing.ToString())
+                    return CRUDDataUpdateType.Routing;
+            }
+
+            throw new Exception($"CRUDDataUpdateType not reconized for '{type}'.");
         }
 
         /// <summary>
@@ -238,13 +262,7 @@
             }
             else if (fileName.EndsWith(".partial"))
             {
-                if (fileName.ToLower().StartsWith("bianetconfig.json"))
-                    return BackFileType.Config;
-                else if (fileName.ToLower().StartsWith("ioccontainer.cs"))
-                    return BackFileType.Dependency;
-                else if (fileName.ToLower().StartsWith("rights.cs"))
-                    return BackFileType.Rights;
-                else return null;
+                return null;
             }
             else if (fileName.EndsWith(".cs"))
             {

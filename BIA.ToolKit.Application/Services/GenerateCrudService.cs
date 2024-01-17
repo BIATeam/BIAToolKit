@@ -119,7 +119,7 @@
                     }
                     else
                     {
-                        GenerateCRUD(angularDir, crudDtoProperties, crudFilesContent);
+                        GenerateCRUD(angularDir, crudDtoProperties, crudFilesContent, currentProject);
                     }
                 }
 
@@ -188,7 +188,7 @@
         #endregion
 
         #region Front
-        private void GenerateCRUD(string angularDir, Dictionary<string, List<string>> crudDtoProperties, ZipFilesContent zipFilesContent)
+        private void GenerateCRUD(string angularDir, Dictionary<string, List<string>> crudDtoProperties, ZipFilesContent zipFilesContent, Project currentProject)
         {
             try
             {
@@ -197,42 +197,51 @@
                 List<string> childrenToDelete;
                 List<string> optionToDelete;
 
-                foreach (AngularCRUDData angularFile in zipFilesContent.FeatureDataList)
+                foreach (AngularCRUDData crudData in zipFilesContent.FeatureDataList)
                 {
-                    blocksToAdd = new();
-                    propertiesToAdd = new();
-                    childrenToDelete = new();
-                    optionToDelete = new();
-                    if (angularFile.ExtractBlocks != null && angularFile.ExtractBlocks.Count > 0)
+                    if (crudData.IsPartialFile)
                     {
-                        foreach (KeyValuePair<string, List<string>> crudDtoProperty in crudDtoProperties)
+                        // Update with partial file
+                        string srcDir = Path.Combine(GetGenerationFolder(currentProject), Constants.FolderAngular);
+                        UpdatePartialFile(srcDir, angularDir, currentProject, crudData);
+                    }
+                    else
+                    {
+                        blocksToAdd = new();
+                        propertiesToAdd = new();
+                        childrenToDelete = new();
+                        optionToDelete = new();
+                        if (crudData.ExtractBlocks != null && crudData.ExtractBlocks.Count > 0)
                         {
-                            // Generate new properties to add
-                            propertiesToAdd.AddRange(GeneratePropertiesToAdd(angularFile, crudDtoProperty));
-                            // Generate new blocks to add
-                            blocksToAdd.AddRange(GenerateBlocksToAdd(angularFile, crudDtoProperty));
+                            foreach (KeyValuePair<string, List<string>> crudDtoProperty in crudDtoProperties)
+                            {
+                                // Generate new properties to add
+                                propertiesToAdd.AddRange(GeneratePropertiesToAdd(crudData, crudDtoProperty));
+                                // Generate new blocks to add
+                                blocksToAdd.AddRange(GenerateBlocksToAdd(crudData, crudDtoProperty));
+                            }
+
+                            // Get Children line to delete
+                            var childrenBlocs = crudData.ExtractBlocks.Where(l => l.DataUpdateType == CRUDDataUpdateType.Children);
+                            if (childrenBlocs != null)
+                            {
+                                childrenBlocs.ToList().ForEach(b => childrenToDelete.AddRange(b.BlockLines));
+                            }
                         }
 
-                        // Get Children line to delete
-                        var childrenBlocs = angularFile.ExtractBlocks.Where(l => l.DataUpdateType == CRUDDataUpdateType.Children);
-                        if (childrenBlocs != null)
+                        if (crudData.OptionToDelete != null && crudData.OptionToDelete.Count > 0)
                         {
-                            childrenBlocs.ToList().ForEach(b => childrenToDelete.AddRange(b.BlockLines));
+                            // Get lines to delete
+                            optionToDelete = crudData.OptionToDelete;
                         }
+
+                        // Create file
+                        string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
+                        string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, crudData.FilePath), FeatureType.CRUD);
+
+                        // replace blocks !
+                        GenerateAngularFile(FeatureType.CRUD, src, dest, propertiesToAdd, blocksToAdd, childrenToDelete, optionToDelete);
                     }
-
-                    if (angularFile.OptionToDelete != null && angularFile.OptionToDelete.Count > 0)
-                    {
-                        // Get lines to delete
-                        optionToDelete = angularFile.OptionToDelete;
-                    }
-
-                    // Create file
-                    string src = Path.Combine(angularFile.ExtractDirPath, angularFile.FilePath);
-                    string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FilePath), FeatureType.CRUD);
-
-                    // replace blocks !
-                    GenerateAngularFile(FeatureType.CRUD, src, dest, propertiesToAdd, blocksToAdd, childrenToDelete, optionToDelete);
                 }
             }
             catch (Exception ex)
@@ -292,46 +301,71 @@
             CommonTools.GenerateFile(dest, fileLinesContent);
         }
 
-        private void UpdatePartialFile(string srcDir, string destDir, Project currentProject, DotNetCRUDData crudData, ClassDefinition dtoClassDefiniton)
+        private void UpdatePartialFile(string srcDir, string destDir, Project currentProject, FeatureData crudData, ClassDefinition dtoClassDefiniton = null)
         {
-            string srcFile, destFile, markerBegin, markerEnd;
+            FeatureType type;
+            string fileName, srcFile, destFile, markerBegin, markerEnd;
             List<string> contentToAdd = new();
 
-            srcFile = Path.Combine(srcDir, crudData.FilePath.Replace(Constants.PartialFileSuffix, ""));
-            destFile = Path.Combine(destDir, crudData.FilePath.Replace(Constants.PartialFileSuffix, ""));
-
-            srcFile = ReplaceCompagnyNameProjetName(srcFile, currentProject, dtoClassDefiniton);
-            destFile = ReplaceCompagnyNameProjetName(destFile, currentProject, dtoClassDefiniton);
-
-
-            if (crudData.FileType == BackFileType.Config)
+            if (dtoClassDefiniton != null)
             {
-                markerBegin = ZipParserService.MARKER_BEGIN_CONFIG;
-                markerEnd = ZipParserService.MARKER_END_CONFIG;
-            }
-            else if (crudData.FileType == BackFileType.Dependency)
-            {
-                markerBegin = ZipParserService.MARKER_BEGIN_DEPENDENCY;
-                markerEnd = ZipParserService.MARKER_END_DEPENDENCY;
-            }
-            else if (crudData.FileType == BackFileType.Rights)
-            {
-                markerBegin = ZipParserService.MARKER_BEGIN_RIGHTS;
-                markerEnd = ZipParserService.MARKER_END_RIGHTS;
+                fileName = ReplaceCompagnyNameProjetName(crudData.FilePath, currentProject, dtoClassDefiniton).Replace(Constants.PartialFileSuffix, "");
             }
             else
-                return;
+            {
+                fileName = crudData.FilePath.Replace(Constants.PartialFileSuffix, "");
+            }
 
-            // Generate content to add
+            srcFile = Path.Combine(srcDir, fileName);
+            destFile = Path.Combine(destDir, fileName);
+
             if (crudData.ExtractBlocks != null &&
                 crudData.ExtractBlocks.Count > 0 &&
                 crudData.ExtractBlocks[0].BlockLines != null)
             {
-                crudData.ExtractBlocks[0].BlockLines.ForEach(line => contentToAdd.Add(ConvertPascalOldToNewCrudName(line, FeatureType.Back)));
-            }
+                ExtractBlocks block = crudData.ExtractBlocks[0];
 
-            // Update file
-            UpdateDotDetCrudFile(srcFile, destFile, contentToAdd, markerBegin, markerEnd);
+                switch (block.DataUpdateType)
+                {
+                    case CRUDDataUpdateType.Config:
+                        markerBegin = ZipParserService.MARKER_BEGIN_CONFIG;
+                        markerEnd = ZipParserService.MARKER_END_CONFIG;
+                        type = FeatureType.Back;
+                        break;
+                    case CRUDDataUpdateType.Dependency:
+                        markerBegin = ZipParserService.MARKER_BEGIN_DEPENDENCY;
+                        markerEnd = ZipParserService.MARKER_END_DEPENDENCY;
+                        type = FeatureType.Back;
+                        break;
+                    case CRUDDataUpdateType.Navigation:
+                        markerBegin = ZipParserService.MARKER_BEGIN_NAVIGATION;
+                        markerEnd = ZipParserService.MARKER_END_NAVIGATION;
+                        type = FeatureType.CRUD;
+                        break;
+                    case CRUDDataUpdateType.Permission:
+                        markerBegin = ZipParserService.MARKER_BEGIN_PERMISSION;
+                        markerEnd = ZipParserService.MARKER_END_PERMISSION;
+                        type = FeatureType.CRUD;
+                        break;
+                    case CRUDDataUpdateType.Rights:
+                        markerBegin = ZipParserService.MARKER_BEGIN_RIGHTS;
+                        markerEnd = ZipParserService.MARKER_END_RIGHTS;
+                        type = FeatureType.Back;
+                        break;
+                    case CRUDDataUpdateType.Routing:
+                        markerBegin = ZipParserService.MARKER_BEGIN_ROUTING;
+                        markerEnd = ZipParserService.MARKER_END_ROUTING;
+                        type = FeatureType.CRUD;
+                        break;
+                    default: return;
+                }
+
+                // Generate content to add
+                block.BlockLines.ForEach(line => contentToAdd.Add(ConvertPascalOldToNewCrudName(line, type)));
+
+                // Update file
+                UpdateDotDetCrudFile(srcFile, destFile, contentToAdd, markerBegin, markerEnd);
+            }
         }
 
         private void UpdateDotDetCrudFile(string srcFile, string destFile, List<string> contentToAdd, string markerBegin, string markerEnd)
@@ -370,35 +404,43 @@
             {
                 return fileContent;
             }
-            List<string> contentToReplace = fileContent.ToArray()[indexBegin..++indexEnd].ToList();
+            List<string> contentToReplace = fileContent.ToArray()[(indexBegin + 1)..indexEnd].ToList();
 
             // Update content to replace
-            int indexStart = contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.Contains(contentToAdd[0])));
-            if (indexStart >= 0)
+            if (contentToReplace.Count > 0)
             {
-                int indexStop = contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.Contains(contentToAdd[contentToAdd.Count - 1])));
-
-                for (int i = 0; i < indexStart; i++)
+                int indexStart = contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.Contains(contentToAdd[0])));
+                if (indexStart >= 0)
                 {
-                    contentBetweenMarker.Add(contentToReplace[i]);
+                    int indexStop = contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.Contains(contentToAdd[contentToAdd.Count - 1])));
+
+                    for (int i = 0; i < indexStart; i++)
+                    {
+                        contentBetweenMarker.Add(contentToReplace[i]);
+                    }
+
+                    contentBetweenMarker.AddRange(contentToAdd);
+
+                    for (int i = indexStop + 1; i < contentToReplace.Count; i++)
+                    {
+                        contentBetweenMarker.Add(contentToReplace[i]);
+                    }
                 }
-
-                contentBetweenMarker.AddRange(contentToAdd);
-
-                for (int i = indexStop + 1; i < contentToReplace.Count; i++)
+                else
                 {
-                    contentBetweenMarker.Add(contentToReplace[i]);
+                    contentBetweenMarker.AddRange(contentToReplace);
+                    contentBetweenMarker.AddRange(contentToAdd);
                 }
             }
             else
             {
-                contentBetweenMarker.AddRange(contentToAdd);
+                contentBetweenMarker = contentToAdd;
             }
 
             // Replace content
-            newContent.AddRange(fileContent.ToArray()[0..indexBegin].ToList());
+            newContent.AddRange(fileContent.ToArray()[0..++indexBegin].ToList());
             newContent.AddRange(contentBetweenMarker);
-            newContent.AddRange(fileContent.ToArray()[++indexEnd..fileContent.Count].ToList());
+            newContent.AddRange(fileContent.ToArray()[indexEnd..fileContent.Count].ToList());
 
             return newContent;
         }

@@ -101,15 +101,15 @@
         /// <summary>
         /// Get first group that match with regex.
         /// </summary>
-        public static string GetMatchRegexValue(string pattern, string data)
+        public static string GetMatchRegexValue(string pattern, string data, int nbGoup = 1)
         {
             MatchCollection matches = new Regex(pattern).Matches(data);
             if (matches != null && matches.Count > 0)
             {
                 GroupCollection groups = matches[0].Groups;
-                if (groups.Count > 0)
+                if (groups.Count > nbGoup - 1)
                 {
-                    return groups[1].Value;
+                    return groups[nbGoup].Value;
                 }
             }
             return null;

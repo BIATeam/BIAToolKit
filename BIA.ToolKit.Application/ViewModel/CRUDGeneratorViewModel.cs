@@ -375,14 +375,17 @@
 
     public enum CRUDDataUpdateType
     {
+        Config,
+        Dependency,
+        Navigation,
+        Permission,
+        Rights,
+        Routing,
         // Angular
         Property,
         Block,
-        Children,
-        // DotNet
-        Partial
+        Children
     }
-
     public enum BackFileType
     {
         AppService,
@@ -391,8 +394,5 @@
         Entity,
         IAppService,
         Mapper,
-        Rights,
-        Config,
-        Dependency
     }
 }
