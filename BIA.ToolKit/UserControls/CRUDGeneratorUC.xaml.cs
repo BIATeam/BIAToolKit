@@ -7,7 +7,6 @@
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
-    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -20,12 +19,14 @@
     /// </summary>
     public partial class CRUDGeneratorUC : UserControl
     {
-        IConsoleWriter consoleWriter;
-        CSharpParserService service;
-        ZipParserService zipService;
-        GenerateCrudService crudService;
+        private IConsoleWriter consoleWriter;
+        private CSharpParserService service;
+        private ZipParserService zipService;
+        private GenerateCrudService crudService;
         private CRUDSettings crudSettings;
+        private CRUDGeneration crudGeneration;
         private readonly CRUDGeneratorViewModel vm;
+        private string crudHistoryFileName;
 
         /// <summary>
         /// Constructor
@@ -79,11 +80,15 @@
 
             // Read settings
             string dotnetFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet, Constants.FolderDoc);
-            string angularFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderAngular, Constants.FolderDoc);
+            string angularFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, vm.CurrentProject.BIAFronts, Constants.FolderDoc);
             vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Back, this.crudSettings.ZipNameBack, dotnetFolderPath));
             vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.CRUD, this.crudSettings.ZipNameFeature, angularFolderPath));
             vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Option, this.crudSettings.ZipNameOption, angularFolderPath));
             vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Team, this.crudSettings.ZipNameTeam, angularFolderPath));
+
+            // Load generation history
+            crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, crudSettings.GenerationHistoryFileName);
+            this.crudGeneration = CommonTools.DeserializeJsonFile<CRUDGeneration>(crudHistoryFileName);
         }
 
         #region State change
@@ -280,11 +285,72 @@
             // Generation DotNet + Angular files
             string path = crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFilesContent);
 
+            // Generate generation history file
+            UpdateCrudGenerationHistory();
+
             System.Diagnostics.Process.Start("explorer.exe", path);
         }
         #endregion
 
         #region Private method
+        private void UpdateCrudGenerationHistory()
+        {
+            if (this.crudGeneration == null)
+                this.crudGeneration = new();
+
+            string dotNetPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet);
+            CRUDGenerationHistory history = new()
+            {
+                Date = DateTime.Now,
+                EntityNameSingular = vm.CRUDNameSingular,
+                EntityNamePlurial = vm.CRUDNamePlurial,
+
+                // Create "Mapping" part
+                Mapping = new()
+                {
+                    Dto = vm.DtoFiles[vm.DtoSelected].Replace(dotNetPath, "").TrimStart(Path.DirectorySeparatorChar),
+                    Template = crudSettings.ZipNameBack,
+                    Type = "DotNet",
+                }
+            };
+
+            // Create "Generation" list part
+            vm.FeatureTypeDataList.ForEach(feature =>
+            {
+                if (feature.IsChecked)
+                {
+                    Generation crudGeneration = new()
+                    {
+                        Template = feature.ZipName
+                    };
+                    if (feature.Type == FeatureType.Back)
+                    {
+                        crudGeneration.Type = "DotNet";
+                        crudGeneration.Folder = Constants.FolderDotNet;
+                    }
+                    else
+                    {
+                        crudGeneration.Type = "Angular";
+                        crudGeneration.Folder = vm.CurrentProject.BIAFronts;
+                    }
+                    history.Generation.Add(crudGeneration);
+                }
+            });
+
+            // Get existing to verify if previous generation for same entity name was already done
+            CRUDGenerationHistory genFound = this.crudGeneration.CRUDGenerationHistory.FirstOrDefault(gen => gen.EntityNameSingular == history.EntityNameSingular);
+            if (genFound != null)
+            {
+                // Remove last generation to replace by new generation
+                this.crudGeneration.CRUDGenerationHistory.Remove(genFound);
+            }
+
+            this.crudGeneration.CRUDGenerationHistory.Add(history);
+
+            // Generate history file
+            CommonTools.SerializeToJsonFile<CRUDGeneration>(this.crudGeneration, crudHistoryFileName);
+        }
+
         /// <summary>
         /// List all Dto files from current project.
         /// </summary>
@@ -429,7 +495,7 @@
                     }
 
                     // Parse Zip file
-                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, Constants.FolderAngular, type);
+                    (string workingDirectoryPath, Dictionary<string, string> fileList) = zipService.ReadZipAndExtract(fileName, vm.CurrentProject.BIAFronts, type);
                     if (string.IsNullOrWhiteSpace(workingDirectoryPath))
                     {
                         consoleWriter.AddMessageLine($"Zip archive '{fileName}' not found.", "Orange");
@@ -456,7 +522,7 @@
                         KeyValuePair<string, string> textFile = fileList.Where(x => x.Value.Equals(crudSettings.OptionsToRemoveFileName)).FirstOrDefault();
                         if (textFile.Key != null && textFile.Value != null)
                         {
-                            BIAToolKitJson btkj = DeserializeJsonFile(Path.Combine(workingDirectoryPath, textFile.Key));
+                            BIAToolKitJson btkj = CommonTools.DeserializeJsonFile<BIAToolKitJson>(Path.Combine(workingDirectoryPath, textFile.Key));
                             if (btkj != null && btkj.OptionsToRemove != null)
                             {
                                 options = btkj.OptionsToRemove.ToList();
@@ -560,23 +626,6 @@
             return null;
         }
 
-        /// <summary>
-        /// Deserialize Json file to object.
-        /// </summary>
-        /// <param name="fileName"></param>
-        private BIAToolKitJson DeserializeJsonFile(string fileName)
-        {
-            if (!File.Exists(fileName))
-            {
-                consoleWriter.AddMessageLine($"Error on analysing json file: file not exist on disk: '{fileName}'", "Orange");
-                return null;
-            }
-
-            using StreamReader r = new(fileName);
-            string json = r.ReadToEnd();
-            return JsonConvert.DeserializeObject<BIAToolKitJson>(json);
-        }
-
         private string GetEntityNameFromDto(string dtoFileName)
         {
             var fileName = Path.GetFileNameWithoutExtension(dtoFileName);
@@ -592,8 +641,10 @@
 
     class BIAToolKitJson
     {
-        public IList<string> OptionsToRemove { get; set; }
+        public string Feature { get; set; }
+        public List<string> OptionsToRemove { get; set; }
     }
+
 
 
 }

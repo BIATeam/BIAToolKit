@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.Common
 {
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -118,11 +119,28 @@
         public static bool IsMatchRegexValue(string pattern, string data)
         {
             MatchCollection matches = new Regex(pattern).Matches(data);
-            if (matches != null && matches.Count > 0)
+            return (matches != null && matches.Count > 0);
+        }
+
+        /// <summary>
+        /// Deserialize Json file to object.
+        /// </summary>
+        public static T DeserializeJsonFile<T>(string fileName)
+        {
+            if (!File.Exists(fileName))
             {
-                return true;
+                return default(T);
             }
-            return false;
+
+            using StreamReader reader = new(fileName);
+            string jsonString = reader.ReadToEnd();
+            return JsonConvert.DeserializeObject<T>(jsonString);
+        }
+
+        public static void SerializeToJsonFile<T>(T jsonContent, string fileName)
+        {
+            string jsonString = JsonConvert.SerializeObject(jsonContent);
+            File.WriteAllText(fileName, jsonString);
         }
     }
 }

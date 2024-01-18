@@ -94,7 +94,7 @@
                 // Get generation folders
                 generationFolder = GetGenerationFolder(currentProject, this.crudSettings.GenerateInProjectFolder);
                 string dotnetDir = Path.Combine(generationFolder, Constants.FolderDotNet);
-                string angularDir = Path.Combine(generationFolder, Constants.FolderAngular);
+                string angularDir = Path.Combine(generationFolder, currentProject.BIAFronts);
 
                 // Generate CRUD DotNet files
                 ZipFilesContent backFilesContent = fileListFromZip.Where(x => x.Type == FeatureType.Back).FirstOrDefault();
@@ -202,7 +202,7 @@
                     if (crudData.IsPartialFile)
                     {
                         // Update with partial file
-                        string srcDir = Path.Combine(GetGenerationFolder(currentProject), Constants.FolderAngular);
+                        string srcDir = Path.Combine(GetGenerationFolder(currentProject), currentProject.BIAFronts);
                         UpdatePartialFile(srcDir, angularDir, currentProject, crudData);
                     }
                     else

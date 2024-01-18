@@ -21,7 +21,7 @@
         public string ZipNameTeam { get; private set; }
         // File name
         public string OptionsToRemoveFileName { get; private set; }
-
+        public string GenerationHistoryFileName { get; private set; }
 
         /// <summary>
         /// Constructor.
@@ -51,6 +51,7 @@
             ZipNameTeam = settingsService.ReadSetting("ZipNameTeam_Angular");
 
             OptionsToRemoveFileName = settingsService.ReadSetting("OptionsToRemove");
+            GenerationHistoryFileName = settingsService.ReadSetting("GenerationHistory");
 
             string generate = settingsService.ReadSetting("GenerateInProjectFolder");
             if (!string.IsNullOrWhiteSpace(generate))
