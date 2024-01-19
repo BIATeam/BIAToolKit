@@ -100,6 +100,33 @@
             if (vm == null) return;
             vm.IsDtoParsed = false;
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
+
+            bool isBackSelected = false, isCrudSelected = false, isOptionSelected = false, isTeamSelected = false;
+            Visibility visible = Visibility.Hidden;
+            if (this.crudGeneration != null)
+            {
+                string dtoName = GetDtoSelectedPath();
+                CRUDGenerationHistory history = crudGeneration.CRUDGenerationHistory.FirstOrDefault(h => h.Mapping.Dto == dtoName);
+
+                // Apply last generation values
+                if (history != null)
+                {
+                    vm.CRUDNameSingular = history.EntityNameSingular;
+                    vm.CRUDNamePlurial = history.EntityNamePlurial;
+
+                    visible = Visibility.Visible;
+                    isBackSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.Back.ToString()) != null);
+                    isCrudSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.CRUD.ToString()) != null);
+                    isOptionSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.Option.ToString()) != null);
+                    isTeamSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.Team.ToString()) != null);
+                }
+            }
+
+            CrudAlreadyGeneratedLabel.Visibility = visible;
+            vm.IsBackSelected = isBackSelected;
+            vm.IsCrudSelected = isCrudSelected;
+            vm.IsOptionSelected = isOptionSelected;
+            vm.IsTeamSelected = isTeamSelected;
         }
 
         /// <summary>
@@ -117,122 +144,6 @@
         {
 
             vm.IsCheckedAction = true;
-        }
-
-        /// <summary>
-        /// Action linked with "Generate back" checkbox.
-        /// </summary>
-        private void GenerateBackChk_Change(object sender, RoutedEventArgs e)
-        {
-            if (vm == null || vm.FeatureTypeDataList == null) return;
-
-            FeatureTypeData crudZipData = vm.FeatureTypeDataList.Where(x => x.Type == FeatureType.Back).FirstOrDefault();
-            if (crudZipData != null)
-            {
-                crudZipData.IsChecked = (bool)((CheckBox)sender).IsChecked;
-                if (crudZipData.IsChecked)
-                {
-                    vm.ZipDotNetSelected.Add(crudZipData.ZipName);
-                }
-                else
-                {
-                    vm.ZipDotNetSelected.Remove(crudZipData.ZipName);
-                }
-
-                vm.IsZipParsed = false;
-                vm.IsCheckedAction = true;
-            }
-            else
-            {
-                consoleWriter.AddMessageLine("No DotNet Zip.", "Rouge");
-            }
-        }
-
-        /// <summary>
-        /// Action linked with "Generate feature" checkbox.
-        /// </summary>
-        private void GenerateCrudChk_Change(object sender, RoutedEventArgs e)
-        {
-            if (vm == null || vm.FeatureTypeDataList == null) return;
-
-            FeatureTypeData crudZipData = vm.FeatureTypeDataList.Where(x => x.Type == FeatureType.CRUD).FirstOrDefault();
-            if (crudZipData != null)
-            {
-                crudZipData.IsChecked = (bool)((CheckBox)sender).IsChecked;
-                if (crudZipData.IsChecked)
-                {
-                    vm.ZipAngularSelected.Add(crudZipData.ZipName);
-                }
-                else
-                {
-                    vm.ZipAngularSelected.Remove(crudZipData.ZipName);
-                }
-
-                vm.IsZipParsed = false;
-                vm.IsCheckedAction = true;
-            }
-            else
-            {
-                consoleWriter.AddMessageLine("No CRUD Feature Zip.", "Rouge");
-            }
-        }
-
-        /// <summary>
-        /// Action linked with "Generate team" checkbox.
-        /// </summary>
-        private void GenerateTeamChk_Change(object sender, RoutedEventArgs e)
-        {
-            if (vm == null || vm.FeatureTypeDataList == null) return;
-
-            FeatureTypeData crudZipData = vm.FeatureTypeDataList.Where(x => x.Type == FeatureType.Team).FirstOrDefault();
-            if (crudZipData != null)
-            {
-                crudZipData.IsChecked = (bool)((CheckBox)sender).IsChecked;
-                if (crudZipData.IsChecked)
-                {
-                    vm.ZipAngularSelected.Add(crudZipData.ZipName);
-                }
-                else
-                {
-                    vm.ZipAngularSelected.Remove(crudZipData.ZipName);
-                }
-
-                vm.IsZipParsed = false;
-                vm.IsCheckedAction = true;
-            }
-            else
-            {
-                consoleWriter.AddMessageLine("No CRUD Team Zip.", "Rouge");
-            }
-        }
-
-        /// <summary>
-        /// Action linked with "Generate option" checkbox.
-        /// </summary>
-        private void GenerateOptionChk_Change(object sender, RoutedEventArgs e)
-        {
-            if (vm == null || vm.FeatureTypeDataList == null) return;
-
-            FeatureTypeData crudZipData = vm.FeatureTypeDataList.Where(x => x.Type == FeatureType.Option).FirstOrDefault();
-            if (crudZipData != null)
-            {
-                crudZipData.IsChecked = (bool)((CheckBox)sender).IsChecked;
-                if (crudZipData.IsChecked)
-                {
-                    vm.ZipAngularSelected.Add(crudZipData.ZipName);
-                }
-                else
-                {
-                    vm.ZipAngularSelected.Remove(crudZipData.ZipName);
-                }
-
-                vm.IsZipParsed = false;
-                vm.IsCheckedAction = true;
-            }
-            else
-            {
-                consoleWriter.AddMessageLine("No CRUD Option Zip.", "Rouge");
-            }
         }
         #endregion
 
@@ -298,7 +209,6 @@
             if (this.crudGeneration == null)
                 this.crudGeneration = new();
 
-            string dotNetPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet);
             CRUDGenerationHistory history = new()
             {
                 Date = DateTime.Now,
@@ -308,7 +218,7 @@
                 // Create "Mapping" part
                 Mapping = new()
                 {
-                    Dto = vm.DtoFiles[vm.DtoSelected].Replace(dotNetPath, "").TrimStart(Path.DirectorySeparatorChar),
+                    Dto = GetDtoSelectedPath(),
                     Template = crudSettings.ZipNameBack,
                     Type = "DotNet",
                 }
@@ -321,7 +231,8 @@
                 {
                     Generation crudGeneration = new()
                     {
-                        Template = feature.ZipName
+                        Template = feature.ZipName,
+                        Feature = feature.Type.ToString()
                     };
                     if (feature.Type == FeatureType.Back)
                     {
@@ -635,6 +546,12 @@
             }
 
             return fileName;
+        }
+
+        private string GetDtoSelectedPath()
+        {
+            string dotNetPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet);
+            return vm.DtoFiles[vm.DtoSelected].Replace(dotNetPath, "").TrimStart(Path.DirectorySeparatorChar);
         }
         #endregion
     }

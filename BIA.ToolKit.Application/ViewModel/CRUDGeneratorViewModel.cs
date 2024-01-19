@@ -7,6 +7,7 @@
     using BIA.ToolKit.Domain.ModifyProject;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.Linq;
 
     public class CRUDGeneratorViewModel : ObservableObject
     {
@@ -125,6 +126,101 @@
                 {
                     entityNamePlurial = value;
                     RaisePropertyChanged(nameof(CRUDNamePlurial));
+                }
+            }
+        }
+        #endregion
+
+        #region CheckBox
+        private bool isBackSelected;
+        public bool IsBackSelected
+        {
+            get { return isBackSelected; }
+            set
+            {
+                if (isBackSelected != value)
+                {
+                    isBackSelected = value;
+                    RaisePropertyChanged(nameof(IsBackSelected));
+
+                    FeatureTypeData feature = FeatureTypeDataList.Where(x => x.Type == FeatureType.Back).FirstOrDefault();
+                    UpdateFeatureSelection(feature, value);
+                }
+            }
+        }
+
+        private bool isCrudSelected;
+        public bool IsCrudSelected
+        {
+            get { return isCrudSelected; }
+            set
+            {
+                if (isCrudSelected != value)
+                {
+                    isCrudSelected = value;
+                    RaisePropertyChanged(nameof(IsCrudSelected));
+
+                    FeatureTypeData feature = FeatureTypeDataList.Where(x => x.Type == FeatureType.CRUD).FirstOrDefault();
+                    UpdateFeatureSelection(feature, value);
+                }
+            }
+        }
+
+        private bool isOptionSelected;
+        public bool IsOptionSelected
+        {
+            get { return isOptionSelected; }
+            set
+            {
+                if (isOptionSelected != value)
+                {
+                    isOptionSelected = value;
+                    RaisePropertyChanged(nameof(IsOptionSelected));
+
+                    FeatureTypeData feature = FeatureTypeDataList.Where(x => x.Type == FeatureType.Option).FirstOrDefault();
+                    UpdateFeatureSelection(feature, value);
+                }
+            }
+        }
+
+        private bool isTeamSelected;
+        public bool IsTeamSelected
+        {
+            get { return isTeamSelected; }
+            set
+            {
+                if (isTeamSelected != value)
+                {
+                    isTeamSelected = value;
+                    RaisePropertyChanged(nameof(IsTeamSelected));
+
+                    FeatureTypeData feature = FeatureTypeDataList.Where(x => x.Type == FeatureType.Team).FirstOrDefault();
+                    UpdateFeatureSelection(feature, value);
+                }
+            }
+        }
+
+        private void UpdateFeatureSelection(FeatureTypeData feature, bool isChecked)
+        {
+            if (feature != null)
+            {
+                feature.IsChecked = isChecked;
+                IsZipParsed = false;
+                IsCheckedAction = true;
+
+                if (feature.IsChecked)
+                {
+                    if (feature.Type == FeatureType.Back)
+                        ZipDotNetSelected.Add(feature.ZipName);
+                    else
+                        ZipAngularSelected.Add(feature.ZipName);
+                }
+                else
+                {
+                    if (feature.Type == FeatureType.Back)
+                        ZipDotNetSelected.Remove(feature.ZipName);
+                    else
+                        ZipAngularSelected.Remove(feature.ZipName);
                 }
             }
         }
