@@ -18,6 +18,11 @@
         /// <param name="value">The data value</param>
         public static void AddToDictionnary<T>(Dictionary<string, List<T>> dico, string key, T value)
         {
+            if (dico == null)
+            {
+                dico = new();
+            }
+
             if (dico.ContainsKey(key))
             {
                 dico[key].Add(value);

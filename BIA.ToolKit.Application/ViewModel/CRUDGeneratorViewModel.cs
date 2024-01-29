@@ -132,18 +132,18 @@
         #endregion
 
         #region CheckBox
-        private bool isBackSelected;
-        public bool IsBackSelected
+        private bool isWebApiSelected;
+        public bool IsWebApiSelected
         {
-            get { return isBackSelected; }
+            get { return isWebApiSelected; }
             set
             {
-                if (isBackSelected != value)
+                if (isWebApiSelected != value)
                 {
-                    isBackSelected = value;
-                    RaisePropertyChanged(nameof(IsBackSelected));
+                    isWebApiSelected = value;
+                    RaisePropertyChanged(nameof(IsWebApiSelected));
 
-                    FeatureTypeData feature = FeatureTypeDataList.Where(x => x.Type == FeatureType.Back).FirstOrDefault();
+                    FeatureTypeData feature = FeatureTypeDataList.Where(x => x.Type == FeatureType.WebApi).FirstOrDefault();
                     UpdateFeatureSelection(feature, value);
                 }
             }
@@ -210,14 +210,14 @@
 
                 if (feature.IsChecked)
                 {
-                    if (feature.Type == FeatureType.Back)
+                    if (feature.Type == FeatureType.WebApi)
                         ZipDotNetSelected.Add(feature.ZipName);
                     else
                         ZipAngularSelected.Add(feature.ZipName);
                 }
                 else
                 {
-                    if (feature.Type == FeatureType.Back)
+                    if (feature.Type == FeatureType.WebApi)
                         ZipDotNetSelected.Remove(feature.ZipName);
                     else
                         ZipAngularSelected.Remove(feature.ZipName);
@@ -393,7 +393,12 @@
         /// <summary>
         /// List of ExtractBlocks.
         /// </summary>
-        public List<ExtractBlocks> ExtractBlocks { get; set; }
+        public List<ExtractBlock> ExtractBlocks { get; set; }
+
+        /// <summary>
+        /// List of Options to delete.
+        /// </summary>
+        public List<string> OptionToDelete { get; set; }
 
         /// <summary>
         /// Constructor.
@@ -407,27 +412,12 @@
         }
     }
 
-    public class AngularCRUDData : FeatureData
-    {
-        /// <summary>
-        /// List of Options to delete.
-        /// </summary>
-        public List<string> OptionToDelete { get; set; }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public AngularCRUDData(string fileName, string filePath, string tmpDir) : base(fileName, filePath, tmpDir)
-        {
-        }
-    }
-
-    public class DotNetCRUDData : FeatureData
+    public class WebApiFeatureData : FeatureData
     {
         /// <summary>
         /// File type.
         /// </summary>
-        public BackFileType? FileType { get; set; }
+        public WebApiFileType? FileType { get; }
 
         /// <summary>
         /// List of Options to delete.
@@ -437,33 +427,42 @@
         /// <summary>
         /// Constructor.
         /// </summary>
-        public DotNetCRUDData(string fileName, string filePath, string tmpDir) : base(fileName, filePath, tmpDir)
+        public WebApiFeatureData(string fileName, string filePath, string tmpDir, WebApiFileType? type) : base(fileName, filePath, tmpDir)
         {
+            this.FileType = type;
         }
     }
 
-    public class ExtractBlocks
+    public class ExtractBlock
     {
         public CRUDDataUpdateType DataUpdateType { get; }
-
-        public string Type { get; }
 
         public string Name { get; }
 
         public List<string> BlockLines { get; }
 
-        public ExtractBlocks(CRUDDataUpdateType dataUpdateType, string type, string name, List<string> lines)
+        public ExtractBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines)
         {
             this.DataUpdateType = dataUpdateType;
-            this.Type = type;
             this.Name = name;
             this.BlockLines = lines;
         }
     }
 
+    public class ExtractPropertiesBlock : ExtractBlock
+    {
+        public Dictionary<string, List<string>> PropertiesList { get; }
+
+        public ExtractPropertiesBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) : base(dataUpdateType, name, lines)
+        {
+            PropertiesList = new();
+        }
+    }
+
+
     public enum FeatureType
     {
-        Back,
+        WebApi,
         CRUD,
         Option,
         Team
@@ -471,18 +470,20 @@
 
     public enum CRUDDataUpdateType
     {
+        Properties,
+        Block,
+        Child,
+        Option,
+        // Partial
         Config,
         Dependency,
         Navigation,
         Permission,
         Rights,
-        Routing,
-        // Angular
-        Property,
-        Block,
-        Children
+        Routing
     }
-    public enum BackFileType
+
+    public enum WebApiFileType
     {
         AppService,
         Controller,
@@ -490,5 +491,6 @@
         Entity,
         IAppService,
         Mapper,
+        Partial
     }
 }

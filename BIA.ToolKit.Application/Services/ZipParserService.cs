@@ -3,6 +3,7 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain.CRUDGenerator;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System;
     using System.Collections.Generic;
@@ -14,52 +15,134 @@
     public class ZipParserService
     {
         private readonly IConsoleWriter consoleWriter;
+        private readonly CSharpParserService service;
 
         private const string BIA_MARKER = "BIAToolKit -";
-        private const string MARKER_BEGIN = $"{BIA_MARKER} Begin";
-        private const string MARKER_END = $"{BIA_MARKER} End";
-        // CRUD
-        public const string MARKER_BEGIN_PROPERTIES = $"{MARKER_BEGIN} Properties";
-        public const string MARKER_END_PROPERTIES = $"{MARKER_END} Properties";
-        public const string MARKER_BEGIN_BLOCK = $"{MARKER_BEGIN} Block";
-        public const string MARKER_END_BLOCK = $"{MARKER_END} Block";
-        public const string MARKER_BEGIN_CHILDREN = $"/* {MARKER_BEGIN} Children */";
-        public const string MARKER_END_CHILDREN = $"/* {MARKER_END} Children */";
-        // Back
-        public const string MARKER_BEGIN_RIGHTS = $"{MARKER_BEGIN} Rights";
-        public const string MARKER_END_RIGHTS = $"{MARKER_END} Rights";
-        public const string MARKER_BEGIN_DEPENDENCY = $"{MARKER_BEGIN} Dependency";
-        public const string MARKER_END_DEPENDENCY = $"{MARKER_END} Dependency";
-        public const string MARKER_BEGIN_CONFIG = $"{MARKER_BEGIN} Config";
-        public const string MARKER_END_CONFIG = $"{MARKER_END} Config";
-        // Angular
-        public const string MARKER_BEGIN_NAVIGATION = $"{MARKER_BEGIN} Navigation";
-        public const string MARKER_END_NAVIGATION = $"{MARKER_END} Navigation";
-        public const string MARKER_BEGIN_PERMISSION = $"{MARKER_BEGIN} Permission";
-        public const string MARKER_END_PERMISSION = $"{MARKER_END} Permission";
-        public const string MARKER_BEGIN_ROUTING = $"{MARKER_BEGIN} Routing";
-        public const string MARKER_END_ROUTING = $"{MARKER_END} Routing";
-        // Partial
+        public const string MARKER_BEGIN = $"{BIA_MARKER} Begin";
+        public const string MARKER_END = $"{BIA_MARKER} End";
+        // Tags
+        public static readonly string MARKER_BEGIN_PROPERTIES = $"{MARKER_BEGIN} {CRUDDataUpdateType.Properties}";
+        public static readonly string MARKER_END_PROPERTIES = $"{MARKER_END} {CRUDDataUpdateType.Properties}";
+        public static readonly string MARKER_BEGIN_BLOCK = $"{MARKER_BEGIN} {CRUDDataUpdateType.Block}";
+        public static readonly string MARKER_END_BLOCK = $"{MARKER_END} {CRUDDataUpdateType.Block}";
+        public static readonly string MARKER_BEGIN_CHILD = $"{MARKER_BEGIN} {CRUDDataUpdateType.Child}";
+        public static readonly string MARKER_END_CHILD = $"{MARKER_END} {CRUDDataUpdateType.Child}";
+        public static readonly string MARKER_BEGIN_OPTION = $"{MARKER_BEGIN} {CRUDDataUpdateType.Option}";
+        public static readonly string MARKER_END_OPTION = $"{MARKER_END} {CRUDDataUpdateType.Option}";
+        // Tags Partial
         public const string MARKER_BEGIN_PARTIAL = $"{MARKER_BEGIN} Partial";
         public const string MARKER_END_PARTIAL = $"{MARKER_END} Partial";
+        public readonly string MARKER_BEGIN_RIGHTS = $"{MARKER_BEGIN} {CRUDDataUpdateType.Rights}";
+        public readonly string MARKER_END_RIGHTS = $"{MARKER_END} {CRUDDataUpdateType.Rights}";
+        public readonly string MARKER_BEGIN_DEPENDENCY = $"{MARKER_BEGIN} {CRUDDataUpdateType.Dependency}";
+        public readonly string MARKER_END_DEPENDENCY = $"{MARKER_END} {CRUDDataUpdateType.Dependency}";
+        public readonly string MARKER_BEGIN_CONFIG = $"{MARKER_BEGIN} {CRUDDataUpdateType.Config}";
+        public readonly string MARKER_END_CONFIG = $"{MARKER_END} {CRUDDataUpdateType.Config}";
+        public readonly string MARKER_BEGIN_NAVIGATION = $"{MARKER_BEGIN} {CRUDDataUpdateType.Navigation}";
+        public readonly string MARKER_END_NAVIGATION = $"{MARKER_END} {CRUDDataUpdateType.Navigation}";
+        public readonly string MARKER_BEGIN_PERMISSION = $"{MARKER_BEGIN} {CRUDDataUpdateType.Permission}";
+        public readonly string MARKER_END_PERMISSION = $"{MARKER_END} {CRUDDataUpdateType.Properties}";
+        public readonly string MARKER_BEGIN_ROUTING = $"{MARKER_BEGIN} {CRUDDataUpdateType.Routing}";
+        public readonly string MARKER_END_ROUTING = $"{MARKER_END} {CRUDDataUpdateType.Routing}";
 
-        private const string ATTRIBUE_MARKER = "XXXXX";
-        private const string ANGULAR_MARKER_BEGIN_ATTRIBUTE_BLOCK = $"{MARKER_BEGIN_BLOCK} {ATTRIBUE_MARKER}";
-        private const string ANGULAR_MARKER_END_ATTRIBUTE_BLOCK = $"{MARKER_END_BLOCK} {ATTRIBUE_MARKER}";
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ZipParserService(IConsoleWriter consoleWriter)
+        public ZipParserService(CSharpParserService service, IConsoleWriter consoleWriter)
         {
             this.consoleWriter = consoleWriter;
+            this.service = service;
         }
+
+        /// <summary>
+        /// Unzip archive on temp local folder and analyze files.
+        /// </summary>
+        public ZipFilesContent ParseZipFile(FeatureTypeData zipData, FeatureType type, string folderName, List<string> options)
+        {
+            string fileName = Path.Combine(zipData.ZipPath, zipData.ZipName);
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                consoleWriter.AddMessageLine($"No {type} Zip files found to parse.", "Orange");
+                return null;
+            }
+
+            // Unzip archive
+            (string workingDirectoryPath, Dictionary<string, string> fileList) = ReadZipAndExtract(fileName, folderName, type);
+            if (string.IsNullOrWhiteSpace(workingDirectoryPath))
+            {
+                consoleWriter.AddMessageLine($"Zip archive '{fileName}' not found.", "Orange");
+                return null;
+            }
+
+            // Parse files in zip
+            if (fileList.Count > 0)
+            {
+                ZipFilesContent filesContent = new(type);
+                foreach (KeyValuePair<string, string> file in fileList)
+                {
+                    string filePath = Path.Combine(workingDirectoryPath, file.Key);
+
+                    WebApiFileType? fileType = null;
+                    if (type == FeatureType.WebApi)     // Specific to WebApi part
+                    {
+                        fileType = GetFileType(file.Value);
+
+                        // Ignore mapper and entity file
+                        if (fileType != null && (fileType == WebApiFileType.Mapper || fileType == WebApiFileType.Entity))
+                        {
+                            continue;
+                        }
+                    }
+
+                    FeatureData data;
+                    if (type == FeatureType.WebApi)
+                    {
+                        data = new WebApiFeatureData(file.Value, file.Key, workingDirectoryPath, fileType);
+                    }
+                    else
+                    {
+                        data = new FeatureData(file.Value, file.Key, workingDirectoryPath);
+                    }
+
+                    if (fileType == WebApiFileType.Dto)   // Specific to WebApi part
+                    {
+                        // Parse Dto file
+                        ClassDefinition classFile = service.ParseClassFile(Path.Combine(workingDirectoryPath, file.Key));
+                        if (classFile != null)
+                        {
+                            classFile.EntityName = GetEntityName(file.Value, fileType);
+                        }
+                        ((WebApiFeatureData)data).ClassFileDefinition = classFile;
+                    }
+                    else
+                    {
+                        data.ExtractBlocks = AnalyzeFile(filePath, data.IsPartialFile);
+                        if (options != null && options.Count > 0 && !data.IsPartialFile)
+                        {
+                            data.OptionToDelete = ExtractLinesContainsOptions(filePath, options);
+                        }
+                    }
+
+                    filesContent.FeatureDataList.Add(data);
+                }
+
+                return filesContent;
+            }
+            else
+            {
+                consoleWriter.AddMessageLine($"Zip archive '{fileName}' is empty.", "Orange");
+            }
+
+            return null;
+        }
+
 
         /// <summary>
         /// Read Zip archive and extract files on temporary working directory.
         /// </summary>
         /// <returns>A tuple with working temporary directory and a dictionnary of files contains (key: file full path on archive, value : file name) in zip archives.</returns>
-        public (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string folderType, FeatureType crudType)
+        private (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string folderType, FeatureType crudType)
         {
             string tempDir = null;
             Dictionary<string, string> files = null;
@@ -105,75 +188,17 @@
         }
 
         /// <summary>
-        /// Analyze partial file and extract blocks.
+        /// Analyze file and extract blocks.
         /// </summary>
-        public List<ExtractBlocks> AnalyzePartialFile(string fileName)
-        {
-            List<ExtractBlocks> extractBlocksList = new();
-            List<string> lines = new();
-            bool startFound = false;
-
-            // Read partial file
-            List<string> fileLines = File.ReadAllLines(fileName).ToList();
-
-            string type = null;
-            // Add blocks found between markers
-            foreach (string line in fileLines)
-            {
-                if (line.Contains(MARKER_BEGIN_PARTIAL, StringComparison.InvariantCulture))
-                {
-                    lines = new();
-                    startFound = true;
-                    type = CommonTools.GetMatchRegexValue(@$"({MARKER_BEGIN_PARTIAL})[\s+](\w+)", line, 2);
-                }
-
-                if (startFound)
-                    lines.Add(line);
-
-                if (startFound && line.Contains(MARKER_END_PARTIAL, StringComparison.InvariantCulture))
-                {
-                    startFound = false;
-                    extractBlocksList.Add(new ExtractBlocks(GetCRUDDataUpdateType(type), null, null, lines)); // todo type
-                }
-            }
-
-            return extractBlocksList;
-        }
-
-
-        private CRUDDataUpdateType GetCRUDDataUpdateType(string type)
-        {
-            if (type != null)
-            {
-                if (type == CRUDDataUpdateType.Config.ToString())
-                    return CRUDDataUpdateType.Config;
-                if (type == CRUDDataUpdateType.Dependency.ToString())
-                    return CRUDDataUpdateType.Dependency;
-                if (type == CRUDDataUpdateType.Navigation.ToString())
-                    return CRUDDataUpdateType.Navigation;
-                if (type == CRUDDataUpdateType.Permission.ToString())
-                    return CRUDDataUpdateType.Permission;
-                if (type == CRUDDataUpdateType.Rights.ToString())
-                    return CRUDDataUpdateType.Rights;
-                if (type == CRUDDataUpdateType.Routing.ToString())
-                    return CRUDDataUpdateType.Routing;
-            }
-
-            throw new Exception($"CRUDDataUpdateType not reconized for '{type}'.");
-        }
-
-        /// <summary>
-        /// Analyze angular file and extract blocks.
-        /// </summary>
-        public List<ExtractBlocks> AnalyzeAngularFile(string fileName, Dictionary<string, List<string>> planeDtoProperties)
+        private List<ExtractBlock> AnalyzeFile(string fileName, bool isPartial)
         {
             if (!File.Exists(fileName))
             {
-                consoleWriter.AddMessageLine($"Error on analysing angular file: file not exist on disk: '{fileName}'", "Orange");
+                consoleWriter.AddMessageLine($"Error on analysing file: file not exists on disk: '{fileName}'", "Orange");
                 return null;
             }
 
-            // Read file to update
+            // Read file
             List<string> fileLines = File.ReadAllLines(fileName).ToList();
 
             // Read file to verify if marker is present
@@ -182,31 +207,29 @@
                 return null;
             }
 
-            // Extract properties to update
-            List<ExtractBlocks> extractBlocksList = new();
-            List<string> properties = FindBlock(CRUDDataUpdateType.Property, fileLines, null);
-            if (properties != null)
-            {
-                foreach (string prop in properties)
-                {
-                    ExtractBlocks block = DecomposeProperty(prop);
-                    if (block != null)
-                    {
-                        extractBlocksList.Add(block);
-                    }
-                }
-            }
+            List<ExtractBlock> extractBlocksList = new();
 
-            // Extract block to update
-            foreach (KeyValuePair<string, List<string>> dtoProperty in planeDtoProperties)
+            if (isPartial)
             {
-                foreach (string attribute in dtoProperty.Value)
+                extractBlocksList.AddRange(ExtractPartialFile(fileLines));
+            }
+            else
+            {
+                foreach (CRUDDataUpdateType type in Enum.GetValues(typeof(CRUDDataUpdateType)))
                 {
-                    List<string> block = FindBlock(CRUDDataUpdateType.Block, fileLines, attribute);
-                    if (block != null && block.Count > 0)
+                    // don't take partial file
+                    if (type == CRUDDataUpdateType.Config
+                        || type == CRUDDataUpdateType.Dependency
+                        || type == CRUDDataUpdateType.Navigation
+                        || type == CRUDDataUpdateType.Permission
+                        || type == CRUDDataUpdateType.Rights
+                        || type == CRUDDataUpdateType.Routing)
                     {
-                        // Add only if block found
-                        extractBlocksList.Add(new ExtractBlocks(CRUDDataUpdateType.Block, dtoProperty.Key.TrimEnd('?'), attribute, block));
+                        continue;
+                    }
+                    else
+                    {
+                        extractBlocksList.AddRange(ExtractBlocks(type, fileLines));
                     }
                 }
             }
@@ -217,7 +240,7 @@
         /// <summary>
         /// Extract lines that contains options.
         /// </summary>
-        public List<string> ExtractLinesContainsOptions(string fileName, List<string> options)
+        private List<string> ExtractLinesContainsOptions(string fileName, List<string> options)
         {
             if (options == null || options.Count <= 0) return null;
 
@@ -253,7 +276,7 @@
         /// <summary>
         /// Get the type of DotNet file.
         /// </summary>
-        public BackFileType? GetFileType(string fileName)
+        private WebApiFileType? GetFileType(string fileName)
         {
             if (fileName == null)
             {
@@ -262,25 +285,25 @@
             }
             else if (fileName.EndsWith(".partial"))
             {
-                return null;
+                return WebApiFileType.Partial;
             }
             else if (fileName.EndsWith(".cs"))
             {
                 if (fileName.EndsWith("AppService.cs"))
                 {
                     if (fileName.StartsWith("I"))
-                        return BackFileType.IAppService;
+                        return WebApiFileType.IAppService;
                     else
-                        return BackFileType.AppService;
+                        return WebApiFileType.AppService;
                 }
                 else if (fileName.EndsWith("Dto.cs"))
-                    return BackFileType.Dto;
+                    return WebApiFileType.Dto;
                 else if (fileName.EndsWith("Controller.cs"))
-                    return BackFileType.Controller;
+                    return WebApiFileType.Controller;
                 else if (fileName.EndsWith("Mapper.cs"))
-                    return BackFileType.Mapper;
+                    return WebApiFileType.Mapper;
                 else
-                    return BackFileType.Entity;
+                    return WebApiFileType.Entity;
             }
             else
             {
@@ -291,7 +314,7 @@
         /// <summary>
         /// Get the "entity" name from DotNet file.
         /// </summary>
-        public string GetEntityName(string fileName, BackFileType? type)
+        private string GetEntityName(string fileName, WebApiFileType? type)
         {
             if (fileName == null || type == null)
             {
@@ -302,20 +325,20 @@
             string pattern = "";
             switch (type)
             {
-                case BackFileType.AppService:
-                case BackFileType.IAppService:
+                case WebApiFileType.AppService:
+                case WebApiFileType.IAppService:
                     pattern = @"^I?(\w+)AppService\.cs$";
                     break;
-                case BackFileType.Dto:
+                case WebApiFileType.Dto:
                     pattern = @"^(\w+)Dto\.cs$";
                     break;
-                case BackFileType.Controller:
+                case WebApiFileType.Controller:
                     pattern = @"^((\w+)s|(\w+))Controller\.cs$";
                     break;
-                case BackFileType.Mapper:
+                case WebApiFileType.Mapper:
                     pattern = @"^(\w+)Mapper\.cs$";
                     break;
-                case BackFileType.Entity:
+                case WebApiFileType.Entity:
                     pattern = @"^(\w+)\.cs$";
                     break;
                 default:
@@ -344,65 +367,93 @@
         }
 
         /// <summary>
-        /// Extract and format property.
+        /// Find and extract block of lines from file content in function to DataType (Property, block, child).
         /// </summary>
-        private ExtractBlocks DecomposeProperty(string property)
+        private List<ExtractBlock> ExtractBlocks(CRUDDataUpdateType type, List<string> lines)
         {
-            if (string.IsNullOrEmpty(property)) { return null; }
+            List<ExtractBlock> extractBlocksList = new();
+            string markerBegin = $"{MARKER_BEGIN} {type}";
+            string markerEnd = $"{MARKER_END} {type}";
 
-            if (property.Trim().StartsWith("//")) { return null; }
-
-            MatchCollection matches = new Regex(@"^\s*(\w+):\s(\w+\W*\w*);$").Matches(property);
-            if (matches != null && matches.Count > 0)
+            int nbOccur = lines.Count(l => l.Contains(markerBegin));
+            if (nbOccur > 0)
             {
-                GroupCollection groups = matches[0].Groups;
-                if (groups.Count > 2)
+                int indexStart = -1;
+                int indexEnd = lines.Count - 1;
+
+                // Get all occurences
+                for (int i = 1; i <= nbOccur; i++)
                 {
-                    return new ExtractBlocks(CRUDDataUpdateType.Property, groups[2].Value, groups[1].Value, new List<string>() { property });
+                    // Find start and stop block
+                    indexStart = lines.FindIndex(indexStart + 1, lines.Count - indexStart - 1, l => l.Contains(markerBegin));
+                    indexEnd = lines.FindIndex(indexStart, lines.Count - indexStart, l => l.Contains(markerEnd));
+
+                    if (indexStart < 0 || indexEnd < 0)
+                    {
+                        // error
+                        throw new Exception($"{type} block not correctly formated, marker begin ({indexStart}) or end({indexEnd}) not found.");
+                    }
+
+                    // Array with start and end lines included
+                    List<string> blockLines = lines.ToArray()[indexStart..++indexEnd].ToList();
+
+                    // Get block name (if exist)
+                    string name = CommonTools.GetMatchRegexValue(@$"({markerBegin})[\s+](\w+)", blockLines[0], 2);
+
+                    // Decompose property
+                    if (type == CRUDDataUpdateType.Properties)
+                    {
+                        ExtractPropertiesBlock propBlock = new(type, name, blockLines);
+                        blockLines.ForEach(line =>
+                        {
+                            KeyValuePair<string, string>? kvp = DecomposeProperty(line);
+                            if (kvp == null) return;
+
+                            CommonTools.AddToDictionnary(propBlock.PropertiesList, kvp.Value.Key, kvp.Value.Value);
+                        });
+                        extractBlocksList.Add(propBlock);
+                    }
+                    else
+                    {
+                        extractBlocksList.Add(new ExtractBlock(type, name, blockLines));
+                    }
                 }
             }
 
-            consoleWriter.AddMessageLine($"Property not correctly formated, not possible to decompose: '{property}'", "Orange");
-            return null;
+            return extractBlocksList;
         }
 
         /// <summary>
-        /// Find and extract block of lines from file content in function to DataType (Property or block).
+        /// Extract block of lines from partial file.
         /// </summary>
-        private List<string> FindBlock(CRUDDataUpdateType type, List<string> lines, string attributeName)
+        private List<ExtractBlock> ExtractPartialFile(List<string> fileLines)
         {
-            // Convert to camel case
-            attributeName = CommonTools.ConvertToCamelCase(attributeName);
+            List<ExtractBlock> extractBlocksList = new();
+            List<string> lines = new();
+            bool startFound = false;
+            string typeName = null;
 
-            string markerBegin;
-            string markerEnd;
-
-            // Set start and stop marker
-            switch (type)
+            // Add blocks found between markers
+            foreach (string line in fileLines)
             {
-                case CRUDDataUpdateType.Block:
-                    markerBegin = ANGULAR_MARKER_BEGIN_ATTRIBUTE_BLOCK.Replace(ATTRIBUE_MARKER, attributeName);
-                    markerEnd = ANGULAR_MARKER_END_ATTRIBUTE_BLOCK.Replace(ATTRIBUE_MARKER, attributeName);
-                    break;
-                case CRUDDataUpdateType.Property:
-                    markerBegin = MARKER_BEGIN_PROPERTIES;
-                    markerEnd = MARKER_END_PROPERTIES;
-                    break;
-                default:
-                    throw new Exception($"Error on FindBlock: case {type}' not implemented.");
+                if (line.Contains(MARKER_BEGIN_PARTIAL, StringComparison.InvariantCulture))
+                {
+                    lines = new();
+                    startFound = true;
+                    typeName = CommonTools.GetMatchRegexValue(@$"({MARKER_BEGIN_PARTIAL})[\s+](\w+)", line, 2);
+                }
+
+                if (startFound)
+                    lines.Add(line);
+
+                if (startFound && line.Contains(MARKER_END_PARTIAL, StringComparison.InvariantCulture))
+                {
+                    startFound = false;
+                    extractBlocksList.Add(new ExtractBlock(GetCRUDDataUpdateType(typeName), null, lines)); // todo type
+                }
             }
 
-            // Find start and stop block
-            int indexStart = lines.FindIndex(l => l.Contains(markerBegin));
-            int indexEnd = lines.FindIndex(l => l.Contains(markerEnd));
-
-            if (indexStart < 0 || indexEnd < 0)
-            {
-                return null;
-            }
-
-            // Keep block contains
-            return lines.ToArray()[indexStart..++indexEnd].ToList();  // array with start and end lines included
+            return extractBlocksList;
         }
 
         /// <summary>
@@ -433,6 +484,61 @@
             });
 
             return dico;
+        }
+
+        /// <summary>
+        /// Convert "string" type value to "CRUDDataUpdateType" type value.
+        /// </summary>
+        private CRUDDataUpdateType GetCRUDDataUpdateType(string type)
+        {
+            if (type != null)
+            {
+                if (type == CRUDDataUpdateType.Config.ToString())
+                    return CRUDDataUpdateType.Config;
+                if (type == CRUDDataUpdateType.Dependency.ToString())
+                    return CRUDDataUpdateType.Dependency;
+                if (type == CRUDDataUpdateType.Navigation.ToString())
+                    return CRUDDataUpdateType.Navigation;
+                if (type == CRUDDataUpdateType.Permission.ToString())
+                    return CRUDDataUpdateType.Permission;
+                if (type == CRUDDataUpdateType.Rights.ToString())
+                    return CRUDDataUpdateType.Rights;
+                if (type == CRUDDataUpdateType.Routing.ToString())
+                    return CRUDDataUpdateType.Routing;
+
+                if (type == CRUDDataUpdateType.Block.ToString())
+                    return CRUDDataUpdateType.Block;
+                if (type == CRUDDataUpdateType.Child.ToString())
+                    return CRUDDataUpdateType.Child;
+                if (type == CRUDDataUpdateType.Properties.ToString())
+                    return CRUDDataUpdateType.Properties;
+            }
+
+            throw new Exception($"CRUDDataUpdateType not reconized for '{type}'.");
+        }
+
+        /// <summary>
+        /// Extract and format property: key = type, value = name.
+        /// </summary>
+        private KeyValuePair<string, string>? DecomposeProperty(string property)
+        {
+            if (string.IsNullOrEmpty(property)) { return null; }
+
+            if (property.Trim().StartsWith("//")) { return null; }
+
+            MatchCollection matches = new Regex(@"^\s*(\w+):\s(\w+\W*\w*);$").Matches(property);
+            if (matches != null && matches.Count > 0)
+            {
+                GroupCollection groups = matches[0].Groups;
+                if (groups.Count > 2)
+                {
+                    // Key : property type, value : property name
+                    return new KeyValuePair<string, string>(groups[2].Value, groups[1].Value);
+                }
+            }
+
+            consoleWriter.AddMessageLine($"Property not correctly formated, not possible to decompose: '{property}'", "Orange");
+            return null;
         }
     }
 }

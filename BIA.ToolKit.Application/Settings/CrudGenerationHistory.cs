@@ -5,7 +5,7 @@
 
     public class CRUDGeneration
     {
-        public List<CRUDGenerationHistory> CRUDGenerationHistory { get; set; }
+        public List<CRUDGenerationHistory> CRUDGenerationHistory { get; }
 
         public CRUDGeneration()
         {
@@ -19,7 +19,7 @@
         public string EntityNameSingular { get; set; }
         public string EntityNamePlurial { get; set; }
         public Mapping Mapping { get; set; }
-        public List<Generation> Generation { get; set; }
+        public List<Generation> Generation { get; }
 
         public CRUDGenerationHistory()
         {
