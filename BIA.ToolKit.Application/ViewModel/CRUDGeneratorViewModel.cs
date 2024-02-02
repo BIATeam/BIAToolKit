@@ -398,7 +398,7 @@
         /// <summary>
         /// List of Options to delete.
         /// </summary>
-        public List<string> OptionToDelete { get; set; }
+        //public List<string> OptionToDelete { get; set; }
 
         /// <summary>
         /// Constructor.
@@ -456,6 +456,15 @@
         public ExtractPropertiesBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) : base(dataUpdateType, name, lines)
         {
             PropertiesList = new();
+        }
+    }
+
+    public class ExtractBlockBlock : ExtractBlock
+    {
+        public string Type { get; set; }
+
+        public ExtractBlockBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) : base(dataUpdateType, name, lines)
+        {
         }
     }
 

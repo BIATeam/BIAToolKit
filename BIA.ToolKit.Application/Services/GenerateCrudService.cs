@@ -1,7 +1,6 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
@@ -12,11 +11,11 @@
     using System.IO;
     using System.Linq;
     using System.Text;
+    using System.Text.RegularExpressions;
 
     public class GenerateCrudService
     {
         private readonly IConsoleWriter consoleWriter;
-        private CRUDSettings crudSettings;
 
         private const string ATTRIBUTE_TYPE_NOT_MANAGED = "// CRUD GENERATOR FOR PLANE TO REVIEW : Field " + ATTRIBUTE_TYPE_NOT_MANAGED_FIELD + " or type " + ATTRIBUTE_TYPE_NOT_MANAGED_TYPE + " not managed.";
         private const string ATTRIBUTE_TYPE_NOT_MANAGED_FIELD = "XXXFieldXXX";
@@ -51,21 +50,25 @@
             this.consoleWriter = consoleWriter;
         }
 
-        public void SetSettings(CRUDSettings settings)
+        public void InitRenameValues(string newValueSingular, string newValuePlurial,
+                                    string crudNameSingular, string crudNamePlurial,
+                                    string optionNameSingular, string optionNamePlurial,
+                                    string teamNameSingular, string teamNamePlurial)
         {
-            this.crudSettings = settings;
-            InitRenameValues();
-        }
+            this.NewCrudNamePascalSingular = newValueSingular;
+            this.NewCrudNamePascalPlural = newValuePlurial;
+            this.NewCrudNameCamelSingular = CommonTools.ConvertToCamelCase(NewCrudNamePascalSingular);
+            this.NewCrudNameCamelPlural = CommonTools.ConvertToCamelCase(NewCrudNamePascalPlural);
+            this.NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);
+            this.NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
 
-        private void InitRenameValues()
-        {
             // Get Pascal case value
-            this.OldCrudNamePascalSingular = string.IsNullOrWhiteSpace(this.crudSettings.CRUDReferenceSingular) ? this.OldCrudNamePascalSingular : this.crudSettings.CRUDReferenceSingular;
-            this.OldCrudNamePascalPlural = string.IsNullOrWhiteSpace(this.crudSettings.CRUDReferencePlurial) ? this.OldCrudNamePascalPlural : this.crudSettings.CRUDReferencePlurial;
-            this.OldOptionNamePascalSingular = string.IsNullOrWhiteSpace(this.crudSettings.OptionReferenceSingular) ? this.OldOptionNamePascalSingular : this.crudSettings.OptionReferenceSingular;
-            this.OldOptionNamePascalPlural = string.IsNullOrWhiteSpace(this.crudSettings.OptionReferencePlurial) ? this.OldOptionNamePascalPlural : this.crudSettings.OptionReferencePlurial;
-            this.OldTeamNamePascalSingular = string.IsNullOrWhiteSpace(this.crudSettings.TeamReferenceSingular) ? this.OldTeamNamePascalSingular : this.crudSettings.TeamReferenceSingular;
-            this.OldTeamNamePascalPlural = string.IsNullOrWhiteSpace(this.crudSettings.TeamReferencePlurial) ? this.OldTeamNamePascalPlural : this.crudSettings.TeamReferencePlurial;
+            this.OldCrudNamePascalSingular = string.IsNullOrWhiteSpace(crudNameSingular) ? this.OldCrudNamePascalSingular : crudNameSingular;
+            this.OldCrudNamePascalPlural = string.IsNullOrWhiteSpace(crudNamePlurial) ? this.OldCrudNamePascalPlural : crudNamePlurial;
+            this.OldOptionNamePascalSingular = string.IsNullOrWhiteSpace(optionNameSingular) ? this.OldOptionNamePascalSingular : optionNameSingular;
+            this.OldOptionNamePascalPlural = string.IsNullOrWhiteSpace(optionNamePlurial) ? this.OldOptionNamePascalPlural : optionNamePlurial;
+            this.OldTeamNamePascalSingular = string.IsNullOrWhiteSpace(teamNameSingular) ? this.OldTeamNamePascalSingular : teamNameSingular;
+            this.OldTeamNamePascalPlural = string.IsNullOrWhiteSpace(teamNamePlurial) ? this.OldTeamNamePascalPlural : teamNamePlurial;
 
             // Convert value to Camel case
             this.OldCrudNameCamelSingular = CommonTools.ConvertToCamelCase(OldCrudNamePascalSingular);
@@ -76,33 +79,23 @@
             this.OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
         }
 
-        public void InitRenameValues(string newValueSingular, string newValuePlurial)
-        {
-            this.NewCrudNamePascalSingular = newValueSingular;
-            this.NewCrudNamePascalPlural = newValuePlurial;
-            this.NewCrudNameCamelSingular = CommonTools.ConvertToCamelCase(NewCrudNamePascalSingular);
-            this.NewCrudNameCamelPlural = CommonTools.ConvertToCamelCase(NewCrudNamePascalPlural);
-            this.NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);
-            this.NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
-        }
-
-        public string GenerateCrudFiles(Project currentProject, EntityInfo dtoEntity, List<ZipFilesContent> fileListFromZip)
+        public string GenerateCrudFiles(Project currentProject, EntityInfo dtoEntity, List<ZipFilesContent> fileListFromZip, bool generateInProjectFolder)
         {
             string generationFolder = null;
             try
             {
                 // Get generation folders
-                generationFolder = GetGenerationFolder(currentProject, this.crudSettings.GenerateInProjectFolder);
+                generationFolder = GetGenerationFolder(currentProject, generateInProjectFolder);
                 string dotnetDir = Path.Combine(generationFolder, Constants.FolderDotNet);
                 string angularDir = Path.Combine(generationFolder, currentProject.BIAFronts);
 
                 // Generate CRUD DotNet files
-                ZipFilesContent backFilesContent = fileListFromZip.Where(x => x.Type == FeatureType.Back).FirstOrDefault();
+                ZipFilesContent backFilesContent = fileListFromZip.Where(x => x.Type == FeatureType.WebApi).FirstOrDefault();
                 if (backFilesContent != null)
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet files on '{dotnetDir}' ***", "Green");
 
-                    GenerateBack(dotnetDir, backFilesContent, currentProject);
+                    GenerateWebApi(dotnetDir, backFilesContent, currentProject);
                 }
 
                 // Generate CRUD angular files
@@ -119,7 +112,7 @@
                     }
                     else
                     {
-                        GenerateCRUD(angularDir, crudDtoProperties, crudFilesContent, currentProject);
+                        GenerateCRUD(angularDir, crudFilesContent, currentProject, crudDtoProperties);
                     }
                 }
 
@@ -149,22 +142,22 @@
             return generationFolder;
         }
 
-        #region Back
-        private void GenerateBack(string destDir, ZipFilesContent zipFilesContent, Project currentProject)
+        #region Feature
+        private void GenerateWebApi(string destDir, ZipFilesContent zipFilesContent, Project currentProject)
         {
             try
             {
                 string srcDir = Path.Combine(GetGenerationFolder(currentProject), Constants.FolderDotNet);
 
-                DotNetCRUDData featureData = (DotNetCRUDData)zipFilesContent.FeatureDataList.FirstOrDefault(x => ((DotNetCRUDData)x).FileType == BackFileType.Dto);
+                WebApiFeatureData featureData = (WebApiFeatureData)zipFilesContent.FeatureDataList.FirstOrDefault(x => ((WebApiFeatureData)x).FileType == WebApiFileType.Dto);
                 ClassDefinition dtoClassDefiniton = featureData?.ClassFileDefinition;
 
                 // Generate Crud files
-                foreach (DotNetCRUDData crudData in zipFilesContent.FeatureDataList)
+                foreach (WebApiFeatureData crudData in zipFilesContent.FeatureDataList)
                 {
-                    if (crudData.FileType == BackFileType.Dto ||
-                        crudData.FileType == BackFileType.Entity ||
-                        crudData.FileType == BackFileType.Mapper)
+                    if (crudData.FileType == WebApiFileType.Dto ||
+                        crudData.FileType == WebApiFileType.Entity ||
+                        crudData.FileType == WebApiFileType.Mapper)
                     {
                         // Ignore file : not necessary to regenerate it
                         continue;
@@ -172,11 +165,12 @@
                     else if (crudData.IsPartialFile)
                     {
                         // Update with partial file
-                        UpdatePartialFile(srcDir, destDir, currentProject, crudData, dtoClassDefiniton);
+                        UpdatePartialFile(srcDir, destDir, currentProject, crudData, FeatureType.WebApi, dtoClassDefiniton);
                     }
                     else
                     {
-                        GenerateDotNetCrudFile(destDir, currentProject, crudData, dtoClassDefiniton);
+                        // Update WebApi files (not partial)
+                        UpdateWebApiFile(destDir, currentProject, crudData, dtoClassDefiniton);
                     }
                 }
             }
@@ -185,54 +179,78 @@
                 consoleWriter.AddMessageLine($"An error has occurred in DotNet CRUD generation process: {ex.Message}", "Red");
             }
         }
-        #endregion
 
-        #region Front
-        private void GenerateCRUD(string angularDir, Dictionary<string, List<string>> crudDtoProperties, ZipFilesContent zipFilesContent, Project currentProject)
+        private void GenerateCRUD(string angularDir, ZipFilesContent zipFilesContent, Project currentProject, Dictionary<string, List<string>> crudDtoProperties)
         {
             try
             {
                 List<string> blocksToAdd;
                 List<string> propertiesToAdd;
-                List<string> childrenToDelete;
-                List<string> optionToDelete;
+                bool isChildrenToDelete;
+                bool isOptionToDelete;
+                List<string> childrenName;
+                List<string> optionsName;
 
-                foreach (AngularCRUDData crudData in zipFilesContent.FeatureDataList)
+                foreach (FeatureData crudData in zipFilesContent.FeatureDataList)
                 {
                     if (crudData.IsPartialFile)
                     {
                         // Update with partial file
                         string srcDir = Path.Combine(GetGenerationFolder(currentProject), currentProject.BIAFronts);
-                        UpdatePartialFile(srcDir, angularDir, currentProject, crudData);
+                        UpdatePartialFile(srcDir, angularDir, currentProject, crudData, FeatureType.CRUD);
                     }
                     else
                     {
                         blocksToAdd = new();
                         propertiesToAdd = new();
-                        childrenToDelete = new();
-                        optionToDelete = new();
-                        if (crudData.ExtractBlocks != null && crudData.ExtractBlocks.Count > 0)
+                        isChildrenToDelete = false;
+                        isOptionToDelete = false;
+                        childrenName = new();
+                        optionsName = new();
+
+                        if (crudData.ExtractBlocks?.Count > 0)
                         {
-                            foreach (KeyValuePair<string, List<string>> crudDtoProperty in crudDtoProperties)
+                            foreach (ExtractBlock block in crudData.ExtractBlocks)
                             {
-                                // Generate new properties to add
-                                propertiesToAdd.AddRange(GeneratePropertiesToAdd(crudData, crudDtoProperty));
-                                // Generate new blocks to add
-                                blocksToAdd.AddRange(GenerateBlocksToAdd(crudData, crudDtoProperty));
+                                if (block.DataUpdateType == CRUDDataUpdateType.Properties)
+                                {
+                                    // Generate new properties to add
+                                    foreach (KeyValuePair<string, List<string>> crudDtoProperty in crudDtoProperties)
+                                    {
+                                        propertiesToAdd.AddRange(GeneratePropertiesToAdd((ExtractPropertiesBlock)block, crudDtoProperty));
+                                    }
+                                }
+                                else if (block.DataUpdateType == CRUDDataUpdateType.Child)
+                                {
+                                    isChildrenToDelete |= block.BlockLines.Count > 0;
+                                    childrenName.Add(block.Name);
+                                }
+                                else if (block.DataUpdateType == CRUDDataUpdateType.Option)
+                                {
+                                    isOptionToDelete |= block.BlockLines.Count > 0;
+                                    optionsName.Add(block.Name);
+                                }
+                                // Blocks : do nothing (traitment done after)
                             }
 
-                            // Get Children line to delete
-                            var childrenBlocs = crudData.ExtractBlocks.Where(l => l.DataUpdateType == CRUDDataUpdateType.Children);
-                            if (childrenBlocs != null)
+                            // Generate new blocks to add
+                            if (crudData.ExtractBlocks.Any(b => b.DataUpdateType == CRUDDataUpdateType.Block))
                             {
-                                childrenBlocs.ToList().ForEach(b => childrenToDelete.AddRange(b.BlockLines));
+                                List<ExtractBlock> blocksList = crudData.ExtractBlocks.FindAll(b => b.DataUpdateType == CRUDDataUpdateType.Block);
+                                foreach (KeyValuePair<string, List<string>> crudDtoProperty in crudDtoProperties)
+                                {
+                                    string angularType = ConvertDotNetToAngularType(crudDtoProperty.Key);
+                                    ExtractBlockBlock block = (ExtractBlockBlock)blocksList.FirstOrDefault(b => ((ExtractBlockBlock)b).Type == angularType);
+                                    if (block != null)
+                                    {
+                                        blocksToAdd.AddRange(GenerateBlockToAdd(block, crudDtoProperty));
+                                    }
+                                    else
+                                    {
+                                        blocksToAdd.AddRange(GenerateEmptyBlockToAdd((ExtractBlockBlock)blocksList.First(), crudDtoProperty));
+                                    }
+                                }
                             }
-                        }
-
-                        if (crudData.OptionToDelete != null && crudData.OptionToDelete.Count > 0)
-                        {
-                            // Get lines to delete
-                            optionToDelete = crudData.OptionToDelete;
                         }
 
                         // Create file
@@ -240,7 +258,7 @@
                         string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, crudData.FilePath), FeatureType.CRUD);
 
                         // replace blocks !
-                        GenerateAngularFile(FeatureType.CRUD, src, dest, propertiesToAdd, blocksToAdd, childrenToDelete, optionToDelete);
+                        GenerateAngularFile(FeatureType.CRUD, src, dest, propertiesToAdd, blocksToAdd, isChildrenToDelete, childrenName, isOptionToDelete, optionsName);
                     }
                 }
             }
@@ -278,10 +296,10 @@
         #endregion
 
         #region DotNet Files
-        private void GenerateDotNetCrudFile(string destDir, Project currentProject, DotNetCRUDData crudData, ClassDefinition dtoClassDefiniton)
+        private void UpdateWebApiFile(string destDir, Project currentProject, WebApiFeatureData crudData, ClassDefinition dtoClassDefiniton)
         {
             string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
-            string dest = ConvertPascalOldToNewCrudName(Path.Combine(destDir, crudData.FilePath), FeatureType.Back);
+            string dest = ConvertPascalOldToNewCrudName(Path.Combine(destDir, crudData.FilePath), FeatureType.WebApi);
             dest = ReplaceCompagnyNameProjetName(dest, currentProject, dtoClassDefiniton);
 
             // Prepare destination folder
@@ -290,85 +308,53 @@
             // Read file
             List<string> fileLinesContent = File.ReadAllLines(src).ToList();
 
-            // Replace Compagny name and Project name
             for (int i = 0; i < fileLinesContent.Count; i++)
             {
+                // Replace Compagny name and Project name
                 fileLinesContent[i] = ReplaceCompagnyNameProjetName(fileLinesContent[i], currentProject, dtoClassDefiniton);
-                fileLinesContent[i] = ConvertPascalOldToNewCrudName(fileLinesContent[i], FeatureType.Back);
+                // Convert Crud Name (Plane to XXX)
+                fileLinesContent[i] = ConvertPascalOldToNewCrudName(fileLinesContent[i], FeatureType.WebApi);
             }
+
+            // TODO NMA: manage option or children ???
 
             // Generate new file
             CommonTools.GenerateFile(dest, fileLinesContent);
         }
+        #endregion
 
-        private void UpdatePartialFile(string srcDir, string destDir, Project currentProject, FeatureData crudData, ClassDefinition dtoClassDefiniton = null)
+        #region Partial Files
+        private void UpdatePartialFile(string srcDir, string destDir, Project currentProject, FeatureData crudData, FeatureType type, ClassDefinition dtoClassDefiniton = null)
         {
-            FeatureType type;
-            string fileName, srcFile, destFile, markerBegin, markerEnd;
+            string markerBegin, markerEnd;
             List<string> contentToAdd = new();
 
+            string fileName = crudData.FilePath.Replace(Constants.PartialFileSuffix, "");
             if (dtoClassDefiniton != null)
             {
-                fileName = ReplaceCompagnyNameProjetName(crudData.FilePath, currentProject, dtoClassDefiniton).Replace(Constants.PartialFileSuffix, "");
-            }
-            else
-            {
-                fileName = crudData.FilePath.Replace(Constants.PartialFileSuffix, "");
+                fileName = ReplaceCompagnyNameProjetName(fileName, currentProject, dtoClassDefiniton);
             }
 
-            srcFile = Path.Combine(srcDir, fileName);
-            destFile = Path.Combine(destDir, fileName);
+            string srcFile = Path.Combine(srcDir, fileName);
+            string destFile = Path.Combine(destDir, fileName);
 
-            if (crudData.ExtractBlocks != null &&
-                crudData.ExtractBlocks.Count > 0 &&
-                crudData.ExtractBlocks[0].BlockLines != null)
+            crudData.ExtractBlocks?.ForEach(block =>
             {
-                ExtractBlocks block = crudData.ExtractBlocks[0];
-
-                switch (block.DataUpdateType)
+                if (block.BlockLines != null)
                 {
-                    case CRUDDataUpdateType.Config:
-                        markerBegin = ZipParserService.MARKER_BEGIN_CONFIG;
-                        markerEnd = ZipParserService.MARKER_END_CONFIG;
-                        type = FeatureType.Back;
-                        break;
-                    case CRUDDataUpdateType.Dependency:
-                        markerBegin = ZipParserService.MARKER_BEGIN_DEPENDENCY;
-                        markerEnd = ZipParserService.MARKER_END_DEPENDENCY;
-                        type = FeatureType.Back;
-                        break;
-                    case CRUDDataUpdateType.Navigation:
-                        markerBegin = ZipParserService.MARKER_BEGIN_NAVIGATION;
-                        markerEnd = ZipParserService.MARKER_END_NAVIGATION;
-                        type = FeatureType.CRUD;
-                        break;
-                    case CRUDDataUpdateType.Permission:
-                        markerBegin = ZipParserService.MARKER_BEGIN_PERMISSION;
-                        markerEnd = ZipParserService.MARKER_END_PERMISSION;
-                        type = FeatureType.CRUD;
-                        break;
-                    case CRUDDataUpdateType.Rights:
-                        markerBegin = ZipParserService.MARKER_BEGIN_RIGHTS;
-                        markerEnd = ZipParserService.MARKER_END_RIGHTS;
-                        type = FeatureType.Back;
-                        break;
-                    case CRUDDataUpdateType.Routing:
-                        markerBegin = ZipParserService.MARKER_BEGIN_ROUTING;
-                        markerEnd = ZipParserService.MARKER_END_ROUTING;
-                        type = FeatureType.CRUD;
-                        break;
-                    default: return;
+                    markerBegin = $"{ZipParserService.MARKER_BEGIN} {block.DataUpdateType}";
+                    markerEnd = $"{ZipParserService.MARKER_END} {block.DataUpdateType}";
+
+                    // Generate content to add
+                    block.BlockLines.ForEach(line => contentToAdd.Add(ConvertPascalOldToNewCrudName(line, type)));
+
+                    // Update file
+                    UpdatePartialCrudFile(srcFile, destFile, contentToAdd, markerBegin, markerEnd);
                 }
-
-                // Generate content to add
-                block.BlockLines.ForEach(line => contentToAdd.Add(ConvertPascalOldToNewCrudName(line, type)));
-
-                // Update file
-                UpdateDotDetCrudFile(srcFile, destFile, contentToAdd, markerBegin, markerEnd);
-            }
+            });
         }
 
-        private void UpdateDotDetCrudFile(string srcFile, string destFile, List<string> contentToAdd, string markerBegin, string markerEnd)
+        private void UpdatePartialCrudFile(string srcFile, string destFile, List<string> contentToAdd, string markerBegin, string markerEnd)
         {
             // Read file
             List<string> fileContent = File.ReadAllLines(srcFile).ToList();
@@ -381,74 +367,11 @@
         }
         #endregion
 
-        #region Tools
-        private string GetGenerationFolder(Project currentProject, bool generateInCurrentProject = true)
-        {
-            string generatedFolder = Path.Combine(currentProject.Folder, currentProject.Name);
-
-            if (!generateInCurrentProject)
-                generatedFolder = Path.Combine(generatedFolder, Constants.FolderCrudGeneration);
-
-            return generatedFolder;
-        }
-
-        private List<string> InsertContentBetweenMarkers(List<string> fileContent, List<string> contentToAdd, string markerBegin, string markerEnd)
-        {
-            List<string> newContent = new();
-            List<string> contentBetweenMarker = new();
-
-            // Get content to replace
-            int indexBegin = fileContent.IndexOf(fileContent.FirstOrDefault(line => line.Contains(markerBegin)));
-            int indexEnd = fileContent.IndexOf(fileContent.FirstOrDefault(line => line.Contains(markerEnd)));
-            if (indexBegin < 0 || indexEnd < 0)
-            {
-                return fileContent;
-            }
-            List<string> contentToReplace = fileContent.ToArray()[(indexBegin + 1)..indexEnd].ToList();
-
-            // Update content to replace
-            if (contentToReplace.Count > 0)
-            {
-                int indexStart = contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.Contains(contentToAdd[0])));
-                if (indexStart >= 0)
-                {
-                    int indexStop = contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.Contains(contentToAdd[contentToAdd.Count - 1])));
-
-                    for (int i = 0; i < indexStart; i++)
-                    {
-                        contentBetweenMarker.Add(contentToReplace[i]);
-                    }
-
-                    contentBetweenMarker.AddRange(contentToAdd);
-
-                    for (int i = indexStop + 1; i < contentToReplace.Count; i++)
-                    {
-                        contentBetweenMarker.Add(contentToReplace[i]);
-                    }
-                }
-                else
-                {
-                    contentBetweenMarker.AddRange(contentToReplace);
-                    contentBetweenMarker.AddRange(contentToAdd);
-                }
-            }
-            else
-            {
-                contentBetweenMarker = contentToAdd;
-            }
-
-            // Replace content
-            newContent.AddRange(fileContent.ToArray()[0..++indexBegin].ToList());
-            newContent.AddRange(contentBetweenMarker);
-            newContent.AddRange(fileContent.ToArray()[indexEnd..fileContent.Count].ToList());
-
-            return newContent;
-        }
-        #endregion
-
         #region Angular Files
-        private void GenerateAngularFile(FeatureType type, string fileName, string newFileName, List<string> propertiesToAdd = null,
-            List<string> blocksToAdd = null, List<string> childrenToDelete = null, List<string> optionToDelete = null)
+        private void GenerateAngularFile(FeatureType type, string fileName, string newFileName,
+            List<string> propertiesToAdd = null, List<string> blocksToAdd = null,
+            bool isChildrenToDelete = false, List<string> childrenName = null,
+            bool isOptionToDelete = false, List<string> optionsName = null)
         {
             if (!File.Exists(fileName))
             {
@@ -463,15 +386,21 @@
             List<string> fileLinesContent = File.ReadAllLines(fileName).ToList();
 
             // Replace properties and blocks
-            fileLinesContent = ReplacePropertiesAndBlocks(fileName, fileLinesContent, propertiesToAdd, blocksToAdd);
+            if (propertiesToAdd?.Count > 0 || blocksToAdd?.Count > 0)
+            {
+                fileLinesContent = ReplacePropertiesAndBlocks(fileName, fileLinesContent, propertiesToAdd, blocksToAdd);
+            }
 
             // Remove children
-            fileLinesContent = DeleteChildrenBlocks(fileLinesContent);
+            if (isChildrenToDelete)
+            {
+                fileLinesContent = DeleteChildrenBlocks(fileLinesContent, childrenName);
+            }
 
             // Rmove all options
-            if (optionToDelete != null)
+            if (isOptionToDelete)
             {
-                optionToDelete.ForEach(line => fileLinesContent.Remove(line));
+                fileLinesContent = DeleteOptionsBlocks(fileLinesContent, optionsName);
             }
 
             // Update file content
@@ -503,12 +432,12 @@
                 }
 
                 // Write new properties to add
-                newFileLinesContent.Add($"  /// {ZipParserService.MARKER_BEGIN_PROPERTIES}");
+                newFileLinesContent.Add(fileLinesContent[indexBeginProperty]);
                 for (int i = 0; i < propertiesToAdd.Count; i++)
                 {
                     newFileLinesContent.Add(propertiesToAdd[i]);
                 }
-                newFileLinesContent.Add($"  /// {ZipParserService.MARKER_END_PROPERTIES}");
+                newFileLinesContent.Add(fileLinesContent[indexEndProperty]);
 
                 // Write blocks ?
                 if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
@@ -583,9 +512,54 @@
             return newFileLinesContent;
         }
 
-        private List<string> DeleteChildrenBlocks(List<string> fileLinesContent)
+        private List<string> DeleteChildrenBlocks(List<string> fileLinesContent, List<string> childrenName)
         {
-            if (!fileLinesContent.Contains(ZipParserService.MARKER_BEGIN_CHILDREN))
+            childrenName?.ForEach(c =>
+            {
+                string childName = c;
+                string markerBegin, markerEnd;
+                if (string.IsNullOrWhiteSpace(c))
+                {
+                    markerBegin = $"<!-- {ZipParserService.MARKER_BEGIN_CHILD} ";
+                    markerEnd = $"{ZipParserService.MARKER_END_CHILD} -->";
+                }
+                else
+                {
+                    markerBegin = $"<!-- {ZipParserService.MARKER_BEGIN_CHILD} {childName}";
+                    markerEnd = $"{ZipParserService.MARKER_END_CHILD} {childName} -->";
+                }
+                fileLinesContent = DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
+            });
+
+            return DeleteBlocks(fileLinesContent, ZipParserService.MARKER_BEGIN_CHILD, ZipParserService.MARKER_END_CHILD);
+        }
+
+        private List<string> DeleteOptionsBlocks(List<string> fileLinesContent, List<string> optionsName)
+        {
+            optionsName?.ForEach(o =>
+            {
+                string optionName = o;
+                string markerBegin, markerEnd;
+                if (string.IsNullOrWhiteSpace(o))
+                {
+                    markerBegin = $"/* {ZipParserService.MARKER_BEGIN_OPTION} ";
+                    markerEnd = $"{ZipParserService.MARKER_END_OPTION} */";
+                }
+                else
+                {
+                    markerBegin = $"/* {ZipParserService.MARKER_BEGIN_OPTION} {optionName}";
+                    markerEnd = $"{ZipParserService.MARKER_END_OPTION} {optionName} */";
+                }
+
+                fileLinesContent = DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
+            });
+
+            return DeleteBlocks(fileLinesContent, ZipParserService.MARKER_BEGIN_OPTION, ZipParserService.MARKER_END_OPTION);
+        }
+
+        private List<string> DeleteBlocks(List<string> fileLinesContent, string markerBegin, string markerEnd)
+        {
+            if (!CommonTools.IsFileContainsData(fileLinesContent, new List<string> { markerBegin }))
             {
                 return fileLinesContent;
             }
@@ -595,41 +569,55 @@
             {
                 string line = fileLinesContent[i];
 
-                if (line.Contains(ZipParserService.MARKER_BEGIN_CHILDREN, StringComparison.InvariantCultureIgnoreCase) &&
-                    line.Contains(ZipParserService.MARKER_END_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
+                if (line.Contains(markerBegin, StringComparison.InvariantCultureIgnoreCase) &&
+                    line.Contains(markerEnd, StringComparison.InvariantCultureIgnoreCase))
                 {
                     // Get data before marker begin + data after marker end
-                    string[] splitBegin = line.Split(ZipParserService.MARKER_BEGIN_CHILDREN);
-                    string[] splitEnd = line.Split(ZipParserService.MARKER_END_CHILDREN);
+                    string[] splitBegin = line.Split(markerBegin);
+                    string[] splitEnd = line.Split(markerEnd);
                     string update = splitBegin[0] + splitEnd[1];
                     if (!string.IsNullOrWhiteSpace(update))
                     {
                         updateLines.Add(update);
                     }
                 }
-                else if (line.Contains(ZipParserService.MARKER_BEGIN_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
+                else if (line.Contains(markerBegin, StringComparison.InvariantCultureIgnoreCase))
                 {
                     // Get data before marker begin
                     bool endFound = false;
-                    string[] splitBegin = line.Split(ZipParserService.MARKER_BEGIN_CHILDREN);
-                    if (!string.IsNullOrWhiteSpace(splitBegin[0]))
+                    if (!line.TrimStart().StartsWith("//"))
                     {
-                        updateLines.Add(splitBegin[0]);
+                        string[] splitBegin = line.Split(markerBegin);
+                        if (!string.IsNullOrWhiteSpace(splitBegin[0]))
+                        {
+                            updateLines.Add(splitBegin[0]);
+                        }
                     }
+                    //else
+                    //{
+                    //    updateLines.Add(line);  // TODO: remove if don't want marker in final file
+                    //}
 
                     for (int j = i; j < fileLinesContent.Count && !endFound; j++)
                     {
                         line = fileLinesContent[j];
-                        if (line.Contains(ZipParserService.MARKER_END_CHILDREN, StringComparison.InvariantCultureIgnoreCase))
+                        if (line.Contains(markerEnd, StringComparison.InvariantCultureIgnoreCase))
                         {
-                            // Get data after marker end                               
-                            string[] splitEnd = line.Split(ZipParserService.MARKER_END_CHILDREN);
-                            if (!string.IsNullOrWhiteSpace(splitEnd[1]))
+                            if (!line.TrimStart().StartsWith("//"))
                             {
-                                // Get firsts space characters (space + tabulations) to keep formating
-                                string match = CommonTools.GetMatchRegexValue(@"^([\s\t]+)(\w+)", splitEnd[0]);
-                                updateLines.Add(match + splitEnd[1]);
+                                // Get data after marker end                               
+                                string[] splitEnd = line.Split(markerEnd);
+                                if (!string.IsNullOrWhiteSpace(splitEnd[1]))
+                                {
+                                    // Get firsts space characters (space + tabulations) to keep formating
+                                    string match = CommonTools.GetMatchRegexValue(@"^([\s\t]+)(\w+)", splitEnd[0]);
+                                    updateLines.Add(match + splitEnd[1]);
+                                }
                             }
+                            //else
+                            //{
+                            //    updateLines.Add(line); // TODO: remove if don't want marker in final file
+                            //}
 
                             endFound = true;
                             i = j;
@@ -647,112 +635,88 @@
             return updateLines;
         }
 
-        private List<string> GeneratePropertiesToAdd(AngularCRUDData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
+        private List<string> GeneratePropertiesToAdd(ExtractPropertiesBlock block, KeyValuePair<string, List<string>> crudDtoProperty)
         {
+            KeyValuePair<string, List<string>> propertyRef;
+
+            string type = ConvertDotNetToAngularType(crudDtoProperty.Key);
+            string tmpType = type;
+
+            if (block.PropertiesList.ContainsKey(type))
+            {
+                propertyRef = block.PropertiesList.FirstOrDefault(p => p.Key == type);
+            }
+            else
+            {
+                if (type.Contains('|'))
+                {
+                    tmpType = type.Split('|')[0];
+                    if (!block.PropertiesList.ContainsKey(tmpType.Trim()))
+                    {
+                        tmpType = block.PropertiesList.Keys.FirstOrDefault();
+                    }
+                }
+                else
+                {
+                    tmpType = block.PropertiesList.Keys.FirstOrDefault();
+                }
+
+                propertyRef = block.PropertiesList.FirstOrDefault(p => p.Key == tmpType.Trim());
+            }
+
+            string propRefValue = propertyRef.Value[0];
+            string lineFound = block.BlockLines.FirstOrDefault(x => x.TrimStart().StartsWith(propertyRef.Value[0]));
+
             List<string> propertiesToAdd = new();
 
-            List<ExtractBlocks> extractBlocksList = angularFile.ExtractBlocks.Where(x => x.DataUpdateType == CRUDDataUpdateType.Property).ToList();
-            if (extractBlocksList != null && extractBlocksList.Count > 0)
+            // Generate new properties
+            foreach (string attrName in crudDtoProperty.Value)
             {
-                string type = ConvertDotNetToAngularType(crudDtoProperty.Key);
-                foreach (string attrName in crudDtoProperty.Value)
-                {
-                    string[] tmpType = type.Split('|'); // keep only type before '|' (ex: XXX | null)
-                    ExtractBlocks block = extractBlocksList.FirstOrDefault(block => block.Type == tmpType[0].Trim());
-                    if (block == null)
-                    {
-                        // Generate empty property
-                        block = extractBlocksList[0];
-                    }
+                string regex = $@"^(\s*)(\w+)(\s*{Constants.PropertySeparator}\s*)(\w+\W*\w*)(;\s*)$";
+                string newline = Regex.Replace(lineFound, regex, $"$1{CommonTools.ConvertToCamelCase(attrName)}$3{type}$5");
 
-                    string line = block.BlockLines.FirstOrDefault();
-                    // Generate property
-                    propertiesToAdd.Add(line.Replace(block.Name, CommonTools.ConvertToCamelCase(attrName)).Replace($" {block.Type}", $" {type}"));
-                }
+                propertiesToAdd.Add(newline);
             }
 
             return propertiesToAdd;
         }
 
-        private List<string> GenerateBlocksToAdd(AngularCRUDData angularFile, KeyValuePair<string, List<string>> crudDtoProperty)
+        private List<string> GenerateBlockToAdd(ExtractBlockBlock block, KeyValuePair<string, List<string>> crudDtoProperty)
         {
             List<string> blocksToAdd = new();
 
-            ExtractBlocks extractBlock = angularFile.ExtractBlocks.Find(x => x.DataUpdateType == CRUDDataUpdateType.Block && x.Type == crudDtoProperty.Key);
-            // If not found try type without '?' if is present
-            extractBlock ??= angularFile.ExtractBlocks.Find(x => x.DataUpdateType == CRUDDataUpdateType.Block && x.Type == crudDtoProperty.Key.TrimEnd('?'));
-
-            if (extractBlock != null)
+            if (block.BlockLines == null || block.BlockLines.Count <= 0)
             {
-                if (extractBlock.BlockLines == null || extractBlock.BlockLines.Count <= 0)
-                {
-                    consoleWriter.AddMessageLine("Error 'extractBlock' (block) is empty.", "Red");
-                    return null;
-                }
-
-                // Generate block based on dto model
-                foreach (string attrName in crudDtoProperty.Value)
-                {
-                    blocksToAdd.Add(ReplaceBlock(extractBlock, attrName));
-                }
+                consoleWriter.AddMessageLine("Error 'extractBlock' (block) is empty.", "Red");
+                return null;
             }
-            else
+
+            // Generate block based on dto model
+            foreach (string attrName in crudDtoProperty.Value)
             {
-                // Generate "empty" block
-                foreach (string attrName in crudDtoProperty.Value)
+                blocksToAdd.Add(ReplaceBlock(block, attrName));
+            }
+
+            return blocksToAdd;
+        }
+
+        private List<string> GenerateEmptyBlockToAdd(ExtractBlockBlock defaultBlock, KeyValuePair<string, List<string>> crudDtoProperty)
+        {
+            List<string> blocksToAdd = new();
+
+            // Generate "empty" block
+            foreach (string attrName in crudDtoProperty.Value)
+            {
+                if (defaultBlock != null)
                 {
-                    ExtractBlocks defaultBlock = angularFile.ExtractBlocks.FirstOrDefault(x => x.DataUpdateType == CRUDDataUpdateType.Block);
-                    if (defaultBlock != null)
-                    {
-                        blocksToAdd.Add(CreateEmptyBlock(defaultBlock, crudDtoProperty.Key, attrName));
-                    }
+                    blocksToAdd.Add(CreateEmptyBlock(defaultBlock, crudDtoProperty.Key, attrName));
                 }
             }
 
             return blocksToAdd;
         }
 
-        private string ConvertDotNetToAngularType(string dotnetType)
-        {
-            if (dotnetType == null) { return null; }
-
-            string angularType = dotnetType;
-
-            // In first : manage case of "Collection"
-            string match = CommonTools.GetMatchRegexValue(@"<(\w+)>", angularType);
-            if (!string.IsNullOrEmpty(match))
-            {
-                angularType = $"{match}[]";
-            }
-
-            // After verify other types
-            match = CommonTools.GetMatchRegexValue(@"(\w+)(\W*)", angularType);
-            if (!string.IsNullOrEmpty(match))
-            {
-                // Integer
-                if (match.ToLower() == "int" || match.ToLower() == "long" || match.ToLower() == "float" || match.ToLower() == "double")
-                    angularType = angularType.Replace(match, "number");
-
-                // Boolean
-                else if (match.ToLower() == "bool")
-                    angularType = angularType.Replace(match, "boolean");
-
-                // Date
-                else if (match == "DateTime")
-                    angularType = angularType.Replace(match, "Date");
-
-                // XXXDto
-                else if (match.EndsWith("Dto"))
-                    angularType = angularType.Replace(match, "OptionDto");
-            }
-
-            if (angularType.EndsWith('?'))
-                angularType = angularType.Replace("?", " | null");
-
-            return angularType;
-        }
-
-        private string ReplaceBlock(ExtractBlocks extractBlock, string crudAttributeName, string dtoAttributeName = null)
+        private string ReplaceBlock(ExtractBlock extractBlock, string crudAttributeName, string dtoAttributeName = null)
         {
             if (string.IsNullOrWhiteSpace(dtoAttributeName))
                 dtoAttributeName = extractBlock.Name;
@@ -775,7 +739,7 @@
             return newBlock;
         }
 
-        private string CreateEmptyBlock(ExtractBlocks extractBlock, string attributeType, string attributeName)
+        private string CreateEmptyBlock(ExtractBlock extractBlock, string attributeType, string attributeName)
         {
             List<string> newBlockLines = new();
             int length = extractBlock.BlockLines.Count;
@@ -793,7 +757,7 @@
                 newBlockLines.Add(extractBlock.BlockLines[length - 1]);     // end block comment
             }
 
-            ExtractBlocks newBlock = new(CRUDDataUpdateType.Block, attributeType, attributeName, newBlockLines);
+            ExtractBlock newBlock = new(CRUDDataUpdateType.Block, attributeName, newBlockLines);
             return ReplaceBlock(newBlock, attributeName, extractBlock.Name);
         }
 
@@ -835,7 +799,7 @@
 
             switch (type)
             {
-                case FeatureType.Back:
+                case FeatureType.WebApi:
                 case FeatureType.CRUD:
                     value = ReplaceOldToNewPascalValue(value, OldCrudNamePascalPlural, NewCrudNamePascalPlural, OldCrudNamePascalSingular, NewCrudNamePascalSingular);
                     if (convertCamel)
@@ -932,6 +896,111 @@
                 CommonTools.AddToDictionnary(dico, p.Type.ToString(), p.Name);
             });
             return dico;
+        }
+        #endregion
+
+        #region Tools
+        private string GetGenerationFolder(Project currentProject, bool generateInCurrentProject = true)
+        {
+            string generatedFolder = Path.Combine(currentProject.Folder, currentProject.Name);
+
+            if (!generateInCurrentProject)
+                generatedFolder = Path.Combine(generatedFolder, Constants.FolderCrudGeneration);
+
+            return generatedFolder;
+        }
+
+        private List<string> InsertContentBetweenMarkers(List<string> fileContent, List<string> contentToAdd, string markerBegin, string markerEnd)
+        {
+            List<string> newContent = new();
+            List<string> contentBetweenMarker = new();
+
+            // Get content to replace
+            int indexBegin = fileContent.IndexOf(fileContent.FirstOrDefault(line => line.Contains(markerBegin)));
+            int indexEnd = fileContent.IndexOf(fileContent.FirstOrDefault(line => line.Contains(markerEnd)));
+            if (indexBegin < 0 || indexEnd < 0)
+            {
+                return fileContent;
+            }
+            List<string> contentToReplace = fileContent.ToArray()[(indexBegin + 1)..indexEnd].ToList();
+
+            // Update content to replace
+            if (contentToReplace.Count > 0)
+            {
+                int indexStart = contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.Contains(contentToAdd[0])));
+                if (indexStart >= 0)
+                {
+                    int indexStop = contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.Contains(contentToAdd[contentToAdd.Count - 1])));
+
+                    for (int i = 0; i < indexStart; i++)
+                    {
+                        contentBetweenMarker.Add(contentToReplace[i]);
+                    }
+
+                    contentBetweenMarker.AddRange(contentToAdd);
+
+                    for (int i = indexStop + 1; i < contentToReplace.Count; i++)
+                    {
+                        contentBetweenMarker.Add(contentToReplace[i]);
+                    }
+                }
+                else
+                {
+                    contentBetweenMarker.AddRange(contentToReplace);
+                    contentBetweenMarker.AddRange(contentToAdd);
+                }
+            }
+            else
+            {
+                contentBetweenMarker = contentToAdd;
+            }
+
+            // Replace content
+            newContent.AddRange(fileContent.ToArray()[0..++indexBegin].ToList());
+            newContent.AddRange(contentBetweenMarker);
+            newContent.AddRange(fileContent.ToArray()[indexEnd..fileContent.Count].ToList());
+
+            return newContent;
+        }
+
+        private string ConvertDotNetToAngularType(string dotnetType)
+        {
+            if (dotnetType == null) { return null; }
+
+            string angularType = dotnetType;
+
+            // In first : manage case of "Collection"
+            string match = CommonTools.GetMatchRegexValue(@"<(\w+)>", angularType);
+            if (!string.IsNullOrEmpty(match))
+            {
+                angularType = $"{match}[]";
+            }
+
+            // After verify other types
+            match = CommonTools.GetMatchRegexValue(@"(\w+)(\W*)", angularType);
+            if (!string.IsNullOrEmpty(match))
+            {
+                // Integer
+                if (match.ToLower() == "int" || match.ToLower() == "long" || match.ToLower() == "float" || match.ToLower() == "double")
+                    angularType = angularType.Replace(match, "number");
+
+                // Boolean
+                else if (match.ToLower() == "bool")
+                    angularType = angularType.Replace(match, "boolean");
+
+                // Date
+                else if (match == "DateTime")
+                    angularType = angularType.Replace(match, "Date");
+
+                // XXXDto
+                else if (match.EndsWith("Dto"))
+                    angularType = angularType.Replace(match, "OptionDto");
+            }
+
+            if (angularType.EndsWith('?'))
+                angularType = angularType.Replace("?", " | null");
+
+            return angularType;
         }
         #endregion
     }

@@ -4,6 +4,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Text;
     using System.Text.RegularExpressions;
 
@@ -121,6 +122,25 @@
             return null;
         }
 
+        /// <summary>
+        /// Divide string data into 2 parts from char separator.
+        /// </summary>
+        public static (string, string) DivideDataFromSeparator(char separator, string data)
+        {
+            string regex = $@"^\s*(\w+)\s*{separator}\s*(\w+\W*\w*);\s*$";
+            MatchCollection matches = new Regex(regex).Matches(data);
+            if (matches != null && matches.Count > 0)
+            {
+                GroupCollection groups = matches[0].Groups;
+                if (groups.Count > 2)
+                {
+                    // left part, right part
+                    return (groups[1].Value, groups[2].Value);
+                }
+            }
+            return default;
+        }
+
         public static bool IsMatchRegexValue(string pattern, string data)
         {
             MatchCollection matches = new Regex(pattern).Matches(data);
@@ -146,6 +166,22 @@
         {
             string jsonString = JsonConvert.SerializeObject(jsonContent);
             File.WriteAllText(fileName, jsonString);
+        }
+
+        /// <summary>
+        /// Verify if file contains occurence of datas.
+        /// </summary>
+        public static bool IsFileContainsData(List<string> fileLines, List<string> dataList)
+        {
+            foreach (string data in dataList)
+            {
+                if (fileLines.Where(line => line.Contains(data)).Any())
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

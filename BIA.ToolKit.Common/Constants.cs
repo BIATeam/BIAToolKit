@@ -47,7 +47,7 @@ namespace BIA.ToolKit.Common
         /// <summary>
         /// Folder name for "doc" folder on DotNet and Angular parent folder.
         /// </summary>
-        public const string FolderDoc = "docs";
+        public const string FolderBia = ".bia";
 
         /// <summary>
         /// Folder name for CRUD generated files.
@@ -64,5 +64,6 @@ namespace BIA.ToolKit.Common
         /// </summary>
         public const string PartialFileSuffix = ".partial";
 
+        public const char PropertySeparator = ':';
     }
 }

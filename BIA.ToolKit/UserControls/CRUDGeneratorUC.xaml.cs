@@ -40,6 +40,7 @@
         {
             InitializeComponent();
             vm = (CRUDGeneratorViewModel)base.DataContext;
+            crudSettingsList = new();
         }
 
         /// <summary>
@@ -73,6 +74,7 @@
             vm.IsProjectChosen = true;
 
             // Clean all lists (in case of current project change)
+            this.crudSettingsList.Clear();
             vm.FeatureTypeDataList.Clear();
             vm.ZipDotNetSelected.Clear();
             vm.ZipAngularSelected.Clear();
@@ -81,21 +83,24 @@
             // List Dto files from Dto folder
             vm.DtoFiles = ListDtoFiles();
 
+            string dotnetBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet, Constants.FolderBia);
+            string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, vm.CurrentProject.BIAFronts, Constants.FolderBia);
+
             // Load generation settings
-            string crudSettingsFileName = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, settings.GenerationSettingsFileName);
-            this.crudSettingsList = CommonTools.DeserializeJsonFile<List<CrudGenerationSettings>>(crudSettingsFileName);
+            string backSettingsFileName = Path.Combine(dotnetBiaFolderPath, settings.GenerationSettingsFileName);
+            string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
+            crudSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<CrudGenerationSettings>>(backSettingsFileName));
+            crudSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<CrudGenerationSettings>>(frontSettingsFileName));
             this.webApiSettings = this.crudSettingsList.FirstOrDefault(x => x.Type == FeatureType.WebApi.ToString());
             this.crudSettings = this.crudSettingsList.FirstOrDefault(x => x.Type == FeatureType.CRUD.ToString());
             this.optionSettings = this.crudSettingsList.FirstOrDefault(x => x.Type == FeatureType.Option.ToString());
             this.teamSettings = this.crudSettingsList.FirstOrDefault(x => x.Type == FeatureType.Team.ToString());
 
             // Associate zip files to features
-            string dotnetFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet, Constants.FolderDoc);
-            string angularFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, vm.CurrentProject.BIAFronts, Constants.FolderDoc);
-            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.WebApi, this.webApiSettings?.ZipName, dotnetFolderPath));
-            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.CRUD, this.crudSettings?.ZipName, angularFolderPath));
-            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Option, this.optionSettings?.ZipName, angularFolderPath));
-            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Team, this.teamSettings?.ZipName, angularFolderPath));
+            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.WebApi, this.webApiSettings?.ZipName, dotnetBiaFolderPath));
+            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.CRUD, this.crudSettings?.ZipName, angularBiaFolderPath));
+            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Option, this.optionSettings?.ZipName, angularBiaFolderPath));
+            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Team, this.teamSettings?.ZipName, angularBiaFolderPath));
 
             // Load generation history
             this.crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, settings.GenerationHistoryFileName);
@@ -239,7 +244,7 @@
                 Mapping = new()
                 {
                     Dto = GetDtoSelectedPath(),
-                    Template = crudSettingsList.FirstOrDefault(x => x.Type == FeatureType.WebApi.ToString())?.ZipName,
+                    Template = this.webApiSettings?.ZipName,
                     Type = "DotNet",
                 }
             };
@@ -340,22 +345,15 @@
         {
             try
             {
-                FeatureTypeData zipData;
-                if (type == FeatureType.WebApi)
-                {
-                    zipData = GetFeatureTypeData(type, vm.ZipDotNetSelected.ToList());
-                }
-                else
-                {
-                    zipData = GetFeatureTypeData(type, vm.ZipAngularSelected.ToList());
-                }
+                List<string> zipSelectedList = (type == FeatureType.WebApi) ? vm.ZipDotNetSelected.ToList() : vm.ZipAngularSelected.ToList();
 
+                FeatureTypeData zipData = GetFeatureTypeData(type, zipSelectedList);
                 if (zipData != null)
                 {
                     string folderName = type == FeatureType.WebApi ? Constants.FolderDotNet : vm.CurrentProject.BIAFronts;
                     List<string> options = crudSettingsList.FirstOrDefault(x => x.Type == type.ToString())?.Options;
 
-                    ZipFilesContent filesContent = zipService.ParseZipFile(zipData, type, folderName, options);
+                    ZipFilesContent filesContent = zipService.ParseZipFile(zipData, type, folderName/*, options*/);
                     if (filesContent != null)
                     {
                         vm.ZipFilesContent.Add(filesContent);

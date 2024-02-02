@@ -7,6 +7,7 @@
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
@@ -32,18 +33,6 @@
         // Tags Partial
         public const string MARKER_BEGIN_PARTIAL = $"{MARKER_BEGIN} Partial";
         public const string MARKER_END_PARTIAL = $"{MARKER_END} Partial";
-        public readonly string MARKER_BEGIN_RIGHTS = $"{MARKER_BEGIN} {CRUDDataUpdateType.Rights}";
-        public readonly string MARKER_END_RIGHTS = $"{MARKER_END} {CRUDDataUpdateType.Rights}";
-        public readonly string MARKER_BEGIN_DEPENDENCY = $"{MARKER_BEGIN} {CRUDDataUpdateType.Dependency}";
-        public readonly string MARKER_END_DEPENDENCY = $"{MARKER_END} {CRUDDataUpdateType.Dependency}";
-        public readonly string MARKER_BEGIN_CONFIG = $"{MARKER_BEGIN} {CRUDDataUpdateType.Config}";
-        public readonly string MARKER_END_CONFIG = $"{MARKER_END} {CRUDDataUpdateType.Config}";
-        public readonly string MARKER_BEGIN_NAVIGATION = $"{MARKER_BEGIN} {CRUDDataUpdateType.Navigation}";
-        public readonly string MARKER_END_NAVIGATION = $"{MARKER_END} {CRUDDataUpdateType.Navigation}";
-        public readonly string MARKER_BEGIN_PERMISSION = $"{MARKER_BEGIN} {CRUDDataUpdateType.Permission}";
-        public readonly string MARKER_END_PERMISSION = $"{MARKER_END} {CRUDDataUpdateType.Properties}";
-        public readonly string MARKER_BEGIN_ROUTING = $"{MARKER_BEGIN} {CRUDDataUpdateType.Routing}";
-        public readonly string MARKER_END_ROUTING = $"{MARKER_END} {CRUDDataUpdateType.Routing}";
 
 
         /// <summary>
@@ -58,7 +47,7 @@
         /// <summary>
         /// Unzip archive on temp local folder and analyze files.
         /// </summary>
-        public ZipFilesContent ParseZipFile(FeatureTypeData zipData, FeatureType type, string folderName, List<string> options)
+        public ZipFilesContent ParseZipFile(FeatureTypeData zipData, FeatureType type, string folderName/*, List<string> options*/)
         {
             string fileName = Path.Combine(zipData.ZipPath, zipData.ZipName);
             if (string.IsNullOrWhiteSpace(fileName))
@@ -107,7 +96,7 @@
 
                     if (fileType == WebApiFileType.Dto)   // Specific to WebApi part
                     {
-                        // Parse Dto file
+                        // Parse "plane" Dto file
                         ClassDefinition classFile = service.ParseClassFile(Path.Combine(workingDirectoryPath, file.Key));
                         if (classFile != null)
                         {
@@ -118,10 +107,10 @@
                     else
                     {
                         data.ExtractBlocks = AnalyzeFile(filePath, data.IsPartialFile);
-                        if (options != null && options.Count > 0 && !data.IsPartialFile)
-                        {
-                            data.OptionToDelete = ExtractLinesContainsOptions(filePath, options);
-                        }
+                        //if (options != null && options.Count > 0 && !data.IsPartialFile)
+                        //{
+                        //    data.OptionToDelete = ExtractLinesContainsOptions(filePath, options);
+                        //}
                     }
 
                     filesContent.FeatureDataList.Add(data);
@@ -202,7 +191,7 @@
             List<string> fileLines = File.ReadAllLines(fileName).ToList();
 
             // Read file to verify if marker is present
-            if (!IsFileContains(fileLines, new List<string> { MARKER_BEGIN }))
+            if (!CommonTools.IsFileContainsData(fileLines, new List<string> { MARKER_BEGIN }))
             {
                 return null;
             }
@@ -232,6 +221,23 @@
                         extractBlocksList.AddRange(ExtractBlocks(type, fileLines));
                     }
                 }
+
+                // Populate Blocks with properties type
+                ExtractPropertiesBlock propertiesBlock = (ExtractPropertiesBlock)extractBlocksList.FirstOrDefault(b => b.DataUpdateType == CRUDDataUpdateType.Properties);
+                if (propertiesBlock != null)
+                {
+                    extractBlocksList.Where(b => b.DataUpdateType == CRUDDataUpdateType.Block)?.ToList().ForEach(block =>
+                    {
+                        foreach (KeyValuePair<string, List<string>> properties in propertiesBlock.PropertiesList)
+                        {
+                            if (properties.Value.Contains(block.Name))
+                            {
+                                ((ExtractBlockBlock)block).Type = properties.Key;
+                                return;
+                            }
+                        }
+                    });
+                }
             }
 
             return extractBlocksList;
@@ -254,7 +260,7 @@
             List<string> fileLines = File.ReadAllLines(fileName).ToList();
 
             // Read file to verify if option are present
-            if (!IsFileContains(fileLines, options))
+            if (!CommonTools.IsFileContainsData(fileLines, options))
             {
                 return null;
             }
@@ -406,12 +412,17 @@
                         ExtractPropertiesBlock propBlock = new(type, name, blockLines);
                         blockLines.ForEach(line =>
                         {
-                            KeyValuePair<string, string>? kvp = DecomposeProperty(line);
-                            if (kvp == null) return;
-
-                            CommonTools.AddToDictionnary(propBlock.PropertiesList, kvp.Value.Key, kvp.Value.Value);
+                            (string left, string right) = DecomposeProperty(line);
+                            if (!string.IsNullOrWhiteSpace(left) && !string.IsNullOrWhiteSpace(right))
+                            {
+                                CommonTools.AddToDictionnary(propBlock.PropertiesList, right, left); // key: property type, value: property name
+                            }
                         });
                         extractBlocksList.Add(propBlock);
+                    }
+                    else if (type == CRUDDataUpdateType.Block)
+                    {
+                        extractBlocksList.Add(new ExtractBlockBlock(type, name, blockLines));
                     }
                     else
                     {
@@ -449,27 +460,11 @@
                 if (startFound && line.Contains(MARKER_END_PARTIAL, StringComparison.InvariantCulture))
                 {
                     startFound = false;
-                    extractBlocksList.Add(new ExtractBlock(GetCRUDDataUpdateType(typeName), null, lines)); // todo type
+                    extractBlocksList.Add(new ExtractBlock(GetCRUDDataUpdateType(typeName), null, lines));
                 }
             }
 
             return extractBlocksList;
-        }
-
-        /// <summary>
-        /// Verify if file contains occurence of datas.
-        /// </summary>
-        private bool IsFileContains(List<string> fileLines, List<string> dataList)
-        {
-            foreach (string data in dataList)
-            {
-                if (fileLines.Where(line => line.Contains(data)).Any())
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -520,25 +515,20 @@
         /// <summary>
         /// Extract and format property: key = type, value = name.
         /// </summary>
-        private KeyValuePair<string, string>? DecomposeProperty(string property)
+        private (string left, string right) DecomposeProperty(string property)
         {
-            if (string.IsNullOrEmpty(property)) { return null; }
+            if (string.IsNullOrEmpty(property)) { return (null, null); }
 
-            if (property.Trim().StartsWith("//")) { return null; }
+            if (property.Trim().StartsWith("//")) { return (null, null); }
 
-            MatchCollection matches = new Regex(@"^\s*(\w+):\s(\w+\W*\w*);$").Matches(property);
-            if (matches != null && matches.Count > 0)
+            (string left, string right) data = CommonTools.DivideDataFromSeparator(Constants.PropertySeparator, property);
+            if (string.IsNullOrWhiteSpace(data.left) || string.IsNullOrWhiteSpace(data.right))
             {
-                GroupCollection groups = matches[0].Groups;
-                if (groups.Count > 2)
-                {
-                    // Key : property type, value : property name
-                    return new KeyValuePair<string, string>(groups[2].Value, groups[1].Value);
-                }
+                consoleWriter.AddMessageLine($"Property not correctly formated, not possible to decompose: '{property}'", "Orange");
+                return (null, null);
             }
 
-            consoleWriter.AddMessageLine($"Property not correctly formated, not possible to decompose: '{property}'", "Orange");
-            return null;
+            return data;
         }
     }
 }
