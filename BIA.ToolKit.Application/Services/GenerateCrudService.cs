@@ -20,8 +20,6 @@
         private const string ATTRIBUTE_TYPE_NOT_MANAGED = "// CRUD GENERATOR FOR PLANE TO REVIEW : Field " + ATTRIBUTE_TYPE_NOT_MANAGED_FIELD + " or type " + ATTRIBUTE_TYPE_NOT_MANAGED_TYPE + " not managed.";
         private const string ATTRIBUTE_TYPE_NOT_MANAGED_FIELD = "XXXFieldXXX";
         private const string ATTRIBUTE_TYPE_NOT_MANAGED_TYPE = "YYYTypeYYY";
-        private const string COMPAGNY_TAG = "XXXCompagnyXXX";
-        private const string PROJECT_NAME_TAG = "YYYProjectNameYYY";
 
         private string NewCrudNamePascalSingular = "Plane";
         private string NewCrudNamePascalPlural = "Planes";

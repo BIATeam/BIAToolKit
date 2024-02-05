@@ -1,9 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
-    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.Model;
-    using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Domain.Work;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -25,7 +23,7 @@
                 if (VersionAndOption.WorkTemplates != value)
                 {
                     VersionAndOption.WorkTemplates = value;
-                    RaisePropertyChanged("WorkTemplates");
+                    RaisePropertyChanged(nameof(WorkTemplates));
                 }
             }
         }
@@ -38,7 +36,7 @@
                 if (VersionAndOption.WorkTemplate != value)
                 {
                     VersionAndOption.WorkTemplate = value;
-                    RaisePropertyChanged("WorkTemplate");
+                    RaisePropertyChanged(nameof(WorkTemplate));
                 }
             }
         }
@@ -51,7 +49,7 @@
                 if (VersionAndOption.Profiles != value)
                 {
                     VersionAndOption.Profiles = value;
-                    RaisePropertyChanged("Profiles");
+                    RaisePropertyChanged(nameof(Profiles));
                 }
             }
         }
@@ -64,7 +62,7 @@
                 if (VersionAndOption.Profile != value)
                 {
                     VersionAndOption.Profile = value;
-                    RaisePropertyChanged("Profile");
+                    RaisePropertyChanged(nameof(Profile));
                 }
             }
         }
@@ -77,7 +75,7 @@
                 if (VersionAndOption.WorkCompanyFiles != value)
                 {
                     VersionAndOption.WorkCompanyFiles = value;
-                    RaisePropertyChanged("WorkCompanyFiles");
+                    RaisePropertyChanged(nameof(WorkCompanyFiles));
                 }
             }
         }
@@ -90,7 +88,7 @@
                 if (VersionAndOption.WorkCompanyFile != value)
                 {
                     VersionAndOption.WorkCompanyFile = value;
-                    RaisePropertyChanged("WorkCompanyFile");
+                    RaisePropertyChanged(nameof(WorkCompanyFile));
                 }
             }
         }
@@ -103,7 +101,7 @@
                 if (VersionAndOption.UseCompanyFiles != value)
                 {
                     VersionAndOption.UseCompanyFiles = value;
-                    RaisePropertyChanged("UseCompanyFiles");
+                    RaisePropertyChanged(nameof(UseCompanyFiles));
                 }
             }
         }
@@ -116,7 +114,7 @@
                 if (VersionAndOption.Options != value)
                 {
                     VersionAndOption.Options = value;
-                    RaisePropertyChanged("UseCompanyFiles");
+                    RaisePropertyChanged(nameof(UseCompanyFiles));
                 }
             }
         }

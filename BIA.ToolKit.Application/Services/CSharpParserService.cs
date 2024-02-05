@@ -207,9 +207,9 @@ using Roslyn.Services;*/
                     Console.WriteLine(diagnostic);
                 }
             }
-            catch (Exception e)
+            catch
             {
-                throw e;
+                throw;
             }
             /*            var workspace = Workspace.LoadSolution(projectPath);
                        var solution = workspace.CurrentSolution;
