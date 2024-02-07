@@ -468,6 +468,15 @@
         }
     }
 
+    public class ExtractPartialBlock : ExtractBlock
+    {
+        public string Index { get; }
+
+        public ExtractPartialBlock(CRUDDataUpdateType dataUpdateType, string name, string index, List<string> lines) : base(dataUpdateType, name, lines)
+        {
+            this.Index = index;
+        }
+    }
 
     public enum FeatureType
     {

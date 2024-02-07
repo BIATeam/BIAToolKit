@@ -147,8 +147,8 @@
             {
                 string srcDir = Path.Combine(GetGenerationFolder(currentProject), Constants.FolderDotNet);
 
-                WebApiFeatureData featureData = (WebApiFeatureData)zipFilesContent.FeatureDataList.FirstOrDefault(x => ((WebApiFeatureData)x).FileType == WebApiFileType.Dto);
-                ClassDefinition dtoClassDefiniton = featureData?.ClassFileDefinition;
+                WebApiFeatureData dtoFeatureData = (WebApiFeatureData)zipFilesContent.FeatureDataList.FirstOrDefault(x => ((WebApiFeatureData)x).FileType == WebApiFileType.Dto);
+                ClassDefinition dtoClassDefiniton = dtoFeatureData?.ClassFileDefinition;
 
                 // Generate Crud files
                 foreach (WebApiFeatureData crudData in zipFilesContent.FeatureDataList)
@@ -324,8 +324,8 @@
         #region Partial Files
         private void UpdatePartialFile(string srcDir, string destDir, Project currentProject, FeatureData crudData, FeatureType type, ClassDefinition dtoClassDefiniton = null)
         {
-            string markerBegin, markerEnd;
-            List<string> contentToAdd = new();
+            string markerBegin, markerEnd, suffix;
+            List<string> contentToAdd;
 
             string fileName = crudData.FilePath.Replace(Constants.PartialFileSuffix, "");
             if (dtoClassDefiniton != null)
@@ -336,15 +336,31 @@
             string srcFile = Path.Combine(srcDir, fileName);
             string destFile = Path.Combine(destDir, fileName);
 
-            crudData.ExtractBlocks?.ForEach(block =>
+            crudData.ExtractBlocks?.ForEach(b =>
             {
+                contentToAdd = new();
+                ExtractPartialBlock block = (ExtractPartialBlock)b;
                 if (block.BlockLines != null)
                 {
-                    markerBegin = $"{ZipParserService.MARKER_BEGIN} {block.DataUpdateType}";
-                    markerEnd = $"{ZipParserService.MARKER_END} {block.DataUpdateType}";
+                    if (string.IsNullOrWhiteSpace(block.Index))
+                    {
+                        suffix = $"{block.DataUpdateType}";
+                    }
+                    else
+                    {
+                        suffix = $"{block.DataUpdateType} {block.Index}";
+                    }
+
+                    markerBegin = $"{ZipParserService.MARKER_BEGIN} {suffix}";
+                    markerEnd = $"{ZipParserService.MARKER_END} {suffix}";
 
                     // Generate content to add
-                    block.BlockLines.ForEach(line => contentToAdd.Add(ConvertPascalOldToNewCrudName(line, type)));
+                    block.BlockLines.ForEach(line =>
+                    {
+                        string newline = ReplaceCompagnyNameProjetName(line, currentProject, dtoClassDefiniton);
+                        newline = ConvertPascalOldToNewCrudName(newline, type);
+                        contentToAdd.Add(newline);
+                    });
 
                     // Update file
                     UpdatePartialCrudFile(srcFile, destFile, contentToAdd, markerBegin, markerEnd);
@@ -920,6 +936,7 @@
             {
                 return fileContent;
             }
+            // Check if previous generation is present
             List<string> contentToReplace = fileContent.ToArray()[(indexBegin + 1)..indexEnd].ToList();
 
             // Update content to replace

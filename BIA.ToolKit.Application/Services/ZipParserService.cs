@@ -34,6 +34,9 @@
         public const string MARKER_BEGIN_PARTIAL = $"{MARKER_BEGIN} Partial";
         public const string MARKER_END_PARTIAL = $"{MARKER_END} Partial";
 
+        public const string MARKER_BEGIN_FRONT = $"{MARKER_BEGIN} Front";
+        public const string MARKER_END_FRONT = $"{MARKER_END} Front";
+
 
         /// <summary>
         /// Constructor.
@@ -150,7 +153,7 @@
 
                 // Create working temporary folder
                 tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType, crudType.ToString());
-                CommonTools.PrepareFolder(tempDir);
+                CommonTools.CheckFolder(tempDir, true);
 
                 // Extract and list files from archive to temprory folder
                 files = new();
@@ -439,10 +442,11 @@
         /// </summary>
         private List<ExtractBlock> ExtractPartialFile(List<string> fileLines)
         {
+            const string regex = @$"({MARKER_BEGIN_PARTIAL})[\s+](\w+)(\s+\d*)?(\s*\w+)";
             List<ExtractBlock> extractBlocksList = new();
             List<string> lines = new();
             bool startFound = false;
-            string typeName = null;
+            string index = null, name = null, typeName = null;
 
             // Add blocks found between markers
             foreach (string line in fileLines)
@@ -451,7 +455,9 @@
                 {
                     lines = new();
                     startFound = true;
-                    typeName = CommonTools.GetMatchRegexValue(@$"({MARKER_BEGIN_PARTIAL})[\s+](\w+)", line, 2);
+                    typeName = CommonTools.GetMatchRegexValue(regex, line, 2);
+                    index = CommonTools.GetMatchRegexValue(regex, line, 3);
+                    name = CommonTools.GetMatchRegexValue(regex, line, 4);
                 }
 
                 if (startFound)
@@ -460,7 +466,7 @@
                 if (startFound && line.Contains(MARKER_END_PARTIAL, StringComparison.InvariantCulture))
                 {
                     startFound = false;
-                    extractBlocksList.Add(new ExtractBlock(GetCRUDDataUpdateType(typeName), null, lines));
+                    extractBlocksList.Add(new ExtractPartialBlock(GetCRUDDataUpdateType(typeName), name?.TrimStart(), index?.TrimStart(), lines));
                 }
             }
 

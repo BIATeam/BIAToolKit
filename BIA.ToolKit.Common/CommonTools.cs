@@ -63,25 +63,17 @@
         }
 
         /// <summary>
-        /// Delete folder if already exists and create it after.
-        /// </summary>
-        /// <param name="folderPath">The folder path</param>
-        public static void PrepareFolder(string folderPath)
-        {
-            // Clean destination directory if already exist
-            if (Directory.Exists(folderPath))
-            {
-                Directory.Delete(folderPath, true);
-            }
-            Directory.CreateDirectory(folderPath);
-        }
-
-        /// <summary>
         /// Verify if folder already exists and create it if not exists.
         /// </summary>
         /// <param name="folderPath">The folder path</param>
-        public static void CheckFolder(string folderPath)
+        public static void CheckFolder(string folderPath, bool deleteIfExist = false)
         {
+            // Clean directory if wanted and already exist
+            if (deleteIfExist && Directory.Exists(folderPath))
+            {
+                Directory.Delete(folderPath, true);
+            }
+
             // Create directory if not exist
             if (!Directory.Exists(folderPath))
             {
@@ -154,7 +146,7 @@
         {
             if (!File.Exists(fileName))
             {
-                return default(T);
+                return default;
             }
 
             using StreamReader reader = new(fileName);
@@ -162,6 +154,9 @@
             return JsonConvert.DeserializeObject<T>(jsonString);
         }
 
+        /// <summary>
+        /// Serialize object to Json file.
+        /// </summary>
         public static void SerializeToJsonFile<T>(T jsonContent, string fileName)
         {
             string jsonString = JsonConvert.SerializeObject(jsonContent);
