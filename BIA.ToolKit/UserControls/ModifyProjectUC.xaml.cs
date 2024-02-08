@@ -3,27 +3,15 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
-    using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.Properties;
-    using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
-    using System.Windows.Data;
-    using System.Windows.Documents;
     using System.Windows.Input;
-    using System.Windows.Media;
-    using System.Windows.Media.Imaging;
-    using System.Windows.Navigation;
-    using System.Windows.Shapes;
 
     /// <summary>
     /// Interaction logic for ModifyProjectUC.xaml
@@ -120,9 +108,9 @@
             if (MigrateMergeRejected != null) MigrateMergeRejected.IsEnabled = false;
         }
 
-        private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
+        private async void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
         {
-            MigrateGenerateOnly_Run();
+            await MigrateGenerateOnly_Run();
         }
 
         private async Task<int> MigrateGenerateOnly_Run()
@@ -218,7 +206,7 @@
             {
                 fronts = _viewModel.BIAFronts.Split(", ");
             }
-            
+
 
             await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, fronts);
 
@@ -251,7 +239,7 @@
             {
                 return false;
             }
-                        //Apply the differential
+            //Apply the differential
             return gitService.ApplyDiff(actionFinishedAtEnd, _viewModel.ModifyProject.CurrentProject.Folder, migrateFilePath);
         }
 
