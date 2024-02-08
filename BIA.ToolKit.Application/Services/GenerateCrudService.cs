@@ -147,8 +147,7 @@
             {
                 string srcDir = Path.Combine(GetGenerationFolder(currentProject), Constants.FolderDotNet);
 
-                WebApiFeatureData dtoFeatureData = (WebApiFeatureData)zipFilesContent.FeatureDataList.FirstOrDefault(x => ((WebApiFeatureData)x).FileType == WebApiFileType.Dto);
-                ClassDefinition dtoClassDefiniton = dtoFeatureData?.ClassFileDefinition;
+                ClassDefinition dtoClassDefiniton = ((WebApiFeatureData)zipFilesContent.FeatureDataList.FirstOrDefault(x => ((WebApiFeatureData)x).FileType == WebApiFileType.Dto))?.ClassFileDefinition;
 
                 // Generate Crud files
                 foreach (WebApiFeatureData crudData in zipFilesContent.FeatureDataList)
@@ -357,8 +356,11 @@
                     // Generate content to add
                     block.BlockLines.ForEach(line =>
                     {
-                        string newline = ReplaceCompagnyNameProjetName(line, currentProject, dtoClassDefiniton);
-                        newline = ConvertPascalOldToNewCrudName(newline, type);
+                        string newline = ConvertPascalOldToNewCrudName(line, type);
+                        if (dtoClassDefiniton != null)
+                        {
+                            newline = ReplaceCompagnyNameProjetName(newline, currentProject, dtoClassDefiniton);
+                        }
                         contentToAdd.Add(newline);
                     });
 
