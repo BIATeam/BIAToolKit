@@ -2,7 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\BIA.ToolKit\KeepSettingsAtUpgrade.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="CompanyFiles\**" />
+    <EmbeddedResource Remove="CompanyFiles\**" />
+    <None Remove="CompanyFiles\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
@@ -16,10 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\BIA.ToolKit.Common\BIA.ToolKit.Common.csproj" />
     <ProjectReference Include="..\BIA.ToolKit.Domain\BIA.ToolKit.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="CompanyFiles\" />
   </ItemGroup>
 
 </Project>

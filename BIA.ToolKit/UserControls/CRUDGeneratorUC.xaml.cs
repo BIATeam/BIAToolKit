@@ -89,8 +89,14 @@
             // Load generation settings
             string backSettingsFileName = Path.Combine(dotnetBiaFolderPath, settings.GenerationSettingsFileName);
             string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
-            crudSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<CrudGenerationSettings>>(backSettingsFileName));
-            crudSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<CrudGenerationSettings>>(frontSettingsFileName));
+            if (File.Exists(backSettingsFileName))
+            {
+                crudSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<CrudGenerationSettings>>(backSettingsFileName));
+            }
+            if (File.Exists(frontSettingsFileName))
+            {
+                crudSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<CrudGenerationSettings>>(frontSettingsFileName));
+            }
             this.webApiSettings = this.crudSettingsList.FirstOrDefault(x => x.Type == FeatureType.WebApi.ToString());
             this.crudSettings = this.crudSettingsList.FirstOrDefault(x => x.Type == FeatureType.CRUD.ToString());
             this.optionSettings = this.crudSettingsList.FirstOrDefault(x => x.Type == FeatureType.Option.ToString());

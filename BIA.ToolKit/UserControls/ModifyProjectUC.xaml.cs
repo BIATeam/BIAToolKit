@@ -8,6 +8,7 @@
     using BIA.ToolKit.Properties;
     using System.Diagnostics;
     using System.IO;
+    using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
@@ -67,12 +68,19 @@
             }
         }
 
+
+
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {
-            if (MigrateGenerateOnly_Run() == 0)
+            _ = Migrate_Run();
+        }
+        private async Task Migrate_Run()
+        {
+            var generated = await MigrateGenerateOnly_Run();
+            if (generated == 0)
             {
-                MigrateApplyDiff_Click(sender, e);
-                MigrateMergeRejected_Click(sender, e);
+                MigrateApplyDiff_Run();
+                MigrateMergeRejected_Run();
             }
         }
 
@@ -100,12 +108,12 @@
             if (MigrateMergeRejected != null) MigrateMergeRejected.IsEnabled = false;
         }
 
-        private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
+        private async void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
         {
-            MigrateGenerateOnly_Run();
+            await MigrateGenerateOnly_Run();
         }
 
-        private int MigrateGenerateOnly_Run()
+        private async Task<int> MigrateGenerateOnly_Run()
         {
             if (_viewModel.ModifyProject.CurrentProject == null)
             {
@@ -123,7 +131,7 @@
             string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
             MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
 
-            GenerateProjects(true, projectOriginPath, projectTargetPath);
+            await GenerateProjects(true, projectOriginPath, projectTargetPath);
 
             MigrateOpenFolder.IsEnabled = true;
             MigrateApplyDiff.IsEnabled = true;
@@ -132,6 +140,11 @@
         }
 
         private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
+        {
+            MigrateApplyDiff_Run();
+        }
+
+        private void MigrateApplyDiff_Run()
         {
             Enable(false);
 
@@ -146,6 +159,11 @@
         }
 
         private void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
+        {
+            MigrateMergeRejected_Run();
+        }
+
+        private void MigrateMergeRejected_Run()
         {
             Enable(false);
 
@@ -175,7 +193,7 @@
             projectTargetPath = AppSettings.TmpFolderPath + projectTargetFolderName;
         }
 
-        private void GenerateProjects(bool actionFinishedAtEnd, string projectOriginPath, string projectTargetPath)
+        private async Task GenerateProjects(bool actionFinishedAtEnd, string projectOriginPath, string projectTargetPath)
         {
             // Create project at original version.
             if (Directory.Exists(projectOriginPath))
@@ -190,22 +208,22 @@
             }
 
 
-            CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, fronts);
+            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, fronts);
 
             // Create project at target version.
             if (Directory.Exists(projectTargetPath))
             {
                 FileTransform.ForceDeleteDirectory(projectTargetPath);
             }
-            CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, fronts);
+            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, fronts);
 
             consoleWriter.AddMessageLine("Generate projects finished.", actionFinishedAtEnd ? "Green" : "Blue");
         }
 
         //TODO mutualiser avec celle de MainWindows
-        private void CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
+        private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
         {
-            this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
+            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
         }
 
         private void MigrateOpenFolder_Click(object sender, RoutedEventArgs e)
