@@ -1,0 +1,38 @@
+﻿<UserControl x:Class="BIA.ToolKit.UserControls.CRUDGeneratorUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" Width="922">
+    <UserControl.DataContext>
+        <local:CRUDGeneratorViewModel />
+    </UserControl.DataContext>
+    <Grid Margin="0,0,-120,0">
+
+        <Label Content="Dto file:"  Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
+        <ComboBox ItemsSource="{Binding DtoFiles.Keys}" SelectedValue="{Binding DtoSelected}" Margin="40,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="500" SelectionChanged="ModifyDto_SelectionChanged" IsEnabled="{Binding IsProjectChosen}"/>
+        <Label Name="CrudAlreadyGeneratedLabel" Content="Generation was already done for this Dto file"  Margin="550,22,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Yellow" Visibility="Hidden" />
+
+        <Label Content="Entity name (singular):" Margin="20,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
+        <TextBox Text="{Binding CRUDNameSingular,UpdateSourceTrigger=PropertyChanged}" Margin="40,75,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntitySingularText_TextChanged" Height="21" IsEnabled="{Binding IsProjectChosen}"/>
+        <Label Content="Entity name (plurial):" Margin="370,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
+        <TextBox Text="{Binding CRUDNamePlurial,UpdateSourceTrigger=PropertyChanged}" Margin="390,75,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntityPlurialText_TextChanged" Height="21" IsEnabled="{Binding IsProjectChosen}"/>
+
+        <CheckBox Margin="90,120,0,0" Content="Generate WebApi" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsWebApiSelected}" IsEnabled="{Binding IsProjectChosen}"/>
+        <CheckBox Margin="240,120,0,0" Content="Generate CRUD" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsCrudSelected}" IsEnabled="{Binding IsProjectChosen}"/>
+        <CheckBox Margin="380,120,0,0" Content="Generate Option" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsOptionSelected}" IsEnabled="{Binding IsProjectChosen}"/>
+        <CheckBox Margin="530,120,0,0" Content="Generate Team" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsTeamSelected}" IsEnabled="False"/>
+
+        <Label Content="Data model zip file (DotNet):" Margin="20,150,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
+        <ListBox ItemsSource="{Binding ZipDotNetSelected}" Margin="40,175,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Name="ZipDotNetSelectedTB" Height="75"/>
+
+        <Label Content="Data model zip file (Angular):" Margin="370,150,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
+        <ListBox ItemsSource="{Binding ZipAngularSelected}" Margin="390,175,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Name="ZipAngularSelectedTB" Height="75"/>
+
+        <Button Content="1. Parse Dto" IsEnabled="{Binding IsButtonParseDtoEnable}" Margin="0,50,150,0" Width="120" x:Name="ParseDto" Height="40" HorizontalAlignment="Right" VerticalAlignment="Top" Click="ParseDto_Click"/>
+        <Button Content="2. Parse Zip" IsEnabled="{Binding IsButtonParseZipEnable}" Margin="0,125,150,0" Width="120" x:Name="ParseZip" Height="40" HorizontalAlignment="Right" VerticalAlignment="Top" Click="ParseZip_Click"/>
+        <Button Content="3. Generate CRUD" IsEnabled="{Binding IsButtonGenerateCrudEnable}" Margin="0,200,150,0" Width="120" x:Name="GenerateCrud" Height="40" HorizontalAlignment="Right" VerticalAlignment="Top" Click="GenerateCrud_Click"/>
+    </Grid>
+</UserControl>

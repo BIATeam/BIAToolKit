@@ -45,7 +45,9 @@
         bool isCreateTabInitialized = false;
         bool isModifyTabInitialized = false;
 
-        public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
+        public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
+            ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
+            IConsoleWriter consoleWriter)
         {
             AppSettings.AppFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
@@ -59,7 +61,8 @@
             InitializeComponent();
 
             CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService,consoleWriter);
-            ModifyProject.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, cSharpParserService, projectCreatorService);
+            ModifyProject.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, cSharpParserService,
+                projectCreatorService, zipParserService, crudService, settingsService);
 
             this.consoleWriter = (ConsoleWriter) consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
@@ -192,6 +195,7 @@
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
 
                 await this.gitService.Synchronize(_viewModel.Settings.BIATemplateRepository);
+                this.repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
 
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
                 BIATemplateLocalFolderSync.IsEnabled = true;
@@ -264,6 +268,7 @@
                 }
             }
         }
+
         private void Create_Click(object sender, RoutedEventArgs e)
         {
             _ = Create_Run();

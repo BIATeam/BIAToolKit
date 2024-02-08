@@ -6,10 +6,13 @@
 
         public string Name { get; }
 
-        public PropertyInfo(string type, string name)
+        public string Annotation { get; }
+
+        public PropertyInfo(string type, string name, string annotation = "")
         {
             Type = type;
             Name = name;
+            Annotation = annotation;
         }
     }
 }

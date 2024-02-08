@@ -31,7 +31,7 @@
     public partial class ModifyProjectUC : UserControl
     {
         BIATKSettings settings;
-        public ModifyProjectViewModel _viewModel;
+        ModifyProjectViewModel _viewModel;
         IConsoleWriter consoleWriter;
         RepositoryService repositoryService;
         GitService gitService;
@@ -45,7 +45,8 @@
             _viewModel.RootProjectsPath = Settings.Default.CreateProjectRootFolderText;
         }
 
-        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService, ProjectCreatorService projectCreatorService)
+        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
+            ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService)
         {
             this.settings = settings;
             this.repositoryService = repositoryService;
@@ -55,6 +56,7 @@
             this.projectCreatorService = projectCreatorService;
             MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
             MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
+            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter);
         }
 
         public void RefreshConfiguration()
@@ -71,7 +73,13 @@
         private void ModifyProject_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ParameterModifyChange();
+            if (_viewModel.ModifyProject.CurrentProject != null)
+            {
+                _viewModel.ModifyProject.CurrentProject.Folder = _viewModel.ModifyProject.RootProjectsPath;
+                CRUDGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
+            }
         }
+
 
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
