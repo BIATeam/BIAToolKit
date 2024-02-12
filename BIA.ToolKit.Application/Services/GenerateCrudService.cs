@@ -43,6 +43,11 @@
         private string OldTeamNameCamelSingular = "aircraftMaintenanceCompany";
         private string OldTeamNameCamelPlural = "aircraftMaintenanceCompanies";
 
+        private const string IsRequiredProperty = @"isRequired:";
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public GenerateCrudService(IConsoleWriter consoleWriter)
         {
             this.consoleWriter = consoleWriter;
@@ -77,7 +82,7 @@
             this.OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
         }
 
-        public string GenerateCrudFiles(Project currentProject, EntityInfo dtoEntity, List<ZipFilesContent> fileListFromZip, bool generateInProjectFolder)
+        public string GenerateCrudFiles(Project currentProject, EntityInfo dtoEntity, List<ZipFeatureType> zipFeatureTypeList, bool generateInProjectFolder)
         {
             string generationFolder = null;
             try
@@ -87,18 +92,18 @@
                 string dotnetDir = Path.Combine(generationFolder, Constants.FolderDotNet);
                 string angularDir = Path.Combine(generationFolder, currentProject.BIAFronts);
 
-                // Generate CRUD DotNet files
-                ZipFilesContent backFilesContent = fileListFromZip.Where(x => x.Type == FeatureType.WebApi).FirstOrDefault();
-                if (backFilesContent != null)
+                // Generate WebApi DotNet files
+                ZipFeatureType backFeatureType = zipFeatureTypeList.Where(x => x.FeatureType == FeatureType.WebApi).FirstOrDefault();
+                if (backFeatureType != null && backFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet files on '{dotnetDir}' ***", "Green");
 
-                    GenerateWebApi(dotnetDir, backFilesContent, currentProject);
+                    GenerateWebApi(dotnetDir, backFeatureType.FeatureDataList, currentProject);
                 }
 
                 // Generate CRUD angular files
-                ZipFilesContent crudFilesContent = fileListFromZip.Where(x => x.Type == FeatureType.CRUD).FirstOrDefault();
-                if (crudFilesContent != null)
+                ZipFeatureType crudFeatureType = zipFeatureTypeList.Where(x => x.FeatureType == FeatureType.CRUD).FirstOrDefault();
+                if (crudFeatureType != null && crudFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{angularDir}' ***", "Green");
 
@@ -110,26 +115,26 @@
                     }
                     else
                     {
-                        GenerateCRUD(angularDir, crudFilesContent, currentProject, crudDtoProperties);
+                        GenerateCRUD(angularDir, crudFeatureType.FeatureDataList, currentProject, crudDtoProperties);
                     }
                 }
 
                 // Generate Option angular files
-                ZipFilesContent optionFilesContent = fileListFromZip.Where(x => x.Type == FeatureType.Option).FirstOrDefault();
-                if (optionFilesContent != null)
+                ZipFeatureType optionFeatureType = zipFeatureTypeList.Where(x => x.FeatureType == FeatureType.Option).FirstOrDefault();
+                if (optionFeatureType != null && optionFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate Angular Option files on '{angularDir}' ***", "Green");
 
-                    GenerateOption(angularDir, optionFilesContent);
+                    GenerateOption(angularDir, optionFeatureType.FeatureDataList);
                 }
 
                 // Generate Team angular files
-                ZipFilesContent teamFilesContent = fileListFromZip.Where(x => x.Type == FeatureType.Team).FirstOrDefault();
-                if (teamFilesContent != null)
+                ZipFeatureType teamFeatureType = zipFeatureTypeList.Where(x => x.FeatureType == FeatureType.Team).FirstOrDefault();
+                if (teamFeatureType != null && teamFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"Team generation not yet implemented!", "Orange");
 
-                    GenerateTeam(angularDir, teamFilesContent);
+                    GenerateTeam(angularDir, teamFeatureType.FeatureDataList);
                 }
             }
             catch (Exception ex)
@@ -141,16 +146,16 @@
         }
 
         #region Feature
-        private void GenerateWebApi(string destDir, ZipFilesContent zipFilesContent, Project currentProject)
+        private void GenerateWebApi(string destDir, List<FeatureData> featureDataList, Project currentProject)
         {
             try
             {
                 string srcDir = Path.Combine(GetGenerationFolder(currentProject), Constants.FolderDotNet);
 
-                ClassDefinition dtoClassDefiniton = ((WebApiFeatureData)zipFilesContent.FeatureDataList.FirstOrDefault(x => ((WebApiFeatureData)x).FileType == WebApiFileType.Dto))?.ClassFileDefinition;
+                ClassDefinition dtoClassDefiniton = ((WebApiFeatureData)featureDataList.FirstOrDefault(x => ((WebApiFeatureData)x).FileType == WebApiFileType.Dto))?.ClassFileDefinition;
 
                 // Generate Crud files
-                foreach (WebApiFeatureData crudData in zipFilesContent.FeatureDataList)
+                foreach (WebApiFeatureData crudData in featureDataList)
                 {
                     if (crudData.FileType == WebApiFileType.Dto ||
                         crudData.FileType == WebApiFileType.Entity ||
@@ -177,7 +182,7 @@
             }
         }
 
-        private void GenerateCRUD(string angularDir, ZipFilesContent zipFilesContent, Project currentProject, Dictionary<string, List<string>> crudDtoProperties)
+        private void GenerateCRUD(string angularDir, List<FeatureData> featureDataList, Project currentProject, Dictionary<string, List<string>> crudDtoProperties)
         {
             try
             {
@@ -188,7 +193,7 @@
                 List<string> childrenName;
                 List<string> optionsName;
 
-                foreach (FeatureData crudData in zipFilesContent.FeatureDataList)
+                foreach (FeatureData crudData in featureDataList)
                 {
                     if (crudData.IsPartialFile)
                     {
@@ -233,18 +238,21 @@
                             // Generate new blocks to add
                             if (crudData.ExtractBlocks.Any(b => b.DataUpdateType == CRUDDataUpdateType.Block))
                             {
+                                // Get block list and properties associated to blocks
+                                ExtractBlock propertyBlock = crudData.ExtractBlocks.FirstOrDefault(p => p.DataUpdateType == CRUDDataUpdateType.Properties);
                                 List<ExtractBlock> blocksList = crudData.ExtractBlocks.FindAll(b => b.DataUpdateType == CRUDDataUpdateType.Block);
+
                                 foreach (KeyValuePair<string, List<string>> crudDtoProperty in crudDtoProperties)
                                 {
-                                    string angularType = ConvertDotNetToAngularType(crudDtoProperty.Key);
-                                    ExtractBlockBlock block = (ExtractBlockBlock)blocksList.FirstOrDefault(b => ((ExtractBlockBlock)b).Type == angularType);
-                                    if (block != null)
+                                    CRUDPropertyType dtoPropertyType = ConvertDotNetToAngularType(crudDtoProperty.Key);
+                                    ExtractBlocksBlock blockReferenceFound = (ExtractBlocksBlock)blocksList.FirstOrDefault(b => ((ExtractBlocksBlock)b).PropertyType.SimplifiedType == dtoPropertyType.SimplifiedType);
+                                    if (blockReferenceFound != null)
                                     {
-                                        blocksToAdd.AddRange(GenerateBlockToAdd(block, crudDtoProperty));
+                                        blocksToAdd.AddRange(GenerateBlockToAdd(blockReferenceFound, crudDtoProperty, dtoPropertyType.IsRequired));
                                     }
                                     else
                                     {
-                                        blocksToAdd.AddRange(GenerateEmptyBlockToAdd((ExtractBlockBlock)blocksList.First(), crudDtoProperty));
+                                        blocksToAdd.AddRange(GenerateEmptyBlockToAdd((ExtractBlocksBlock)blocksList.First(), crudDtoProperty, dtoPropertyType.IsRequired));
                                     }
                                 }
                             }
@@ -265,11 +273,11 @@
             }
         }
 
-        private void GenerateOption(string angularDir, ZipFilesContent zipFilesContent)
+        private void GenerateOption(string angularDir, List<FeatureData> featureDataList)
         {
             try
             {
-                foreach (FeatureData angularFile in zipFilesContent.FeatureDataList)
+                foreach (FeatureData angularFile in featureDataList)
                 {
                     // Create file
                     string src = Path.Combine(angularFile.ExtractDirPath, angularFile.FilePath);
@@ -285,7 +293,7 @@
             }
         }
 
-        private void GenerateTeam(string angularDir, ZipFilesContent zipFilesContent)
+        private void GenerateTeam(string angularDir, List<FeatureData> featureDataList)
         {
             // TODO
             consoleWriter.AddMessageLine("Generate Team not implemented!", "Orange");
@@ -413,7 +421,7 @@
                 fileLinesContent = DeleteChildrenBlocks(fileLinesContent, childrenName);
             }
 
-            // Rmove all options
+            // Remove all options
             if (isOptionToDelete)
             {
                 fileLinesContent = DeleteOptionsBlocks(fileLinesContent, optionsName);
@@ -428,8 +436,8 @@
 
         private List<string> ReplacePropertiesAndBlocks(string fileName, List<string> fileLinesContent, List<string> propertiesToAdd, List<string> blocksToAdd)
         {
-            if ((propertiesToAdd == null || propertiesToAdd.Count <= 0) && (blocksToAdd == null || blocksToAdd.Count <= 0)) return fileLinesContent;
-
+            if ((propertiesToAdd == null || propertiesToAdd.Count <= 0) && (blocksToAdd == null || blocksToAdd.Count <= 0))
+                return fileLinesContent;
 
             int indexBeginProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.MARKER_BEGIN_PROPERTIES)).FirstOrDefault());
             int indexEndProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.MARKER_END_PROPERTIES)).FirstOrDefault());
@@ -458,6 +466,8 @@
                 // Write blocks ?
                 if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
                 {
+                    string spaces = GetSpaceBeginLine(newFileLinesContent.Last());
+
                     // Write lines between properties and first block
                     for (int i = indexEndProperty + 1; i < indexBeginFirstBlock; i++)
                     {
@@ -469,7 +479,9 @@
                     {
                         newFileLinesContent.Add(blocksToAdd[i]);
                         if (i != blocksToAdd.Count - 1)
-                            newFileLinesContent.Add("    ,");
+                        {
+                            newFileLinesContent.Add($"{spaces}  ,");
+                        }
                     }
 
                     // Write lines after last block
@@ -492,6 +504,8 @@
                 // Write blocks ?
                 if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
                 {
+                    string spaces = GetSpaceBeginLine(newFileLinesContent.Last());
+
                     // Write lines 
                     for (int i = 0; i < indexBeginFirstBlock; i++)
                     {
@@ -503,7 +517,7 @@
                     {
                         newFileLinesContent.Add(blocksToAdd[i]);
                         if (i != blocksToAdd.Count - 1)
-                            newFileLinesContent.Add("    ,");
+                            newFileLinesContent.Add($"{spaces}  ,");
                     }
 
                     // Write lines after last block
@@ -552,11 +566,10 @@
 
         private List<string> DeleteOptionsBlocks(List<string> fileLinesContent, List<string> optionsName)
         {
-            optionsName?.ForEach(o =>
+            optionsName?.ForEach(optionName =>
             {
-                string optionName = o;
                 string markerBegin, markerEnd;
-                if (string.IsNullOrWhiteSpace(o))
+                if (string.IsNullOrWhiteSpace(optionName))
                 {
                     markerBegin = $"/* {ZipParserService.MARKER_BEGIN_OPTION} ";
                     markerEnd = $"{ZipParserService.MARKER_END_OPTION} */";
@@ -651,45 +664,38 @@
             return updateLines;
         }
 
-        private List<string> GeneratePropertiesToAdd(ExtractPropertiesBlock block, KeyValuePair<string, List<string>> crudDtoProperty)
+        private List<string> GeneratePropertiesToAdd(ExtractPropertiesBlock propertyBlock, KeyValuePair<string, List<string>> crudProperties)
         {
+            List<string> propertiesToAdd = new();
             KeyValuePair<string, List<string>> propertyRef;
 
-            string type = ConvertDotNetToAngularType(crudDtoProperty.Key);
-            string tmpType = type;
-
-            if (block.PropertiesList.ContainsKey(type))
+            CRUDPropertyType crudPropertyType = ConvertDotNetToAngularType(crudProperties.Key);
+            if (propertyBlock.PropertiesList.ContainsKey(crudPropertyType.Type))
             {
-                propertyRef = block.PropertiesList.FirstOrDefault(p => p.Key == type);
+                // if type found
+                propertyRef = propertyBlock.PropertiesList.FirstOrDefault(p => p.Key == crudPropertyType.Type);
             }
             else
             {
-                if (type.Contains('|'))
+                if (propertyBlock.PropertiesList.ContainsKey(crudPropertyType.SimplifiedType))
                 {
-                    tmpType = type.Split('|')[0];
-                    if (!block.PropertiesList.ContainsKey(tmpType.Trim()))
-                    {
-                        tmpType = block.PropertiesList.Keys.FirstOrDefault();
-                    }
+                    // if Simplified type found
+                    propertyRef = propertyBlock.PropertiesList.FirstOrDefault(p => p.Key == crudPropertyType.SimplifiedType);
                 }
                 else
                 {
-                    tmpType = block.PropertiesList.Keys.FirstOrDefault();
+                    // in other cases (type and simplified not found), get first by default (string)
+                    propertyRef = propertyBlock.PropertiesList.FirstOrDefault(p => p.Key == propertyBlock.PropertiesList.Keys.FirstOrDefault());
                 }
-
-                propertyRef = block.PropertiesList.FirstOrDefault(p => p.Key == tmpType.Trim());
             }
 
-            string propRefValue = propertyRef.Value[0];
-            string lineFound = block.BlockLines.FirstOrDefault(x => x.TrimStart().StartsWith(propertyRef.Value[0]));
-
-            List<string> propertiesToAdd = new();
+            string lineFound = propertyBlock.BlockLines.FirstOrDefault(x => x.TrimStart().StartsWith(propertyRef.Value[0]));
 
             // Generate new properties
-            foreach (string attrName in crudDtoProperty.Value)
+            foreach (string attrName in crudProperties.Value)
             {
                 string regex = $@"^(\s*)(\w+)(\s*{Constants.PropertySeparator}\s*)(\w+\W*\w*)(;\s*)$";
-                string newline = Regex.Replace(lineFound, regex, $"$1{CommonTools.ConvertToCamelCase(attrName)}$3{type}$5");
+                string newline = Regex.Replace(lineFound, regex, $"$1{CommonTools.ConvertToCamelCase(attrName)}$3{crudPropertyType.Type}$5");
 
                 propertiesToAdd.Add(newline);
             }
@@ -697,7 +703,7 @@
             return propertiesToAdd;
         }
 
-        private List<string> GenerateBlockToAdd(ExtractBlockBlock block, KeyValuePair<string, List<string>> crudDtoProperty)
+        private List<string> GenerateBlockToAdd(ExtractBlocksBlock block, KeyValuePair<string, List<string>> crudDtoProperty, bool isRequired)
         {
             List<string> blocksToAdd = new();
 
@@ -706,6 +712,8 @@
                 consoleWriter.AddMessageLine("Error 'extractBlock' (block) is empty.", "Red");
                 return null;
             }
+
+            CheckRequiredLine(block.BlockLines, isRequired);
 
             // Generate block based on dto model
             foreach (string attrName in crudDtoProperty.Value)
@@ -716,7 +724,7 @@
             return blocksToAdd;
         }
 
-        private List<string> GenerateEmptyBlockToAdd(ExtractBlockBlock defaultBlock, KeyValuePair<string, List<string>> crudDtoProperty)
+        private List<string> GenerateEmptyBlockToAdd(ExtractBlocksBlock defaultBlock, KeyValuePair<string, List<string>> crudDtoProperty, bool isRequired)
         {
             List<string> blocksToAdd = new();
 
@@ -725,11 +733,31 @@
             {
                 if (defaultBlock != null)
                 {
-                    blocksToAdd.Add(CreateEmptyBlock(defaultBlock, crudDtoProperty.Key, attrName));
+                    blocksToAdd.Add(CreateEmptyBlock(defaultBlock, crudDtoProperty.Key, attrName, isRequired));
                 }
             }
 
             return blocksToAdd;
+        }
+
+        private void CheckRequiredLine(List<string> lines, bool isRequired)
+        {
+            bool contains = CommonTools.IsFileContainsData(lines, new List<string> { IsRequiredProperty });
+            if (contains && !isRequired)
+            {
+                // Remove
+                string lineFound = lines.FirstOrDefault(line => line.Contains(IsRequiredProperty));
+                if (lineFound != null)
+                {
+                    lines.Remove(lineFound);
+                }
+            }
+            if (!contains && isRequired)
+            {
+                // Add
+                string spaces = GetSpaceBeginLine(lines[0]);
+                lines.Insert(2, $"{spaces}  {IsRequiredProperty}true,");
+            }
         }
 
         private string ReplaceBlock(ExtractBlock extractBlock, string crudAttributeName, string dtoAttributeName = null)
@@ -755,7 +783,7 @@
             return newBlock;
         }
 
-        private string CreateEmptyBlock(ExtractBlock extractBlock, string attributeType, string attributeName)
+        private string CreateEmptyBlock(ExtractBlock extractBlock, string attributeType, string attributeName, bool isRequired)
         {
             List<string> newBlockLines = new();
             int length = extractBlock.BlockLines.Count;
@@ -767,10 +795,15 @@
                 string endBLockComment = extractBlock.BlockLines.Last();
 
                 newBlockLines.Add(ATTRIBUTE_TYPE_NOT_MANAGED.Replace(ATTRIBUTE_TYPE_NOT_MANAGED_FIELD, attributeName).Replace(ATTRIBUTE_TYPE_NOT_MANAGED_TYPE, attributeType));
-                newBlockLines.Add(extractBlock.BlockLines[0]);              // start block comment
-                newBlockLines.Add(extractBlock.BlockLines[1]);              // first block code line
-                newBlockLines.Add(extractBlock.BlockLines[length - 2]);     // last block code line
-                newBlockLines.Add(extractBlock.BlockLines[length - 1]);     // end block comment
+                newBlockLines.Add(extractBlock.BlockLines[0]);                  // start block comment
+                newBlockLines.Add(extractBlock.BlockLines[1]);                  // first block code line
+                if (isRequired)
+                {
+                    string spaces = GetSpaceBeginLine(extractBlock.BlockLines[0]);
+                    newBlockLines.Add($"{spaces}  {IsRequiredProperty}true,");  // IsRequired line
+                }
+                newBlockLines.Add(extractBlock.BlockLines[length - 2]);         // last block code line
+                newBlockLines.Add(extractBlock.BlockLines[length - 1]);         // end block comment
             }
 
             ExtractBlock newBlock = new(CRUDDataUpdateType.Block, attributeName, newBlockLines);
@@ -792,6 +825,12 @@
                     lines[i] = ConvertPascalOldToNewCrudName(lines[i], type);
                 }
             }
+        }
+
+        private string GetSpaceBeginLine(string line)
+        {
+            string regex = @"^(\s*).+$";
+            return CommonTools.GetMatchRegexValue(regex, line, 1);
         }
         #endregion
 
@@ -980,10 +1019,11 @@
             return newContent;
         }
 
-        private string ConvertDotNetToAngularType(string dotnetType)
+        private CRUDPropertyType ConvertDotNetToAngularType(string dotnetType)
         {
             if (dotnetType == null) { return null; }
 
+            bool isRequired = false;
             string angularType = dotnetType;
 
             // In first : manage case of "Collection"
@@ -993,31 +1033,59 @@
                 angularType = $"{match}[]";
             }
 
-            // After verify other types
+            // After verify types
             match = CommonTools.GetMatchRegexValue(@"(\w+)(\W*)", angularType);
             if (!string.IsNullOrEmpty(match))
             {
                 // Integer
                 if (match.ToLower() == "int" || match.ToLower() == "long" || match.ToLower() == "float" || match.ToLower() == "double")
+                {
                     angularType = angularType.Replace(match, "number");
+                    isRequired = true;
+                }
 
                 // Boolean
                 else if (match.ToLower() == "bool")
+                {
                     angularType = angularType.Replace(match, "boolean");
+                    isRequired = false;
+                }
 
                 // Date
                 else if (match == "DateTime")
+                {
                     angularType = angularType.Replace(match, "Date");
+                    isRequired = true;
+                }
+
+                // Time
+                else if (match == "TimeSpan")
+                {
+                    angularType = angularType.Replace(match, "string");
+                    isRequired = true;
+                }
 
                 // XXXDto
                 else if (match.EndsWith("Dto"))
+                {
                     angularType = angularType.Replace(match, "OptionDto");
+                    isRequired = false;
+                }
+
+                // String
+                else if (match.ToLower() == "string")
+                {
+                    isRequired = true;
+                }
             }
 
             if (angularType.EndsWith('?'))
+            {
                 angularType = angularType.Replace("?", " | null");
+                isRequired = false;
+            }
 
-            return angularType;
+            return new CRUDPropertyType(angularType, isRequired);
         }
         #endregion
     }

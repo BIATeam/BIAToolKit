@@ -4,7 +4,6 @@
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System;
     using System.Collections.Generic;
     using System.Data;
@@ -33,10 +32,9 @@
         // Tags Partial
         public const string MARKER_BEGIN_PARTIAL = $"{MARKER_BEGIN} Partial";
         public const string MARKER_END_PARTIAL = $"{MARKER_END} Partial";
-
+        // Tags Front
         public const string MARKER_BEGIN_FRONT = $"{MARKER_BEGIN} Front";
         public const string MARKER_END_FRONT = $"{MARKER_END} Front";
-
 
         /// <summary>
         /// Constructor.
@@ -50,33 +48,33 @@
         /// <summary>
         /// Unzip archive on temp local folder and analyze files.
         /// </summary>
-        public ZipFilesContent ParseZipFile(FeatureTypeData zipData, FeatureType type, string folderName/*, List<string> options*/)
+        public bool ParseZipFile(ZipFeatureType zipData, string folderName)
         {
             string fileName = Path.Combine(zipData.ZipPath, zipData.ZipName);
             if (string.IsNullOrWhiteSpace(fileName))
             {
-                consoleWriter.AddMessageLine($"No {type} Zip files found to parse.", "Orange");
-                return null;
+                consoleWriter.AddMessageLine($"No {zipData.FeatureType} Zip files found to parse.", "Orange");
+                return false;
             }
 
             // Unzip archive
-            (string workingDirectoryPath, Dictionary<string, string> fileList) = ReadZipAndExtract(fileName, folderName, type);
+            (string workingDirectoryPath, Dictionary<string, string> fileList) = ReadZipAndExtract(fileName, folderName, zipData.FeatureType);
             if (string.IsNullOrWhiteSpace(workingDirectoryPath))
             {
                 consoleWriter.AddMessageLine($"Zip archive '{fileName}' not found.", "Orange");
-                return null;
+                return false;
             }
 
             // Parse files in zip
             if (fileList.Count > 0)
             {
-                ZipFilesContent filesContent = new(type);
+                zipData.FeatureDataList = new();
                 foreach (KeyValuePair<string, string> file in fileList)
                 {
                     string filePath = Path.Combine(workingDirectoryPath, file.Key);
 
                     WebApiFileType? fileType = null;
-                    if (type == FeatureType.WebApi)     // Specific to WebApi part
+                    if (zipData.FeatureType == FeatureType.WebApi)     // Specific to WebApi part
                     {
                         fileType = GetFileType(file.Value);
 
@@ -88,7 +86,7 @@
                     }
 
                     FeatureData data;
-                    if (type == FeatureType.WebApi)
+                    if (zipData.FeatureType == FeatureType.WebApi)
                     {
                         data = new WebApiFeatureData(file.Value, file.Key, workingDirectoryPath, fileType);
                     }
@@ -110,25 +108,20 @@
                     else
                     {
                         data.ExtractBlocks = AnalyzeFile(filePath, data.IsPartialFile);
-                        //if (options != null && options.Count > 0 && !data.IsPartialFile)
-                        //{
-                        //    data.OptionToDelete = ExtractLinesContainsOptions(filePath, options);
-                        //}
                     }
 
-                    filesContent.FeatureDataList.Add(data);
+                    zipData.FeatureDataList.Add(data);
                 }
 
-                return filesContent;
+                return true;
             }
             else
             {
                 consoleWriter.AddMessageLine($"Zip archive '{fileName}' is empty.", "Orange");
             }
 
-            return null;
+            return false;
         }
-
 
         /// <summary>
         /// Read Zip archive and extract files on temporary working directory.
@@ -147,9 +140,7 @@
                     return (tempDir, files);
                 }
 
-#if DEBUG
                 consoleWriter.AddMessageLine($"*** Parse zip file: '{zipPath}' ***", "Green");
-#endif
 
                 // Create working temporary folder
                 tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType, crudType.ToString());
@@ -235,7 +226,7 @@
                         {
                             if (properties.Value.Contains(block.Name))
                             {
-                                ((ExtractBlockBlock)block).Type = properties.Key;
+                                ((ExtractBlocksBlock)block).PropertyType = new CRUDPropertyType(properties.Key);
                                 return;
                             }
                         }
@@ -425,7 +416,7 @@
                     }
                     else if (type == CRUDDataUpdateType.Block)
                     {
-                        extractBlocksList.Add(new ExtractBlockBlock(type, name, blockLines));
+                        extractBlocksList.Add(new ExtractBlocksBlock(type, name, blockLines));
                     }
                     else
                     {
@@ -471,20 +462,6 @@
             }
 
             return extractBlocksList;
-        }
-
-        /// <summary>
-        /// Get and format list of properties of Dto file.
-        /// </summary>
-        public Dictionary<string, List<string>> GetDtoProperties(List<PropertyDeclarationSyntax> propertyList)
-        {
-            Dictionary<string, List<string>> dico = new();
-            propertyList.ForEach(p =>
-            {
-                CommonTools.AddToDictionnary(dico, p.Type.ToString(), p.Identifier.ToString());
-            });
-
-            return dico;
         }
 
         /// <summary>

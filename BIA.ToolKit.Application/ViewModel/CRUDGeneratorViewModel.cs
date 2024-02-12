@@ -16,8 +16,7 @@
         /// </summary>
         public CRUDGeneratorViewModel()
         {
-            FeatureTypeDataList = new();
-            ZipFilesContent = new();
+            ZipFeatureType = new();
             ZipDotNetSelected = new();
             ZipAngularSelected = new();
         }
@@ -143,7 +142,7 @@
                     isWebApiSelected = value;
                     RaisePropertyChanged(nameof(IsWebApiSelected));
 
-                    FeatureTypeData feature = FeatureTypeDataList.Where(x => x.Type == FeatureType.WebApi).FirstOrDefault();
+                    ZipFeatureType feature = ZipFeatureType.Where(x => x.FeatureType == FeatureType.WebApi).FirstOrDefault();
                     UpdateFeatureSelection(feature, value);
                 }
             }
@@ -160,7 +159,7 @@
                     isCrudSelected = value;
                     RaisePropertyChanged(nameof(IsCrudSelected));
 
-                    FeatureTypeData feature = FeatureTypeDataList.Where(x => x.Type == FeatureType.CRUD).FirstOrDefault();
+                    ZipFeatureType feature = ZipFeatureType.Where(x => x.FeatureType == FeatureType.CRUD).FirstOrDefault();
                     UpdateFeatureSelection(feature, value);
                 }
             }
@@ -177,7 +176,7 @@
                     isOptionSelected = value;
                     RaisePropertyChanged(nameof(IsOptionSelected));
 
-                    FeatureTypeData feature = FeatureTypeDataList.Where(x => x.Type == FeatureType.Option).FirstOrDefault();
+                    ZipFeatureType feature = ZipFeatureType.Where(x => x.FeatureType == FeatureType.Option).FirstOrDefault();
                     UpdateFeatureSelection(feature, value);
                 }
             }
@@ -194,13 +193,13 @@
                     isTeamSelected = value;
                     RaisePropertyChanged(nameof(IsTeamSelected));
 
-                    FeatureTypeData feature = FeatureTypeDataList.Where(x => x.Type == FeatureType.Team).FirstOrDefault();
+                    ZipFeatureType feature = ZipFeatureType.Where(x => x.FeatureType == FeatureType.Team).FirstOrDefault();
                     UpdateFeatureSelection(feature, value);
                 }
             }
         }
 
-        private void UpdateFeatureSelection(FeatureTypeData feature, bool isChecked)
+        private void UpdateFeatureSelection(ZipFeatureType feature, bool isChecked)
         {
             if (feature != null)
             {
@@ -210,14 +209,14 @@
 
                 if (feature.IsChecked)
                 {
-                    if (feature.Type == FeatureType.WebApi)
+                    if (feature.FeatureType == FeatureType.WebApi)
                         ZipDotNetSelected.Add(feature.ZipName);
                     else
                         ZipAngularSelected.Add(feature.ZipName);
                 }
                 else
                 {
-                    if (feature.Type == FeatureType.WebApi)
+                    if (feature.FeatureType == FeatureType.WebApi)
                         ZipDotNetSelected.Remove(feature.ZipName);
                     else
                         ZipAngularSelected.Remove(feature.ZipName);
@@ -227,8 +226,8 @@
         #endregion
 
         #region ZipFile
-        private List<FeatureTypeData> featureTypeDataList;
-        public List<FeatureTypeData> FeatureTypeDataList
+        private List<ZipFeatureType> featureTypeDataList;
+        public List<ZipFeatureType> ZipFeatureType
         {
             get { return featureTypeDataList; }
             set
@@ -317,11 +316,9 @@
             }
         }
         #endregion
-
-        public List<ZipFilesContent> ZipFilesContent { get; }
     }
 
-    public class FeatureTypeData
+    public class ZipFeatureType
     {
         /// <summary>
         /// Is to generate?
@@ -331,7 +328,7 @@
         /// <summary>
         /// The CRUD type.
         /// </summary>
-        public FeatureType Type { get; }
+        public FeatureType FeatureType { get; }
 
         /// <summary>
         /// Angular zip file name.
@@ -343,34 +340,36 @@
         /// </summary>
         public string ZipPath { get; }
 
+        public List<FeatureData> FeatureDataList { get; set; }
+
         /// <summary>
         /// Constructor.
         /// </summary>
-        public FeatureTypeData(FeatureType type, string name, string path)
+        public ZipFeatureType(FeatureType type, string name, string path)
         {
-            this.Type = type;
+            this.FeatureType = type;
             this.ZipName = name;
             this.ZipPath = path;
         }
     }
 
+    //public class ZipFeatureContent
+    //{
+    //    public FeatureType FeatureType { get; }
 
-    public class ZipFilesContent
-    {
-        public FeatureType Type { get; }
+    //    public List<FeatureData> FeatureDataList { get; }
 
-        public List<FeatureData> FeatureDataList { get; }
+    //    /// <summary>
+    //    /// Constructor.
+    //    /// </summary>
+    //    public ZipFeatureContent(FeatureType type)
+    //    {
+    //        this.FeatureType = type;
+    //        this.FeatureDataList = new();
+    //    }
+    //}
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public ZipFilesContent(FeatureType type)
-        {
-            this.Type = type;
-            this.FeatureDataList = new();
-        }
-    }
-
+    #region FeatureData
     public class FeatureData
     {
         /// <summary>
@@ -432,7 +431,9 @@
             this.FileType = type;
         }
     }
+    #endregion
 
+    #region ExtractBlock
     public class ExtractBlock
     {
         public CRUDDataUpdateType DataUpdateType { get; }
@@ -459,11 +460,11 @@
         }
     }
 
-    public class ExtractBlockBlock : ExtractBlock
+    public class ExtractBlocksBlock : ExtractBlock
     {
-        public string Type { get; set; }
+        public CRUDPropertyType PropertyType { get; set; }
 
-        public ExtractBlockBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) : base(dataUpdateType, name, lines)
+        public ExtractBlocksBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) : base(dataUpdateType, name, lines)
         {
         }
     }
@@ -478,6 +479,33 @@
         }
     }
 
+    public class CRUDPropertyType
+    {
+        private string type;
+        public string Type
+        {
+            get { return type; }
+            set
+            {
+                type = value;
+                IsRequired = !type.Contains('|');
+                SimplifiedType = type.Split('|')[0].Trim();
+            }
+        }
+
+        public string SimplifiedType { get; private set; }
+
+        public bool IsRequired { get; private set; }
+
+        public CRUDPropertyType(string type, bool isRequired = false)
+        {
+            this.Type = type;
+            this.IsRequired = isRequired;
+        }
+    }
+    #endregion
+
+    #region enum
     public enum FeatureType
     {
         WebApi,
@@ -511,4 +539,5 @@
         Mapper,
         Partial
     }
+    #endregion
 }

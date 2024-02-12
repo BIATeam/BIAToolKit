@@ -133,6 +133,9 @@
             return default;
         }
 
+        /// <summary>
+        /// Check if data match with regex.
+        /// </summary>
         public static bool IsMatchRegexValue(string pattern, string data)
         {
             MatchCollection matches = new Regex(pattern).Matches(data);
