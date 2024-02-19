@@ -36,6 +36,9 @@
         public const string MARKER_BEGIN_FRONT = $"{MARKER_BEGIN} Front";
         public const string MARKER_END_FRONT = $"{MARKER_END} Front";
 
+        public const string MARKER_BEGIN_DISPLAY = $"{MARKER_BEGIN} Display";
+        public const string MARKER_END_DISPLAY = $"{MARKER_END} Display";
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -53,7 +56,7 @@
             string fileName = Path.Combine(zipData.ZipPath, zipData.ZipName);
             if (string.IsNullOrWhiteSpace(fileName))
             {
-                consoleWriter.AddMessageLine($"No {zipData.FeatureType} Zip files found to parse.", "Orange");
+                consoleWriter.AddMessageLine($"No '{zipData.FeatureType}' zip files found to parse.", "Orange");
                 return false;
             }
 
@@ -68,59 +71,55 @@
             // Parse files in zip
             if (fileList.Count > 0)
             {
+                FeatureData featureData;
                 zipData.FeatureDataList = new();
                 foreach (KeyValuePair<string, string> file in fileList)
                 {
                     string filePath = Path.Combine(workingDirectoryPath, file.Key);
 
-                    WebApiFileType? fileType = null;
-                    if (zipData.FeatureType == FeatureType.WebApi)     // Specific to WebApi part
-                    {
-                        fileType = GetFileType(file.Value);
-
-                        // Ignore mapper and entity file
-                        if (fileType != null && (fileType == WebApiFileType.Mapper || fileType == WebApiFileType.Entity))
-                        {
-                            continue;
-                        }
-                    }
-
-                    FeatureData data;
                     if (zipData.FeatureType == FeatureType.WebApi)
                     {
-                        data = new WebApiFeatureData(file.Value, file.Key, workingDirectoryPath, fileType);
-                    }
-                    else
-                    {
-                        data = new FeatureData(file.Value, file.Key, workingDirectoryPath);
-                    }
+                        WebApiFileType? fileType = GetFileType(file.Value);
+                        featureData = new WebApiFeatureData(file.Value, file.Key, workingDirectoryPath, fileType);
 
-                    if (fileType == WebApiFileType.Dto)   // Specific to WebApi part
-                    {
-                        // Parse "plane" Dto file
-                        ClassDefinition classFile = service.ParseClassFile(Path.Combine(workingDirectoryPath, file.Key));
-                        if (classFile != null)
+                        if (fileType != null)
                         {
-                            classFile.EntityName = GetEntityName(file.Value, fileType);
+                            if (fileType != WebApiFileType.Partial)
+                            {
+                                ClassDefinition classFile = service.ParseClassFile(Path.Combine(workingDirectoryPath, file.Key));
+                                if (classFile != null)
+                                {
+                                    ((WebApiFeatureData)featureData).Namespace = classFile.NamespaceSyntax.Name.ToString();
+                                    if (fileType == WebApiFileType.Dto)
+                                    {
+                                        classFile.EntityName = GetEntityName(file.Value, fileType);
+                                        ((WebApiFeatureData)featureData).ClassFileDefinition = classFile;
+                                    }
+                                }
+                            }
+
+                            if (fileType != WebApiFileType.Dto || fileType != WebApiFileType.Entity || fileType != WebApiFileType.Mapper)    // Not Dto, Entity or Mapper
+                            {
+                                featureData.ExtractBlocks = AnalyzeFile(filePath, featureData.IsPartialFile);
+                            }
                         }
-                        ((WebApiFeatureData)data).ClassFileDefinition = classFile;
                     }
-                    else
+                    else    // Not WebApi
                     {
-                        data.ExtractBlocks = AnalyzeFile(filePath, data.IsPartialFile);
+                        featureData = new FeatureData(file.Value, file.Key, workingDirectoryPath);
+                        featureData.ExtractBlocks = AnalyzeFile(filePath, featureData.IsPartialFile);
                     }
 
-                    zipData.FeatureDataList.Add(data);
+                    zipData.FeatureDataList.Add(featureData);
                 }
-
-                return true;
             }
             else
             {
                 consoleWriter.AddMessageLine($"Zip archive '{fileName}' is empty.", "Orange");
+                return false;
             }
 
-            return false;
+            return true;
         }
 
         /// <summary>

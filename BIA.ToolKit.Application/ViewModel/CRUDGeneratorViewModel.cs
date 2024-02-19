@@ -16,7 +16,7 @@
         /// </summary>
         public CRUDGeneratorViewModel()
         {
-            ZipFeatureType = new();
+            ZipFeatureTypeList = new();
             ZipDotNetSelected = new();
             ZipAngularSelected = new();
         }
@@ -25,7 +25,7 @@
         private Project currentProject;
         public Project CurrentProject
         {
-            get { return currentProject; }
+            get => currentProject;
             set
             {
                 currentProject = value;
@@ -36,7 +36,7 @@
         private bool isProjectChosen;
         public bool IsProjectChosen
         {
-            get { return isProjectChosen; }
+            get => isProjectChosen;
             set
             {
                 isProjectChosen = value;
@@ -49,7 +49,7 @@
         private EntityInfo dtoEntity;
         public EntityInfo DtoEntity
         {
-            get { return dtoEntity; }
+            get => dtoEntity;
             set
             {
                 if (dtoEntity != value)
@@ -62,7 +62,7 @@
         private Dictionary<string, string> dtoFiles;
         public Dictionary<string, string> DtoFiles
         {
-            get { return dtoFiles; }
+            get => dtoFiles;
             set
             {
                 if (dtoFiles != value)
@@ -73,10 +73,24 @@
             }
         }
 
+        private List<string> dtoDisplayItems;
+        public List<string> DtoDisplayItems
+        {
+            get => dtoDisplayItems;
+            set
+            {
+                if (dtoDisplayItems != value)
+                {
+                    dtoDisplayItems = value;
+                    RaisePropertyChanged(nameof(DtoDisplayItems));
+                }
+            }
+        }
+
         private string dtoSelected;
         public string DtoSelected
         {
-            get { return dtoSelected; }
+            get => dtoSelected;
             set
             {
                 if (dtoSelected != value)
@@ -87,15 +101,33 @@
             }
         }
 
+        private string dtoDisplayItemSelected;
+        public string DtoDisplayItemSelected
+        {
+            get => dtoDisplayItemSelected;
+            set
+            {
+                if (dtoDisplayItemSelected != value)
+                {
+                    dtoDisplayItemSelected = value;
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                }
+            }
+        }
+
         private bool isDtoParsed = false;
         public bool IsDtoParsed
         {
-            get { return isDtoParsed; }
+            get => isDtoParsed;
             set
             {
-                isDtoParsed = value;
-                RaisePropertyChanged(nameof(IsButtonParseZipEnable));
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                if (isDtoParsed != value)
+                {
+                    isDtoParsed = value;
+                    RaisePropertyChanged(nameof(IsDtoParsed));
+                    RaisePropertyChanged(nameof(IsButtonParseZipEnable));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                }
             }
         }
         #endregion
@@ -104,7 +136,7 @@
         private string entityNameSingular;
         public string CRUDNameSingular
         {
-            get { return entityNameSingular; }
+            get => entityNameSingular;
             set
             {
                 if (entityNameSingular != value)
@@ -118,7 +150,7 @@
         private string entityNamePlurial;
         public string CRUDNamePlurial
         {
-            get { return entityNamePlurial; }
+            get => entityNamePlurial;
             set
             {
                 if (entityNamePlurial != value)
@@ -134,7 +166,7 @@
         private bool isWebApiSelected;
         public bool IsWebApiSelected
         {
-            get { return isWebApiSelected; }
+            get => isWebApiSelected;
             set
             {
                 if (isWebApiSelected != value)
@@ -142,7 +174,7 @@
                     isWebApiSelected = value;
                     RaisePropertyChanged(nameof(IsWebApiSelected));
 
-                    ZipFeatureType feature = ZipFeatureType.Where(x => x.FeatureType == FeatureType.WebApi).FirstOrDefault();
+                    ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == FeatureType.WebApi).FirstOrDefault();
                     UpdateFeatureSelection(feature, value);
                 }
             }
@@ -151,7 +183,7 @@
         private bool isCrudSelected;
         public bool IsCrudSelected
         {
-            get { return isCrudSelected; }
+            get => isCrudSelected;
             set
             {
                 if (isCrudSelected != value)
@@ -159,7 +191,7 @@
                     isCrudSelected = value;
                     RaisePropertyChanged(nameof(IsCrudSelected));
 
-                    ZipFeatureType feature = ZipFeatureType.Where(x => x.FeatureType == FeatureType.CRUD).FirstOrDefault();
+                    ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == FeatureType.CRUD).FirstOrDefault();
                     UpdateFeatureSelection(feature, value);
                 }
             }
@@ -168,7 +200,7 @@
         private bool isOptionSelected;
         public bool IsOptionSelected
         {
-            get { return isOptionSelected; }
+            get => isOptionSelected;
             set
             {
                 if (isOptionSelected != value)
@@ -176,7 +208,7 @@
                     isOptionSelected = value;
                     RaisePropertyChanged(nameof(IsOptionSelected));
 
-                    ZipFeatureType feature = ZipFeatureType.Where(x => x.FeatureType == FeatureType.Option).FirstOrDefault();
+                    ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == FeatureType.Option).FirstOrDefault();
                     UpdateFeatureSelection(feature, value);
                 }
             }
@@ -185,7 +217,7 @@
         private bool isTeamSelected;
         public bool IsTeamSelected
         {
-            get { return isTeamSelected; }
+            get => isTeamSelected;
             set
             {
                 if (isTeamSelected != value)
@@ -193,7 +225,7 @@
                     isTeamSelected = value;
                     RaisePropertyChanged(nameof(IsTeamSelected));
 
-                    ZipFeatureType feature = ZipFeatureType.Where(x => x.FeatureType == FeatureType.Team).FirstOrDefault();
+                    ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == FeatureType.Team).FirstOrDefault();
                     UpdateFeatureSelection(feature, value);
                 }
             }
@@ -226,15 +258,15 @@
         #endregion
 
         #region ZipFile
-        private List<ZipFeatureType> featureTypeDataList;
-        public List<ZipFeatureType> ZipFeatureType
+        private List<ZipFeatureType> zipFeatureTypeList;
+        public List<ZipFeatureType> ZipFeatureTypeList
         {
-            get { return featureTypeDataList; }
+            get => zipFeatureTypeList;
             set
             {
-                if (featureTypeDataList != value)
+                if (zipFeatureTypeList != value)
                 {
-                    featureTypeDataList = value;
+                    zipFeatureTypeList = value;
                 }
             }
         }
@@ -242,7 +274,7 @@
         private ObservableCollection<string> zipDotNetSelected;
         public ObservableCollection<string> ZipDotNetSelected
         {
-            get { return zipDotNetSelected; }
+            get => zipDotNetSelected;
             set
             {
                 if (zipDotNetSelected != value)
@@ -256,7 +288,7 @@
         private ObservableCollection<string> zipAngularSelected;
         public ObservableCollection<string> ZipAngularSelected
         {
-            get { return zipAngularSelected; }
+            get => zipAngularSelected;
             set
             {
                 if (zipAngularSelected != value)
@@ -270,7 +302,7 @@
         private bool isZipParsed = false;
         public bool IsZipParsed
         {
-            get { return isZipParsed; }
+            get => isZipParsed;
             set
             {
                 isZipParsed = value;
@@ -303,7 +335,8 @@
             {
                 return isDtoParsed
                     && isZipParsed
-                    && !string.IsNullOrWhiteSpace(CRUDNamePlurial);
+                    && !string.IsNullOrWhiteSpace(CRUDNamePlurial)
+                    && !string.IsNullOrWhiteSpace(dtoDisplayItemSelected);
             }
         }
 
@@ -352,22 +385,6 @@
             this.ZipPath = path;
         }
     }
-
-    //public class ZipFeatureContent
-    //{
-    //    public FeatureType FeatureType { get; }
-
-    //    public List<FeatureData> FeatureDataList { get; }
-
-    //    /// <summary>
-    //    /// Constructor.
-    //    /// </summary>
-    //    public ZipFeatureContent(FeatureType type)
-    //    {
-    //        this.FeatureType = type;
-    //        this.FeatureDataList = new();
-    //    }
-    //}
 
     #region FeatureData
     public class FeatureData
@@ -423,6 +440,8 @@
         /// </summary>
         public ClassDefinition ClassFileDefinition { get; set; }
 
+        public string Namespace { get; set; }
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -432,6 +451,21 @@
         }
     }
     #endregion
+
+    public class WebApiNamespace
+    {
+        public WebApiFileType FileType { get; }
+
+        public string CrudNamespace { get; }
+
+        public string CrudNamespaceGenerated { get; set; }
+
+        public WebApiNamespace(WebApiFileType fileType, string crudNamespace)
+        {
+            this.FileType = fileType;
+            this.CrudNamespace = crudNamespace;
+        }
+    }
 
     #region ExtractBlock
     public class ExtractBlock
@@ -527,6 +561,7 @@
         Permission,
         Rights,
         Routing
+        /* Display */
     }
 
     public enum WebApiFileType

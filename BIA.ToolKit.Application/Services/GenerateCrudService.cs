@@ -15,11 +15,12 @@
 
     public class GenerateCrudService
     {
-        private readonly IConsoleWriter consoleWriter;
-
         private const string ATTRIBUTE_TYPE_NOT_MANAGED = "// CRUD GENERATOR FOR PLANE TO REVIEW : Field " + ATTRIBUTE_TYPE_NOT_MANAGED_FIELD + " or type " + ATTRIBUTE_TYPE_NOT_MANAGED_TYPE + " not managed.";
         private const string ATTRIBUTE_TYPE_NOT_MANAGED_FIELD = "XXXFieldXXX";
         private const string ATTRIBUTE_TYPE_NOT_MANAGED_TYPE = "YYYTypeYYY";
+        private const string IS_REQUIRED_PROPERTY = "isRequired:";
+
+        private readonly IConsoleWriter consoleWriter;
 
         private string NewCrudNamePascalSingular = "Plane";
         private string NewCrudNamePascalPlural = "Planes";
@@ -42,8 +43,6 @@
         private string OldTeamNamePascalPlural = "AircraftMaintenanceCompanies";
         private string OldTeamNameCamelSingular = "aircraftMaintenanceCompany";
         private string OldTeamNameCamelPlural = "aircraftMaintenanceCompanies";
-
-        private const string IsRequiredProperty = @"isRequired:";
 
         /// <summary>
         /// Constructor.
@@ -82,7 +81,7 @@
             this.OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
         }
 
-        public string GenerateCrudFiles(Project currentProject, EntityInfo dtoEntity, List<ZipFeatureType> zipFeatureTypeList, bool generateInProjectFolder)
+        public string GenerateCrudFiles(Project currentProject, EntityInfo dtoRefEntity, List<ZipFeatureType> zipFeatureTypeList, bool generateInProjectFolder)
         {
             string generationFolder = null;
             try
@@ -98,7 +97,7 @@
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet files on '{dotnetDir}' ***", "Green");
 
-                    GenerateWebApi(dotnetDir, backFeatureType.FeatureDataList, currentProject);
+                    GenerateWebApi(dotnetDir, backFeatureType.FeatureDataList, currentProject, dtoRefEntity);
                 }
 
                 // Generate CRUD angular files
@@ -108,7 +107,7 @@
                     consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{angularDir}' ***", "Green");
 
                     // Get CRUD dto properties
-                    Dictionary<string, List<string>> crudDtoProperties = GetDtoProperties(dtoEntity);
+                    Dictionary<string, List<string>> crudDtoProperties = GetDtoProperties(dtoRefEntity);
                     if (crudDtoProperties == null)
                     {
                         consoleWriter.AddMessageLine($"Can't generate Angular CRUD files: Dto properties are empty.", "Red");
@@ -146,16 +145,17 @@
         }
 
         #region Feature
-        private void GenerateWebApi(string destDir, List<FeatureData> featureDataList, Project currentProject)
+        private void GenerateWebApi(string destDir, List<FeatureData> featureDataList, Project currentProject, EntityInfo dtoRefEntity)
         {
             try
             {
                 string srcDir = Path.Combine(GetGenerationFolder(currentProject), Constants.FolderDotNet);
-
-                ClassDefinition dtoClassDefiniton = ((WebApiFeatureData)featureDataList.FirstOrDefault(x => ((WebApiFeatureData)x).FileType == WebApiFileType.Dto))?.ClassFileDefinition;
+                WebApiFeatureData dtoPlaneFeature = ((WebApiFeatureData)featureDataList.FirstOrDefault(x => ((WebApiFeatureData)x).FileType == WebApiFileType.Dto));
+                ClassDefinition dtoClassDefiniton = dtoPlaneFeature?.ClassFileDefinition;
+                List<WebApiNamespace> crudNamespaceList = ListCrudNamespaces(destDir, featureDataList, currentProject, dtoClassDefiniton);
 
                 // Generate Crud files
-                foreach (WebApiFeatureData crudData in featureDataList)
+                foreach (WebApiFeatureData crudData in featureDataList.Where(ft => !ft.IsPartialFile))
                 {
                     if (crudData.FileType == WebApiFileType.Dto ||
                         crudData.FileType == WebApiFileType.Entity ||
@@ -164,17 +164,16 @@
                         // Ignore file : not necessary to regenerate it
                         continue;
                     }
-                    else if (crudData.IsPartialFile)
-                    {
-                        // Update with partial file
-                        UpdatePartialFile(srcDir, destDir, currentProject, crudData, FeatureType.WebApi, dtoClassDefiniton);
-                    }
-                    else
-                    {
-                        // Update WebApi files (not partial)
-                        UpdateWebApiFile(destDir, currentProject, crudData, dtoClassDefiniton);
-                    }
+
+                    // Update WebApi files (not partial)
+                    UpdateWebApiFile(destDir, currentProject, crudData, dtoClassDefiniton, crudNamespaceList);
                 }
+                foreach (WebApiFeatureData crudData in featureDataList.Where(ft => ft.IsPartialFile))
+                {
+                    // Update with partial file
+                    UpdatePartialFile(srcDir, destDir, currentProject, crudData, FeatureType.WebApi, dtoClassDefiniton);
+                }
+
             }
             catch (Exception ex)
             {
@@ -301,7 +300,7 @@
         #endregion
 
         #region DotNet Files
-        private void UpdateWebApiFile(string destDir, Project currentProject, WebApiFeatureData crudData, ClassDefinition dtoClassDefiniton)
+        private void UpdateWebApiFile(string destDir, Project currentProject, WebApiFeatureData crudData, ClassDefinition dtoClassDefiniton, List<WebApiNamespace> crudNamespaceList)
         {
             string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
             string dest = ConvertPascalOldToNewCrudName(Path.Combine(destDir, crudData.FilePath), FeatureType.WebApi);
@@ -315,8 +314,10 @@
 
             for (int i = 0; i < fileLinesContent.Count; i++)
             {
-                // Replace Compagny name and Project name
-                fileLinesContent[i] = ReplaceCompagnyNameProjetName(fileLinesContent[i], currentProject, dtoClassDefiniton);
+                if (IsNamespaceOrUsingLine(fileLinesContent[i]))
+                {
+                    fileLinesContent[i] = UpdateNamespaceUsing(fileLinesContent[i], currentProject, dtoClassDefiniton, crudNamespaceList);
+                }
                 // Convert Crud Name (Plane to XXX)
                 fileLinesContent[i] = ConvertPascalOldToNewCrudName(fileLinesContent[i], FeatureType.WebApi);
             }
@@ -325,6 +326,93 @@
 
             // Generate new file
             CommonTools.GenerateFile(dest, fileLinesContent);
+        }
+
+        private List<WebApiNamespace> ListCrudNamespaces(string destDir, List<FeatureData> featureDataList, Project currentProject, ClassDefinition dtoClassDefiniton)
+        {
+            List<WebApiNamespace> namespaceList = new();
+            foreach (WebApiFeatureData crudData in featureDataList)
+            {
+                if (crudData.FileType == null || crudData.FileType == WebApiFileType.Partial)
+                {
+                    continue;
+                }
+
+                WebApiNamespace webApiNamespace = new(crudData.FileType.Value, crudData.Namespace);
+                namespaceList.Add(webApiNamespace);
+
+                // If Dto/Entity/Mapper file => file already exists => get namespace
+                if (crudData.FileType == WebApiFileType.Dto || crudData.FileType == WebApiFileType.Entity || crudData.FileType == WebApiFileType.Mapper)
+                {
+                    // Get part of namespace before "plane" occurency
+                    string partPath = string.Empty;
+                    foreach (string nmsp in crudData.Namespace.Split('.'))
+                    {
+                        if (nmsp.Contains(OldCrudNamePascalSingular, StringComparison.OrdinalIgnoreCase))
+                        {
+                            partPath = partPath.Remove(partPath.Length - 1);
+                            break;
+                        }
+                        partPath += $"{nmsp}.";
+                    }
+
+                    // Replace company + projet name on part path
+                    partPath = ReplaceCompagnyNameProjetName(partPath, currentProject, dtoClassDefiniton);
+
+                    // Replace "plane" file name with good "crud" value
+                    string fileName = crudData.FileName.Replace(OldCrudNamePascalSingular, NewCrudNamePascalSingular);
+
+                    // Search file on disk
+                    string foundFile = Directory.EnumerateFiles(Path.Combine(destDir, partPath), fileName, SearchOption.AllDirectories).FirstOrDefault();
+
+                    // Extract real namespace of file found
+                    if (!string.IsNullOrWhiteSpace(foundFile))
+                    {
+                        // Read file
+                        List<string> fileLinesContent = File.ReadAllLines(foundFile).ToList();
+                        foreach (string line in fileLinesContent)
+                        {
+                            // Search namespace line
+                            if (line.TrimStart().StartsWith("namespace"))
+                            {
+                                // Get namespace value
+                                webApiNamespace.CrudNamespaceGenerated = GetNamespaceOrUsingValue(line);
+                                break;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Generate namespace for generated files: Controller, (I)AppService ...
+                    webApiNamespace.CrudNamespaceGenerated = ReplaceCompagnyNameProjetName(crudData.Namespace, currentProject, dtoClassDefiniton).Replace(OldCrudNamePascalSingular, NewCrudNamePascalSingular);
+                }
+            }
+            return namespaceList;
+        }
+
+        private string UpdateNamespaceUsing(string line, Project currentProject, ClassDefinition dtoClassDefiniton, List<WebApiNamespace> crudNamespaceList)
+        {
+            string nmsp = GetNamespaceOrUsingValue(line);
+            if (!string.IsNullOrWhiteSpace(nmsp))
+            {
+                WebApiNamespace nsp = crudNamespaceList.FirstOrDefault(x => x.CrudNamespace == nmsp);
+                if (nsp != null)
+                {
+                    line = line.Replace(nsp.CrudNamespace, nsp.CrudNamespaceGenerated);
+                }
+                else
+                {
+                    if (line.Contains(dtoClassDefiniton.CompagnyName) ||
+                        line.Contains(dtoClassDefiniton.ProjectName))
+                    {
+                        // Replace Compagny name and Project name if exists
+                        line = ReplaceCompagnyNameProjetName(line, currentProject, dtoClassDefiniton);
+                    }
+                }
+            }
+
+            return line;
         }
         #endregion
 
@@ -364,7 +452,8 @@
                     // Generate content to add
                     block.BlockLines.ForEach(line =>
                     {
-                        string newline = ConvertPascalOldToNewCrudName(line, type);
+                        string newline = ReplaceOldCamelToNewKebabPath(line);
+                        newline = ConvertPascalOldToNewCrudName(newline, type);
                         if (dtoClassDefiniton != null)
                         {
                             newline = ReplaceCompagnyNameProjetName(newline, currentProject, dtoClassDefiniton);
@@ -466,7 +555,7 @@
                 // Write blocks ?
                 if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
                 {
-                    string spaces = GetSpaceBeginLine(newFileLinesContent.Last());
+                    string spaces = GetSpacesBeginningLine(newFileLinesContent.Last());
 
                     // Write lines between properties and first block
                     for (int i = indexEndProperty + 1; i < indexBeginFirstBlock; i++)
@@ -504,7 +593,7 @@
                 // Write blocks ?
                 if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
                 {
-                    string spaces = GetSpaceBeginLine(newFileLinesContent.Last());
+                    string spaces = GetSpacesBeginningLine(newFileLinesContent.Last());
 
                     // Write lines 
                     for (int i = 0; i < indexBeginFirstBlock; i++)
@@ -742,11 +831,11 @@
 
         private void CheckRequiredLine(List<string> lines, bool isRequired)
         {
-            bool contains = CommonTools.IsFileContainsData(lines, new List<string> { IsRequiredProperty });
+            bool contains = CommonTools.IsFileContainsData(lines, new List<string> { IS_REQUIRED_PROPERTY });
             if (contains && !isRequired)
             {
                 // Remove
-                string lineFound = lines.FirstOrDefault(line => line.Contains(IsRequiredProperty));
+                string lineFound = lines.FirstOrDefault(line => line.Contains(IS_REQUIRED_PROPERTY));
                 if (lineFound != null)
                 {
                     lines.Remove(lineFound);
@@ -755,8 +844,8 @@
             if (!contains && isRequired)
             {
                 // Add
-                string spaces = GetSpaceBeginLine(lines[0]);
-                lines.Insert(2, $"{spaces}  {IsRequiredProperty}true,");
+                string spaces = GetSpacesBeginningLine(lines[0]);
+                lines.Insert(2, $"{spaces}  {IS_REQUIRED_PROPERTY}true,");
             }
         }
 
@@ -799,8 +888,8 @@
                 newBlockLines.Add(extractBlock.BlockLines[1]);                  // first block code line
                 if (isRequired)
                 {
-                    string spaces = GetSpaceBeginLine(extractBlock.BlockLines[0]);
-                    newBlockLines.Add($"{spaces}  {IsRequiredProperty}true,");  // IsRequired line
+                    string spaces = GetSpacesBeginningLine(extractBlock.BlockLines[0]);
+                    newBlockLines.Add($"{spaces}  {IS_REQUIRED_PROPERTY}true,");  // IsRequired line
                 }
                 newBlockLines.Add(extractBlock.BlockLines[length - 2]);         // last block code line
                 newBlockLines.Add(extractBlock.BlockLines[length - 1]);         // end block comment
@@ -822,15 +911,10 @@
                 }
                 else
                 {
+                    lines[i] = ReplaceOldCamelToNewKebabPath(lines[i]);
                     lines[i] = ConvertPascalOldToNewCrudName(lines[i], type);
                 }
             }
-        }
-
-        private string GetSpaceBeginLine(string line)
-        {
-            string regex = @"^(\s*).+$";
-            return CommonTools.GetMatchRegexValue(regex, line, 1);
         }
         #endregion
 
@@ -892,6 +976,20 @@
             if (value.Contains(oldValueSingulier))
             {
                 value = value.Replace(oldValueSingulier, newValueSingulier);
+            }
+
+            return value;
+        }
+
+        private string ReplaceOldCamelToNewKebabPath(string value)
+        {
+            if (value.Contains($"/{OldCrudNameCamelPlural}"))
+            {
+                value = value.Replace($"/{OldCrudNameCamelPlural}", $"/{NewCrudNameKebabPlural}");
+            }
+            if (value.Contains($"/{OldCrudNameCamelSingular}"))
+            {
+                value = value.Replace($"/{OldCrudNameCamelSingular}", $"/{NewCrudNameKebabSingular}");
             }
 
             return value;
@@ -1086,6 +1184,24 @@
             }
 
             return new CRUDPropertyType(angularType, isRequired);
+        }
+
+        private string GetSpacesBeginningLine(string line)
+        {
+            const string regex = @"^(\s*).+$";
+            return CommonTools.GetMatchRegexValue(regex, line, 1);
+        }
+
+        private bool IsNamespaceOrUsingLine(string line)
+        {
+            string regex = @"^\s*(?:namespace|using)\s(\w+)\.(\w+)\.";
+            return CommonTools.IsMatchRegexValue(regex, line);
+        }
+
+        private string GetNamespaceOrUsingValue(string line)
+        {
+            string regex = @"^\s*(?:namespace|using)\s([\w.]*);*\s*$";
+            return CommonTools.GetMatchRegexValue(regex, line);
         }
         #endregion
     }
