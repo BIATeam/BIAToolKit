@@ -197,10 +197,10 @@
                     }
                     else
                     {
-                        GenerationCrudData generationData = new();
-
+                        GenerationCrudData generationData = null;
                         if (crudData.ExtractBlocks?.Count > 0)
                         {
+                            generationData = new();
                             foreach (ExtractBlock block in crudData.ExtractBlocks)
                             {
                                 switch (block.DataUpdateType)
@@ -225,8 +225,9 @@
                                         break;
                                     case CRUDDataUpdateType.Display:
                                         string extractItem = ((ExtractDisplayBlock)block).ExtractItem;
-                                        string newDisplayLine = block.BlockLines[0].Replace(extractItem, CommonTools.ConvertToCamelCase(displayItem));
-                                        generationData.DisplayToUpdate.Add(new KeyValuePair<string, string>(block.BlockLines[0], newDisplayLine));
+                                        string extractLine = ((ExtractDisplayBlock)block).ExtractLine;
+                                        string newDisplayLine = extractLine.Replace(extractItem, CommonTools.ConvertToCamelCase(displayItem));
+                                        generationData.DisplayToUpdate.Add(new KeyValuePair<string, string>(extractLine, newDisplayLine));
                                         break;
                                     default:
                                         break;
@@ -265,7 +266,7 @@
                     string src = Path.Combine(angularFile.ExtractDirPath, angularFile.FilePath);
                     string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FilePath), FeatureType.Option);
 
-                    // replace blocks !
+                    // replace blocks 
                     GenerateAngularFile(FeatureType.Option, src, dest);
                 }
             }
@@ -485,17 +486,10 @@
                     fileLinesContent = ReplacePropertiesAndBlocks(fileName, fileLinesContent, generationData.PropertiesToAdd, generationData.BlocksToAdd);
                 }
 
-                // Replace Display
+                // Replace display item
                 if (generationData.DisplayToUpdate?.Count > 0)
                 {
-                    foreach (KeyValuePair<string, string> display in generationData.DisplayToUpdate)
-                    {
-                        int index = fileLinesContent.FindIndex(x => x.Contains(display.Key));
-                        if (index >= 0 && index < fileLinesContent.Count)
-                        {
-                            fileLinesContent[index] = fileLinesContent[index].Replace(display.Key, display.Value);
-                        }
-                    }
+                    fileLinesContent = ReplaceDisplayItem(fileLinesContent, generationData.DisplayToUpdate);
                 }
 
                 // Remove children
@@ -625,6 +619,20 @@
             }
 
             return newFileLinesContent;
+        }
+
+        private List<string> ReplaceDisplayItem(List<string> fileLinesContent, List<KeyValuePair<string, string>> displayToUpdate)
+        {
+            foreach (KeyValuePair<string, string> display in displayToUpdate)
+            {
+                int index = fileLinesContent.FindIndex(x => x.Contains(display.Key));
+                if (index >= 0 && index < fileLinesContent.Count)
+                {
+                    fileLinesContent[index] = fileLinesContent[index].Replace(display.Key, display.Value);
+                }
+            }
+
+            return fileLinesContent;
         }
 
         private List<string> DeleteChildrenBlocks(List<string> fileLinesContent, List<string> childrenName)

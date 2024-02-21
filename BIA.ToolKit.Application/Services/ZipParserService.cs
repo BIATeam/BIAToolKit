@@ -418,14 +418,18 @@
                             extractBlocksList.Add(new ExtractBlocksBlock(type, name, blockLines));
                             break;
                         case CRUDDataUpdateType.Display:
-                            if (blockLines.Count > 1)
+                            List<string> displayLines = blockLines.Where(l => !l.TrimStart().StartsWith("//")).ToList();
+                            if (displayLines?.Count == 1)
                             {
-                                consoleWriter.AddMessageLine($"Multiple lines found for Display block: '{blockLines}'", "Orange");
+                                // Extract XXX value form line as "this.XXX;"
+                                string regex = @$"\s(?:\w+)\.(\w+);\s*";
+                                string item = CommonTools.GetMatchRegexValue(regex, displayLines[0]);
+                                extractBlocksList.Add(new ExtractDisplayBlock(type, name, blockLines) { ExtractItem = item, ExtractLine = displayLines[0].TrimStart() });
                             }
-                            // Extract XXX value form line as "BIAToolKit - Begin Display */this.XXX;/* BIAToolKit - End Display" 
-                            string regex = @$"(?:{MARKER_BEGIN_DISPLAY})\s*\*\/(?:\w+)\.(\w+);\/\*\s*(?:{MARKER_END_DISPLAY})";
-                            string item = CommonTools.GetMatchRegexValue(regex, blockLines[0]);
-                            extractBlocksList.Add(new ExtractDisplayBlock(type, name, blockLines) { ExtractItem = item });
+                            else
+                            {
+                                consoleWriter.AddMessageLine($"Incorrect Display block format: '{blockLines}'", "Orange");
+                            }
                             break;
                         default:
                             extractBlocksList.Add(new ExtractBlock(type, name, blockLines));
