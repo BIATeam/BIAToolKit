@@ -397,29 +397,39 @@
                     List<string> blockLines = lines.ToArray()[indexStart..++indexEnd].ToList();
 
                     // Get block name (if exist)
-                    string name = CommonTools.GetMatchRegexValue(@$"({markerBegin})[\s+](\w+)", blockLines[0], 2);
+                    string name = CommonTools.GetMatchRegexValue(@$"(?:{markerBegin})[\s+](\w+)", blockLines[0]);
 
-                    // Decompose property
-                    if (type == CRUDDataUpdateType.Properties)
+                    switch (type)
                     {
-                        ExtractPropertiesBlock propBlock = new(type, name, blockLines);
-                        blockLines.ForEach(line =>
-                        {
-                            (string left, string right) = DecomposeProperty(line);
-                            if (!string.IsNullOrWhiteSpace(left) && !string.IsNullOrWhiteSpace(right))
+                        case CRUDDataUpdateType.Properties:
+                            // Decompose property
+                            Dictionary<string, List<string>> dico = new();
+                            blockLines.ForEach(line =>
                             {
-                                CommonTools.AddToDictionnary(propBlock.PropertiesList, right, left); // key: property type, value: property name
+                                (string left, string right) = DecomposeProperty(line);
+                                if (!string.IsNullOrWhiteSpace(left) && !string.IsNullOrWhiteSpace(right))
+                                {
+                                    CommonTools.AddToDictionnary(dico, right, left); // key: property type, value: property name
+                                }
+                            });
+                            extractBlocksList.Add(new ExtractPropertiesBlock(type, name, blockLines) { PropertiesList = dico });
+                            break;
+                        case CRUDDataUpdateType.Block:
+                            extractBlocksList.Add(new ExtractBlocksBlock(type, name, blockLines));
+                            break;
+                        case CRUDDataUpdateType.Display:
+                            if (blockLines.Count > 1)
+                            {
+                                consoleWriter.AddMessageLine($"Multiple lines found for Display block: '{blockLines}'", "Orange");
                             }
-                        });
-                        extractBlocksList.Add(propBlock);
-                    }
-                    else if (type == CRUDDataUpdateType.Block)
-                    {
-                        extractBlocksList.Add(new ExtractBlocksBlock(type, name, blockLines));
-                    }
-                    else
-                    {
-                        extractBlocksList.Add(new ExtractBlock(type, name, blockLines));
+                            // Extract XXX value form line as "BIAToolKit - Begin Display */this.XXX;/* BIAToolKit - End Display" 
+                            string regex = @$"(?:{MARKER_BEGIN_DISPLAY})\s*\*\/(?:\w+)\.(\w+);\/\*\s*(?:{MARKER_END_DISPLAY})";
+                            string item = CommonTools.GetMatchRegexValue(regex, blockLines[0]);
+                            extractBlocksList.Add(new ExtractDisplayBlock(type, name, blockLines) { ExtractItem = item });
+                            break;
+                        default:
+                            extractBlocksList.Add(new ExtractBlock(type, name, blockLines));
+                            break;
                     }
                 }
             }
@@ -489,6 +499,8 @@
                     return CRUDDataUpdateType.Child;
                 if (type == CRUDDataUpdateType.Properties.ToString())
                     return CRUDDataUpdateType.Properties;
+                if (type == CRUDDataUpdateType.Display.ToString())
+                    return CRUDDataUpdateType.Display;
             }
 
             throw new Exception($"CRUDDataUpdateType not reconized for '{type}'.");

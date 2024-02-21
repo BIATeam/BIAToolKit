@@ -486,11 +486,12 @@
 
     public class ExtractPropertiesBlock : ExtractBlock
     {
-        public Dictionary<string, List<string>> PropertiesList { get; }
+        public Dictionary<string, List<string>> PropertiesList { get; set; }
 
-        public ExtractPropertiesBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) : base(dataUpdateType, name, lines)
+        public ExtractPropertiesBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines, Dictionary<string, List<string>> propertiesList = null) :
+            base(dataUpdateType, name, lines)
         {
-            PropertiesList = new();
+            this.PropertiesList = propertiesList;
         }
     }
 
@@ -498,8 +499,10 @@
     {
         public CRUDPropertyType PropertyType { get; set; }
 
-        public ExtractBlocksBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) : base(dataUpdateType, name, lines)
+        public ExtractBlocksBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines, CRUDPropertyType propertyType = null) :
+            base(dataUpdateType, name, lines)
         {
+            this.PropertyType = propertyType;
         }
     }
 
@@ -510,6 +513,16 @@
         public ExtractPartialBlock(CRUDDataUpdateType dataUpdateType, string name, string index, List<string> lines) : base(dataUpdateType, name, lines)
         {
             this.Index = index;
+        }
+    }
+
+    public class ExtractDisplayBlock : ExtractBlock
+    {
+
+        public string ExtractItem { get; set; }
+
+        public ExtractDisplayBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) : base(dataUpdateType, name, lines)
+        {
         }
     }
 
@@ -554,6 +567,7 @@
         Block,
         Child,
         Option,
+        Display,
         // Partial
         Config,
         Dependency,
@@ -561,7 +575,7 @@
         Permission,
         Rights,
         Routing
-        /* Display */
+
     }
 
     public enum WebApiFileType
