@@ -245,7 +245,7 @@
                         string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
                         string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, crudData.FilePath), FeatureType.CRUD);
 
-                        // replace blocks !
+                        // Replace blocks
                         GenerateAngularFile(FeatureType.CRUD, src, dest, generationData);
                     }
                 }
@@ -298,7 +298,7 @@
 
             for (int i = 0; i < fileLinesContent.Count; i++)
             {
-                if (IsNamespaceOrUsingLine(fileLinesContent[i]))
+                if (CommonTools.IsNamespaceOrUsingLine(fileLinesContent[i]))
                 {
                     fileLinesContent[i] = UpdateNamespaceUsing(fileLinesContent[i], currentProject, dtoClassDefiniton, crudNamespaceList);
                 }
@@ -353,7 +353,7 @@
                             if (line.TrimStart().StartsWith("namespace"))
                             {
                                 // Get namespace value
-                                webApiNamespace.CrudNamespaceGenerated = GetNamespaceOrUsingValue(line);
+                                webApiNamespace.CrudNamespaceGenerated = CommonTools.GetNamespaceOrUsingValue(line);
                                 break;
                             }
                         }
@@ -376,7 +376,7 @@
 
         private string UpdateNamespaceUsing(string line, Project currentProject, ClassDefinition dtoClassDefiniton, List<WebApiNamespace> crudNamespaceList)
         {
-            string nmsp = GetNamespaceOrUsingValue(line);
+            string nmsp = CommonTools.GetNamespaceOrUsingValue(line);
             if (!string.IsNullOrWhiteSpace(nmsp))
             {
                 WebApiNamespace nsp = crudNamespaceList.FirstOrDefault(x => x.CrudNamespace == nmsp);
@@ -545,7 +545,7 @@
                 // Write blocks ?
                 if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
                 {
-                    string spaces = GetSpacesBeginningLine(newFileLinesContent.Last());
+                    string spaces = CommonTools.GetSpacesBeginningLine(newFileLinesContent.Last());
 
                     // Write lines between properties and first block
                     for (int i = indexEndProperty + 1; i < indexBeginFirstBlock; i++)
@@ -583,7 +583,7 @@
                 // Write blocks ?
                 if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
                 {
-                    string spaces = GetSpacesBeginningLine(newFileLinesContent.Last());
+                    string spaces = CommonTools.GetSpacesBeginningLine(newFileLinesContent.Last());
 
                     // Write lines 
                     for (int i = 0; i < indexBeginFirstBlock; i++)
@@ -872,7 +872,7 @@
             if (!contains && isRequired)
             {
                 // Add
-                string spaces = GetSpacesBeginningLine(lines[0]);
+                string spaces = CommonTools.GetSpacesBeginningLine(lines[0]);
                 lines.Insert(2, $"{spaces}  {IS_REQUIRED_PROPERTY}true,");
             }
         }
@@ -916,7 +916,7 @@
                 newBlockLines.Add(extractBlock.BlockLines[1]);                  // first block code line
                 if (isRequired)
                 {
-                    string spaces = GetSpacesBeginningLine(extractBlock.BlockLines[0]);
+                    string spaces = CommonTools.GetSpacesBeginningLine(extractBlock.BlockLines[0]);
                     newBlockLines.Add($"{spaces}  {IS_REQUIRED_PROPERTY}true,");  // IsRequired line
                 }
                 newBlockLines.Add(extractBlock.BlockLines[length - 2]);         // last block code line
@@ -1212,24 +1212,6 @@
             }
 
             return new CRUDPropertyType(angularType, isRequired);
-        }
-
-        private string GetSpacesBeginningLine(string line)
-        {
-            const string regex = @"^(\s*).+$";
-            return CommonTools.GetMatchRegexValue(regex, line, 1);
-        }
-
-        private bool IsNamespaceOrUsingLine(string line)
-        {
-            string regex = @"^\s*(?:namespace|using)\s(\w+)\.(\w+)\.";
-            return CommonTools.IsMatchRegexValue(regex, line);
-        }
-
-        private string GetNamespaceOrUsingValue(string line)
-        {
-            string regex = @"^\s*(?:namespace|using)\s([\w.]*);*\s*$";
-            return CommonTools.GetMatchRegexValue(regex, line);
         }
 
         private string GetNamespacePathBeforeOccurency(string line)

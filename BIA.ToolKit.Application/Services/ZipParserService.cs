@@ -230,6 +230,29 @@
                             }
                         }
                     });
+
+                    // Populate 'ExtractItem' of Display block
+                    List<ExtractBlock> displays = extractBlocksList.FindAll(b => b.DataUpdateType == CRUDDataUpdateType.Display);
+                    if (displays.Any())
+                    {
+                        foreach (ExtractDisplayBlock displayBlock in displays)
+                        {
+                            bool found = false;
+                            foreach (List<string> properties in propertiesBlock.PropertiesList.Values)
+                            {
+                                foreach (string property in properties)
+                                {
+                                    if (displayBlock.ExtractLine.Contains(property))
+                                    {
+                                        displayBlock.ExtractItem = property;
+                                        found = true;
+                                    }
+                                    if (found) break;
+                                }
+                                if (found) break;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -419,17 +442,11 @@
                             break;
                         case CRUDDataUpdateType.Display:
                             List<string> displayLines = blockLines.Where(l => !l.TrimStart().StartsWith("//")).ToList();
-                            if (displayLines?.Count == 1)
-                            {
-                                // Extract XXX value form line as "this.XXX;"
-                                string regex = @$"\s(?:\w+)\.(\w+);\s*";
-                                string item = CommonTools.GetMatchRegexValue(regex, displayLines[0]);
-                                extractBlocksList.Add(new ExtractDisplayBlock(type, name, blockLines) { ExtractItem = item, ExtractLine = displayLines[0].TrimStart() });
-                            }
-                            else
+                            if (displayLines?.Count != 1)
                             {
                                 consoleWriter.AddMessageLine($"Incorrect Display block format: '{blockLines}'", "Orange");
                             }
+                            extractBlocksList.Add(new ExtractDisplayBlock(type, name, blockLines) { ExtractLine = displayLines[0].TrimStart() });
                             break;
                         default:
                             extractBlocksList.Add(new ExtractBlock(type, name, blockLines));
@@ -446,7 +463,7 @@
         /// </summary>
         private List<ExtractBlock> ExtractPartialFile(List<string> fileLines)
         {
-            const string regex = @$"({MARKER_BEGIN_PARTIAL})[\s+](\w+)(\s+\d*)?(\s*\w+)";
+            const string regex = @$"(?:{MARKER_BEGIN_PARTIAL})[\s+](\w+)(\s+\d*)?(\s*\w+)";
             List<ExtractBlock> extractBlocksList = new();
             List<string> lines = new();
             bool startFound = false;
@@ -459,9 +476,9 @@
                 {
                     lines = new();
                     startFound = true;
-                    typeName = CommonTools.GetMatchRegexValue(regex, line, 2);
-                    index = CommonTools.GetMatchRegexValue(regex, line, 3);
-                    name = CommonTools.GetMatchRegexValue(regex, line, 4);
+                    typeName = CommonTools.GetMatchRegexValue(regex, line, 1);
+                    index = CommonTools.GetMatchRegexValue(regex, line, 2);
+                    name = CommonTools.GetMatchRegexValue(regex, line, 3);
                 }
 
                 if (startFound)
@@ -470,44 +487,11 @@
                 if (startFound && line.Contains(MARKER_END_PARTIAL, StringComparison.InvariantCulture))
                 {
                     startFound = false;
-                    extractBlocksList.Add(new ExtractPartialBlock(GetCRUDDataUpdateType(typeName), name?.TrimStart(), index?.TrimStart(), lines));
+                    extractBlocksList.Add(new ExtractPartialBlock(CommonTools.GetEnumElement<CRUDDataUpdateType>(typeName), name?.TrimStart(), index?.TrimStart(), lines));
                 }
             }
 
             return extractBlocksList;
-        }
-
-        /// <summary>
-        /// Convert "string" type value to "CRUDDataUpdateType" type value.
-        /// </summary>
-        private CRUDDataUpdateType GetCRUDDataUpdateType(string type)
-        {
-            if (type != null)
-            {
-                if (type == CRUDDataUpdateType.Config.ToString())
-                    return CRUDDataUpdateType.Config;
-                if (type == CRUDDataUpdateType.Dependency.ToString())
-                    return CRUDDataUpdateType.Dependency;
-                if (type == CRUDDataUpdateType.Navigation.ToString())
-                    return CRUDDataUpdateType.Navigation;
-                if (type == CRUDDataUpdateType.Permission.ToString())
-                    return CRUDDataUpdateType.Permission;
-                if (type == CRUDDataUpdateType.Rights.ToString())
-                    return CRUDDataUpdateType.Rights;
-                if (type == CRUDDataUpdateType.Routing.ToString())
-                    return CRUDDataUpdateType.Routing;
-
-                if (type == CRUDDataUpdateType.Block.ToString())
-                    return CRUDDataUpdateType.Block;
-                if (type == CRUDDataUpdateType.Child.ToString())
-                    return CRUDDataUpdateType.Child;
-                if (type == CRUDDataUpdateType.Properties.ToString())
-                    return CRUDDataUpdateType.Properties;
-                if (type == CRUDDataUpdateType.Display.ToString())
-                    return CRUDDataUpdateType.Display;
-            }
-
-            throw new Exception($"CRUDDataUpdateType not reconized for '{type}'.");
         }
 
         /// <summary>
