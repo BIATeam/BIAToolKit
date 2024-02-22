@@ -110,6 +110,7 @@
                 if (dtoDisplayItemSelected != value)
                 {
                     dtoDisplayItemSelected = value;
+                    RaisePropertyChanged(nameof(DtoDisplayItemSelected));
                     RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
                 }
             }

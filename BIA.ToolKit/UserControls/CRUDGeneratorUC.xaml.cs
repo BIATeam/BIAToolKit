@@ -154,12 +154,6 @@
             vm.IsTeamSelected = isTeamSelected;
         }
 
-        private void ModifyDisplayItem_SelectionChanged(object sender, RoutedEventArgs e)
-        {
-            if (vm == null) return;
-
-        }
-
         /// <summary>
         /// Action linked with "Entity name (singular)" textbox.
         /// </summary>
@@ -265,6 +259,7 @@
                     Date = DateTime.Now,
                     EntityNameSingular = vm.CRUDNameSingular,
                     EntityNamePlurial = vm.CRUDNamePlurial,
+                    DisplayItem = vm.DtoDisplayItemSelected,
 
                     // Create "Mapping" part
                     Mapping = new()
@@ -350,6 +345,7 @@
         {
             try
             {
+                // Check selected Dto file
                 string fileName = vm.DtoFiles[vm.DtoSelected];
                 if (string.IsNullOrWhiteSpace(fileName))
                 {
@@ -357,6 +353,7 @@
                     return false;
                 }
 
+                // Parse Dto entity file
                 vm.DtoEntity = service.ParseEntity(fileName);
                 if (vm.DtoEntity == null || vm.DtoEntity.Properties == null || vm.DtoEntity.Properties.Count <= 0)
                 {
@@ -364,9 +361,14 @@
                     return false;
                 }
 
+                // Fill display item list
                 List<string> displayItems = new();
                 vm.DtoEntity.Properties.ForEach(p => displayItems.Add(p.Name));
                 vm.DtoDisplayItems = displayItems;
+
+                // Set by default previous generation selected value
+                CRUDGenerationHistory history = this.crudHistory.CRUDGenerationHistory.FirstOrDefault(gh => (vm.DtoSelected == Path.GetFileName(gh.Mapping.Dto)));
+                vm.DtoDisplayItemSelected = history?.DisplayItem;
 
                 return true;
             }

@@ -18,6 +18,7 @@
         public DateTime Date { get; set; }
         public string EntityNameSingular { get; set; }
         public string EntityNamePlurial { get; set; }
+        public string DisplayItem { get; set; }
         public Mapping Mapping { get; set; }
         public List<Generation> Generation { get; }
 
