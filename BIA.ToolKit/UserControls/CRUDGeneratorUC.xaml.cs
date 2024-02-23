@@ -18,6 +18,9 @@
     /// </summary>
     public partial class CRUDGeneratorUC : UserControl
     {
+        private const string DOTNET_TYPE = "DotNet";
+        private const string ANGULAR_TYPE = "Angular";
+
         private IConsoleWriter consoleWriter;
         private CSharpParserService service;
         private ZipParserService zipService;
@@ -75,10 +78,9 @@
 
             // Clean all lists (in case of current project change)
             this.crudSettingsList.Clear();
-            vm.FeatureTypeDataList.Clear();
+            vm.ZipFeatureTypeList.Clear();
             vm.ZipDotNetSelected.Clear();
             vm.ZipAngularSelected.Clear();
-            vm.ZipFilesContent.Clear();
 
             // List Dto files from Dto folder
             vm.DtoFiles = ListDtoFiles();
@@ -103,10 +105,10 @@
             this.teamSettings = this.crudSettingsList.FirstOrDefault(x => x.Type == FeatureType.Team.ToString());
 
             // Associate zip files to features
-            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.WebApi, this.webApiSettings?.ZipName, dotnetBiaFolderPath));
-            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.CRUD, this.crudSettings?.ZipName, angularBiaFolderPath));
-            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Option, this.optionSettings?.ZipName, angularBiaFolderPath));
-            vm.FeatureTypeDataList.Add(new FeatureTypeData(FeatureType.Team, this.teamSettings?.ZipName, angularBiaFolderPath));
+            vm.ZipFeatureTypeList.Add(new ZipFeatureType(FeatureType.WebApi, this.webApiSettings?.ZipName, dotnetBiaFolderPath));
+            vm.ZipFeatureTypeList.Add(new ZipFeatureType(FeatureType.CRUD, this.crudSettings?.ZipName, angularBiaFolderPath));
+            vm.ZipFeatureTypeList.Add(new ZipFeatureType(FeatureType.Option, this.optionSettings?.ZipName, angularBiaFolderPath));
+            vm.ZipFeatureTypeList.Add(new ZipFeatureType(FeatureType.Team, this.teamSettings?.ZipName, angularBiaFolderPath));
 
             // Load generation history
             this.crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, settings.GenerationHistoryFileName);
@@ -121,6 +123,7 @@
         {
             if (vm == null) return;
             vm.IsDtoParsed = false;
+            vm.DtoDisplayItems = null;
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
 
             bool isBackSelected = false, isCrudSelected = false, isOptionSelected = false, isTeamSelected = false;
@@ -171,12 +174,20 @@
 
         #region Button Action
         /// <summary>
+        /// Action linked with "Refresh Dto List" button.
+        /// </summary>
+        private void RefreshDtoList_Click(object sender, RoutedEventArgs e)
+        {
+            // List Dto files from Dto folder
+            vm.DtoFiles = ListDtoFiles();
+        }
+
+        /// <summary>
         /// Action linked with "Parse Dto" button.
         /// </summary>
         private void ParseDto_Click(object sender, RoutedEventArgs e)
         {
-            ParseDtoFile();
-            vm.IsDtoParsed = true;
+            vm.IsDtoParsed = ParseDtoFile();
         }
 
         /// <summary>
@@ -184,35 +195,33 @@
         /// </summary>
         private void ParseZip_Click(object sender, RoutedEventArgs e)
         {
-            vm.ZipFilesContent.Clear();
+            vm.IsZipParsed = false;
 
             // Parse DotNet Zip files
             if (vm.ZipDotNetSelected.Count > 0 && vm.IsWebApiSelected)
             {
                 // Parse WebApi Zip file
-                ParseZipFile(FeatureType.WebApi);
+                vm.IsZipParsed |= ParseZipFile(FeatureType.WebApi);
             }
 
             // Parse Angular Zip files
             if (vm.ZipAngularSelected.Count > 0 && vm.IsCrudSelected)
             {
                 // Parse CRUD Zip file
-                ParseZipFile(FeatureType.CRUD);
+                vm.IsZipParsed |= ParseZipFile(FeatureType.CRUD);
             }
 
             if (vm.ZipAngularSelected.Count > 0 && vm.IsOptionSelected)
             {
                 // Parse Option Zip file
-                ParseZipFile(FeatureType.Option);
+                vm.IsZipParsed |= ParseZipFile(FeatureType.Option);
             }
 
             if (vm.ZipAngularSelected.Count > 0 && vm.IsTeamSelected)
             {
                 // Parse Team Zip file
-                ParseZipFile(FeatureType.Team);
+                vm.IsZipParsed |= ParseZipFile(FeatureType.Team);
             }
-
-            vm.IsZipParsed = true;
         }
 
         /// <summary>
@@ -226,7 +235,7 @@
                 this.teamSettings?.FeatureName, this.teamSettings?.FeatureNamePlurial);
 
             // Generation DotNet + Angular files
-            string path = crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFilesContent, this.settings.GenerateInProjectFolder);
+            string path = crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, this.settings.GenerateInProjectFolder);
 
             // Generate generation history file
             UpdateCrudGenerationHistory();
@@ -236,61 +245,72 @@
         #endregion
 
         #region Private method
+        /// <summary>
+        /// Update CRUD generation history file.
+        /// </summary>
         private void UpdateCrudGenerationHistory()
         {
-            this.crudHistory ??= new();
-
-            CRUDGenerationHistory history = new()
+            try
             {
-                Date = DateTime.Now,
-                EntityNameSingular = vm.CRUDNameSingular,
-                EntityNamePlurial = vm.CRUDNamePlurial,
+                this.crudHistory ??= new();
 
-                // Create "Mapping" part
-                Mapping = new()
+                CRUDGenerationHistory history = new()
                 {
-                    Dto = GetDtoSelectedPath(),
-                    Template = this.webApiSettings?.ZipName,
-                    Type = "DotNet",
-                }
-            };
+                    Date = DateTime.Now,
+                    EntityNameSingular = vm.CRUDNameSingular,
+                    EntityNamePlurial = vm.CRUDNamePlurial,
+                    DisplayItem = vm.DtoDisplayItemSelected,
 
-            // Create "Generation" list part
-            vm.FeatureTypeDataList.ForEach(feature =>
-            {
-                if (feature.IsChecked)
+                    // Create "Mapping" part
+                    Mapping = new()
+                    {
+                        Dto = GetDtoSelectedPath(),
+                        Template = this.webApiSettings?.ZipName,
+                        Type = DOTNET_TYPE,
+                    }
+                };
+
+                // Create "Generation" list part
+                vm.ZipFeatureTypeList.ForEach(feature =>
                 {
-                    Generation crudGeneration = new()
+                    if (feature.IsChecked)
                     {
-                        Template = feature.ZipName,
-                        Feature = feature.Type.ToString()
-                    };
-                    if (feature.Type == FeatureType.WebApi)
-                    {
-                        crudGeneration.Type = "DotNet";
-                        crudGeneration.Folder = Constants.FolderDotNet;
+                        Generation crudGeneration = new()
+                        {
+                            Template = feature.ZipName,
+                            Feature = feature.FeatureType.ToString()
+                        };
+                        if (feature.FeatureType == FeatureType.WebApi)
+                        {
+                            crudGeneration.Type = DOTNET_TYPE;
+                            crudGeneration.Folder = Constants.FolderDotNet;
+                        }
+                        else
+                        {
+                            crudGeneration.Type = ANGULAR_TYPE;
+                            crudGeneration.Folder = vm.CurrentProject.BIAFronts;
+                        }
+                        history.Generation.Add(crudGeneration);
                     }
-                    else
-                    {
-                        crudGeneration.Type = "Angular";
-                        crudGeneration.Folder = vm.CurrentProject.BIAFronts;
-                    }
-                    history.Generation.Add(crudGeneration);
-                }
-            });
+                });
 
-            // Get existing to verify if previous generation for same entity name was already done
-            CRUDGenerationHistory genFound = this.crudHistory.CRUDGenerationHistory.FirstOrDefault(gen => gen.EntityNameSingular == history.EntityNameSingular);
-            if (genFound != null)
-            {
-                // Remove last generation to replace by new generation
-                this.crudHistory.CRUDGenerationHistory.Remove(genFound);
+                // Get existing to verify if previous generation for same entity name was already done
+                CRUDGenerationHistory genFound = this.crudHistory.CRUDGenerationHistory.FirstOrDefault(gen => gen.EntityNameSingular == history.EntityNameSingular);
+                if (genFound != null)
+                {
+                    // Remove last generation to replace by new generation
+                    this.crudHistory.CRUDGenerationHistory.Remove(genFound);
+                }
+
+                this.crudHistory.CRUDGenerationHistory.Add(history);
+
+                // Generate history file
+                CommonTools.SerializeToJsonFile<CRUDGeneration>(this.crudHistory, crudHistoryFileName);
             }
-
-            this.crudHistory.CRUDGenerationHistory.Add(history);
-
-            // Generate history file
-            CommonTools.SerializeToJsonFile<CRUDGeneration>(this.crudHistory, crudHistoryFileName);
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error on CRUD generation history: {ex.Message}", "Red");
+            }
         }
 
         /// <summary>
@@ -306,7 +326,7 @@
             try
             {
                 // List files
-                var files = Directory.GetFiles(path, "*Dto.cs", SearchOption.AllDirectories).ToList();
+                List<string> files = Directory.EnumerateFiles(path, "*Dto.cs", SearchOption.AllDirectories).ToList();
                 // Build dictionnary: key = file Name, Value = full path
                 files.ForEach(x => dtoFiles.Add(new FileInfo(x).Name, new FileInfo(x).FullName));
             }
@@ -321,63 +341,74 @@
         /// <summary>
         /// Parse the Dto file.
         /// </summary>
-        private void ParseDtoFile()
+        private bool ParseDtoFile()
         {
             try
             {
+                // Check selected Dto file
                 string fileName = vm.DtoFiles[vm.DtoSelected];
                 if (string.IsNullOrWhiteSpace(fileName))
                 {
                     consoleWriter.AddMessageLine($"Dto file '{fileName}' not found to parse.", "Orange");
-                    return;
+                    return false;
                 }
 
+                // Parse Dto entity file
                 vm.DtoEntity = service.ParseEntity(fileName);
                 if (vm.DtoEntity == null || vm.DtoEntity.Properties == null || vm.DtoEntity.Properties.Count <= 0)
                 {
                     consoleWriter.AddMessageLine("No properties found on Dto file.", "Orange");
+                    return false;
                 }
+
+                // Fill display item list
+                List<string> displayItems = new();
+                vm.DtoEntity.Properties.ForEach(p => displayItems.Add(p.Name));
+                vm.DtoDisplayItems = displayItems;
+
+                // Set by default previous generation selected value
+                CRUDGenerationHistory history = this.crudHistory.CRUDGenerationHistory.FirstOrDefault(gh => (vm.DtoSelected == Path.GetFileName(gh.Mapping.Dto)));
+                vm.DtoDisplayItemSelected = history?.DisplayItem;
+
+                return true;
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine(ex.Message, "Red");
+                consoleWriter.AddMessageLine($"Error on parsing Dto File: {ex.Message}", "Red");
             }
+            return false;
         }
 
         /// <summary>
         /// Parse Zip files (WebApi, CRUD, option or team).
         /// </summary>
-        private void ParseZipFile(FeatureType type)
+        private bool ParseZipFile(FeatureType type)
         {
             try
             {
                 List<string> zipSelectedList = (type == FeatureType.WebApi) ? vm.ZipDotNetSelected.ToList() : vm.ZipAngularSelected.ToList();
 
-                FeatureTypeData zipData = GetFeatureTypeData(type, zipSelectedList);
+                ZipFeatureType zipData = GetFeatureTypeData(type, zipSelectedList);
                 if (zipData != null)
                 {
-                    string folderName = type == FeatureType.WebApi ? Constants.FolderDotNet : vm.CurrentProject.BIAFronts;
-                    List<string> options = crudSettingsList.FirstOrDefault(x => x.Type == type.ToString())?.Options;
-
-                    ZipFilesContent filesContent = zipService.ParseZipFile(zipData, type, folderName/*, options*/);
-                    if (filesContent != null)
-                    {
-                        vm.ZipFilesContent.Add(filesContent);
-                    }
+                    string folderName = (zipData.FeatureType == FeatureType.WebApi) ? Constants.FolderDotNet : vm.CurrentProject.BIAFronts;
+                    //List<string> options = crudSettingsList.FirstOrDefault(x => x.Type == type.ToString())?.Options;
+                    return zipService.ParseZipFile(zipData, folderName);
                 }
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine(ex.Message, "Red");
+                consoleWriter.AddMessageLine($"Error on parsing '{type}' Zip File: {ex.Message}", "Red");
             }
+            return false;
         }
 
-        private FeatureTypeData GetFeatureTypeData(FeatureType type, List<string> zipSelected)
+        private ZipFeatureType GetFeatureTypeData(FeatureType type, List<string> zipSelected)
         {
             if (zipSelected == null || zipSelected.Count <= 0) { return null; }
 
             bool found = false;
-            FeatureTypeData crudZipData = vm.FeatureTypeDataList.Where(x => x.Type == type && x.IsChecked).FirstOrDefault();
+            ZipFeatureType crudZipData = vm.ZipFeatureTypeList.Where(x => x.FeatureType == type && x.IsChecked).FirstOrDefault();
             if (crudZipData != null)
             {
                 zipSelected.ForEach(x =>

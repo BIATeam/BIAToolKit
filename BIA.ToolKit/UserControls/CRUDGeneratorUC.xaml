@@ -12,24 +12,30 @@
     <Grid Margin="0,0,-120,0">
 
         <Label Content="Dto file:"  Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
-        <ComboBox ItemsSource="{Binding DtoFiles.Keys}" SelectedValue="{Binding DtoSelected}" Margin="40,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="500" SelectionChanged="ModifyDto_SelectionChanged" IsEnabled="{Binding IsProjectChosen}"/>
-        <Label Name="CrudAlreadyGeneratedLabel" Content="Generation was already done for this Dto file"  Margin="550,22,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Yellow" Visibility="Hidden" />
+        <ComboBox ItemsSource="{Binding DtoFiles.Keys}" SelectedValue="{Binding DtoSelected}" Margin="40,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" SelectionChanged="ModifyDto_SelectionChanged" IsEnabled="{Binding IsProjectChosen}"/>
+        <Button IsEnabled="{Binding IsProjectChosen}" Margin="350,23,0,0" Width="24" x:Name="RefreshDtoList" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshDtoList_Click">
+            <Image Source="/Images/rafraichir-32.png" />
+        </Button>
+        <Label Name="CrudAlreadyGeneratedLabel" Content="Generation was already done for this Dto file"  Margin="40,45,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Yellow" Visibility="Hidden" />
 
-        <Label Content="Entity name (singular):" Margin="20,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
-        <TextBox Text="{Binding CRUDNameSingular,UpdateSourceTrigger=PropertyChanged}" Margin="40,75,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntitySingularText_TextChanged" Height="21" IsEnabled="{Binding IsProjectChosen}"/>
-        <Label Content="Entity name (plurial):" Margin="370,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
-        <TextBox Text="{Binding CRUDNamePlurial,UpdateSourceTrigger=PropertyChanged}" Margin="390,75,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntityPlurialText_TextChanged" Height="21" IsEnabled="{Binding IsProjectChosen}"/>
+        <Label Content="Display item:"  Margin="380,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
+        <ComboBox ItemsSource="{Binding DtoDisplayItems}" SelectedValue="{Binding DtoDisplayItemSelected}" Margin="400,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsDtoParsed}"/>
 
-        <CheckBox Margin="90,120,0,0" Content="Generate WebApi" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsWebApiSelected}" IsEnabled="{Binding IsProjectChosen}"/>
-        <CheckBox Margin="240,120,0,0" Content="Generate CRUD" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsCrudSelected}" IsEnabled="{Binding IsProjectChosen}"/>
-        <CheckBox Margin="380,120,0,0" Content="Generate Option" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsOptionSelected}" IsEnabled="{Binding IsProjectChosen}"/>
-        <CheckBox Margin="530,120,0,0" Content="Generate Team" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsTeamSelected}" IsEnabled="False"/>
+        <Label Content="Entity name (singular):" Margin="20,75,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
+        <TextBox Text="{Binding CRUDNameSingular,UpdateSourceTrigger=PropertyChanged}" Margin="40,100,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntitySingularText_TextChanged" Height="21" IsEnabled="{Binding IsProjectChosen}"/>
+        <Label Content="Entity name (plurial):" Margin="380,75,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
+        <TextBox Text="{Binding CRUDNamePlurial,UpdateSourceTrigger=PropertyChanged}" Margin="400,100,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntityPlurialText_TextChanged" Height="21" IsEnabled="{Binding IsProjectChosen}"/>
 
-        <Label Content="Data model zip file (DotNet):" Margin="20,150,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
-        <ListBox ItemsSource="{Binding ZipDotNetSelected}" Margin="40,175,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Name="ZipDotNetSelectedTB" Height="75"/>
+        <CheckBox Margin="90,150,0,0" Content="Generate WebApi" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsWebApiSelected}" IsEnabled="{Binding IsProjectChosen}"/>
+        <CheckBox Margin="240,150,0,0" Content="Generate CRUD" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsCrudSelected}" IsEnabled="{Binding IsProjectChosen}"/>
+        <CheckBox Margin="380,150,0,0" Content="Generate Option" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsOptionSelected}" IsEnabled="{Binding IsProjectChosen}"/>
+        <CheckBox Margin="530,150,0,0" Content="Generate Team" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsTeamSelected}" IsEnabled="False"/>
 
-        <Label Content="Data model zip file (Angular):" Margin="370,150,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
-        <ListBox ItemsSource="{Binding ZipAngularSelected}" Margin="390,175,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Name="ZipAngularSelectedTB" Height="75"/>
+        <Label Content="Data model zip file (DotNet):" Margin="20,175,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
+        <ListBox ItemsSource="{Binding ZipDotNetSelected}" Margin="40,200,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Name="ZipDotNetSelectedTB" Height="75"/>
+
+        <Label Content="Data model zip file (Angular):" Margin="380,175,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
+        <ListBox ItemsSource="{Binding ZipAngularSelected}" Margin="400,200,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Name="ZipAngularSelectedTB" Height="75"/>
 
         <Button Content="1. Parse Dto" IsEnabled="{Binding IsButtonParseDtoEnable}" Margin="0,50,150,0" Width="120" x:Name="ParseDto" Height="40" HorizontalAlignment="Right" VerticalAlignment="Top" Click="ParseDto_Click"/>
         <Button Content="2. Parse Zip" IsEnabled="{Binding IsButtonParseZipEnable}" Margin="0,125,150,0" Width="120" x:Name="ParseZip" Height="40" HorizontalAlignment="Right" VerticalAlignment="Top" Click="ParseZip_Click"/>

@@ -16,8 +16,7 @@
         /// </summary>
         public CRUDGeneratorViewModel()
         {
-            FeatureTypeDataList = new();
-            ZipFilesContent = new();
+            ZipFeatureTypeList = new();
             ZipDotNetSelected = new();
             ZipAngularSelected = new();
         }
@@ -26,7 +25,7 @@
         private Project currentProject;
         public Project CurrentProject
         {
-            get { return currentProject; }
+            get => currentProject;
             set
             {
                 currentProject = value;
@@ -37,7 +36,7 @@
         private bool isProjectChosen;
         public bool IsProjectChosen
         {
-            get { return isProjectChosen; }
+            get => isProjectChosen;
             set
             {
                 isProjectChosen = value;
@@ -50,7 +49,7 @@
         private EntityInfo dtoEntity;
         public EntityInfo DtoEntity
         {
-            get { return dtoEntity; }
+            get => dtoEntity;
             set
             {
                 if (dtoEntity != value)
@@ -63,7 +62,7 @@
         private Dictionary<string, string> dtoFiles;
         public Dictionary<string, string> DtoFiles
         {
-            get { return dtoFiles; }
+            get => dtoFiles;
             set
             {
                 if (dtoFiles != value)
@@ -74,10 +73,24 @@
             }
         }
 
+        private List<string> dtoDisplayItems;
+        public List<string> DtoDisplayItems
+        {
+            get => dtoDisplayItems;
+            set
+            {
+                if (dtoDisplayItems != value)
+                {
+                    dtoDisplayItems = value;
+                    RaisePropertyChanged(nameof(DtoDisplayItems));
+                }
+            }
+        }
+
         private string dtoSelected;
         public string DtoSelected
         {
-            get { return dtoSelected; }
+            get => dtoSelected;
             set
             {
                 if (dtoSelected != value)
@@ -88,15 +101,34 @@
             }
         }
 
+        private string dtoDisplayItemSelected;
+        public string DtoDisplayItemSelected
+        {
+            get => dtoDisplayItemSelected;
+            set
+            {
+                if (dtoDisplayItemSelected != value)
+                {
+                    dtoDisplayItemSelected = value;
+                    RaisePropertyChanged(nameof(DtoDisplayItemSelected));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                }
+            }
+        }
+
         private bool isDtoParsed = false;
         public bool IsDtoParsed
         {
-            get { return isDtoParsed; }
+            get => isDtoParsed;
             set
             {
-                isDtoParsed = value;
-                RaisePropertyChanged(nameof(IsButtonParseZipEnable));
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                if (isDtoParsed != value)
+                {
+                    isDtoParsed = value;
+                    RaisePropertyChanged(nameof(IsDtoParsed));
+                    RaisePropertyChanged(nameof(IsButtonParseZipEnable));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                }
             }
         }
         #endregion
@@ -105,7 +137,7 @@
         private string entityNameSingular;
         public string CRUDNameSingular
         {
-            get { return entityNameSingular; }
+            get => entityNameSingular;
             set
             {
                 if (entityNameSingular != value)
@@ -119,7 +151,7 @@
         private string entityNamePlurial;
         public string CRUDNamePlurial
         {
-            get { return entityNamePlurial; }
+            get => entityNamePlurial;
             set
             {
                 if (entityNamePlurial != value)
@@ -135,7 +167,7 @@
         private bool isWebApiSelected;
         public bool IsWebApiSelected
         {
-            get { return isWebApiSelected; }
+            get => isWebApiSelected;
             set
             {
                 if (isWebApiSelected != value)
@@ -143,7 +175,7 @@
                     isWebApiSelected = value;
                     RaisePropertyChanged(nameof(IsWebApiSelected));
 
-                    FeatureTypeData feature = FeatureTypeDataList.Where(x => x.Type == FeatureType.WebApi).FirstOrDefault();
+                    ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == FeatureType.WebApi).FirstOrDefault();
                     UpdateFeatureSelection(feature, value);
                 }
             }
@@ -152,7 +184,7 @@
         private bool isCrudSelected;
         public bool IsCrudSelected
         {
-            get { return isCrudSelected; }
+            get => isCrudSelected;
             set
             {
                 if (isCrudSelected != value)
@@ -160,7 +192,7 @@
                     isCrudSelected = value;
                     RaisePropertyChanged(nameof(IsCrudSelected));
 
-                    FeatureTypeData feature = FeatureTypeDataList.Where(x => x.Type == FeatureType.CRUD).FirstOrDefault();
+                    ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == FeatureType.CRUD).FirstOrDefault();
                     UpdateFeatureSelection(feature, value);
                 }
             }
@@ -169,7 +201,7 @@
         private bool isOptionSelected;
         public bool IsOptionSelected
         {
-            get { return isOptionSelected; }
+            get => isOptionSelected;
             set
             {
                 if (isOptionSelected != value)
@@ -177,7 +209,7 @@
                     isOptionSelected = value;
                     RaisePropertyChanged(nameof(IsOptionSelected));
 
-                    FeatureTypeData feature = FeatureTypeDataList.Where(x => x.Type == FeatureType.Option).FirstOrDefault();
+                    ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == FeatureType.Option).FirstOrDefault();
                     UpdateFeatureSelection(feature, value);
                 }
             }
@@ -186,7 +218,7 @@
         private bool isTeamSelected;
         public bool IsTeamSelected
         {
-            get { return isTeamSelected; }
+            get => isTeamSelected;
             set
             {
                 if (isTeamSelected != value)
@@ -194,13 +226,13 @@
                     isTeamSelected = value;
                     RaisePropertyChanged(nameof(IsTeamSelected));
 
-                    FeatureTypeData feature = FeatureTypeDataList.Where(x => x.Type == FeatureType.Team).FirstOrDefault();
+                    ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == FeatureType.Team).FirstOrDefault();
                     UpdateFeatureSelection(feature, value);
                 }
             }
         }
 
-        private void UpdateFeatureSelection(FeatureTypeData feature, bool isChecked)
+        private void UpdateFeatureSelection(ZipFeatureType feature, bool isChecked)
         {
             if (feature != null)
             {
@@ -210,14 +242,14 @@
 
                 if (feature.IsChecked)
                 {
-                    if (feature.Type == FeatureType.WebApi)
+                    if (feature.FeatureType == FeatureType.WebApi)
                         ZipDotNetSelected.Add(feature.ZipName);
                     else
                         ZipAngularSelected.Add(feature.ZipName);
                 }
                 else
                 {
-                    if (feature.Type == FeatureType.WebApi)
+                    if (feature.FeatureType == FeatureType.WebApi)
                         ZipDotNetSelected.Remove(feature.ZipName);
                     else
                         ZipAngularSelected.Remove(feature.ZipName);
@@ -227,15 +259,15 @@
         #endregion
 
         #region ZipFile
-        private List<FeatureTypeData> featureTypeDataList;
-        public List<FeatureTypeData> FeatureTypeDataList
+        private List<ZipFeatureType> zipFeatureTypeList;
+        public List<ZipFeatureType> ZipFeatureTypeList
         {
-            get { return featureTypeDataList; }
+            get => zipFeatureTypeList;
             set
             {
-                if (featureTypeDataList != value)
+                if (zipFeatureTypeList != value)
                 {
-                    featureTypeDataList = value;
+                    zipFeatureTypeList = value;
                 }
             }
         }
@@ -243,7 +275,7 @@
         private ObservableCollection<string> zipDotNetSelected;
         public ObservableCollection<string> ZipDotNetSelected
         {
-            get { return zipDotNetSelected; }
+            get => zipDotNetSelected;
             set
             {
                 if (zipDotNetSelected != value)
@@ -257,7 +289,7 @@
         private ObservableCollection<string> zipAngularSelected;
         public ObservableCollection<string> ZipAngularSelected
         {
-            get { return zipAngularSelected; }
+            get => zipAngularSelected;
             set
             {
                 if (zipAngularSelected != value)
@@ -271,7 +303,7 @@
         private bool isZipParsed = false;
         public bool IsZipParsed
         {
-            get { return isZipParsed; }
+            get => isZipParsed;
             set
             {
                 isZipParsed = value;
@@ -304,7 +336,8 @@
             {
                 return isDtoParsed
                     && isZipParsed
-                    && !string.IsNullOrWhiteSpace(CRUDNamePlurial);
+                    && !string.IsNullOrWhiteSpace(CRUDNamePlurial)
+                    && !string.IsNullOrWhiteSpace(dtoDisplayItemSelected);
             }
         }
 
@@ -317,11 +350,9 @@
             }
         }
         #endregion
-
-        public List<ZipFilesContent> ZipFilesContent { get; }
     }
 
-    public class FeatureTypeData
+    public class ZipFeatureType
     {
         /// <summary>
         /// Is to generate?
@@ -331,7 +362,7 @@
         /// <summary>
         /// The CRUD type.
         /// </summary>
-        public FeatureType Type { get; }
+        public FeatureType FeatureType { get; }
 
         /// <summary>
         /// Angular zip file name.
@@ -343,34 +374,20 @@
         /// </summary>
         public string ZipPath { get; }
 
+        public List<FeatureData> FeatureDataList { get; set; }
+
         /// <summary>
         /// Constructor.
         /// </summary>
-        public FeatureTypeData(FeatureType type, string name, string path)
+        public ZipFeatureType(FeatureType type, string name, string path)
         {
-            this.Type = type;
+            this.FeatureType = type;
             this.ZipName = name;
             this.ZipPath = path;
         }
     }
 
-
-    public class ZipFilesContent
-    {
-        public FeatureType Type { get; }
-
-        public List<FeatureData> FeatureDataList { get; }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public ZipFilesContent(FeatureType type)
-        {
-            this.Type = type;
-            this.FeatureDataList = new();
-        }
-    }
-
+    #region FeatureData
     public class FeatureData
     {
         /// <summary>
@@ -424,6 +441,8 @@
         /// </summary>
         public ClassDefinition ClassFileDefinition { get; set; }
 
+        public string Namespace { get; set; }
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -432,7 +451,24 @@
             this.FileType = type;
         }
     }
+    #endregion
 
+    public class WebApiNamespace
+    {
+        public WebApiFileType FileType { get; }
+
+        public string CrudNamespace { get; }
+
+        public string CrudNamespaceGenerated { get; set; }
+
+        public WebApiNamespace(WebApiFileType fileType, string crudNamespace)
+        {
+            this.FileType = fileType;
+            this.CrudNamespace = crudNamespace;
+        }
+    }
+
+    #region ExtractBlock
     public class ExtractBlock
     {
         public CRUDDataUpdateType DataUpdateType { get; }
@@ -451,20 +487,23 @@
 
     public class ExtractPropertiesBlock : ExtractBlock
     {
-        public Dictionary<string, List<string>> PropertiesList { get; }
+        public Dictionary<string, List<string>> PropertiesList { get; set; }
 
-        public ExtractPropertiesBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) : base(dataUpdateType, name, lines)
+        public ExtractPropertiesBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines, Dictionary<string, List<string>> propertiesList = null) :
+            base(dataUpdateType, name, lines)
         {
-            PropertiesList = new();
+            this.PropertiesList = propertiesList;
         }
     }
 
-    public class ExtractBlockBlock : ExtractBlock
+    public class ExtractBlocksBlock : ExtractBlock
     {
-        public string Type { get; set; }
+        public CRUDPropertyType PropertyType { get; set; }
 
-        public ExtractBlockBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) : base(dataUpdateType, name, lines)
+        public ExtractBlocksBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines, CRUDPropertyType propertyType = null) :
+            base(dataUpdateType, name, lines)
         {
+            this.PropertyType = propertyType;
         }
     }
 
@@ -478,6 +517,45 @@
         }
     }
 
+    public class ExtractDisplayBlock : ExtractBlock
+    {
+        public string ExtractLine { get; set; }
+
+        public string ExtractItem { get; set; }
+
+        public ExtractDisplayBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) : base(dataUpdateType, name, lines)
+        {
+
+        }
+    }
+
+    public class CRUDPropertyType
+    {
+        private string type;
+        public string Type
+        {
+            get { return type; }
+            set
+            {
+                type = value;
+                IsRequired = !type.Contains('|');
+                SimplifiedType = type.Split('|')[0].Trim();
+            }
+        }
+
+        public string SimplifiedType { get; private set; }
+
+        public bool IsRequired { get; private set; }
+
+        public CRUDPropertyType(string type, bool isRequired = false)
+        {
+            this.Type = type;
+            this.IsRequired = isRequired;
+        }
+    }
+    #endregion
+
+    #region enum
     public enum FeatureType
     {
         WebApi,
@@ -492,6 +570,7 @@
         Block,
         Child,
         Option,
+        Display,
         // Partial
         Config,
         Dependency,
@@ -499,6 +578,7 @@
         Permission,
         Rights,
         Routing
+
     }
 
     public enum WebApiFileType
@@ -511,4 +591,5 @@
         Mapper,
         Partial
     }
+    #endregion
 }

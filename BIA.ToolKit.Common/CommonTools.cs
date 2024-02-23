@@ -17,7 +17,7 @@
         /// <param name="dico">The dictionnary to update</param>
         /// <param name="key">The data key</param>
         /// <param name="value">The data value</param>
-        public static void AddToDictionnary<T>(Dictionary<string, List<T>> dico, string key, T value)
+        public static void AddToDictionnary<T1, T2>(Dictionary<T1, List<T2>> dico, T1 key, T2 value)
         {
             if (dico == null)
             {
@@ -30,7 +30,7 @@
             }
             else
             {
-                dico.Add(key, new List<T> { value });
+                dico.Add(key, new List<T2> { value });
             }
         }
 
@@ -133,6 +133,9 @@
             return default;
         }
 
+        /// <summary>
+        /// Check if data match with regex.
+        /// </summary>
         public static bool IsMatchRegexValue(string pattern, string data)
         {
             MatchCollection matches = new Regex(pattern).Matches(data);
@@ -177,6 +180,49 @@
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Convert "string" element value to Enum element value.
+        /// </summary>
+        public static TEnum GetEnumElement<TEnum>(string element)
+        {
+            if (element != null)
+            {
+                if (Enum.TryParse(typeof(TEnum), element, out object result))
+                {
+                    return (TEnum)result;
+                }
+            }
+
+            throw new Exception($"Element '{element}' not reconized for enum '{typeof(TEnum).Name}'.");
+        }
+
+        /// <summary>
+        /// Get spaces at the beginning of the line.
+        /// </summary>
+        public static string GetSpacesBeginningLine(string line)
+        {
+            const string regex = @"^(\s*).+$";
+            return GetMatchRegexValue(regex, line);
+        }
+
+        /// <summary>
+        /// Get namespace path between "namespace" or "using" key.
+        /// </summary>
+        public static string GetNamespaceOrUsingValue(string line)
+        {
+            string regex = @"^\s*(?:namespace|using)\s([\w.]*);*\s*$";
+            return GetMatchRegexValue(regex, line);
+        }
+
+        /// <summary>
+        /// Check if line is a "namespace" or "using" line.
+        /// </summary>
+        public static bool IsNamespaceOrUsingLine(string line)
+        {
+            string regex = @"^\s*(?:namespace|using)\s(\w+)\.(\w+)\.";
+            return IsMatchRegexValue(regex, line);
         }
     }
 }

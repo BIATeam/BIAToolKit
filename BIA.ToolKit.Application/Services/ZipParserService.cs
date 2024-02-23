@@ -4,7 +4,6 @@
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System;
     using System.Collections.Generic;
     using System.Data;
@@ -33,10 +32,12 @@
         // Tags Partial
         public const string MARKER_BEGIN_PARTIAL = $"{MARKER_BEGIN} Partial";
         public const string MARKER_END_PARTIAL = $"{MARKER_END} Partial";
-
+        // Tags Front
         public const string MARKER_BEGIN_FRONT = $"{MARKER_BEGIN} Front";
         public const string MARKER_END_FRONT = $"{MARKER_END} Front";
 
+        public const string MARKER_BEGIN_DISPLAY = $"{MARKER_BEGIN} Display";
+        public const string MARKER_END_DISPLAY = $"{MARKER_END} Display";
 
         /// <summary>
         /// Constructor.
@@ -50,85 +51,76 @@
         /// <summary>
         /// Unzip archive on temp local folder and analyze files.
         /// </summary>
-        public ZipFilesContent ParseZipFile(FeatureTypeData zipData, FeatureType type, string folderName/*, List<string> options*/)
+        public bool ParseZipFile(ZipFeatureType zipData, string folderName)
         {
             string fileName = Path.Combine(zipData.ZipPath, zipData.ZipName);
             if (string.IsNullOrWhiteSpace(fileName))
             {
-                consoleWriter.AddMessageLine($"No {type} Zip files found to parse.", "Orange");
-                return null;
+                consoleWriter.AddMessageLine($"No '{zipData.FeatureType}' zip files found to parse.", "Orange");
+                return false;
             }
 
             // Unzip archive
-            (string workingDirectoryPath, Dictionary<string, string> fileList) = ReadZipAndExtract(fileName, folderName, type);
+            (string workingDirectoryPath, Dictionary<string, string> fileList) = ReadZipAndExtract(fileName, folderName, zipData.FeatureType);
             if (string.IsNullOrWhiteSpace(workingDirectoryPath))
             {
                 consoleWriter.AddMessageLine($"Zip archive '{fileName}' not found.", "Orange");
-                return null;
+                return false;
             }
 
             // Parse files in zip
             if (fileList.Count > 0)
             {
-                ZipFilesContent filesContent = new(type);
+                FeatureData featureData;
+                zipData.FeatureDataList = new();
                 foreach (KeyValuePair<string, string> file in fileList)
                 {
                     string filePath = Path.Combine(workingDirectoryPath, file.Key);
 
-                    WebApiFileType? fileType = null;
-                    if (type == FeatureType.WebApi)     // Specific to WebApi part
+                    if (zipData.FeatureType == FeatureType.WebApi)
                     {
-                        fileType = GetFileType(file.Value);
+                        WebApiFileType? fileType = GetFileType(file.Value);
+                        featureData = new WebApiFeatureData(file.Value, file.Key, workingDirectoryPath, fileType);
 
-                        // Ignore mapper and entity file
-                        if (fileType != null && (fileType == WebApiFileType.Mapper || fileType == WebApiFileType.Entity))
+                        if (fileType != null)
                         {
-                            continue;
+                            if (fileType != WebApiFileType.Partial)
+                            {
+                                ClassDefinition classFile = service.ParseClassFile(Path.Combine(workingDirectoryPath, file.Key));
+                                if (classFile != null)
+                                {
+                                    ((WebApiFeatureData)featureData).Namespace = classFile.NamespaceSyntax.Name.ToString();
+                                    if (fileType == WebApiFileType.Dto)
+                                    {
+                                        classFile.EntityName = GetEntityName(file.Value, fileType);
+                                        ((WebApiFeatureData)featureData).ClassFileDefinition = classFile;
+                                    }
+                                }
+                            }
+
+                            if (fileType != WebApiFileType.Dto || fileType != WebApiFileType.Entity || fileType != WebApiFileType.Mapper)    // Not Dto, Entity or Mapper
+                            {
+                                featureData.ExtractBlocks = AnalyzeFile(filePath, featureData.IsPartialFile);
+                            }
                         }
                     }
-
-                    FeatureData data;
-                    if (type == FeatureType.WebApi)
+                    else    // Not WebApi
                     {
-                        data = new WebApiFeatureData(file.Value, file.Key, workingDirectoryPath, fileType);
-                    }
-                    else
-                    {
-                        data = new FeatureData(file.Value, file.Key, workingDirectoryPath);
+                        featureData = new FeatureData(file.Value, file.Key, workingDirectoryPath);
+                        featureData.ExtractBlocks = AnalyzeFile(filePath, featureData.IsPartialFile);
                     }
 
-                    if (fileType == WebApiFileType.Dto)   // Specific to WebApi part
-                    {
-                        // Parse "plane" Dto file
-                        ClassDefinition classFile = service.ParseClassFile(Path.Combine(workingDirectoryPath, file.Key));
-                        if (classFile != null)
-                        {
-                            classFile.EntityName = GetEntityName(file.Value, fileType);
-                        }
-                        ((WebApiFeatureData)data).ClassFileDefinition = classFile;
-                    }
-                    else
-                    {
-                        data.ExtractBlocks = AnalyzeFile(filePath, data.IsPartialFile);
-                        //if (options != null && options.Count > 0 && !data.IsPartialFile)
-                        //{
-                        //    data.OptionToDelete = ExtractLinesContainsOptions(filePath, options);
-                        //}
-                    }
-
-                    filesContent.FeatureDataList.Add(data);
+                    zipData.FeatureDataList.Add(featureData);
                 }
-
-                return filesContent;
             }
             else
             {
                 consoleWriter.AddMessageLine($"Zip archive '{fileName}' is empty.", "Orange");
+                return false;
             }
 
-            return null;
+            return true;
         }
-
 
         /// <summary>
         /// Read Zip archive and extract files on temporary working directory.
@@ -147,9 +139,7 @@
                     return (tempDir, files);
                 }
 
-#if DEBUG
                 consoleWriter.AddMessageLine($"*** Parse zip file: '{zipPath}' ***", "Green");
-#endif
 
                 // Create working temporary folder
                 tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType, crudType.ToString());
@@ -235,11 +225,34 @@
                         {
                             if (properties.Value.Contains(block.Name))
                             {
-                                ((ExtractBlockBlock)block).Type = properties.Key;
+                                ((ExtractBlocksBlock)block).PropertyType = new CRUDPropertyType(properties.Key);
                                 return;
                             }
                         }
                     });
+
+                    // Populate 'ExtractItem' of Display block
+                    List<ExtractBlock> displays = extractBlocksList.FindAll(b => b.DataUpdateType == CRUDDataUpdateType.Display);
+                    if (displays.Any())
+                    {
+                        foreach (ExtractDisplayBlock displayBlock in displays)
+                        {
+                            bool found = false;
+                            foreach (List<string> properties in propertiesBlock.PropertiesList.Values)
+                            {
+                                foreach (string property in properties)
+                                {
+                                    if (displayBlock.ExtractLine.Contains(property))
+                                    {
+                                        displayBlock.ExtractItem = property;
+                                        found = true;
+                                    }
+                                    if (found) break;
+                                }
+                                if (found) break;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -407,29 +420,37 @@
                     List<string> blockLines = lines.ToArray()[indexStart..++indexEnd].ToList();
 
                     // Get block name (if exist)
-                    string name = CommonTools.GetMatchRegexValue(@$"({markerBegin})[\s+](\w+)", blockLines[0], 2);
+                    string name = CommonTools.GetMatchRegexValue(@$"(?:{markerBegin})[\s+](\w+)", blockLines[0]);
 
-                    // Decompose property
-                    if (type == CRUDDataUpdateType.Properties)
+                    switch (type)
                     {
-                        ExtractPropertiesBlock propBlock = new(type, name, blockLines);
-                        blockLines.ForEach(line =>
-                        {
-                            (string left, string right) = DecomposeProperty(line);
-                            if (!string.IsNullOrWhiteSpace(left) && !string.IsNullOrWhiteSpace(right))
+                        case CRUDDataUpdateType.Properties:
+                            // Decompose property
+                            Dictionary<string, List<string>> dico = new();
+                            blockLines.ForEach(line =>
                             {
-                                CommonTools.AddToDictionnary(propBlock.PropertiesList, right, left); // key: property type, value: property name
+                                (string left, string right) = DecomposeProperty(line);
+                                if (!string.IsNullOrWhiteSpace(left) && !string.IsNullOrWhiteSpace(right))
+                                {
+                                    CommonTools.AddToDictionnary(dico, right, left); // key: property type, value: property name
+                                }
+                            });
+                            extractBlocksList.Add(new ExtractPropertiesBlock(type, name, blockLines) { PropertiesList = dico });
+                            break;
+                        case CRUDDataUpdateType.Block:
+                            extractBlocksList.Add(new ExtractBlocksBlock(type, name, blockLines));
+                            break;
+                        case CRUDDataUpdateType.Display:
+                            List<string> displayLines = blockLines.Where(l => !l.TrimStart().StartsWith("//")).ToList();
+                            if (displayLines?.Count != 1)
+                            {
+                                consoleWriter.AddMessageLine($"Incorrect Display block format: '{blockLines}'", "Orange");
                             }
-                        });
-                        extractBlocksList.Add(propBlock);
-                    }
-                    else if (type == CRUDDataUpdateType.Block)
-                    {
-                        extractBlocksList.Add(new ExtractBlockBlock(type, name, blockLines));
-                    }
-                    else
-                    {
-                        extractBlocksList.Add(new ExtractBlock(type, name, blockLines));
+                            extractBlocksList.Add(new ExtractDisplayBlock(type, name, blockLines) { ExtractLine = displayLines[0].TrimStart() });
+                            break;
+                        default:
+                            extractBlocksList.Add(new ExtractBlock(type, name, blockLines));
+                            break;
                     }
                 }
             }
@@ -442,7 +463,7 @@
         /// </summary>
         private List<ExtractBlock> ExtractPartialFile(List<string> fileLines)
         {
-            const string regex = @$"({MARKER_BEGIN_PARTIAL})[\s+](\w+)(\s+\d*)?(\s*\w+)";
+            const string regex = @$"(?:{MARKER_BEGIN_PARTIAL})[\s+](\w+)(\s+\d*)?(\s*\w+)";
             List<ExtractBlock> extractBlocksList = new();
             List<string> lines = new();
             bool startFound = false;
@@ -455,9 +476,9 @@
                 {
                     lines = new();
                     startFound = true;
-                    typeName = CommonTools.GetMatchRegexValue(regex, line, 2);
-                    index = CommonTools.GetMatchRegexValue(regex, line, 3);
-                    name = CommonTools.GetMatchRegexValue(regex, line, 4);
+                    typeName = CommonTools.GetMatchRegexValue(regex, line, 1);
+                    index = CommonTools.GetMatchRegexValue(regex, line, 2);
+                    name = CommonTools.GetMatchRegexValue(regex, line, 3);
                 }
 
                 if (startFound)
@@ -466,56 +487,11 @@
                 if (startFound && line.Contains(MARKER_END_PARTIAL, StringComparison.InvariantCulture))
                 {
                     startFound = false;
-                    extractBlocksList.Add(new ExtractPartialBlock(GetCRUDDataUpdateType(typeName), name?.TrimStart(), index?.TrimStart(), lines));
+                    extractBlocksList.Add(new ExtractPartialBlock(CommonTools.GetEnumElement<CRUDDataUpdateType>(typeName), name?.TrimStart(), index?.TrimStart(), lines));
                 }
             }
 
             return extractBlocksList;
-        }
-
-        /// <summary>
-        /// Get and format list of properties of Dto file.
-        /// </summary>
-        public Dictionary<string, List<string>> GetDtoProperties(List<PropertyDeclarationSyntax> propertyList)
-        {
-            Dictionary<string, List<string>> dico = new();
-            propertyList.ForEach(p =>
-            {
-                CommonTools.AddToDictionnary(dico, p.Type.ToString(), p.Identifier.ToString());
-            });
-
-            return dico;
-        }
-
-        /// <summary>
-        /// Convert "string" type value to "CRUDDataUpdateType" type value.
-        /// </summary>
-        private CRUDDataUpdateType GetCRUDDataUpdateType(string type)
-        {
-            if (type != null)
-            {
-                if (type == CRUDDataUpdateType.Config.ToString())
-                    return CRUDDataUpdateType.Config;
-                if (type == CRUDDataUpdateType.Dependency.ToString())
-                    return CRUDDataUpdateType.Dependency;
-                if (type == CRUDDataUpdateType.Navigation.ToString())
-                    return CRUDDataUpdateType.Navigation;
-                if (type == CRUDDataUpdateType.Permission.ToString())
-                    return CRUDDataUpdateType.Permission;
-                if (type == CRUDDataUpdateType.Rights.ToString())
-                    return CRUDDataUpdateType.Rights;
-                if (type == CRUDDataUpdateType.Routing.ToString())
-                    return CRUDDataUpdateType.Routing;
-
-                if (type == CRUDDataUpdateType.Block.ToString())
-                    return CRUDDataUpdateType.Block;
-                if (type == CRUDDataUpdateType.Child.ToString())
-                    return CRUDDataUpdateType.Child;
-                if (type == CRUDDataUpdateType.Properties.ToString())
-                    return CRUDDataUpdateType.Properties;
-            }
-
-            throw new Exception($"CRUDDataUpdateType not reconized for '{type}'.");
         }
 
         /// <summary>
