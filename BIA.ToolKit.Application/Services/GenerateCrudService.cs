@@ -512,7 +512,6 @@
             CommonTools.GenerateFile(newFileName, fileLinesContent);
         }
 
-
         private List<string> ReplacePropertiesAndBlocks(string fileName, List<string> fileLinesContent, List<string> propertiesToAdd, List<string> blocksToAdd)
         {
             if ((propertiesToAdd == null || propertiesToAdd.Count <= 0) && (blocksToAdd == null || blocksToAdd.Count <= 0))
@@ -1066,7 +1065,9 @@
 
             return value;
         }
+        #endregion
 
+        #region Tools
         private Dictionary<string, List<string>> GetDtoProperties(EntityInfo dtoEntity)
         {
             if (dtoEntity == null) { return null; }
@@ -1078,9 +1079,7 @@
             });
             return dico;
         }
-        #endregion
 
-        #region Tools
         private string GetGenerationFolder(Project currentProject, bool generateInCurrentProject = true)
         {
             string generatedFolder = Path.Combine(currentProject.Folder, currentProject.Name);
@@ -1109,7 +1108,9 @@
             // Update content to replace
             if (contentToReplace.Count > 0)
             {
-                int indexStart = contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.Contains(contentToAdd[0])));
+                string regex = @$"({contentToAdd[0].Replace('/', ' ').TrimStart()})$";
+                string markerFound = CommonTools.GetMatchRegexValue(regex, contentToAdd[0]);
+                int indexStart = contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.TrimEnd().EndsWith(markerFound.TrimEnd())));
                 if (indexStart >= 0)
                 {
                     int indexStop = contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.Contains(contentToAdd[contentToAdd.Count - 1])));
