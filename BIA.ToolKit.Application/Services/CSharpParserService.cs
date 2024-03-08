@@ -30,7 +30,7 @@ using Roslyn.Services;*/
             this.consoleWriter = consoleWriter;
         }
 
-        public EntityInfo ParseEntity(string fileName)
+        public EntityInfo ParseEntity(string fileName, string dtoCustomAttributeName)
         {
 #if DEBUG
             consoleWriter.AddMessageLine($"*** Parse file: '{fileName}' ***", "Green");
@@ -101,7 +101,22 @@ using Roslyn.Services;*/
             }
 
             var properties = root.Descendants<PropertyDeclarationSyntax>()
-                    .Select(prop => new PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString()))
+                    .Select(prop =>
+                    {
+                        foreach (AttributeListSyntax attributes in prop.AttributeLists.ToList())
+                        {
+                            foreach (AttributeSyntax attribute in attributes.Attributes.ToList())
+                            {
+                                string annontationType = attribute.Name.ToString();
+                                if (dtoCustomAttributeName.Equals(annontationType, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    List<AttributeArgumentSyntax> annotations = attribute.ArgumentList.Arguments.ToList();
+                                    return new PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), annotations);
+                                }
+                            }
+                        }
+                        return new PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), null);
+                    })
                     .ToList()
                 ;
             var entityInfo = new EntityInfo(@namespace, className, baseType, primaryKey/*, relativeDirectory*/);
