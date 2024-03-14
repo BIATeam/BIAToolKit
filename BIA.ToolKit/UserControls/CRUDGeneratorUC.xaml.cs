@@ -393,7 +393,7 @@
                 {
                     string folderName = (zipData.FeatureType == FeatureType.WebApi) ? Constants.FolderDotNet : vm.CurrentProject.BIAFronts;
                     //List<string> options = crudSettingsList.FirstOrDefault(x => x.Type == type.ToString())?.Options;
-                    return zipService.ParseZipFile(zipData, folderName);
+                    return zipService.ParseZipFile(zipData, folderName, settings.DtoCustomAttributeName);
                 }
             }
             catch (Exception ex)

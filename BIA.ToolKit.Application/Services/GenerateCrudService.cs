@@ -15,6 +15,10 @@
 
     public class GenerateCrudService
     {
+        internal const string BIA_DTO_FIELD_TYPE = "Type";
+        internal const string BIA_DTO_FIELD_REQUIRED = "Required";
+        internal const string BIA_DTO_FIELD_ISPARENT = "IsParent";
+
         private const string ATTRIBUTE_TYPE_NOT_MANAGED = "// CRUD GENERATOR FOR PLANE TO REVIEW : Field " + ATTRIBUTE_TYPE_NOT_MANAGED_FIELD + " or type " + ATTRIBUTE_TYPE_NOT_MANAGED_TYPE + " not managed.";
         private const string ATTRIBUTE_TYPE_NOT_MANAGED_FIELD = "XXXFieldXXX";
         private const string ATTRIBUTE_TYPE_NOT_MANAGED_TYPE = "YYYTypeYYY";
@@ -81,7 +85,7 @@
             this.OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
         }
 
-        public string GenerateCrudFiles(Project currentProject, EntityInfo dtoRefEntity, List<ZipFeatureType> zipFeatureTypeList, string displayItem, bool generateInProjectFolder = true)
+        public string GenerateCrudFiles(Project currentProject, EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList, string displayItem, bool generateInProjectFolder = true)
         {
             string generationFolder = null;
             try
@@ -97,7 +101,7 @@
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet files on '{dotnetDir}' ***", "Green");
 
-                    GenerateWebApi(dotnetDir, backFeatureType.FeatureDataList, currentProject, dtoRefEntity);
+                    GenerateWebApi(dotnetDir, backFeatureType.FeatureDataList, currentProject, crudDtoEntity);
                 }
 
                 // Generate CRUD angular files
@@ -107,14 +111,17 @@
                     consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{angularDir}' ***", "Green");
 
                     // Get CRUD dto properties
-                    Dictionary<string, List<CrudProperty>> crudDtoProperties = GetDtoProperties(dtoRefEntity);
+                    List<CrudProperty> crudDtoProperties = GetDtoProperties(crudDtoEntity);
+
+                    //List< CrudProperty >
                     if (crudDtoProperties == null)
                     {
                         consoleWriter.AddMessageLine($"Can't generate Angular CRUD files: Dto properties are empty.", "Red");
                     }
                     else
                     {
-                        GenerateCRUD(angularDir, crudFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem);
+                        WebApiFeatureData dtoRefFeature = (WebApiFeatureData)backFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
+                        GenerateCRUD(angularDir, crudFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, dtoRefFeature?.PropertiesInfos);
                     }
                 }
 
@@ -183,7 +190,7 @@
             }
         }
 
-        private void GenerateCRUD(string angularDir, List<FeatureData> featureDataList, Project currentProject, Dictionary<string, List<CrudProperty>> crudDtoProperties, string displayItem)
+        private void GenerateCRUD(string angularDir, List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties, string displayItem, List<PropertyInfo> dtoRefProperties)
         {
             try
             {
@@ -206,11 +213,7 @@
                                 switch (block.DataUpdateType)
                                 {
                                     case CRUDDataUpdateType.Properties:
-                                        // Generate new properties to add
-                                        foreach (KeyValuePair<string, List<CrudProperty>> crudDtoProperty in crudDtoProperties)
-                                        {
-                                            generationData.PropertiesToAdd.AddRange(GeneratePropertiesToAdd((ExtractPropertiesBlock)block, crudDtoProperty));
-                                        }
+                                        generationData.PropertiesToAdd.AddRange(GeneratePropertiesToAdd((ExtractPropertiesBlock)block, crudDtoProperties));
                                         break;
                                     case CRUDDataUpdateType.Block:
                                         // Do nothing (traitment done after)
@@ -237,7 +240,7 @@
                             // Generate new blocks to add
                             if (crudData.ExtractBlocks.Any(b => b.DataUpdateType == CRUDDataUpdateType.Block))
                             {
-                                generationData.BlocksToAdd.AddRange(GenerateBlocks(crudData, crudDtoProperties));
+                                generationData.BlocksToAdd.AddRange(GenerateBlocks(crudData, crudDtoProperties, dtoRefProperties));
                             }
                         }
 
@@ -756,103 +759,100 @@
             return updateLines;
         }
 
-        private List<string> GeneratePropertiesToAdd(ExtractPropertiesBlock propertyBlock, KeyValuePair<string, List<CrudProperty>> crudProperties)
+        private List<string> GeneratePropertiesToAdd(ExtractPropertiesBlock propertyBlock, List<CrudProperty> crudProperties)
         {
+            string regex = $@"^(\s*)(\w+)(\s*{Constants.PropertySeparator}\s*)(\w+\W*\w*)(;\s*)$";
             List<string> propertiesToAdd = new();
-            KeyValuePair<string, List<string>> propertyRef;
 
-            CRUDPropertyType crudPropertyType = ConvertDotNetToAngularType(crudProperties.Key);
-            if (propertyBlock.PropertiesList.ContainsKey(crudPropertyType.Type))
+            foreach (CrudProperty crudProperty in crudProperties)
             {
-                // if type found
-                propertyRef = propertyBlock.PropertiesList.FirstOrDefault(p => p.Key == crudPropertyType.Type);
-            }
-            else
-            {
-                if (propertyBlock.PropertiesList.ContainsKey(crudPropertyType.SimplifiedType))
+                CRUDPropertyType convertType = ConvertDotNetToAngularType(crudProperty);
+
+                CRUDPropertyType propertyReference = propertyBlock.PropertiesList.FirstOrDefault(p => p.Type == convertType.Type);
+                if (propertyReference == null)
                 {
-                    // if Simplified type found
-                    propertyRef = propertyBlock.PropertiesList.FirstOrDefault(p => p.Key == crudPropertyType.SimplifiedType);
+                    // if type not found verfiy with Simplified type
+                    propertyReference = propertyBlock.PropertiesList.FirstOrDefault(p => p.Type == convertType.SimplifiedType);
+                    if (propertyReference == null)
+                    {
+                        // in other cases (type and simplified not found), get first by default (string)
+                        propertyReference = propertyBlock.PropertiesList.FirstOrDefault(p => p.Type == "string");
+                    }
                 }
-                else
-                {
-                    // in other cases (type and simplified not found), get first by default (string)
-                    propertyRef = propertyBlock.PropertiesList.FirstOrDefault(p => p.Key == propertyBlock.PropertiesList.Keys.FirstOrDefault());
-                }
-            }
 
-            string lineFound = propertyBlock.BlockLines.FirstOrDefault(x => x.TrimStart().StartsWith(propertyRef.Value[0]));
+                // Get property line as "model"
+                string lineFound = propertyBlock.BlockLines.FirstOrDefault(x => x.TrimStart().StartsWith(propertyReference.Name));
 
-            // Generate new properties
-            foreach (CrudProperty prop in crudProperties.Value)
-            {
-                string regex = $@"^(\s*)(\w+)(\s*{Constants.PropertySeparator}\s*)(\w+\W*\w*)(;\s*)$";
-                string newline = Regex.Replace(lineFound, regex, $"$1{CommonTools.ConvertToCamelCase(prop.Name)}$3{crudPropertyType.Type}$5");
-
+                // Generate new property from model
+                string newline = Regex.Replace(lineFound, regex, $"$1{CommonTools.ConvertToCamelCase(crudProperty.Name)}$3{convertType.Type}$5");
                 propertiesToAdd.Add(newline);
             }
 
             return propertiesToAdd;
         }
 
-        private List<string> GenerateBlocks(FeatureData crudData, Dictionary<string, List<CrudProperty>> crudDtoProperties)
+        private List<string> GenerateBlocks(FeatureData crudData, List<CrudProperty> crudDtoProperties, List<PropertyInfo> dtoRefProperties)
         {
             List<string> blocksToAdd = new();
             // Get block list and properties associated to blocks
             ExtractBlock propertyBlock = crudData.ExtractBlocks.FirstOrDefault(p => p.DataUpdateType == CRUDDataUpdateType.Properties);
             List<ExtractBlock> blocksList = crudData.ExtractBlocks.FindAll(b => b.DataUpdateType == CRUDDataUpdateType.Block);
 
-            foreach (KeyValuePair<string, List<CrudProperty>> crudDtoProperty in crudDtoProperties)
+            // Generate block based on dto model
+            foreach (CrudProperty crudProperty in crudDtoProperties.Where(p => !p.IsParent))
             {
-                CRUDPropertyType dtoPropertyType = ConvertDotNetToAngularType(crudDtoProperty.Key);
-                ExtractBlocksBlock blockReferenceFound = (ExtractBlocksBlock)blocksList.FirstOrDefault(b => ((ExtractBlocksBlock)b).PropertyType.SimplifiedType == dtoPropertyType.SimplifiedType);
+                ExtractBlock blockReferenceFound = GetReferenceBlock(crudProperty, blocksList, dtoRefProperties);
+
                 if (blockReferenceFound != null)
                 {
-                    blocksToAdd.AddRange(GenerateBlockToAdd(blockReferenceFound, crudDtoProperty));
+                    // Generate block to add
+                    CheckRequiredLine(blockReferenceFound.BlockLines, crudProperty.IsRequired);
+                    blocksToAdd.Add(ReplaceBlock(blockReferenceFound, crudProperty.Name));
                 }
                 else
                 {
-                    blocksToAdd.AddRange(GenerateEmptyBlockToAdd((ExtractBlocksBlock)blocksList.First(), crudDtoProperty));
+                    // Generate empty block to add
+                    ExtractBlock defaultBlock = blocksList.First();
+                    if (defaultBlock != null)
+                    {
+                        blocksToAdd.Add(CreateEmptyBlock(defaultBlock, crudProperty.Type, crudProperty.Name, crudProperty.IsRequired));
+                    }
                 }
             }
 
             return blocksToAdd;
         }
 
-        private List<string> GenerateBlockToAdd(ExtractBlocksBlock block, KeyValuePair<string, List<CrudProperty>> crudDtoProperty)
+        private ExtractBlock GetReferenceBlock(CrudProperty crudProperty, List<ExtractBlock> blocksList, List<PropertyInfo> dtoRefProperties)
         {
-            List<string> blocksToAdd = new();
-
-            if (block.BlockLines == null || block.BlockLines.Count <= 0)
+            ExtractBlock blockReferenceFound = null;
+            PropertyInfo pi = null;
+            if (!string.IsNullOrEmpty(crudProperty.AnnotationType))
             {
-                consoleWriter.AddMessageLine("Error 'extractBlock' (block) is empty.", "Red");
-                return null;
-            }
-
-            // Generate block based on dto model
-            foreach (CrudProperty prop in crudDtoProperty.Value)
-            {
-                CheckRequiredLine(block.BlockLines, prop.IsRequired);
-                blocksToAdd.Add(ReplaceBlock(block, prop.Name));
-            }
-
-            return blocksToAdd;
-        }
-
-        private List<string> GenerateEmptyBlockToAdd(ExtractBlocksBlock defaultBlock, KeyValuePair<string, List<CrudProperty>> crudDtoProperty)
-        {
-            List<string> blocksToAdd = new();
-
-            // Generate "empty" block
-            foreach (CrudProperty prop in crudDtoProperty.Value)
-            {
-                if (defaultBlock != null)
+                foreach (PropertyInfo dtoRefProperty in dtoRefProperties)
                 {
-                    blocksToAdd.Add(CreateEmptyBlock(defaultBlock, crudDtoProperty.Key, prop.Name, prop.IsRequired));
+                    if (dtoRefProperty.Annotations != null)
+                    {
+                        KeyValuePair<string, string> annotationFound = dtoRefProperty.Annotations.FirstOrDefault(a => a.Key == BIA_DTO_FIELD_TYPE && a.Value == crudProperty.AnnotationType);
+                        if (annotationFound.Key != null)
+                        {
+                            pi = dtoRefProperty;
+                            break;
+                        }
+                    }
                 }
             }
+            else
+            {
+                pi = dtoRefProperties.FirstOrDefault(p => p.Type == crudProperty.Type);
+            }
 
-            return blocksToAdd;
+            if (!string.IsNullOrWhiteSpace(pi?.Name))
+            {
+                blockReferenceFound = blocksList.FirstOrDefault(b => b.Name.Equals(pi.Name, StringComparison.InvariantCultureIgnoreCase));
+            }
+
+            return blockReferenceFound;
         }
 
         private void CheckRequiredLine(List<string> lines, bool isRequired)
@@ -1067,16 +1067,16 @@
         #endregion
 
         #region Tools
-        private Dictionary<string, List<CrudProperty>> GetDtoProperties(EntityInfo dtoEntity)
+        private List<CrudProperty> GetDtoProperties(EntityInfo dtoEntity)
         {
             if (dtoEntity == null) { return null; }
 
-            Dictionary<string, List<CrudProperty>> dico = new();
+            List<CrudProperty> properties = new();
             dtoEntity.Properties.ForEach(p =>
             {
-                CommonTools.AddToDictionnary(dico, p.Type.ToString(), new CrudProperty(p.Name, p.Annotations));
+                properties.Add(new CrudProperty(p.Name, p.Type, p.Annotations));
             });
-            return dico;
+            return properties;
         }
 
         private string GetGenerationFolder(Project currentProject, bool generateInCurrentProject = true)
@@ -1107,13 +1107,11 @@
             // Update content to replace
             if (contentToReplace.Count > 0)
             {
-                string regex = @$"({contentToAdd[0].Replace('/', ' ').TrimStart()})$";
-                string markerFound = CommonTools.GetMatchRegexValue(regex, contentToAdd[0]);
-                int indexStart = contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.TrimEnd().EndsWith(markerFound.TrimEnd())));
+                int indexStart = GetMarkerIndexInFileContent(contentToAdd[0], fileContent, contentToReplace);
+                int indexStop = GetMarkerIndexInFileContent(contentToAdd[contentToAdd.Count - 1], fileContent, contentToReplace);
+
                 if (indexStart >= 0)
                 {
-                    int indexStop = contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.Contains(contentToAdd[contentToAdd.Count - 1])));
-
                     for (int i = 0; i < indexStart; i++)
                     {
                         contentBetweenMarker.Add(contentToReplace[i]);
@@ -1145,11 +1143,18 @@
             return newContent;
         }
 
-        private CRUDPropertyType ConvertDotNetToAngularType(string dotnetType)
+        private int GetMarkerIndexInFileContent(string marker, List<string> fileContent, List<string> contentToReplace)
         {
-            if (dotnetType == null) { return null; }
+            string regex = @$"({marker.Replace('/', ' ').TrimStart()})$";
+            string markerFound = CommonTools.GetMatchRegexValue(regex, marker);
+            return contentToReplace.IndexOf(fileContent.FirstOrDefault(line => line.TrimEnd().EndsWith(markerFound.TrimEnd())));
+        }
 
-            string angularType = dotnetType;
+        private CRUDPropertyType ConvertDotNetToAngularType(CrudProperty crudProperty)
+        {
+            if (crudProperty.Type == null) { return null; }
+
+            string angularType = crudProperty.Type;
 
             // In first : manage case of "Collection"
             string match = CommonTools.GetMatchRegexValue(@"<(\w+)>", angularType);
@@ -1193,12 +1198,12 @@
                 }
             }
 
-            if (angularType.EndsWith('?'))
+            if (angularType.EndsWith('?') || !crudProperty.IsRequired)
             {
-                angularType = angularType.Replace("?", " | null");
+                angularType = $"{angularType.Replace("?", "")} | null";
             }
 
-            return new CRUDPropertyType(angularType);
+            return new CRUDPropertyType(crudProperty.Name, angularType);
         }
 
         private string GetNamespacePathBeforeOccurency(string line)
@@ -1244,12 +1249,15 @@
     class CrudProperty
     {
         public string Name { get; }
+        public string Type { get; }
         public bool IsRequired { get; private set; } = false;
-        public string Type { get; private set; }
+        public string AnnotationType { get; private set; }
+        public bool IsParent { get; private set; } = false;
 
-        public CrudProperty(string name, List<KeyValuePair<string, string>> annotations)
+        public CrudProperty(string name, string type, List<KeyValuePair<string, string>> annotations)
         {
             this.Name = name;
+            this.Type = type;
             if (annotations != null)
             {
                 PopulateAnnotation(annotations);
@@ -1260,15 +1268,22 @@
         {
             foreach (KeyValuePair<string, string> annotation in annotations)
             {
-                if (annotation.Key == "Type")
+                if (annotation.Key == GenerateCrudService.BIA_DTO_FIELD_TYPE)
                 {
-                    this.Type = annotation.Value;
+                    this.AnnotationType = annotation.Value;
                 }
-                else if (annotation.Key == "Required")
+                else if (annotation.Key == GenerateCrudService.BIA_DTO_FIELD_REQUIRED)
                 {
                     if (bool.TryParse(annotation.Value, out bool required))
                     {
                         this.IsRequired = required;
+                    }
+                }
+                else if (annotation.Key == GenerateCrudService.BIA_DTO_FIELD_ISPARENT)
+                {
+                    if (bool.TryParse(annotation.Value, out bool parent))
+                    {
+                        this.IsParent = parent;
                     }
                 }
                 else

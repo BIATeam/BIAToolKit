@@ -443,6 +443,8 @@
 
         public string Namespace { get; set; }
 
+        public List<PropertyInfo> PropertiesInfos { get; set; }
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -487,31 +489,19 @@
 
     public class ExtractPropertiesBlock : ExtractBlock
     {
-        public Dictionary<string, List<string>> PropertiesList { get; set; }
+        public List<CRUDPropertyType> PropertiesList { get; set; }
 
-        public ExtractPropertiesBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines, Dictionary<string, List<string>> propertiesList = null) :
+        public ExtractPropertiesBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) :
             base(dataUpdateType, name, lines)
-        {
-            this.PropertiesList = propertiesList;
-        }
-    }
-
-    public class ExtractBlocksBlock : ExtractBlock
-    {
-        public CRUDPropertyType PropertyType { get; set; }
-
-        public ExtractBlocksBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines, CRUDPropertyType propertyType = null) :
-            base(dataUpdateType, name, lines)
-        {
-            this.PropertyType = propertyType;
-        }
+        { }
     }
 
     public class ExtractPartialBlock : ExtractBlock
     {
         public string Index { get; }
 
-        public ExtractPartialBlock(CRUDDataUpdateType dataUpdateType, string name, string index, List<string> lines) : base(dataUpdateType, name, lines)
+        public ExtractPartialBlock(CRUDDataUpdateType dataUpdateType, string name, string index, List<string> lines) :
+            base(dataUpdateType, name, lines)
         {
             this.Index = index;
         }
@@ -523,14 +513,15 @@
 
         public string ExtractItem { get; set; }
 
-        public ExtractDisplayBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) : base(dataUpdateType, name, lines)
-        {
-
-        }
+        public ExtractDisplayBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) :
+            base(dataUpdateType, name, lines)
+        { }
     }
 
     public class CRUDPropertyType
     {
+        public string Name { get; }
+
         private string type;
         public string Type
         {
@@ -538,19 +529,16 @@
             set
             {
                 type = value;
-                IsRequired = !type.Contains('|');
                 SimplifiedType = type.Split('|')[0].Trim();
             }
         }
 
         public string SimplifiedType { get; private set; }
 
-        public bool IsRequired { get; private set; }
-
-        public CRUDPropertyType(string type, bool isRequired = false)
+        public CRUDPropertyType(string name, string type)
         {
+            this.Name = name;
             this.Type = type;
-            this.IsRequired = isRequired;
         }
     }
     #endregion

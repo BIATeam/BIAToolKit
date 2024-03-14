@@ -100,25 +100,8 @@ using Roslyn.Services;*/
                 primaryKey = genericNameSyntax.Descendants<TypeArgumentListSyntax>().Single().Arguments[0].ToString();
             }
 
-            var properties = root.Descendants<PropertyDeclarationSyntax>()
-                    .Select(prop =>
-                    {
-                        foreach (AttributeListSyntax attributes in prop.AttributeLists.ToList())
-                        {
-                            foreach (AttributeSyntax attribute in attributes.Attributes.ToList())
-                            {
-                                string annontationType = attribute.Name.ToString();
-                                if (dtoCustomAttributeName.Equals(annontationType, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    List<AttributeArgumentSyntax> annotations = attribute.ArgumentList.Arguments.ToList();
-                                    return new PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), annotations);
-                                }
-                            }
-                        }
-                        return new PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), null);
-                    })
-                    .ToList()
-                ;
+            var properties = GetPlaneDtoPropertyList(root.Descendants<PropertyDeclarationSyntax>().ToList(), dtoCustomAttributeName);
+
             var entityInfo = new EntityInfo(@namespace, className, baseType, primaryKey/*, relativeDirectory*/);
             entityInfo.Properties.AddRange(properties);
             if (keyNames != null)
@@ -268,5 +251,26 @@ using Roslyn.Services;*/
                             }
                         }*/
         }
+
+        public List<PropertyInfo> GetPlaneDtoPropertyList(List<PropertyDeclarationSyntax> propertyList, string dtoCustomAttributeName)
+        {
+            return propertyList.Select(prop =>
+            {
+                foreach (AttributeListSyntax attributes in prop.AttributeLists.ToList())
+                {
+                    foreach (AttributeSyntax attribute in attributes.Attributes.ToList())
+                    {
+                        string annontationType = attribute.Name.ToString();
+                        if (dtoCustomAttributeName.Equals(annontationType, StringComparison.OrdinalIgnoreCase))
+                        {
+                            List<AttributeArgumentSyntax> annotations = attribute.ArgumentList.Arguments.ToList();
+                            return new PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), annotations);
+                        }
+                    }
+                }
+                return new PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), null);
+            }).ToList();
+        }
+
     }
 }

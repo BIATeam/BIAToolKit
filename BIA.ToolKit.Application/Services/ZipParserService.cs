@@ -39,6 +39,9 @@
         public const string MARKER_BEGIN_DISPLAY = $"{MARKER_BEGIN} Display";
         public const string MARKER_END_DISPLAY = $"{MARKER_END} Display";
 
+        //public const string MARKER_BEGIN_PARENT = $"{MARKER_BEGIN} Parent";
+        //public const string MARKER_END_PARENT = $"{MARKER_END} Parent";
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -51,7 +54,7 @@
         /// <summary>
         /// Unzip archive on temp local folder and analyze files.
         /// </summary>
-        public bool ParseZipFile(ZipFeatureType zipData, string folderName)
+        public bool ParseZipFile(ZipFeatureType zipData, string folderName, string dtoCustomAttributeName)
         {
             string fileName = Path.Combine(zipData.ZipPath, zipData.ZipName);
             if (string.IsNullOrWhiteSpace(fileName))
@@ -94,20 +97,21 @@
                                     {
                                         classFile.EntityName = GetEntityName(file.Value, fileType);
                                         ((WebApiFeatureData)featureData).ClassFileDefinition = classFile;
+                                        ((WebApiFeatureData)featureData).PropertiesInfos = service.GetPlaneDtoPropertyList(classFile.PropertyList, dtoCustomAttributeName);
                                     }
                                 }
                             }
 
                             if (fileType != WebApiFileType.Dto || fileType != WebApiFileType.Entity || fileType != WebApiFileType.Mapper)    // Not Dto, Entity or Mapper
                             {
-                                featureData.ExtractBlocks = AnalyzeFile(filePath, featureData.IsPartialFile);
+                                featureData.ExtractBlocks = AnalyzeFile(filePath, featureData);
                             }
                         }
                     }
                     else    // Not WebApi
                     {
                         featureData = new FeatureData(file.Value, file.Key, workingDirectoryPath);
-                        featureData.ExtractBlocks = AnalyzeFile(filePath, featureData.IsPartialFile);
+                        featureData.ExtractBlocks = AnalyzeFile(filePath, featureData);
                     }
 
                     zipData.FeatureDataList.Add(featureData);
@@ -172,7 +176,7 @@
         /// <summary>
         /// Analyze file and extract blocks.
         /// </summary>
-        private List<ExtractBlock> AnalyzeFile(string fileName, bool isPartial)
+        private List<ExtractBlock> AnalyzeFile(string fileName, FeatureData featureData)
         {
             if (!File.Exists(fileName))
             {
@@ -191,7 +195,7 @@
 
             List<ExtractBlock> extractBlocksList = new();
 
-            if (isPartial)
+            if (featureData.IsPartialFile)
             {
                 extractBlocksList.AddRange(ExtractPartialFile(fileLines));
             }
@@ -215,42 +219,16 @@
                     }
                 }
 
-                // Populate Blocks with properties type
                 ExtractPropertiesBlock propertiesBlock = (ExtractPropertiesBlock)extractBlocksList.FirstOrDefault(b => b.DataUpdateType == CRUDDataUpdateType.Properties);
                 if (propertiesBlock != null)
                 {
-                    extractBlocksList.Where(b => b.DataUpdateType == CRUDDataUpdateType.Block)?.ToList().ForEach(block =>
-                    {
-                        foreach (KeyValuePair<string, List<string>> properties in propertiesBlock.PropertiesList)
-                        {
-                            if (properties.Value.Contains(block.Name))
-                            {
-                                ((ExtractBlocksBlock)block).PropertyType = new CRUDPropertyType(properties.Key);
-                                return;
-                            }
-                        }
-                    });
-
                     // Populate 'ExtractItem' of Display block
                     List<ExtractBlock> displays = extractBlocksList.FindAll(b => b.DataUpdateType == CRUDDataUpdateType.Display);
                     if (displays.Any())
                     {
                         foreach (ExtractDisplayBlock displayBlock in displays)
                         {
-                            bool found = false;
-                            foreach (List<string> properties in propertiesBlock.PropertiesList.Values)
-                            {
-                                foreach (string property in properties)
-                                {
-                                    if (displayBlock.ExtractLine.Contains(property))
-                                    {
-                                        displayBlock.ExtractItem = property;
-                                        found = true;
-                                    }
-                                    if (found) break;
-                                }
-                                if (found) break;
-                            }
+                            displayBlock.ExtractItem = propertiesBlock.PropertiesList.First(x => displayBlock.ExtractLine.Contains(x.Name)).Name;
                         }
                     }
                 }
@@ -426,19 +404,19 @@
                     {
                         case CRUDDataUpdateType.Properties:
                             // Decompose property
-                            Dictionary<string, List<string>> dico = new();
+                            List<CRUDPropertyType> propertyList = new();
                             blockLines.ForEach(line =>
                             {
-                                (string left, string right) = DecomposeProperty(line);
-                                if (!string.IsNullOrWhiteSpace(left) && !string.IsNullOrWhiteSpace(right))
+                                (string propName, string propType) = DecomposeProperty(line);
+                                if (!string.IsNullOrWhiteSpace(propName) && !string.IsNullOrWhiteSpace(propType))
                                 {
-                                    CommonTools.AddToDictionnary(dico, right, left); // key: property type, value: property name
+                                    propertyList.Add(new CRUDPropertyType(propName, propType));
                                 }
                             });
-                            extractBlocksList.Add(new ExtractPropertiesBlock(type, name, blockLines) { PropertiesList = dico });
+                            extractBlocksList.Add(new ExtractPropertiesBlock(type, name, blockLines) { PropertiesList = propertyList });
                             break;
                         case CRUDDataUpdateType.Block:
-                            extractBlocksList.Add(new ExtractBlocksBlock(type, name, blockLines));
+                            extractBlocksList.Add(new ExtractBlock(type, name, blockLines));
                             break;
                         case CRUDDataUpdateType.Display:
                             List<string> displayLines = blockLines.Where(l => !l.TrimStart().StartsWith("//")).ToList();
@@ -512,5 +490,23 @@
 
             return data;
         }
+
+        ///// <summary>
+        ///// Extract type found on block lines.
+        ///// </summary>
+        //private string ExtractBlockType(List<string> blockLines)
+        //{
+        //    const string regex = @"(?:\w*):\s*(?:\w*).(\w*)";
+        //    string type = null;
+        //    foreach (string line in blockLines)
+        //    {
+        //        type = CommonTools.GetMatchRegexValue(regex, line);
+        //        if (!string.IsNullOrEmpty(type))
+        //        {
+        //            return type;
+        //        }
+        //    }
+        //    return type;
+        //}
     }
 }
