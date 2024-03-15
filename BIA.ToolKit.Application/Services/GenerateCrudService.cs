@@ -499,10 +499,16 @@
 
             if (generationData != null)
             {
-                // Replace properties and blocks
-                if (generationData.PropertiesToAdd?.Count > 0 || generationData.BlocksToAdd?.Count > 0)
+                // Replace properties
+                if (generationData.PropertiesToAdd?.Count > 0)
                 {
-                    fileLinesContent = ReplacePropertiesAndBlocks(fileName, fileLinesContent, generationData.PropertiesToAdd, generationData.BlocksToAdd);
+                    fileLinesContent = ReplaceProperties(fileName, fileLinesContent, generationData.PropertiesToAdd);
+                }
+
+                // Replace blocks
+                if (generationData.BlocksToAdd?.Count > 0)
+                {
+                    fileLinesContent = ReplaceBlocks(fileName, fileLinesContent, generationData.BlocksToAdd);
                 }
 
                 // Replace display item
@@ -523,7 +529,7 @@
                     fileLinesContent = DeleteOptionsBlocks(fileLinesContent, generationData.OptionsName);
                 }
 
-                // Remove all options
+                // Upate parent blocks
                 if (generationData.ParentBlocks?.Count > 0)
                 {
                     fileLinesContent = UpdateParentBlocks(fileName, fileLinesContent, generationData.ParentBlocks, generationData.IsParentToAdd);
@@ -537,16 +543,55 @@
             CommonTools.GenerateFile(newFileName, fileLinesContent);
         }
 
-        private List<string> ReplacePropertiesAndBlocks(string fileName, List<string> fileLinesContent, List<string> propertiesToAdd, List<string> blocksToAdd)
+        private List<string> ReplaceBlocks(string fileName, List<string> fileLinesContent, List<string> blocksToAdd)
         {
-            if ((propertiesToAdd == null || propertiesToAdd.Count <= 0) && (blocksToAdd == null || blocksToAdd.Count <= 0))
+            if (blocksToAdd == null || blocksToAdd.Count <= 0)
+                return fileLinesContent;
+
+            int indexBeginFirstBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Block}")).FirstOrDefault());
+            int indexEndLastBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Block}")).LastOrDefault());
+
+            List<string> newFileLinesContent = new();
+            if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
+            {
+                // Write lines before first block
+                for (int i = 0; i < indexBeginFirstBlock; i++)
+                {
+                    newFileLinesContent.Add(fileLinesContent[i]);
+                }
+
+                // Write blocks to add
+                string spaces = CommonTools.GetSpacesBeginningLine(newFileLinesContent.Last());
+                for (int i = 0; i < blocksToAdd.Count; i++)
+                {
+                    newFileLinesContent.Add(blocksToAdd[i]);
+                    if (i != blocksToAdd.Count - 1)
+                        newFileLinesContent.Add($"{spaces}  ,");
+                }
+
+                // Write lines after last block
+                for (int i = indexEndLastBlock + 1; i < fileLinesContent.Count; i++)
+                {
+                    newFileLinesContent.Add(fileLinesContent[i]);
+                }
+            }
+            else
+            {
+                // Error
+                consoleWriter.AddMessageLine($"Update File '{fileName}', Block index not found (begin={indexBeginFirstBlock}, end={indexEndLastBlock})", "Orange");
+                newFileLinesContent = fileLinesContent;
+            }
+
+            return newFileLinesContent;
+        }
+
+        private List<string> ReplaceProperties(string fileName, List<string> fileLinesContent, List<string> propertiesToAdd)
+        {
+            if (propertiesToAdd == null || propertiesToAdd.Count <= 0)
                 return fileLinesContent;
 
             int indexBeginProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Properties}")).FirstOrDefault());
             int indexEndProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Properties}")).FirstOrDefault());
-
-            int indexBeginFirstBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Block}")).FirstOrDefault());
-            int indexEndLastBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Block}")).LastOrDefault());
 
             List<string> newFileLinesContent = new();
             // Writes properties ?
@@ -566,80 +611,17 @@
                 }
                 newFileLinesContent.Add(fileLinesContent[indexEndProperty]);
 
-                // Write blocks ?
-                if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
+                // Writes lines until the end
+                for (int i = indexEndProperty + 1; i < fileLinesContent.Count; i++)
                 {
-                    string spaces = CommonTools.GetSpacesBeginningLine(newFileLinesContent.Last());
-
-                    // Write lines between properties and first block
-                    for (int i = indexEndProperty + 1; i < indexBeginFirstBlock; i++)
-                    {
-                        newFileLinesContent.Add(fileLinesContent[i]);
-                    }
-
-                    // Write blocks to add
-                    for (int i = 0; i < blocksToAdd.Count; i++)
-                    {
-                        newFileLinesContent.Add(blocksToAdd[i]);
-                        if (i != blocksToAdd.Count - 1)
-                        {
-                            newFileLinesContent.Add($"{spaces}  ,");
-                        }
-                    }
-
-                    // Write lines after last block
-                    for (int i = indexEndLastBlock + 1; i < fileLinesContent.Count; i++)
-                    {
-                        newFileLinesContent.Add(fileLinesContent[i]);
-                    }
-                }
-                else
-                {
-                    // Writes lines until the end
-                    for (int i = indexEndProperty + 1; i < fileLinesContent.Count; i++)
-                    {
-                        newFileLinesContent.Add(fileLinesContent[i]);
-                    }
+                    newFileLinesContent.Add(fileLinesContent[i]);
                 }
             }
             else
             {
-                // Write blocks ?
-                if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
-                {
-                    string spaces = CommonTools.GetSpacesBeginningLine(newFileLinesContent.Last());
-
-                    // Write lines 
-                    for (int i = 0; i < indexBeginFirstBlock; i++)
-                    {
-                        newFileLinesContent.Add(fileLinesContent[i]);
-                    }
-
-                    // Write blocks to add
-                    for (int i = 0; i < blocksToAdd.Count; i++)
-                    {
-                        newFileLinesContent.Add(blocksToAdd[i]);
-                        if (i != blocksToAdd.Count - 1)
-                            newFileLinesContent.Add($"{spaces}  ,");
-                    }
-
-                    // Write lines after last block
-                    for (int i = indexEndLastBlock + 1; i < fileLinesContent.Count; i++)
-                    {
-                        newFileLinesContent.Add(fileLinesContent[i]);
-                    }
-                }
-                else
-                {
-                    // Error
-                    consoleWriter.AddMessageLine($"Update File '{fileName}', index not found (Property: begin={indexBeginProperty}, end={indexEndProperty}; Block: begin={indexBeginFirstBlock}, end={indexEndLastBlock})", "Orange");
-
-                    // Write lines 
-                    for (int i = 0; i < fileLinesContent.Count; i++)
-                    {
-                        newFileLinesContent.Add(fileLinesContent[i]);
-                    }
-                }
+                // Error
+                consoleWriter.AddMessageLine($"Update File '{fileName}', Property index not found (begin={indexBeginProperty}, end={indexEndProperty})", "Orange");
+                newFileLinesContent = fileLinesContent;
             }
 
             return newFileLinesContent;
