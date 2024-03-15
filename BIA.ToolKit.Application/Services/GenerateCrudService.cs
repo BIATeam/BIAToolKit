@@ -242,6 +242,22 @@
                             {
                                 generationData.BlocksToAdd.AddRange(GenerateBlocks(crudData, crudDtoProperties, dtoRefProperties));
                             }
+                            // Parents blocks
+                            List<ExtractBlock> parentBlocks = crudData.ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.Parent).ToList();
+                            if (parentBlocks.Any())
+                            {
+                                List<string> blocks = GenerateParentBlocks(parentBlocks, crudDtoProperties);
+                                if (blocks == null)
+                                {
+                                    generationData.IsParentToAdd = false;
+                                    parentBlocks.ForEach(b => generationData.ParentBlocks.AddRange(b.BlockLines));
+                                }
+                                else
+                                {
+                                    generationData.IsParentToAdd = true;
+                                    generationData.ParentBlocks.AddRange(blocks);
+                                }
+                            }
                         }
 
                         // Create file
@@ -506,6 +522,12 @@
                 {
                     fileLinesContent = DeleteOptionsBlocks(fileLinesContent, generationData.OptionsName);
                 }
+
+                // Remove all options
+                if (generationData.ParentBlocks?.Count > 0)
+                {
+                    fileLinesContent = UpdateParentBlocks(fileName, fileLinesContent, generationData.ParentBlocks, generationData.IsParentToAdd);
+                }
             }
 
             // Update file content
@@ -520,11 +542,11 @@
             if ((propertiesToAdd == null || propertiesToAdd.Count <= 0) && (blocksToAdd == null || blocksToAdd.Count <= 0))
                 return fileLinesContent;
 
-            int indexBeginProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.MARKER_BEGIN_PROPERTIES)).FirstOrDefault());
-            int indexEndProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.MARKER_END_PROPERTIES)).FirstOrDefault());
+            int indexBeginProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Properties}")).FirstOrDefault());
+            int indexEndProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Properties}")).FirstOrDefault());
 
-            int indexBeginFirstBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.MARKER_BEGIN_BLOCK)).FirstOrDefault());
-            int indexEndLastBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(ZipParserService.MARKER_END_BLOCK)).LastOrDefault());
+            int indexBeginFirstBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Block}")).FirstOrDefault());
+            int indexEndLastBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Block}")).LastOrDefault());
 
             List<string> newFileLinesContent = new();
             // Writes properties ?
@@ -639,46 +661,101 @@
 
         private List<string> DeleteChildrenBlocks(List<string> fileLinesContent, List<string> childrenName)
         {
+            string beginMarker = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Child}";
+            string endMarker = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Child}";
+
             childrenName?.ForEach(c =>
             {
                 string childName = c;
                 string markerBegin, markerEnd;
                 if (string.IsNullOrWhiteSpace(c))
                 {
-                    markerBegin = $"<!-- {ZipParserService.MARKER_BEGIN_CHILD} ";
-                    markerEnd = $"{ZipParserService.MARKER_END_CHILD} -->";
+                    markerBegin = $"<!-- {beginMarker} ";
+                    markerEnd = $"{endMarker} -->";
                 }
                 else
                 {
-                    markerBegin = $"<!-- {ZipParserService.MARKER_BEGIN_CHILD} {childName}";
-                    markerEnd = $"{ZipParserService.MARKER_END_CHILD} {childName} -->";
+                    markerBegin = $"<!-- {beginMarker} {childName}";
+                    markerEnd = $"{endMarker} {childName} -->";
                 }
                 fileLinesContent = DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
             });
 
-            return DeleteBlocks(fileLinesContent, ZipParserService.MARKER_BEGIN_CHILD, ZipParserService.MARKER_END_CHILD);
+            return DeleteBlocks(fileLinesContent, beginMarker, endMarker);
         }
 
         private List<string> DeleteOptionsBlocks(List<string> fileLinesContent, List<string> optionsName)
         {
+            string beginMarker = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option}";
+            string endMarker = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Option}";
+
             optionsName?.ForEach(optionName =>
             {
                 string markerBegin, markerEnd;
                 if (string.IsNullOrWhiteSpace(optionName))
                 {
-                    markerBegin = $"/* {ZipParserService.MARKER_BEGIN_OPTION} ";
-                    markerEnd = $"{ZipParserService.MARKER_END_OPTION} */";
+                    markerBegin = $"/* {beginMarker} ";
+                    markerEnd = $"{endMarker} */";
                 }
                 else
                 {
-                    markerBegin = $"/* {ZipParserService.MARKER_BEGIN_OPTION} {optionName}";
-                    markerEnd = $"{ZipParserService.MARKER_END_OPTION} {optionName} */";
+                    markerBegin = $"/* {beginMarker} {optionName}";
+                    markerEnd = $"{endMarker} {optionName} */";
                 }
 
                 fileLinesContent = DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
             });
 
-            return DeleteBlocks(fileLinesContent, ZipParserService.MARKER_BEGIN_OPTION, ZipParserService.MARKER_END_OPTION);
+            return DeleteBlocks(fileLinesContent, beginMarker, endMarker);
+        }
+
+        private List<string> UpdateParentBlocks(string fileName, List<string> fileLinesContent, List<string> parentBlocks, bool isParentToAdd)
+        {
+            string markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Parent}";
+            string markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Parent}";
+
+            if (!isParentToAdd)
+            {
+                // Delete parents blocks
+                return DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
+            }
+            else
+            {
+                // Update parents blocks
+                int indexBeginParent = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(markerBegin)).FirstOrDefault());
+                int indexEndParent = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(markerEnd)).LastOrDefault());
+
+                List<string> newFileLinesContent = new();
+                if (indexBeginParent != -1 && indexEndParent != -1)
+                {
+                    // Write lines before first parent block
+                    for (int i = 0; i < indexBeginParent; i++)
+                    {
+                        newFileLinesContent.Add(fileLinesContent[i]);
+                    }
+
+                    // Write parents blocks to add
+                    string spaces = CommonTools.GetSpacesBeginningLine(newFileLinesContent.Last());
+                    for (int i = 0; i < parentBlocks.Count; i++)
+                    {
+                        newFileLinesContent.Add(parentBlocks[i]);
+                    }
+
+                    // Write lines after last parent block
+                    for (int i = indexEndParent + 1; i < fileLinesContent.Count; i++)
+                    {
+                        newFileLinesContent.Add(fileLinesContent[i]);
+                    }
+                }
+                else
+                {
+                    // Error
+                    consoleWriter.AddMessageLine($"Update File '{fileName}', Parent index not found (begin={indexBeginParent}, end={indexEndParent})", "Orange");
+                    newFileLinesContent = fileLinesContent;
+                }
+
+                return newFileLinesContent;
+            }
         }
 
         private List<string> DeleteBlocks(List<string> fileLinesContent, string markerBegin, string markerEnd)
@@ -757,6 +834,35 @@
             }
 
             return updateLines;
+        }
+
+        private List<string> GenerateParentBlocks(List<ExtractBlock> blocksList, List<CrudProperty> crudDtoProperties)
+        {
+            List<CrudProperty> parents = crudDtoProperties.Where(c => c.IsParent).ToList();
+            if (!parents.Any())
+            {
+                return null;
+            }
+
+            List<string> blocksToAdd = new();
+            foreach (ExtractBlock block in blocksList)
+            {
+                // Generic parent block
+                if (string.IsNullOrWhiteSpace(block.Name))
+                {
+                    blocksToAdd.AddRange(block.BlockLines);
+                    continue;
+                }
+
+                // Specifics parents blocks
+                foreach (CrudProperty parent in parents)
+                {
+                    string parentName = CommonTools.ConvertToCamelCase(parent.Name);
+                    block.BlockLines.ForEach(line => blocksToAdd.Add(line.Replace(block.Name, parentName)));
+                }
+            }
+
+            return blocksToAdd;
         }
 
         private List<string> GeneratePropertiesToAdd(ExtractPropertiesBlock propertyBlock, List<CrudProperty> crudProperties)
@@ -1108,7 +1214,7 @@
             if (contentToReplace.Count > 0)
             {
                 int indexStart = GetMarkerIndexInFileContent(contentToAdd[0], fileContent, contentToReplace);
-                int indexStop = GetMarkerIndexInFileContent(contentToAdd[contentToAdd.Count - 1], fileContent, contentToReplace);
+                int indexStop = GetMarkerIndexInFileContent(contentToAdd[^1], fileContent, contentToReplace);
 
                 if (indexStart >= 0)
                 {
@@ -1233,6 +1339,8 @@
         public bool IsOptionToDelete { get; set; }
         public List<string> OptionsName { get; }
         public List<KeyValuePair<string, string>> DisplayToUpdate { get; }
+        public bool IsParentToAdd { get; set; }
+        public List<string> ParentBlocks { get; }
 
         public GenerationCrudData()
         {
@@ -1243,6 +1351,7 @@
             this.ChildrenName = new();
             this.OptionsName = new();
             this.DisplayToUpdate = new();
+            this.ParentBlocks = new();
         }
     }
 

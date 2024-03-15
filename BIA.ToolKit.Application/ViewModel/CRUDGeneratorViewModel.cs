@@ -559,6 +559,7 @@
         Child,
         Option,
         Display,
+        Parent,
         // Partial
         Config,
         Dependency,
@@ -566,7 +567,6 @@
         Permission,
         Rights,
         Routing
-
     }
 
     public enum WebApiFileType

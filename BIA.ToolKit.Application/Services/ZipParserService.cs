@@ -20,27 +20,12 @@
         private const string BIA_MARKER = "BIAToolKit -";
         public const string MARKER_BEGIN = $"{BIA_MARKER} Begin";
         public const string MARKER_END = $"{BIA_MARKER} End";
-        // Tags
-        public static readonly string MARKER_BEGIN_PROPERTIES = $"{MARKER_BEGIN} {CRUDDataUpdateType.Properties}";
-        public static readonly string MARKER_END_PROPERTIES = $"{MARKER_END} {CRUDDataUpdateType.Properties}";
-        public static readonly string MARKER_BEGIN_BLOCK = $"{MARKER_BEGIN} {CRUDDataUpdateType.Block}";
-        public static readonly string MARKER_END_BLOCK = $"{MARKER_END} {CRUDDataUpdateType.Block}";
-        public static readonly string MARKER_BEGIN_CHILD = $"{MARKER_BEGIN} {CRUDDataUpdateType.Child}";
-        public static readonly string MARKER_END_CHILD = $"{MARKER_END} {CRUDDataUpdateType.Child}";
-        public static readonly string MARKER_BEGIN_OPTION = $"{MARKER_BEGIN} {CRUDDataUpdateType.Option}";
-        public static readonly string MARKER_END_OPTION = $"{MARKER_END} {CRUDDataUpdateType.Option}";
         // Tags Partial
         public const string MARKER_BEGIN_PARTIAL = $"{MARKER_BEGIN} Partial";
         public const string MARKER_END_PARTIAL = $"{MARKER_END} Partial";
         // Tags Front
         public const string MARKER_BEGIN_FRONT = $"{MARKER_BEGIN} Front";
         public const string MARKER_END_FRONT = $"{MARKER_END} Front";
-
-        public const string MARKER_BEGIN_DISPLAY = $"{MARKER_BEGIN} Display";
-        public const string MARKER_END_DISPLAY = $"{MARKER_END} Display";
-
-        //public const string MARKER_BEGIN_PARENT = $"{MARKER_BEGIN} Parent";
-        //public const string MARKER_END_PARENT = $"{MARKER_END} Parent";
 
         /// <summary>
         /// Constructor.
