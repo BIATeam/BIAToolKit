@@ -95,13 +95,16 @@
                 string dotnetDir = Path.Combine(generationFolder, Constants.FolderDotNet);
                 string angularDir = Path.Combine(generationFolder, currentProject.BIAFronts);
 
+                // Get CRUD dto properties
+                List<CrudProperty> crudDtoProperties = GetDtoProperties(crudDtoEntity);
+
                 // Generate WebApi DotNet files
                 ZipFeatureType backFeatureType = zipFeatureTypeList.Where(x => x.FeatureType == FeatureType.WebApi).FirstOrDefault();
                 if (backFeatureType != null && backFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet files on '{dotnetDir}' ***", "Green");
 
-                    GenerateWebApi(dotnetDir, backFeatureType.FeatureDataList, currentProject, crudDtoEntity);
+                    GenerateWebApi(dotnetDir, backFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem);
                 }
 
                 // Generate CRUD angular files
@@ -110,10 +113,6 @@
                 {
                     consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{angularDir}' ***", "Green");
 
-                    // Get CRUD dto properties
-                    List<CrudProperty> crudDtoProperties = GetDtoProperties(crudDtoEntity);
-
-                    //List< CrudProperty >
                     if (crudDtoProperties == null)
                     {
                         consoleWriter.AddMessageLine($"Can't generate Angular CRUD files: Dto properties are empty.", "Red");
@@ -152,7 +151,7 @@
         }
 
         #region Feature
-        private void GenerateWebApi(string destDir, List<FeatureData> featureDataList, Project currentProject, EntityInfo dtoRefEntity)
+        private void GenerateWebApi(string destDir, List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties, string displayItem)
         {
             try
             {
@@ -173,7 +172,7 @@
                     }
 
                     // Update WebApi files (not partial)
-                    UpdateWebApiFile(destDir, currentProject, crudData, dtoClassDefiniton, crudNamespaceList);
+                    UpdateWebApiFile(destDir, currentProject, crudData, dtoClassDefiniton, crudNamespaceList, crudDtoProperties, displayItem);
                 }
 
                 // Update partial files
@@ -204,61 +203,7 @@
                     }
                     else
                     {
-                        GenerationCrudData generationData = null;
-                        if (crudData.ExtractBlocks?.Count > 0)
-                        {
-                            generationData = new();
-                            foreach (ExtractBlock block in crudData.ExtractBlocks)
-                            {
-                                switch (block.DataUpdateType)
-                                {
-                                    case CRUDDataUpdateType.Properties:
-                                        generationData.PropertiesToAdd.AddRange(GeneratePropertiesToAdd((ExtractPropertiesBlock)block, crudDtoProperties));
-                                        break;
-                                    case CRUDDataUpdateType.Block:
-                                        // Do nothing (traitment done after)
-                                        break;
-                                    case CRUDDataUpdateType.Child:
-                                        generationData.IsChildrenToDelete |= block.BlockLines.Count > 0;
-                                        generationData.ChildrenName.Add(block.Name);
-                                        break;
-                                    case CRUDDataUpdateType.Option:
-                                        generationData.IsOptionToDelete |= block.BlockLines.Count > 0;
-                                        generationData.OptionsName.Add(block.Name);
-                                        break;
-                                    case CRUDDataUpdateType.Display:
-                                        string extractItem = ((ExtractDisplayBlock)block).ExtractItem;
-                                        string extractLine = ((ExtractDisplayBlock)block).ExtractLine;
-                                        string newDisplayLine = extractLine.Replace(extractItem, CommonTools.ConvertToCamelCase(displayItem));
-                                        generationData.DisplayToUpdate.Add(new KeyValuePair<string, string>(extractLine, newDisplayLine));
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
-
-                            // Generate new blocks to add
-                            if (crudData.ExtractBlocks.Any(b => b.DataUpdateType == CRUDDataUpdateType.Block))
-                            {
-                                generationData.BlocksToAdd.AddRange(GenerateBlocks(crudData, crudDtoProperties, dtoRefProperties));
-                            }
-                            // Parents blocks
-                            List<ExtractBlock> parentBlocks = crudData.ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.Parent).ToList();
-                            if (parentBlocks.Any())
-                            {
-                                List<string> blocks = GenerateParentBlocks(parentBlocks, crudDtoProperties);
-                                if (blocks == null)
-                                {
-                                    generationData.IsParentToAdd = false;
-                                    parentBlocks.ForEach(b => generationData.ParentBlocks.AddRange(b.BlockLines));
-                                }
-                                else
-                                {
-                                    generationData.IsParentToAdd = true;
-                                    generationData.ParentBlocks.AddRange(blocks);
-                                }
-                            }
-                        }
+                        GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, dtoRefProperties, displayItem);
 
                         // Create file
                         string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
@@ -302,8 +247,59 @@
         }
         #endregion
 
+        private GenerationCrudData ExtractGenerationCrudData(FeatureData crudData, List<CrudProperty> crudDtoProperties, List<PropertyInfo> dtoRefProperties, string displayItem)
+        {
+
+            GenerationCrudData generationData = null;
+            if (crudData.ExtractBlocks?.Count > 0)
+            {
+                generationData = new();
+                foreach (ExtractBlock block in crudData.ExtractBlocks)
+                {
+                    switch (block.DataUpdateType)
+                    {
+                        case CRUDDataUpdateType.Properties:
+                            generationData.PropertiesToAdd.AddRange(GeneratePropertiesToAdd((ExtractPropertiesBlock)block, crudDtoProperties));
+                            break;
+                        case CRUDDataUpdateType.Child:
+                            generationData.IsChildrenToDelete |= block.BlockLines.Count > 0;
+                            generationData.ChildrenName.Add(block.Name);
+                            break;
+                        case CRUDDataUpdateType.Option:
+                            generationData.IsOptionToDelete |= block.BlockLines.Count > 0;
+                            generationData.OptionsName.Add(block.Name);
+                            break;
+                        case CRUDDataUpdateType.Display:
+                            string extractItem = ((ExtractDisplayBlock)block).ExtractItem;
+                            string extractLine = ((ExtractDisplayBlock)block).ExtractLine;
+                            string newDisplayLine = extractLine.Replace(extractItem, CommonTools.ConvertToCamelCase(displayItem));
+                            generationData.DisplayToUpdate.Add(new KeyValuePair<string, string>(extractLine, newDisplayLine));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                // Generate new blocks to add
+                if (crudData.ExtractBlocks.Any(b => b.DataUpdateType == CRUDDataUpdateType.Block))
+                {
+                    generationData.BlocksToAdd.AddRange(GenerateBlocks(crudData, crudDtoProperties, dtoRefProperties));
+                }
+
+                // Parents blocks to update
+                List<ExtractBlock> parentBlocks = crudData.ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.Parent).ToList();
+                if (parentBlocks.Any())
+                {
+                    PrepareParentBlock(parentBlocks, generationData, crudDtoProperties, true);
+                }
+            }
+
+            return generationData;
+        }
+
+
         #region DotNet Files
-        private void UpdateWebApiFile(string destDir, Project currentProject, WebApiFeatureData crudData, ClassDefinition dtoClassDefiniton, List<WebApiNamespace> crudNamespaceList)
+        private void UpdateWebApiFile(string destDir, Project currentProject, WebApiFeatureData crudData, ClassDefinition dtoClassDefiniton, List<WebApiNamespace> crudNamespaceList, List<CrudProperty> crudDtoProperties, string displayItem)
         {
             string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
             string dest = ConvertPascalOldToNewCrudName(Path.Combine(destDir, crudData.FilePath), FeatureType.WebApi);
@@ -312,8 +308,10 @@
             // Prepare destination folder
             CommonTools.CheckFolder(new FileInfo(dest).DirectoryName);
 
+            GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, null, displayItem);
+
             // Read file
-            List<string> fileLinesContent = File.ReadAllLines(src).ToList();
+            List<string> fileLinesContent = UpdateFileContent(generationData, src);
 
             for (int i = 0; i < fileLinesContent.Count; i++)
             {
@@ -324,8 +322,6 @@
                 // Convert Crud Name (Plane to XXX)
                 fileLinesContent[i] = ConvertPascalOldToNewCrudName(fileLinesContent[i], FeatureType.WebApi);
             }
-
-            // TODO NMA: manage option or children ???
 
             // Generate new file
             CommonTools.GenerateFile(dest, fileLinesContent);
@@ -495,6 +491,17 @@
             CommonTools.CheckFolder(new FileInfo(newFileName).DirectoryName);
 
             // Read file
+            List<string> fileLinesContent = UpdateFileContent(generationData, fileName);
+
+            // Update file content
+            UpdateFileLinesContent(fileLinesContent, type);
+
+            // Generate new file
+            CommonTools.GenerateFile(newFileName, fileLinesContent);
+        }
+
+        private List<string> UpdateFileContent(GenerationCrudData generationData, string fileName)
+        {
             List<string> fileLinesContent = File.ReadAllLines(fileName).ToList();
 
             if (generationData != null)
@@ -536,95 +543,40 @@
                 }
             }
 
-            // Update file content
-            UpdateFileLinesContent(fileLinesContent, type);
-
-            // Generate new file
-            CommonTools.GenerateFile(newFileName, fileLinesContent);
+            return fileLinesContent;
         }
 
-        private List<string> ReplaceBlocks(string fileName, List<string> fileLinesContent, List<string> blocksToAdd)
+        private List<string> ReplaceBlocks(string fileName, List<string> fileLinesContent, List<string> blockList)
         {
-            if (blocksToAdd == null || blocksToAdd.Count <= 0)
-                return fileLinesContent;
-
-            int indexBeginFirstBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Block}")).FirstOrDefault());
-            int indexEndLastBlock = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Block}")).LastOrDefault());
-
-            List<string> newFileLinesContent = new();
-            if (indexBeginFirstBlock != -1 && indexEndLastBlock != -1)
+            string spaces = string.Empty;
+            int indexBegin = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Block}")).FirstOrDefault());
+            if (indexBegin != -1)
             {
-                // Write lines before first block
-                for (int i = 0; i < indexBeginFirstBlock; i++)
-                {
-                    newFileLinesContent.Add(fileLinesContent[i]);
-                }
-
-                // Write blocks to add
-                string spaces = CommonTools.GetSpacesBeginningLine(newFileLinesContent.Last());
-                for (int i = 0; i < blocksToAdd.Count; i++)
-                {
-                    newFileLinesContent.Add(blocksToAdd[i]);
-                    if (i != blocksToAdd.Count - 1)
-                        newFileLinesContent.Add($"{spaces}  ,");
-                }
-
-                // Write lines after last block
-                for (int i = indexEndLastBlock + 1; i < fileLinesContent.Count; i++)
-                {
-                    newFileLinesContent.Add(fileLinesContent[i]);
-                }
-            }
-            else
-            {
-                // Error
-                consoleWriter.AddMessageLine($"Update File '{fileName}', Block index not found (begin={indexBeginFirstBlock}, end={indexEndLastBlock})", "Orange");
-                newFileLinesContent = fileLinesContent;
+                spaces = CommonTools.GetSpacesBeginningLine(fileLinesContent[indexBegin]);
             }
 
-            return newFileLinesContent;
+            List<string> newBlockList = new();
+            for (int i = 0; i < blockList.Count; i++)
+            {
+                newBlockList.Add(blockList[i]);
+                if (i != blockList.Count - 1)
+                    newBlockList.Add($"{spaces},");
+            }
+
+            return UpdateBlocks(fileName, fileLinesContent, newBlockList, CRUDDataUpdateType.Block);
         }
 
         private List<string> ReplaceProperties(string fileName, List<string> fileLinesContent, List<string> propertiesToAdd)
         {
-            if (propertiesToAdd == null || propertiesToAdd.Count <= 0)
-                return fileLinesContent;
-
             int indexBeginProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Properties}")).FirstOrDefault());
             int indexEndProperty = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Properties}")).FirstOrDefault());
-
-            List<string> newFileLinesContent = new();
-            // Writes properties ?
             if (indexBeginProperty != -1 && indexEndProperty != -1)
             {
-                // Write lines before properties
-                for (int i = 0; i < indexBeginProperty; i++)
-                {
-                    newFileLinesContent.Add(fileLinesContent[i]);
-                }
-
-                // Write new properties to add
-                newFileLinesContent.Add(fileLinesContent[indexBeginProperty]);
-                for (int i = 0; i < propertiesToAdd.Count; i++)
-                {
-                    newFileLinesContent.Add(propertiesToAdd[i]);
-                }
-                newFileLinesContent.Add(fileLinesContent[indexEndProperty]);
-
-                // Writes lines until the end
-                for (int i = indexEndProperty + 1; i < fileLinesContent.Count; i++)
-                {
-                    newFileLinesContent.Add(fileLinesContent[i]);
-                }
-            }
-            else
-            {
-                // Error
-                consoleWriter.AddMessageLine($"Update File '{fileName}', Property index not found (begin={indexBeginProperty}, end={indexEndProperty})", "Orange");
-                newFileLinesContent = fileLinesContent;
+                propertiesToAdd?.Insert(0, fileLinesContent[indexBeginProperty]);
+                propertiesToAdd?.Add(fileLinesContent[indexEndProperty]);
             }
 
-            return newFileLinesContent;
+            return UpdateBlocks(fileName, fileLinesContent, propertiesToAdd, CRUDDataUpdateType.Properties);
         }
 
         private List<string> ReplaceDisplayItem(List<string> fileLinesContent, List<KeyValuePair<string, string>> displayToUpdate)
@@ -646,11 +598,10 @@
             string beginMarker = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Child}";
             string endMarker = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Child}";
 
-            childrenName?.ForEach(c =>
+            childrenName?.ForEach(childName =>
             {
-                string childName = c;
                 string markerBegin, markerEnd;
-                if (string.IsNullOrWhiteSpace(c))
+                if (string.IsNullOrWhiteSpace(childName))
                 {
                     markerBegin = $"<!-- {beginMarker} ";
                     markerEnd = $"{endMarker} -->";
@@ -663,7 +614,7 @@
                 fileLinesContent = DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
             });
 
-            return DeleteBlocks(fileLinesContent, beginMarker, endMarker);
+            return DeleteBlocks(fileLinesContent, CRUDDataUpdateType.Child);
         }
 
         private List<string> DeleteOptionsBlocks(List<string> fileLinesContent, List<string> optionsName)
@@ -688,56 +639,76 @@
                 fileLinesContent = DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
             });
 
-            return DeleteBlocks(fileLinesContent, beginMarker, endMarker);
+            return DeleteBlocks(fileLinesContent, CRUDDataUpdateType.Option);
         }
 
-        private List<string> UpdateParentBlocks(string fileName, List<string> fileLinesContent, List<string> parentBlocks, bool isParentToAdd)
+        private List<string> UpdateParentBlocks(string fileName, List<string> fileLinesContent, List<List<string>> parentBlocks, bool isParentToAdd)
         {
-            string markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Parent}";
-            string markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Parent}";
-
             if (!isParentToAdd)
             {
                 // Delete parents blocks
-                return DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
+                return DeleteBlocks(fileLinesContent, CRUDDataUpdateType.Parent);
             }
             else
             {
-                // Update parents blocks
-                int indexBeginParent = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(markerBegin)).FirstOrDefault());
-                int indexEndParent = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains(markerEnd)).LastOrDefault());
-
-                List<string> newFileLinesContent = new();
-                if (indexBeginParent != -1 && indexEndParent != -1)
+                for (int i = 0; i < parentBlocks.Count; i++)
                 {
-                    // Write lines before first parent block
-                    for (int i = 0; i < indexBeginParent; i++)
-                    {
-                        newFileLinesContent.Add(fileLinesContent[i]);
-                    }
-
-                    // Write parents blocks to add
-                    string spaces = CommonTools.GetSpacesBeginningLine(newFileLinesContent.Last());
-                    for (int i = 0; i < parentBlocks.Count; i++)
-                    {
-                        newFileLinesContent.Add(parentBlocks[i]);
-                    }
-
-                    // Write lines after last parent block
-                    for (int i = indexEndParent + 1; i < fileLinesContent.Count; i++)
-                    {
-                        newFileLinesContent.Add(fileLinesContent[i]);
-                    }
-                }
-                else
-                {
-                    // Error
-                    consoleWriter.AddMessageLine($"Update File '{fileName}', Parent index not found (begin={indexBeginParent}, end={indexEndParent})", "Orange");
-                    newFileLinesContent = fileLinesContent;
+                    fileLinesContent = UpdateBlocks(fileName, fileLinesContent, parentBlocks[i], CRUDDataUpdateType.Parent, i);
                 }
 
-                return newFileLinesContent;
+                return fileLinesContent;
             }
+        }
+
+        private List<string> UpdateBlocks(string fileName, List<string> fileLinesContent, List<string> blockList, CRUDDataUpdateType type, int count = -1)
+        {
+            int indexBegin = -1;
+            int indexEnd = -1;
+            if (count == -1)
+            {
+                indexBegin = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_BEGIN} {type}")).FirstOrDefault());
+                indexEnd = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_END} {type}")).FirstOrDefault());
+            }
+            else
+            {
+                indexBegin = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_BEGIN} {type}")).ToArray()[count]);
+                indexEnd = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_END} {type}")).ToArray()[count]);
+            }
+
+            List<string> newFileLinesContent = new();
+            if (indexBegin != -1 && indexEnd != -1)
+            {
+                // Write lines before first block
+                for (int i = 0; i < indexBegin; i++)
+                {
+                    newFileLinesContent.Add(fileLinesContent[i]);
+                }
+
+                // Write blocks to add
+                newFileLinesContent.AddRange(blockList);
+
+                // Write lines after last block
+                for (int i = indexEnd + 1; i < fileLinesContent.Count; i++)
+                {
+                    newFileLinesContent.Add(fileLinesContent[i]);
+                }
+            }
+            else
+            {
+                // Error
+                consoleWriter.AddMessageLine($"Update File '{fileName}', {type} index not found (begin={indexBegin}, end={indexEnd})", "Orange");
+                newFileLinesContent = fileLinesContent;
+            }
+
+            return newFileLinesContent;
+        }
+
+        private List<string> DeleteBlocks(List<string> fileLinesContent, CRUDDataUpdateType type)
+        {
+            string markerBegin = $"{ZipParserService.MARKER_BEGIN} {type}";
+            string markerEnd = $"{ZipParserService.MARKER_END} {type}";
+
+            return DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
         }
 
         private List<string> DeleteBlocks(List<string> fileLinesContent, string markerBegin, string markerEnd)
@@ -818,7 +789,7 @@
             return updateLines;
         }
 
-        private List<string> GenerateParentBlocks(List<ExtractBlock> blocksList, List<CrudProperty> crudDtoProperties)
+        private List<List<string>> GenerateParentBlocks(List<ExtractBlock> blocksList, List<CrudProperty> crudDtoProperties, bool convertToCaml)
         {
             List<CrudProperty> parents = crudDtoProperties.Where(c => c.IsParent).ToList();
             if (!parents.Any())
@@ -826,21 +797,24 @@
                 return null;
             }
 
-            List<string> blocksToAdd = new();
+            List<List<string>> blocksToAdd = new();
             foreach (ExtractBlock block in blocksList)
             {
                 // Generic parent block
                 if (string.IsNullOrWhiteSpace(block.Name))
                 {
-                    blocksToAdd.AddRange(block.BlockLines);
+                    blocksToAdd.Add(block.BlockLines);
                     continue;
                 }
 
                 // Specifics parents blocks
                 foreach (CrudProperty parent in parents)
                 {
-                    string parentName = CommonTools.ConvertToCamelCase(parent.Name);
-                    block.BlockLines.ForEach(line => blocksToAdd.Add(line.Replace(block.Name, parentName)));
+                    string parentName = parent.Name;
+                    if (convertToCaml)
+                        parentName = CommonTools.ConvertToCamelCase(parent.Name);
+                    block.BlockLines.ForEach(line => line.Replace(block.Name, parentName));
+                    blocksToAdd.Add(block.BlockLines);
                 }
             }
 
@@ -881,6 +855,9 @@
 
         private List<string> GenerateBlocks(FeatureData crudData, List<CrudProperty> crudDtoProperties, List<PropertyInfo> dtoRefProperties)
         {
+            if (crudDtoProperties == null || dtoRefProperties == null)
+                return null;
+
             List<string> blocksToAdd = new();
             // Get block list and properties associated to blocks
             ExtractBlock propertyBlock = crudData.ExtractBlocks.FirstOrDefault(p => p.DataUpdateType == CRUDDataUpdateType.Properties);
@@ -1028,6 +1005,21 @@
                     lines[i] = ReplaceOldCamelToNewKebabPath(lines[i]);
                     lines[i] = ConvertPascalOldToNewCrudName(lines[i], type);
                 }
+            }
+        }
+
+        private void PrepareParentBlock(List<ExtractBlock> parentBlocks, GenerationCrudData generationData, List<CrudProperty> crudDtoProperties, bool convertToCamel)
+        {
+            List<List<string>> blocks = GenerateParentBlocks(parentBlocks, crudDtoProperties, convertToCamel);
+            if (blocks == null)
+            {
+                generationData.IsParentToAdd = false;
+                parentBlocks.ForEach(b => generationData.ParentBlocks.Add(b.BlockLines));
+            }
+            else
+            {
+                generationData.IsParentToAdd = true;
+                generationData.ParentBlocks.AddRange(blocks);
             }
         }
         #endregion
@@ -1322,7 +1314,7 @@
         public List<string> OptionsName { get; }
         public List<KeyValuePair<string, string>> DisplayToUpdate { get; }
         public bool IsParentToAdd { get; set; }
-        public List<string> ParentBlocks { get; }
+        public List<List<string>> ParentBlocks { get; }
 
         public GenerationCrudData()
         {
