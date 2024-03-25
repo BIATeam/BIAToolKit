@@ -11,6 +11,8 @@
         public string GenerationSettingsFileName { get; private set; }
         public string GenerationHistoryFileName { get; private set; }
 
+        public string DtoCustomAttributeName { get; private set; }
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -28,6 +30,7 @@
         {
             GenerationSettingsFileName = settingsService.ReadSetting("GenerationSettings");
             GenerationHistoryFileName = settingsService.ReadSetting("GenerationHistory");
+            DtoCustomAttributeName = settingsService.ReadSetting("DtoCustomAttribute");
 
             string generate = settingsService.ReadSetting("GenerateInProjectFolder");
             if (!string.IsNullOrWhiteSpace(generate))

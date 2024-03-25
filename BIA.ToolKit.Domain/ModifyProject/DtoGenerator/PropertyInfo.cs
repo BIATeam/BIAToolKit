@@ -1,18 +1,39 @@
 ﻿namespace BIA.ToolKit.Domain.DtoGenerator
 {
+    using BIA.ToolKit.Common;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
+
     public class PropertyInfo
     {
         public string Type { get; }
 
         public string Name { get; }
 
-        public string Annotation { get; }
+        public List<KeyValuePair<string, string>> Annotations { get; }
 
-        public PropertyInfo(string type, string name, string annotation = "")
+        public PropertyInfo(string type, string name, List<AttributeArgumentSyntax>? arguments)
         {
             Type = type;
             Name = name;
-            Annotation = annotation;
+            if (arguments != null && arguments.Count > 0)
+            {
+                Annotations = new();
+                ParseAnnotations(arguments);
+            }
+        }
+
+        private void ParseAnnotations(List<AttributeArgumentSyntax> annotations)
+        {
+            const string regex = @"(\w*)\s?=\s?""?(\w*)""?";
+            foreach (AttributeArgumentSyntax annotation in annotations)
+            {
+                string key = CommonTools.GetMatchRegexValue(regex, annotation.ToString(), 1);
+                string value = CommonTools.GetMatchRegexValue(regex, annotation.ToString(), 2);
+                if (!string.IsNullOrEmpty(key))
+                {
+                    Annotations.Add(new KeyValuePair<string, string>(key, value));
+                }
+            }
         }
     }
 }

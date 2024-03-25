@@ -13,4 +13,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BIA.ToolKit.Common\BIA.ToolKit.Common.csproj" />
+  </ItemGroup>
+
 </Project>

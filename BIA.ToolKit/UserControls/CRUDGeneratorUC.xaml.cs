@@ -354,7 +354,7 @@
                 }
 
                 // Parse Dto entity file
-                vm.DtoEntity = service.ParseEntity(fileName);
+                vm.DtoEntity = service.ParseEntity(fileName, settings.DtoCustomAttributeName);
                 if (vm.DtoEntity == null || vm.DtoEntity.Properties == null || vm.DtoEntity.Properties.Count <= 0)
                 {
                     consoleWriter.AddMessageLine("No properties found on Dto file.", "Orange");
@@ -393,7 +393,7 @@
                 {
                     string folderName = (zipData.FeatureType == FeatureType.WebApi) ? Constants.FolderDotNet : vm.CurrentProject.BIAFronts;
                     //List<string> options = crudSettingsList.FirstOrDefault(x => x.Type == type.ToString())?.Options;
-                    return zipService.ParseZipFile(zipData, folderName);
+                    return zipService.ParseZipFile(zipData, folderName, settings.DtoCustomAttributeName);
                 }
             }
             catch (Exception ex)
