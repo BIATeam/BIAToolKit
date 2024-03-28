@@ -290,7 +290,7 @@
                 List<ExtractBlock> parentBlocks = crudData.ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.Parent).ToList();
                 if (parentBlocks.Any())
                 {
-                    PrepareParentBlock(parentBlocks, generationData, crudDtoProperties, true);
+                    PrepareParentBlock(parentBlocks, generationData, crudDtoProperties);
                 }
             }
 
@@ -789,7 +789,7 @@
             return updateLines;
         }
 
-        private List<List<string>> GenerateParentBlocks(List<ExtractBlock> blocksList, List<CrudProperty> crudDtoProperties, bool convertToCaml)
+        private List<List<string>> GenerateParentBlocks(List<ExtractBlock> blocksList, List<CrudProperty> crudDtoProperties)
         {
             List<CrudProperty> parents = crudDtoProperties.Where(c => c.IsParent).ToList();
             if (!parents.Any())
@@ -797,25 +797,31 @@
                 return null;
             }
 
+            string parentName = blocksList.Where(b => !string.IsNullOrWhiteSpace(b.Name)).FirstOrDefault()?.Name;
+            string newParentName = parents.Where(p => p.IsParent).FirstOrDefault()?.Name;
+            string parentNamePascal = CommonTools.ConvertToPascalCase(parentName);
+            string parentNameCamel = CommonTools.ConvertToCamelCase(parentName);
+            string newParentNamePascal = CommonTools.ConvertToPascalCase(newParentName);
+            string newParentNameCamel = CommonTools.ConvertToCamelCase(newParentName);
+
             List<List<string>> blocksToAdd = new();
             foreach (ExtractBlock block in blocksList)
             {
-                // Generic parent block
-                if (string.IsNullOrWhiteSpace(block.Name))
+                List<string> newBlock = new();
+                block.BlockLines.ForEach(l =>
                 {
-                    blocksToAdd.Add(block.BlockLines);
-                    continue;
-                }
-
-                // Specifics parents blocks
-                foreach (CrudProperty parent in parents)
-                {
-                    string parentName = parent.Name;
-                    if (convertToCaml)
-                        parentName = CommonTools.ConvertToCamelCase(parent.Name);
-                    block.BlockLines.ForEach(line => line.Replace(block.Name, parentName));
-                    blocksToAdd.Add(block.BlockLines);
-                }
+                    string line = l;
+                    if (!string.IsNullOrWhiteSpace(parentNamePascal))
+                    {
+                        line = line.Replace(parentNamePascal, newParentNamePascal);
+                    }
+                    if (!string.IsNullOrWhiteSpace(parentNameCamel))
+                    {
+                        line = line.Replace(parentNameCamel, newParentNameCamel);
+                    }
+                    newBlock.Add(line);
+                });
+                blocksToAdd.Add(newBlock);
             }
 
             return blocksToAdd;
@@ -1008,9 +1014,9 @@
             }
         }
 
-        private void PrepareParentBlock(List<ExtractBlock> parentBlocks, GenerationCrudData generationData, List<CrudProperty> crudDtoProperties, bool convertToCamel)
+        private void PrepareParentBlock(List<ExtractBlock> parentBlocks, GenerationCrudData generationData, List<CrudProperty> crudDtoProperties)
         {
-            List<List<string>> blocks = GenerateParentBlocks(parentBlocks, crudDtoProperties, convertToCamel);
+            List<List<string>> blocks = GenerateParentBlocks(parentBlocks, crudDtoProperties);
             if (blocks == null)
             {
                 generationData.IsParentToAdd = false;
