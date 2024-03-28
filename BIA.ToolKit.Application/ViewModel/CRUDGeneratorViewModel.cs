@@ -17,8 +17,8 @@
         public CRUDGeneratorViewModel()
         {
             ZipFeatureTypeList = new();
-            ZipDotNetSelected = new();
-            ZipAngularSelected = new();
+            ZipDotNetCollection = new();
+            ZipAngularCollection = new();
         }
 
         #region CurrentProject
@@ -29,7 +29,6 @@
             set
             {
                 currentProject = value;
-                RaisePropertyChanged(nameof(IsButtonParseZipEnable));
             }
         }
 
@@ -164,6 +163,20 @@
         #endregion
 
         #region CheckBox
+        private bool isSelectionChange = false;
+        public bool IsSelectionChange
+        {
+            get => isSelectionChange;
+            set
+            {
+                if (isSelectionChange != value)
+                {
+                    RaisePropertyChanged(nameof(IsButtonParseZipEnable));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                }
+            }
+        }
+
         private bool isWebApiSelected;
         public bool IsWebApiSelected
         {
@@ -174,9 +187,7 @@
                 {
                     isWebApiSelected = value;
                     RaisePropertyChanged(nameof(IsWebApiSelected));
-
-                    ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == FeatureType.WebApi).FirstOrDefault();
-                    UpdateFeatureSelection(feature, value);
+                    UpdateFeatureSelection(FeatureType.WebApi, value);
                 }
             }
         }
@@ -191,9 +202,7 @@
                 {
                     isCrudSelected = value;
                     RaisePropertyChanged(nameof(IsCrudSelected));
-
-                    ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == FeatureType.CRUD).FirstOrDefault();
-                    UpdateFeatureSelection(feature, value);
+                    UpdateFeatureSelection(FeatureType.CRUD, value);
                 }
             }
         }
@@ -208,9 +217,7 @@
                 {
                     isOptionSelected = value;
                     RaisePropertyChanged(nameof(IsOptionSelected));
-
-                    ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == FeatureType.Option).FirstOrDefault();
-                    UpdateFeatureSelection(feature, value);
+                    UpdateFeatureSelection(FeatureType.Option, value);
                 }
             }
         }
@@ -225,34 +232,33 @@
                 {
                     isTeamSelected = value;
                     RaisePropertyChanged(nameof(IsTeamSelected));
-
-                    ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == FeatureType.Team).FirstOrDefault();
-                    UpdateFeatureSelection(feature, value);
+                    UpdateFeatureSelection(FeatureType.Team, value);
                 }
             }
         }
 
-        private void UpdateFeatureSelection(ZipFeatureType feature, bool isChecked)
+        private void UpdateFeatureSelection(FeatureType type, bool isChecked)
         {
+            IsSelectionChange = true;
+            IsZipParsed = false;
+
+            ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == type).FirstOrDefault();
             if (feature != null)
             {
                 feature.IsChecked = isChecked;
-                IsZipParsed = false;
-                IsCheckedAction = true;
-
-                if (feature.IsChecked)
+                if (type == FeatureType.WebApi)
                 {
-                    if (feature.FeatureType == FeatureType.WebApi)
-                        ZipDotNetSelected.Add(feature.ZipName);
+                    if (isChecked)
+                        ZipDotNetCollection.Add(feature.ZipName);
                     else
-                        ZipAngularSelected.Add(feature.ZipName);
+                        ZipDotNetCollection.Remove(feature.ZipName);
                 }
                 else
                 {
-                    if (feature.FeatureType == FeatureType.WebApi)
-                        ZipDotNetSelected.Remove(feature.ZipName);
+                    if (isChecked)
+                        ZipAngularCollection.Add(feature.ZipName);
                     else
-                        ZipAngularSelected.Remove(feature.ZipName);
+                        ZipAngularCollection.Remove(feature.ZipName);
                 }
             }
         }
@@ -272,30 +278,30 @@
             }
         }
 
-        private ObservableCollection<string> zipDotNetSelected;
-        public ObservableCollection<string> ZipDotNetSelected
+        private ObservableCollection<string> zipDotNetCollection;
+        public ObservableCollection<string> ZipDotNetCollection
         {
-            get => zipDotNetSelected;
+            get => zipDotNetCollection;
             set
             {
-                if (zipDotNetSelected != value)
+                if (zipDotNetCollection != value)
                 {
-                    zipDotNetSelected = value;
-                    RaisePropertyChanged(nameof(ZipDotNetSelected));
+                    zipDotNetCollection = value;
+                    RaisePropertyChanged(nameof(ZipDotNetCollection));
                 }
             }
         }
 
-        private ObservableCollection<string> zipAngularSelected;
-        public ObservableCollection<string> ZipAngularSelected
+        private ObservableCollection<string> zipAngularCollection;
+        public ObservableCollection<string> ZipAngularCollection
         {
-            get => zipAngularSelected;
+            get => zipAngularCollection;
             set
             {
-                if (zipAngularSelected != value)
+                if (zipAngularCollection != value)
                 {
-                    zipAngularSelected = value;
-                    RaisePropertyChanged(nameof(ZipAngularSelected));
+                    zipAngularCollection = value;
+                    RaisePropertyChanged(nameof(ZipAngularCollection));
                 }
             }
         }
@@ -325,8 +331,8 @@
         {
             get
             {
-                return isDtoParsed
-                    && (ZipDotNetSelected.Count > 0 || ZipAngularSelected.Count > 0);
+                return IsDtoParsed
+                    && (IsWebApiSelected || IsCrudSelected || IsOptionSelected || IsTeamSelected);
             }
         }
 
@@ -334,19 +340,10 @@
         {
             get
             {
-                return isDtoParsed
-                    && isZipParsed
+                return IsDtoParsed
+                    && IsZipParsed
                     && !string.IsNullOrWhiteSpace(CRUDNamePlurial)
                     && !string.IsNullOrWhiteSpace(dtoDisplayItemSelected);
-            }
-        }
-
-        public bool IsCheckedAction
-        {
-            set
-            {
-                RaisePropertyChanged(nameof(IsButtonParseZipEnable));
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
         #endregion

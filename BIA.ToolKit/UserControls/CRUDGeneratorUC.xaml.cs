@@ -79,8 +79,8 @@
             // Clean all lists (in case of current project change)
             this.crudSettingsList.Clear();
             vm.ZipFeatureTypeList.Clear();
-            vm.ZipDotNetSelected.Clear();
-            vm.ZipAngularSelected.Clear();
+            vm.ZipDotNetCollection.Clear();
+            vm.ZipAngularCollection.Clear();
 
             // List Dto files from Dto folder
             vm.DtoFiles = ListDtoFiles();
@@ -127,27 +127,30 @@
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
 
             bool isBackSelected = false, isCrudSelected = false, isOptionSelected = false, isTeamSelected = false;
-            Visibility visible = Visibility.Hidden;
+            Visibility msgVisibility = Visibility.Hidden;
             if (this.crudHistory != null)
             {
                 string dtoName = GetDtoSelectedPath();
-                CRUDGenerationHistory history = crudHistory.CRUDGenerationHistory.FirstOrDefault(h => h.Mapping.Dto == dtoName);
-
-                // Apply last generation values
-                if (history != null)
+                if (!string.IsNullOrEmpty(dtoName))
                 {
-                    vm.CRUDNameSingular = history.EntityNameSingular;
-                    vm.CRUDNamePlurial = history.EntityNamePlurial;
+                    CRUDGenerationHistory history = crudHistory.CRUDGenerationHistory.FirstOrDefault(h => h.Mapping.Dto == dtoName);
 
-                    visible = Visibility.Visible;
-                    isBackSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.WebApi.ToString()) != null);
-                    isCrudSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.CRUD.ToString()) != null);
-                    isOptionSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.Option.ToString()) != null);
-                    isTeamSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.Team.ToString()) != null);
+                    // Apply last generation values
+                    if (history != null)
+                    {
+                        vm.CRUDNameSingular = history.EntityNameSingular;
+                        vm.CRUDNamePlurial = history.EntityNamePlurial;
+
+                        msgVisibility = Visibility.Visible;
+                        isBackSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.WebApi.ToString()) != null);
+                        isCrudSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.CRUD.ToString()) != null);
+                        isOptionSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.Option.ToString()) != null);
+                        isTeamSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.Team.ToString()) != null);
+                    }
                 }
             }
 
-            CrudAlreadyGeneratedLabel.Visibility = visible;
+            CrudAlreadyGeneratedLabel.Visibility = msgVisibility;
             vm.IsWebApiSelected = isBackSelected;
             vm.IsCrudSelected = isCrudSelected;
             vm.IsOptionSelected = isOptionSelected;
@@ -167,8 +170,7 @@
         /// </summary>
         private void ModifyEntityPlurialText_TextChanged(object sender, TextChangedEventArgs e)
         {
-
-            vm.IsCheckedAction = true;
+            vm.IsSelectionChange = true;
         }
         #endregion
 
@@ -198,26 +200,26 @@
             vm.IsZipParsed = false;
 
             // Parse DotNet Zip files
-            if (vm.ZipDotNetSelected.Count > 0 && vm.IsWebApiSelected)
+            if (vm.ZipDotNetCollection.Count > 0 && vm.IsWebApiSelected)
             {
                 // Parse WebApi Zip file
                 vm.IsZipParsed |= ParseZipFile(FeatureType.WebApi);
             }
 
             // Parse Angular Zip files
-            if (vm.ZipAngularSelected.Count > 0 && vm.IsCrudSelected)
+            if (vm.ZipAngularCollection.Count > 0 && vm.IsCrudSelected)
             {
                 // Parse CRUD Zip file
                 vm.IsZipParsed |= ParseZipFile(FeatureType.CRUD);
             }
 
-            if (vm.ZipAngularSelected.Count > 0 && vm.IsOptionSelected)
+            if (vm.ZipAngularCollection.Count > 0 && vm.IsOptionSelected)
             {
                 // Parse Option Zip file
                 vm.IsZipParsed |= ParseZipFile(FeatureType.Option);
             }
 
-            if (vm.ZipAngularSelected.Count > 0 && vm.IsTeamSelected)
+            if (vm.ZipAngularCollection.Count > 0 && vm.IsTeamSelected)
             {
                 // Parse Team Zip file
                 vm.IsZipParsed |= ParseZipFile(FeatureType.Team);
@@ -386,7 +388,7 @@
         {
             try
             {
-                List<string> zipSelectedList = (type == FeatureType.WebApi) ? vm.ZipDotNetSelected.ToList() : vm.ZipAngularSelected.ToList();
+                List<string> zipSelectedList = (type == FeatureType.WebApi) ? vm.ZipDotNetCollection.ToList() : vm.ZipAngularCollection.ToList();
 
                 ZipFeatureType zipData = GetFeatureTypeData(type, zipSelectedList);
                 if (zipData != null)
@@ -437,6 +439,9 @@
 
         private string GetDtoSelectedPath()
         {
+            if (string.IsNullOrWhiteSpace(vm.DtoSelected))
+                return null;
+
             string dotNetPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet);
             return vm.DtoFiles[vm.DtoSelected].Replace(dotNetPath, "").TrimStart(Path.DirectorySeparatorChar);
         }

@@ -63,6 +63,19 @@
         }
 
         /// <summary>
+        /// Convert value to Pascal case.
+        /// ex: planeAppService > PlaneAppService
+        /// </summary>
+        /// <param name="value">The value to convert</param>
+        /// <returns>Value converted</returns>
+        public static string ConvertToPascalCase(string value)
+        {
+            if (string.IsNullOrEmpty(value) || value.Length < 1)
+                return value;
+            return Char.ToUpperInvariant(value[0]) + value.Substring(1);
+        }
+
+        /// <summary>
         /// Verify if folder already exists and create it if not exists.
         /// </summary>
         /// <param name="folderPath">The folder path</param>

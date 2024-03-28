@@ -13,7 +13,7 @@
 
         <Label Content="Dto file:"  Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
         <ComboBox ItemsSource="{Binding DtoFiles.Keys}" SelectedValue="{Binding DtoSelected}" Margin="40,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" SelectionChanged="ModifyDto_SelectionChanged" IsEnabled="{Binding IsProjectChosen}"/>
-        <Button IsEnabled="{Binding IsProjectChosen}" Margin="350,23,0,0" Width="24" x:Name="RefreshDtoList" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshDtoList_Click">
+        <Button IsEnabled="{Binding IsProjectChosen}" Margin="350,23,0,0" Width="24" x:Name="RefreshDtoList" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshDtoList_Click" ToolTip="Refresh list">
             <Image Source="/Images/rafraichir-32.png" />
         </Button>
         <Label Name="CrudAlreadyGeneratedLabel" Content="Generation was already done for this Dto file"  Margin="40,45,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Yellow" Visibility="Hidden" />
