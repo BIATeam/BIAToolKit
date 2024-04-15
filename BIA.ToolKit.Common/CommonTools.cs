@@ -237,5 +237,34 @@
             string regex = @"^\s*(?:namespace|using)\s(\w+)\.(\w+)\.";
             return IsMatchRegexValue(regex, line);
         }
+
+        /// <summary>
+        /// Return index of occurence number of value containing in a list.
+        /// </summary>
+        /// <param name="lines">List of lines</param>
+        /// <param name="match">Value to found</param>
+        /// <param name="occurence">Occurence number in the list</param>
+        public static int IndexOfOccurence(List<string> lines, string match, int occurence)
+        {
+            int count = 0;
+            int index = -1;
+
+            var a = lines.Select(l => l.Contains(match, System.StringComparison.InvariantCultureIgnoreCase)).ToList();
+            for (int i = 0; i < a.Count; i++)
+            {
+                if (a[i])
+                {
+                    index = i;
+                    if (++count > occurence)
+                    {
+                        return index;
+                    }
+                }
+            }
+
+            return index;
+        }
+
+
     }
 }

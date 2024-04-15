@@ -674,8 +674,8 @@
             }
             else
             {
-                indexBegin = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_BEGIN} {type}")).ToArray()[count]);
-                indexEnd = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_END} {type}")).ToArray()[count]);
+                indexBegin = CommonTools.IndexOfOccurence(fileLinesContent, $"{ZipParserService.MARKER_BEGIN} {type}", count);
+                indexEnd = CommonTools.IndexOfOccurence(fileLinesContent, $"{ZipParserService.MARKER_END} {type}", count);
             }
 
             List<string> newFileLinesContent = new();
