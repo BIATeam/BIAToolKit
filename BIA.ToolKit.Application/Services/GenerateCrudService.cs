@@ -85,7 +85,7 @@
             this.OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
         }
 
-        public string GenerateCrudFiles(Project currentProject, EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList, string displayItem, bool generateInProjectFolder = true)
+        public string GenerateCrudFiles(Project currentProject, EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList, string displayItem, string optionItem, bool generateInProjectFolder = true)
         {
             string generationFolder = null;
             try
@@ -120,7 +120,7 @@
                     else
                     {
                         WebApiFeatureData dtoRefFeature = (WebApiFeatureData)backFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
-                        GenerateCRUD(angularDir, crudFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, dtoRefFeature?.PropertiesInfos);
+                        GenerateCRUD(angularDir, crudFeatureType.FeatureDataList, currentProject, crudDtoProperties, dtoRefFeature?.PropertiesInfos, displayItem, optionItem);
                     }
                 }
 
@@ -189,7 +189,8 @@
             }
         }
 
-        private void GenerateCRUD(string angularDir, List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties, string displayItem, List<PropertyInfo> dtoRefProperties)
+        private void GenerateCRUD(string angularDir, List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties,
+            List<PropertyInfo> dtoRefProperties, string displayItem, string optionItem)
         {
             try
             {
@@ -203,7 +204,7 @@
                     }
                     else
                     {
-                        GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, dtoRefProperties, displayItem);
+                        GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, dtoRefProperties, displayItem, optionItem);
 
                         // Create file
                         string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
@@ -247,9 +248,9 @@
         }
         #endregion
 
-        private GenerationCrudData ExtractGenerationCrudData(FeatureData crudData, List<CrudProperty> crudDtoProperties, List<PropertyInfo> dtoRefProperties, string displayItem)
+        private GenerationCrudData ExtractGenerationCrudData(FeatureData crudData, List<CrudProperty> crudDtoProperties, List<PropertyInfo> dtoRefProperties,
+            string displayItem, string optionItem = null)
         {
-
             GenerationCrudData generationData = null;
             if (crudData.ExtractBlocks?.Count > 0)
             {
@@ -266,8 +267,10 @@
                             generationData.ChildrenName.Add(block.Name);
                             break;
                         case CRUDDataUpdateType.Option:
-                            generationData.IsOptionToDelete |= block.BlockLines.Count > 0;
-                            generationData.OptionsName.Add(block.Name);
+                            generationData.IsOptionFound |= block.BlockLines.Count > 0;
+                            if (!string.IsNullOrWhiteSpace(block.Name) && !generationData.OptionsName.Contains(block.Name))
+                                generationData.OptionsName.Add(block.Name);
+                            generationData.OptionToAdd = optionItem;
                             break;
                         case CRUDDataUpdateType.Display:
                             string extractItem = ((ExtractDisplayBlock)block).ExtractItem;
@@ -309,7 +312,6 @@
             CommonTools.CheckFolder(new FileInfo(dest).DirectoryName);
 
             GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, null, displayItem);
-
 
             // Read file
             List<string> fileLinesContent = File.ReadAllLines(src).ToList();
@@ -534,9 +536,9 @@
                 }
 
                 // Remove all options
-                if (generationData.IsOptionToDelete)
+                if (generationData.IsOptionFound)
                 {
-                    fileLinesContent = DeleteOptionsBlocks(fileLinesContent, generationData.OptionsName);
+                    fileLinesContent = ManageOptionsBlocks(fileLinesContent, generationData.OptionsName, generationData.OptionToAdd);
                 }
 
                 // Upate parent blocks
@@ -618,6 +620,66 @@
             });
 
             return DeleteBlocks(fileLinesContent, CRUDDataUpdateType.Child);
+        }
+
+        private List<string> ManageOptionsBlocks(List<string> fileLinesContent, List<string> optionsName, string newOptionName)
+        {
+            // Delete Options
+            if (string.IsNullOrWhiteSpace(newOptionName))
+            {
+                return DeleteOptionsBlocks(fileLinesContent, optionsName);
+            }
+
+            // Keep only "newOptionName"
+            foreach (string optionName in optionsName)
+            {
+                string markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option} {optionName}";
+                string markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Option} {optionName}";
+
+                if (optionName == optionsName.Last())
+                {
+                    // replace
+                    fileLinesContent = ReplaceOptions(fileLinesContent, optionsName.Last(), newOptionName);
+                }
+                else
+                {
+                    // delete
+                    fileLinesContent = DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
+                }
+            }
+
+            return fileLinesContent;
+        }
+
+        private List<string> ReplaceOptions(List<string> fileLinesContent, string oldOptionName, string newOptionName)
+        {
+            List<string> newLines = new();
+            string markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option} {oldOptionName}";
+            string markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Option} {oldOptionName}";
+
+            bool beginMarkerFound = false;
+            foreach (string line in fileLinesContent)
+            {
+                if (line.Contains(markerBegin, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    beginMarkerFound = true;
+                    newLines.Add(line.Replace(oldOptionName, newOptionName));
+                }
+                else if (beginMarkerFound)
+                {
+                    newLines.Add(line.Replace(oldOptionName, newOptionName));
+                    if (line.Contains(markerEnd, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        beginMarkerFound = false;
+                    }
+                }
+                else
+                {
+                    newLines.Add(line);
+                }
+            }
+
+            return fileLinesContent;
         }
 
         private List<string> DeleteOptionsBlocks(List<string> fileLinesContent, List<string> optionsName)
@@ -1328,8 +1390,9 @@
         public List<string> PropertiesToAdd { get; }
         public bool IsChildrenToDelete { get; set; }
         public List<string> ChildrenName { get; }
-        public bool IsOptionToDelete { get; set; }
+        public bool IsOptionFound { get; set; }
         public List<string> OptionsName { get; }
+        public string OptionToAdd { get; set; }
         public List<KeyValuePair<string, string>> DisplayToUpdate { get; }
         public bool IsParentToAdd { get; set; }
         public List<List<string>> ParentBlocks { get; }
@@ -1337,7 +1400,7 @@
         public GenerationCrudData()
         {
             this.IsChildrenToDelete = false;
-            this.IsOptionToDelete = false;
+            this.IsOptionFound = false;
             this.BlocksToAdd = new();
             this.PropertiesToAdd = new();
             this.ChildrenName = new();

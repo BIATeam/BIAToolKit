@@ -142,6 +142,7 @@
             if (vm == null) return;
             vm.IsDtoParsed = false;
             vm.DtoDisplayItems = null;
+            vm.OptionItems = null;
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
 
             bool isBackSelected = false, isCrudSelected = false, isOptionSelected = false, isTeamSelected = false;
@@ -153,9 +154,9 @@
                 {
                     CRUDGenerationHistory history = crudHistory.CRUDGenerationHistory.FirstOrDefault(h => h.Mapping.Dto == dtoName);
 
-                    // Apply last generation values
                     if (history != null)
                     {
+                        // Apply last generation values
                         vm.CRUDNameSingular = history.EntityNameSingular;
                         vm.CRUDNamePlural = history.EntityNamePlural;
 
@@ -164,6 +165,16 @@
                         isCrudSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.CRUD.ToString()) != null);
                         isOptionSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.Option.ToString()) != null);
                         isTeamSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.Team.ToString()) != null);
+
+                        // Get generated options
+                        List<CRUDGenerationHistory> histories = crudHistory.CRUDGenerationHistory.Where(h => (h.Mapping.Dto != dtoName) &&
+                            (h.Generation.Any(g => g.Feature == FeatureType.Option.ToString()))).ToList();
+                        if (histories.Any())
+                        {
+                            List<string> options = new();
+                            histories.ForEach(h => options.Add(h.EntityNameSingular));
+                            vm.OptionItems = options;
+                        }
                     }
                 }
             }
@@ -255,7 +266,7 @@
                 this.teamSettings?.FeatureName, this.teamSettings?.FeatureNamePlural);
 
             // Generation DotNet + Angular files
-            string path = crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, this.settings.GenerateInProjectFolder);
+            string path = crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, vm.OptionItemSelected, this.settings.GenerateInProjectFolder);
 
             // Generate generation history file
             UpdateCrudGenerationHistory();

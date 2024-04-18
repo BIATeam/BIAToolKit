@@ -115,6 +115,34 @@
             }
         }
 
+        private List<string> optionItems;
+        public List<string> OptionItems
+        {
+            get => optionItems;
+            set
+            {
+                if (optionItems != value)
+                {
+                    optionItems = value;
+                    RaisePropertyChanged(nameof(OptionItems));
+                }
+            }
+        }
+
+        private string optionItemSelected;
+        public string OptionItemSelected
+        {
+            get => optionItemSelected;
+            set
+            {
+                if (optionItemSelected != value)
+                {
+                    optionItemSelected = value;
+                    RaisePropertyChanged(nameof(OptionItemSelected));
+                }
+            }
+        }
+
         private bool isDtoParsed = false;
         public bool IsDtoParsed
         {

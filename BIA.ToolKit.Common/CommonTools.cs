@@ -249,7 +249,7 @@
             int count = 0;
             int index = -1;
 
-            var a = lines.Select(l => l.Contains(match, System.StringComparison.InvariantCultureIgnoreCase)).ToList();
+            var a = lines.Select(l => l.Contains(match, StringComparison.InvariantCultureIgnoreCase)).ToList();
             for (int i = 0; i < a.Count; i++)
             {
                 if (a[i])

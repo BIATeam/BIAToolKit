@@ -12,14 +12,16 @@
     <Grid Margin="0,0,-120,0">
 
         <Label Content="Dto file:"  Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
-        <ComboBox ItemsSource="{Binding DtoFiles.Keys}" SelectedValue="{Binding DtoSelected}" Margin="40,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" SelectionChanged="ModifyDto_SelectionChanged" IsEnabled="{Binding IsProjectChosen}"/>
-        <Button IsEnabled="{Binding IsProjectChosen}" Margin="350,23,0,0" Width="24" x:Name="RefreshDtoList" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshDtoList_Click" ToolTip="Refresh list">
+        <ComboBox ItemsSource="{Binding DtoFiles.Keys}" SelectedValue="{Binding DtoSelected}" Margin="40,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="275" SelectionChanged="ModifyDto_SelectionChanged" IsEnabled="{Binding IsProjectChosen}"/>
+        <Button IsEnabled="{Binding IsProjectChosen}" Margin="320,24,0,0" Width="24" x:Name="RefreshDtoList" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshDtoList_Click" ToolTip="Refresh list">
             <Image Source="/Images/rafraichir-32.png" />
         </Button>
         <Label Name="CrudAlreadyGeneratedLabel" Content="Generation was already done for this Dto file"  Margin="40,45,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Yellow" Visibility="Hidden" />
 
         <Label Content="Display item:"  Margin="380,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
-        <ComboBox ItemsSource="{Binding DtoDisplayItems}" SelectedValue="{Binding DtoDisplayItemSelected}" Margin="400,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsDtoParsed}"/>
+        <ComboBox ItemsSource="{Binding DtoDisplayItems}" SelectedValue="{Binding DtoDisplayItemSelected}" Margin="400,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="140" IsEnabled="{Binding IsDtoParsed}"/>
+        <Label Content="Option item:"  Margin="540,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
+        <ComboBox ItemsSource="{Binding OptionItems}" SelectedValue="{Binding OptionItemSelected}" Margin="560,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="140" IsEnabled="{Binding IsButtonParseDtoEnable}"/>
 
         <Label Content="Entity name (singular):" Margin="20,75,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
         <TextBox Text="{Binding CRUDNameSingular,UpdateSourceTrigger=PropertyChanged}" Margin="40,100,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntitySingularText_TextChanged" Height="21" IsEnabled="{Binding IsProjectChosen}"/>
