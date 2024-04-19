@@ -291,6 +291,7 @@
                     EntityNameSingular = vm.CRUDNameSingular,
                     EntityNamePlural = vm.CRUDNamePlural,
                     DisplayItem = vm.DtoDisplayItemSelected,
+                    OptionName = vm.OptionItemSelected,
 
                     // Create "Mapping" part
                     Mapping = new()

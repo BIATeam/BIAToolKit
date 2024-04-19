@@ -175,7 +175,7 @@
         /// </summary>
         public static void SerializeToJsonFile<T>(T jsonContent, string fileName)
         {
-            string jsonString = JsonConvert.SerializeObject(jsonContent);
+            string jsonString = JsonConvert.SerializeObject(jsonContent, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             File.WriteAllText(fileName, jsonString);
         }
 

@@ -651,6 +651,31 @@
             return fileLinesContent;
         }
 
+        private List<string> DeleteOptionsBlocks(List<string> fileLinesContent, List<string> optionsName)
+        {
+            string beginMarker = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option}";
+            string endMarker = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Option}";
+
+            optionsName?.ForEach(optionName =>
+            {
+                string markerBegin, markerEnd;
+                if (string.IsNullOrWhiteSpace(optionName))
+                {
+                    markerBegin = $"/* {beginMarker} ";
+                    markerEnd = $"{endMarker} */";
+                }
+                else
+                {
+                    markerBegin = $"/* {beginMarker} {optionName}";
+                    markerEnd = $"{endMarker} {optionName} */";
+                }
+
+                fileLinesContent = DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
+            });
+
+            return DeleteBlocks(fileLinesContent, CRUDDataUpdateType.Option);
+        }
+
         private List<string> ReplaceOptions(List<string> fileLinesContent, string oldOptionName, string newOptionName)
         {
             List<string> newLines = new();
@@ -680,31 +705,6 @@
             }
 
             return fileLinesContent;
-        }
-
-        private List<string> DeleteOptionsBlocks(List<string> fileLinesContent, List<string> optionsName)
-        {
-            string beginMarker = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option}";
-            string endMarker = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Option}";
-
-            optionsName?.ForEach(optionName =>
-            {
-                string markerBegin, markerEnd;
-                if (string.IsNullOrWhiteSpace(optionName))
-                {
-                    markerBegin = $"/* {beginMarker} ";
-                    markerEnd = $"{endMarker} */";
-                }
-                else
-                {
-                    markerBegin = $"/* {beginMarker} {optionName}";
-                    markerEnd = $"{endMarker} {optionName} */";
-                }
-
-                fileLinesContent = DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
-            });
-
-            return DeleteBlocks(fileLinesContent, CRUDDataUpdateType.Option);
         }
 
         private List<string> UpdateParentBlocks(string fileName, List<string> fileLinesContent, List<List<string>> parentBlocks, bool isParentToAdd)
