@@ -56,13 +56,13 @@
             this.consoleWriter = consoleWriter;
         }
 
-        public void InitRenameValues(string newValueSingular, string newValuePlurial,
-                                    string crudNameSingular, string crudNamePlurial,
-                                    string optionNameSingular, string optionNamePlurial,
-                                    string teamNameSingular, string teamNamePlurial)
+        public void InitRenameValues(string newValueSingular, string newValuePlural,
+                                    string crudNameSingular, string crudNamePlural,
+                                    string optionNameSingular, string optionNamePlural,
+                                    string teamNameSingular, string teamNamePlural)
         {
             this.NewCrudNamePascalSingular = newValueSingular;
-            this.NewCrudNamePascalPlural = newValuePlurial;
+            this.NewCrudNamePascalPlural = newValuePlural;
             this.NewCrudNameCamelSingular = CommonTools.ConvertToCamelCase(NewCrudNamePascalSingular);
             this.NewCrudNameCamelPlural = CommonTools.ConvertToCamelCase(NewCrudNamePascalPlural);
             this.NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);
@@ -70,11 +70,11 @@
 
             // Get Pascal case value
             this.OldCrudNamePascalSingular = string.IsNullOrWhiteSpace(crudNameSingular) ? this.OldCrudNamePascalSingular : crudNameSingular;
-            this.OldCrudNamePascalPlural = string.IsNullOrWhiteSpace(crudNamePlurial) ? this.OldCrudNamePascalPlural : crudNamePlurial;
+            this.OldCrudNamePascalPlural = string.IsNullOrWhiteSpace(crudNamePlural) ? this.OldCrudNamePascalPlural : crudNamePlural;
             this.OldOptionNamePascalSingular = string.IsNullOrWhiteSpace(optionNameSingular) ? this.OldOptionNamePascalSingular : optionNameSingular;
-            this.OldOptionNamePascalPlural = string.IsNullOrWhiteSpace(optionNamePlurial) ? this.OldOptionNamePascalPlural : optionNamePlurial;
+            this.OldOptionNamePascalPlural = string.IsNullOrWhiteSpace(optionNamePlural) ? this.OldOptionNamePascalPlural : optionNamePlural;
             this.OldTeamNamePascalSingular = string.IsNullOrWhiteSpace(teamNameSingular) ? this.OldTeamNamePascalSingular : teamNameSingular;
-            this.OldTeamNamePascalPlural = string.IsNullOrWhiteSpace(teamNamePlurial) ? this.OldTeamNamePascalPlural : teamNamePlurial;
+            this.OldTeamNamePascalPlural = string.IsNullOrWhiteSpace(teamNamePlural) ? this.OldTeamNamePascalPlural : teamNamePlural;
 
             // Convert value to Camel case
             this.OldCrudNameCamelSingular = CommonTools.ConvertToCamelCase(OldCrudNamePascalSingular);
@@ -85,7 +85,7 @@
             this.OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
         }
 
-        public string GenerateCrudFiles(Project currentProject, EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList, string displayItem, bool generateInProjectFolder = true)
+        public string GenerateCrudFiles(Project currentProject, EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList, string displayItem, string optionItem, bool generateInProjectFolder = true)
         {
             string generationFolder = null;
             try
@@ -120,7 +120,7 @@
                     else
                     {
                         WebApiFeatureData dtoRefFeature = (WebApiFeatureData)backFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
-                        GenerateCRUD(angularDir, crudFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, dtoRefFeature?.PropertiesInfos);
+                        GenerateCRUD(angularDir, crudFeatureType.FeatureDataList, currentProject, crudDtoProperties, dtoRefFeature?.PropertiesInfos, displayItem, optionItem);
                     }
                 }
 
@@ -189,7 +189,8 @@
             }
         }
 
-        private void GenerateCRUD(string angularDir, List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties, string displayItem, List<PropertyInfo> dtoRefProperties)
+        private void GenerateCRUD(string angularDir, List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties,
+            List<PropertyInfo> dtoRefProperties, string displayItem, string optionItem)
         {
             try
             {
@@ -203,7 +204,7 @@
                     }
                     else
                     {
-                        GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, dtoRefProperties, displayItem);
+                        GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, dtoRefProperties, displayItem, optionItem);
 
                         // Create file
                         string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
@@ -247,9 +248,9 @@
         }
         #endregion
 
-        private GenerationCrudData ExtractGenerationCrudData(FeatureData crudData, List<CrudProperty> crudDtoProperties, List<PropertyInfo> dtoRefProperties, string displayItem)
+        private GenerationCrudData ExtractGenerationCrudData(FeatureData crudData, List<CrudProperty> crudDtoProperties, List<PropertyInfo> dtoRefProperties,
+            string displayItem, string optionItem = null)
         {
-
             GenerationCrudData generationData = null;
             if (crudData.ExtractBlocks?.Count > 0)
             {
@@ -266,8 +267,10 @@
                             generationData.ChildrenName.Add(block.Name);
                             break;
                         case CRUDDataUpdateType.Option:
-                            generationData.IsOptionToDelete |= block.BlockLines.Count > 0;
-                            generationData.OptionsName.Add(block.Name);
+                            generationData.IsOptionFound |= block.BlockLines.Count > 0;
+                            if (!string.IsNullOrWhiteSpace(block.Name) && !generationData.OptionsName.Contains(block.Name))
+                                generationData.OptionsName.Add(block.Name);
+                            generationData.OptionToAdd = optionItem;
                             break;
                         case CRUDDataUpdateType.Display:
                             string extractItem = ((ExtractDisplayBlock)block).ExtractItem;
@@ -302,7 +305,7 @@
         private void UpdateWebApiFile(string destDir, Project currentProject, WebApiFeatureData crudData, ClassDefinition dtoClassDefiniton, List<WebApiNamespace> crudNamespaceList, List<CrudProperty> crudDtoProperties, string displayItem)
         {
             string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
-            string dest = ConvertPascalOldToNewCrudName(Path.Combine(destDir, crudData.FilePath), FeatureType.WebApi);
+            string dest = ConvertPascalOldToNewCrudName(Path.Combine(destDir, crudData.FilePath), FeatureType.WebApi, false);
             dest = ReplaceCompagnyNameProjetName(dest, currentProject, dtoClassDefiniton);
 
             // Prepare destination folder
@@ -311,7 +314,9 @@
             GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, null, displayItem);
 
             // Read file
-            List<string> fileLinesContent = UpdateFileContent(generationData, src);
+            List<string> fileLinesContent = File.ReadAllLines(src).ToList();
+
+            fileLinesContent = UpdateFileContent(fileLinesContent, generationData, src);
 
             for (int i = 0; i < fileLinesContent.Count; i++)
             {
@@ -319,8 +324,11 @@
                 {
                     fileLinesContent[i] = UpdateNamespaceUsing(fileLinesContent[i], currentProject, dtoClassDefiniton, crudNamespaceList);
                 }
-                // Convert Crud Name (Plane to XXX)
-                fileLinesContent[i] = ConvertPascalOldToNewCrudName(fileLinesContent[i], FeatureType.WebApi);
+                else
+                {
+                    // Convert Crud Name (Plane to XXX)
+                    fileLinesContent[i] = ConvertPascalOldToNewCrudName(fileLinesContent[i], FeatureType.WebApi, false);
+                }
             }
 
             // Generate new file
@@ -429,10 +437,9 @@
             string srcFile = Path.Combine(srcDir, fileName);
             string destFile = Path.Combine(destDir, fileName);
 
-            crudData.ExtractBlocks?.ForEach(b =>
+            foreach (ExtractPartialBlock block in crudData.ExtractBlocks)
             {
                 contentToAdd = new();
-                ExtractPartialBlock block = (ExtractPartialBlock)b;
                 if (block.BlockLines != null)
                 {
                     if (string.IsNullOrWhiteSpace(block.Index))
@@ -450,8 +457,7 @@
                     // Generate content to add
                     block.BlockLines.ForEach(line =>
                     {
-                        string newline = ReplaceOldCamelToNewKebabPath(line);
-                        newline = ConvertPascalOldToNewCrudName(newline, type);
+                        string newline = ReplaceOldCamelToNewKebabPath(line, type);
                         if (dtoClassDefiniton != null)
                         {
                             newline = ReplaceCompagnyNameProjetName(newline, currentProject, dtoClassDefiniton);
@@ -462,7 +468,7 @@
                     // Update file
                     UpdatePartialCrudFile(srcFile, destFile, contentToAdd, markerBegin, markerEnd);
                 }
-            });
+            }
         }
 
         private void UpdatePartialCrudFile(string srcFile, string destFile, List<string> contentToAdd, string markerBegin, string markerEnd)
@@ -491,19 +497,18 @@
             CommonTools.CheckFolder(new FileInfo(newFileName).DirectoryName);
 
             // Read file
-            List<string> fileLinesContent = UpdateFileContent(generationData, fileName);
+            List<string> fileLinesContent = File.ReadAllLines(fileName).ToList();
 
             // Update file content
-            UpdateFileLinesContent(fileLinesContent, type);
+            fileLinesContent = UpdateFileLinesContent(fileLinesContent, type);
+            fileLinesContent = UpdateFileContent(fileLinesContent, generationData, fileName);
 
             // Generate new file
             CommonTools.GenerateFile(newFileName, fileLinesContent);
         }
 
-        private List<string> UpdateFileContent(GenerationCrudData generationData, string fileName)
+        private List<string> UpdateFileContent(List<string> fileLinesContent, GenerationCrudData generationData, string fileName)
         {
-            List<string> fileLinesContent = File.ReadAllLines(fileName).ToList();
-
             if (generationData != null)
             {
                 // Replace properties
@@ -531,9 +536,9 @@
                 }
 
                 // Remove all options
-                if (generationData.IsOptionToDelete)
+                if (generationData.IsOptionFound)
                 {
-                    fileLinesContent = DeleteOptionsBlocks(fileLinesContent, generationData.OptionsName);
+                    fileLinesContent = ManageOptionsBlocks(fileLinesContent, generationData.OptionsName, generationData.OptionToAdd);
                 }
 
                 // Upate parent blocks
@@ -617,6 +622,35 @@
             return DeleteBlocks(fileLinesContent, CRUDDataUpdateType.Child);
         }
 
+        private List<string> ManageOptionsBlocks(List<string> fileLinesContent, List<string> optionsName, string newOptionName)
+        {
+            // Delete Options
+            if (string.IsNullOrWhiteSpace(newOptionName))
+            {
+                return DeleteOptionsBlocks(fileLinesContent, optionsName);
+            }
+
+            // Keep only "newOptionName"
+            foreach (string optionName in optionsName)
+            {
+                string markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option} {optionName}";
+                string markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Option} {optionName}";
+
+                if (optionName == optionsName.Last())
+                {
+                    // replace
+                    fileLinesContent = ReplaceOptions(fileLinesContent, optionsName.Last(), newOptionName);
+                }
+                else
+                {
+                    // delete
+                    fileLinesContent = DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
+                }
+            }
+
+            return fileLinesContent;
+        }
+
         private List<string> DeleteOptionsBlocks(List<string> fileLinesContent, List<string> optionsName)
         {
             string beginMarker = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option}";
@@ -640,6 +674,37 @@
             });
 
             return DeleteBlocks(fileLinesContent, CRUDDataUpdateType.Option);
+        }
+
+        private List<string> ReplaceOptions(List<string> fileLinesContent, string oldOptionName, string newOptionName)
+        {
+            List<string> newLines = new();
+            string markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option} {oldOptionName}";
+            string markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Option} {oldOptionName}";
+
+            bool beginMarkerFound = false;
+            foreach (string line in fileLinesContent)
+            {
+                if (line.Contains(markerBegin, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    beginMarkerFound = true;
+                    newLines.Add(line.Replace(oldOptionName, newOptionName));
+                }
+                else if (beginMarkerFound)
+                {
+                    newLines.Add(line.Replace(oldOptionName, newOptionName));
+                    if (line.Contains(markerEnd, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        beginMarkerFound = false;
+                    }
+                }
+                else
+                {
+                    newLines.Add(line);
+                }
+            }
+
+            return fileLinesContent;
         }
 
         private List<string> UpdateParentBlocks(string fileName, List<string> fileLinesContent, List<List<string>> parentBlocks, bool isParentToAdd)
@@ -667,12 +732,12 @@
             if (count == -1)
             {
                 indexBegin = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_BEGIN} {type}")).FirstOrDefault());
-                indexEnd = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_END} {type}")).FirstOrDefault());
+                indexEnd = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_END} {type}")).LastOrDefault());
             }
             else
             {
-                indexBegin = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_BEGIN} {type}")).ToArray()[count]);
-                indexEnd = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_END} {type}")).ToArray()[count]);
+                indexBegin = CommonTools.IndexOfOccurence(fileLinesContent, $"{ZipParserService.MARKER_BEGIN} {type}", count);
+                indexEnd = CommonTools.IndexOfOccurence(fileLinesContent, $"{ZipParserService.MARKER_END} {type}", count);
             }
 
             List<string> newFileLinesContent = new();
@@ -996,11 +1061,9 @@
             return ReplaceBlock(newBlock, attributeName, extractBlock.Name);
         }
 
-        private void UpdateFileLinesContent(List<string> lines, FeatureType type)
+        private List<string> UpdateFileLinesContent(List<string> lines, FeatureType type)
         {
-            if (lines == null) return;
-
-            for (int i = 0; i < lines.Count; i++)
+            for (int i = 0; i < lines?.Count; i++)
             {
                 if (lines[i].StartsWith("import"))
                 {
@@ -1008,10 +1071,11 @@
                 }
                 else
                 {
-                    lines[i] = ReplaceOldCamelToNewKebabPath(lines[i]);
-                    lines[i] = ConvertPascalOldToNewCrudName(lines[i], type);
+                    lines[i] = ReplaceOldCamelToNewKebabPath(lines[i], type);
                 }
             }
+
+            return lines;
         }
 
         private void PrepareParentBlock(List<ExtractBlock> parentBlocks, GenerationCrudData generationData, List<CrudProperty> crudDtoProperties)
@@ -1052,24 +1116,24 @@
             {
                 case FeatureType.WebApi:
                 case FeatureType.CRUD:
-                    value = ReplaceOldToNewPascalValue(value, OldCrudNamePascalPlural, NewCrudNamePascalPlural, OldCrudNamePascalSingular, NewCrudNamePascalSingular);
+                    value = ReplaceOldToNewValue(value, OldCrudNamePascalPlural, NewCrudNamePascalPlural, OldCrudNamePascalSingular, NewCrudNamePascalSingular);
                     if (convertCamel)
                     {
-                        value = ReplaceOldToNewPascalValue(value, OldCrudNameCamelPlural, NewCrudNameCamelPlural, OldCrudNameCamelSingular, NewCrudNameCamelSingular);
+                        value = ReplaceOldToNewValue(value, OldCrudNameCamelPlural, NewCrudNameCamelPlural, OldCrudNameCamelSingular, NewCrudNameCamelSingular);
                     }
                     break;
                 case FeatureType.Option:
-                    value = ReplaceOldToNewPascalValue(value, OldOptionNamePascalPlural, NewCrudNamePascalPlural, OldOptionNamePascalSingular, NewCrudNamePascalSingular);
+                    value = ReplaceOldToNewValue(value, OldOptionNamePascalPlural, NewCrudNamePascalPlural, OldOptionNamePascalSingular, NewCrudNamePascalSingular);
                     if (convertCamel)
                     {
-                        value = ReplaceOldToNewPascalValue(value, OldOptionNameCamelPlural, NewCrudNameCamelPlural, OldOptionNameCamelSingular, NewCrudNameCamelSingular);
+                        value = ReplaceOldToNewValue(value, OldOptionNameCamelPlural, NewCrudNameCamelPlural, OldOptionNameCamelSingular, NewCrudNameCamelSingular);
                     }
                     break;
                 case FeatureType.Team:
-                    value = ReplaceOldToNewPascalValue(value, OldTeamNamePascalPlural, NewCrudNamePascalPlural, OldTeamNamePascalSingular, NewCrudNamePascalSingular);
+                    value = ReplaceOldToNewValue(value, OldTeamNamePascalPlural, NewCrudNamePascalPlural, OldTeamNamePascalSingular, NewCrudNamePascalSingular);
                     if (convertCamel)
                     {
-                        value = ReplaceOldToNewPascalValue(value, OldTeamNameCamelPlural, NewCrudNameCamelPlural, OldTeamNameCamelSingular, NewCrudNameCamelSingular);
+                        value = ReplaceOldToNewValue(value, OldTeamNameCamelPlural, NewCrudNameCamelPlural, OldTeamNameCamelSingular, NewCrudNameCamelSingular);
                     }
                     break;
             }
@@ -1077,33 +1141,64 @@
             return value;
         }
 
-        private string ReplaceOldToNewPascalValue(string value, string oldValuePlurial, string newValuePlurial, string oldValueSingulier, string newValueSingulier)
+        private string ReplaceOldToNewValue(string value, string oldValuePlural, string newValuePlural, string oldValueSingular, string newValueSingular)
         {
             if (string.IsNullOrWhiteSpace(value)) return value;
 
-            if (value.Contains(oldValuePlurial))
+            List<int> nbAllOccurOldValue = FindOccurences(value, oldValueSingular);
+            List<int> nbOccurOldValuePlural = FindOccurences(value, oldValuePlural);
+            List<int> nbOccurOldValueSingular = nbAllOccurOldValue.Except(nbOccurOldValuePlural).ToList();
+
+            foreach (int index in nbAllOccurOldValue.OrderByDescending(i => i))
             {
-                value = value.Replace(oldValuePlurial, newValuePlurial);
-            }
-            if (value.Contains(oldValueSingulier))
-            {
-                value = value.Replace(oldValueSingulier, newValueSingulier);
+                string before = value[..index];
+                if (nbOccurOldValuePlural.Contains(index))
+                {
+                    string after = value[(index + oldValuePlural.Length)..];
+                    value = $"{before}{newValuePlural}{after}";
+                }
+                else if (nbOccurOldValueSingular.Contains(index))
+                {
+                    string after = value[(index + oldValueSingular.Length)..];
+                    value = $"{before}{newValueSingular}{after}";
+                }
             }
 
             return value;
         }
 
-        private string ReplaceOldCamelToNewKebabPath(string value)
+
+        private List<int> FindOccurences(string line, string search)
         {
-            if (value.Contains($"/{OldCrudNameCamelPlural}"))
+            int lastIndex = 0;
+            List<int> indexList = new();
+            for (int count = 0; line.Length > 0; count++)
             {
-                value = value.Replace($"/{OldCrudNameCamelPlural}", $"/{NewCrudNameKebabPlural}");
-            }
-            if (value.Contains($"/{OldCrudNameCamelSingular}"))
-            {
-                value = value.Replace($"/{OldCrudNameCamelSingular}", $"/{NewCrudNameKebabSingular}");
+                int index = line.IndexOf(search);
+                if (index < 0)
+                    break;
+                else
+                {
+                    indexList.Add(lastIndex + index);
+                    lastIndex += index + search.Length;
+                    line = line.Substring(index + search.Length);
+                }
             }
 
+            return indexList;
+        }
+
+        private string ReplaceOldCamelToNewKebabPath(string value, FeatureType type)
+        {
+            if (value.Contains($"/{OldCrudNameCamelPlural}") || value.Contains($"/{OldCrudNameCamelSingular}"))
+            {
+                value = ReplaceOldToNewValue(value, OldCrudNameCamelPlural, NewCrudNameKebabPlural, OldCrudNameCamelSingular, NewCrudNameKebabSingular);
+                value = ConvertPascalOldToNewCrudName(value, type, false);
+            }
+            else
+            {
+                value = ConvertPascalOldToNewCrudName(value, type);
+            }
             return value;
         }
 
@@ -1117,34 +1212,13 @@
             switch (type)
             {
                 case FeatureType.CRUD:
-                    if (value.Contains(OldCrudNameCamelPlural))
-                    {
-                        value = value.Replace(OldCrudNameCamelPlural, NewCrudNameKebabPlural);
-                    }
-                    if (value.Contains(OldCrudNameCamelSingular))
-                    {
-                        value = value.Replace(OldCrudNameCamelSingular, NewCrudNameKebabSingular);
-                    }
+                    value = ReplaceOldToNewValue(value, OldCrudNameCamelPlural, NewCrudNameKebabPlural, OldCrudNameCamelSingular, NewCrudNameKebabSingular);
                     break;
                 case FeatureType.Option:
-                    if (value.Contains(OldOptionNameCamelPlural))
-                    {
-                        value = value.Replace(OldOptionNameCamelPlural, NewCrudNameKebabPlural);
-                    }
-                    if (value.Contains(OldOptionNameCamelSingular))
-                    {
-                        value = value.Replace(OldOptionNameCamelSingular, NewCrudNameKebabSingular);
-                    }
+                    value = ReplaceOldToNewValue(value, OldOptionNameCamelPlural, NewCrudNameKebabPlural, OldOptionNameCamelSingular, NewCrudNameKebabSingular);
                     break;
                 case FeatureType.Team:
-                    if (value.Contains(OldTeamNameCamelPlural))
-                    {
-                        value = value.Replace(OldTeamNameCamelPlural, NewCrudNameKebabPlural);
-                    }
-                    if (value.Contains(OldTeamNameCamelSingular))
-                    {
-                        value = value.Replace(OldTeamNameCamelSingular, NewCrudNameKebabSingular);
-                    }
+                    value = ReplaceOldToNewValue(value, OldTeamNameCamelPlural, NewCrudNameKebabPlural, OldTeamNameCamelSingular, NewCrudNameKebabSingular);
                     break;
             }
 
@@ -1316,8 +1390,9 @@
         public List<string> PropertiesToAdd { get; }
         public bool IsChildrenToDelete { get; set; }
         public List<string> ChildrenName { get; }
-        public bool IsOptionToDelete { get; set; }
+        public bool IsOptionFound { get; set; }
         public List<string> OptionsName { get; }
+        public string OptionToAdd { get; set; }
         public List<KeyValuePair<string, string>> DisplayToUpdate { get; }
         public bool IsParentToAdd { get; set; }
         public List<List<string>> ParentBlocks { get; }
@@ -1325,7 +1400,7 @@
         public GenerationCrudData()
         {
             this.IsChildrenToDelete = false;
-            this.IsOptionToDelete = false;
+            this.IsOptionFound = false;
             this.BlocksToAdd = new();
             this.PropertiesToAdd = new();
             this.ChildrenName = new();

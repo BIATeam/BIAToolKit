@@ -115,6 +115,34 @@
             }
         }
 
+        private List<string> optionItems;
+        public List<string> OptionItems
+        {
+            get => optionItems;
+            set
+            {
+                if (optionItems != value)
+                {
+                    optionItems = value;
+                    RaisePropertyChanged(nameof(OptionItems));
+                }
+            }
+        }
+
+        private string optionItemSelected;
+        public string OptionItemSelected
+        {
+            get => optionItemSelected;
+            set
+            {
+                if (optionItemSelected != value)
+                {
+                    optionItemSelected = value;
+                    RaisePropertyChanged(nameof(OptionItemSelected));
+                }
+            }
+        }
+
         private bool isDtoParsed = false;
         public bool IsDtoParsed
         {
@@ -147,16 +175,16 @@
             }
         }
 
-        private string entityNamePlurial;
-        public string CRUDNamePlurial
+        private string entityNamePlural;
+        public string CRUDNamePlural
         {
-            get => entityNamePlurial;
+            get => entityNamePlural;
             set
             {
-                if (entityNamePlurial != value)
+                if (entityNamePlural != value)
                 {
-                    entityNamePlurial = value;
-                    RaisePropertyChanged(nameof(CRUDNamePlurial));
+                    entityNamePlural = value;
+                    RaisePropertyChanged(nameof(CRUDNamePlural));
                 }
             }
         }
@@ -252,6 +280,7 @@
                         ZipDotNetCollection.Add(feature.ZipName);
                     else
                         ZipDotNetCollection.Remove(feature.ZipName);
+                    RaisePropertyChanged(nameof(ZipDotNetCollection));
                 }
                 else
                 {
@@ -259,6 +288,7 @@
                         ZipAngularCollection.Add(feature.ZipName);
                     else
                         ZipAngularCollection.Remove(feature.ZipName);
+                    RaisePropertyChanged(nameof(ZipAngularCollection));
                 }
             }
         }
@@ -342,7 +372,7 @@
             {
                 return IsDtoParsed
                     && IsZipParsed
-                    && !string.IsNullOrWhiteSpace(CRUDNamePlurial)
+                    && !string.IsNullOrWhiteSpace(CRUDNamePlural)
                     && !string.IsNullOrWhiteSpace(dtoDisplayItemSelected);
             }
         }

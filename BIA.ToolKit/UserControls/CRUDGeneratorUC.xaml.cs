@@ -73,14 +73,10 @@
         /// </summary>
         private void CurrentProjectChange()
         {
+            ClearAll();
+
             // Set combobobox and checkbox enabled
             vm.IsProjectChosen = true;
-
-            // Clean all lists (in case of current project change)
-            this.crudSettingsList.Clear();
-            vm.ZipFeatureTypeList.Clear();
-            vm.ZipDotNetCollection.Clear();
-            vm.ZipAngularCollection.Clear();
 
             // List Dto files from Dto folder
             vm.DtoFiles = ListDtoFiles();
@@ -116,6 +112,28 @@
         }
 
         #region State change
+        private void ClearAll()
+        {
+            // Clean all lists (in case of current project change)
+            this.crudSettingsList.Clear();
+            vm.ZipFeatureTypeList.Clear();
+            vm.ZipDotNetCollection.Clear();
+            vm.ZipAngularCollection.Clear();
+
+            this.webApiSettings = null;
+            this.crudSettings = null;
+            this.optionSettings = null;
+            this.teamSettings = null;
+
+            vm.DtoFiles = null;
+            vm.IsWebApiSelected = false;
+            vm.IsCrudSelected = false;
+            vm.IsOptionSelected = false;
+            vm.IsTeamSelected = false;
+
+            this.crudHistory = null;
+        }
+
         /// <summary>
         /// Action linked with "Dto files" combobox.
         /// </summary>
@@ -124,6 +142,7 @@
             if (vm == null) return;
             vm.IsDtoParsed = false;
             vm.DtoDisplayItems = null;
+            vm.OptionItems = null;
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
 
             bool isBackSelected = false, isCrudSelected = false, isOptionSelected = false, isTeamSelected = false;
@@ -135,17 +154,27 @@
                 {
                     CRUDGenerationHistory history = crudHistory.CRUDGenerationHistory.FirstOrDefault(h => h.Mapping.Dto == dtoName);
 
-                    // Apply last generation values
                     if (history != null)
                     {
+                        // Apply last generation values
                         vm.CRUDNameSingular = history.EntityNameSingular;
-                        vm.CRUDNamePlurial = history.EntityNamePlurial;
+                        vm.CRUDNamePlural = history.EntityNamePlural;
 
                         msgVisibility = Visibility.Visible;
                         isBackSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.WebApi.ToString()) != null);
                         isCrudSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.CRUD.ToString()) != null);
                         isOptionSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.Option.ToString()) != null);
                         isTeamSelected = (history.Generation.FirstOrDefault(g => g.Feature == FeatureType.Team.ToString()) != null);
+
+                        // Get generated options
+                        List<CRUDGenerationHistory> histories = crudHistory.CRUDGenerationHistory.Where(h => (h.Mapping.Dto != dtoName) &&
+                            (h.Generation.Any(g => g.Feature == FeatureType.Option.ToString()))).ToList();
+                        if (histories.Any())
+                        {
+                            List<string> options = new();
+                            histories.ForEach(h => options.Add(h.EntityNameSingular));
+                            vm.OptionItems = options;
+                        }
                     }
                 }
             }
@@ -162,13 +191,13 @@
         /// </summary>
         private void ModifyEntitySingularText_TextChanged(object sender, TextChangedEventArgs e)
         {
-            vm.CRUDNamePlurial = string.Empty;
+            vm.CRUDNamePlural = string.Empty;
         }
 
         /// <summary>
-        /// Action linked with "Entity name (plurial)" textbox.
+        /// Action linked with "Entity name (plural)" textbox.
         /// </summary>
-        private void ModifyEntityPlurialText_TextChanged(object sender, TextChangedEventArgs e)
+        private void ModifyEntityPluralText_TextChanged(object sender, TextChangedEventArgs e)
         {
             vm.IsSelectionChange = true;
         }
@@ -231,13 +260,13 @@
         /// </summary>
         private void GenerateCrud_Click(object sender, RoutedEventArgs e)
         {
-            crudService.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlurial,
-                this.crudSettings?.FeatureName, this.crudSettings?.FeatureNamePlurial,
-                this.optionSettings?.FeatureName, this.optionSettings?.FeatureNamePlurial,
-                this.teamSettings?.FeatureName, this.teamSettings?.FeatureNamePlurial);
+            crudService.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural,
+                this.crudSettings?.FeatureName, this.crudSettings?.FeatureNamePlural,
+                this.optionSettings?.FeatureName, this.optionSettings?.FeatureNamePlural,
+                this.teamSettings?.FeatureName, this.teamSettings?.FeatureNamePlural);
 
             // Generation DotNet + Angular files
-            string path = crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, this.settings.GenerateInProjectFolder);
+            string path = crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, vm.OptionItemSelected, this.settings.GenerateInProjectFolder);
 
             // Generate generation history file
             UpdateCrudGenerationHistory();
@@ -260,8 +289,9 @@
                 {
                     Date = DateTime.Now,
                     EntityNameSingular = vm.CRUDNameSingular,
-                    EntityNamePlurial = vm.CRUDNamePlurial,
+                    EntityNamePlural = vm.CRUDNamePlural,
                     DisplayItem = vm.DtoDisplayItemSelected,
+                    OptionName = vm.OptionItemSelected,
 
                     // Create "Mapping" part
                     Mapping = new()
@@ -369,7 +399,7 @@
                 vm.DtoDisplayItems = displayItems;
 
                 // Set by default previous generation selected value
-                CRUDGenerationHistory history = this.crudHistory?.CRUDGenerationHistory.FirstOrDefault(gh => (vm.DtoSelected == Path.GetFileName(gh.Mapping.Dto)));
+                CRUDGenerationHistory history = this.crudHistory?.CRUDGenerationHistory?.FirstOrDefault(gh => (vm.DtoSelected == Path.GetFileName(gh.Mapping.Dto)));
                 vm.DtoDisplayItemSelected = history?.DisplayItem;
 
                 return true;

@@ -7,7 +7,7 @@
         public string Feature { get; set; }
         public string Type { get; set; }
         public string FeatureName { get; set; }
-        public string FeatureNamePlurial { get; set; }
+        public string FeatureNamePlural { get; set; }
         public string ZipName { get; set; }
         public Contains Contains { get; }
         public List<string> Children { get; }
