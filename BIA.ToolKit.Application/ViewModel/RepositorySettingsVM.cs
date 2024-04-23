@@ -13,7 +13,8 @@
 
         private RepositorySettings repositorySettings { get; set; }
 
-        public RepositorySettings RepositorySettings {
+        public RepositorySettings RepositorySettings
+        {
             get { return repositorySettings; }
             set
             {
@@ -28,6 +29,7 @@
                     RaisePropertyChanged("UrlRelease");
                     RaisePropertyChanged("CompanyName");
                     RaisePropertyChanged("ProjectName");
+                    RaisePropertyChanged("AlwaysRefreshRelease");
                 }
             }
         }
@@ -92,7 +94,7 @@
                 if (RepositorySettings.Versioning != value)
                 {
                     RepositorySettings.Versioning = value;
-                    RaisePropertyChanged("Versioning"); 
+                    RaisePropertyChanged("Versioning");
                     RaisePropertyChanged("IsEnabledUrlRelease");
                 }
             }
@@ -141,7 +143,20 @@
         {
             get
             {
-                return Versioning==VersioningType.Release;
+                return Versioning == VersioningType.Release;
+            }
+        }
+
+        public bool AlwaysRefreshRelease
+        {
+            get { return RepositorySettings.AlwaysRefreshCache; }
+            set
+            {
+                if (RepositorySettings.AlwaysRefreshCache != value)
+                {
+                    RepositorySettings.AlwaysRefreshCache = value;
+                    RaisePropertyChanged("AlwaysRefreshRelease");
+                }
             }
         }
     }

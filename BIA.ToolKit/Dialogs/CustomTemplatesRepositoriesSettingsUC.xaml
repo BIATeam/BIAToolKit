@@ -49,6 +49,7 @@
                     <DataGridTextColumn Header="Url Repo" Binding="{Binding UrlRepo}" Width="100" />
                     <DataGridTextColumn Header="Folder Path" Binding="{Binding LocalFolderPath}" Width="100" />
                     <DataGridTextColumn Header="Use Folder" Binding="{Binding UseLocalFolder}" />
+                    <DataGridTextColumn Header="Refresh release cache" Binding="{Binding AlwaysRefreshCache}" />
                 </DataGrid.Columns>
                 <DataGrid.RowDetailsTemplate>
                     <DataTemplate>

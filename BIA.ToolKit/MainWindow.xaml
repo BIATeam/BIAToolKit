@@ -36,6 +36,7 @@
                     <Button Content="Synchronize" HorizontalAlignment="Left" Margin="26,162,0,0" RenderTransformOrigin="0.429,2.91" Width="206" Name="BIATemplateLocalFolderSync" Click="BIATemplateLocalFolderSync_Click" Height="20" VerticalAlignment="Top" Grid.Column="1"/>
                     <Button Content="Clean Release" HorizontalAlignment="Left" Margin="77,0,0,0" RenderTransformOrigin="0.429,2.91" Width="85" Name="BIATemplateLocalCleanRelease" Click="BIATemplateLocalCleanRelease_Click" Height="20" VerticalAlignment="Center" Grid.Column="1"/>
 
+                    <CheckBox IsChecked="{Binding Settings.BIATemplateRepository.AlwaysRefreshCache}" Foreground="White" Content="Always refresh release cache" HorizontalAlignment="Left" Margin="10,0,0,93" VerticalAlignment="Bottom" Checked="ConfigurationChange" Unchecked="ConfigurationChange" Grid.ColumnSpan="2" />
                     <Button Content="Custom templates repositories settings" Margin="20,0,125,26" Click="CustomRepoTemplate_Click" RenderTransformOrigin="0.429,2.91" Grid.ColumnSpan="2" Height="20" VerticalAlignment="Bottom"/>
 
                     <CheckBox IsChecked="{Binding Settings.UseCompanyFiles}" HorizontalAlignment="Left" Margin="83,0,0,189" Checked="ConfigurationChange" Unchecked="ConfigurationChange" Grid.Column="3" Height="15" VerticalAlignment="Bottom"/>
