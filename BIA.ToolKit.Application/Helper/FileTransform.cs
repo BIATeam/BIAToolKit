@@ -1,6 +1,5 @@
 ﻿namespace BIA.ToolKit.Application.Helper
 {
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -9,10 +8,11 @@
 
     static public class FileTransform
     {
-        static public IList<string> projectFileExtensions = new List<string>() { ".csproj", ".cs",  ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md" , ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml" };
-        static public IList<string> allTextFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md" , ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml", 
+        static public IList<string> projectFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md", ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml" };
+        static public IList<string> allTextFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md" , ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml",
             ".editorconfig", ".gitignore" , ".prettierrc", ".html" ,".css" ,".scss", ".svg" , ".js", ".ruleset", ".props" };
-        static public IList<string> allTextFileNameWithoutExtension = new List<string>() { "browserslist" };
+        static public IList<string> allTextFileNameWithoutExtension = new List<string>() { "browserslist", "Dockerfile" };
+
 
         /// <summary>
         /// Copy files for VSIX AdditionnalFiles folder to the root solution folder.
@@ -46,6 +46,13 @@
                 string extension = Path.GetExtension(targetfile).ToLower();
                 if (replaceInFileExtenssions.Contains(extension))
                 {
+                    ReplaceInFile(targetfile, oldString, newString);
+                }
+
+                var fileName = Path.GetFileName(file);
+                if (allTextFileNameWithoutExtension.Contains(fileName))
+                {
+                    // todo
                     ReplaceInFile(targetfile, oldString, newString);
                 }
             }
@@ -110,7 +117,7 @@
                         inSequence = false;
                     }
                 }
-                
+
                 file.Close();
                 var encoding = GetEncoding(filePath);
                 File.WriteAllLines(filePath, lines, encoding);
@@ -158,7 +165,7 @@
                 {
                     Unix2Dos(file);
                 }
-                
+
             }
         }
 
@@ -213,7 +220,7 @@
             }
         }
 
-        static public void CopyFilesRecursively(string sourcePath, string targetPath, string profile ="", IList<string> filesToExclude = null)
+        static public void CopyFilesRecursively(string sourcePath, string targetPath, string profile = "", IList<string> filesToExclude = null)
         {
             //Now Create all of the directories
             foreach (string sourceDir in Directory.GetDirectories(sourcePath, "*", SearchOption.TopDirectoryOnly))
@@ -234,13 +241,13 @@
 
                 string sourceFileName = Path.GetFileName(sourceFile);
 
-                if (filesToExclude == null || !filesToExclude.Any( s => Regex.Match(sourceFileName, s, RegexOptions.IgnoreCase).Success))
+                if (filesToExclude == null || !filesToExclude.Any(s => Regex.Match(sourceFileName, s, RegexOptions.IgnoreCase).Success))
                 {
                     if (profile != "" && Regex.Match(sourceFile, "\\[.*\\]", RegexOptions.IgnoreCase).Success)
                     {
-                        if (sourceFile.Contains("["+ profile + "]"))
+                        if (sourceFile.Contains("[" + profile + "]"))
                         {
-                            File.Copy(sourceFile, sourceFile.Replace(sourcePath, targetPath).Replace("[" + profile + "]",""), true);
+                            File.Copy(sourceFile, sourceFile.Replace(sourcePath, targetPath).Replace("[" + profile + "]", ""), true);
                         }
                     }
                     else
@@ -249,15 +256,15 @@
                     }
                 }
             }
-        }       
-        
+        }
+
         static public void RemoveRecursively(string targetPath, IList<string> filesToRemove)
         {
             //Copy all the files & Replaces any files with the same name
             foreach (string filePath in Directory.GetFiles(targetPath, "*.*", SearchOption.AllDirectories))
             {
                 string fileName = Path.GetFileName(filePath);
-                if (filesToRemove.Any( s => Regex.Match(fileName, s, RegexOptions.IgnoreCase).Success))
+                if (filesToRemove.Any(s => Regex.Match(fileName, s, RegexOptions.IgnoreCase).Success))
                     File.Delete(filePath);
             }
         }
