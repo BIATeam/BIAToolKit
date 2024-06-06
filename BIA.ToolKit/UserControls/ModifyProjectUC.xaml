@@ -94,14 +94,17 @@
         <Button Content="..." HorizontalAlignment="Left" Margin="339,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="ModifyProjectRootFolderBrowse" Click="ModifyProjectRootFolderBrowse_Click"/>
         <Label Content="Project Folder" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="384,0,0,0"/>
         <ComboBox ItemsSource="{Binding Projects}" SelectedValue="{Binding Folder}" HorizontalAlignment="Left" Margin="402,23,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="ModifyProject_SelectionChanged"/>
-        <Label Content="Version detected : " HorizontalAlignment="Left" Margin="542,0,0,0" VerticalAlignment="Top" Foreground="White"/>
-        <Label Content="{Binding FrameworkVersion}" HorizontalAlignment="Left" Margin="676,0,0,0" VerticalAlignment="Top" Foreground="White" Width="84"/>
-        <Label Content="Project name detected : " HorizontalAlignment="Left" Margin="542,15,0,0" VerticalAlignment="Top" Foreground="White"/>
-        <Label Content="{Binding Name}" HorizontalAlignment="Left" Margin="675,15,0,0" VerticalAlignment="Top" Foreground="White"/>
-        <Label Content="Company detected : " HorizontalAlignment="Left" Margin="542,31,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
-        <Label Content="{Binding CompanyName}" HorizontalAlignment="Left" Margin="675,31,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
-        <Label Content="BIA front(s) folder(s) : " HorizontalAlignment="Left" Margin="542,47,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
-        <Label Content="{Binding BIAFronts}" HorizontalAlignment="Left" Margin="675,47,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
+        <Button x:Name="RefreshDtoList" Margin="526,22,0,0" Width="24" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshProjectFolderList_Click" ToolTip="Refresh project folder list">
+            <Image Source="/Images/rafraichir-32.png" />
+        </Button>
+        <Label Content="Version detected : " HorizontalAlignment="Left" Margin="575,0,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <Label Content="{Binding FrameworkVersion}" HorizontalAlignment="Left" Margin="710,0,0,0" VerticalAlignment="Top" Foreground="White" Width="84"/>
+        <Label Content="Project name detected : " HorizontalAlignment="Left" Margin="575,15,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <Label Content="{Binding Name}" HorizontalAlignment="Left" Margin="710,15,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <Label Content="Company detected : " HorizontalAlignment="Left" Margin="575,31,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
+        <Label Content="{Binding CompanyName}" HorizontalAlignment="Left" Margin="710,31,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
+        <Label Content="BIA front(s) folder(s) : " HorizontalAlignment="Left" Margin="575,47,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
+        <Label Content="{Binding BIAFronts}" HorizontalAlignment="Left" Margin="710,47,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
     </Grid>
 
 </UserControl>

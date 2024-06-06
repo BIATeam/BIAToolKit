@@ -33,30 +33,34 @@
             }
         }
 
-        public void DelegateSetRootProjectsPath(string value)
+        public void RefreshProjetsList()
         {
-            ModifyProject.RootProjectsPath = value;
-            CurrentProject = null;
+            List<string> projectList = null;
+            string projectPath = ModifyProject.RootProjectsPath;
 
-            if (Directory.Exists(value))
+            if (Directory.Exists(projectPath))
             {
-                DirectoryInfo di = new DirectoryInfo(value);
+                DirectoryInfo di = new(projectPath);
                 // Create an array representing the files in the current directory.
                 DirectoryInfo[] versionDirectories = di.GetDirectories("*", SearchOption.TopDirectoryOnly);
 
-                var projectList = new List<string>();
+                projectList = new();
                 foreach (DirectoryInfo dir in versionDirectories)
                 {
                     //Add and select the last added
                     projectList.Add(dir.Name);
                 }
-                Projects = projectList;
-            }
-            else
-            {
-                Projects = null;
             }
 
+            Projects = projectList;
+        }
+
+        public void DelegateSetRootProjectsPath(string value)
+        {
+            ModifyProject.RootProjectsPath = value;
+            CurrentProject = null;
+
+            RefreshProjetsList();
 
             RaisePropertyChanged("RootProjectsPath");
         }

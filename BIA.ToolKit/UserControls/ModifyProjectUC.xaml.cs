@@ -271,5 +271,10 @@
         {
             _viewModel.RootProjectsPath = FileDialog.BrowseFolder(_viewModel.RootProjectsPath);
         }
+
+        private void RefreshProjectFolderList_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.RefreshProjetsList();
+        }
     }
 }
