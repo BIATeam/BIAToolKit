@@ -564,8 +564,6 @@
             for (int i = 0; i < blockList.Count; i++)
             {
                 newBlockList.Add(blockList[i]);
-                if (i != blockList.Count - 1)
-                    newBlockList.Add($"{spaces},");
             }
 
             return UpdateBlocks(fileName, fileLinesContent, newBlockList, CRUDDataUpdateType.Block);
@@ -692,7 +690,10 @@
                 }
                 else if (beginMarkerFound)
                 {
-                    newLines.Add(line.Replace(oldOptionName, newOptionName));
+                    string oldOptionNameKebab = CommonTools.ConvertPascalToKebabCase(oldOptionName);
+                    string newOptionNameKebab = CommonTools.ConvertPascalToKebabCase(newOptionName);
+                    string newLine = line.Replace(oldOptionName, newOptionName).Replace(oldOptionNameKebab, newOptionNameKebab);
+                    newLines.Add(newLine);
                     if (line.Contains(markerEnd, StringComparison.InvariantCultureIgnoreCase))
                     {
                         beginMarkerFound = false;
@@ -702,6 +703,10 @@
                 {
                     newLines.Add(line);
                 }
+            }
+            if (newLines.Any())
+            {
+                fileLinesContent = newLines;
             }
 
             return fileLinesContent;
@@ -1063,9 +1068,27 @@
 
         private List<string> UpdateFileLinesContent(List<string> lines, FeatureType type)
         {
+            const string startImportRegex = @"^\s*[\/\*]*\s*import";
+            bool markerFound = false;
             for (int i = 0; i < lines?.Count; i++)
             {
-                if (lines[i].StartsWith("import"))
+                if (lines[i].Contains(ZipParserService.MARKER_BEGIN))
+                {
+                    markerFound = true;
+                    continue;
+                }
+                else if (lines[i].Contains(ZipParserService.MARKER_END))
+                {
+                    markerFound = false;
+                    continue;
+                }
+                else if (markerFound)
+                {
+                    // ignore lines between markers
+                    continue;
+                }
+
+                if (CommonTools.IsMatchRegexValue(startImportRegex, lines[i]))
                 {
                     lines[i] = ConvertOldCrudNameToNewCrudName(lines[i], type);
                 }
@@ -1212,13 +1235,13 @@
             switch (type)
             {
                 case FeatureType.CRUD:
-                    value = ReplaceOldToNewValue(value, OldCrudNameCamelPlural, NewCrudNameKebabPlural, OldCrudNameCamelSingular, NewCrudNameKebabSingular);
+                    value = ReplaceOldToNewValue(value, this.OldCrudNameCamelPlural, this.NewCrudNameKebabPlural, this.OldCrudNameCamelSingular, this.NewCrudNameKebabSingular);
                     break;
                 case FeatureType.Option:
-                    value = ReplaceOldToNewValue(value, OldOptionNameCamelPlural, NewCrudNameKebabPlural, OldOptionNameCamelSingular, NewCrudNameKebabSingular);
+                    value = ReplaceOldToNewValue(value, this.OldOptionNameCamelPlural, this.NewCrudNameKebabPlural, this.OldOptionNameCamelSingular, this.NewCrudNameKebabSingular);
                     break;
                 case FeatureType.Team:
-                    value = ReplaceOldToNewValue(value, OldTeamNameCamelPlural, NewCrudNameKebabPlural, OldTeamNameCamelSingular, NewCrudNameKebabSingular);
+                    value = ReplaceOldToNewValue(value, this.OldTeamNameCamelPlural, this.NewCrudNameKebabPlural, this.OldTeamNameCamelSingular, this.NewCrudNameKebabSingular);
                     break;
             }
 
