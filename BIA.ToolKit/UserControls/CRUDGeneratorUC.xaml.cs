@@ -401,6 +401,7 @@
                 // Set by default previous generation selected value
                 CRUDGenerationHistory history = this.crudHistory?.CRUDGenerationHistory?.FirstOrDefault(gh => (vm.DtoSelected == Path.GetFileName(gh.Mapping.Dto)));
                 vm.DtoDisplayItemSelected = history?.DisplayItem;
+                vm.OptionItemSelected = history?.OptionName;
 
                 return true;
             }
