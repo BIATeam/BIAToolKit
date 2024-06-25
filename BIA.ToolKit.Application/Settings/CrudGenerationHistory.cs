@@ -31,6 +31,7 @@
 
     public class Generation
     {
+        public string GenerationType { get; set; }
         public string Feature { get; set; }
         public string Folder { get; set; }
         public string Template { get; set; }
@@ -40,7 +41,6 @@
     public class Mapping
     {
         public string Dto { get; set; }
-        public string Template { get; set; }
         public string Type { get; set; }
     }
 }

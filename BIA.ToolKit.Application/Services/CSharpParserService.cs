@@ -140,7 +140,9 @@ using Roslyn.Services;*/
             }
             else if (descendants.Count() > 1)
             {
+#if DEBUG
                 consoleWriter.AddMessageLine($"More of one declaration found on file '{fileName}' :", "Orange");
+#endif
                 descendants.ToList().ForEach(x => consoleWriter.AddMessageLine($"   - {x.Identifier} ({x.Kind()})", "Orange"));
                 // TODO NMA 
                 typeDeclaration = descendants.Where(x => x.IsKind(SyntaxKind.ClassDeclaration)).Single();

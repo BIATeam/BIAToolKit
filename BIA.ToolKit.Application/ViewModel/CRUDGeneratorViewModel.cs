@@ -5,6 +5,7 @@
     using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
+    using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
@@ -215,7 +216,22 @@
                 {
                     isWebApiSelected = value;
                     RaisePropertyChanged(nameof(IsWebApiSelected));
-                    UpdateFeatureSelection(FeatureType.WebApi, value);
+                    UpdateFeatureSelection();
+                }
+            }
+        }
+
+        private bool isFrontSelected;
+        public bool IsFrontSelected
+        {
+            get => isFrontSelected;
+            set
+            {
+                if (isFrontSelected != value)
+                {
+                    isFrontSelected = value;
+                    RaisePropertyChanged(nameof(IsFrontSelected));
+                    UpdateFeatureSelection();
                 }
             }
         }
@@ -230,7 +246,7 @@
                 {
                     isCrudSelected = value;
                     RaisePropertyChanged(nameof(IsCrudSelected));
-                    UpdateFeatureSelection(FeatureType.CRUD, value);
+                    UpdateFeatureSelection();
                 }
             }
         }
@@ -245,7 +261,7 @@
                 {
                     isOptionSelected = value;
                     RaisePropertyChanged(nameof(IsOptionSelected));
-                    UpdateFeatureSelection(FeatureType.Option, value);
+                    UpdateFeatureSelection();
                 }
             }
         }
@@ -260,36 +276,70 @@
                 {
                     isTeamSelected = value;
                     RaisePropertyChanged(nameof(IsTeamSelected));
-                    UpdateFeatureSelection(FeatureType.Team, value);
+                    UpdateFeatureSelection();
                 }
             }
         }
 
-        private void UpdateFeatureSelection(FeatureType type, bool isChecked)
+        private void UpdateFeatureSelection()
         {
             IsSelectionChange = true;
             IsZipParsed = false;
 
-            ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == type).FirstOrDefault();
-            if (feature != null)
+            foreach (GenerationType generation in Enum.GetValues(typeof(GenerationType)))
             {
-                feature.IsChecked = isChecked;
-                if (type == FeatureType.WebApi)
+                bool generationSelected = (generation == GenerationType.WebApi) ? IsWebApiSelected : IsFrontSelected;
+                foreach (FeatureType type in Enum.GetValues(typeof(FeatureType)))
                 {
-                    if (isChecked)
-                        ZipDotNetCollection.Add(feature.ZipName);
-                    else
-                        ZipDotNetCollection.Remove(feature.ZipName);
-                    RaisePropertyChanged(nameof(ZipDotNetCollection));
+                    ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == type && x.GenerationType == generation).FirstOrDefault();
+                    if (feature != null)
+                    {
+                        bool typeSelected = false;
+                        switch (type)
+                        {
+                            case FeatureType.CRUD:
+                                typeSelected = isCrudSelected && generationSelected;
+                                break;
+
+                            case FeatureType.Option:
+                                typeSelected = isOptionSelected && generationSelected;
+                                break;
+
+                            case FeatureType.Team:
+                                typeSelected = IsTeamSelected && generationSelected;
+                                break;
+                        }
+
+                        AddRemoveZipToList(generation, typeSelected, feature.ZipName);
+                        feature.IsChecked = typeSelected;
+                    }
+                }
+            }
+        }
+
+        private void AddRemoveZipToList(GenerationType generation, bool isChecked, string featureName)
+        {
+            if (generation == GenerationType.WebApi)
+            {
+                if (isChecked)
+                {
+                    if (!zipDotNetCollection.Contains(featureName))
+                        ZipDotNetCollection.Add(featureName);
                 }
                 else
+                    ZipDotNetCollection.Remove(featureName);
+                RaisePropertyChanged(nameof(ZipDotNetCollection));
+            }
+            else if (generation == GenerationType.Front)
+            {
+                if (isChecked)
                 {
-                    if (isChecked)
-                        ZipAngularCollection.Add(feature.ZipName);
-                    else
-                        ZipAngularCollection.Remove(feature.ZipName);
-                    RaisePropertyChanged(nameof(ZipAngularCollection));
+                    if (!ZipAngularCollection.Contains(featureName))
+                        ZipAngularCollection.Add(featureName);
                 }
+                else
+                    ZipAngularCollection.Remove(featureName);
+                RaisePropertyChanged(nameof(ZipAngularCollection));
             }
         }
         #endregion
@@ -362,7 +412,8 @@
             get
             {
                 return IsDtoParsed
-                    && (IsWebApiSelected || IsCrudSelected || IsOptionSelected || IsTeamSelected);
+                    && ((IsWebApiSelected || IsFrontSelected)
+                    && (IsCrudSelected || IsOptionSelected || IsTeamSelected));
             }
         }
 
@@ -387,9 +438,14 @@
         public bool IsChecked { get; set; }
 
         /// <summary>
-        /// The CRUD type.
+        /// The Feature type.
         /// </summary>
         public FeatureType FeatureType { get; }
+
+        /// <summary>
+        /// The Generation type.
+        /// </summary>
+        public GenerationType GenerationType { get; }
 
         /// <summary>
         /// Angular zip file name.
@@ -406,9 +462,10 @@
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ZipFeatureType(FeatureType type, string name, string path)
+        public ZipFeatureType(FeatureType type, GenerationType generation, string name, string path)
         {
             this.FeatureType = type;
+            this.GenerationType = generation;
             this.ZipName = name;
             this.ZipPath = path;
         }
@@ -571,9 +628,14 @@
     #endregion
 
     #region enum
-    public enum FeatureType
+    public enum GenerationType
     {
         WebApi,
+        Front,
+    }
+
+    public enum FeatureType
+    {
         CRUD,
         Option,
         Team
@@ -587,6 +649,7 @@
         Option,
         Display,
         Parent,
+        Front,
         // Partial
         Config,
         Dependency,
