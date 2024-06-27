@@ -120,6 +120,7 @@
             // Clean all lists (in case of current project change)
             this.backSettingsList.Clear();
             this.frontSettingsList.Clear();
+            vm.OptionItems.Clear();
             vm.ZipFeatureTypeList.Clear();
             vm.ZipDotNetCollection.Clear();
             vm.ZipAngularCollection.Clear();
@@ -154,6 +155,7 @@
                 string dtoName = GetDtoSelectedPath();
                 if (!string.IsNullOrEmpty(dtoName))
                 {
+                    vm.OptionItems = new();
                     CRUDGenerationHistory history = crudHistory.CRUDGenerationHistory.FirstOrDefault(h => h.Mapping.Dto == dtoName);
 
                     if (history != null)
@@ -161,8 +163,7 @@
                         // Apply last generation values
                         vm.CRUDNameSingular = history.EntityNameSingular;
                         vm.CRUDNamePlural = history.EntityNamePlural;
-
-                        msgVisibility = Visibility.Visible;
+                        history.OptionItems?.ForEach(o => vm.OptionItems.Add(new OptionItem() { Check = true, OptionName = o }));
 
                         isBackSelected = history.Generation.Any(g => g.GenerationType == GenerationType.WebApi.ToString());
                         isFrontSelected = history.Generation.Any(g => g.GenerationType == GenerationType.Front.ToString());
@@ -176,12 +177,12 @@
                 List<CRUDGenerationHistory> histories = crudHistory.CRUDGenerationHistory.Where(h =>
                     (h.Mapping.Dto != dtoName) &&
                     h.Generation.Any(g => g.Feature == FeatureType.Option.ToString())).ToList();
-                if (histories.Any())
+                histories?.ForEach(h =>
                 {
-                    List<string> options = new();
-                    histories.ForEach(h => options.Add(h.EntityNameSingular));
-                    vm.OptionItems = options;
-                }
+                    string optionName = h.EntityNameSingular;
+                    if (!vm.OptionItems.Any(o => o.OptionName == optionName))
+                        vm.OptionItems.Add(new OptionItem() { OptionName = optionName });
+                });
             }
 
             CrudAlreadyGeneratedLabel.Visibility = msgVisibility;
@@ -279,7 +280,8 @@
                                         teamSingularName, teampluralName);
 
             // Generation DotNet + Angular files
-            string path = crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, vm.OptionItemSelected, this.settings.GenerateInProjectFolder);
+            List<string> optionsItems = vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList();
+            string path = crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, this.settings.GenerateInProjectFolder);
 
             // Generate generation history file
             UpdateCrudGenerationHistory();
@@ -304,7 +306,7 @@
                     EntityNameSingular = vm.CRUDNameSingular,
                     EntityNamePlural = vm.CRUDNamePlural,
                     DisplayItem = vm.DtoDisplayItemSelected,
-                    OptionName = vm.OptionItemSelected,
+                    OptionItems = vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList(),
 
                     // Create "Mapping" part
                     Mapping = new()
@@ -414,7 +416,6 @@
                 // Set by default previous generation selected value
                 CRUDGenerationHistory history = this.crudHistory?.CRUDGenerationHistory?.FirstOrDefault(gh => (vm.DtoSelected == Path.GetFileName(gh.Mapping.Dto)));
                 vm.DtoDisplayItemSelected = history?.DisplayItem;
-                vm.OptionItemSelected = history?.OptionName;
 
                 return true;
             }

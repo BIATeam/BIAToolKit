@@ -17,6 +17,7 @@
         /// </summary>
         public CRUDGeneratorViewModel()
         {
+            OptionItems = new();
             ZipFeatureTypeList = new();
             ZipDotNetCollection = new();
             ZipAngularCollection = new();
@@ -116,8 +117,8 @@
             }
         }
 
-        private List<string> optionItems;
-        public List<string> OptionItems
+        private ObservableCollection<OptionItem> optionItems;
+        public ObservableCollection<OptionItem> OptionItems
         {
             get => optionItems;
             set
@@ -130,16 +131,30 @@
             }
         }
 
-        private string optionItemSelected;
-        public string OptionItemSelected
+        //private string optionItemSelected;
+        //public string OptionItemSelected
+        //{
+        //    get => optionItemSelected;
+        //    set
+        //    {
+        //        if (optionItemSelected != value)
+        //        {
+        //            optionItemSelected = value;
+        //            RaisePropertyChanged(nameof(OptionItemSelected));
+        //        }
+        //    }
+        //}
+
+        private List<string> optionItemsSelected;
+        public List<string> OptionItemsSelected
         {
-            get => optionItemSelected;
+            get => optionItemsSelected;
             set
             {
-                if (optionItemSelected != value)
+                if (optionItemsSelected != value)
                 {
-                    optionItemSelected = value;
-                    RaisePropertyChanged(nameof(OptionItemSelected));
+                    optionItemsSelected = value;
+                    RaisePropertyChanged(nameof(OptionItemsSelected));
                 }
             }
         }
@@ -428,6 +443,12 @@
             }
         }
         #endregion
+    }
+
+    public class OptionItem
+    {
+        public bool Check { get; set; }
+        public string OptionName { get; set; }
     }
 
     public class ZipFeatureType

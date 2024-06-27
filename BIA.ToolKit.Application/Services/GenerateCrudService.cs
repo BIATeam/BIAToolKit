@@ -85,7 +85,7 @@
             this.OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
         }
 
-        public string GenerateCrudFiles(Project currentProject, EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList, string displayItem, string optionItem, bool generateInProjectFolder = true)
+        public string GenerateCrudFiles(Project currentProject, EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList, string displayItem, List<string> options, bool generateInProjectFolder = true)
         {
             string generationFolder = null;
             try
@@ -129,7 +129,7 @@
                     else
                     {
                         WebApiFeatureData dtoRefFeature = (WebApiFeatureData)crudBackFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
-                        GenerateFrontCRUD(angularDir, crudFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, dtoRefFeature?.PropertiesInfos, displayItem, optionItem);
+                        GenerateFrontCRUD(angularDir, crudFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, dtoRefFeature?.PropertiesInfos, displayItem, options);
                     }
                 }
 
@@ -138,7 +138,7 @@
                 if (optionFrontFeatureType != null && optionFrontFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate Angular Option files on '{angularDir}' ***", "Green");
-                    GenerateOption(angularDir, optionFrontFeatureType.FeatureDataList);
+                    GenerateFrontOption(angularDir, optionFrontFeatureType.FeatureDataList);
                 }
 
                 // Generate Team Angular files
@@ -196,7 +196,7 @@
         }
 
         private void GenerateFrontCRUD(string angularDir, List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties,
-            List<PropertyInfo> dtoRefProperties, string displayItem, string optionItem)
+            List<PropertyInfo> dtoRefProperties, string displayItem, List<string> optionItem)
         {
             try
             {
@@ -227,7 +227,7 @@
             }
         }
 
-        private void GenerateOption(string angularDir, List<FeatureData> featureDataList)
+        private void GenerateFrontOption(string angularDir, List<FeatureData> featureDataList)
         {
             try
             {
@@ -255,7 +255,7 @@
         #endregion
 
         private GenerationCrudData ExtractGenerationCrudData(FeatureData crudData, List<CrudProperty> crudDtoProperties, List<PropertyInfo> dtoRefProperties,
-            string displayItem, string optionItem = null)
+            string displayItem, List<string> optionItem = null)
         {
             GenerationCrudData generationData = null;
             if (crudData.ExtractBlocks?.Count > 0)
@@ -562,13 +562,13 @@
                     fileLinesContent = DeleteChildrenBlocks(fileLinesContent, generationData.ChildrenName);
                 }
 
-                // Remove all options
+                // Update options blocks
                 if (generationData.IsOptionFound)
                 {
                     fileLinesContent = ManageOptionsBlocks(fileLinesContent, generationData.OptionsName, generationData.OptionToAdd);
                 }
 
-                // Upate parent blocks
+                // Update parent blocks
                 if (generationData.ParentBlocks?.Count > 0)
                 {
                     fileLinesContent = UpdateParentBlocks(fileName, fileLinesContent, generationData.ParentBlocks, generationData.IsParentToAdd);
@@ -647,10 +647,10 @@
             return DeleteBlocks(fileLinesContent, CRUDDataUpdateType.Child);
         }
 
-        private List<string> ManageOptionsBlocks(List<string> fileLinesContent, List<string> optionsName, string newOptionName)
+        private List<string> ManageOptionsBlocks(List<string> fileLinesContent, List<string> optionsName, List<string> newOptionsName)
         {
             // Delete Options
-            if (string.IsNullOrWhiteSpace(newOptionName))
+            if (newOptionsName == null || !newOptionsName.Any())
             {
                 return DeleteOptionsBlocks(fileLinesContent, optionsName);
             }
@@ -661,10 +661,10 @@
                 string markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option} {optionName}";
                 string markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Option} {optionName}";
 
-                if (optionName == optionsName.Last())
+                if (optionName == OldOptionNamePascalSingular)
                 {
                     // replace
-                    fileLinesContent = ReplaceOptions(fileLinesContent, optionsName.Last(), newOptionName);
+                    fileLinesContent = ReplaceOptions(fileLinesContent, optionName, newOptionsName, markerBegin, markerEnd);
                 }
                 else
                 {
@@ -683,17 +683,8 @@
 
             optionsName?.ForEach(optionName =>
             {
-                string markerBegin, markerEnd;
-                if (string.IsNullOrWhiteSpace(optionName))
-                {
-                    markerBegin = $"/* {beginMarker} ";
-                    markerEnd = $"{endMarker} */";
-                }
-                else
-                {
-                    markerBegin = $"/* {beginMarker} {optionName}";
-                    markerEnd = $"{endMarker} {optionName} */";
-                }
+                string markerBegin = $"/* {beginMarker} ";
+                string markerEnd = $"{endMarker} */";
 
                 fileLinesContent = DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
             });
@@ -701,29 +692,42 @@
             return DeleteBlocks(fileLinesContent, CRUDDataUpdateType.Option);
         }
 
-        private List<string> ReplaceOptions(List<string> fileLinesContent, string oldOptionName, string newOptionName)
+        private List<string> ReplaceOptions(List<string> fileLinesContent, string oldOptionName, List<string> newOptions, string markerBegin, string markerEnd)
         {
+            string line;
+            bool endFound;
             List<string> newLines = new();
-            string markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option} {oldOptionName}";
-            string markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Option} {oldOptionName}";
 
-            bool beginMarkerFound = false;
-            foreach (string line in fileLinesContent)
+            for (int i = 0; i < fileLinesContent.Count; i++)
             {
+                line = fileLinesContent[i];
+
                 if (line.Contains(markerBegin, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    beginMarkerFound = true;
-                    newLines.Add(line.Replace(oldOptionName, newOptionName));
-                }
-                else if (beginMarkerFound)
-                {
-                    string oldOptionNameKebab = CommonTools.ConvertPascalToKebabCase(oldOptionName);
-                    string newOptionNameKebab = CommonTools.ConvertPascalToKebabCase(newOptionName);
-                    string newLine = line.Replace(oldOptionName, newOptionName).Replace(oldOptionNameKebab, newOptionNameKebab);
-                    newLines.Add(newLine);
-                    if (line.Contains(markerEnd, StringComparison.InvariantCultureIgnoreCase))
+                    endFound = false;
+                    List<string> optionBlock = new();
+
+                    for (int j = i; j < fileLinesContent.Count && !endFound; j++)
                     {
-                        beginMarkerFound = false;
+                        line = fileLinesContent[j];
+                        optionBlock.Add(line);
+
+                        if (line.Contains(markerEnd, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            endFound = true;
+                            i = j;
+                        }
+                    }
+
+                    foreach (string newOptionName in newOptions)
+                    {
+                        string oldOptionNameKebab = CommonTools.ConvertPascalToKebabCase(oldOptionName);
+                        string newOptionNameKebab = CommonTools.ConvertPascalToKebabCase(newOptionName);
+                        foreach (string optionLine in optionBlock)
+                        {
+                            string newLine = optionLine.Replace(oldOptionName, newOptionName).Replace(oldOptionNameKebab, newOptionNameKebab);
+                            newLines.Add(newLine);
+                        }
                     }
                 }
                 else
@@ -1442,7 +1446,7 @@
         public List<string> ChildrenName { get; }
         public bool IsOptionFound { get; set; }
         public List<string> OptionsName { get; }
-        public string OptionToAdd { get; set; }
+        public List<string> OptionToAdd { get; set; }
         public List<KeyValuePair<string, string>> DisplayToUpdate { get; }
         public bool IsParentToAdd { get; set; }
         public List<List<string>> ParentBlocks { get; }
