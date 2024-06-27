@@ -65,7 +65,7 @@
                 {
                     string filePath = Path.Combine(workingDirectoryPath, file.Key);
 
-                    if (zipData.FeatureType == FeatureType.WebApi)
+                    if (zipData.GenerationType == GenerationType.WebApi)
                     {
                         WebApiFileType? fileType = GetFileType(file.Value);
                         featureData = new WebApiFeatureData(file.Value, file.Key, workingDirectoryPath, fileType);
@@ -77,11 +77,11 @@
                                 ClassDefinition classFile = service.ParseClassFile(Path.Combine(workingDirectoryPath, file.Key));
                                 if (classFile != null)
                                 {
+                                    classFile.EntityName = GetEntityName(file.Value, fileType);
                                     ((WebApiFeatureData)featureData).Namespace = classFile.NamespaceSyntax.Name.ToString();
+                                    ((WebApiFeatureData)featureData).ClassFileDefinition = classFile;
                                     if (fileType == WebApiFileType.Dto)
                                     {
-                                        classFile.EntityName = GetEntityName(file.Value, fileType);
-                                        ((WebApiFeatureData)featureData).ClassFileDefinition = classFile;
                                         ((WebApiFeatureData)featureData).PropertiesInfos = service.GetPlaneDtoPropertyList(classFile.PropertyList, dtoCustomAttributeName);
                                     }
                                 }

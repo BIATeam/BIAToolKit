@@ -3,6 +3,7 @@
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -265,6 +266,12 @@
             return index;
         }
 
-
+        public static void CollectionRemoveAll<T>(this ObservableCollection<T> collection)
+        {
+            for (int i = collection.Count - 1; i >= 0; i--)
+            {
+                collection.RemoveAt(i);
+            }
+        }
     }
 }
