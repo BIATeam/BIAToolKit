@@ -280,7 +280,7 @@
                                         teamSingularName, teampluralName);
 
             // Generation DotNet + Angular files
-            List<string> optionsItems = vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList();
+            List<string> optionsItems = vm.OptionItems?.Where(o => o.Check).Select(o => o.OptionName).ToList();
             string path = crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, this.settings.GenerateInProjectFolder);
 
             // Generate generation history file
@@ -306,7 +306,7 @@
                     EntityNameSingular = vm.CRUDNameSingular,
                     EntityNamePlural = vm.CRUDNamePlural,
                     DisplayItem = vm.DtoDisplayItemSelected,
-                    OptionItems = vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList(),
+                    OptionItems = vm.OptionItems?.Where(o => o.Check).Select(o => o.OptionName).ToList(),
 
                     // Create "Mapping" part
                     Mapping = new()
@@ -317,7 +317,7 @@
                 };
 
                 // Create "Generation" list part
-                vm.ZipFeatureTypeList.ForEach(feature =>
+                vm.ZipFeatureTypeList.Where(f => f.FeatureDataList != null).ToList().ForEach(feature =>
                 {
                     if (feature.IsChecked)
                     {

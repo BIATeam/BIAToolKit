@@ -265,7 +265,7 @@ using Roslyn.Services;*/
                         string annontationType = attribute.Name.ToString();
                         if (dtoCustomAttributeName.Equals(annontationType, StringComparison.OrdinalIgnoreCase))
                         {
-                            List<AttributeArgumentSyntax> annotations = attribute.ArgumentList.Arguments.ToList();
+                            List<AttributeArgumentSyntax> annotations = attribute?.ArgumentList?.Arguments.ToList();
                             return new PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), annotations);
                         }
                     }

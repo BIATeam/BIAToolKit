@@ -311,11 +311,18 @@
         private void UpdateBackFile(string destDir, Project currentProject, WebApiFeatureData crudData, ClassDefinition dtoClassDefiniton, List<WebApiNamespace> crudNamespaceList, List<CrudProperty> crudDtoProperties, string displayItem, FeatureType type)
         {
             string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
+
             string fileName = Path.GetFileName(crudData.FilePath);
             string partFilePath = crudData.FilePath.Remove(crudData.FilePath.LastIndexOf(fileName));
-            partFilePath = ConvertPascalOldToNewCrudName(partFilePath, FeatureType.CRUD, false);
-            string dest = ConvertPascalOldToNewCrudName(Path.Combine(destDir, partFilePath, fileName), type, false);
-            dest = ReplaceCompagnyNameProjetName(dest, currentProject, dtoClassDefiniton);
+            partFilePath = ReplaceCompagnyNameProjetName(partFilePath, currentProject, dtoClassDefiniton);
+
+            string tmpDestDir = ConvertPascalOldToNewCrudName(destDir, type, false);
+            string tmpPartFilePath = ConvertPascalOldToNewCrudName(partFilePath, FeatureType.CRUD, false);
+            string tmpFileName = ConvertPascalOldToNewCrudName(fileName, type, false);
+            string dest = Path.Combine(tmpDestDir, tmpPartFilePath, tmpFileName);
+
+            //string dest = Path.Combine(destDir, partFilePath, fileName);
+            //dest = ConvertPascalOldToNewCrudName(dest, type, false);
 
             // Prepare destination folder
             CommonTools.CheckFolder(new FileInfo(dest).DirectoryName);

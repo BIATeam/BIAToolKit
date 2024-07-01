@@ -131,20 +131,6 @@
             }
         }
 
-        //private string optionItemSelected;
-        //public string OptionItemSelected
-        //{
-        //    get => optionItemSelected;
-        //    set
-        //    {
-        //        if (optionItemSelected != value)
-        //        {
-        //            optionItemSelected = value;
-        //            RaisePropertyChanged(nameof(OptionItemSelected));
-        //        }
-        //    }
-        //}
-
         private List<string> optionItemsSelected;
         public List<string> OptionItemsSelected
         {

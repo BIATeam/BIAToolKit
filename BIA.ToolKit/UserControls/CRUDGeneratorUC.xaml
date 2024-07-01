@@ -29,8 +29,6 @@
             </ComboBox.ItemTemplate>
         </ComboBox>
 
-
-
         <Label Content="Entity name (singular):" Margin="20,75,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
         <TextBox Text="{Binding CRUDNameSingular,UpdateSourceTrigger=PropertyChanged}" Margin="40,100,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntitySingularText_TextChanged" Height="21" IsEnabled="{Binding IsProjectChosen}"/>
         <Label Content="Entity name (plural):" Margin="380,75,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
