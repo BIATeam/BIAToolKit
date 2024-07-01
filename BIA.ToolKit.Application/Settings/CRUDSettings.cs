@@ -13,6 +13,8 @@
 
         public string DtoCustomAttributeName { get; private set; }
 
+        public string PackageLockFileName { get; private set; }
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -31,6 +33,7 @@
             GenerationSettingsFileName = settingsService.ReadSetting("GenerationSettings");
             GenerationHistoryFileName = settingsService.ReadSetting("GenerationHistory");
             DtoCustomAttributeName = settingsService.ReadSetting("DtoCustomAttribute");
+            PackageLockFileName = settingsService.ReadSetting("PackageLockFileName");
 
             string generate = settingsService.ReadSetting("GenerateInProjectFolder");
             if (!string.IsNullOrWhiteSpace(generate))

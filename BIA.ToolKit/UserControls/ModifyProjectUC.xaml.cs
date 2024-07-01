@@ -2,6 +2,7 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
@@ -25,6 +26,7 @@
         GitService gitService;
         CSharpParserService cSharpParserService;
         ProjectCreatorService projectCreatorService;
+        CRUDSettings crudSettings;
 
         public ModifyProjectUC()
         {
@@ -45,6 +47,7 @@
             MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
             MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter);
+            this.crudSettings = new(settingsService);
         }
 
         public void RefreshConfiguration()
@@ -170,6 +173,14 @@
             MergeRejected(true);
 
             MigrateMergeRejected.IsEnabled = false;
+
+            // delete PACKAGE_LOCK_FILE
+            string path = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, _viewModel.ModifyProject.CurrentProject.BIAFronts, crudSettings.PackageLockFileName);
+            if (new FileInfo(path).Exists)
+            {
+                File.Delete(path);
+            }
+
             Enable(true);
         }
 
