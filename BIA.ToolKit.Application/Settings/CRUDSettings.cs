@@ -11,7 +11,9 @@
         public string GenerationSettingsFileName { get; private set; }
         public string GenerationHistoryFileName { get; private set; }
 
-        public string DtoCustomAttributeName { get; private set; }
+        public string DtoCustomAttributeFieldName { get; private set; }
+
+        public string DtoCustomAttributeClassName { get; private set; }
 
         public string PackageLockFileName { get; private set; }
 
@@ -32,7 +34,8 @@
         {
             GenerationSettingsFileName = settingsService.ReadSetting("GenerationSettings");
             GenerationHistoryFileName = settingsService.ReadSetting("GenerationHistory");
-            DtoCustomAttributeName = settingsService.ReadSetting("DtoCustomAttribute");
+            DtoCustomAttributeFieldName = settingsService.ReadSetting("DtoCustomAttributeField");
+            DtoCustomAttributeClassName = settingsService.ReadSetting("DtoCustomAttributeClass");
             PackageLockFileName = settingsService.ReadSetting("PackageLockFileName");
 
             string generate = settingsService.ReadSetting("GenerateInProjectFolder");

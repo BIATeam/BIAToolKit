@@ -656,7 +656,7 @@
         Option,
         Display,
         Parent,
-        Front,
+        AncestorTeam,
         // Partial
         Config,
         Dependency,

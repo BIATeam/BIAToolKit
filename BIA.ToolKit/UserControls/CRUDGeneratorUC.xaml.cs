@@ -120,7 +120,7 @@
             // Clean all lists (in case of current project change)
             this.backSettingsList.Clear();
             this.frontSettingsList.Clear();
-            vm.OptionItems.Clear();
+            vm.OptionItems?.Clear();
             vm.ZipFeatureTypeList.Clear();
             vm.ZipDotNetCollection.Clear();
             vm.ZipAngularCollection.Clear();
@@ -401,7 +401,7 @@
                 }
 
                 // Parse Dto entity file
-                vm.DtoEntity = service.ParseEntity(fileName, settings.DtoCustomAttributeName);
+                vm.DtoEntity = service.ParseEntity(fileName, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
                 if (vm.DtoEntity == null || vm.DtoEntity.Properties == null || vm.DtoEntity.Properties.Count <= 0)
                 {
                     consoleWriter.AddMessageLine("No properties found on Dto file.", "Orange");
@@ -439,7 +439,7 @@
                 ZipFeatureType zipData = GetFeatureTypeData(generationType, featureType, zipSelectedList);
                 if (zipData != null)
                 {
-                    return zipService.ParseZipFile(zipData, folderName, settings.DtoCustomAttributeName);
+                    return zipService.ParseZipFile(zipData, folderName, settings.DtoCustomAttributeFieldName);
                 }
             }
             catch (Exception ex)

@@ -30,7 +30,7 @@ using Roslyn.Services;*/
             this.consoleWriter = consoleWriter;
         }
 
-        public EntityInfo ParseEntity(string fileName, string dtoCustomAttributeName)
+        public EntityInfo ParseEntity(string fileName, string dtoCustomFieldName, string dtoCustomClassName)
         {
 #if DEBUG
             consoleWriter.AddMessageLine($"*** Parse file: '{fileName}' ***", "Green");
@@ -100,9 +100,10 @@ using Roslyn.Services;*/
                 primaryKey = genericNameSyntax.Descendants<TypeArgumentListSyntax>().Single().Arguments[0].ToString();
             }
 
-            var properties = GetPlaneDtoPropertyList(root.Descendants<PropertyDeclarationSyntax>().ToList(), dtoCustomAttributeName);
+            var properties = GetPlaneDtoPropertyList(root.Descendants<PropertyDeclarationSyntax>().ToList(), dtoCustomFieldName);
+            var classAnnotations = GetPlaneDtoClassAnnotationList(classDeclarationSyntax.AttributeLists, dtoCustomClassName);
 
-            var entityInfo = new EntityInfo(@namespace, className, baseType, primaryKey/*, relativeDirectory*/);
+            var entityInfo = new EntityInfo(@namespace, className, baseType, primaryKey/*, relativeDirectory*/, classAnnotations);
             entityInfo.Properties.AddRange(properties);
             if (keyNames != null)
             {
@@ -272,6 +273,23 @@ using Roslyn.Services;*/
                 }
                 return new PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), null);
             }).ToList();
+        }
+
+        public List<AttributeArgumentSyntax> GetPlaneDtoClassAnnotationList(SyntaxList<AttributeListSyntax> attributeLists, string dtoCustomClassName)
+        {
+            //List<KeyValuePair<string, string>> annotationList = new List<KeyValuePair<string, string>>();
+            foreach (AttributeListSyntax attributes in attributeLists)
+            {
+                foreach (AttributeSyntax attribute in attributes.Attributes.ToList())
+                {
+                    string annontationType = attribute.Name.ToString();
+                    if (dtoCustomClassName.Equals(annontationType, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return attribute?.ArgumentList?.Arguments.ToList();
+                    }
+                }
+            }
+            return null;
         }
 
     }
