@@ -101,6 +101,12 @@
 
                     zipData.FeatureDataList.Add(featureData);
                 }
+
+                // Populate 'ExtractItem' of Display block
+                if (zipData.GenerationType == GenerationType.Front && zipData.FeatureType == FeatureType.CRUD)
+                {
+                    PopulateExtractItemDisplayBlock(zipData.FeatureDataList);
+                }
             }
             else
             {
@@ -109,6 +115,35 @@
             }
 
             return true;
+        }
+
+        private void PopulateExtractItemDisplayBlock(List<FeatureData> featureDataList)
+        {
+            List<FeatureData> featureProperties = featureDataList.Where(f =>
+            {
+                if (f.ExtractBlocks == null) return false;
+                return f.ExtractBlocks.Select(b => b.DataUpdateType == CRUDDataUpdateType.Properties).FirstOrDefault();
+            }).ToList();
+
+            List<FeatureData> featureDisplay = featureDataList.Where(f =>
+            {
+                if (f.ExtractBlocks == null) return false;
+                return f.ExtractBlocks.Select(b => b.DataUpdateType == CRUDDataUpdateType.Display).FirstOrDefault();
+            }).ToList();
+
+            if (featureProperties != null && featureDisplay != null)
+            {
+                ExtractPropertiesBlock propBlock = (ExtractPropertiesBlock)featureProperties.FirstOrDefault().ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.Properties).FirstOrDefault();
+
+                // Populate 'ExtractItem' of Display block
+                foreach (FeatureData display in featureDisplay)
+                {
+                    foreach (ExtractDisplayBlock displayBlock in display.ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.Display))
+                    {
+                        displayBlock.ExtractItem = propBlock.PropertiesList.FirstOrDefault().Name;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -201,20 +236,6 @@
                     else
                     {
                         extractBlocksList.AddRange(ExtractBlocks(type, fileLines));
-                    }
-                }
-
-                ExtractPropertiesBlock propertiesBlock = (ExtractPropertiesBlock)extractBlocksList.FirstOrDefault(b => b.DataUpdateType == CRUDDataUpdateType.Properties);
-                if (propertiesBlock != null)
-                {
-                    // Populate 'ExtractItem' of Display block
-                    List<ExtractBlock> displays = extractBlocksList.FindAll(b => b.DataUpdateType == CRUDDataUpdateType.Display);
-                    if (displays.Any())
-                    {
-                        foreach (ExtractDisplayBlock displayBlock in displays)
-                        {
-                            displayBlock.ExtractItem = propertiesBlock.PropertiesList.First(x => displayBlock.ExtractLine.Contains(x.Name)).Name;
-                        }
                     }
                 }
             }

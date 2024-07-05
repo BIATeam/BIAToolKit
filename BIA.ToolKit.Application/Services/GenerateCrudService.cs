@@ -199,6 +199,7 @@
         private void GenerateFrontCRUD(string angularDir, List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties, EntityInfo crudDtoEntity,
             List<PropertyInfo> dtoRefProperties, string displayItem, List<string> optionItem)
         {
+            const FeatureType type = FeatureType.CRUD;
             try
             {
                 foreach (FeatureData crudData in featureDataList)
@@ -207,18 +208,18 @@
                     {
                         // Update with partial file
                         string srcDir = Path.Combine(GetGenerationFolder(currentProject), currentProject.BIAFronts);
-                        UpdatePartialFile(srcDir, angularDir, currentProject, crudData, FeatureType.CRUD);
+                        UpdatePartialFile(srcDir, angularDir, currentProject, crudData, type);
                     }
                     else
                     {
-                        GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, dtoRefProperties, displayItem, optionItem);
+                        GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, dtoRefProperties, displayItem, type, optionItem);
 
                         // Create file
                         string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
-                        string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, crudData.FilePath), FeatureType.CRUD);
+                        string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, crudData.FilePath), type);
 
                         // Replace blocks
-                        GenerateAngularFile(FeatureType.CRUD, src, dest, crudDtoEntity, generationData);
+                        GenerateAngularFile(type, src, dest, crudDtoEntity, generationData);
                     }
                 }
             }
@@ -256,7 +257,7 @@
         #endregion
 
         private GenerationCrudData ExtractGenerationCrudData(FeatureData crudData, List<CrudProperty> crudDtoProperties, List<PropertyInfo> dtoRefProperties,
-            string displayItem, List<string> optionItem = null)
+            string displayItem, FeatureType type, List<string> optionItem = null)
         {
             GenerationCrudData generationData = null;
             if (crudData.ExtractBlocks?.Count > 0)
@@ -282,7 +283,7 @@
                         case CRUDDataUpdateType.Display:
                             string extractItem = ((ExtractDisplayBlock)block).ExtractItem;
                             string extractLine = ((ExtractDisplayBlock)block).ExtractLine;
-                            string newDisplayLine = extractLine.Replace(extractItem, CommonTools.ConvertToCamelCase(displayItem));
+                            string newDisplayLine = ConvertPascalOldToNewCrudName(extractLine, type).Replace(extractItem, CommonTools.ConvertToCamelCase(displayItem));
                             generationData.DisplayToUpdate.Add(new KeyValuePair<string, string>(extractLine, newDisplayLine));
                             break;
                         case CRUDDataUpdateType.AncestorTeam:
@@ -333,7 +334,7 @@
             // Prepare destination folder
             CommonTools.CheckFolder(new FileInfo(dest).DirectoryName);
 
-            GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, null, displayItem);
+            GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, null, displayItem, type);
 
             // Read file
             List<string> fileLinesContent = File.ReadAllLines(src).ToList();
