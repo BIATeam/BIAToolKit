@@ -180,8 +180,9 @@
                 histories?.ForEach(h =>
                 {
                     string optionName = h.EntityNameSingular;
-                    if (!vm.OptionItems.Any(o => o.OptionName == optionName))
-                        vm.OptionItems.Add(new OptionItem() { OptionName = optionName });
+                    if (vm.OptionItems != null)
+                        if (!vm.OptionItems.Any(o => o.OptionName == optionName))
+                            vm.OptionItems.Add(new OptionItem() { OptionName = optionName });
                 });
             }
 

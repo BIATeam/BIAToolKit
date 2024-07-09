@@ -21,7 +21,7 @@
         <Label Content="Display item name:"  Margin="380,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
         <ComboBox ItemsSource="{Binding DtoDisplayItems}" SelectedValue="{Binding DtoDisplayItemSelected}" Margin="400,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" IsEnabled="{Binding IsDtoParsed}"/>
         <Label Content="Option item:"  Margin="540,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
-        <ComboBox ItemsSource="{Binding OptionItems}" Margin="560,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="140" IsEnabled="{Binding IsButtonParseDtoEnable}">
+        <ComboBox ItemsSource="{Binding OptionItems}" Margin="560,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="140" IsEnabled="{Binding IsOptionItemEnable}">
             <ComboBox.ItemTemplate>
                 <DataTemplate >
                     <CheckBox Content="{Binding OptionName}" IsChecked="{Binding Check}" />
@@ -44,10 +44,10 @@
         <CheckBox Margin="500,185,0,0" Content="Team" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsTeamSelected}" IsEnabled="False"/>
 
         <Label Content="Data model zip file (DotNet):" Margin="20,205,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
-        <ListBox ItemsSource="{Binding ZipDotNetCollection}" Margin="40,230,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Name="ZipDotNetSelectedTB" Height="75"/>
+        <ListBox ItemsSource="{Binding ZipDotNetCollection}" Margin="40,230,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Name="ZipDotNetSelectedTB" Height="50" IsEnabled="False"/>
 
         <Label Content="Data model zip file (Angular):" Margin="380,205,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
-        <ListBox ItemsSource="{Binding ZipAngularCollection}" Margin="400,230,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Name="ZipAngularSelectedTB" Height="75"/>
+        <ListBox ItemsSource="{Binding ZipAngularCollection}" Margin="400,230,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Name="ZipAngularSelectedTB" Height="50" IsEnabled="False"/>
 
         <Button Content="1. Parse Dto" IsEnabled="{Binding IsButtonParseDtoEnable}" Margin="0,50,150,0" Width="120" x:Name="ParseDto" Height="40" HorizontalAlignment="Right" VerticalAlignment="Top" Click="ParseDto_Click"/>
         <Button Content="2. Parse Zip" IsEnabled="{Binding IsButtonParseZipEnable}" Margin="0,125,150,0" Width="120" x:Name="ParseZip" Height="40" HorizontalAlignment="Right" VerticalAlignment="Top" Click="ParseZip_Click"/>
