@@ -262,6 +262,7 @@
                 {
                     isOptionSelected = value;
                     RaisePropertyChanged(nameof(IsOptionSelected));
+                    RaisePropertyChanged(nameof(IsOptionItemEnable));
                     UpdateFeatureSelection();
                 }
             }
@@ -400,6 +401,15 @@
         #endregion
 
         #region Button
+
+        public bool IsOptionItemEnable
+        {
+            get
+            {
+                return IsButtonParseDtoEnable && !IsOptionSelected;
+            }
+        }
+
         public bool IsButtonParseDtoEnable
         {
             get

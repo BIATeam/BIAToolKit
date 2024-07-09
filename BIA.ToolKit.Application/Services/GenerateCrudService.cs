@@ -328,9 +328,6 @@
             string tmpFileName = ConvertPascalOldToNewCrudName(fileName, type, false);
             string dest = Path.Combine(tmpDestDir, tmpPartFilePath, tmpFileName);
 
-            //string dest = Path.Combine(destDir, partFilePath, fileName);
-            //dest = ConvertPascalOldToNewCrudName(dest, type, false);
-
             // Prepare destination folder
             CommonTools.CheckFolder(new FileInfo(dest).DirectoryName);
 
@@ -1211,21 +1208,18 @@
                 }
                 if (!string.IsNullOrEmpty(pathValue))
                 {
-                    string newPathValue = ReplaceOldCamelToNewKebabPath(pathValue, type, false);
+                    string newPathValue = ConvertCamelToKebabCrudName(pathValue, type);
                     newLine = newLine.Replace(pathValue, newPathValue);
                 }
+                return newLine;
             }
             else if (CommonTools.IsMatchRegexValue(regexComponentPath, newLine))
             {
                 string pathValue = CommonTools.GetMatchRegexValue(regexComponentPath, newLine, 1);
                 if (!string.IsNullOrEmpty(pathValue))
                 {
-                    string newPathValue = ReplaceOldCamelToNewKebabPath(pathValue, type, false);
-                    newLine = newLine.Replace(pathValue, newPathValue);
-                }
-                else
-                {
-                    newLine = ReplaceOldCamelToNewKebabPath(newLine, type, true);
+                    string newPathValue = ConvertCamelToKebabCrudName(pathValue, type);
+                    return newLine.Replace(pathValue, newPathValue);
                 }
             }
             else if (CommonTools.IsMatchRegexValue(regexComponentHtml, newLine))
@@ -1233,20 +1227,12 @@
                 string compValue = CommonTools.GetMatchRegexValue(regexComponentHtml, newLine, 1);
                 if (!string.IsNullOrEmpty(compValue))
                 {
-                    string newPathValue = ReplaceOldCamelToNewKebabPath(compValue, type, false);
-                    newLine = newLine.Replace(compValue, newPathValue);
+                    string newPathValue = ConvertCamelToKebabCrudName(compValue, type);
+                    return newLine.Replace(compValue, newPathValue);
                 }
-                else
-                {
-                    newLine = ReplaceOldCamelToNewKebabPath(newLine, type, true);
-                }
-            }
-            else
-            {
-                newLine = ConvertPascalOldToNewCrudName(newLine, type, true);
             }
 
-            return newLine;
+            return ConvertPascalOldToNewCrudName(newLine, type, true);
         }
 
         private void PrepareParentBlock(List<ExtractBlock> parentBlocks, GenerationCrudData generationData, List<CrudProperty> crudDtoProperties)
@@ -1330,7 +1316,6 @@
             return value;
         }
 
-
         private List<int> FindOccurences(string line, string search)
         {
             int lastIndex = 0;
@@ -1349,32 +1334,6 @@
             }
 
             return indexList;
-        }
-
-        private string ReplaceOldCamelToNewKebabPath(string value, FeatureType type, bool convertCamel)
-        {
-            switch (type)
-            {
-                case FeatureType.CRUD:
-                    //if (value.Contains($"{/OldCrudNameCamelPlural}") || value.Contains($"{/OldCrudNameCamelSingular}"))
-                    //{
-                    value = ReplaceOldToNewValue(value, OldCrudNameCamelPlural, NewCrudNameKebabPlural, OldCrudNameCamelSingular, NewCrudNameKebabSingular);
-                    //}
-                    break;
-                case FeatureType.Option:
-                    //if (value.Contains($"{/OldOptionNameCamelPlural}") || value.Contains($"{/OldOptionNameCamelSingular}"))
-                    //{
-                    value = ReplaceOldToNewValue(value, OldOptionNameCamelPlural, NewCrudNameKebabPlural, OldOptionNameCamelSingular, NewCrudNameKebabSingular);
-                    //}
-                    break;
-                case FeatureType.Team:
-                default:
-                    // TODO
-                    break;
-            }
-
-            //value = ConvertPascalOldToNewCrudName(value, type, convertCamel);
-            return value;
         }
 
         /// <summary>

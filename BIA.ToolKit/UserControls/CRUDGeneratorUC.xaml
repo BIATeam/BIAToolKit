@@ -21,7 +21,7 @@
         <Label Content="Display item name:"  Margin="380,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
         <ComboBox ItemsSource="{Binding DtoDisplayItems}" SelectedValue="{Binding DtoDisplayItemSelected}" Margin="400,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" IsEnabled="{Binding IsDtoParsed}"/>
         <Label Content="Option item:"  Margin="540,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"  />
-        <ComboBox ItemsSource="{Binding OptionItems}" Margin="560,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="140" IsEnabled="{Binding IsButtonParseDtoEnable}">
+        <ComboBox ItemsSource="{Binding OptionItems}" Margin="560,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="140" IsEnabled="{Binding IsOptionItemEnable}">
             <ComboBox.ItemTemplate>
                 <DataTemplate >
                     <CheckBox Content="{Binding OptionName}" IsChecked="{Binding Check}" />
