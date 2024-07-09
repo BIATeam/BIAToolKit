@@ -498,7 +498,7 @@
                     // Generate content to add
                     block.BlockLines.ForEach(line =>
                     {
-                        string newline = ReplaceOldCamelToNewKebabPath(line, type);
+                        string newline = UpdateFrontLines(line, type);
                         if (dtoClassDefiniton != null)
                         {
                             newline = ReplaceCompagnyNameProjetName(newline, currentProject, dtoClassDefiniton);
@@ -1153,11 +1153,6 @@
 
         private List<string> UpdateFileLinesContent(List<string> lines, FeatureType type)
         {
-            const string startImportRegex = @"^\s*[\/\*]*\s*import\s+";
-            const string regexComponent = @"^\s*[\/\*]*\s*import\s+{([\s\w,]*)}";
-            const string regexComponentAs = @"^\s*[\/\*]*\s*import\s+\*\s+as\s+([\w,]*)\s+from";
-            const string regexPath = @"\s*from\s*\'([\S]*)\';$";
-
             bool markerFound = false;
             for (int i = 0; i < lines?.Count; i++)
             {
@@ -1177,35 +1172,81 @@
                     continue;
                 }
 
-                if (CommonTools.IsMatchRegexValue(startImportRegex, lines[i]))
-                {
-                    // Update part between "import" and "from"
-                    string componentValue = CommonTools.GetMatchRegexValue(regexComponent, lines[i], 1);
-                    if (string.IsNullOrEmpty(componentValue))
-                    {
-                        componentValue = CommonTools.GetMatchRegexValue(regexComponentAs, lines[i], 1);
-                    }
-                    if (!string.IsNullOrEmpty(componentValue))
-                    {
-                        string newComponentValue = ConvertPascalOldToNewCrudName(componentValue, type);
-                        lines[i] = lines[i].Replace(componentValue, newComponentValue);
-                    }
-
-                    // Update part after "from"
-                    string pathValue = CommonTools.GetMatchRegexValue(regexPath, lines[i], 1);
-                    if (!string.IsNullOrEmpty(pathValue))
-                    {
-                        string newPathValue = ReplaceOldCamelToNewKebabPath(pathValue, type);
-                        lines[i] = lines[i].Replace(pathValue, newPathValue);
-                    }
-                }
-                else
-                {
-                    lines[i] = ReplaceOldCamelToNewKebabPath(lines[i], type);
-                }
+                lines[i] = UpdateFrontLines(lines[i], type);
             }
 
             return lines;
+        }
+
+        private string UpdateFrontLines(string line, FeatureType type)
+        {
+            const string startImportRegex = @"^\s*[\/\*]*\s*import\s*[{(*]";
+            const string regexComponent = @"^\s*[\/\*]*\s*import\s+{([\s\w,]*)}";
+            const string regexComponentAs = @"^\s*[\/\*]*\s*import\s+\*\s+as\s+([\w,]*)\s+from";
+            const string regexPath = @"\s*from\s*\'([\S]*)\';$";
+            const string regexPathThen = @"^\s*[\/\*]*\s*import\s*\('([\w.\/]*)'\)";
+            const string regexComponentPath = @"'([\.\/A-Za-z-]+)'[^\)]";
+            const string regexComponentHtml = @"<\/?app-([a-z-]+)>?";
+
+            string newLine = line;
+            if (CommonTools.IsMatchRegexValue(startImportRegex, newLine))
+            {
+                // Update part between "import" and "from"
+                string componentValue = CommonTools.GetMatchRegexValue(regexComponent, newLine, 1);
+                if (string.IsNullOrEmpty(componentValue))
+                {
+                    componentValue = CommonTools.GetMatchRegexValue(regexComponentAs, newLine, 1);
+                }
+                if (!string.IsNullOrEmpty(componentValue))
+                {
+                    string newComponentValue = ConvertPascalOldToNewCrudName(componentValue, type);
+                    newLine = newLine.Replace(componentValue, newComponentValue);
+                }
+
+                // Update part after "from"
+                string pathValue = CommonTools.GetMatchRegexValue(regexPath, newLine, 1);
+                if (string.IsNullOrEmpty(pathValue))
+                {
+                    pathValue = CommonTools.GetMatchRegexValue(regexPathThen, newLine, 1);
+                }
+                if (!string.IsNullOrEmpty(pathValue))
+                {
+                    string newPathValue = ReplaceOldCamelToNewKebabPath(pathValue, type, false);
+                    newLine = newLine.Replace(pathValue, newPathValue);
+                }
+            }
+            else if (CommonTools.IsMatchRegexValue(regexComponentPath, newLine))
+            {
+                string pathValue = CommonTools.GetMatchRegexValue(regexComponentPath, newLine, 1);
+                if (!string.IsNullOrEmpty(pathValue))
+                {
+                    string newPathValue = ReplaceOldCamelToNewKebabPath(pathValue, type, false);
+                    newLine = newLine.Replace(pathValue, newPathValue);
+                }
+                else
+                {
+                    newLine = ReplaceOldCamelToNewKebabPath(newLine, type, true);
+                }
+            }
+            else if (CommonTools.IsMatchRegexValue(regexComponentHtml, newLine))
+            {
+                string compValue = CommonTools.GetMatchRegexValue(regexComponentHtml, newLine, 1);
+                if (!string.IsNullOrEmpty(compValue))
+                {
+                    string newPathValue = ReplaceOldCamelToNewKebabPath(compValue, type, false);
+                    newLine = newLine.Replace(compValue, newPathValue);
+                }
+                else
+                {
+                    newLine = ReplaceOldCamelToNewKebabPath(newLine, type, true);
+                }
+            }
+            else
+            {
+                newLine = ConvertPascalOldToNewCrudName(newLine, type, true);
+            }
+
+            return newLine;
         }
 
         private void PrepareParentBlock(List<ExtractBlock> parentBlocks, GenerationCrudData generationData, List<CrudProperty> crudDtoProperties)
@@ -1310,17 +1351,29 @@
             return indexList;
         }
 
-        private string ReplaceOldCamelToNewKebabPath(string value, FeatureType type)
+        private string ReplaceOldCamelToNewKebabPath(string value, FeatureType type, bool convertCamel)
         {
-            if (value.Contains($"/{OldCrudNameCamelPlural}") || value.Contains($"/{OldCrudNameCamelSingular}"))
+            switch (type)
             {
-                value = ReplaceOldToNewValue(value, OldCrudNameCamelPlural, NewCrudNameKebabPlural, OldCrudNameCamelSingular, NewCrudNameKebabSingular);
-                value = ConvertPascalOldToNewCrudName(value, type, false);
+                case FeatureType.CRUD:
+                    //if (value.Contains($"{/OldCrudNameCamelPlural}") || value.Contains($"{/OldCrudNameCamelSingular}"))
+                    //{
+                    value = ReplaceOldToNewValue(value, OldCrudNameCamelPlural, NewCrudNameKebabPlural, OldCrudNameCamelSingular, NewCrudNameKebabSingular);
+                    //}
+                    break;
+                case FeatureType.Option:
+                    //if (value.Contains($"{/OldOptionNameCamelPlural}") || value.Contains($"{/OldOptionNameCamelSingular}"))
+                    //{
+                    value = ReplaceOldToNewValue(value, OldOptionNameCamelPlural, NewCrudNameKebabPlural, OldOptionNameCamelSingular, NewCrudNameKebabSingular);
+                    //}
+                    break;
+                case FeatureType.Team:
+                default:
+                    // TODO
+                    break;
             }
-            else
-            {
-                value = ConvertPascalOldToNewCrudName(value, type);
-            }
+
+            //value = ConvertPascalOldToNewCrudName(value, type, convertCamel);
             return value;
         }
 
