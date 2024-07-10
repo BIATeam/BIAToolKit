@@ -247,6 +247,7 @@
                 {
                     isCrudSelected = value;
                     RaisePropertyChanged(nameof(IsCrudSelected));
+                    RaisePropertyChanged(nameof(IsOptionItemEnable));
                     UpdateFeatureSelection();
                 }
             }
@@ -406,7 +407,7 @@
         {
             get
             {
-                return IsButtonParseDtoEnable && !IsOptionSelected;
+                return IsButtonParseDtoEnable && IsCrudSelected && !IsOptionSelected;
             }
         }
 
@@ -445,6 +446,12 @@
     {
         public bool Check { get; set; }
         public string OptionName { get; set; }
+
+        public OptionItem(string name, bool check = false)
+        {
+            this.Check = check;
+            this.OptionName = name;
+        }
     }
 
     public class ZipFeatureType

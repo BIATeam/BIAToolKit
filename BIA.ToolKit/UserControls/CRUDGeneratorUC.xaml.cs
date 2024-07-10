@@ -141,21 +141,21 @@
         private void ModifyDto_SelectionChanged(object sender, RoutedEventArgs e)
         {
             if (vm == null) return;
+
             vm.IsDtoParsed = false;
             vm.DtoDisplayItems = null;
-            vm.OptionItems = null;
-            vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
-
             bool isBackSelected = true, isFrontSelected = true;
             bool isCrudSelected = false, isOptionSelected = false, isTeamSelected = false;
             Visibility msgVisibility = Visibility.Hidden;
+
+            vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
+            ParseDomains();
 
             if (this.crudHistory != null)
             {
                 string dtoName = GetDtoSelectedPath();
                 if (!string.IsNullOrEmpty(dtoName))
                 {
-                    vm.OptionItems = new();
                     CRUDGenerationHistory history = crudHistory.CRUDGenerationHistory.FirstOrDefault(h => h.Mapping.Dto == dtoName);
 
                     if (history != null)
@@ -163,7 +163,11 @@
                         // Apply last generation values
                         vm.CRUDNameSingular = history.EntityNameSingular;
                         vm.CRUDNamePlural = history.EntityNamePlural;
-                        history.OptionItems?.ForEach(o => vm.OptionItems.Add(new OptionItem() { Check = true, OptionName = o }));
+                        history.OptionItems?.ForEach(o =>
+                        {
+                            OptionItem item = vm.OptionItems.FirstOrDefault(x => x.OptionName == o);
+                            if (item != null) item.Check = true;
+                        });
 
                         isBackSelected = history.Generation.Any(g => g.GenerationType == GenerationType.WebApi.ToString());
                         isFrontSelected = history.Generation.Any(g => g.GenerationType == GenerationType.Front.ToString());
@@ -177,13 +181,6 @@
                 List<CRUDGenerationHistory> histories = crudHistory.CRUDGenerationHistory.Where(h =>
                     (h.Mapping.Dto != dtoName) &&
                     h.Generation.Any(g => g.Feature == FeatureType.Option.ToString())).ToList();
-                histories?.ForEach(h =>
-                {
-                    string optionName = h.EntityNameSingular;
-                    if (vm.OptionItems != null)
-                        if (!vm.OptionItems.Any(o => o.OptionName == optionName))
-                            vm.OptionItems.Add(new OptionItem() { OptionName = optionName });
-                });
             }
 
             CrudAlreadyGeneratedLabel.Visibility = msgVisibility;
@@ -227,6 +224,20 @@
         private void ParseDto_Click(object sender, RoutedEventArgs e)
         {
             vm.IsDtoParsed = ParseDtoFile();
+        }
+
+        private void ParseDomains()
+        {
+            const string suffix = "-option";
+            const string domainsPath = @"src\app\domains";
+
+            // List Options folders
+            string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, vm.CurrentProject.BIAFronts, domainsPath);
+            List<string> folders = Directory.GetDirectories(folderPath, $"*{suffix}", SearchOption.AllDirectories).ToList();
+
+            // Get Options name
+            vm.OptionItems?.Clear();
+            folders.ForEach(f => vm.OptionItems.Add(new OptionItem(new DirectoryInfo(f).Name.Replace(suffix, ""))));
         }
 
         /// <summary>
@@ -281,7 +292,7 @@
                                         teamSingularName, teampluralName);
 
             // Generation DotNet + Angular files
-            List<string> optionsItems = vm.OptionItems?.Where(o => o.Check).Select(o => o.OptionName).ToList();
+            List<string> optionsItems = vm.IsOptionSelected ? vm.OptionItems?.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
             string path = crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, this.settings.GenerateInProjectFolder);
 
             // Generate generation history file
