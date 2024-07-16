@@ -230,14 +230,16 @@
         {
             const string suffix = "-option";
             const string domainsPath = @"src\app\domains";
+            List<string> foldersName = new();
 
             // List Options folders
             string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, vm.CurrentProject.BIAFronts, domainsPath);
             List<string> folders = Directory.GetDirectories(folderPath, $"*{suffix}", SearchOption.AllDirectories).ToList();
+            folders.ForEach(f => foldersName.Add(new DirectoryInfo(f).Name.Replace(suffix, "")));
 
             // Get Options name
             vm.OptionItems?.Clear();
-            folders.ForEach(f => vm.OptionItems.Add(new OptionItem(new DirectoryInfo(f).Name.Replace(suffix, ""))));
+            foldersName.ForEach(f => vm.OptionItems.Add(new OptionItem(CommonTools.ConvertKebabToPascalCase(f))));
         }
 
         /// <summary>
@@ -292,7 +294,7 @@
                                         teamSingularName, teampluralName);
 
             // Generation DotNet + Angular files
-            List<string> optionsItems = vm.IsOptionSelected ? vm.OptionItems?.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
+            List<string> optionsItems = !vm.IsOptionSelected ? vm.OptionItems?.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
             string path = crudService.GenerateCrudFiles(vm.CurrentProject, vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, this.settings.GenerateInProjectFolder);
 
             // Generate generation history file
