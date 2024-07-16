@@ -97,6 +97,7 @@
                     {
                         featureData = new FeatureData(file.Value, file.Key, workingDirectoryPath);
                         featureData.ExtractBlocks = AnalyzeFile(filePath, featureData);
+                        featureData.IsPropertyFile = featureData.ExtractBlocks?.Find(e => e.DataUpdateType == CRUDDataUpdateType.Properties) != null;
                     }
 
                     zipData.FeatureDataList.Add(featureData);
@@ -380,8 +381,11 @@
             List<ExtractBlock> extractBlocksList = new();
             string markerBegin = $"{MARKER_BEGIN} {type}";
             string markerEnd = $"{MARKER_END} {type}";
+            string regex = @$"{markerBegin}\s+(\w+)\s*(\w+)*";
+            string regexBegin = @$"{markerBegin}(?![A-Za-z]+)";
+            string regexEnd = @$"{markerEnd}(?![A-Za-z]+)";
 
-            int nbOccur = lines.Count(l => l.Contains(markerBegin));
+            int nbOccur = lines.Count(l => CommonTools.IsMatchRegexValue(regexBegin, l));
             if (nbOccur > 0)
             {
                 int indexStart = -1;
@@ -391,8 +395,8 @@
                 for (int i = 1; i <= nbOccur; i++)
                 {
                     // Find start and stop block
-                    indexStart = lines.FindIndex(indexStart + 1, lines.Count - indexStart - 1, l => l.Contains(markerBegin));
-                    indexEnd = lines.FindIndex(indexStart, lines.Count - indexStart, l => l.Contains(markerEnd));
+                    indexStart = lines.FindIndex(indexStart + 1, lines.Count - indexStart - 1, l => CommonTools.IsMatchRegexValue(regexBegin, l));
+                    indexEnd = lines.FindIndex(indexStart, lines.Count - indexStart, l => CommonTools.IsMatchRegexValue(regexEnd, l));
 
                     if (indexStart < 0 || indexEnd < 0)
                     {
@@ -404,7 +408,7 @@
                     List<string> blockLines = lines.ToArray()[indexStart..++indexEnd].ToList();
 
                     // Get block name (if exist)
-                    string name = CommonTools.GetMatchRegexValue(@$"(?:{markerBegin})[\s+](\w+)", blockLines[0]);
+                    string name = CommonTools.GetMatchRegexValue(regex, blockLines[0], 1);
 
                     switch (type)
                     {
@@ -421,9 +425,6 @@
                             });
                             extractBlocksList.Add(new ExtractPropertiesBlock(type, name, blockLines) { PropertiesList = propertyList });
                             break;
-                        case CRUDDataUpdateType.Block:
-                            extractBlocksList.Add(new ExtractBlock(type, name, blockLines));
-                            break;
                         case CRUDDataUpdateType.Display:
                             List<string> displayLines = blockLines.Where(l => !l.TrimStart().StartsWith("//")).ToList();
                             if (displayLines?.Count != 1)
@@ -431,6 +432,10 @@
                                 consoleWriter.AddMessageLine($"Incorrect Display block format: '{blockLines}'", "Orange");
                             }
                             extractBlocksList.Add(new ExtractDisplayBlock(type, name, blockLines) { ExtractLine = displayLines[0].TrimStart() });
+                            break;
+                        case CRUDDataUpdateType.OptionField:
+                            string fieldName = CommonTools.GetMatchRegexValue(regex, blockLines[0], 2);
+                            extractBlocksList.Add(new ExtractOptionFieldBlock(type, name, fieldName, blockLines));
                             break;
                         default:
                             extractBlocksList.Add(new ExtractBlock(type, name, blockLines));

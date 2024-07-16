@@ -18,6 +18,7 @@
         internal const string BIA_DTO_FIELD_TYPE = "Type";
         internal const string BIA_DTO_FIELD_REQUIRED = "Required";
         internal const string BIA_DTO_FIELD_ISPARENT = "IsParent";
+        internal const string BIA_DTO_FIELD_ITEMTYPE = "ItemType";
 
         private const string ATTRIBUTE_TYPE_NOT_MANAGED = $"// CRUD GENERATOR FOR PLANE TO REVIEW : Field {ATTRIBUTE_TYPE_NOT_MANAGED_FIELD} or type {ATTRIBUTE_TYPE_NOT_MANAGED_TYPE} not managed.";
         private const string ATTRIBUTE_TYPE_NOT_MANAGED_FIELD = "XXXFieldXXX";
@@ -202,7 +203,11 @@
             const FeatureType type = FeatureType.CRUD;
             try
             {
-                foreach (FeatureData crudData in featureDataList)
+                List<CRUDPropertyType> propertyList = ((ExtractPropertiesBlock)featureDataList.
+                    FirstOrDefault(f => f.IsPropertyFile)?.ExtractBlocks.
+                    FirstOrDefault(b => b.DataUpdateType == CRUDDataUpdateType.Properties))?.PropertiesList;
+
+                foreach (FeatureData crudData in featureDataList.OrderByDescending(f => f.IsPropertyFile))
                 {
                     if (crudData.IsPartialFile)
                     {
@@ -219,7 +224,7 @@
                         string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, crudData.FilePath), type);
 
                         // Replace blocks
-                        GenerateAngularFile(type, src, dest, crudDtoEntity, generationData);
+                        GenerateAngularFile(type, src, dest, crudDtoEntity, generationData, crudDtoProperties, propertyList);
                     }
                 }
             }
@@ -278,7 +283,11 @@
                             generationData.IsOptionFound |= block.BlockLines.Count > 0;
                             if (!string.IsNullOrWhiteSpace(block.Name) && !generationData.OptionsName.Contains(block.Name))
                                 generationData.OptionsName.Add(block.Name);
-                            generationData.OptionToAdd = optionItem;
+                            generationData.OptionsToAdd = optionItem;
+                            break;
+                        case CRUDDataUpdateType.OptionField:
+                            if (!string.IsNullOrWhiteSpace(block.Name) && !generationData.OptionsFields.Contains(block.Name))
+                                generationData.OptionsFields.Add(block.Name);
                             break;
                         case CRUDDataUpdateType.Display:
                             string extractItem = ((ExtractDisplayBlock)block).ExtractItem;
@@ -311,7 +320,6 @@
 
             return generationData;
         }
-
 
         #region DotNet Files
         private void UpdateBackFile(string destDir, Project currentProject, WebApiFeatureData crudData, ClassDefinition dtoClassDefiniton, List<WebApiNamespace> crudNamespaceList,
@@ -523,7 +531,8 @@
         #endregion
 
         #region Angular Files
-        private void GenerateAngularFile(FeatureType type, string fileName, string newFileName, EntityInfo crudDtoEntity, GenerationCrudData generationData = null)
+        private void GenerateAngularFile(FeatureType type, string fileName, string newFileName, EntityInfo crudDtoEntity,
+            GenerationCrudData generationData = null, List<CrudProperty> crudDtoProperties = null, List<CRUDPropertyType> propertyList = null)
         {
             if (!File.Exists(fileName))
             {
@@ -539,13 +548,14 @@
 
             // Update file content
             fileLinesContent = UpdateFileLinesContent(fileLinesContent, type);
-            fileLinesContent = UpdateFileContent(fileLinesContent, generationData, fileName, crudDtoEntity);
+            fileLinesContent = UpdateFileContent(fileLinesContent, generationData, fileName, crudDtoEntity, crudDtoProperties, propertyList);
 
             // Generate new file
             CommonTools.GenerateFile(newFileName, fileLinesContent);
         }
 
-        private List<string> UpdateFileContent(List<string> fileLinesContent, GenerationCrudData generationData, string fileName, EntityInfo crudDtoEntity)
+        private List<string> UpdateFileContent(List<string> fileLinesContent, GenerationCrudData generationData, string fileName, EntityInfo crudDtoEntity,
+            List<CrudProperty> crudDtoProperties = null, List<CRUDPropertyType> propertyList = null)
         {
             if (generationData != null)
             {
@@ -576,7 +586,7 @@
                 // Update options blocks
                 if (generationData.IsOptionFound)
                 {
-                    fileLinesContent = ManageOptionsBlocks(fileLinesContent, generationData.OptionsName, generationData.OptionToAdd);
+                    fileLinesContent = ManageOptionsBlocks(fileLinesContent, generationData.OptionsName, generationData.OptionsToAdd, generationData.OptionsFields, crudDtoProperties, propertyList);
                 }
 
                 // Update parent blocks
@@ -664,6 +674,30 @@
             return DeleteBlocks(fileLinesContent, CRUDDataUpdateType.Child);
         }
 
+        private List<string> DeleteOptionFieldBlocks(List<string> fileLinesContent, List<string> fieldToDelete = null)
+        {
+            string markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.OptionField}";
+            string markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.OptionField}";
+
+            if (fieldToDelete != null)
+            {
+                string beginMarker, endMarker;
+                foreach (string fieldName in fieldToDelete)
+                {
+                    beginMarker = $"{markerBegin} {fieldName}";
+                    endMarker = $"{markerEnd} {fieldName}";
+
+                    fileLinesContent = DeleteBlocks(fileLinesContent, beginMarker, endMarker);
+                }
+            }
+            else
+            {
+                fileLinesContent = DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
+            }
+
+            return fileLinesContent;
+        }
+
         private List<string> ManageAncestorBlocks(List<string> fileLinesContent, List<string> ancestorName, List<KeyValuePair<string, string>> classAnnotations)
         {
             string beginMarker = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.AncestorTeam}";
@@ -698,28 +732,44 @@
             return fileLinesContent;
         }
 
-        private List<string> ManageOptionsBlocks(List<string> fileLinesContent, List<string> optionsName, List<string> newOptionsName)
+        private List<string> ManageOptionsBlocks(List<string> fileLinesContent, List<string> optionsName, List<string> newOptionsName, List<string> optionsFields,
+            List<CrudProperty> crudDtoProperties, List<CRUDPropertyType> propertyList)
         {
-            // Delete Options
             if (newOptionsName == null || !newOptionsName.Any())
             {
-                return DeleteOptionsBlocks(fileLinesContent, optionsName);
+                // Delete options blocks
+                fileLinesContent = DeleteOptionsBlocks(fileLinesContent, optionsName);
+                // Delete optionsFields blocks
+                fileLinesContent = DeleteOptionFieldBlocks(fileLinesContent, optionsFields);
+            }
+            else
+            {
+                // Manage Options
+                fileLinesContent = UpdateOptions(fileLinesContent, optionsName, newOptionsName, CRUDDataUpdateType.Option);
+                // Manage OptionsFields
+                fileLinesContent = UpdateOptions(fileLinesContent, optionsFields, newOptionsName, CRUDDataUpdateType.OptionField, crudDtoProperties, propertyList);
             }
 
-            // Keep only "newOptionName"
-            foreach (string optionName in optionsName)
+            return fileLinesContent;
+        }
+
+
+        private List<string> UpdateOptions(List<string> fileLinesContent, List<string> options, List<string> newOptionsName, CRUDDataUpdateType crudType,
+            List<CrudProperty> crudDtoProperties = null, List<CRUDPropertyType> propertyList = null)
+        {
+            foreach (string optionName in options)
             {
-                string markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option} {optionName}";
-                string markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Option} {optionName}";
+                string markerBegin = $"{ZipParserService.MARKER_BEGIN} {crudType} {optionName}";
+                string markerEnd = $"{ZipParserService.MARKER_END} {crudType} {optionName}";
 
                 if (optionName == OldOptionNamePascalSingular)
                 {
-                    // replace
-                    fileLinesContent = ReplaceOptions(fileLinesContent, optionName, newOptionsName, markerBegin, markerEnd);
+                    // replace options blocks
+                    fileLinesContent = ReplaceOptions(fileLinesContent, optionName, newOptionsName, markerBegin, markerEnd, crudDtoProperties, propertyList);
                 }
                 else
                 {
-                    // delete
+                    // delete options blocks
                     fileLinesContent = DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
                 }
             }
@@ -743,11 +793,13 @@
             return DeleteBlocks(fileLinesContent, CRUDDataUpdateType.Option);
         }
 
-        private List<string> ReplaceOptions(List<string> fileLinesContent, string oldOptionName, List<string> newOptions, string markerBegin, string markerEnd)
+        private List<string> ReplaceOptions(List<string> fileLinesContent, string oldOptionName, List<string> newOptions, string markerBegin, string markerEnd,
+            List<CrudProperty> crudDtoProperties, List<CRUDPropertyType> propertyList)
         {
             string line;
             bool endFound;
             List<string> newLines = new();
+            string regex = $@"{markerBegin} ([a-zA-Z]+)";
 
             for (int i = 0; i < fileLinesContent.Count; i++)
             {
@@ -772,12 +824,41 @@
 
                     foreach (string newOptionName in newOptions)
                     {
-                        string oldOptionNameKebab = CommonTools.ConvertPascalToKebabCase(oldOptionName);
-                        string newOptionNameKebab = CommonTools.ConvertPascalToKebabCase(newOptionName);
-                        foreach (string optionLine in optionBlock)
+                        // Manage OptionField
+                        if (crudDtoProperties != null && propertyList != null)
                         {
-                            string newLine = optionLine.Replace(oldOptionName, newOptionName).Replace(oldOptionNameKebab, newOptionNameKebab);
-                            newLines.Add(newLine);
+                            string newProperty = null;
+                            string fieldName = CommonTools.GetMatchRegexValue(regex, optionBlock[0]);
+                            CRUDPropertyType propBase = propertyList.FirstOrDefault(p => p.Name == fieldName);
+                            List<CrudProperty> crudDtoProp = crudDtoProperties.FindAll(c => string.Equals(c.AnnotationItemType, newOptionName, StringComparison.InvariantCultureIgnoreCase));
+
+                            foreach (CrudProperty crudProp in crudDtoProp)
+                            {
+                                // Search corresponding property
+                                CRUDPropertyType prop = ConvertDotNetToAngularType(crudProp);
+                                if (prop?.SimplifiedType == propBase?.SimplifiedType)
+                                {
+                                    newProperty = crudProp.Name;
+
+                                    // Update blocks lines
+                                    foreach (string optionLine in optionBlock)
+                                    {
+                                        string newLine = optionLine;
+                                        if (!string.IsNullOrWhiteSpace(newProperty))
+                                            newLine = newLine.Replace(CommonTools.ConvertToCamelCase(fieldName), CommonTools.ConvertToCamelCase(newProperty));
+                                        newLine = UpdateOptionFrontLine(newLine, oldOptionName, newOptionName);
+                                        newLines.Add(newLine);
+                                    }
+                                }
+                            }
+                        }
+                        else  // Manage Options
+                        {
+                            foreach (string optionLine in optionBlock)
+                            {
+                                string newLine = UpdateOptionFrontLine(optionLine, oldOptionName, newOptionName);
+                                newLines.Add(newLine);
+                            }
                         }
                     }
                 }
@@ -1235,6 +1316,46 @@
             return ConvertPascalOldToNewCrudName(newLine, type, true);
         }
 
+        private string UpdateOptionFrontLine(string line, string oldOptionName, string newOptionName)
+        {
+            const string startImportRegex = @"^\s*[\/\*]*\s*import\s*[{(*]";
+            const string regexComponent = @"^\s*[\/\*]*\s*import\s+{([\s\w,]*)}";
+            const string regexComponentAs = @"^\s*[\/\*]*\s*import\s+\*\s+as\s+([\w,]*)\s+from";
+            const string regexPath = @"\s*from\s*\'([\S]*)\';$";
+            const string regexPathThen = @"^\s*[\/\*]*\s*import\s*\('([\w.\/]*)'\)";
+
+            string newLine = line;
+            if (CommonTools.IsMatchRegexValue(startImportRegex, newLine))
+            {
+                // Update part between "import" and "from"
+                string componentValue = CommonTools.GetMatchRegexValue(regexComponent, newLine, 1);
+                if (string.IsNullOrEmpty(componentValue))
+                {
+                    componentValue = CommonTools.GetMatchRegexValue(regexComponentAs, newLine, 1);
+                }
+                if (!string.IsNullOrEmpty(componentValue))
+                {
+                    string newComponentValue = componentValue.Replace(oldOptionName, newOptionName);
+                    newLine = newLine.Replace(componentValue, newComponentValue);
+                }
+
+                // Update part after "from"
+                string pathValue = CommonTools.GetMatchRegexValue(regexPath, newLine, 1);
+                if (string.IsNullOrEmpty(pathValue))
+                {
+                    pathValue = CommonTools.GetMatchRegexValue(regexPathThen, newLine, 1);
+                }
+                if (!string.IsNullOrEmpty(pathValue))
+                {
+                    string newPathValue = pathValue.Replace(CommonTools.ConvertPascalToKebabCase(oldOptionName), CommonTools.ConvertPascalToKebabCase(newOptionName));
+                    newLine = newLine.Replace(pathValue, newPathValue);
+                }
+                return newLine;
+            }
+
+            return newLine.Replace(oldOptionName, newOptionName).Replace(CommonTools.ConvertToCamelCase(oldOptionName), CommonTools.ConvertToCamelCase(newOptionName));
+        }
+
         private void PrepareParentBlock(List<ExtractBlock> parentBlocks, GenerationCrudData generationData, List<CrudProperty> crudDtoProperties)
         {
             List<List<string>> blocks = GenerateParentBlocks(parentBlocks, crudDtoProperties);
@@ -1520,28 +1641,27 @@
 
     class GenerationCrudData
     {
+        public bool IsChildrenToDelete { get; set; } = false;
+        public bool IsOptionFound { get; set; } = false;
+        public bool IsParentToAdd { get; set; } = false;
+        public bool IsAncestorFound { get; set; } = false;
         public List<string> BlocksToAdd { get; }
         public List<string> PropertiesToAdd { get; }
-        public bool IsChildrenToDelete { get; set; }
         public List<string> ChildrenName { get; }
-        public bool IsOptionFound { get; set; }
         public List<string> OptionsName { get; }
-        public List<string> OptionToAdd { get; set; }
-        public List<KeyValuePair<string, string>> DisplayToUpdate { get; }
-        public bool IsParentToAdd { get; set; }
-        public List<List<string>> ParentBlocks { get; }
-        public bool IsAncestorFound { get; set; }
+        public List<string> OptionsToAdd { get; set; }
+        public List<string> OptionsFields { get; }
         public List<string> AncestorName { get; }
+        public List<KeyValuePair<string, string>> DisplayToUpdate { get; }
+        public List<List<string>> ParentBlocks { get; }
 
         public GenerationCrudData()
         {
-            this.IsChildrenToDelete = false;
-            this.IsOptionFound = false;
-            this.IsAncestorFound = false;
             this.BlocksToAdd = new();
             this.PropertiesToAdd = new();
             this.ChildrenName = new();
             this.OptionsName = new();
+            this.OptionsFields = new();
             this.DisplayToUpdate = new();
             this.ParentBlocks = new();
             this.AncestorName = new();
@@ -1553,8 +1673,9 @@
         public string Name { get; }
         public string Type { get; }
         public bool IsRequired { get; private set; } = false;
-        public string AnnotationType { get; private set; }
         public bool IsParent { get; private set; } = false;
+        public string AnnotationType { get; private set; }
+        public string AnnotationItemType { get; private set; }
 
         public CrudProperty(string name, string type, List<KeyValuePair<string, string>> annotations)
         {
@@ -1573,6 +1694,10 @@
                 if (annotation.Key == GenerateCrudService.BIA_DTO_FIELD_TYPE)
                 {
                     this.AnnotationType = annotation.Value;
+                }
+                else if (annotation.Key == GenerateCrudService.BIA_DTO_FIELD_ITEMTYPE)
+                {
+                    this.AnnotationItemType = annotation.Value;
                 }
                 else if (annotation.Key == GenerateCrudService.BIA_DTO_FIELD_REQUIRED)
                 {

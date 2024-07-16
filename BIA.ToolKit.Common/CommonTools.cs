@@ -3,7 +3,7 @@
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -48,6 +48,21 @@
 
             return Regex.Replace(value, "(?<!^)([A-Z][a-z]|(?<=[a-z])[A-Z0-9])", "-$1", RegexOptions.Compiled)
                 .Trim().ToLower();
+        }
+
+        /// <summary>
+        /// Convert value from Kebab case to Pascal case.
+        /// </summary>
+        /// <param name="value">The value to convert</param>
+        /// <returns>Value converted</returns>
+        public static string ConvertKebabToPascalCase(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return value;
+
+            string convertValue = "";
+            value.Split('-').ToList().ForEach(p => convertValue += CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p));
+            return convertValue;
         }
 
         /// <summary>
@@ -264,14 +279,6 @@
             }
 
             return index;
-        }
-
-        public static void CollectionRemoveAll<T>(this ObservableCollection<T> collection)
-        {
-            for (int i = collection.Count - 1; i >= 0; i--)
-            {
-                collection.RemoveAt(i);
-            }
         }
     }
 }

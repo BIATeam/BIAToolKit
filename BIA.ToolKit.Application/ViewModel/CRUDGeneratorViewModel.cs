@@ -247,6 +247,7 @@
                 {
                     isCrudSelected = value;
                     RaisePropertyChanged(nameof(IsCrudSelected));
+                    RaisePropertyChanged(nameof(IsOptionItemEnable));
                     UpdateFeatureSelection();
                 }
             }
@@ -406,7 +407,7 @@
         {
             get
             {
-                return IsButtonParseDtoEnable && !IsOptionSelected;
+                return IsButtonParseDtoEnable && IsCrudSelected && !IsOptionSelected;
             }
         }
 
@@ -445,6 +446,12 @@
     {
         public bool Check { get; set; }
         public string OptionName { get; set; }
+
+        public OptionItem(string name, bool check = false)
+        {
+            this.Check = check;
+            this.OptionName = name;
+        }
     }
 
     public class ZipFeatureType
@@ -501,7 +508,9 @@
         /// </summary>
         public string FilePath { get; }
 
-        public bool IsPartialFile { get; }
+        public bool IsPartialFile { get; } = false;
+
+        public bool IsPropertyFile { get; set; } = false;
 
         /// <summary>
         /// Temporary working directory full path.
@@ -512,11 +521,6 @@
         /// List of ExtractBlocks.
         /// </summary>
         public List<ExtractBlock> ExtractBlocks { get; set; }
-
-        /// <summary>
-        /// List of Options to delete.
-        /// </summary>
-        //public List<string> OptionToDelete { get; set; }
 
         /// <summary>
         /// Constructor.
@@ -608,6 +612,17 @@
         }
     }
 
+    public class ExtractOptionFieldBlock : ExtractBlock
+    {
+        public string PropertyField { get; }
+
+        public ExtractOptionFieldBlock(CRUDDataUpdateType dataUpdateType, string name, string propertyField, List<string> lines) :
+            base(dataUpdateType, name, lines)
+        {
+            this.PropertyField = propertyField;
+        }
+    }
+
     public class ExtractDisplayBlock : ExtractBlock
     {
         public string ExtractLine { get; set; }
@@ -664,6 +679,7 @@
         Block,
         Child,
         Option,
+        OptionField,
         Display,
         Parent,
         AncestorTeam,
