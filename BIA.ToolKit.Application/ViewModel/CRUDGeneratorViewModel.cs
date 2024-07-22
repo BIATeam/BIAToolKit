@@ -131,20 +131,6 @@
             }
         }
 
-        private List<string> optionItemsSelected;
-        public List<string> OptionItemsSelected
-        {
-            get => optionItemsSelected;
-            set
-            {
-                if (optionItemsSelected != value)
-                {
-                    optionItemsSelected = value;
-                    RaisePropertyChanged(nameof(OptionItemsSelected));
-                }
-            }
-        }
-
         private bool isDtoParsed = false;
         public bool IsDtoParsed
         {

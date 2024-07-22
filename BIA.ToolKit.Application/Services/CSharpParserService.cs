@@ -108,8 +108,9 @@ using Roslyn.Services;*/
             if (keyNames != null)
             {
                 entityInfo.CompositeKeyName = $"{className}Key";
-                entityInfo.CompositeKeys.AddRange(
-                    keyNames.Select(k => properties.Single(prop => prop.Name == k)));
+                var propList = keyNames.Select(k => properties.FirstOrDefault(prop => k == prop?.Name));
+                if (propList != null)
+                    entityInfo.CompositeKeys.AddRange(propList);
             }
 
             return entityInfo;

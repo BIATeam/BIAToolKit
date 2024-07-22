@@ -23,9 +23,6 @@
         // Tags Partial
         public const string MARKER_BEGIN_PARTIAL = $"{MARKER_BEGIN} Partial";
         public const string MARKER_END_PARTIAL = $"{MARKER_END} Partial";
-        // Tags Front
-        public const string MARKER_BEGIN_FRONT = $"{MARKER_BEGIN} Front";
-        public const string MARKER_END_FRONT = $"{MARKER_END} Front";
 
         /// <summary>
         /// Constructor.
