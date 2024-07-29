@@ -1,10 +1,10 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
-    using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -19,8 +19,6 @@
         {
             OptionItems = new();
             ZipFeatureTypeList = new();
-            ZipDotNetCollection = new();
-            ZipAngularCollection = new();
         }
 
         #region CurrentProject
@@ -97,7 +95,22 @@
                 if (dtoSelected != value)
                 {
                     dtoSelected = value;
-                    RaisePropertyChanged(nameof(IsButtonParseDtoEnable));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                }
+            }
+        }
+
+        private bool isDtoParsed = false;
+        public bool IsDtoParsed
+        {
+            get => isDtoParsed;
+            set
+            {
+                if (isDtoParsed != value)
+                {
+                    isDtoParsed = value;
+                    RaisePropertyChanged(nameof(IsDtoParsed));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
                 }
             }
         }
@@ -127,22 +140,6 @@
                 {
                     optionItems = value;
                     RaisePropertyChanged(nameof(OptionItems));
-                }
-            }
-        }
-
-        private bool isDtoParsed = false;
-        public bool IsDtoParsed
-        {
-            get => isDtoParsed;
-            set
-            {
-                if (isDtoParsed != value)
-                {
-                    isDtoParsed = value;
-                    RaisePropertyChanged(nameof(IsDtoParsed));
-                    RaisePropertyChanged(nameof(IsButtonParseZipEnable));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
                 }
             }
         }
@@ -187,7 +184,6 @@
             {
                 if (isSelectionChange != value)
                 {
-                    RaisePropertyChanged(nameof(IsButtonParseZipEnable));
                     RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
                 }
             }
@@ -273,7 +269,6 @@
         private void UpdateFeatureSelection()
         {
             IsSelectionChange = true;
-            IsZipParsed = false;
 
             foreach (GenerationType generation in Enum.GetValues(typeof(GenerationType)))
             {
@@ -299,36 +294,9 @@
                                 break;
                         }
 
-                        AddRemoveZipToList(generation, typeSelected, feature.ZipName);
                         feature.IsChecked = typeSelected;
                     }
                 }
-            }
-        }
-
-        private void AddRemoveZipToList(GenerationType generation, bool isChecked, string featureName)
-        {
-            if (generation == GenerationType.WebApi)
-            {
-                if (isChecked)
-                {
-                    if (!zipDotNetCollection.Contains(featureName))
-                        ZipDotNetCollection.Add(featureName);
-                }
-                else
-                    ZipDotNetCollection.Remove(featureName);
-                RaisePropertyChanged(nameof(ZipDotNetCollection));
-            }
-            else if (generation == GenerationType.Front)
-            {
-                if (isChecked)
-                {
-                    if (!ZipAngularCollection.Contains(featureName))
-                        ZipAngularCollection.Add(featureName);
-                }
-                else
-                    ZipAngularCollection.Remove(featureName);
-                RaisePropertyChanged(nameof(ZipAngularCollection));
             }
         }
         #endregion
@@ -347,34 +315,6 @@
             }
         }
 
-        private ObservableCollection<string> zipDotNetCollection;
-        public ObservableCollection<string> ZipDotNetCollection
-        {
-            get => zipDotNetCollection;
-            set
-            {
-                if (zipDotNetCollection != value)
-                {
-                    zipDotNetCollection = value;
-                    RaisePropertyChanged(nameof(ZipDotNetCollection));
-                }
-            }
-        }
-
-        private ObservableCollection<string> zipAngularCollection;
-        public ObservableCollection<string> ZipAngularCollection
-        {
-            get => zipAngularCollection;
-            set
-            {
-                if (zipAngularCollection != value)
-                {
-                    zipAngularCollection = value;
-                    RaisePropertyChanged(nameof(ZipAngularCollection));
-                }
-            }
-        }
-
         private bool isZipParsed = false;
         public bool IsZipParsed
         {
@@ -388,30 +328,11 @@
         #endregion
 
         #region Button
-
         public bool IsOptionItemEnable
         {
             get
             {
-                return IsButtonParseDtoEnable && IsCrudSelected && !IsOptionSelected;
-            }
-        }
-
-        public bool IsButtonParseDtoEnable
-        {
-            get
-            {
-                return !string.IsNullOrWhiteSpace(DtoSelected);
-            }
-        }
-
-        public bool IsButtonParseZipEnable
-        {
-            get
-            {
-                return IsDtoParsed
-                    && ((IsWebApiSelected || IsFrontSelected)
-                    && (IsCrudSelected || IsOptionSelected || IsTeamSelected));
+                return IsCrudSelected && !IsOptionSelected;
             }
         }
 
@@ -419,10 +340,11 @@
         {
             get
             {
-                return IsDtoParsed
-                    && IsZipParsed
+                return IsDtoParsed && IsZipParsed
+                    && !string.IsNullOrWhiteSpace(CRUDNameSingular)
                     && !string.IsNullOrWhiteSpace(CRUDNamePlural)
-                    && !string.IsNullOrWhiteSpace(dtoDisplayItemSelected);
+                    && !string.IsNullOrWhiteSpace(dtoDisplayItemSelected)
+                    && (IsWebApiSelected || isFrontSelected) && (IsCrudSelected || isOptionSelected || isTeamSelected);
             }
         }
         #endregion
@@ -481,71 +403,6 @@
         }
     }
 
-    #region FeatureData
-    public class FeatureData
-    {
-        /// <summary>
-        /// File name (only).
-        /// </summary>
-        public string FileName { get; }
-
-        /// <summary>
-        /// File full path on Temporary working directory.
-        /// </summary>
-        public string FilePath { get; }
-
-        public bool IsPartialFile { get; } = false;
-
-        public bool IsPropertyFile { get; set; } = false;
-
-        /// <summary>
-        /// Temporary working directory full path.
-        /// </summary>
-        public string ExtractDirPath { get; }
-
-        /// <summary>
-        /// List of ExtractBlocks.
-        /// </summary>
-        public List<ExtractBlock> ExtractBlocks { get; set; }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public FeatureData(string fileName, string filePath, string tmpDir)
-        {
-            this.FileName = fileName;
-            this.FilePath = filePath;
-            this.ExtractDirPath = tmpDir;
-            this.IsPartialFile = fileName.EndsWith(Constants.PartialFileSuffix);
-        }
-    }
-
-    public class WebApiFeatureData : FeatureData
-    {
-        /// <summary>
-        /// File type.
-        /// </summary>
-        public WebApiFileType? FileType { get; }
-
-        /// <summary>
-        /// List of Options to delete.
-        /// </summary>
-        public ClassDefinition ClassFileDefinition { get; set; }
-
-        public string Namespace { get; set; }
-
-        public List<PropertyInfo> PropertiesInfos { get; set; }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public WebApiFeatureData(string fileName, string filePath, string tmpDir, WebApiFileType? type) : base(fileName, filePath, tmpDir)
-        {
-            this.FileType = type;
-        }
-    }
-    #endregion
-
     public class WebApiNamespace
     {
         public WebApiFileType FileType { get; }
@@ -560,133 +417,4 @@
             this.CrudNamespace = crudNamespace;
         }
     }
-
-    #region ExtractBlock
-    public class ExtractBlock
-    {
-        public CRUDDataUpdateType DataUpdateType { get; }
-
-        public string Name { get; }
-
-        public List<string> BlockLines { get; }
-
-        public ExtractBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines)
-        {
-            this.DataUpdateType = dataUpdateType;
-            this.Name = name;
-            this.BlockLines = lines;
-        }
-    }
-
-    public class ExtractPropertiesBlock : ExtractBlock
-    {
-        public List<CRUDPropertyType> PropertiesList { get; set; }
-
-        public ExtractPropertiesBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) :
-            base(dataUpdateType, name, lines)
-        { }
-    }
-
-    public class ExtractPartialBlock : ExtractBlock
-    {
-        public string Index { get; }
-
-        public ExtractPartialBlock(CRUDDataUpdateType dataUpdateType, string name, string index, List<string> lines) :
-            base(dataUpdateType, name, lines)
-        {
-            this.Index = index;
-        }
-    }
-
-    public class ExtractOptionFieldBlock : ExtractBlock
-    {
-        public string PropertyField { get; }
-
-        public ExtractOptionFieldBlock(CRUDDataUpdateType dataUpdateType, string name, string propertyField, List<string> lines) :
-            base(dataUpdateType, name, lines)
-        {
-            this.PropertyField = propertyField;
-        }
-    }
-
-    public class ExtractDisplayBlock : ExtractBlock
-    {
-        public string ExtractLine { get; set; }
-
-        public string ExtractItem { get; set; }
-
-        public ExtractDisplayBlock(CRUDDataUpdateType dataUpdateType, string name, List<string> lines) :
-            base(dataUpdateType, name, lines)
-        { }
-    }
-
-    public class CRUDPropertyType
-    {
-        public string Name { get; }
-
-        private string type;
-        public string Type
-        {
-            get { return type; }
-            set
-            {
-                type = value;
-                SimplifiedType = type.Split('|')[0].Trim();
-            }
-        }
-
-        public string SimplifiedType { get; private set; }
-
-        public CRUDPropertyType(string name, string type)
-        {
-            this.Name = name;
-            this.Type = type;
-        }
-    }
-    #endregion
-
-    #region enum
-    public enum GenerationType
-    {
-        WebApi,
-        Front,
-    }
-
-    public enum FeatureType
-    {
-        CRUD,
-        Option,
-        Team
-    }
-
-    public enum CRUDDataUpdateType
-    {
-        Properties,
-        Block,
-        Child,
-        Option,
-        OptionField,
-        Display,
-        Parent,
-        AncestorTeam,
-        // Partial
-        Config,
-        Dependency,
-        Navigation,
-        Permission,
-        Rights,
-        Routing
-    }
-
-    public enum WebApiFileType
-    {
-        AppService,
-        Controller,
-        Dto,
-        Entity,
-        IAppService,
-        Mapper,
-        Partial
-    }
-    #endregion
 }

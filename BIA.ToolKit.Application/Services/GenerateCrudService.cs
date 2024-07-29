@@ -6,6 +6,9 @@
     using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.ExtractBlock;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -26,28 +29,8 @@
         private const string IS_REQUIRED_PROPERTY = "isRequired:";
 
         private readonly IConsoleWriter consoleWriter;
+        private CrudNames crudNames;
 
-        private string NewCrudNamePascalSingular = "Plane";
-        private string NewCrudNamePascalPlural = "Planes";
-        private string NewCrudNameCamelSingular = "plane";
-        private string NewCrudNameCamelPlural = "planes";
-        private string NewCrudNameKebabSingular;
-        private string NewCrudNameKebabPlural;
-
-        private string OldCrudNamePascalSingular = "Plane";
-        private string OldCrudNamePascalPlural = "Planes";
-        private string OldCrudNameCamelSingular = "plane";
-        private string OldCrudNameCamelPlural = "planes";
-
-        private string OldOptionNamePascalSingular = "Airport";
-        private string OldOptionNamePascalPlural = "Airports";
-        private string OldOptionNameCamelSingular = "airport";
-        private string OldOptionNameCamelPlural = "airports";
-
-        private string OldTeamNamePascalSingular = "AircraftMaintenanceCompany";
-        private string OldTeamNamePascalPlural = "AircraftMaintenanceCompanies";
-        private string OldTeamNameCamelSingular = "aircraftMaintenanceCompany";
-        private string OldTeamNameCamelPlural = "aircraftMaintenanceCompanies";
 
         /// <summary>
         /// Constructor.
@@ -57,37 +40,10 @@
             this.consoleWriter = consoleWriter;
         }
 
-        public void InitRenameValues(string newValueSingular, string newValuePlural,
-                                    string crudNameSingular, string crudNamePlural,
-                                    string optionNameSingular, string optionNamePlural,
-                                    string teamNameSingular, string teamNamePlural)
+        public string GenerateCrudFiles(CrudNames crudNames, Project currentProject, EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList,
+                                        string displayItem, List<string> options, bool generateInProjectFolder = true)
         {
-            this.NewCrudNamePascalSingular = newValueSingular;
-            this.NewCrudNamePascalPlural = newValuePlural;
-            this.NewCrudNameCamelSingular = CommonTools.ConvertToCamelCase(NewCrudNamePascalSingular);
-            this.NewCrudNameCamelPlural = CommonTools.ConvertToCamelCase(NewCrudNamePascalPlural);
-            this.NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);
-            this.NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
-
-            // Get Pascal case value
-            this.OldCrudNamePascalSingular = string.IsNullOrWhiteSpace(crudNameSingular) ? this.OldCrudNamePascalSingular : crudNameSingular;
-            this.OldCrudNamePascalPlural = string.IsNullOrWhiteSpace(crudNamePlural) ? this.OldCrudNamePascalPlural : crudNamePlural;
-            this.OldOptionNamePascalSingular = string.IsNullOrWhiteSpace(optionNameSingular) ? this.OldOptionNamePascalSingular : optionNameSingular;
-            this.OldOptionNamePascalPlural = string.IsNullOrWhiteSpace(optionNamePlural) ? this.OldOptionNamePascalPlural : optionNamePlural;
-            this.OldTeamNamePascalSingular = string.IsNullOrWhiteSpace(teamNameSingular) ? this.OldTeamNamePascalSingular : teamNameSingular;
-            this.OldTeamNamePascalPlural = string.IsNullOrWhiteSpace(teamNamePlural) ? this.OldTeamNamePascalPlural : teamNamePlural;
-
-            // Convert value to Camel case
-            this.OldCrudNameCamelSingular = CommonTools.ConvertToCamelCase(OldCrudNamePascalSingular);
-            this.OldCrudNameCamelPlural = CommonTools.ConvertToCamelCase(OldCrudNamePascalPlural);
-            this.OldOptionNameCamelSingular = CommonTools.ConvertToCamelCase(OldOptionNamePascalSingular);
-            this.OldOptionNameCamelPlural = CommonTools.ConvertToCamelCase(OldOptionNamePascalPlural);
-            this.OldTeamNameCamelSingular = CommonTools.ConvertToCamelCase(OldTeamNamePascalSingular);
-            this.OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
-        }
-
-        public string GenerateCrudFiles(Project currentProject, EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList, string displayItem, List<string> options, bool generateInProjectFolder = true)
-        {
+            this.crudNames = crudNames;
             string generationFolder = null;
             try
             {
@@ -158,6 +114,30 @@
             return generationFolder;
         }
 
+        public void DeleteBIAToolkitAnnotations(List<string> folders)
+        {
+            string markerBegin = $"{ZipParserService.MARKER_BEGIN}";
+            string markerEnd = $"{ZipParserService.MARKER_END}";
+            string markerPartialBegin = $"{ZipParserService.MARKER_BEGIN_PARTIAL}";
+            string markerPartialEnd = $"{ZipParserService.MARKER_END_PARTIAL}";
+
+            foreach (string folder in folders)
+            {
+                foreach (string file in Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories))
+                {
+                    // Read file lines
+                    List<string> content = File.ReadAllLines(file).ToList();
+                    if (content.Any(line => line.Contains(markerBegin)))
+                    {
+                        List<string> newContent = content;
+                        newContent = newContent.Where(line => !line.Contains(markerBegin) || line.Contains(markerBegin) && !line.Contains(markerPartialBegin)).ToList();
+                        newContent = newContent.Where(line => !line.Contains(markerEnd) || line.Contains(markerEnd) && !line.Contains(markerPartialEnd)).ToList();
+                        File.WriteAllLines(file, newContent);
+                    }
+                }
+            }
+        }
+
         #region Feature
         private void GenerateBack(string destDir, List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties,
             string displayItem, FeatureType type, EntityInfo crudDtoEntity)
@@ -221,7 +201,7 @@
 
                         // Create file
                         string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
-                        string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, crudData.FilePath), type);
+                        string dest = crudNames.ConvertCamelToKebabCrudName(Path.Combine(angularDir, crudData.FilePath), type);
 
                         // Replace blocks
                         GenerateAngularFile(type, src, dest, crudDtoEntity, generationData, crudDtoProperties, propertyList);
@@ -242,7 +222,7 @@
                 {
                     // Create file
                     string src = Path.Combine(angularFile.ExtractDirPath, angularFile.FilePath);
-                    string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FilePath), FeatureType.Option);
+                    string dest = crudNames.ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FilePath), FeatureType.Option);
 
                     // replace blocks 
                     GenerateAngularFile(FeatureType.Option, src, dest, crudDtoEntity);
@@ -292,7 +272,7 @@
                         case CRUDDataUpdateType.Display:
                             string extractItem = ((ExtractDisplayBlock)block).ExtractItem;
                             string extractLine = ((ExtractDisplayBlock)block).ExtractLine;
-                            string newDisplayLine = ConvertPascalOldToNewCrudName(extractLine, type).Replace(extractItem, CommonTools.ConvertToCamelCase(displayItem));
+                            string newDisplayLine = crudNames.ConvertPascalOldToNewCrudName(extractLine, type).Replace(extractItem, CommonTools.ConvertToCamelCase(displayItem));
                             generationData.DisplayToUpdate.Add(new KeyValuePair<string, string>(extractLine, newDisplayLine));
                             break;
                         case CRUDDataUpdateType.AncestorTeam:
@@ -331,9 +311,9 @@
             string partFilePath = crudData.FilePath.Remove(crudData.FilePath.LastIndexOf(fileName));
             partFilePath = ReplaceCompagnyNameProjetName(partFilePath, currentProject, dtoClassDefiniton);
 
-            string tmpDestDir = ConvertPascalOldToNewCrudName(destDir, type, false);
-            string tmpPartFilePath = ConvertPascalOldToNewCrudName(partFilePath, FeatureType.CRUD, false);
-            string tmpFileName = ConvertPascalOldToNewCrudName(fileName, type, false);
+            string tmpDestDir = crudNames.ConvertPascalOldToNewCrudName(destDir, type, false);
+            string tmpPartFilePath = crudNames.ConvertPascalOldToNewCrudName(partFilePath, FeatureType.CRUD, false);
+            string tmpFileName = crudNames.ConvertPascalOldToNewCrudName(fileName, type, false);
             string dest = Path.Combine(tmpDestDir, tmpPartFilePath, tmpFileName);
 
             // Prepare destination folder
@@ -357,7 +337,7 @@
                 else
                 {
                     // Convert Crud Name (Plane to XXX)
-                    fileLinesContent[i] = ConvertPascalOldToNewCrudName(fileLinesContent[i], type, false);
+                    fileLinesContent[i] = crudNames.ConvertPascalOldToNewCrudName(fileLinesContent[i], type, false);
                 }
             }
 
@@ -391,7 +371,7 @@
                     partPath = ReplaceCompagnyNameProjetName(partPath, currentProject, classDefiniton);
 
                     // Replace "plane" file name with good "crud" value
-                    string fileName = crudData.FileName.Replace(OldCrudNamePascalSingular, NewCrudNamePascalSingular);
+                    string fileName = crudData.FileName.Replace(crudNames.OldCrudNamePascalSingular, crudNames.NewCrudNamePascalSingular);
 
                     // Search file on disk
                     string foundFile = Directory.EnumerateFiles(Path.Combine(destDir, partPath), fileName, SearchOption.AllDirectories).FirstOrDefault();
@@ -416,14 +396,14 @@
                     {
                         // Generate namespace by default
                         consoleWriter.AddMessageLine($"File '{fileName}' not found on path '{Path.Combine(destDir, partPath)}' folder or children.", "Orange");
-                        webApiNamespace.CrudNamespaceGenerated = ReplaceCompagnyNameProjetName(crudData.Namespace, currentProject, classDefiniton).Replace(OldCrudNamePascalSingular, NewCrudNamePascalSingular);
+                        webApiNamespace.CrudNamespaceGenerated = ReplaceCompagnyNameProjetName(crudData.Namespace, currentProject, classDefiniton).Replace(crudNames.OldCrudNamePascalSingular, crudNames.NewCrudNamePascalSingular);
                     }
                 }
                 else
                 {
                     // Generate namespace for generated files: Controller, (I)AppService ...
 
-                    webApiNamespace.CrudNamespaceGenerated = ReplaceCompagnyNameProjetName(crudData.Namespace, currentProject, classDefiniton).Replace(OldCrudNamePascalSingular, NewCrudNamePascalSingular);
+                    webApiNamespace.CrudNamespaceGenerated = ReplaceCompagnyNameProjetName(crudData.Namespace, currentProject, classDefiniton).Replace(crudNames.OldCrudNamePascalSingular, crudNames.NewCrudNamePascalSingular);
                 }
             }
             return namespaceList;
@@ -446,7 +426,7 @@
                     {
                         // Replace Compagny name and Project name if exists
                         line = ReplaceCompagnyNameProjetName(line, currentProject, dtoClassDefiniton);
-                        line = line.Replace(OldCrudNamePascalSingular, NewCrudNamePascalSingular);
+                        line = line.Replace(crudNames.OldCrudNamePascalSingular, crudNames.NewCrudNamePascalSingular);
                     }
                 }
             }
@@ -474,13 +454,13 @@
             switch (type)
             {
                 case FeatureType.CRUD:
-                    partialName = OldCrudNamePascalSingular;
+                    partialName = crudNames.OldCrudNamePascalSingular;
                     break;
                 case FeatureType.Option:
-                    partialName = OldOptionNamePascalSingular;
+                    partialName = crudNames.OldOptionNamePascalSingular;
                     break;
                 case FeatureType.Team:
-                    partialName = OldTeamNamePascalSingular;
+                    partialName = crudNames.OldTeamNamePascalSingular;
                     break;
             }
             foreach (ExtractPartialBlock block in crudData.ExtractBlocks.Where(b => b.Name == partialName))
@@ -762,7 +742,7 @@
                 string markerBegin = $"{ZipParserService.MARKER_BEGIN} {crudType} {optionName}";
                 string markerEnd = $"{ZipParserService.MARKER_END} {crudType} {optionName}";
 
-                if (optionName == OldOptionNamePascalSingular)
+                if (optionName == crudNames.OldOptionNamePascalSingular)
                 {
                     // replace options blocks
                     fileLinesContent = ReplaceOptions(fileLinesContent, optionName, newOptionsName, markerBegin, markerEnd, crudDtoProperties, propertyList);
@@ -1196,8 +1176,8 @@
             sb.Append(extractBlock.BlockLines[count]);          // Add the last
 
             string newBlock = sb.ToString().Replace(dtoAttributeName, crudAttributeName);
-            newBlock = newBlock.Replace(OldCrudNameCamelPlural, NewCrudNameCamelPlural);
-            newBlock = newBlock.Replace(OldCrudNameCamelSingular, NewCrudNameCamelSingular);
+            newBlock = newBlock.Replace(crudNames.OldCrudNameCamelPlural, crudNames.NewCrudNameCamelPlural);
+            newBlock = newBlock.Replace(crudNames.OldCrudNameCamelSingular, crudNames.NewCrudNameCamelSingular);
 
             return newBlock;
         }
@@ -1277,7 +1257,7 @@
                 }
                 if (!string.IsNullOrEmpty(componentValue))
                 {
-                    string newComponentValue = ConvertPascalOldToNewCrudName(componentValue, type);
+                    string newComponentValue = crudNames.ConvertPascalOldToNewCrudName(componentValue, type);
                     newLine = newLine.Replace(componentValue, newComponentValue);
                 }
 
@@ -1289,7 +1269,7 @@
                 }
                 if (!string.IsNullOrEmpty(pathValue))
                 {
-                    string newPathValue = ConvertCamelToKebabCrudName(pathValue, type);
+                    string newPathValue = crudNames.ConvertCamelToKebabCrudName(pathValue, type);
                     newLine = newLine.Replace(pathValue, newPathValue);
                 }
                 return newLine;
@@ -1299,7 +1279,7 @@
                 string pathValue = CommonTools.GetMatchRegexValue(regexComponentPath, newLine, 1);
                 if (!string.IsNullOrEmpty(pathValue))
                 {
-                    string newPathValue = ConvertCamelToKebabCrudName(pathValue, type);
+                    string newPathValue = crudNames.ConvertCamelToKebabCrudName(pathValue, type);
                     return newLine.Replace(pathValue, newPathValue);
                 }
             }
@@ -1308,12 +1288,12 @@
                 string compValue = CommonTools.GetMatchRegexValue(regexComponentHtml, newLine, 1);
                 if (!string.IsNullOrEmpty(compValue))
                 {
-                    string newPathValue = ConvertCamelToKebabCrudName(compValue, type);
+                    string newPathValue = crudNames.ConvertCamelToKebabCrudName(compValue, type);
                     return newLine.Replace(compValue, newPathValue);
                 }
             }
 
-            return ConvertPascalOldToNewCrudName(newLine, type, true);
+            return crudNames.ConvertPascalOldToNewCrudName(newLine, type, true);
         }
 
         private string UpdateOptionFrontLine(string line, string oldOptionName, string newOptionName)
@@ -1378,107 +1358,107 @@
             return value.Replace(classDef.CompagnyName, currentProject.CompanyName).Replace(classDef.ProjectName, currentProject.Name);
         }
 
-        private string ConvertPascalOldToNewCrudName(string value, FeatureType type, bool convertCamel = true)
-        {
-            if (string.IsNullOrWhiteSpace(value)) return value;
+        //private string ConvertPascalOldToNewCrudName(string value, FeatureType type, bool convertCamel = true)
+        //{
+        //    if (string.IsNullOrWhiteSpace(value)) return value;
 
-            switch (type)
-            {
-                //case FeatureType.WebApi:
-                case FeatureType.CRUD:
-                    value = ReplaceOldToNewValue(value, OldCrudNamePascalPlural, NewCrudNamePascalPlural, OldCrudNamePascalSingular, NewCrudNamePascalSingular);
-                    if (convertCamel)
-                    {
-                        value = ReplaceOldToNewValue(value, OldCrudNameCamelPlural, NewCrudNameCamelPlural, OldCrudNameCamelSingular, NewCrudNameCamelSingular);
-                    }
-                    break;
-                case FeatureType.Option:
-                    value = ReplaceOldToNewValue(value, OldOptionNamePascalPlural, NewCrudNamePascalPlural, OldOptionNamePascalSingular, NewCrudNamePascalSingular);
-                    if (convertCamel)
-                    {
-                        value = ReplaceOldToNewValue(value, OldOptionNameCamelPlural, NewCrudNameCamelPlural, OldOptionNameCamelSingular, NewCrudNameCamelSingular);
-                    }
-                    break;
-                case FeatureType.Team:
-                    value = ReplaceOldToNewValue(value, OldTeamNamePascalPlural, NewCrudNamePascalPlural, OldTeamNamePascalSingular, NewCrudNamePascalSingular);
-                    if (convertCamel)
-                    {
-                        value = ReplaceOldToNewValue(value, OldTeamNameCamelPlural, NewCrudNameCamelPlural, OldTeamNameCamelSingular, NewCrudNameCamelSingular);
-                    }
-                    break;
-            }
+        //    switch (type)
+        //    {
+        //        //case FeatureType.WebApi:
+        //        case FeatureType.CRUD:
+        //            value = ReplaceOldToNewValue(value, crudNames.OldCrudNamePascalPlural, crudNames.NewCrudNamePascalPlural, crudNames.OldCrudNamePascalSingular, crudNames.NewCrudNamePascalSingular);
+        //            if (convertCamel)
+        //            {
+        //                value = ReplaceOldToNewValue(value, crudNames.OldCrudNameCamelPlural, crudNames.NewCrudNameCamelPlural, crudNames.OldCrudNameCamelSingular, crudNames.NewCrudNameCamelSingular);
+        //            }
+        //            break;
+        //        case FeatureType.Option:
+        //            value = ReplaceOldToNewValue(value, crudNames.OldOptionNamePascalPlural, crudNames.NewCrudNamePascalPlural, crudNames.OldOptionNamePascalSingular, crudNames.NewCrudNamePascalSingular);
+        //            if (convertCamel)
+        //            {
+        //                value = ReplaceOldToNewValue(value, crudNames.OldOptionNameCamelPlural, crudNames.NewCrudNameCamelPlural, crudNames.OldOptionNameCamelSingular, crudNames.NewCrudNameCamelSingular);
+        //            }
+        //            break;
+        //        case FeatureType.Team:
+        //            value = ReplaceOldToNewValue(value, crudNames.OldTeamNamePascalPlural, crudNames.NewCrudNamePascalPlural, crudNames.OldTeamNamePascalSingular, crudNames.NewCrudNamePascalSingular);
+        //            if (convertCamel)
+        //            {
+        //                value = ReplaceOldToNewValue(value, crudNames.OldTeamNameCamelPlural, crudNames.NewCrudNameCamelPlural, crudNames.OldTeamNameCamelSingular, crudNames.NewCrudNameCamelSingular);
+        //            }
+        //            break;
+        //    }
 
-            return value;
-        }
+        //    return value;
+        //}
 
-        private string ReplaceOldToNewValue(string value, string oldValuePlural, string newValuePlural, string oldValueSingular, string newValueSingular)
-        {
-            if (string.IsNullOrWhiteSpace(value)) return value;
+        //private string ReplaceOldToNewValue(string value, string oldValuePlural, string newValuePlural, string oldValueSingular, string newValueSingular)
+        //{
+        //    if (string.IsNullOrWhiteSpace(value)) return value;
 
-            List<int> nbAllOccurOldValue = FindOccurences(value, oldValueSingular);
-            List<int> nbOccurOldValuePlural = FindOccurences(value, oldValuePlural);
-            List<int> nbOccurOldValueSingular = nbAllOccurOldValue.Except(nbOccurOldValuePlural).ToList();
+        //    List<int> nbAllOccurOldValue = FindOccurences(value, oldValueSingular);
+        //    List<int> nbOccurOldValuePlural = FindOccurences(value, oldValuePlural);
+        //    List<int> nbOccurOldValueSingular = nbAllOccurOldValue.Except(nbOccurOldValuePlural).ToList();
 
-            foreach (int index in nbAllOccurOldValue.OrderByDescending(i => i))
-            {
-                string before = value[..index];
-                if (nbOccurOldValuePlural.Contains(index))
-                {
-                    string after = value[(index + oldValuePlural.Length)..];
-                    value = $"{before}{newValuePlural}{after}";
-                }
-                else if (nbOccurOldValueSingular.Contains(index))
-                {
-                    string after = value[(index + oldValueSingular.Length)..];
-                    value = $"{before}{newValueSingular}{after}";
-                }
-            }
+        //    foreach (int index in nbAllOccurOldValue.OrderByDescending(i => i))
+        //    {
+        //        string before = value[..index];
+        //        if (nbOccurOldValuePlural.Contains(index))
+        //        {
+        //            string after = value[(index + oldValuePlural.Length)..];
+        //            value = $"{before}{newValuePlural}{after}";
+        //        }
+        //        else if (nbOccurOldValueSingular.Contains(index))
+        //        {
+        //            string after = value[(index + oldValueSingular.Length)..];
+        //            value = $"{before}{newValueSingular}{after}";
+        //        }
+        //    }
 
-            return value;
-        }
+        //    return value;
+        //}
 
-        private List<int> FindOccurences(string line, string search)
-        {
-            int lastIndex = 0;
-            List<int> indexList = new();
-            for (int count = 0; line.Length > 0; count++)
-            {
-                int index = line.IndexOf(search);
-                if (index < 0)
-                    break;
-                else
-                {
-                    indexList.Add(lastIndex + index);
-                    lastIndex += index + search.Length;
-                    line = line.Substring(index + search.Length);
-                }
-            }
+        //private List<int> FindOccurences(string line, string search)
+        //{
+        //    int lastIndex = 0;
+        //    List<int> indexList = new();
+        //    for (int count = 0; line.Length > 0; count++)
+        //    {
+        //        int index = line.IndexOf(search);
+        //        if (index < 0)
+        //            break;
+        //        else
+        //        {
+        //            indexList.Add(lastIndex + index);
+        //            lastIndex += index + search.Length;
+        //            line = line.Substring(index + search.Length);
+        //        }
+        //    }
 
-            return indexList;
-        }
+        //    return indexList;
+        //}
 
         /// <summary>
         /// Convert value form Camel case to Kebab case
         /// </summary>
-        private string ConvertCamelToKebabCrudName(string value, FeatureType type)
-        {
-            if (string.IsNullOrWhiteSpace(value)) return value;
+        //private string ConvertCamelToKebabCrudName(string value, FeatureType type)
+        //{
+        //    if (string.IsNullOrWhiteSpace(value)) return value;
 
-            switch (type)
-            {
-                case FeatureType.CRUD:
-                    value = ReplaceOldToNewValue(value, this.OldCrudNameCamelPlural, this.NewCrudNameKebabPlural, this.OldCrudNameCamelSingular, this.NewCrudNameKebabSingular);
-                    break;
-                case FeatureType.Option:
-                    value = ReplaceOldToNewValue(value, this.OldOptionNameCamelPlural, this.NewCrudNameKebabPlural, this.OldOptionNameCamelSingular, this.NewCrudNameKebabSingular);
-                    break;
-                case FeatureType.Team:
-                    value = ReplaceOldToNewValue(value, this.OldTeamNameCamelPlural, this.NewCrudNameKebabPlural, this.OldTeamNameCamelSingular, this.NewCrudNameKebabSingular);
-                    break;
-            }
+        //    switch (type)
+        //    {
+        //        case FeatureType.CRUD:
+        //            value = ReplaceOldToNewValue(value, crudNames.OldCrudNameCamelPlural, crudNames.NewCrudNameKebabPlural, crudNames.OldCrudNameCamelSingular, crudNames.NewCrudNameKebabSingular);
+        //            break;
+        //        case FeatureType.Option:
+        //            value = ReplaceOldToNewValue(value, crudNames.OldOptionNameCamelPlural, crudNames.NewCrudNameKebabPlural, crudNames.OldOptionNameCamelSingular, crudNames.NewCrudNameKebabSingular);
+        //            break;
+        //        case FeatureType.Team:
+        //            value = ReplaceOldToNewValue(value, crudNames.OldTeamNameCamelPlural, crudNames.NewCrudNameKebabPlural, crudNames.OldTeamNameCamelSingular, crudNames.NewCrudNameKebabSingular);
+        //            break;
+        //    }
 
-            return value;
-        }
+        //    return value;
+        //}
         #endregion
 
         #region Tools
@@ -1583,9 +1563,15 @@
             if (!string.IsNullOrEmpty(match))
             {
                 // Integer
-                if (match.ToLower() == "int" || match.ToLower() == "long" || match.ToLower() == "float" || match.ToLower() == "double")
+                if (match.ToLower() == "int" || match.ToLower() == "long")
                 {
                     angularType = angularType.Replace(match, "number");
+                }
+
+                // Decimal
+                if (match.ToLower() == "float" || match.ToLower() == "double")
+                {
+                    angularType = angularType.Replace(match, "decimal");
                 }
 
                 // Boolean
@@ -1595,13 +1581,13 @@
                 }
 
                 // Date
-                else if (match == "DateTime")
+                else if (match == nameof(DateTime))
                 {
                     angularType = angularType.Replace(match, "Date");
                 }
 
                 // Time
-                else if (match == "TimeSpan")
+                else if (match == nameof(TimeSpan))
                 {
                     angularType = angularType.Replace(match, "string");
                 }
@@ -1626,7 +1612,7 @@
             string partPath = string.Empty;
             foreach (string nmsp in line.Split('.'))
             {
-                if (nmsp.Contains(OldCrudNamePascalSingular, StringComparison.OrdinalIgnoreCase))
+                if (nmsp.Contains(crudNames.OldCrudNamePascalSingular, StringComparison.OrdinalIgnoreCase))
                 {
                     partPath = partPath.Remove(partPath.Length - 1);
                     break;
