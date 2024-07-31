@@ -280,5 +280,13 @@
 
             return index;
         }
+
+        /// <summary>
+        /// Get enum corresponding value.
+        /// </summary>
+        public static T GetEnumValue<T>(string value)
+        {
+            return (T)Enum.Parse(typeof(T), value);
+        }
     }
 }

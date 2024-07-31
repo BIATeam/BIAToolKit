@@ -143,6 +143,21 @@
                 }
             }
         }
+
+        private bool isDtoGenerated = false;
+        public bool IsDtoGenerated
+        {
+            get => isDtoGenerated;
+            set
+            {
+                if (isDtoGenerated != value)
+                {
+                    isDtoGenerated = value;
+                    RaisePropertyChanged(nameof(IsDtoGenerated));
+                }
+            }
+        }
+
         #endregion
 
         #region CRUD Name

@@ -6,10 +6,10 @@
 
     public class CrudNames
     {
-        private readonly List<CrudGenerationSettings> BackSettingsList;
-        private readonly List<CrudGenerationSettings> FrontSettingsList;
-        private readonly bool IsWebApiSelected;
-        private readonly bool IsFrontSelected;
+        private List<CrudGenerationSettings> BackSettingsList;
+        private List<CrudGenerationSettings> FrontSettingsList;
+        private bool IsWebApiSelected;
+        private bool IsFrontSelected;
 
         public string? NewCrudNamePascalSingular { get; private set; }
         public string? NewCrudNamePascalPlural { get; private set; }
@@ -33,20 +33,19 @@
         public string OldTeamNameCamelSingular { get; private set; } = "aircraftMaintenanceCompany";
         public string OldTeamNameCamelPlural { get; private set; } = "aircraftMaintenanceCompanies";
 
-        public CrudNames(string newValueSingular, string newValuePlural, List<CrudGenerationSettings> backSettingsList, List<CrudGenerationSettings> frontSettingsList, bool isWebApiSelected, bool isFrontSelected)
+        public CrudNames(List<CrudGenerationSettings> backSettingsList, List<CrudGenerationSettings> frontSettingsList)
+        {
+            this.BackSettingsList = backSettingsList;
+            this.FrontSettingsList = frontSettingsList;
+        }
+
+        public void InitRenameValues(string newValueSingular, string newValuePlural, bool isWebApiSelected = true, bool isFrontSelected = true)
         {
             this.NewCrudNamePascalSingular = newValueSingular;
             this.NewCrudNamePascalPlural = newValuePlural;
             this.IsWebApiSelected = isWebApiSelected;
             this.IsFrontSelected = isFrontSelected;
-            this.BackSettingsList = backSettingsList;
-            this.FrontSettingsList = frontSettingsList;
 
-            InitRenameValues();
-        }
-
-        public void InitRenameValues()
-        {
             (string? crudNameSingular, string? crudNamePlural) = GetSingularPlurialNames(FeatureType.CRUD);
             (string? optionNameSingular, string? optionNamePlural) = GetSingularPlurialNames(FeatureType.Option);
             (string? teamNameSingular, string? teamNamePlural) = GetSingularPlurialNames(FeatureType.Team);
@@ -84,7 +83,6 @@
 
             return (settings?.FeatureName, settings?.FeatureNamePlural);
         }
-
 
         public string ConvertPascalOldToNewCrudName(string value, FeatureType type, bool convertCamel = true)
         {

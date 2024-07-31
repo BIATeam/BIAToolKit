@@ -67,8 +67,10 @@
         {
             vm.CurrentProject = currentProject;
             CurrentProjectChange();
+            crudService.CurrentProject = currentProject;
         }
 
+        #region State change
         /// <summary>
         /// Init data based on current page (from settings).
         /// </summary>
@@ -86,29 +88,10 @@
             ListDtoFiles();
         }
 
-        #region State change
-        private void ClearAll()
-        {
-            // Clean all lists (in case of current project change)
-            this.backSettingsList.Clear();
-            this.frontSettingsList.Clear();
-            vm.OptionItems?.Clear();
-            vm.ZipFeatureTypeList.Clear();
-
-            vm.DtoFiles = null;
-            vm.IsWebApiSelected = true;
-            vm.IsFrontSelected = true;
-            vm.IsCrudSelected = false;
-            vm.IsOptionSelected = false;
-            vm.IsTeamSelected = false;
-
-            this.crudHistory = null;
-        }
-
         /// <summary>
         /// Action linked with "Dto files" combobox.
         /// </summary>
-        private void ModifyDto_SelectionChanged(object sender, RoutedEventArgs e)
+        private void ModifyDto_SelectionChange(object sender, RoutedEventArgs e)
         {
             if (vm == null) return;
 
@@ -144,6 +127,7 @@
                         isCrudSelected = history.Generation.Any(g => g.Feature == FeatureType.CRUD.ToString());
                         isOptionSelected = history.Generation.Any(g => g.Feature == FeatureType.Option.ToString());
                         isTeamSelected = history.Generation.Any(g => g.Feature == FeatureType.Team.ToString());
+                        msgVisibility = Visibility.Visible;
                     }
                 }
 
@@ -154,6 +138,7 @@
             }
 
             CrudAlreadyGeneratedLabel.Visibility = msgVisibility;
+            vm.IsDtoGenerated = CrudAlreadyGeneratedLabel.Visibility == Visibility.Visible;
             vm.IsWebApiSelected = isBackSelected;
             vm.IsFrontSelected = isFrontSelected;
             vm.IsCrudSelected = isCrudSelected;
@@ -166,7 +151,7 @@
         /// <summary>
         /// Action linked with "Entity name (singular)" textbox.
         /// </summary>
-        private void ModifyEntitySingularText_TextChanged(object sender, TextChangedEventArgs e)
+        private void ModifyEntitySingular_TextChange(object sender, TextChangedEventArgs e)
         {
             vm.CRUDNamePlural = string.Empty;
         }
@@ -174,7 +159,7 @@
         /// <summary>
         /// Action linked with "Entity name (plural)" textbox.
         /// </summary>
-        private void ModifyEntityPluralText_TextChanged(object sender, TextChangedEventArgs e)
+        private void ModifyEntityPlural_TextChange(object sender, TextChangedEventArgs e)
         {
             vm.IsSelectionChange = true;
         }
@@ -191,52 +176,106 @@
         }
 
         /// <summary>
-        /// Action linked with "Parse Zip" button.
-        /// </summary>
-        //private void ParseZip_Click(object sender, RoutedEventArgs e)
-        private void ParseZips()
-        {
-            vm.IsZipParsed = false;
-
-            bool parsed = false;
-            // *** Parse DotNet Zip files ***
-            // Parse CRUD Zip file
-            parsed |= ParseZipFile(FeatureType.CRUD, GenerationType.WebApi);
-            // Parse Option Zip file
-            parsed |= ParseZipFile(FeatureType.Option, GenerationType.WebApi);
-            // TODO Team : Parse Team Zip file
-            // parsed |= ParseZipFile(FeatureType.Team, GenerationType.WebApi);
-
-            // *** Parse Angular Zip files ***
-            // Parse CRUD Zip file
-            parsed |= ParseZipFile(FeatureType.CRUD, GenerationType.Front);
-            // Parse Option Zip file
-            parsed |= ParseZipFile(FeatureType.Option, GenerationType.Front);
-            // TODO Team : Parse Team Zip file
-            // parsed |= ParseZipFile(FeatureType.Team, GenerationType.Front);
-
-            vm.IsZipParsed = parsed;
-        }
-
-        /// <summary>
         /// Action linked with "Generate CRUD" button.
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            CrudNames crudNames = new(vm.CRUDNameSingular, vm.CRUDNamePlural, backSettingsList, frontSettingsList, vm.IsWebApiSelected, vm.IsFrontSelected);
+            crudService.CrudNames.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural, vm.IsWebApiSelected, vm.IsFrontSelected);
 
             // Generation DotNet + Angular files
             List<string> optionsItems = !vm.IsOptionSelected ? vm.OptionItems?.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
-            string path = crudService.GenerateCrudFiles(crudNames, vm.CurrentProject, vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, this.settings.GenerateInProjectFolder);
+            vm.IsDtoGenerated = crudService.GenerateFiles(vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems);
 
             // Generate generation history file
             UpdateCrudGenerationHistory();
 
-            System.Diagnostics.Process.Start("explorer.exe", path);
+            consoleWriter.AddMessageLine($"End of '{vm.CRUDNameSingular}' generation.", "Blue");
+        }
+
+        /// <summary>
+        /// Action linked with "Delete last generation" button.
+        /// </summary>
+        private void DeleteLastGeneration_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Get last generation history
+                CRUDGenerationHistory history = crudHistory?.CRUDGenerationHistory?.FirstOrDefault(h => h.Mapping.Dto == GetDtoSelectedPath());
+                if (history == null)
+                {
+                    consoleWriter.AddMessageLine($"No previous '{vm.CRUDNameSingular}' generation found.", "Orange");
+                    return;
+                }
+
+                // Get generation histories used by options
+                List<CRUDGenerationHistory> historyOptions = crudHistory?.CRUDGenerationHistory?.Where(h => h.OptionItems.Contains(vm.CRUDNameSingular)).ToList();
+
+                // Delete last generation
+                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, historyOptions);
+
+                // Update history
+                DeleteLastGenerationHistory(history);
+
+                consoleWriter.AddMessageLine($"End of '{vm.CRUDNameSingular}' suppression.", "Purple");
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error on deleting last '{vm.CRUDNameSingular}' generation: {ex.Message}", "Red");
+            }
+        }
+
+        /// <summary>
+        /// Action linked with "Delete Annotations" button.
+        /// </summary>
+        private void DeleteBIAToolkitAnnotations_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                StringBuilder message = new();
+                message.AppendLine("Do you want to permanently remove all BIAToolkit annotations in code?");
+                message.AppendLine("After that you will no longer be able to regenerate old CRUDs.");
+                message.AppendLine();
+                message.AppendLine("Be careful, this action is irreversible.");
+                MessageBoxResult result = MessageBox.Show(message.ToString(), "Warning", MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+
+                if (result == MessageBoxResult.OK)
+                {
+                    List<string> folders = new() {
+                        Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet),
+                        Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, vm.CurrentProject.BIAFronts, "src",  "app")
+                    };
+
+                    crudService.DeleteBIAToolkitAnnotations(folders);
+                }
+
+                consoleWriter.AddMessageLine($"End of annotations suppression.", "Purple");
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error on cleaning annotations for project '{vm.CurrentProject.Name}': {ex.Message}", "Red");
+            }
         }
         #endregion
 
         #region Private method
+        private void ClearAll()
+        {
+            // Clean all lists (in case of current project change)
+            this.backSettingsList.Clear();
+            this.frontSettingsList.Clear();
+            vm.OptionItems?.Clear();
+            vm.ZipFeatureTypeList.Clear();
+
+            vm.DtoFiles = null;
+            vm.IsWebApiSelected = true;
+            vm.IsFrontSelected = true;
+            vm.IsCrudSelected = false;
+            vm.IsOptionSelected = false;
+            vm.IsTeamSelected = false;
+
+            this.crudHistory = null;
+        }
+
         private void InitProject()
         {
             Mouse.OverrideCursor = Cursors.Wait;
@@ -244,6 +283,7 @@
             {
                 InitFormProject();
                 ParseZips();
+                crudService.CrudNames = new(backSettingsList, frontSettingsList);
             }
             catch (Exception ex)
             {
@@ -290,7 +330,7 @@
                 this.frontSettingsList.FirstOrDefault(x => x.Type == FeatureType.Team.ToString())?.ZipName, angularBiaFolderPath));
 
             // Load generation history
-            this.crudHistory = CommonTools.DeserializeJsonFile<CRUDGeneration>(crudHistoryFileName);
+            this.crudHistory = CommonTools.DeserializeJsonFile<CRUDGeneration>(this.crudHistoryFileName);
         }
 
         /// <summary>
@@ -354,12 +394,30 @@
                 this.crudHistory.CRUDGenerationHistory.Add(history);
 
                 // Generate history file
-                CommonTools.SerializeToJsonFile<CRUDGeneration>(this.crudHistory, crudHistoryFileName);
+                CommonTools.SerializeToJsonFile<CRUDGeneration>(this.crudHistory, this.crudHistoryFileName);
             }
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"Error on CRUD generation history: {ex.Message}", "Red");
             }
+        }
+
+        /// <summary>
+        /// Delete last CRUD generation on history file.
+        /// </summary>
+        private void DeleteLastGenerationHistory(CRUDGenerationHistory history)
+        {
+            // Delete CRUDGenerationHistory
+            crudHistory?.CRUDGenerationHistory?.Remove(history);
+
+            // Delete in options
+            foreach (CRUDGenerationHistory optionHistory in crudHistory?.CRUDGenerationHistory)
+            {
+                optionHistory.OptionItems.Remove(history.EntityNameSingular);
+            }
+
+            // Generate history file
+            CommonTools.SerializeToJsonFile<CRUDGeneration>(this.crudHistory, this.crudHistoryFileName);
         }
 
         /// <summary>
@@ -385,6 +443,33 @@
             }
 
             vm.DtoFiles = dtoFiles;
+        }
+
+        /// <summary>
+        /// Parse all zips.
+        /// </summary>
+        private void ParseZips()
+        {
+            vm.IsZipParsed = false;
+
+            bool parsed = false;
+            // *** Parse DotNet Zip files ***
+            // Parse CRUD Zip file
+            parsed |= ParseZipFile(FeatureType.CRUD, GenerationType.WebApi);
+            // Parse Option Zip file
+            parsed |= ParseZipFile(FeatureType.Option, GenerationType.WebApi);
+            // TODO Team : Parse Team Zip file
+            // parsed |= ParseZipFile(FeatureType.Team, GenerationType.WebApi);
+
+            // *** Parse Angular Zip files ***
+            // Parse CRUD Zip file
+            parsed |= ParseZipFile(FeatureType.CRUD, GenerationType.Front);
+            // Parse Option Zip file
+            parsed |= ParseZipFile(FeatureType.Option, GenerationType.Front);
+            // TODO Team : Parse Team Zip file
+            // parsed |= ParseZipFile(FeatureType.Team, GenerationType.Front);
+
+            vm.IsZipParsed = parsed;
         }
 
         /// <summary>
@@ -431,6 +516,9 @@
             return false;
         }
 
+        /// <summary>
+        /// Parse domain folders.
+        /// </summary>
         private void ParseDomains()
         {
             const string suffix = "-option";
@@ -468,6 +556,9 @@
             return false;
         }
 
+        /// <summary>
+        /// Extract the entity name form Dto file name.
+        /// </summary>
         private string GetEntityNameFromDto(string dtoFileName)
         {
             var fileName = Path.GetFileNameWithoutExtension(dtoFileName);
@@ -479,6 +570,9 @@
             return fileName;
         }
 
+        /// <summary>
+        /// Get the Dto path from select dto file.
+        /// </summary>
         private string GetDtoSelectedPath()
         {
             if (string.IsNullOrWhiteSpace(vm.DtoSelected))
@@ -486,35 +580,6 @@
 
             string dotNetPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet);
             return vm.DtoFiles[vm.DtoSelected].Replace(dotNetPath, "").TrimStart(Path.DirectorySeparatorChar);
-        }
-        #endregion
-
-        #region Delete Annotations
-        private void DeleteBIAToolkitAnnotations(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                StringBuilder message = new();
-                message.AppendLine("Do you want to permanently remove all BIAToolkit annotations in code?");
-                message.AppendLine("After that you will no longer be able to regenerate old CRUDs.");
-                message.AppendLine();
-                message.AppendLine("Be careful, this action is irreversible.");
-                MessageBoxResult result = MessageBox.Show(message.ToString(), "Warning", MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
-
-                if (result == MessageBoxResult.OK)
-                {
-                    List<string> folders = new() {
-                        Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet),
-                        Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, vm.CurrentProject.BIAFronts, "src")
-                    };
-
-                    crudService.DeleteBIAToolkitAnnotations(folders);
-                }
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine($"Error on cleaning annotations for project '{vm.CurrentProject.Name}': {ex.Message}", "Red");
-            }
         }
         #endregion
     }
