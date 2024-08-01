@@ -6,7 +6,6 @@
     {
         private readonly SettingsService settingsService;
 
-        public bool GenerateInProjectFolder { get; private set; } = true;
         // File name
         public string GenerationSettingsFileName { get; private set; }
         public string GenerationHistoryFileName { get; private set; }
@@ -37,12 +36,6 @@
             DtoCustomAttributeFieldName = settingsService.ReadSetting("DtoCustomAttributeField");
             DtoCustomAttributeClassName = settingsService.ReadSetting("DtoCustomAttributeClass");
             PackageLockFileName = settingsService.ReadSetting("PackageLockFileName");
-
-            string generate = settingsService.ReadSetting("GenerateInProjectFolder");
-            if (!string.IsNullOrWhiteSpace(generate))
-            {
-                GenerateInProjectFolder = bool.Parse(generate);
-            }
         }
     }
 }

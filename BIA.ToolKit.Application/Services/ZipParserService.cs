@@ -4,6 +4,9 @@
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.ExtractBlock;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
     using System;
     using System.Collections.Generic;
     using System.Data;
@@ -239,42 +242,6 @@
             }
 
             return extractBlocksList;
-        }
-
-        /// <summary>
-        /// Extract lines that contains options.
-        /// </summary>
-        private List<string> ExtractLinesContainsOptions(string fileName, List<string> options)
-        {
-            if (options == null || options.Count <= 0) return null;
-
-            if (!File.Exists(fileName))
-            {
-                consoleWriter.AddMessageLine($"Error on analysing angular file: file not exist on disk: '{fileName}'", "Orange");
-                return null;
-            }
-
-            // Read file in detail
-            List<string> fileLines = File.ReadAllLines(fileName).ToList();
-
-            // Read file to verify if option are present
-            if (!CommonTools.IsFileContainsData(fileLines, options))
-            {
-                return null;
-            }
-
-            // Extract lines to delete
-            List<string> linesToDelete = new();
-            foreach (string option in options)
-            {
-                IEnumerable<string> linesFound = fileLines.Where(line => line.Contains(option, StringComparison.InvariantCultureIgnoreCase));
-                if (linesFound != null && linesFound.Any())
-                {
-                    linesToDelete.AddRange(linesFound);
-                }
-            }
-
-            return linesToDelete;
         }
 
         /// <summary>

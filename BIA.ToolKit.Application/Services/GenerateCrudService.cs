@@ -1,11 +1,15 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.ExtractBlock;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -26,28 +30,23 @@
         private const string IS_REQUIRED_PROPERTY = "isRequired:";
 
         private readonly IConsoleWriter consoleWriter;
+        private string DotNetFolderGeneration;
+        private string AngularFolderGeneration;
 
-        private string NewCrudNamePascalSingular = "Plane";
-        private string NewCrudNamePascalPlural = "Planes";
-        private string NewCrudNameCamelSingular = "plane";
-        private string NewCrudNameCamelPlural = "planes";
-        private string NewCrudNameKebabSingular;
-        private string NewCrudNameKebabPlural;
+        public CrudNames CrudNames { get; set; }
 
-        private string OldCrudNamePascalSingular = "Plane";
-        private string OldCrudNamePascalPlural = "Planes";
-        private string OldCrudNameCamelSingular = "plane";
-        private string OldCrudNameCamelPlural = "planes";
-
-        private string OldOptionNamePascalSingular = "Airport";
-        private string OldOptionNamePascalPlural = "Airports";
-        private string OldOptionNameCamelSingular = "airport";
-        private string OldOptionNameCamelPlural = "airports";
-
-        private string OldTeamNamePascalSingular = "AircraftMaintenanceCompany";
-        private string OldTeamNamePascalPlural = "AircraftMaintenanceCompanies";
-        private string OldTeamNameCamelSingular = "aircraftMaintenanceCompany";
-        private string OldTeamNameCamelPlural = "aircraftMaintenanceCompanies";
+        private Project currentProject;
+        public Project CurrentProject
+        {
+            get => currentProject;
+            set
+            {
+                currentProject = value;
+                string generationFolder = GetGenerationFolder(currentProject);
+                this.DotNetFolderGeneration = Path.Combine(generationFolder, Constants.FolderDotNet);
+                this.AngularFolderGeneration = Path.Combine(generationFolder, CurrentProject.BIAFronts);
+            }
+        }
 
         /// <summary>
         /// Constructor.
@@ -57,45 +56,11 @@
             this.consoleWriter = consoleWriter;
         }
 
-        public void InitRenameValues(string newValueSingular, string newValuePlural,
-                                    string crudNameSingular, string crudNamePlural,
-                                    string optionNameSingular, string optionNamePlural,
-                                    string teamNameSingular, string teamNamePlural)
+        public bool GenerateFiles(EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList,
+                                        string displayItem, List<string> options)
         {
-            this.NewCrudNamePascalSingular = newValueSingular;
-            this.NewCrudNamePascalPlural = newValuePlural;
-            this.NewCrudNameCamelSingular = CommonTools.ConvertToCamelCase(NewCrudNamePascalSingular);
-            this.NewCrudNameCamelPlural = CommonTools.ConvertToCamelCase(NewCrudNamePascalPlural);
-            this.NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);
-            this.NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
-
-            // Get Pascal case value
-            this.OldCrudNamePascalSingular = string.IsNullOrWhiteSpace(crudNameSingular) ? this.OldCrudNamePascalSingular : crudNameSingular;
-            this.OldCrudNamePascalPlural = string.IsNullOrWhiteSpace(crudNamePlural) ? this.OldCrudNamePascalPlural : crudNamePlural;
-            this.OldOptionNamePascalSingular = string.IsNullOrWhiteSpace(optionNameSingular) ? this.OldOptionNamePascalSingular : optionNameSingular;
-            this.OldOptionNamePascalPlural = string.IsNullOrWhiteSpace(optionNamePlural) ? this.OldOptionNamePascalPlural : optionNamePlural;
-            this.OldTeamNamePascalSingular = string.IsNullOrWhiteSpace(teamNameSingular) ? this.OldTeamNamePascalSingular : teamNameSingular;
-            this.OldTeamNamePascalPlural = string.IsNullOrWhiteSpace(teamNamePlural) ? this.OldTeamNamePascalPlural : teamNamePlural;
-
-            // Convert value to Camel case
-            this.OldCrudNameCamelSingular = CommonTools.ConvertToCamelCase(OldCrudNamePascalSingular);
-            this.OldCrudNameCamelPlural = CommonTools.ConvertToCamelCase(OldCrudNamePascalPlural);
-            this.OldOptionNameCamelSingular = CommonTools.ConvertToCamelCase(OldOptionNamePascalSingular);
-            this.OldOptionNameCamelPlural = CommonTools.ConvertToCamelCase(OldOptionNamePascalPlural);
-            this.OldTeamNameCamelSingular = CommonTools.ConvertToCamelCase(OldTeamNamePascalSingular);
-            this.OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
-        }
-
-        public string GenerateCrudFiles(Project currentProject, EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList, string displayItem, List<string> options, bool generateInProjectFolder = true)
-        {
-            string generationFolder = null;
             try
             {
-                // Get generation folders
-                generationFolder = GetGenerationFolder(currentProject, generateInProjectFolder);
-                string dotnetDir = Path.Combine(generationFolder, Constants.FolderDotNet);
-                string angularDir = Path.Combine(generationFolder, currentProject.BIAFronts);
-
                 // Get CRUD dto properties
                 List<CrudProperty> crudDtoProperties = GetDtoProperties(crudDtoEntity);
 
@@ -104,16 +69,16 @@
                 ZipFeatureType crudBackFeatureType = zipFeatureTypeList.Where(x => x.GenerationType == GenerationType.WebApi && x.FeatureType == FeatureType.CRUD).FirstOrDefault();
                 if (crudBackFeatureType != null && crudBackFeatureType.IsChecked)
                 {
-                    consoleWriter.AddMessageLine($"*** Generate DotNet files on '{dotnetDir}' ***", "Green");
-                    GenerateBack(dotnetDir, crudBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, FeatureType.CRUD, crudDtoEntity);
+                    consoleWriter.AddMessageLine($"*** Generate DotNet files on '{DotNetFolderGeneration}' ***", "Green");
+                    GenerateWebApi(crudBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, FeatureType.CRUD, crudDtoEntity);
                 }
 
                 // Generate Option DotNet files
                 ZipFeatureType optionBackFeatureType = zipFeatureTypeList.Where(x => x.GenerationType == GenerationType.WebApi && x.FeatureType == FeatureType.Option).FirstOrDefault();
                 if (optionBackFeatureType != null && optionBackFeatureType.IsChecked)
                 {
-                    consoleWriter.AddMessageLine($"*** Generate DotNet Option files on '{angularDir}' ***", "Green");
-                    GenerateBack(dotnetDir, optionBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, FeatureType.Option, crudDtoEntity);
+                    consoleWriter.AddMessageLine($"*** Generate DotNet Option files on '{DotNetFolderGeneration}' ***", "Green");
+                    GenerateWebApi(optionBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, FeatureType.Option, crudDtoEntity);
                 }
 
                 // *** Generate Angular files ***
@@ -121,7 +86,7 @@
                 ZipFeatureType crudFrontFeatureType = zipFeatureTypeList.Where(x => x.GenerationType == GenerationType.Front && x.FeatureType == FeatureType.CRUD).FirstOrDefault();
                 if (crudFrontFeatureType != null && crudFrontFeatureType.IsChecked)
                 {
-                    consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{angularDir}' ***", "Green");
+                    consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{AngularFolderGeneration}' ***", "Green");
 
                     if (crudDtoProperties == null)
                     {
@@ -130,7 +95,7 @@
                     else
                     {
                         WebApiFeatureData dtoRefFeature = (WebApiFeatureData)crudBackFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
-                        GenerateFrontCRUD(angularDir, crudFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options);
+                        GenerateFrontCRUD(crudFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options);
                     }
                 }
 
@@ -138,8 +103,8 @@
                 ZipFeatureType optionFrontFeatureType = zipFeatureTypeList.Where(x => x.GenerationType == GenerationType.Front && x.FeatureType == FeatureType.Option).FirstOrDefault();
                 if (optionFrontFeatureType != null && optionFrontFeatureType.IsChecked)
                 {
-                    consoleWriter.AddMessageLine($"*** Generate Angular Option files on '{angularDir}' ***", "Green");
-                    GenerateFrontOption(angularDir, optionFrontFeatureType.FeatureDataList, crudDtoEntity);
+                    consoleWriter.AddMessageLine($"*** Generate Angular Option files on '{AngularFolderGeneration}' ***", "Green");
+                    GenerateFrontOption(optionFrontFeatureType.FeatureDataList, crudDtoEntity);
                 }
 
                 // Generate Team Angular files
@@ -149,24 +114,63 @@
                     consoleWriter.AddMessageLine($"Team generation not yet implemented!", "Orange");
                     // GenerateTeam(angularDir, teamFeatureType.FeatureDataList);
                 }
+
+
             }
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"An error has occurred in CRUD generation process: {ex.Message}", "Red");
+                return false;
             }
 
-            return generationFolder;
+            return true;
+        }
+
+        public void DeleteLastGeneration(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, CRUDGenerationHistory generationHistory, List<CRUDGenerationHistory> optionsGenerationHistory)
+        {
+            DeleteCrudOptionsGenerated(zipFeatureTypeList, currentProject, generationHistory);
+
+            DeleteCrudOptionsGenerated(zipFeatureTypeList, generationHistory, optionsGenerationHistory);
+        }
+
+        public void DeleteBIAToolkitAnnotations(List<string> folders)
+        {
+            string markerBegin = $"{ZipParserService.MARKER_BEGIN}";
+            string markerEnd = $"{ZipParserService.MARKER_END}";
+            string markerPartialBegin = $"{ZipParserService.MARKER_BEGIN_PARTIAL}";
+            string markerPartialEnd = $"{ZipParserService.MARKER_END_PARTIAL}";
+
+            foreach (string parentFolder in folders)
+            {
+                // Filter directories to explore
+                List<string> subFolders = Directory.GetDirectories(parentFolder, "*", SearchOption.TopDirectoryOnly).Where(f => !new DirectoryInfo(f).Name.StartsWith('.')).ToList();
+                foreach (string folder in subFolders)
+                {
+                    // Get all files in directories
+                    foreach (string file in Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories))
+                    {
+                        // Read file lines
+                        List<string> content = File.ReadAllLines(file).ToList();
+                        if (content.Any(line => line.Contains(markerBegin)))
+                        {
+                            List<string> newContent = content;
+                            newContent = newContent.Where(line => !line.Contains(markerBegin) || line.Contains(markerBegin) && !line.Contains(markerPartialBegin)).ToList();
+                            newContent = newContent.Where(line => !line.Contains(markerEnd) || line.Contains(markerEnd) && !line.Contains(markerPartialEnd)).ToList();
+                            CommonTools.GenerateFile(file, newContent);
+                        }
+                    }
+                }
+            }
         }
 
         #region Feature
-        private void GenerateBack(string destDir, List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties,
-            string displayItem, FeatureType type, EntityInfo crudDtoEntity)
+        private void GenerateWebApi(List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties, string displayItem,
+            FeatureType type, EntityInfo crudDtoEntity)
         {
             try
             {
-                string srcDir = Path.Combine(GetGenerationFolder(currentProject), Constants.FolderDotNet);
                 ClassDefinition classDefiniton = ((WebApiFeatureData)featureDataList.FirstOrDefault(x => ((WebApiFeatureData)x).FileType == WebApiFileType.Controller))?.ClassFileDefinition;
-                List<WebApiNamespace> crudNamespaceList = ListCrudNamespaces(destDir, featureDataList, currentProject, classDefiniton, type);
+                List<WebApiNamespace> crudNamespaceList = ListCrudNamespaces(this.DotNetFolderGeneration, featureDataList, currentProject, classDefiniton, type);
 
                 // Generate files
                 foreach (WebApiFeatureData crudData in featureDataList.Where(ft => !ft.IsPartialFile))
@@ -180,14 +184,14 @@
                     }
 
                     // Update files (not partial)
-                    UpdateBackFile(destDir, currentProject, crudData, classDefiniton, crudNamespaceList, crudDtoProperties, displayItem, type, crudDtoEntity);
+                    UpdateBackFile(currentProject, crudData, classDefiniton, crudNamespaceList, crudDtoProperties, displayItem, type, crudDtoEntity);
                 }
 
                 // Update partial files
                 foreach (WebApiFeatureData crudData in featureDataList.Where(ft => ft.IsPartialFile))
                 {
                     // Update with partial value
-                    UpdatePartialFile(srcDir, destDir, currentProject, crudData, type, classDefiniton);
+                    UpdatePartialFile(this.DotNetFolderGeneration, currentProject, crudData, type, classDefiniton);
                 }
 
             }
@@ -197,7 +201,7 @@
             }
         }
 
-        private void GenerateFrontCRUD(string angularDir, List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties, EntityInfo crudDtoEntity,
+        private void GenerateFrontCRUD(List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties, EntityInfo crudDtoEntity,
             List<PropertyInfo> dtoRefProperties, string displayItem, List<string> optionItem)
         {
             const FeatureType type = FeatureType.CRUD;
@@ -212,16 +216,14 @@
                     if (crudData.IsPartialFile)
                     {
                         // Update with partial file
-                        string srcDir = Path.Combine(GetGenerationFolder(currentProject), currentProject.BIAFronts);
-                        UpdatePartialFile(srcDir, angularDir, currentProject, crudData, type);
+                        UpdatePartialFile(this.AngularFolderGeneration, currentProject, crudData, type);
                     }
                     else
                     {
                         GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, dtoRefProperties, displayItem, type, optionItem);
 
                         // Create file
-                        string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
-                        string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, crudData.FilePath), type);
+                        (string src, string dest) = GetAngularFilesPath(crudData, type);
 
                         // Replace blocks
                         GenerateAngularFile(type, src, dest, crudDtoEntity, generationData, crudDtoProperties, propertyList);
@@ -234,18 +236,18 @@
             }
         }
 
-        private void GenerateFrontOption(string angularDir, List<FeatureData> featureDataList, EntityInfo crudDtoEntity)
+        private void GenerateFrontOption(List<FeatureData> featureDataList, EntityInfo crudDtoEntity)
         {
+            const FeatureType type = FeatureType.Option;
             try
             {
-                foreach (FeatureData angularFile in featureDataList)
+                foreach (FeatureData featureData in featureDataList)
                 {
                     // Create file
-                    string src = Path.Combine(angularFile.ExtractDirPath, angularFile.FilePath);
-                    string dest = ConvertCamelToKebabCrudName(Path.Combine(angularDir, angularFile.FilePath), FeatureType.Option);
+                    (string src, string dest) = GetAngularFilesPath(featureData, type);
 
                     // replace blocks 
-                    GenerateAngularFile(FeatureType.Option, src, dest, crudDtoEntity);
+                    GenerateAngularFile(type, src, dest, crudDtoEntity);
                 }
             }
             catch (Exception ex)
@@ -261,80 +263,11 @@
         }
         #endregion
 
-        private GenerationCrudData ExtractGenerationCrudData(FeatureData crudData, List<CrudProperty> crudDtoProperties, List<PropertyInfo> dtoRefProperties,
-            string displayItem, FeatureType type, List<string> optionItem = null)
-        {
-            GenerationCrudData generationData = null;
-            if (crudData.ExtractBlocks?.Count > 0)
-            {
-                generationData = new();
-                foreach (ExtractBlock block in crudData.ExtractBlocks)
-                {
-                    switch (block.DataUpdateType)
-                    {
-                        case CRUDDataUpdateType.Properties:
-                            generationData.PropertiesToAdd.AddRange(GeneratePropertiesToAdd((ExtractPropertiesBlock)block, crudDtoProperties));
-                            break;
-                        case CRUDDataUpdateType.Child:
-                            generationData.IsChildrenToDelete |= block.BlockLines.Count > 0;
-                            generationData.ChildrenName.Add(block.Name);
-                            break;
-                        case CRUDDataUpdateType.Option:
-                            generationData.IsOptionFound |= block.BlockLines.Count > 0;
-                            if (!string.IsNullOrWhiteSpace(block.Name) && !generationData.OptionsName.Contains(block.Name))
-                                generationData.OptionsName.Add(block.Name);
-                            generationData.OptionsToAdd = optionItem;
-                            break;
-                        case CRUDDataUpdateType.OptionField:
-                            if (!string.IsNullOrWhiteSpace(block.Name) && !generationData.OptionsFields.Contains(block.Name))
-                                generationData.OptionsFields.Add(block.Name);
-                            break;
-                        case CRUDDataUpdateType.Display:
-                            string extractItem = ((ExtractDisplayBlock)block).ExtractItem;
-                            string extractLine = ((ExtractDisplayBlock)block).ExtractLine;
-                            string newDisplayLine = ConvertPascalOldToNewCrudName(extractLine, type).Replace(extractItem, CommonTools.ConvertToCamelCase(displayItem));
-                            generationData.DisplayToUpdate.Add(new KeyValuePair<string, string>(extractLine, newDisplayLine));
-                            break;
-                        case CRUDDataUpdateType.AncestorTeam:
-                            generationData.IsAncestorFound |= block.BlockLines.Count > 0;
-                            generationData.AncestorName.Add(block.Name);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                // Generate new blocks to add
-                if (crudData.ExtractBlocks.Any(b => b.DataUpdateType == CRUDDataUpdateType.Block))
-                {
-                    generationData.BlocksToAdd.AddRange(GenerateBlocks(crudData, crudDtoProperties, dtoRefProperties));
-                }
-
-                // Parents blocks to update
-                List<ExtractBlock> parentBlocks = crudData.ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.Parent).ToList();
-                if (parentBlocks.Any())
-                {
-                    PrepareParentBlock(parentBlocks, generationData, crudDtoProperties);
-                }
-            }
-
-            return generationData;
-        }
-
         #region DotNet Files
-        private void UpdateBackFile(string destDir, Project currentProject, WebApiFeatureData crudData, ClassDefinition dtoClassDefiniton, List<WebApiNamespace> crudNamespaceList,
+        private void UpdateBackFile(Project currentProject, WebApiFeatureData crudData, ClassDefinition dtoClassDefiniton, List<WebApiNamespace> crudNamespaceList,
             List<CrudProperty> crudDtoProperties, string displayItem, FeatureType type, EntityInfo crudDtoEntity)
         {
-            string src = Path.Combine(crudData.ExtractDirPath, crudData.FilePath);
-
-            string fileName = Path.GetFileName(crudData.FilePath);
-            string partFilePath = crudData.FilePath.Remove(crudData.FilePath.LastIndexOf(fileName));
-            partFilePath = ReplaceCompagnyNameProjetName(partFilePath, currentProject, dtoClassDefiniton);
-
-            string tmpDestDir = ConvertPascalOldToNewCrudName(destDir, type, false);
-            string tmpPartFilePath = ConvertPascalOldToNewCrudName(partFilePath, FeatureType.CRUD, false);
-            string tmpFileName = ConvertPascalOldToNewCrudName(fileName, type, false);
-            string dest = Path.Combine(tmpDestDir, tmpPartFilePath, tmpFileName);
+            (string src, string dest) = GetDotNetFilesPath(currentProject, crudData, dtoClassDefiniton, type);
 
             // Prepare destination folder
             CommonTools.CheckFolder(new FileInfo(dest).DirectoryName);
@@ -357,12 +290,27 @@
                 else
                 {
                     // Convert Crud Name (Plane to XXX)
-                    fileLinesContent[i] = ConvertPascalOldToNewCrudName(fileLinesContent[i], type, false);
+                    fileLinesContent[i] = this.CrudNames.ConvertPascalOldToNewCrudName(fileLinesContent[i], type, false);
                 }
             }
 
             // Generate new file
             CommonTools.GenerateFile(dest, fileLinesContent);
+        }
+
+        private (string, string) GetDotNetFilesPath(Project currentProject, WebApiFeatureData featureData, ClassDefinition dtoClassDefiniton, FeatureType type)
+        {
+            string src = Path.Combine(featureData.ExtractDirPath, featureData.FilePath);
+
+            string fileName = Path.GetFileName(featureData.FilePath);
+            string filePartPath = featureData.FilePath.Remove(featureData.FilePath.LastIndexOf(fileName));
+            filePartPath = ReplaceCompagnyNameProjetName(filePartPath, currentProject, dtoClassDefiniton);
+
+            string newFilePartPath = this.CrudNames.ConvertPascalOldToNewCrudName(filePartPath, FeatureType.CRUD, false);
+            string newFileName = this.CrudNames.ConvertPascalOldToNewCrudName(fileName, type, false);
+            string dest = Path.Combine(this.DotNetFolderGeneration, newFilePartPath, newFileName);
+
+            return (src, dest);
         }
 
         private List<WebApiNamespace> ListCrudNamespaces(string destDir, List<FeatureData> featureDataList, Project currentProject, ClassDefinition classDefiniton, FeatureType type)
@@ -391,7 +339,7 @@
                     partPath = ReplaceCompagnyNameProjetName(partPath, currentProject, classDefiniton);
 
                     // Replace "plane" file name with good "crud" value
-                    string fileName = crudData.FileName.Replace(OldCrudNamePascalSingular, NewCrudNamePascalSingular);
+                    string fileName = crudData.FileName.Replace(this.CrudNames.OldCrudNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
 
                     // Search file on disk
                     string foundFile = Directory.EnumerateFiles(Path.Combine(destDir, partPath), fileName, SearchOption.AllDirectories).FirstOrDefault();
@@ -416,14 +364,18 @@
                     {
                         // Generate namespace by default
                         consoleWriter.AddMessageLine($"File '{fileName}' not found on path '{Path.Combine(destDir, partPath)}' folder or children.", "Orange");
-                        webApiNamespace.CrudNamespaceGenerated = ReplaceCompagnyNameProjetName(crudData.Namespace, currentProject, classDefiniton).Replace(OldCrudNamePascalSingular, NewCrudNamePascalSingular);
+                        webApiNamespace.CrudNamespaceGenerated =
+                            ReplaceCompagnyNameProjetName(crudData.Namespace, currentProject, classDefiniton).
+                            Replace(this.CrudNames.OldCrudNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
                     }
                 }
                 else
                 {
                     // Generate namespace for generated files: Controller, (I)AppService ...
 
-                    webApiNamespace.CrudNamespaceGenerated = ReplaceCompagnyNameProjetName(crudData.Namespace, currentProject, classDefiniton).Replace(OldCrudNamePascalSingular, NewCrudNamePascalSingular);
+                    webApiNamespace.CrudNamespaceGenerated =
+                        ReplaceCompagnyNameProjetName(crudData.Namespace, currentProject, classDefiniton).
+                        Replace(this.CrudNames.OldCrudNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
                 }
             }
             return namespaceList;
@@ -446,7 +398,7 @@
                     {
                         // Replace Compagny name and Project name if exists
                         line = ReplaceCompagnyNameProjetName(line, currentProject, dtoClassDefiniton);
-                        line = line.Replace(OldCrudNamePascalSingular, NewCrudNamePascalSingular);
+                        line = line.Replace(this.CrudNames.OldCrudNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
                     }
                 }
             }
@@ -456,33 +408,27 @@
         #endregion
 
         #region Partial Files
-        private void UpdatePartialFile(string srcDir, string destDir, Project currentProject, FeatureData crudData, FeatureType type, ClassDefinition dtoClassDefiniton = null)
+        private void UpdatePartialFile(string workingFolder, Project currentProject, FeatureData crudData, FeatureType type, ClassDefinition dtoClassDefiniton = null)
         {
             string markerBegin, markerEnd, suffix;
             List<string> contentToAdd;
 
-            string fileName = crudData.FilePath.Replace(Constants.PartialFileSuffix, "");
-            if (dtoClassDefiniton != null)
-            {
-                fileName = ReplaceCompagnyNameProjetName(fileName, currentProject, dtoClassDefiniton);
-            }
-
-            string srcFile = Path.Combine(srcDir, fileName);
-            string destFile = Path.Combine(destDir, fileName);
+            string partialFilePath = GetPartialFilePath(crudData, dtoClassDefiniton, workingFolder);
 
             string partialName = "";
             switch (type)
             {
                 case FeatureType.CRUD:
-                    partialName = OldCrudNamePascalSingular;
+                    partialName = this.CrudNames.OldCrudNamePascalSingular;
                     break;
                 case FeatureType.Option:
-                    partialName = OldOptionNamePascalSingular;
+                    partialName = this.CrudNames.OldOptionNamePascalSingular;
                     break;
                 case FeatureType.Team:
-                    partialName = OldTeamNamePascalSingular;
+                    partialName = this.CrudNames.OldTeamNamePascalSingular;
                     break;
             }
+
             foreach (ExtractPartialBlock block in crudData.ExtractBlocks.Where(b => b.Name == partialName))
             {
                 contentToAdd = new();
@@ -512,21 +458,32 @@
                     });
 
                     // Update file
-                    UpdatePartialCrudFile(srcFile, destFile, contentToAdd, markerBegin, markerEnd);
+                    UpdatePartialCrudFile(partialFilePath, contentToAdd, markerBegin, markerEnd);
                 }
             }
         }
 
-        private void UpdatePartialCrudFile(string srcFile, string destFile, List<string> contentToAdd, string markerBegin, string markerEnd)
+        private string GetPartialFilePath(FeatureData featureData, ClassDefinition classDefiniton, string workingFolder)
+        {
+            string fileName = featureData.FilePath.Replace(Constants.PartialFileSuffix, "");
+            if (classDefiniton != null)
+            {
+                fileName = ReplaceCompagnyNameProjetName(fileName, currentProject, classDefiniton);
+            }
+
+            return Path.Combine(workingFolder, fileName);
+        }
+
+        private void UpdatePartialCrudFile(string partialFile, List<string> contentToAdd, string markerBegin, string markerEnd)
         {
             // Read file
-            List<string> fileContent = File.ReadAllLines(srcFile).ToList();
+            List<string> fileContent = File.ReadAllLines(partialFile).ToList();
 
             // Insert data on file content
             List<string> newContent = InsertContentBetweenMarkers(fileContent, contentToAdd, markerBegin, markerEnd);
 
             // Generate file with new content
-            CommonTools.GenerateFile(destFile, newContent);
+            CommonTools.GenerateFile(partialFile, newContent);
         }
         #endregion
 
@@ -552,6 +509,14 @@
 
             // Generate new file
             CommonTools.GenerateFile(newFileName, fileLinesContent);
+        }
+
+        private (string, string) GetAngularFilesPath(FeatureData featureData, FeatureType type)
+        {
+            string src = Path.Combine(featureData.ExtractDirPath, featureData.FilePath);
+            string dest = this.CrudNames.ConvertCamelToKebabCrudName(Path.Combine(this.AngularFolderGeneration, featureData.FilePath), type);
+
+            return (src, dest);
         }
 
         private List<string> UpdateFileContent(List<string> fileLinesContent, GenerationCrudData generationData, string fileName, EntityInfo crudDtoEntity,
@@ -762,7 +727,7 @@
                 string markerBegin = $"{ZipParserService.MARKER_BEGIN} {crudType} {optionName}";
                 string markerEnd = $"{ZipParserService.MARKER_END} {crudType} {optionName}";
 
-                if (optionName == OldOptionNamePascalSingular)
+                if (optionName == this.CrudNames.OldOptionNamePascalSingular)
                 {
                     // replace options blocks
                     fileLinesContent = ReplaceOptions(fileLinesContent, optionName, newOptionsName, markerBegin, markerEnd, crudDtoProperties, propertyList);
@@ -1196,8 +1161,8 @@
             sb.Append(extractBlock.BlockLines[count]);          // Add the last
 
             string newBlock = sb.ToString().Replace(dtoAttributeName, crudAttributeName);
-            newBlock = newBlock.Replace(OldCrudNameCamelPlural, NewCrudNameCamelPlural);
-            newBlock = newBlock.Replace(OldCrudNameCamelSingular, NewCrudNameCamelSingular);
+            newBlock = newBlock.Replace(this.CrudNames.OldCrudNameCamelPlural, this.CrudNames.NewCrudNameCamelPlural);
+            newBlock = newBlock.Replace(this.CrudNames.OldCrudNameCamelSingular, this.CrudNames.NewCrudNameCamelSingular);
 
             return newBlock;
         }
@@ -1277,7 +1242,7 @@
                 }
                 if (!string.IsNullOrEmpty(componentValue))
                 {
-                    string newComponentValue = ConvertPascalOldToNewCrudName(componentValue, type);
+                    string newComponentValue = this.CrudNames.ConvertPascalOldToNewCrudName(componentValue, type);
                     newLine = newLine.Replace(componentValue, newComponentValue);
                 }
 
@@ -1289,7 +1254,7 @@
                 }
                 if (!string.IsNullOrEmpty(pathValue))
                 {
-                    string newPathValue = ConvertCamelToKebabCrudName(pathValue, type);
+                    string newPathValue = this.CrudNames.ConvertCamelToKebabCrudName(pathValue, type);
                     newLine = newLine.Replace(pathValue, newPathValue);
                 }
                 return newLine;
@@ -1299,7 +1264,7 @@
                 string pathValue = CommonTools.GetMatchRegexValue(regexComponentPath, newLine, 1);
                 if (!string.IsNullOrEmpty(pathValue))
                 {
-                    string newPathValue = ConvertCamelToKebabCrudName(pathValue, type);
+                    string newPathValue = this.CrudNames.ConvertCamelToKebabCrudName(pathValue, type);
                     return newLine.Replace(pathValue, newPathValue);
                 }
             }
@@ -1308,12 +1273,12 @@
                 string compValue = CommonTools.GetMatchRegexValue(regexComponentHtml, newLine, 1);
                 if (!string.IsNullOrEmpty(compValue))
                 {
-                    string newPathValue = ConvertCamelToKebabCrudName(compValue, type);
+                    string newPathValue = this.CrudNames.ConvertCamelToKebabCrudName(compValue, type);
                     return newLine.Replace(compValue, newPathValue);
                 }
             }
 
-            return ConvertPascalOldToNewCrudName(newLine, type, true);
+            return this.CrudNames.ConvertPascalOldToNewCrudName(newLine, type, true);
         }
 
         private string UpdateOptionFrontLine(string line, string oldOptionName, string newOptionName)
@@ -1377,111 +1342,234 @@
         {
             return value.Replace(classDef.CompagnyName, currentProject.CompanyName).Replace(classDef.ProjectName, currentProject.Name);
         }
+        #endregion
 
-        private string ConvertPascalOldToNewCrudName(string value, FeatureType type, bool convertCamel = true)
+        #region Delete Generation
+        public void DeleteCrudOptionsGenerated(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, CRUDGenerationHistory generationHistory)
         {
-            if (string.IsNullOrWhiteSpace(value)) return value;
-
-            switch (type)
+            CrudNames.InitRenameValues(generationHistory.EntityNameSingular, generationHistory.EntityNamePlural);
+            foreach (Generation generation in generationHistory?.Generation.OrderBy(x => x.Feature))
             {
-                //case FeatureType.WebApi:
-                case FeatureType.CRUD:
-                    value = ReplaceOldToNewValue(value, OldCrudNamePascalPlural, NewCrudNamePascalPlural, OldCrudNamePascalSingular, NewCrudNamePascalSingular);
-                    if (convertCamel)
-                    {
-                        value = ReplaceOldToNewValue(value, OldCrudNameCamelPlural, NewCrudNameCamelPlural, OldCrudNameCamelSingular, NewCrudNameCamelSingular);
-                    }
-                    break;
-                case FeatureType.Option:
-                    value = ReplaceOldToNewValue(value, OldOptionNamePascalPlural, NewCrudNamePascalPlural, OldOptionNamePascalSingular, NewCrudNamePascalSingular);
-                    if (convertCamel)
-                    {
-                        value = ReplaceOldToNewValue(value, OldOptionNameCamelPlural, NewCrudNameCamelPlural, OldOptionNameCamelSingular, NewCrudNameCamelSingular);
-                    }
-                    break;
-                case FeatureType.Team:
-                    value = ReplaceOldToNewValue(value, OldTeamNamePascalPlural, NewCrudNamePascalPlural, OldTeamNamePascalSingular, NewCrudNamePascalSingular);
-                    if (convertCamel)
-                    {
-                        value = ReplaceOldToNewValue(value, OldTeamNameCamelPlural, NewCrudNameCamelPlural, OldTeamNameCamelSingular, NewCrudNameCamelSingular);
-                    }
-                    break;
-            }
+                GenerationType generationType = CommonTools.GetEnumValue<GenerationType>(generation.GenerationType);
+                FeatureType featureType = CommonTools.GetEnumValue<FeatureType>(generation.Feature);
 
-            return value;
+                ZipFeatureType zipFeature = zipFeatureTypeList.FirstOrDefault(f => f.GenerationType == generationType && f.FeatureType == featureType);
+                if (zipFeature == null)
+                {
+                    // Error !
+                    continue;
+                }
+
+                ClassDefinition classDefiniton = null;
+                if (generationType == GenerationType.WebApi)
+                    classDefiniton = ((WebApiFeatureData)zipFeature.FeatureDataList.FirstOrDefault(x => ((WebApiFeatureData)x).FileType == WebApiFileType.Controller))?.ClassFileDefinition;
+
+                foreach (FeatureData featureData in zipFeature.FeatureDataList)
+                {
+                    // Get file path
+                    string dest = null;
+                    switch (generationType)
+                    {
+                        case GenerationType.WebApi:
+                            WebApiFeatureData webApiFeatureData = (WebApiFeatureData)featureData;
+
+                            if (webApiFeatureData.FileType == WebApiFileType.Entity ||
+                                webApiFeatureData.FileType == WebApiFileType.Dto ||
+                                webApiFeatureData.FileType == WebApiFileType.Mapper)
+                                continue;
+
+                            if (featureData.IsPartialFile)
+                            {
+                                dest = GetPartialFilePath(webApiFeatureData, classDefiniton, this.DotNetFolderGeneration);
+                            }
+                            else
+                            {
+                                (_, dest) = GetDotNetFilesPath(currentProject, webApiFeatureData, webApiFeatureData.ClassFileDefinition, featureType);
+                            }
+                            break;
+                        case GenerationType.Front:
+                            if (featureData.IsPartialFile)
+                            {
+                                dest = GetPartialFilePath(featureData, null, this.AngularFolderGeneration);
+                            }
+                            else
+                            {
+                                (_, dest) = GetAngularFilesPath(featureData, featureType);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(dest))
+                    {
+                        // Error !
+                        continue;
+                    }
+
+                    if (featureData.IsPartialFile)
+                    {
+                        // Delete block part on file
+                        DeletePartialBlock(dest, generationHistory.EntityNameSingular);
+                    }
+                    else
+                    {
+                        // Delete file
+                        File.Delete(dest);
+                    }
+                }
+            }
         }
 
-        private string ReplaceOldToNewValue(string value, string oldValuePlural, string newValuePlural, string oldValueSingular, string newValueSingular)
+        public void DeleteCrudOptionsGenerated(List<ZipFeatureType> zipFeatureTypeList, CRUDGenerationHistory generationHistory, List<CRUDGenerationHistory> optionsGenerationHistory)
         {
-            if (string.IsNullOrWhiteSpace(value)) return value;
-
-            List<int> nbAllOccurOldValue = FindOccurences(value, oldValueSingular);
-            List<int> nbOccurOldValuePlural = FindOccurences(value, oldValuePlural);
-            List<int> nbOccurOldValueSingular = nbAllOccurOldValue.Except(nbOccurOldValuePlural).ToList();
-
-            foreach (int index in nbAllOccurOldValue.OrderByDescending(i => i))
+            foreach (CRUDGenerationHistory optionGenerationHistory in optionsGenerationHistory)
             {
-                string before = value[..index];
-                if (nbOccurOldValuePlural.Contains(index))
+                string dest = null;
+                GenerationType generationType = GenerationType.Front;
+                FeatureType featureType = FeatureType.CRUD;
+
+                CrudNames.InitRenameValues(optionGenerationHistory.EntityNameSingular, optionGenerationHistory.EntityNamePlural);
+
+                ZipFeatureType zipFeature = zipFeatureTypeList.FirstOrDefault(f => f.GenerationType == generationType && f.FeatureType == featureType);
+                if (zipFeature == null)
                 {
-                    string after = value[(index + oldValuePlural.Length)..];
-                    value = $"{before}{newValuePlural}{after}";
+                    // Error !
+                    continue;
                 }
-                else if (nbOccurOldValueSingular.Contains(index))
+
+                foreach (FeatureData featureData in zipFeature.FeatureDataList)
                 {
-                    string after = value[(index + oldValueSingular.Length)..];
-                    value = $"{before}{newValueSingular}{after}";
+                    if (featureData.IsPartialFile)
+                    {
+                        continue;
+                    }
+
+                    (_, dest) = GetAngularFilesPath(featureData, featureType);
+                    if (string.IsNullOrWhiteSpace(dest))
+                    {
+                        // Error !
+                        continue;
+                    }
+
+                    List<string> newfileLinesContent = new();
+                    List<string> fileLinesContent = File.ReadAllLines(dest).ToList();
+
+                    // Delete Option XXX
+                    string markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option} {generationHistory.EntityNameSingular}";
+                    string markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Option} {generationHistory.EntityNameSingular}";
+                    newfileLinesContent = DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
+                    // Delete OptionField XXX
+                    markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.OptionField} {generationHistory.EntityNameSingular}";
+                    markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.OptionField} {generationHistory.EntityNameSingular}";
+                    newfileLinesContent = DeleteBlocks(newfileLinesContent, markerBegin, markerEnd);
+
+                    if (fileLinesContent.Count != newfileLinesContent.Count)
+                        CommonTools.GenerateFile(dest, newfileLinesContent);
                 }
             }
-
-            return value;
         }
 
-        private List<int> FindOccurences(string line, string search)
+        private void DeletePartialBlock(string file, string crudName)
         {
-            int lastIndex = 0;
-            List<int> indexList = new();
-            for (int count = 0; line.Length > 0; count++)
+            bool partialBlockFound = false;
+            List<string> newfileLinesContent = new();
+            string markerBegin = @$"{ZipParserService.MARKER_BEGIN_PARTIAL} [a-zA-Z]+\s\d?\s?{crudName}";
+            string markerEnd = @$"{ZipParserService.MARKER_END_PARTIAL} [a-zA-Z]+\s\d?\s?{crudName}";
+
+            // Read partial file
+            List<string> fileLinesContent = File.ReadAllLines(file).ToList();
+
+            // Detele specifics partial blocks
+            foreach (string line in fileLinesContent)
             {
-                int index = line.IndexOf(search);
-                if (index < 0)
-                    break;
-                else
+                // Marker partial begin block found
+                if (CommonTools.IsMatchRegexValue(markerBegin, line))
                 {
-                    indexList.Add(lastIndex + index);
-                    lastIndex += index + search.Length;
-                    line = line.Substring(index + search.Length);
+                    partialBlockFound = true;
+                    continue;
+                }
+
+                // Marker partial end block found
+                if (CommonTools.IsMatchRegexValue(markerEnd, line))
+                {
+                    partialBlockFound = false;
+                    continue;
+                }
+
+                // Add lines without partial block
+                if (!partialBlockFound)
+                {
+                    newfileLinesContent.Add(line);
                 }
             }
 
-            return indexList;
-        }
-
-        /// <summary>
-        /// Convert value form Camel case to Kebab case
-        /// </summary>
-        private string ConvertCamelToKebabCrudName(string value, FeatureType type)
-        {
-            if (string.IsNullOrWhiteSpace(value)) return value;
-
-            switch (type)
-            {
-                case FeatureType.CRUD:
-                    value = ReplaceOldToNewValue(value, this.OldCrudNameCamelPlural, this.NewCrudNameKebabPlural, this.OldCrudNameCamelSingular, this.NewCrudNameKebabSingular);
-                    break;
-                case FeatureType.Option:
-                    value = ReplaceOldToNewValue(value, this.OldOptionNameCamelPlural, this.NewCrudNameKebabPlural, this.OldOptionNameCamelSingular, this.NewCrudNameKebabSingular);
-                    break;
-                case FeatureType.Team:
-                    value = ReplaceOldToNewValue(value, this.OldTeamNameCamelPlural, this.NewCrudNameKebabPlural, this.OldTeamNameCamelSingular, this.NewCrudNameKebabSingular);
-                    break;
-            }
-
-            return value;
+            // Generate new file
+            CommonTools.GenerateFile(file, newfileLinesContent);
         }
         #endregion
 
         #region Tools
+        private GenerationCrudData ExtractGenerationCrudData(FeatureData crudData, List<CrudProperty> crudDtoProperties, List<PropertyInfo> dtoRefProperties,
+            string displayItem, FeatureType type, List<string> optionItem = null)
+        {
+            GenerationCrudData generationData = null;
+            if (crudData.ExtractBlocks?.Count > 0)
+            {
+                generationData = new();
+                foreach (ExtractBlock block in crudData.ExtractBlocks)
+                {
+                    switch (block.DataUpdateType)
+                    {
+                        case CRUDDataUpdateType.Properties:
+                            generationData.PropertiesToAdd.AddRange(GeneratePropertiesToAdd((ExtractPropertiesBlock)block, crudDtoProperties));
+                            break;
+                        case CRUDDataUpdateType.Child:
+                            generationData.IsChildrenToDelete |= block.BlockLines.Count > 0;
+                            generationData.ChildrenName.Add(block.Name);
+                            break;
+                        case CRUDDataUpdateType.Option:
+                            generationData.IsOptionFound |= block.BlockLines.Count > 0;
+                            if (!string.IsNullOrWhiteSpace(block.Name) && !generationData.OptionsName.Contains(block.Name))
+                                generationData.OptionsName.Add(block.Name);
+                            generationData.OptionsToAdd = optionItem;
+                            break;
+                        case CRUDDataUpdateType.OptionField:
+                            if (!string.IsNullOrWhiteSpace(block.Name) && !generationData.OptionsFields.Contains(block.Name))
+                                generationData.OptionsFields.Add(block.Name);
+                            break;
+                        case CRUDDataUpdateType.Display:
+                            string extractItem = ((ExtractDisplayBlock)block).ExtractItem;
+                            string extractLine = ((ExtractDisplayBlock)block).ExtractLine;
+                            string newDisplayLine = this.CrudNames.ConvertPascalOldToNewCrudName(extractLine, type).Replace(extractItem, CommonTools.ConvertToCamelCase(displayItem));
+                            generationData.DisplayToUpdate.Add(new KeyValuePair<string, string>(extractLine, newDisplayLine));
+                            break;
+                        case CRUDDataUpdateType.AncestorTeam:
+                            generationData.IsAncestorFound |= block.BlockLines.Count > 0;
+                            generationData.AncestorName.Add(block.Name);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                // Generate new blocks to add
+                if (crudData.ExtractBlocks.Any(b => b.DataUpdateType == CRUDDataUpdateType.Block))
+                {
+                    generationData.BlocksToAdd.AddRange(GenerateBlocks(crudData, crudDtoProperties, dtoRefProperties));
+                }
+
+                // Parents blocks to update
+                List<ExtractBlock> parentBlocks = crudData.ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.Parent).ToList();
+                if (parentBlocks.Any())
+                {
+                    PrepareParentBlock(parentBlocks, generationData, crudDtoProperties);
+                }
+            }
+
+            return generationData;
+        }
+
         private List<CrudProperty> GetDtoProperties(EntityInfo dtoEntity)
         {
             if (dtoEntity == null) { return null; }
@@ -1583,9 +1671,15 @@
             if (!string.IsNullOrEmpty(match))
             {
                 // Integer
-                if (match.ToLower() == "int" || match.ToLower() == "long" || match.ToLower() == "float" || match.ToLower() == "double")
+                if (match.ToLower() == "int" || match.ToLower() == "long")
                 {
                     angularType = angularType.Replace(match, "number");
+                }
+
+                // Decimal
+                if (match.ToLower() == "float" || match.ToLower() == "double")
+                {
+                    angularType = angularType.Replace(match, "decimal");
                 }
 
                 // Boolean
@@ -1595,13 +1689,13 @@
                 }
 
                 // Date
-                else if (match == "DateTime")
+                else if (match == nameof(DateTime))
                 {
                     angularType = angularType.Replace(match, "Date");
                 }
 
                 // Time
-                else if (match == "TimeSpan")
+                else if (match == nameof(TimeSpan))
                 {
                     angularType = angularType.Replace(match, "string");
                 }
@@ -1626,7 +1720,7 @@
             string partPath = string.Empty;
             foreach (string nmsp in line.Split('.'))
             {
-                if (nmsp.Contains(OldCrudNamePascalSingular, StringComparison.OrdinalIgnoreCase))
+                if (nmsp.Contains(this.CrudNames.OldCrudNamePascalSingular, StringComparison.OrdinalIgnoreCase))
                 {
                     partPath = partPath.Remove(partPath.Length - 1);
                     break;
