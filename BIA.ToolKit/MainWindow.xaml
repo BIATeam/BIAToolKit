@@ -65,7 +65,7 @@
                     <TextBox Text="{Binding Settings.CreateCompanyName}" HorizontalAlignment="Left" Margin="243,26,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" IsEnabled="True" Grid.Column="1"/>
                     <Label Content="Project name" HorizontalAlignment="Left" Margin="224,51,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
                     <TextBox Text="" HorizontalAlignment="Left" Margin="243,76,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="CreateProjectName" IsEnabled="True" Grid.Column="1"/>
-
+                    <CheckBox IsChecked="{Binding MainViewModel.IncludeProjectViewModel.WithDatabase, Mode=TwoWay}" Content="Database" HorizontalAlignment="Left" Margin="29,55,0,0" VerticalAlignment="Top" Width="310" Grid.ColumnSpan="2"/>
                     <uc:VersionAndOptionUserControl x:Name="CreateVersionAndOption" Margin="10,171,10,0" Height="149" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
 
 
