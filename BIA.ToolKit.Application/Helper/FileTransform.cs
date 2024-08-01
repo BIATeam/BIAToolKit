@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.Application.Helper
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -220,18 +221,23 @@
             }
         }
 
-        static public void CopyFilesRecursively(string sourcePath, string targetPath, string profile = "", IList<string> filesToExclude = null)
+        static public void CopyFilesRecursively(string sourcePath, string targetPath, string profile = "", IList<string> filesToExclude = null, IList<string> foldersToExcludes = null)
         {
             //Now Create all of the directories
             foreach (string sourceDir in Directory.GetDirectories(sourcePath, "*", SearchOption.TopDirectoryOnly))
             {
                 string sourceDirName = Path.GetFileName(sourceDir);
 
+                if (foldersToExcludes?.Any(f => Regex.Match(sourceDirName, f, RegexOptions.IgnoreCase).Success) == true)
+                {
+                    continue; // skip this folder if its name matches any of the folder names to exclude
+                }
+
                 if (filesToExclude == null || !filesToExclude.Any(s => Regex.Match(sourceDirName, s, RegexOptions.IgnoreCase).Success))
                 {
                     var subTargetPath = sourceDir.Replace(sourcePath, targetPath);
                     Directory.CreateDirectory(sourceDir.Replace(sourcePath, targetPath));
-                    CopyFilesRecursively(sourceDir, subTargetPath, profile, filesToExclude);
+                    CopyFilesRecursively(sourceDir, subTargetPath, profile, filesToExclude, foldersToExcludes);
                 }
             }
 

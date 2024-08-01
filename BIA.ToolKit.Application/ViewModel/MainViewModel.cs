@@ -9,8 +9,14 @@
         public BIATKSettings Settings { get; set; }
         public VersionAndOptionViewModel VersionAndOptionViewModel { get; set; }
 
+        public IncludeProjectViewModel IncludeProjectViewModel { get; private set; }
+
+        
+
         public MainViewModel()
         {
+            IncludeProjectViewModel = new IncludeProjectViewModel();
+
             Settings = new BIATKSettings();
             // Because the RootProjects is in 2 VM (create and modify)
             SynchronizeSettings.AddCallBack("RootProjectsPath", DelegateSetRootProjectsPath);

@@ -1,17 +1,16 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Common;
+    using BIA.ToolKit.Common.Helpers;
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Domain.Work;
-    using LibGit2Sharp;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.IO.Compression;
-    using System.Net;
-    using System.Text.RegularExpressions;
-    using System.Threading.Tasks;
+    using static BIA.ToolKit.Common.Constants;
 
     public class ProjectCreatorService
     {
@@ -25,9 +24,9 @@
         }
 
         public async Task Create(
-            bool actionFinishedAtEnd, 
-            string companyName, 
-            string projectName, 
+            bool actionFinishedAtEnd,
+            string companyName,
+            string projectName,
             string projectPath,
 
             VersionAndOption versionAndOption,
@@ -35,14 +34,19 @@
             string[] angularFronts
             )
         {
+            bool withFrontEnd = false;
+            bool withModelFirst = false;
+            bool withHangfire = true;
+            bool withDatabase = withModelFirst || withHangfire;
 
-            IList<string> localFilesToExclude = new List<string> ();
+            List<string> localFilesToExclude = new List<string>();
+            List<string> foldersToExcludes = new List<string>();
 
             if (versionAndOption.WorkTemplate.Version == "VX.Y.Z")
             {
                 // Copy from local folder
                 versionAndOption.WorkTemplate.VersionFolderPath = versionAndOption.WorkTemplate.RepositorySettings.RootFolderPath;
-                localFilesToExclude = new List<string>() { "^\\.git$", "^\\.vs$" , "\\.csproj\\.user$" , "^bin$", "^obj$", "^node_modules$", "^dist$" };
+                localFilesToExclude = new List<string>() { "^\\.git$", "^\\.vs$", "\\.csproj\\.user$", "^bin$", "^obj$", "^node_modules$", "^dist$" };
             }
             else
             {
@@ -54,6 +58,47 @@
                 }
             }
 
+            if (!withFrontEnd && angularFronts?.Any() == true)
+            {
+                foldersToExcludes.AddRange(angularFronts.ToList());
+                angularFronts = null;
+            }
+
+            if (!withDatabase)
+            {
+                foldersToExcludes.AddRange(
+                    new List<string>
+                    {
+                        $".*{BiaProjectName.DeployDB}$",
+                        $".*{BiaProjectName.WorkerService}$",
+                        $".*{BiaProjectName.Test}$",
+                    });
+            }
+
+            if (!withModelFirst)
+            {
+                List<string> filesToExcludes = new List<string>()
+                {
+                    ".*Audit.*\\.cs$",
+                    ".*Auth(?!Api).*\\.cs$",
+                    ".*LogsController.*\\.cs$",
+                    ".*Member.*\\.cs$",
+                    ".*ModelBuilder.*\\.cs$",
+                    ".*Notification.*\\.cs$",
+                    ".*Query.*\\.cs$",
+                    ".*Role.*\\.cs$",
+                    ".*SearchExpressionService.*\\.cs$",
+                    ".*Site.*\\.cs$",
+                    ".*Synchronize.*\\.cs$",
+                    ".*Team.*\\.cs$",
+                    ".*Translation.*\\.cs$",
+                    "^(?!UserFromDirectory\\.cs$|.*UserIdentityKey.*\\.cs$).*User.*\\.cs$",
+                    ".*View.*\\.cs$",
+                };
+
+                localFilesToExclude.AddRange(filesToExcludes);
+            }
+
             if (!Directory.Exists(versionAndOption.WorkTemplate.VersionFolderPath))
             {
                 consoleWriter.AddMessageLine("The template source folder do not exist: " + versionAndOption.WorkTemplate.VersionFolderPath, "Red");
@@ -61,7 +106,7 @@
             else
             {
                 consoleWriter.AddMessageLine("Start copy template files.", "Pink");
-                FileTransform.CopyFilesRecursively(versionAndOption.WorkTemplate.VersionFolderPath, projectPath, "", localFilesToExclude);
+                FileTransform.CopyFilesRecursively(versionAndOption.WorkTemplate.VersionFolderPath, projectPath, "", localFilesToExclude, foldersToExcludes);
 
                 IList<string> filesToRemove = new List<string>() { "^new-angular-project\\.ps1$" };
 
@@ -94,12 +139,32 @@
                         }
                     }
                     consoleWriter.AddMessageLine("Start copy company files.", "Pink");
-                    FileTransform.CopyFilesRecursively(versionAndOption.WorkCompanyFile.VersionFolderPath, projectPath, versionAndOption.Profile, filesToExclude);
+                    FileTransform.CopyFilesRecursively(versionAndOption.WorkCompanyFile.VersionFolderPath, projectPath, versionAndOption.Profile, filesToExclude, foldersToExcludes);
                 }
 
                 if (filesToRemove.Count > 0)
                 {
                     FileTransform.RemoveRecursively(projectPath, filesToRemove);
+                }
+
+                if (!withDatabase)
+                {
+                    List<string> slnFiles = FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetSolution}", projectPath);
+                    List<string> csprojFiles = FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}", projectPath);
+
+                    csprojFiles = csprojFiles
+                        .Where(x => x.EndsWith($"{BiaProjectName.DeployDB}{FileExtensions.DotNetProject}") ||
+                                    x.EndsWith($"{BiaProjectName.WorkerService}{FileExtensions.DotNetProject}") ||
+                                    x.EndsWith($"{BiaProjectName.Test}{FileExtensions.DotNetProject}"))
+                        .ToList();
+
+                    DotnetHelper.RemoveProjectsFromSolution(slnFiles[0], csprojFiles);
+                }
+
+                if (!withModelFirst)
+                {
+                    DirectoryHelper.DeleteEmptyDirectories(projectPath);
+                    FileHelper.CleanFilesByTag(projectPath, @"// BIAToolKit - Begin ModelFirst", @"// BIAToolKit - End ModelFirst", "*.cs");
                 }
 
                 consoleWriter.AddMessageLine("Start rename.", "Pink");
@@ -143,7 +208,7 @@
         public void OverwriteBIAFolder(string sourceFolder, string targetFolder, bool actionFinishedAtEnd)
         {
             consoleWriter.AddMessageLine("Start overwrite BIA Folder.", "Pink");
-            Regex reg = new Regex( @"\\bia-.*\\", RegexOptions.IgnoreCase);
+            Regex reg = new Regex(@"\\bia-.*\\", RegexOptions.IgnoreCase);
             string[] biaDirectories = Directory.GetDirectories(sourceFolder, "bia-*", SearchOption.AllDirectories);
             foreach (var biaDirectory in biaDirectories)
             {
@@ -165,6 +230,5 @@
             consoleWriter.AddMessageLine("Overwrite BIA Folder finished.", actionFinishedAtEnd ? "Green" : "Blue");
 
         }
-
     }
 }

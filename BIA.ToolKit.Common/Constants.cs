@@ -65,5 +65,33 @@ namespace BIA.ToolKit.Common
         public const string PartialFileSuffix = ".partial";
 
         public const char PropertySeparator = ':';
+
+        /// <summary>
+        /// File Extensions.
+        /// </summary>
+        public static class FileExtensions
+        {
+            /// <summary>
+            /// The solution extension.
+            /// </summary>
+            public const string DotNetSolution = ".sln";
+
+            /// <summary>
+            /// The project extension
+            /// </summary>
+            public const string DotNetProject = ".csproj";
+        }
+
+        /// <summary>
+        /// Bia Project Name.
+        /// </summary>
+        public static class BiaProjectName
+        {
+            public const string DeployDB = "DeployDB";
+
+            public const string WorkerService = "WorkerService";
+
+            public const string Test = "Test";
+        }
     }
 }
