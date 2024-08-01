@@ -215,6 +215,7 @@
 
                 // Update history
                 DeleteLastGenerationHistory(history);
+                CrudAlreadyGeneratedLabel.Visibility = Visibility.Hidden;
 
                 consoleWriter.AddMessageLine($"End of '{vm.CRUDNameSingular}' suppression.", "Purple");
             }

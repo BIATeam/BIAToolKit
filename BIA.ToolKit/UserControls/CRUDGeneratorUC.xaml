@@ -44,11 +44,11 @@
         </ComboBox>
 
         <!-- Right side -->
-        <Button Content="Generate" IsEnabled="{Binding IsButtonGenerateCrudEnable}" Margin="0,75,135,0" Width="130" x:Name="GenerateCrud" Height="60" HorizontalAlignment="Right" VerticalAlignment="Top" Click="Generate_Click"/>
+        <Button Content="Generate" IsEnabled="{Binding IsButtonGenerateCrudEnable}" Margin="0,75,135,0" Width="160" x:Name="GenerateCrud" Height="60" HorizontalAlignment="Right" VerticalAlignment="Top" Click="Generate_Click"/>
 
-        <Button Content="Delete last generation" Margin="0,210,135,0" Width="130" x:Name="DeleteGeneration" Height="40" HorizontalAlignment="Right" VerticalAlignment="Top" Click="DeleteLastGeneration_Click" IsEnabled="{Binding IsDtoGenerated}"/>
+        <Button Content="Delete previous generation" Margin="0,210,135,0" Width="160" x:Name="DeleteGeneration" Height="40" HorizontalAlignment="Right" VerticalAlignment="Top" Click="DeleteLastGeneration_Click" IsEnabled="{Binding IsDtoGenerated}"/>
 
-        <Label Content="After all generations :" Margin="0,255,140,0" HorizontalAlignment="Right" VerticalAlignment="Top" Foreground="White"/>
-        <Button Content="Delete annotations" Margin="0,280,135,0" Width="130" x:Name="DeleteAnnotations" Height="40" HorizontalAlignment="Right" VerticalAlignment="Top" Click="DeleteBIAToolkitAnnotations_Click" IsEnabled="{Binding IsProjectChosen}"/>
+        <Label Content="After all generations :" Margin="0,255,150,0" HorizontalAlignment="Right" VerticalAlignment="Top" Foreground="White"/>
+        <Button Content="Delete annotations" Margin="0,280,135,0" Width="160" x:Name="DeleteAnnotations" Height="40" HorizontalAlignment="Right" VerticalAlignment="Top" Click="DeleteBIAToolkitAnnotations_Click" IsEnabled="{Binding IsProjectChosen}"/>
     </Grid>
 </UserControl>
