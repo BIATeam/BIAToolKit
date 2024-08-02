@@ -11,16 +11,23 @@
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Domain.Work;
     using static BIA.ToolKit.Common.Constants;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
 
     public class ProjectCreatorService
     {
-        private IConsoleWriter consoleWriter;
-        private RepositoryService repositoryService;
+        private readonly IConsoleWriter consoleWriter;
+        private readonly RepositoryService repositoryService;
+        private readonly string projectCreatorSettingFileName;
 
-        public ProjectCreatorService(IConsoleWriter consoleWriter, RepositoryService repositoryService)
+        public ProjectCreatorService(IConsoleWriter consoleWriter,
+            RepositoryService repositoryService,
+            SettingsService settingsService)
         {
             this.consoleWriter = consoleWriter;
             this.repositoryService = repositoryService;
+            projectCreatorSettingFileName = settingsService.ReadSetting("ProjectCreatorSettingFileName");
         }
 
         public async Task Create(
@@ -35,9 +42,9 @@
             )
         {
             bool withFrontEnd = false;
-            bool withModelFirst = false;
-            bool withHangfire = true;
-            bool withDatabase = withModelFirst || withHangfire;
+            bool withAppFeature = false;
+            bool withHangfire = false;
+            bool withDatabase = withAppFeature || withHangfire;
 
             List<string> localFilesToExclude = new List<string>();
             List<string> foldersToExcludes = new List<string>();
@@ -71,34 +78,13 @@
                     {
                         $".*{BiaProjectName.DeployDB}$",
                         $".*{BiaProjectName.WorkerService}$",
-                        $".*{BiaProjectName.Test}$",
                     });
             }
 
-            if (!withModelFirst)
+            if (!withAppFeature)
             {
-                List<string> filesToExcludes = new List<string>()
-                {
-                    ".*Audit.*\\.cs$",
-                    "^AuthController\\.cs$",
-                    ".*AuthAppService\\.cs$",
-                    ".*Error.*\\.cs$",
-                    ".*LogsController.*\\.cs$",
-                    ".*Member.*\\.cs$",
-                    ".*ModelBuilder.*\\.cs$",
-                    ".*Notification.*\\.cs$",
-                    ".*Query.*\\.cs$",
-                    "^(?!RoleId\\.cs$).*Role.*\\.cs$",
-                    ".*SearchExpressionService.*\\.cs$",
-                    ".*Site.*\\.cs$",
-                    ".*Synchronize.*\\.cs$",
-                    ".*Team.*\\.cs$",
-                    ".*Translation.*\\.cs$",
-                    "^(?!UserFromDirectory\\.cs$|SearchUserResponseDto\\.cs$|.*UserIdentityKey.*\\.cs$|.*UserPermissionDomainService.*\\.cs$).*User.*\\.cs$",
-                    ".*View.*\\.cs$",
-                };
-                
-                localFilesToExclude.AddRange(filesToExcludes);
+                ProjectCreatorSetting projectCreatorSetting = this.GetProjectCreatorSetting(versionAndOption.WorkTemplate.VersionFolderPath);
+                localFilesToExclude.AddRange(projectCreatorSetting.WithoutAppFeature.FilesToExcludes);
             }
 
             if (!Directory.Exists(versionAndOption.WorkTemplate.VersionFolderPath))
@@ -110,7 +96,7 @@
                 consoleWriter.AddMessageLine("Start copy template files.", "Pink");
                 FileTransform.CopyFilesRecursively(versionAndOption.WorkTemplate.VersionFolderPath, projectPath, "", localFilesToExclude, foldersToExcludes);
 
-                IList<string> filesToRemove = new List<string>() { "^new-angular-project\\.ps1$" };
+                IList<string> filesToRemove = new List<string>() { "^new-angular-project\\.ps1$", projectCreatorSettingFileName };
 
                 if (versionAndOption.UseCompanyFiles)
                 {
@@ -156,17 +142,16 @@
 
                     csprojFiles = csprojFiles
                         .Where(x => x.EndsWith($"{BiaProjectName.DeployDB}{FileExtensions.DotNetProject}") ||
-                                    x.EndsWith($"{BiaProjectName.WorkerService}{FileExtensions.DotNetProject}") ||
-                                    x.EndsWith($"{BiaProjectName.Test}{FileExtensions.DotNetProject}"))
+                                    x.EndsWith($"{BiaProjectName.WorkerService}{FileExtensions.DotNetProject}"))
                         .ToList();
 
                     DotnetHelper.RemoveProjectsFromSolution(slnFiles[0], csprojFiles);
                 }
 
-                if (!withModelFirst)
+                if (!withAppFeature)
                 {
                     DirectoryHelper.DeleteEmptyDirectories(projectPath);
-                    FileHelper.CleanFilesByTag(projectPath, @"// BIAToolKit - Begin ModelFirst", @"// BIAToolKit - End ModelFirst", "*.cs");
+                    FileHelper.CleanFilesByTag(projectPath, @"// BIAToolKit - Begin AppFeature", @"// BIAToolKit - End AppFeature", "*.cs");
                 }
 
                 consoleWriter.AddMessageLine("Start rename.", "Pink");
@@ -231,6 +216,39 @@
             }
             consoleWriter.AddMessageLine("Overwrite BIA Folder finished.", actionFinishedAtEnd ? "Green" : "Blue");
 
+        }
+
+        private ProjectCreatorSetting GetProjectCreatorSetting(string versionFolderPath)
+        {
+            //ProjectCreatorSetting projectCreatorSettingInit = new ProjectCreatorSetting();
+            //projectCreatorSettingInit.WithoutAppFeature.FilesToExcludes = new List<string>()
+            //{
+            //    ".*Audit.*\\.cs$",
+            //    "^AuthController\\.cs$",
+            //    ".*AuthAppService\\.cs$",
+            //    ".*Error.*\\.cs$",
+            //    ".*LogsController.*\\.cs$",
+            //    ".*Member.*\\.cs$",
+            //    ".*ModelBuilder.*\\.cs$",
+            //    ".*Notification.*\\.cs$",
+            //    ".*Query.*\\.cs$",
+            //    "^(?!RoleId\\.cs$).*Role.*\\.cs$",
+            //    ".*SearchExpressionService.*\\.cs$",
+            //    ".*Site.*\\.cs$",
+            //    ".*Synchronize.*\\.cs$",
+            //    ".*Team.*\\.cs$",
+            //    ".*Translation.*\\.cs$",
+            //    "^(?!UserFromDirectory\\.cs$|SearchUserResponseDto\\.cs$|.*UserIdentityKey.*\\.cs$|.*UserPermissionDomainService.*\\.cs$).*User.*\\.cs$",
+            //    ".*View.*\\.cs$",
+            //};
+
+            //var jsonInit = JsonSerializer.Serialize(projectCreatorSettingInit);
+            //await File.WriteAllTextAsync("D:\\Source\\GitHub\\BIATeam\\BIADemo\\DotNet\\BiaToolKit_ProjectCreator.json", jsonInit);
+
+            string json = File.ReadAllText(versionFolderPath + "\\DotNet\\" + projectCreatorSettingFileName);
+            ProjectCreatorSetting projectCreatorSetting = JsonSerializer.Deserialize<ProjectCreatorSetting>(json);
+
+            return projectCreatorSetting;
         }
     }
 }
