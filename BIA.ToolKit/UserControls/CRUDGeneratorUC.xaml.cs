@@ -23,6 +23,7 @@
     {
         private const string DOTNET_TYPE = "DotNet";
         private const string ANGULAR_TYPE = "Angular";
+        private const int FRAMEWORK_VERSION_MINIMUM = 390;
 
         private IConsoleWriter consoleWriter;
         private CSharpParserService service;
@@ -453,6 +454,17 @@
         {
             vm.IsZipParsed = false;
 
+            // Verify version to avoid to try to parse zip when ".bia" folders are missing
+            if (!string.IsNullOrEmpty(vm.CurrentProject.FrameworkVersion))
+            {
+                string version = vm.CurrentProject.FrameworkVersion.Replace(".", "");
+                if (int.TryParse(version, out int value))
+                {
+                    if (value < FRAMEWORK_VERSION_MINIMUM)
+                        return;
+                }
+            }
+
             bool parsed = false;
             // *** Parse DotNet Zip files ***
             // Parse CRUD Zip file
@@ -544,6 +556,12 @@
             try
             {
                 string folderName = (generationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.CurrentProject.BIAFronts;
+                string biaFolder = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, folderName, Constants.FolderBia);
+                if (!new DirectoryInfo(folderName).Exists)
+                {
+                    return false;
+                }
+
                 ZipFeatureType zipData = vm.ZipFeatureTypeList.Where(x => x.GenerationType == generationType && x.FeatureType == featureType).FirstOrDefault();
                 if (zipData != null)
                 {

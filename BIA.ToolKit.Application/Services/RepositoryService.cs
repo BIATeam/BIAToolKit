@@ -1,20 +1,13 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using System.Management.Automation;
-    using System;
     using LibGit2Sharp;
-    using System.Linq;
-    using LibGit2Sharp.Handlers;
-    using System.Diagnostics;
     using System.IO;
     using BIA.ToolKit.Domain.Settings;
     using System.Net;
     using System.IO.Compression;
     using System.Net.Http;
-    using System.Security.Policy;
 
     public class RepositoryService
     {
@@ -51,16 +44,16 @@
         {
             if (repository.Versioning == VersioningType.Release)
             {
-                var releasePath = AppSettings.AppFolderPath + "\\" + repository.Name;
+                var releasePath = Path.Combine(AppSettings.AppFolderPath, repository.Name);
                 if (Directory.Exists(releasePath))
                 {
-                    Directory.Delete(releasePath,true);
+                    Directory.Delete(releasePath, true);
                 }
                 outPut.AddMessageLine("Release Cleaned.", "Pink");
             }
         }
 
-        public async Task<string> PrepareVersionFolder (RepositorySettings repository, string version)
+        public async Task<string> PrepareVersionFolder(RepositorySettings repository, string version)
         {
             if (repository.Versioning == VersioningType.Folder)
             {
