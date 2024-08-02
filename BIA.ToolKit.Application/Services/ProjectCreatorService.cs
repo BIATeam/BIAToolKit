@@ -80,22 +80,24 @@
                 List<string> filesToExcludes = new List<string>()
                 {
                     ".*Audit.*\\.cs$",
-                    ".*Auth(?!Api).*\\.cs$",
+                    "^AuthController\\.cs$",
+                    ".*AuthAppService\\.cs$",
+                    ".*Error.*\\.cs$",
                     ".*LogsController.*\\.cs$",
                     ".*Member.*\\.cs$",
                     ".*ModelBuilder.*\\.cs$",
                     ".*Notification.*\\.cs$",
                     ".*Query.*\\.cs$",
-                    ".*Role.*\\.cs$",
+                    "^(?!RoleId\\.cs$).*Role.*\\.cs$",
                     ".*SearchExpressionService.*\\.cs$",
                     ".*Site.*\\.cs$",
                     ".*Synchronize.*\\.cs$",
                     ".*Team.*\\.cs$",
                     ".*Translation.*\\.cs$",
-                    "^(?!UserFromDirectory\\.cs$|.*UserIdentityKey.*\\.cs$).*User.*\\.cs$",
+                    "^(?!UserFromDirectory\\.cs$|SearchUserResponseDto\\.cs$|.*UserIdentityKey.*\\.cs$|.*UserPermissionDomainService.*\\.cs$).*User.*\\.cs$",
                     ".*View.*\\.cs$",
                 };
-
+                
                 localFilesToExclude.AddRange(filesToExcludes);
             }
 
