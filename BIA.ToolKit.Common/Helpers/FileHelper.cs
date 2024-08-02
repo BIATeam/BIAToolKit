@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
 
     public static class FileHelper
     {
@@ -26,20 +26,60 @@
             return files.ToList();
         }
 
-        public static void CleanFilesByTag(string path, string beginTag, string endTag, string extensionFile)
+        public static void CleanFilesByTag(string path, string beginTag, string endTag, string extension)
         {
-            foreach (string directory in Directory.GetDirectories(path))
-            {
-                CleanFilesByTag(directory, beginTag, endTag, extensionFile);
-            }
+            var files = Directory.EnumerateFiles(path, extension, SearchOption.AllDirectories);
 
-            foreach (string filepath in Directory.GetFiles(path, extensionFile))
+            // foreach (string file in files)
+            Parallel.ForEach(files, file =>
             {
-                string text = File.ReadAllText(filepath);
-                string pattern = String.Format("{0}.*?{1}\\s*", Regex.Escape(beginTag), Regex.Escape(endTag));
-                string cleanedText = Regex.Replace(text, pattern, "", RegexOptions.Singleline);
-                File.WriteAllText(filepath, cleanedText);
-            }
+                List<string> lines = File.ReadLines(file).ToList();
+
+                // Indexes of tags
+                List<int> tagIndexes = lines
+                    .Select((line, index) => new { line, index })
+                    .Where(x => x.line.Contains(beginTag) || x.line.Contains(endTag))
+                    .Select(x => x.index).Distinct().ToList();
+
+                // Assure that we have pairs
+                if (tagIndexes.Any() && tagIndexes.Count % 2 == 0)
+                {
+                    // Create pair to remove range between tags
+                    var indexPairs = tagIndexes
+                        .Select((value, i) => new { Value = value, Index = i })
+                        .GroupBy(x => x.Index / 2)
+                        .Select(group => new { Begin = group.First().Value, End = group.Last().Value })
+                        .ToList();
+
+                    indexPairs.Reverse();
+
+                    // Indexes of empty lines
+                    List<int> emptyIndexes = lines
+                        .Select((line, index) => new { line, index })
+                        .Where(x => string.IsNullOrWhiteSpace(x.line))
+                        .Select(x => x.index).Distinct().ToList();
+
+                    foreach (var pair in indexPairs)
+                    {
+                        int begin = pair.Begin;
+                        int end = pair.End;
+
+                        // Expand range to remove empty lines surrounding tags
+                        if (emptyIndexes.Contains(pair.Begin - 1))
+                        {
+                            begin = pair.Begin - 1;
+                        }
+                        else if (emptyIndexes.Contains(pair.End + 1))
+                        {
+                            end = pair.End + 1;
+                        }
+
+                        lines.RemoveRange(begin, end - begin + 1);
+                    }
+
+                    File.WriteAllLines(file, lines);
+                }
+            });
         }
     }
 }
