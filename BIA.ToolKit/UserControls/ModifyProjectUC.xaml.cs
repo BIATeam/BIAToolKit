@@ -2,28 +2,17 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
-    using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.Properties;
-    using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
-    using System.Windows.Data;
-    using System.Windows.Documents;
     using System.Windows.Input;
-    using System.Windows.Media;
-    using System.Windows.Media.Imaging;
-    using System.Windows.Navigation;
-    using System.Windows.Shapes;
 
     /// <summary>
     /// Interaction logic for ModifyProjectUC.xaml
@@ -31,12 +20,13 @@
     public partial class ModifyProjectUC : UserControl
     {
         BIATKSettings settings;
-        public ModifyProjectViewModel _viewModel;
+        ModifyProjectViewModel _viewModel;
         IConsoleWriter consoleWriter;
         RepositoryService repositoryService;
         GitService gitService;
         CSharpParserService cSharpParserService;
         ProjectCreatorService projectCreatorService;
+        CRUDSettings crudSettings;
 
         public ModifyProjectUC()
         {
@@ -45,7 +35,8 @@
             _viewModel.RootProjectsPath = Settings.Default.CreateProjectRootFolderText;
         }
 
-        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService, ProjectCreatorService projectCreatorService)
+        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
+            ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService)
         {
             this.settings = settings;
             this.repositoryService = repositoryService;
@@ -55,6 +46,8 @@
             this.projectCreatorService = projectCreatorService;
             MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
             MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
+            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter);
+            this.crudSettings = new(settingsService);
         }
 
         public void RefreshConfiguration()
@@ -71,16 +64,26 @@
         private void ModifyProject_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ParameterModifyChange();
+            if (_viewModel.ModifyProject.CurrentProject != null)
+            {
+                _viewModel.ModifyProject.CurrentProject.Folder = _viewModel.ModifyProject.RootProjectsPath;
+                CRUDGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
+            }
         }
 
 
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {
-            if (MigrateGenerateOnly_Run() == 0)
+            _ = Migrate_Run();
+        }
+        private async Task Migrate_Run()
+        {
+            var generated = await MigrateGenerateOnly_Run();
+            if (generated == 0)
             {
-                MigrateApplyDiff_Click(sender, e);
-                MigrateMergeRejected_Click(sender, e);
+                MigrateApplyDiff_Run();
+                MigrateMergeRejected_Run();
             }
         }
 
@@ -108,12 +111,12 @@
             if (MigrateMergeRejected != null) MigrateMergeRejected.IsEnabled = false;
         }
 
-        private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
+        private async void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
         {
-            MigrateGenerateOnly_Run();
+            await MigrateGenerateOnly_Run();
         }
 
-        private int MigrateGenerateOnly_Run()
+        private async Task<int> MigrateGenerateOnly_Run()
         {
             if (_viewModel.ModifyProject.CurrentProject == null)
             {
@@ -131,7 +134,7 @@
             string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
             MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
 
-            GenerateProjects(true, projectOriginPath, projectTargetPath);
+            await GenerateProjects(true, projectOriginPath, projectTargetPath);
 
             MigrateOpenFolder.IsEnabled = true;
             MigrateApplyDiff.IsEnabled = true;
@@ -140,6 +143,11 @@
         }
 
         private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
+        {
+            MigrateApplyDiff_Run();
+        }
+
+        private void MigrateApplyDiff_Run()
         {
             Enable(false);
 
@@ -155,11 +163,24 @@
 
         private void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
         {
+            MigrateMergeRejected_Run();
+        }
+
+        private void MigrateMergeRejected_Run()
+        {
             Enable(false);
 
             MergeRejected(true);
 
             MigrateMergeRejected.IsEnabled = false;
+
+            // delete PACKAGE_LOCK_FILE
+            string path = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, _viewModel.ModifyProject.CurrentProject.BIAFronts, crudSettings.PackageLockFileName);
+            if (new FileInfo(path).Exists)
+            {
+                File.Delete(path);
+            }
+
             Enable(true);
         }
 
@@ -183,7 +204,7 @@
             projectTargetPath = AppSettings.TmpFolderPath + projectTargetFolderName;
         }
 
-        private void GenerateProjects(bool actionFinishedAtEnd, string projectOriginPath, string projectTargetPath)
+        private async Task GenerateProjects(bool actionFinishedAtEnd, string projectOriginPath, string projectTargetPath)
         {
             // Create project at original version.
             if (Directory.Exists(projectOriginPath))
@@ -196,24 +217,24 @@
             {
                 fronts = _viewModel.BIAFronts.Split(", ");
             }
-            
 
-            CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, fronts);
+
+            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, fronts);
 
             // Create project at target version.
             if (Directory.Exists(projectTargetPath))
             {
                 FileTransform.ForceDeleteDirectory(projectTargetPath);
             }
-            CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, fronts);
+            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, fronts);
 
             consoleWriter.AddMessageLine("Generate projects finished.", actionFinishedAtEnd ? "Green" : "Blue");
         }
 
         //TODO mutualiser avec celle de MainWindows
-        private void CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
+        private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
         {
-            this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
+            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
         }
 
         private void MigrateOpenFolder_Click(object sender, RoutedEventArgs e)
@@ -229,7 +250,7 @@
             {
                 return false;
             }
-                        //Apply the differential
+            //Apply the differential
             return gitService.ApplyDiff(actionFinishedAtEnd, _viewModel.ModifyProject.CurrentProject.Folder, migrateFilePath);
         }
 
@@ -260,6 +281,11 @@
         private void ModifyProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.RootProjectsPath = FileDialog.BrowseFolder(_viewModel.RootProjectsPath);
+        }
+
+        private void RefreshProjectFolderList_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.RefreshProjetsList();
         }
     }
 }

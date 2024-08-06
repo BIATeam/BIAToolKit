@@ -14,6 +14,7 @@
     <None Remove="bg-default.jpg" />
     <None Remove="Images\fileGenerator.jpg" />
     <None Remove="Images\LogoBIA.png" />
+    <None Remove="Images\rafraichir-32.png" />
     <None Remove="Images\Tools.ico" />
     <None Remove="Images\Warning.png" />
     <None Remove="Images\workOnComputer2.jpg" />
@@ -35,6 +36,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\LogoBIA.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\rafraichir-32.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\Tools.ico">

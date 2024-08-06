@@ -1,31 +1,23 @@
 ﻿namespace BIA.ToolKit
 {
     using BIA.ToolKit.Helper;
-    using BIA.ToolKit.Properties;
     using System.IO;
     using System.Linq;
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
-    using System.Windows.Media;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using System.Collections.Generic;
     using System;
-    using System.Text.RegularExpressions;
     using System.Diagnostics;
-    using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using System.Threading;
-    using BIA.ToolKit.Application.Parser;
     using BIA.ToolKit.UserControls;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Dialogs;
     using System.Text.Json;
-    using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Common;
-    using static BIA.ToolKit.Domain.Settings.RepositorySettings;
-    using System.Windows.Documents;
+    using System.Threading.Tasks;
+    using BIA.ToolKit.Domain.Settings;
 
 
     /// <summary>
@@ -39,12 +31,13 @@
         GitService gitService;
         ProjectCreatorService projectCreatorService;
         GenerateFilesService generateFilesService;
-        CSharpParserService cSharpParserService;
         ConsoleWriter consoleWriter;
         bool isCreateTabInitialized = false;
         bool isModifyTabInitialized = false;
 
-        public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService, ProjectCreatorService projectCreatorService, IConsoleWriter consoleWriter)
+        public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
+            ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
+            IConsoleWriter consoleWriter)
         {
             AppSettings.AppFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
@@ -53,14 +46,14 @@
             this.gitService = gitService;
             this.projectCreatorService = projectCreatorService;
             this.generateFilesService = genFilesService;
-            this.cSharpParserService = cSharpParserService;
 
             InitializeComponent();
 
-            CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService,consoleWriter);
-            ModifyProject.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, cSharpParserService, projectCreatorService);
+            CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter);
+            ModifyProject.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, cSharpParserService,
+                projectCreatorService, zipParserService, crudService, settingsService);
 
-            this.consoleWriter = (ConsoleWriter) consoleWriter;
+            this.consoleWriter = (ConsoleWriter)consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
 
             _viewModel.Settings.BIATemplateRepository.Name = "BIATemplate";
@@ -86,7 +79,7 @@
             _viewModel.Settings.RootProjectsPath = Properties.Settings.Default.CreateProjectRootFolderText;
             _viewModel.Settings.CreateCompanyName = Properties.Settings.Default.CreateCompanyName;
 
-            if(!string.IsNullOrEmpty(Properties.Settings.Default.CustomTemplates))
+            if (!string.IsNullOrEmpty(Properties.Settings.Default.CustomTemplates))
             {
                 _viewModel.Settings.CustomRepoTemplates = JsonSerializer.Deserialize<List<RepositorySettings>>(Properties.Settings.Default.CustomTemplates);
             }
@@ -108,7 +101,7 @@
 
         public bool RefreshBIATemplateConfiguration(bool inSync)
         {
-            Configurationchange(); 
+            Configurationchange();
             if (!CheckBIATemplate(_viewModel.Settings, inSync))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
@@ -129,7 +122,7 @@
 
         public bool RefreshCompanyFilesConfiguration(bool inSync)
         {
-            Configurationchange(); 
+            Configurationchange();
             if (!CheckCompanyFiles(_viewModel.Settings, inSync))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
@@ -198,6 +191,11 @@
             }
         }
 
+        private void BIATemplateLocalCleanRelease_Click(object sender, RoutedEventArgs e)
+        {
+            this.repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
+        }
+
         private async void CompanyFilesLocalFolderSync_Click(object sender, RoutedEventArgs e)
         {
             if (RefreshCompanyFilesConfiguration(true))
@@ -262,23 +260,33 @@
 
         private void Create_Click(object sender, RoutedEventArgs e)
         {
+            _ = Create_Run();
+        }
+
+        private async Task Create_Run()
+        {
+            Enable(false);
             if (string.IsNullOrEmpty(_viewModel.Settings.RootProjectsPath))
             {
+                Enable(true);
                 MessageBox.Show("Please select root path.");
                 return;
             }
             if (string.IsNullOrEmpty(_viewModel.Settings.CreateCompanyName))
             {
+                Enable(true);
                 MessageBox.Show("Please select company name.");
                 return;
             }
             if (string.IsNullOrEmpty(CreateProjectName.Text))
             {
+                Enable(true);
                 MessageBox.Show("Please select project name.");
                 return;
             }
             if (CreateVersionAndOption.vm.WorkTemplate == null)
             {
+                Enable(true);
                 MessageBox.Show("Please select framework version.");
                 return;
             }
@@ -286,15 +294,17 @@
             string projectPath = _viewModel.Settings.RootProjectsPath + "\\" + CreateProjectName.Text;
             if (Directory.Exists(projectPath) && !FileDialog.IsDirectoryEmpty(projectPath))
             {
+                Enable(true);
                 MessageBox.Show("The project path is not empty : " + projectPath);
                 return;
             }
-            CreateProject(true, _viewModel.Settings.CreateCompanyName, CreateProjectName.Text, projectPath, CreateVersionAndOption, new string[] { "Angular" } );
+            await CreateProject(true, _viewModel.Settings.CreateCompanyName, CreateProjectName.Text, projectPath, CreateVersionAndOption, new string[] { "Angular" });
+            Enable(true);
         }
 
-        private void CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
+        private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
         {
-            this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
+            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
         }
 
 
@@ -325,7 +335,7 @@
 
         private void btnFileGenerator_Generate_Click(object sender, RoutedEventArgs e)
         {
-            if(!string.IsNullOrEmpty(txtFileGenerator_Folder.Text))
+            if (!string.IsNullOrEmpty(txtFileGenerator_Folder.Text))
             {
                 if (!string.IsNullOrEmpty(txtFileGenerator_File.Text))
                 {
@@ -341,7 +351,7 @@
                 }
                 else
                 {
-                    MessageBox.Show("Select the class file","Generate files",MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Select the class file", "Generate files", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
 
             }
@@ -363,5 +373,23 @@
                 _viewModel.Settings.CustomRepoTemplates = dialog.vm.RepositoriesSettings.ToList();
             }
         }
+
+        private void Enable(bool isEnabled)
+        {
+            //Migrate.IsEnabled = false;
+            if (isEnabled)
+            {
+                Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
+            }
+            else
+            {
+                Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
+            }
+            //TODO recabler
+            //MainTab.IsEnabled = isEnabled;
+
+            System.Windows.Forms.Application.DoEvents();
+        }
+
     }
 }

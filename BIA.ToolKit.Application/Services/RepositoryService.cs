@@ -1,18 +1,13 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using System.Management.Automation;
-    using System;
     using LibGit2Sharp;
-    using System.Linq;
-    using LibGit2Sharp.Handlers;
-    using System.Diagnostics;
     using System.IO;
     using BIA.ToolKit.Domain.Settings;
     using System.Net;
     using System.IO.Compression;
+    using System.Net.Http;
 
     public class RepositoryService
     {
@@ -49,15 +44,16 @@
         {
             if (repository.Versioning == VersioningType.Release)
             {
-                var releasePath = AppSettings.AppFolderPath + "\\" + repository.Name;
+                var releasePath = Path.Combine(AppSettings.AppFolderPath, repository.Name);
                 if (Directory.Exists(releasePath))
                 {
-                    Directory.Delete(releasePath,true);
+                    Directory.Delete(releasePath, true);
                 }
+                outPut.AddMessageLine("Release Cleaned.", "Pink");
             }
         }
 
-        public string PrepareVersionFolder (RepositorySettings repository, string version)
+        public async Task<string> PrepareVersionFolder(RepositorySettings repository, string version)
         {
             if (repository.Versioning == VersioningType.Folder)
             {
@@ -74,13 +70,34 @@
                             var zipPath = AppSettings.AppFolderPath + "\\" + repository.Name + "\\" + tag.FriendlyName + ".zip";
                             string biaTemplatePathVersionUnzip = AppSettings.AppFolderPath + "\\" + repository.Name + "\\" + tag.FriendlyName;
                             Directory.CreateDirectory(AppSettings.AppFolderPath + "\\" + repository.Name + "\\");
+
+                            if (File.Exists(zipPath))
+                            {
+                                if (IsTextFileEmpty(zipPath))
+                                {
+                                    File.Delete(zipPath);
+                                }
+                            }
+
                             if (!File.Exists(zipPath))
                             {
+                                outPut.AddMessageLine("Begin dowloading " + tag.CanonicalName + ".zip", "Pink");
                                 var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
-                                using (var client = new WebClient())
+                                HttpClientHandler httpClientHandler = new HttpClientHandler
                                 {
-                                    client.DownloadFile(zipUrl, zipPath);
+                                    DefaultProxyCredentials = CredentialCache.DefaultCredentials,
+                                };
+                                using (var httpClient = new HttpClient(httpClientHandler))
+                                {
+                                    var response = await httpClient.GetAsync(zipUrl);
+                                    using (var fs = new FileStream(
+                                        zipPath,
+                                        FileMode.CreateNew))
+                                    {
+                                        await response.Content.CopyToAsync(fs);
+                                    }
                                 }
+                                outPut.AddMessageLine("Dowloaded.", "Pink");
                             }
 
                             if (!File.Exists(zipPath))
@@ -117,6 +134,21 @@
                 this.gitService.CheckoutTag(repository, version);
                 return repository.RootFolderPath;
             }
+        }
+
+        private static bool IsTextFileEmpty(string fileName)
+        {
+            var info = new FileInfo(fileName);
+            if (info.Length == 0)
+                return true;
+
+            // only if your use case can involve files with 1 or a few bytes of content.
+            if (info.Length < 6)
+            {
+                var content = File.ReadAllText(fileName);
+                return content.Length == 0;
+            }
+            return false;
         }
     }
 }

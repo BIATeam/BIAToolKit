@@ -168,7 +168,7 @@
 
             if (vm.WorkCompanyFile != null)
             {
-                vm.WorkCompanyFile.VersionFolderPath = repositoryService.PrepareVersionFolder(vm.WorkCompanyFile.RepositorySettings, vm.WorkCompanyFile.Version);
+                vm.WorkCompanyFile.VersionFolderPath = repositoryService.PrepareVersionFolder(vm.WorkCompanyFile.RepositorySettings, vm.WorkCompanyFile.Version).Result;
                 string fileName = vm.WorkCompanyFile.VersionFolderPath + "\\biaCompanyFiles.json";
 
                 try

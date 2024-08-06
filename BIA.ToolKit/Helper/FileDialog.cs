@@ -66,6 +66,29 @@
 
         }
 
+        public static string BrowseFile(string projectDir, string fileFilter = null)
+        {
+            OpenFileDialog openFileDlg = new OpenFileDialog();
+            if (!string.IsNullOrWhiteSpace(fileFilter))
+                openFileDlg.Filter = $"{fileFilter.ToUpper()} Files|*.{fileFilter}";
+
+            if (Directory.Exists(projectDir))
+            {
+                openFileDlg.InitialDirectory = projectDir;
+                openFileDlg.RestoreDirectory = true;
+            }
+
+            var result = openFileDlg.ShowDialog();
+            if (result == true)
+            {
+                return openFileDlg.FileName;
+            }
+            else
+            {
+                return projectDir;
+            }
+        }
+
         public static bool IsDirectoryEmpty(string path)
         {
             string[] files = System.IO.Directory.GetFiles(path);
