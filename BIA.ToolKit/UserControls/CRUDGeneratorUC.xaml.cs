@@ -243,8 +243,8 @@
                 if (result == MessageBoxResult.OK)
                 {
                     List<string> folders = new() {
-                        Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet),
-                        Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, vm.CurrentProject.BIAFronts, "src",  "app")
+                        Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet),
+                        Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.BIAFronts, "src",  "app")
                     };
 
                     crudService.DeleteBIAToolkitAnnotations(folders);
@@ -300,11 +300,11 @@
         private void InitFormProject()
         {
             // Get files/folders name
-            string dotnetBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet, Constants.FolderBia);
-            string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, vm.CurrentProject.BIAFronts, Constants.FolderBia);
+            string dotnetBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, Constants.FolderBia);
+            string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.BIAFronts, Constants.FolderBia);
             string backSettingsFileName = Path.Combine(dotnetBiaFolderPath, settings.GenerationSettingsFileName);
             string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
-            this.crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, settings.GenerationHistoryFileName);
+            this.crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, settings.GenerationHistoryFileName);
 
 
             // Load BIA settings
@@ -430,7 +430,7 @@
             Dictionary<string, string> dtoFiles = new();
 
             string dtoFolder = $"{vm.CurrentProject.CompanyName}.{vm.CurrentProject.Name}.Domain.Dto";
-            string path = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet, dtoFolder);
+            string path = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, dtoFolder);
 
             try
             {
@@ -539,7 +539,7 @@
             List<string> foldersName = new();
 
             // List Options folders
-            string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, vm.CurrentProject.BIAFronts, domainsPath);
+            string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.BIAFronts, domainsPath);
             List<string> folders = Directory.GetDirectories(folderPath, $"*{suffix}", SearchOption.AllDirectories).ToList();
             folders.ForEach(f => foldersName.Add(new DirectoryInfo(f).Name.Replace(suffix, "")));
 
@@ -556,8 +556,8 @@
             try
             {
                 string folderName = (generationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.CurrentProject.BIAFronts;
-                string biaFolder = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, folderName, Constants.FolderBia);
-                if (!new DirectoryInfo(folderName).Exists)
+                string biaFolder = Path.Combine(vm.CurrentProject.Folder, folderName, Constants.FolderBia);
+                if (!new DirectoryInfo(biaFolder).Exists)
                 {
                     return false;
                 }
@@ -565,7 +565,7 @@
                 ZipFeatureType zipData = vm.ZipFeatureTypeList.Where(x => x.GenerationType == generationType && x.FeatureType == featureType).FirstOrDefault();
                 if (zipData != null)
                 {
-                    return zipService.ParseZipFile(zipData, folderName, settings.DtoCustomAttributeFieldName);
+                    return zipService.ParseZipFile(zipData, biaFolder, settings.DtoCustomAttributeFieldName);
                 }
             }
             catch (Exception ex)
@@ -597,7 +597,7 @@
             if (string.IsNullOrWhiteSpace(vm.DtoSelected))
                 return null;
 
-            string dotNetPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.Name, Constants.FolderDotNet);
+            string dotNetPath = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet);
             return vm.DtoFiles[vm.DtoSelected].Replace(dotNetPath, "").TrimStart(Path.DirectorySeparatorChar);
         }
         #endregion

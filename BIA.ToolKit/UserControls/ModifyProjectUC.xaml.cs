@@ -66,12 +66,10 @@
             ParameterModifyChange();
             if (_viewModel.ModifyProject.CurrentProject != null)
             {
-                _viewModel.ModifyProject.CurrentProject.Folder = _viewModel.ModifyProject.RootProjectsPath;
                 CRUDGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
             }
+            MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject.FrameworkVersion);
         }
-
-
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {
@@ -80,9 +78,8 @@
         private async Task Migrate_Run()
         {
             var generated = await MigrateGenerateOnly_Run();
-            if (generated == 0)
+            if (generated == 0 && MigrateApplyDiff_Run() == true)
             {
-                MigrateApplyDiff_Run();
                 MigrateMergeRejected_Run();
             }
         }
@@ -147,18 +144,24 @@
             MigrateApplyDiff_Run();
         }
 
-        private void MigrateApplyDiff_Run()
+        private bool MigrateApplyDiff_Run()
         {
+            bool result = false;
             Enable(false);
 
             string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
             MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
 
+            if (_viewModel.OverwriteBIAFromOriginal == true)
+            {
+                projectCreatorService.OverwriteBIAFolder(projectOriginPath, _viewModel.ModifyProject.CurrentProject.Folder, false);
+            }
 
-            ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName);
+            result = ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName);
 
             MigrateMergeRejected.IsEnabled = true;
             Enable(true);
+            return result;
         }
 
         private void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)

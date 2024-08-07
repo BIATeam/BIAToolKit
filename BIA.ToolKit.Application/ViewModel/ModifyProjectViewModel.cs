@@ -14,6 +14,7 @@
         public ModifyProjectViewModel()
         {
             ModifyProject = new ModifyProject();
+            OverwriteBIAFromOriginal = true;
             SynchronizeSettings.AddCallBack("RootProjectsPath", DelegateSetRootProjectsPath);
         }
 
@@ -213,6 +214,11 @@
                     RaisePropertyChanged("BIAFronts");
                 }
             }
+        }
+
+        public bool OverwriteBIAFromOriginal
+        {
+            get; set;
         }
 
     }

@@ -29,7 +29,7 @@
                             <RowDefinition Height="170"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <GroupBox Header="Origial" Margin="0,0,0,0" Foreground="White" BorderBrush="White" x:Name="CompanyFileGroup" Visibility="Visible" Grid.Row="0">
+                        <GroupBox Header="Original" Margin="0,0,0,0" Foreground="White" BorderBrush="White" x:Name="CompanyFileGroup" Visibility="Visible" Grid.Row="0">
                             <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption" />
                         </GroupBox>
                         <GroupBox Header="Target" Margin="0,0,0,0" Foreground="White" BorderBrush="White" Visibility="Visible" Grid.Row="1">
@@ -38,13 +38,15 @@
                     </Grid>
                     <Grid Background="Transparent" VerticalAlignment="Top" Grid.Column="1">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="100"/>
-                            <RowDefinition Height="40"/>
+                            <RowDefinition Height="32"/>
+                            <RowDefinition Height="82"/>
+                            <RowDefinition Height="32"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Button Content="Migrate" HorizontalAlignment="Center"  Width="123" x:Name="Migrate"  Height="69" VerticalAlignment="Center" Grid.Row="0" Click="Migrate_Click"/>
-                        <Label Content="Or by step :" VerticalAlignment="Top" Foreground="White" Grid.Row="1" HorizontalAlignment="Center"/>
-                        <Grid Background="Transparent" Grid.Row="2" VerticalAlignment="Center" >
+                        <CheckBox Content="Overwrite BIA first" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" Grid.Row="0" Height="16" Name="CFOverwriteBIAFirst" Margin="0,0,0,0" IsChecked="{Binding Path=OverwriteBIAFromOriginal, Mode=TwoWay}"/>
+                        <Button Content="Migrate" HorizontalAlignment="Center"  Width="123" x:Name="Migrate"  Height="69" VerticalAlignment="Center" Grid.Row="1" Click="Migrate_Click"/>
+                        <Label Content="Or by step :" VerticalAlignment="Top" Foreground="White" Grid.Row="2" HorizontalAlignment="Center"/>
+                        <Grid Background="Transparent" Grid.Row="3" VerticalAlignment="Center" >
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
