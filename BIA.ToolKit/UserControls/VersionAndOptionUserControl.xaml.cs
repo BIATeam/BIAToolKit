@@ -196,7 +196,6 @@
                         option.IsChecked = (!(option?.Default == 0));
                         vm.Options.Add(option);
 
-                        //  <CheckBox Content="Otpion2" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CFOption_Otpion2" Margin="0,25,0,0" />
                         CheckBox checkbox = new CheckBox();
                         checkbox.Content = option.Name;
                         checkbox.IsChecked = option.IsChecked;
