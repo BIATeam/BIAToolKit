@@ -1584,7 +1584,7 @@
 
         private string GetGenerationFolder(Project currentProject, bool generateInCurrentProject = true)
         {
-            string generatedFolder = Path.Combine(currentProject.Folder, currentProject.Name);
+            string generatedFolder = currentProject.Folder;
 
             if (!generateInCurrentProject)
                 generatedFolder = Path.Combine(generatedFolder, Constants.FolderCrudGeneration);

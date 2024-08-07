@@ -557,7 +557,7 @@
             {
                 string folderName = (generationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.CurrentProject.BIAFronts;
                 string biaFolder = Path.Combine(vm.CurrentProject.Folder, folderName, Constants.FolderBia);
-                if (!new DirectoryInfo(folderName).Exists)
+                if (!new DirectoryInfo(biaFolder).Exists)
                 {
                     return false;
                 }
@@ -565,7 +565,7 @@
                 ZipFeatureType zipData = vm.ZipFeatureTypeList.Where(x => x.GenerationType == generationType && x.FeatureType == featureType).FirstOrDefault();
                 if (zipData != null)
                 {
-                    return zipService.ParseZipFile(zipData, folderName, settings.DtoCustomAttributeFieldName);
+                    return zipService.ParseZipFile(zipData, biaFolder, settings.DtoCustomAttributeFieldName);
                 }
             }
             catch (Exception ex)
