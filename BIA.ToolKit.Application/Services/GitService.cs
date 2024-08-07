@@ -36,7 +36,7 @@
         public async Task Synchronize(string repoName, string localPath)
         {
             outPut.AddMessageLine("Synchronize " + repoName + " local folder...", "Pink");
-            if( RunScript("git", "pull", localPath).Result == 0)
+            if (RunScript("git", "pull", localPath).Result == 0)
             {
                 outPut.AddMessageLine("Synchronize " + repoName + " local folder finished", "Green");
             }
@@ -52,7 +52,7 @@
             //var cloneResult = Repository.Clone(url, localPath);
             outPut.AddMessageLine("Clone " + repoName + " local folder...", "Pink");
 
-            if (RunScript("git", $"clone \"" + url+"\" \"" + localPath + "\"").Result == 0)
+            if (RunScript("git", $"clone \"" + url + "\" \"" + localPath + "\"").Result == 0)
             {
                 outPut.AddMessageLine("Clone BIADemo local folder finished", "Green");
             }
@@ -70,7 +70,7 @@
             {
                 release = repo.Tags.Select(t => t.FriendlyName).ToList();
             }
-            
+
             return release;
         }
 
@@ -89,7 +89,7 @@
                 outPut.AddMessageLine("Error durring Checkout Tag " + tag + "  for repo : " + repoSettings.Name, "Red");
             }
         }
-        
+
 
         public bool DiffFolder(bool actionFinishedAtEnd, string rootPath, string name1, string name2, string migrateFilePath)
         {
@@ -98,14 +98,14 @@
 
             // git diff --no-index V3.3.3 V3.4.0 > .\\Migration\\CF_3.3.3-3.4.0.patch
             //await RunScript($"cd {rootPath} \r\n git diff --no-index --binary {name1} {name2} > {migrateFilePath}");
-            int result = RunScript("git", $"diff --no-index --binary {name1} {name2} --output={migrateFilePath}", rootPath).Result;
+            int result = RunScript("git", $"diff --ignore-blank-lines --no-index --binary {name1} {name2} --output={migrateFilePath}", rootPath).Result;
             if (result == 0)
             {
                 outPut.AddMessageLine("Error durring diff folder: No difference found ", "Red");
                 return false;
             }
             else if (result == 1)
-            { 
+            {
                 // Replace a/{name1}/ by a/
                 FileTransform.ReplaceInFile(migrateFilePath, $"a/{name1}/", "a/");
                 FileTransform.ReplaceInFile(migrateFilePath, $"a/{name2}/", "a/");
@@ -130,21 +130,32 @@
             }
         }
 
-        public bool ApplyDiff(bool actionFinishedAtEnd,string projectPath, string migrateFilePath)
+        public bool ApplyDiff(bool actionFinishedAtEnd, string projectPath, string migrateFilePath)
         {
             outPut.AddMessageLine($"Apply diff", "Pink");
 
             // cd "...\\YourProject" git apply --reject --whitespace=fix "3.2.2-3.3.0.patch" \
-            int result = RunScript("git", $"apply --reject --whitespace=fix --binary {migrateFilePath}", projectPath).Result;
-            if  (result==0)
+            int result = RunScript("git", $"apply --reject --whitespace=fix {migrateFilePath}", projectPath).Result;
+            if (result == 0)
             {
                 outPut.AddMessageLine("Apply diff finished", actionFinishedAtEnd ? "Green" : "Blue");
                 return true;
             }
             else
             {
-                outPut.AddMessageLine("Error " + result + " durring apply diff.", "Red");
-                return true;
+                if (result == 3)
+                {
+                    outPut.AddMessageLine("Error code " + result + " during apply diff.", "Red");
+                    outPut.AddMessageLine("Migration will stop : Try using migration with \"Overwrite BIA first\" checked", "Orange");
+                    return false;
+                }
+                else
+                {
+                    outPut.AddMessageLine("Error code " + result + " during apply diff.", "Orange");
+                    return true;
+                }
+
+
             }
         }
 
