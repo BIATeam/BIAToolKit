@@ -66,12 +66,10 @@
             ParameterModifyChange();
             if (_viewModel.ModifyProject.CurrentProject != null)
             {
-                _viewModel.ModifyProject.CurrentProject.Folder = _viewModel.ModifyProject.RootProjectsPath;
                 CRUDGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
             }
+            MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject.FrameworkVersion);
         }
-
-
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {

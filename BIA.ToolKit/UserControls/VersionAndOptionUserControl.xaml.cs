@@ -49,6 +49,11 @@
             this.repositoryService = repositoryService;
         }
 
+        public void SelectVersion(string version)
+        {
+            vm.WorkTemplate = vm.WorkTemplates.FirstOrDefault(workTemplate => workTemplate.Version == $"V{version}");
+        }
+
         public void refreshConfig()
         {
             var listCompanyFiles = new List<WorkRepository>();
@@ -88,7 +93,7 @@
                 vm.WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
                 if (listCompanyFiles.Count >= 1)
                 {
-                    vm.WorkCompanyFile = listCompanyFiles[listCompanyFiles.Count - 2];
+                    vm.WorkCompanyFile = listCompanyFiles.FirstOrDefault(companyFile => companyFile.Version == vm.WorkTemplate.Version);
                 }
             }
             else
