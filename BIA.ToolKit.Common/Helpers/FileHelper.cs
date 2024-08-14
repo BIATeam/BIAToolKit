@@ -26,58 +26,50 @@
             return files.ToList();
         }
 
-        public static void CleanFilesByTag(string path, string beginTag, string endTag, string extension)
+        public static void CleanFilesByTag(string path, List<string> beginTags, List<string> endTags, string extension)
         {
             var files = Directory.EnumerateFiles(path, extension, SearchOption.AllDirectories);
 
-            // foreach (string file in files)
             Parallel.ForEach(files, file =>
             {
                 List<string> lines = File.ReadLines(file).ToList();
 
-                // Indexes of tags
-                List<int> tagIndexes = lines
-                    .Select((line, index) => new { line, index })
-                    .Where(x => x.line.Contains(beginTag) || x.line.Contains(endTag))
-                    .Select(x => x.index).Distinct().ToList();
+                List<int> beginTagIndexes = GetTagIndexes(beginTags, lines);
 
-                // Assure that we have pairs
-                if (tagIndexes.Any() && tagIndexes.Count % 2 == 0)
+                if (beginTagIndexes.Any())
                 {
-                    // Create pair to remove range between tags
-                    var indexPairs = tagIndexes
-                        .Select((value, i) => new { Value = value, Index = i })
-                        .GroupBy(x => x.Index / 2)
-                        .Select(group => new { Begin = group.First().Value, End = group.Last().Value })
-                        .ToList();
+                    List<int> endTagIndexes = GetTagIndexes(endTags, lines);
 
-                    indexPairs.Reverse();
-
-                    // Indexes of empty lines
-                    List<int> emptyIndexes = lines
-                        .Select((line, index) => new { line, index })
-                        .Where(x => string.IsNullOrWhiteSpace(x.line))
-                        .Select(x => x.index).Distinct().ToList();
-
-                    foreach (var pair in indexPairs)
+                    if (endTagIndexes.Count >= beginTagIndexes.Count)
                     {
-                        int begin = pair.Begin;
-                        int end = pair.End;
-
-                        // Expand range to remove empty lines surrounding tags
-                        if (emptyIndexes.Contains(pair.Begin - 1))
+                        var indexPairs = beginTagIndexes
+                        .Select(beginTagIndex => new
                         {
-                            begin = pair.Begin - 1;
-                        }
-                        else if (emptyIndexes.Contains(pair.End + 1))
+                            BeginIndex = beginTagIndex,
+                            EndIndex = endTagIndexes.First(endTagIndex => endTagIndex > beginTagIndex)
+                        })
+                        .OrderByDescending(x => x.BeginIndex).ToList();
+
+                        foreach (var pair in indexPairs)
                         {
-                            end = pair.End + 1;
+                            lines.RemoveRange(pair.BeginIndex, pair.EndIndex - pair.BeginIndex + 1);
                         }
 
-                        lines.RemoveRange(begin, end - begin + 1);
+                        File.WriteAllLines(file, lines);
                     }
+                    else
+                    {
+                        throw new Exception("CleanFilesByTag endTagIndexes < beginTagIndexes");
+                    }
+                }
 
-                    File.WriteAllLines(file, lines);
+                static List<int> GetTagIndexes(List<string> tags, List<string> lines)
+                {
+                    return lines.Select((line, index) => new { line, index })
+                    .Where(x => tags.Exists(tag => x.line.Contains(tag)))
+                    .Select(x => x.index)
+                    .Distinct()
+                    .OrderBy(x => x).ToList();
                 }
             });
         }
