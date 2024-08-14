@@ -20,7 +20,7 @@
             string[] files = Directory.GetFiles(path, extension, SearchOption.AllDirectories);
             if (!string.IsNullOrWhiteSpace(replacementPath))
             {
-                return files.Select(x => x.Replace(path, replacementPath)).ToList();
+                return files.Select(x => x.Replace(path, replacementPath)).Where(x => Directory.Exists(x)).ToList();
             }
 
             return files.ToList();
