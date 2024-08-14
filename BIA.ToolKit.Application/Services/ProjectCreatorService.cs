@@ -17,7 +17,6 @@
     {
         private readonly IConsoleWriter consoleWriter;
         private readonly RepositoryService repositoryService;
-        private readonly string projectCreatorSettingFileName;
 
         public ProjectCreatorService(IConsoleWriter consoleWriter,
             RepositoryService repositoryService,
@@ -25,7 +24,6 @@
         {
             this.consoleWriter = consoleWriter;
             this.repositoryService = repositoryService;
-            projectCreatorSettingFileName = settingsService.ReadSetting("ProjectCreatorSettingFileName");
         }
 
         public async Task Create(
@@ -93,7 +91,7 @@
                 consoleWriter.AddMessageLine("Start copy template files.", "Pink");
                 FileTransform.CopyFilesRecursively(versionAndOption.WorkTemplate.VersionFolderPath, projectPath, "", localFilesToExcludes, foldersToExcludes);
 
-                IList<string> filesToRemove = new List<string>() { "^new-angular-project\\.ps1$", projectCreatorSettingFileName };
+                IList<string> filesToRemove = new List<string>() { "^new-angular-project\\.ps1$" };
 
                 if (versionAndOption.UseCompanyFiles)
                 {
