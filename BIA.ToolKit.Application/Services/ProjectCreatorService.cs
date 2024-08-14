@@ -130,7 +130,8 @@
                     FileTransform.RemoveRecursively(projectPath, filesToRemove);
                 }
 
-                CleanSln(projectPath, versionAndOption, withDeployDb, withWorkerService);
+                this.CleanSln(projectPath, versionAndOption, withDeployDb, withWorkerService);
+                this.CleanCsProj(projectPath, versionAndOption);
 
                 DirectoryHelper.DeleteEmptyDirectories(projectPath);
 
@@ -204,8 +205,9 @@
 
         }
 
-        private static void CleanSln(string projectPath, VersionAndOption versionAndOption, bool withDeployDb, bool withWorkerService)
+        private void CleanSln(string projectPath, VersionAndOption versionAndOption, bool withDeployDb, bool withWorkerService)
         {
+            // TODO TEST
             bool without = !withDeployDb || !withWorkerService;
 
             if (without && !string.IsNullOrWhiteSpace(projectPath) && !string.IsNullOrWhiteSpace(versionAndOption?.WorkTemplate?.VersionFolderPath))
@@ -235,6 +237,38 @@
             }
         }
 
+        private void CleanCsProj(string projectPath, VersionAndOption versionAndOption)
+        {
+            var csprojFiles = FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}", projectPath);
+
+            // TODO
+            var tags = new List<string> { "Bia_ItemGroup_BIA_FRONT_FEATURE" };
+
+            foreach (var csprojFile in csprojFiles)
+            {
+                XDocument xDocument = XDocument.Load(csprojFile);
+                XNamespace ns = xDocument.Root.Name.Namespace;
+
+                List<XElement> itemGroups = xDocument.Descendants(ns + "ItemGroup")
+                                .Where(x => tags.Contains((string)x.Attribute("Label"))).ToList();
+
+                XElement defineConstantsElement = xDocument.Descendants(ns + "PropertyGroup")
+                    .FirstOrDefault(x => (string)x.Attribute("Condition") == "'$(Configuration)|$(Platform)'=='Debug|AnyCPU'")
+                    ?.Element("DefineConstants");
+
+                if (itemGroups.Count > 0 || !string.IsNullOrWhiteSpace(defineConstantsElement?.Value))
+                {
+                    itemGroups.ForEach(ig => ig.Remove());
+                    if (!string.IsNullOrWhiteSpace(defineConstantsElement?.Value))
+                    {
+                        defineConstantsElement.Value = csprojFile.EndsWith($"{BiaProjectName.Test}{FileExtensions.DotNetProject}") ? "TRACE" : string.Empty;
+                    }
+
+                    xDocument.Save(csprojFile);
+                }
+            }
+        }
+
         private List<string> GetFileToExcludeWithoutFrontFeature(VersionAndOption versionAndOption)
         {
             return this.GetFileToExcludeWithoutFeature(versionAndOption, "Bia_ItemGroup_BIA_FRONT_FEATURE");
@@ -248,15 +282,15 @@
 
             if (!string.IsNullOrWhiteSpace(csprojFile))
             {
-                var document = XDocument.Load(csprojFile);
+                XDocument document = XDocument.Load(csprojFile);
                 XNamespace ns = document.Root.Name.Namespace;
 
-                var itemGroup = document.Descendants(ns + "ItemGroup")
+                XElement itemGroup = document.Descendants(ns + "ItemGroup")
                                         .FirstOrDefault(x => (string)x.Attribute("Label") == tagName);
 
                 if (itemGroup != null)
                 {
-                    var compileRemoveItems = itemGroup.Elements(ns + "Compile")
+                    List<string> compileRemoveItems = itemGroup.Elements(ns + "Compile")
                                                       .Where(x => x.Attribute("Remove") != null)
                                                       .Select(x => x.Attribute("Remove").Value)
                                                       .ToList();
@@ -274,6 +308,10 @@
                         }
                         filesToExcludes.Add(newPattern);
                     }
+
+                    itemGroup.Remove();
+
+                    document.Save(csprojFile);
                 }
             }
 
