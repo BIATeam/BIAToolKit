@@ -80,6 +80,11 @@ namespace BIA.ToolKit.Common
             /// The project extension
             /// </summary>
             public const string DotNetProject = ".csproj";
+
+            /// <summary>
+            /// The dot net class.
+            /// </summary>
+            public const string DotNetClass = ".cs";
         }
 
         /// <summary>
@@ -92,6 +97,20 @@ namespace BIA.ToolKit.Common
             public const string WorkerService = "WorkerService";
 
             public const string Test = "Test";
+
+            public const string InfraData = "Data";
+        }
+
+        public static class BiaFeatureTag
+        {
+            public const string ItemGroupTag = "Bia_ItemGroup_";
+
+            public const string FrontFeature = "BIA_FRONT_FEATURE";
+
+            public const string ServiceApi = "BIA_SERVICE_API";
+
+            
+
         }
     }
 }

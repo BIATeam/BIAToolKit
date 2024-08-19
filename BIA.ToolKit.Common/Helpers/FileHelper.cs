@@ -20,7 +20,7 @@
             string[] files = Directory.GetFiles(path, extension, SearchOption.AllDirectories);
             if (!string.IsNullOrWhiteSpace(replacementPath))
             {
-                return files.Select(x => x.Replace(path, replacementPath)).Where(x => Directory.Exists(x)).ToList();
+                return files.Select(x => x.Replace(path, replacementPath)).ToList();
             }
 
             return files.ToList();
@@ -28,7 +28,7 @@
 
         public static void CleanFilesByTag(string path, List<string> beginTags, List<string> endTags, string extension)
         {
-            var files = Directory.EnumerateFiles(path, extension, SearchOption.AllDirectories);
+            string[] files = Directory.GetFiles(path, extension, SearchOption.AllDirectories);
 
             Parallel.ForEach(files, file =>
             {

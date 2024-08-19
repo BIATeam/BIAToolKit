@@ -7,6 +7,7 @@
     using System.Threading.Tasks;
     using System.Xml.Linq;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Common.Helpers;
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.Settings;
@@ -37,24 +38,27 @@
             string[] angularFronts
             )
         {
-            bool withFrontEnd = false;
-            bool withFrontFeature = false;
-            bool withServiceApi = true;
-            bool withDeployDb = false;
-            bool withWorkerService = false;
-            bool withHangfire = false;
+            ProjectWithParam projectWithParam = new ProjectWithParam();
 
-            if (withFrontFeature)
-            {
-                withDeployDb = true;
-                withFrontEnd = true;
-            }
+            projectWithParam.WithFrontEnd = false;
+            projectWithParam.WithFrontFeature = false;
+            projectWithParam.WithServiceApi = true;
+            projectWithParam.WithDeployDb = false;
+            projectWithParam.WithWorkerService = false;
+            projectWithParam.WithHangfire = false;
+            projectWithParam.WithInfraData = true;
 
-            if (withHangfire)
-            {
-                withDeployDb = true;
-                withWorkerService = true;
-            }
+            //if (withFrontFeature)
+            //{
+            //    withDeployDb = true;
+            //    withFrontEnd = true;
+            //}
+
+            //if (withHangfire)
+            //{
+            //    withDeployDb = true;
+            //    withWorkerService = true;
+            //}
 
             List<string> localFilesToExcludes = new List<string>();
 
@@ -80,11 +84,11 @@
             }
             else
             {
-                List<string> foldersToExcludes = GetFoldersToExcludes(angularFronts, withFrontEnd, withDeployDb, withWorkerService);
-
-                if (!withFrontFeature)
+                List<string> foldersToExcludes = null;
+                if (!projectWithParam.HasAllFeature)
                 {
-                    List<string> filesToExcludes = GetFileToExcludeWithoutFrontFeature(versionAndOption);
+                    foldersToExcludes = GetFoldersToExcludes(angularFronts, projectWithParam);
+                    List<string> filesToExcludes = GetFileToExcludes(versionAndOption, projectWithParam);
                     localFilesToExcludes.AddRange(filesToExcludes);
                 }
 
@@ -130,15 +134,9 @@
                     FileTransform.RemoveRecursively(projectPath, filesToRemove);
                 }
 
-                this.CleanSln(projectPath, versionAndOption, withDeployDb, withWorkerService);
-                this.CleanCsProj(projectPath, versionAndOption);
-
-                DirectoryHelper.DeleteEmptyDirectories(projectPath);
-
-                if (!withFrontFeature)
+                if (!projectWithParam.HasAllFeature)
                 {
-                    DirectoryHelper.DeleteEmptyDirectories(projectPath);
-                    FileHelper.CleanFilesByTag(projectPath, new List<string>() { "#if BIA_FRONT_FEATURE"/*, "#if BIA_SERVICE_API"*/ }, new List<string>() { "#endif" }, "*.cs");
+                    this.CleanProject(projectPath, versionAndOption, projectWithParam);
                 }
 
                 consoleWriter.AddMessageLine("Start rename.", "Pink");
@@ -152,7 +150,7 @@
                 FileTransform.RemoveTemplateOnly(projectPath, "# Begin BIATemplate only", "# End BIATemplate only", new List<string>() { ".gitignore" });
 
                 bool containsFrontAngular = false;
-                if (withFrontEnd && angularFronts?.Length > 0)
+                if (projectWithParam.WithFrontEnd && angularFronts?.Length > 0)
                 {
                     foreach (var angularFront in angularFronts)
                     {
@@ -205,77 +203,66 @@
 
         }
 
-        private void CleanSln(string projectPath, VersionAndOption versionAndOption, bool withDeployDb, bool withWorkerService)
+        private void CleanSln(string projectPath, VersionAndOption versionAndOption)
         {
-            // TODO TEST
-            bool without = !withDeployDb || !withWorkerService;
-
-            if (without && !string.IsNullOrWhiteSpace(projectPath) && !string.IsNullOrWhiteSpace(versionAndOption?.WorkTemplate?.VersionFolderPath))
+            if (!string.IsNullOrWhiteSpace(projectPath) && !string.IsNullOrWhiteSpace(versionAndOption?.WorkTemplate?.VersionFolderPath))
             {
-                List<string> slnFiles = FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetSolution}", projectPath);
-                List<string> csprojFiles = FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}", projectPath);
+                List<string> slnFiles = FileHelper.GetFilesFromPathWithExtension(projectPath, $"*{FileExtensions.DotNetSolution}");
+                if (!slnFiles.Any()) return;
 
-                if (slnFiles?.Any() == true && csprojFiles?.Any() == true)
-                {
-                    List<string> csprojFilesToRemoves = new List<string>();
+                List<string> templateCsprojFiles = FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}", projectPath);
 
-                    if (!withDeployDb)
-                    {
-                        csprojFilesToRemoves.AddRange(csprojFiles.Where(x => x.EndsWith($"{BiaProjectName.DeployDB}{FileExtensions.DotNetProject}")));
-                    }
+                List<string> csprojFiles = FileHelper.GetFilesFromPathWithExtension(projectPath, $"*{FileExtensions.DotNetProject}");
 
-                    if (!withWorkerService)
-                    {
-                        csprojFilesToRemoves.AddRange(csprojFiles.Where(x => x.EndsWith($"{BiaProjectName.WorkerService}{FileExtensions.DotNetProject}")));
-                    }
+                List<string> csprojFilesToRemoves = templateCsprojFiles?.Except(csprojFiles).ToList();
 
-                    if (csprojFilesToRemoves.Any())
-                    {
-                        DotnetHelper.RemoveProjectsFromSolution(slnFiles[0], csprojFilesToRemoves);
-                    }
-                }
+                if (!csprojFilesToRemoves.Any()) return;
+
+                DotnetHelper.RemoveProjectsFromSolution(slnFiles[0], csprojFilesToRemoves);
             }
         }
 
-        private void CleanCsProj(string projectPath, VersionAndOption versionAndOption)
+        private void CleanCsProj(string projectPath)
         {
-            var csprojFiles = FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}", projectPath);
+            List<string> csprojFiles = FileHelper.GetFilesFromPathWithExtension(projectPath, $"*{FileExtensions.DotNetProject}");
 
-            // TODO
-            var tags = new List<string> { "Bia_ItemGroup_BIA_FRONT_FEATURE" };
-
-            foreach (var csprojFile in csprojFiles)
+            foreach (string csprojFile in csprojFiles)
             {
                 XDocument xDocument = XDocument.Load(csprojFile);
                 XNamespace ns = xDocument.Root.Name.Namespace;
 
                 List<XElement> itemGroups = xDocument.Descendants(ns + "ItemGroup")
-                                .Where(x => tags.Contains((string)x.Attribute("Label"))).ToList();
+                                .Where(x => ((string)x.Attribute("Label"))?.StartsWith(BiaFeatureTag.ItemGroupTag) == true).ToList();
 
                 XElement defineConstantsElement = xDocument.Descendants(ns + "PropertyGroup")
                     .FirstOrDefault(x => (string)x.Attribute("Condition") == "'$(Configuration)|$(Platform)'=='Debug|AnyCPU'")
-                    ?.Element("DefineConstants");
+                    ?.Element(ns + "DefineConstants");
 
-                if (itemGroups.Count > 0 || !string.IsNullOrWhiteSpace(defineConstantsElement?.Value))
+                bool shouldSaveDocument = false;
+
+                if (itemGroups.Count > 0)
                 {
                     itemGroups.ForEach(ig => ig.Remove());
-                    if (!string.IsNullOrWhiteSpace(defineConstantsElement?.Value))
-                    {
-                        defineConstantsElement.Value = csprojFile.EndsWith($"{BiaProjectName.Test}{FileExtensions.DotNetProject}") ? "TRACE" : string.Empty;
-                    }
+                    shouldSaveDocument = true;
+                }
 
+                if (!string.IsNullOrWhiteSpace(defineConstantsElement?.Value))
+                {
+                    defineConstantsElement.Value = csprojFile.EndsWith($"{BiaProjectName.Test}{FileExtensions.DotNetProject}") ? "TRACE" : string.Empty;
+                    shouldSaveDocument = true;
+                }
+
+                if (shouldSaveDocument)
+                {
                     xDocument.Save(csprojFile);
                 }
             }
         }
 
-        private List<string> GetFileToExcludeWithoutFrontFeature(VersionAndOption versionAndOption)
+        private List<string> GetFileToExcludes(VersionAndOption versionAndOption, ProjectWithParam projectWithParam)
         {
-            return this.GetFileToExcludeWithoutFeature(versionAndOption, "Bia_ItemGroup_BIA_FRONT_FEATURE");
-        }
+            List<string> tags = GetBiaFeatureTag(projectWithParam, BiaFeatureTag.ItemGroupTag);
 
-        private List<string> GetFileToExcludeWithoutFeature(VersionAndOption versionAndOption, string tagName)
-        {
             List<string> filesToExcludes = new List<string>();
 
             string csprojFile = (FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}")).FirstOrDefault();
@@ -286,7 +273,7 @@
                 XNamespace ns = document.Root.Name.Namespace;
 
                 XElement itemGroup = document.Descendants(ns + "ItemGroup")
-                                        .FirstOrDefault(x => (string)x.Attribute("Label") == tagName);
+                                        .FirstOrDefault(x => tags.Contains((string)x.Attribute("Label")));
 
                 if (itemGroup != null)
                 {
@@ -306,7 +293,11 @@
                         {
                             newPattern = "^" + Regex.Escape(item.Replace("**\\", "").Replace(".cs", "")) + "\\.cs$";
                         }
-                        filesToExcludes.Add(newPattern);
+
+                        if (!filesToExcludes.Contains(newPattern))
+                        {
+                            filesToExcludes.Add(newPattern);
+                        }
                     }
 
                     itemGroup.Remove();
@@ -318,25 +309,62 @@
             return filesToExcludes;
         }
 
-        private static List<string> GetFoldersToExcludes(string[] angularFronts, bool withFrontEnd, bool withDeployDb, bool withWorkerService)
+        private List<string> GetFoldersToExcludes(string[] angularFronts, ProjectWithParam projectWithParam)
         {
             List<string> foldersToExcludes = new List<string>();
-            if (!withFrontEnd && angularFronts?.Any() == true)
+
+            if (!projectWithParam.WithFrontEnd && angularFronts?.Any() == true)
             {
                 foldersToExcludes.AddRange(angularFronts.ToList());
             }
 
-            if (!withDeployDb)
+            if (!projectWithParam.WithDeployDb)
             {
                 foldersToExcludes.Add($".*{BiaProjectName.DeployDB}$");
             }
 
-            if (!withWorkerService)
+            if (!projectWithParam.WithWorkerService)
             {
                 foldersToExcludes.Add($".*{BiaProjectName.WorkerService}$");
             }
 
+            if (!projectWithParam.WithInfraData)
+            {
+                foldersToExcludes.Add($".*{BiaProjectName.InfraData}$");
+            }
+
             return foldersToExcludes;
+        }
+
+        private List<string> GetBiaFeatureTag(ProjectWithParam projectWithParam, string prefix = null)
+        {
+            List<string> tags = new List<string>();
+
+            if (!projectWithParam.WithFrontFeature)
+            {
+                tags.Add($"{prefix}BIA_FRONT_FEATURE");
+            }
+
+            if (!projectWithParam.WithServiceApi)
+            {
+                tags.Add($"{prefix}BIA_SERVICE_API");
+            }
+
+            return tags;
+        }
+
+        private void CleanProject(string projectPath, VersionAndOption versionAndOption, ProjectWithParam projectWithParam)
+        {
+            this.CleanSln(projectPath, versionAndOption);
+            this.CleanCsProj(projectPath);
+
+            DirectoryHelper.DeleteEmptyDirectories(projectPath);
+
+            if (!projectWithParam.WithFrontFeature)
+            {
+                List<string> tags = this.GetBiaFeatureTag(projectWithParam, "#if ");
+                FileHelper.CleanFilesByTag(projectPath, tags, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}");
+            }
         }
     }
 }
