@@ -342,12 +342,12 @@
 
             if (!projectWithParam.WithFrontFeature)
             {
-                tags.Add($"{prefix}BIA_FRONT_FEATURE");
+                tags.Add($"{prefix}{BiaFeatureTag.FrontFeature}");
             }
 
             if (!projectWithParam.WithServiceApi)
             {
-                tags.Add($"{prefix}BIA_SERVICE_API");
+                tags.Add($"{prefix}{BiaFeatureTag.ServiceApi}");
             }
 
             return tags;
