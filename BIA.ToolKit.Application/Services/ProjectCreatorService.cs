@@ -299,10 +299,6 @@
                             filesToExcludes.Add(newPattern);
                         }
                     }
-
-                    itemGroup.Remove();
-
-                    document.Save(csprojFile);
                 }
             }
 
