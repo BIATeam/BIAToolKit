@@ -1,0 +1,20 @@
+﻿<UserControl x:Class="BIA.ToolKit.UserControls.FeatureUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
+             mc:Ignorable="d" 
+             d:DesignHeight="100" d:DesignWidth="130">
+    <UserControl.DataContext>
+        <local:FeatureViewModel />
+    </UserControl.DataContext>
+    <Grid>
+        <CheckBox Margin="0,0,0,0" Content="With Front End" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithFrontEnd}"/>
+        <CheckBox Margin="0,15,0,0" Content="With Front Feature" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithFrontFeature}"/>
+        <CheckBox Margin="0,30,0,0" Content="With Service Api" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithServiceApi}"/>
+        <CheckBox Margin="0,45,0,0" Content="With DeployDb" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithDeployDb}"/>
+        <CheckBox Margin="0,60,0,0" Content="With WorkerService" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithWorkerService}"/>
+        <CheckBox Margin="0,75,0,0" Content="With InfraData" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithInfraData}"/>
+    </Grid>
+</UserControl>

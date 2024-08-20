@@ -12,8 +12,6 @@
 
         public bool WithWorkerService { get; set; }
 
-        public bool WithHangfire { get; set; }
-
         public bool WithInfraData { get; set; }
 
         public bool HasAllFeature =>
@@ -22,7 +20,6 @@
             WithServiceApi &&
             WithDeployDb &&
             WithWorkerService &&
-            WithHangfire &&
             WithInfraData;
     }
 }

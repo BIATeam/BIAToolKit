@@ -32,34 +32,11 @@
             string companyName,
             string projectName,
             string projectPath,
-
             VersionAndOption versionAndOption,
-
-            string[] angularFronts
+            string[] angularFronts,
+            ProjectWithParam projectWithParam
             )
         {
-            ProjectWithParam projectWithParam = new ProjectWithParam();
-
-            projectWithParam.WithFrontEnd = false;
-            projectWithParam.WithFrontFeature = false;
-            projectWithParam.WithServiceApi = true;
-            projectWithParam.WithDeployDb = false;
-            projectWithParam.WithWorkerService = false;
-            projectWithParam.WithHangfire = false;
-            projectWithParam.WithInfraData = true;
-
-            //if (withFrontFeature)
-            //{
-            //    withDeployDb = true;
-            //    withFrontEnd = true;
-            //}
-
-            //if (withHangfire)
-            //{
-            //    withDeployDb = true;
-            //    withWorkerService = true;
-            //}
-
             List<string> localFilesToExcludes = new List<string>();
 
             if (versionAndOption.WorkTemplate.Version == "VX.Y.Z")
