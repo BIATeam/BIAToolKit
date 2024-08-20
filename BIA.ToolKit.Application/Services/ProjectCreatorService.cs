@@ -134,10 +134,9 @@
                     FileTransform.RemoveRecursively(projectPath, filesToRemove);
                 }
 
-                if (!projectWithParam.HasAllFeature)
-                {
-                    this.CleanProject(projectPath, versionAndOption, projectWithParam);
-                }
+
+                this.CleanProject(projectPath, versionAndOption, projectWithParam);
+
 
                 consoleWriter.AddMessageLine("Start rename.", "Pink");
                 FileTransform.ReplaceInFileAndFileName(projectPath, versionAndOption.WorkTemplate.RepositorySettings.CompanyName, companyName, FileTransform.projectFileExtensions);
@@ -332,16 +331,16 @@
             return foldersToExcludes;
         }
 
-        private List<string> GetBiaFeatureTag(ProjectWithParam projectWithParam, string prefix = null)
+        private List<string> GetBiaFeatureTag(ProjectWithParam projectWithParam = null, string prefix = null)
         {
             List<string> tags = new List<string>();
 
-            if (!projectWithParam.WithFrontFeature)
+            if (projectWithParam?.WithFrontFeature != true)
             {
                 tags.Add($"{prefix}{BiaFeatureTag.FrontFeature}");
             }
 
-            if (!projectWithParam.WithServiceApi)
+            if (projectWithParam?.WithServiceApi != true)
             {
                 tags.Add($"{prefix}{BiaFeatureTag.ServiceApi}");
             }
@@ -351,16 +350,21 @@
 
         private void CleanProject(string projectPath, VersionAndOption versionAndOption, ProjectWithParam projectWithParam)
         {
-            this.CleanSln(projectPath, versionAndOption);
-            this.CleanCsProj(projectPath);
+            List<string> tags = null;
 
-            DirectoryHelper.DeleteEmptyDirectories(projectPath);
-
-            if (!projectWithParam.WithFrontFeature)
+            if (!projectWithParam.HasAllFeature)
             {
-                List<string> tags = this.GetBiaFeatureTag(projectWithParam, "#if ");
-                FileHelper.CleanFilesByTag(projectPath, tags, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}");
+                this.CleanSln(projectPath, versionAndOption);
+                this.CleanCsProj(projectPath);
+
+                DirectoryHelper.DeleteEmptyDirectories(projectPath);
+
+                tags = this.GetBiaFeatureTag(projectWithParam, "#if ");
+                FileHelper.CleanFilesByTag(projectPath, tags, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}", true);
             }
+
+            tags = this.GetBiaFeatureTag(null, "#if ");
+            FileHelper.CleanFilesByTag(projectPath, tags, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}", false);
         }
     }
 }

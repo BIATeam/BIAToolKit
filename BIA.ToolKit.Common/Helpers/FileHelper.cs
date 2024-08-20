@@ -26,7 +26,7 @@
             return files.ToList();
         }
 
-        public static void CleanFilesByTag(string path, List<string> beginTags, List<string> endTags, string extension)
+        public static void CleanFilesByTag(string path, List<string> beginTags, List<string> endTags, string extension, bool hasRemoveRange)
         {
             string[] files = Directory.GetFiles(path, extension, SearchOption.AllDirectories);
 
@@ -52,7 +52,15 @@
 
                         foreach (var pair in indexPairs)
                         {
-                            lines.RemoveRange(pair.BeginIndex, pair.EndIndex - pair.BeginIndex + 1);
+                            if (hasRemoveRange)
+                            {
+                                lines.RemoveRange(pair.BeginIndex, pair.EndIndex - pair.BeginIndex + 1);
+                            }
+                            else
+                            {
+                                lines.RemoveAt(pair.EndIndex);
+                                lines.RemoveAt(pair.BeginIndex);
+                            }
                         }
 
                         File.WriteAllLines(file, lines);
