@@ -237,7 +237,7 @@
         //TODO mutualiser avec celle de MainWindows
         private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
         {
-            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
+            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts, new ProjectWithParam()); // TODO
         }
 
         private void MigrateOpenFolder_Click(object sender, RoutedEventArgs e)

@@ -298,13 +298,14 @@
                 MessageBox.Show("The project path is not empty : " + projectPath);
                 return;
             }
+
             await CreateProject(true, _viewModel.Settings.CreateCompanyName, CreateProjectName.Text, projectPath, CreateVersionAndOption, new string[] { "Angular" });
             Enable(true);
         }
 
         private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
         {
-            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
+            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts, this.FeatureUc.GetProjectWithParam());
         }
 
 
