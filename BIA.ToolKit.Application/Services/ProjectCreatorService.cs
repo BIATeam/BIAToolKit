@@ -7,7 +7,6 @@
     using System.Threading.Tasks;
     using System.Xml.Linq;
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Common.Helpers;
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.Settings;
@@ -18,13 +17,16 @@
     {
         private readonly IConsoleWriter consoleWriter;
         private readonly RepositoryService repositoryService;
+        private readonly FeatureSettingService featureSettingService;
 
         public ProjectCreatorService(IConsoleWriter consoleWriter,
             RepositoryService repositoryService,
-            SettingsService settingsService)
+            SettingsService settingsService,
+            FeatureSettingService featureSettingService)
         {
             this.consoleWriter = consoleWriter;
             this.repositoryService = repositoryService;
+            this.featureSettingService = featureSettingService;
         }
 
         public async Task Create(
@@ -34,7 +36,7 @@
             string projectPath,
             VersionAndOption versionAndOption,
             string[] angularFronts,
-            ProjectWithParam projectWithParam
+            FeatureSetting featureSetting
             )
         {
             List<string> localFilesToExcludes = new List<string>();
@@ -62,10 +64,10 @@
             else
             {
                 List<string> foldersToExcludes = null;
-                if (!projectWithParam.HasAllFeature)
+                if (!featureSetting.HasAllFeature)
                 {
-                    foldersToExcludes = GetFoldersToExcludes(angularFronts, projectWithParam);
-                    List<string> filesToExcludes = GetFileToExcludes(versionAndOption, projectWithParam);
+                    foldersToExcludes = GetFoldersToExcludes(angularFronts, featureSetting);
+                    List<string> filesToExcludes = GetFileToExcludes(versionAndOption, featureSetting);
                     localFilesToExcludes.AddRange(filesToExcludes);
                 }
 
@@ -112,7 +114,7 @@
                 }
 
 
-                this.CleanProject(projectPath, versionAndOption, projectWithParam);
+                this.CleanProject(projectPath, versionAndOption, featureSetting);
 
 
                 consoleWriter.AddMessageLine("Start rename.", "Pink");
@@ -126,7 +128,7 @@
                 FileTransform.RemoveTemplateOnly(projectPath, "# Begin BIATemplate only", "# End BIATemplate only", new List<string>() { ".gitignore" });
 
                 bool containsFrontAngular = false;
-                if (projectWithParam.WithFrontEnd && angularFronts?.Length > 0)
+                if (angularFronts?.Length > 0)
                 {
                     foreach (var angularFront in angularFronts)
                     {
@@ -141,13 +143,15 @@
                         }
                     }
                 }
-                if (!containsFrontAngular)
+                if (!featureSetting.WithFrontEnd && !containsFrontAngular)
                 {
                     if (Directory.Exists(projectPath + "\\Angular"))
                     {
                         Directory.Delete(projectPath + "\\Angular", true);
                     }
                 }
+
+                this.featureSettingService.Save(featureSetting, projectPath);
 
                 consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd ? "Green" : "Blue");
             }
@@ -235,9 +239,9 @@
             }
         }
 
-        private List<string> GetFileToExcludes(VersionAndOption versionAndOption, ProjectWithParam projectWithParam)
+        private List<string> GetFileToExcludes(VersionAndOption versionAndOption, FeatureSetting featureSetting)
         {
-            List<string> tags = GetBiaFeatureTag(projectWithParam, BiaFeatureTag.ItemGroupTag);
+            List<string> tags = GetBiaFeatureTag(featureSetting, BiaFeatureTag.ItemGroupTag);
 
             List<string> filesToExcludes = new List<string>();
 
@@ -281,43 +285,38 @@
             return filesToExcludes;
         }
 
-        private List<string> GetFoldersToExcludes(string[] angularFronts, ProjectWithParam projectWithParam)
+        private List<string> GetFoldersToExcludes(string[] angularFronts, FeatureSetting featureSetting)
         {
             List<string> foldersToExcludes = new List<string>();
 
-            if (!projectWithParam.WithFrontEnd && angularFronts?.Any() == true)
+            if (!featureSetting.WithFrontEnd && angularFronts?.Any() == true)
             {
                 foldersToExcludes.AddRange(angularFronts.ToList());
             }
 
-            if (!projectWithParam.WithDeployDb)
+            if (!featureSetting.WithDeployDb)
             {
                 foldersToExcludes.Add($".*{BiaProjectName.DeployDB}$");
             }
 
-            if (!projectWithParam.WithWorkerService)
+            if (!featureSetting.WithWorkerService)
             {
                 foldersToExcludes.Add($".*{BiaProjectName.WorkerService}$");
-            }
-
-            if (!projectWithParam.WithInfraData)
-            {
-                foldersToExcludes.Add($".*{BiaProjectName.InfraData}$");
             }
 
             return foldersToExcludes;
         }
 
-        private List<string> GetBiaFeatureTag(ProjectWithParam projectWithParam = null, string prefix = null)
+        private List<string> GetBiaFeatureTag(FeatureSetting featureSetting = null, string prefix = null)
         {
             List<string> tags = new List<string>();
 
-            if (projectWithParam?.WithFrontFeature != true)
+            if (featureSetting?.WithFrontFeature != true)
             {
                 tags.Add($"{prefix}{BiaFeatureTag.FrontFeature}");
             }
 
-            if (projectWithParam?.WithServiceApi != true)
+            if (featureSetting?.WithServiceApi != true)
             {
                 tags.Add($"{prefix}{BiaFeatureTag.ServiceApi}");
             }
@@ -325,18 +324,18 @@
             return tags;
         }
 
-        private void CleanProject(string projectPath, VersionAndOption versionAndOption, ProjectWithParam projectWithParam)
+        private void CleanProject(string projectPath, VersionAndOption versionAndOption, FeatureSetting featureSetting)
         {
             List<string> tags = null;
 
-            if (!projectWithParam.HasAllFeature)
+            if (!featureSetting.HasAllFeature)
             {
                 this.CleanSln(projectPath, versionAndOption);
                 this.CleanCsProj(projectPath);
 
                 DirectoryHelper.DeleteEmptyDirectories(projectPath);
 
-                tags = this.GetBiaFeatureTag(projectWithParam, "#if ");
+                tags = this.GetBiaFeatureTag(featureSetting, "#if ");
                 FileHelper.CleanFilesByTag(projectPath, tags, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}", true);
             }
 

@@ -37,7 +37,7 @@
 
         public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter)
+            IConsoleWriter consoleWriter, FeatureSettingService featureSettingService)
         {
             AppSettings.AppFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
@@ -51,7 +51,7 @@
 
             CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter);
             ModifyProject.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, zipParserService, crudService, settingsService);
+                projectCreatorService, zipParserService, crudService, settingsService, featureSettingService);
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
@@ -305,7 +305,7 @@
 
         private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
         {
-            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts, this.FeatureUc.GetProjectWithParam());
+            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts, this.ucFeature.ViewModel.Model);
         }
 
 

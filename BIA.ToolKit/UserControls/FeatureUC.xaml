@@ -5,16 +5,19 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
              mc:Ignorable="d" 
-             d:DesignHeight="100" d:DesignWidth="130">
+             d:DesignHeight="135" d:DesignWidth="120">
     <UserControl.DataContext>
-        <local:FeatureViewModel />
+        <local:FeatureSettingVM />
     </UserControl.DataContext>
     <Grid>
-        <CheckBox Margin="0,0,0,0" Content="With Front End" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithFrontEnd}"/>
-        <CheckBox Margin="0,15,0,0" Content="With Front Feature" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithFrontFeature}"/>
-        <CheckBox Margin="0,30,0,0" Content="With Service Api" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithServiceApi}"/>
-        <CheckBox Margin="0,45,0,0" Content="With DeployDb" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithDeployDb}"/>
-        <CheckBox Margin="0,60,0,0" Content="With WorkerService" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithWorkerService}"/>
-        <CheckBox Margin="0,75,0,0" Content="With InfraData" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithInfraData}"/>
+        <GroupBox Header="Features" Foreground="White" BorderBrush="White" Margin="0,0,0,10">
+            <StackPanel Margin="2,2,2,2">
+                <CheckBox Margin="0,4,0,0" Content="Front End" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithFrontEnd}" IsEnabled="{Binding IsEnabled}" />
+                <CheckBox Margin="0,4,0,0" Content="Front Feature" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithFrontFeature}"/>
+                <CheckBox Margin="0,4,0,0" Content="Service Api" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithServiceApi}"/>
+                <CheckBox Margin="0,4,0,0" Content="DeployDb" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithDeployDb}"/>
+                <CheckBox Margin="0,4,0,0" Content="WorkerService" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding WithWorkerService}"/>
+            </StackPanel>
+        </GroupBox>
     </Grid>
 </UserControl>
