@@ -433,10 +433,13 @@
 
             try
             {
-                // List files
-                List<string> files = Directory.EnumerateFiles(path, "*Dto.cs", SearchOption.AllDirectories).ToList();
-                // Build dictionnary: key = file Name, Value = full path
-                files.ForEach(x => dtoFiles.Add(new FileInfo(x).Name, new FileInfo(x).FullName));
+                if (Directory.Exists(path))
+                {
+                    // List files
+                    List<string> files = Directory.EnumerateFiles(path, "*Dto.cs", SearchOption.AllDirectories).ToList();
+                    // Build dictionnary: key = file Name, Value = full path
+                    files.ForEach(x => dtoFiles.Add(new FileInfo(x).Name, new FileInfo(x).FullName));
+                }
             }
             catch (Exception ex)
             {

@@ -1,11 +1,8 @@
 ﻿namespace BIA.ToolKit.Common.Helpers
 {
-    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
 
     public static class DotnetHelper
     {
@@ -18,12 +15,31 @@
         {
             if (!string.IsNullOrWhiteSpace(solutionPath) && projectPaths?.Any() == true)
             {
+                List<string> cmds = new List<string>();
+
                 foreach (string projectPath in projectPaths)
+                {
+                    cmds.Add($"sln {solutionPath} remove {projectPath}");
+                }
+
+                ExecDotnetCmd(cmds);
+            }
+        }
+
+        /// <summary>
+        /// Executes the dotnet command.
+        /// </summary>
+        /// <param name="cmds">List of cmd.</param>
+        private static void ExecDotnetCmd(List<string> cmds)
+        {
+            if (cmds?.Any() == true)
+            {
+                foreach (string cmd in cmds)
                 {
                     using (Process process = new Process())
                     {
                         process.StartInfo.FileName = "dotnet";
-                        process.StartInfo.Arguments = $"sln {solutionPath} remove {projectPath}";
+                        process.StartInfo.Arguments = cmd;
                         process.StartInfo.RedirectStandardOutput = true;
                         process.StartInfo.UseShellExecute = false;
                         process.StartInfo.CreateNoWindow = true;
@@ -39,5 +55,6 @@
                 }
             }
         }
+
     }
 }

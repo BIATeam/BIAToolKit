@@ -1,18 +1,20 @@
 ﻿namespace BIA.ToolKit.UserControls
 {
-    using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.Settings;
-    using BIA.ToolKit.Application.ViewModel;
-    using BIA.ToolKit.Domain.Settings;
-    using BIA.ToolKit.Helper;
-    using BIA.ToolKit.Properties;
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
+    using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Settings;
+    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Common.Extensions;
+    using BIA.ToolKit.Domain.Model;
+    using BIA.ToolKit.Domain.Settings;
+    using BIA.ToolKit.Helper;
+    using BIA.ToolKit.Properties;
 
     /// <summary>
     /// Interaction logic for ModifyProjectUC.xaml
@@ -27,6 +29,7 @@
         CSharpParserService cSharpParserService;
         ProjectCreatorService projectCreatorService;
         CRUDSettings crudSettings;
+        FeatureSettingService featureSettingService;
 
         public ModifyProjectUC()
         {
@@ -36,7 +39,7 @@
         }
 
         public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
-            ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService)
+            ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService, FeatureSettingService featureSettingService)
         {
             this.settings = settings;
             this.repositoryService = repositoryService;
@@ -44,6 +47,7 @@
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
+            this.featureSettingService = featureSettingService;
             MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
             MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter);
@@ -69,9 +73,9 @@
                 _viewModel.ModifyProject.CurrentProject.Folder = _viewModel.ModifyProject.RootProjectsPath;
                 CRUDGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
             }
+
+            this.LoadFeatureSetting();
         }
-
-
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {
@@ -218,23 +222,23 @@
                 fronts = _viewModel.BIAFronts.Split(", ");
             }
 
-
-            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, fronts);
+            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, fronts, this.ucFeatureOrigin.ViewModel.Model);
 
             // Create project at target version.
             if (Directory.Exists(projectTargetPath))
             {
                 FileTransform.ForceDeleteDirectory(projectTargetPath);
             }
-            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, fronts);
+
+            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, fronts, this.ucFeatureTarget.ViewModel.Model);
 
             consoleWriter.AddMessageLine("Generate projects finished.", actionFinishedAtEnd ? "Green" : "Blue");
         }
 
         //TODO mutualiser avec celle de MainWindows
-        private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
+        private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts, FeatureSetting featureSetting)
         {
-            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts, new ProjectWithParam()); // TODO
+            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts, featureSetting);
         }
 
         private void MigrateOpenFolder_Click(object sender, RoutedEventArgs e)
@@ -286,6 +290,14 @@
         private void RefreshProjectFolderList_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.RefreshProjetsList();
+        }
+
+        private void LoadFeatureSetting()
+        {
+            FeatureSetting featureSettingTarget = this.featureSettingService.Get(Path.Combine(_viewModel.ModifyProject.CurrentProject.Folder, _viewModel.ModifyProject.CurrentProject.Name));
+            FeatureSetting featureSettingOrigin = featureSettingTarget.DeepCopy();
+            ucFeatureTarget.ViewModel = new FeatureSettingVM(featureSettingTarget);
+            ucFeatureOrigin.ViewModel = new FeatureSettingVM(featureSettingOrigin);
         }
     }
 }

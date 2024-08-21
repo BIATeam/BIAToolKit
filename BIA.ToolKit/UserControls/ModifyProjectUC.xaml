@@ -29,11 +29,25 @@
                             <RowDefinition Height="170"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <GroupBox Header="Origial" Margin="0,0,0,0" Foreground="White" BorderBrush="White" x:Name="CompanyFileGroup" Visibility="Visible" Grid.Row="0">
-                            <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption" />
+                        <GroupBox Header="Original" Margin="0,0,0,0" Foreground="White" BorderBrush="White" x:Name="CompanyFileGroup" Visibility="Visible" Grid.Row="0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption" Grid.Column="0"/>
+                                <uc:FeatureUC x:Name="ucFeatureOrigin" Grid.Column="1" IsEnabled="False" />
+                            </Grid>
                         </GroupBox>
                         <GroupBox Header="Target" Margin="0,0,0,0" Foreground="White" BorderBrush="White" Visibility="Visible" Grid.Row="1">
-                            <uc:VersionAndOptionUserControl x:Name="MigrateTargetVersionAndOption"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <uc:VersionAndOptionUserControl x:Name="MigrateTargetVersionAndOption" Grid.Column="0"/>
+                                <uc:FeatureUC x:Name="ucFeatureTarget" Grid.Column="1"/>
+                            </Grid>
                         </GroupBox>
                     </Grid>
                     <Grid Background="Transparent" VerticalAlignment="Top" Grid.Column="1">

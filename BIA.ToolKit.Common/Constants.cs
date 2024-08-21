@@ -97,8 +97,6 @@ namespace BIA.ToolKit.Common
             public const string WorkerService = "WorkerService";
 
             public const string Test = "Test";
-
-            public const string InfraData = "Data";
         }
 
         public static class BiaFeatureTag
