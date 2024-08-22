@@ -118,5 +118,18 @@
                 }
             }
         }
+
+        public ObservableCollection<FeatureSetting> FeatureSettings
+        {
+            get { return VersionAndOption.FeatureSettings; }
+            set
+            {
+                if (VersionAndOption.FeatureSettings != value)
+                {
+                    VersionAndOption.FeatureSettings = value;
+                    RaisePropertyChanged(nameof(FeatureSettings));
+                }
+            }
+        }
     }
 }

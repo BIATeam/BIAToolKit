@@ -35,10 +35,11 @@
             string projectName,
             string projectPath,
             VersionAndOption versionAndOption,
-            string[] angularFronts,
-            FeatureSetting featureSetting
+            string[] angularFronts
             )
         {
+            List<FeatureSetting> featureSettings = versionAndOption?.FeatureSettings?.ToList();
+
             List<string> localFilesToExcludes = new List<string>();
 
             if (versionAndOption.WorkTemplate.Version == "VX.Y.Z")
@@ -64,10 +65,10 @@
             else
             {
                 List<string> foldersToExcludes = null;
-                if (!featureSetting.HasAllFeature)
+                if (FeatureSettingService.HasAllFeature(featureSettings))
                 {
-                    foldersToExcludes = GetFoldersToExcludes(angularFronts, featureSetting);
-                    List<string> filesToExcludes = GetFileToExcludes(versionAndOption, featureSetting);
+                    foldersToExcludes = FeatureSettingService.GetFoldersToExcludes(featureSettings);
+                    List<string> filesToExcludes = FeatureSettingService.GetFileToExcludes(versionAndOption, featureSettings);
                     localFilesToExcludes.AddRange(filesToExcludes);
                 }
 
@@ -114,7 +115,7 @@
                 }
 
 
-                this.CleanProject(projectPath, versionAndOption, featureSetting);
+                this.CleanProject(projectPath, versionAndOption, featureSettings);
 
 
                 consoleWriter.AddMessageLine("Start rename.", "Pink");
@@ -143,7 +144,7 @@
                         }
                     }
                 }
-                if (!featureSetting.WithFrontEnd && !containsFrontAngular)
+                if (!containsFrontAngular)
                 {
                     if (Directory.Exists(projectPath + "\\Angular"))
                     {
@@ -151,7 +152,7 @@
                     }
                 }
 
-                this.featureSettingService.Save(featureSetting, projectPath);
+                this.featureSettingService.Save(featureSettings, projectPath);
 
                 consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd ? "Green" : "Blue");
             }
@@ -239,107 +240,91 @@
             }
         }
 
-        private List<string> GetFileToExcludes(VersionAndOption versionAndOption, FeatureSetting featureSetting)
-        {
-            List<string> tags = GetBiaFeatureTag(featureSetting, BiaFeatureTag.ItemGroupTag);
+        //private List<string> GetFileToExcludes(VersionAndOption versionAndOption, FeatureSetting featureSetting)
+        //{
+        //    List<string> tags = GetBiaFeatureTagToDeletes(featureSetting, BiaFeatureTag.ItemGroupTag);
 
-            List<string> filesToExcludes = new List<string>();
+        //    List<string> filesToExcludes = new List<string>();
 
-            string csprojFile = (FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}")).FirstOrDefault();
+        //    string csprojFile = (FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}")).FirstOrDefault();
 
-            if (!string.IsNullOrWhiteSpace(csprojFile))
-            {
-                XDocument document = XDocument.Load(csprojFile);
-                XNamespace ns = document.Root.Name.Namespace;
+        //    if (!string.IsNullOrWhiteSpace(csprojFile))
+        //    {
+        //        XDocument document = XDocument.Load(csprojFile);
+        //        XNamespace ns = document.Root.Name.Namespace;
 
-                XElement itemGroup = document.Descendants(ns + "ItemGroup")
-                                        .FirstOrDefault(x => tags.Contains((string)x.Attribute("Label")));
+        //        XElement itemGroup = document.Descendants(ns + "ItemGroup")
+        //                                .FirstOrDefault(x => tags.Contains((string)x.Attribute("Label")));
 
-                if (itemGroup != null)
-                {
-                    List<string> compileRemoveItems = itemGroup.Elements(ns + "Compile")
-                                                      .Where(x => x.Attribute("Remove") != null)
-                                                      .Select(x => x.Attribute("Remove").Value)
-                                                      .ToList();
+        //        if (itemGroup != null)
+        //        {
+        //            List<string> compileRemoveItems = itemGroup.Elements(ns + "Compile")
+        //                                              .Where(x => x.Attribute("Remove") != null)
+        //                                              .Select(x => x.Attribute("Remove").Value)
+        //                                              .ToList();
 
-                    foreach (string item in compileRemoveItems)
-                    {
-                        string newPattern;
-                        if (item.Contains("**\\*"))
-                        {
-                            newPattern = ".*" + Regex.Escape(item.Replace("**\\*", "").Replace(".cs", "").Replace("*", "")) + ".*\\.cs$";
-                        }
-                        else
-                        {
-                            newPattern = "^" + Regex.Escape(item.Replace("**\\", "").Replace(".cs", "")) + "\\.cs$";
-                        }
+        //            foreach (string item in compileRemoveItems)
+        //            {
+        //                string newPattern;
+        //                if (item.Contains("**\\*"))
+        //                {
+        //                    newPattern = ".*" + Regex.Escape(item.Replace("**\\*", "").Replace(".cs", "").Replace("*", "")) + ".*\\.cs$";
+        //                }
+        //                else
+        //                {
+        //                    newPattern = "^" + Regex.Escape(item.Replace("**\\", "").Replace(".cs", "")) + "\\.cs$";
+        //                }
 
-                        if (!filesToExcludes.Contains(newPattern))
-                        {
-                            filesToExcludes.Add(newPattern);
-                        }
-                    }
-                }
-            }
+        //                if (!filesToExcludes.Contains(newPattern))
+        //                {
+        //                    filesToExcludes.Add(newPattern);
+        //                }
+        //            }
+        //        }
+        //    }
 
-            return filesToExcludes;
-        }
+        //    return filesToExcludes;
+        //}
 
-        private List<string> GetFoldersToExcludes(string[] angularFronts, FeatureSetting featureSetting)
-        {
-            List<string> foldersToExcludes = new List<string>();
+        //private List<string> GetFoldersToExcludes(List<FeatureSetting> settings)
+        //{
+        //    List<string> foldersToExcludes = settings.Where(x => !x.IsSelected).SelectMany(x => x.FoldersToExcludes).Distinct().ToList();
+        //    return foldersToExcludes;
+        //}
 
-            if (!featureSetting.WithFrontEnd && angularFronts?.Any() == true)
-            {
-                foldersToExcludes.AddRange(angularFronts.ToList());
-            }
+        //private List<string> GetBiaFeatureTagToDeletes(List<FeatureSetting> settings, string prefix = null)
+        //{
+        //    List<string> tags = settings
+        //        .Where(x => !x.IsSelected)
+        //        .SelectMany(x => x.Tags.Select(tag => $"{prefix}{tag}"))
+        //        .Distinct().ToList();
+        //    return tags;
+        //}
 
-            if (!featureSetting.WithDeployDb)
-            {
-                foldersToExcludes.Add($".*{BiaProjectName.DeployDB}$");
-            }
+        //private List<string> GetAllBiaFeatureTag(List<FeatureSetting> settings, string prefix = null)
+        //{
+        //    List<string> tags = settings
+        //        .SelectMany(x => x.Tags.Select(tag => $"{prefix}{tag}"))
+        //        .Distinct().ToList();
+        //    return tags;
+        //}
 
-            if (!featureSetting.WithWorkerService)
-            {
-                foldersToExcludes.Add($".*{BiaProjectName.WorkerService}$");
-            }
-
-            return foldersToExcludes;
-        }
-
-        private List<string> GetBiaFeatureTag(FeatureSetting featureSetting = null, string prefix = null)
-        {
-            List<string> tags = new List<string>();
-
-            if (featureSetting?.WithFrontFeature != true)
-            {
-                tags.Add($"{prefix}{BiaFeatureTag.FrontFeature}");
-            }
-
-            if (featureSetting?.WithServiceApi != true)
-            {
-                tags.Add($"{prefix}{BiaFeatureTag.ServiceApi}");
-            }
-
-            return tags;
-        }
-
-        private void CleanProject(string projectPath, VersionAndOption versionAndOption, FeatureSetting featureSetting)
+        private void CleanProject(string projectPath, VersionAndOption versionAndOption, List<FeatureSetting> featureSettings)
         {
             List<string> tags = null;
 
-            if (!featureSetting.HasAllFeature)
+            if (!FeatureSettingService.HasAllFeature(versionAndOption.FeatureSettings.ToList()))
             {
                 this.CleanSln(projectPath, versionAndOption);
                 this.CleanCsProj(projectPath);
 
                 DirectoryHelper.DeleteEmptyDirectories(projectPath);
 
-                tags = this.GetBiaFeatureTag(featureSetting, "#if ");
+                tags = FeatureSettingService.GetBiaFeatureTagToDeletes(featureSettings, "#if ");
                 FileHelper.CleanFilesByTag(projectPath, tags, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}", true);
             }
 
-            tags = this.GetBiaFeatureTag(null, "#if ");
+            tags = FeatureSettingService.GetAllBiaFeatureTag(null, "#if ");
             FileHelper.CleanFilesByTag(projectPath, tags, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}", false);
         }
     }

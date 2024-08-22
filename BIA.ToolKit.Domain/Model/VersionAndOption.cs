@@ -10,12 +10,15 @@
             WorkCompanyFiles = new ObservableCollection<WorkRepository>();
             WorkTemplates = new ObservableCollection<WorkRepository>();
             Profiles = new ObservableCollection<string>();
+            FeatureSettings = new ObservableCollection<FeatureSetting>();
         }
         public bool? Test { get; set; }
 
         public ObservableCollection<WorkRepository>? WorkTemplates { get; set; }
         public ObservableCollection<string>? Profiles { get; set; }
         public ObservableCollection<WorkRepository>? WorkCompanyFiles { get; set; }
+
+        public ObservableCollection<FeatureSetting>? FeatureSettings { get; set; }
 
         // use as output
         public WorkRepository? WorkTemplate { get; set; }
