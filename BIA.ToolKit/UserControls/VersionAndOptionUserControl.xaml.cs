@@ -22,6 +22,7 @@
     using BIA.ToolKit.Domain.Settings;
     using System.Collections.ObjectModel;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Domain.Model;
 
     /// <summary>
     /// Interaction logic for VersionAndOptionView.xaml
@@ -38,7 +39,7 @@
         public VersionAndOptionUserControl()
         {
             InitializeComponent();
-            vm = (VersionAndOptionViewModel) base.DataContext;
+            vm = (VersionAndOptionViewModel)base.DataContext;
         }
 
         public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter)
@@ -49,6 +50,11 @@
             this.repositoryService = repositoryService;
         }
 
+        public void LoadfeatureSettings(List<FeatureSetting> featureSettings)
+        {
+            vm.FeatureSettings = new ObservableCollection<FeatureSetting>(featureSettings);
+        }
+
         public void refreshConfig()
         {
             var listCompanyFiles = new List<WorkRepository>();
@@ -57,7 +63,7 @@
 
             if (settings.CustomRepoTemplates?.Count > 0)
             {
-                foreach(var repositorySettings in settings.CustomRepoTemplates)
+                foreach (var repositorySettings in settings.CustomRepoTemplates)
                 {
                     AddTemplatesVersion(listWorkTemplates, repositorySettings);
                 }
@@ -80,7 +86,7 @@
             {
                 UseCompanyFiles.Visibility = Visibility.Visible;
                 CompanyFileGroup.Visibility = Visibility.Visible;
-                
+
                 Warning.Visibility = Visibility.Hidden;
                 WarningLabel.Visibility = Visibility.Hidden;
 
@@ -142,7 +148,7 @@
 
         private void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (vm.WorkTemplate?.RepositorySettings?.Name =="BIATemplate")
+            if (vm.WorkTemplate?.RepositorySettings?.Name == "BIATemplate")
             {
                 vm.UseCompanyFiles = true;
             }
@@ -151,13 +157,15 @@
                 vm.UseCompanyFiles = false;
             }
 
-            foreach(var WorkCompanyFile in vm.WorkCompanyFiles)
+            foreach (var WorkCompanyFile in vm.WorkCompanyFiles)
             {
                 if (vm.WorkTemplate?.Version == WorkCompanyFile.Version)
                 {
                     vm.WorkCompanyFile = WorkCompanyFile;
                 }
             }
+
+            this.LoadfeatureSettings(FeatureSetting.GetAll());
         }
 
         private void CompanyFileVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)

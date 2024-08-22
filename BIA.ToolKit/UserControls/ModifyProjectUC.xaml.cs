@@ -74,7 +74,7 @@
                 CRUDGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
             }
 
-            this.LoadFeatureSetting();
+            // this.LoadFeatureSetting();
         }
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
@@ -222,7 +222,7 @@
                 fronts = _viewModel.BIAFronts.Split(", ");
             }
 
-            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, fronts, this.ucFeatureOrigin.ViewModel.Model);
+            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, fronts);
 
             // Create project at target version.
             if (Directory.Exists(projectTargetPath))
@@ -230,15 +230,15 @@
                 FileTransform.ForceDeleteDirectory(projectTargetPath);
             }
 
-            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, fronts, this.ucFeatureTarget.ViewModel.Model);
+            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, fronts);
 
             consoleWriter.AddMessageLine("Generate projects finished.", actionFinishedAtEnd ? "Green" : "Blue");
         }
 
         //TODO mutualiser avec celle de MainWindows
-        private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts, FeatureSetting featureSetting)
+        private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
         {
-            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts, featureSetting);
+            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
         }
 
         private void MigrateOpenFolder_Click(object sender, RoutedEventArgs e)
@@ -292,12 +292,12 @@
             _viewModel.RefreshProjetsList();
         }
 
-        private void LoadFeatureSetting()
-        {
-            FeatureSetting featureSettingTarget = this.featureSettingService.Get(Path.Combine(_viewModel.ModifyProject.CurrentProject.Folder, _viewModel.ModifyProject.CurrentProject.Name));
-            FeatureSetting featureSettingOrigin = featureSettingTarget.DeepCopy();
-            ucFeatureTarget.ViewModel = new FeatureSettingVM(featureSettingTarget);
-            ucFeatureOrigin.ViewModel = new FeatureSettingVM(featureSettingOrigin);
-        }
+        //private void LoadFeatureSetting()
+        //{
+        //    FeatureSetting featureSettingTarget = this.featureSettingService.Get(Path.Combine(_viewModel.ModifyProject.CurrentProject.Folder, _viewModel.ModifyProject.CurrentProject.Name));
+        //    FeatureSetting featureSettingOrigin = featureSettingTarget.DeepCopy();
+        //    ucFeatureTarget.ViewModel = new FeatureSettingVM(featureSettingTarget);
+        //    ucFeatureOrigin.ViewModel = new FeatureSettingVM(featureSettingOrigin);
+        //}
     }
 }
