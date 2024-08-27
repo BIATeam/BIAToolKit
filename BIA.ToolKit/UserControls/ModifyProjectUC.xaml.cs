@@ -73,8 +73,6 @@
                 _viewModel.ModifyProject.CurrentProject.Folder = _viewModel.ModifyProject.RootProjectsPath;
                 CRUDGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
             }
-
-            // this.LoadFeatureSetting();
         }
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
