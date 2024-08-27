@@ -88,7 +88,7 @@
                 {
                     Id = 1,
                     DisplayName = "FrontEnd",
-                    Description = "FrontEnd desc",
+                    Description = "Add the Angular project. On the back end, add the features User, Member, Role, Team, Notification, Translation, Log, Audit",
                     IsSelected = true,
                     Tags = new List<string>() {"BIA_FRONT_FEATURE" },
                     FoldersToExcludes = new List<string>()
@@ -100,7 +100,7 @@
                 {
                     Id = 2,
                     DisplayName = "BackToBackAuth",
-                    Description = "BackToBackAuth desc",
+                    Description = "Add an authentication system for backend to backend exchange",
                     Tags = new List<string>() {"BIA_SERVICE_API" },
                     IsSelected = true,
 
@@ -109,7 +109,7 @@
                 {
                     Id = 3,
                     DisplayName = "DeployDb",
-                    Description = "DeployDb desc",
+                    Description = "Add the project allowing the deployment of the database",
                     IsSelected = true,
                     FoldersToExcludes = new List<string>()
                     {
@@ -120,7 +120,7 @@
                 {
                     Id = 4,
                     DisplayName = "WorkerService",
-                    Description = "WorkerService desc",
+                    Description = "Add the WorkerService project with Hangfire",
                     IsSelected = true,
                     FoldersToExcludes = new List<string>()
                     {
