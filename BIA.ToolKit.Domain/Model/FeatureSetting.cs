@@ -31,59 +31,5 @@
         /// Gets or sets the folders to excludes.
         /// </summary>
         public List<string>? FoldersToExcludes { get; set; }
-
-        /// <summary>
-        /// Gets all.
-        /// </summary>
-        /// <returns></returns>
-        public static List<FeatureSetting> GetAll()
-        {
-            return new List<FeatureSetting>()
-            {
-                new FeatureSetting()
-                {
-                    Id = 1,
-                    DisplayName = "FrontEnd",
-                    Description = "FrontEnd desc",
-                    IsSelected = false,
-                    Tags = new List<string>() {"BIA_FRONT_FEATURE" },
-                    FoldersToExcludes = new List<string>()
-                    {
-                        ".*Angular.*$"
-                    }
-                },
-                new FeatureSetting()
-                {
-                    Id = 2,
-                    DisplayName = "BackToBackAuth",
-                    Description = "BackToBackAuth desc",
-                    Tags = new List<string>() {"BIA_SERVICE_API" },
-                    IsSelected = true,
-
-                },
-                new FeatureSetting()
-                {
-                    Id = 3,
-                    DisplayName = "DeployDb",
-                    Description = "DeployDb desc",
-                    IsSelected = true,
-                    FoldersToExcludes = new List<string>()
-                    {
-                        ".*DeployDB$"
-                    }
-                },
-                new FeatureSetting()
-                {
-                    Id = 4,
-                    DisplayName = "WorkerService",
-                    Description = "WorkerService desc",
-                    IsSelected = true,
-                    FoldersToExcludes = new List<string>()
-                    {
-                        ".*WorkerService$"
-                    }
-                },
-            };
-        }
     }
 }

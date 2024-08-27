@@ -65,7 +65,7 @@
             else
             {
                 List<string> foldersToExcludes = null;
-                if (FeatureSettingService.HasAllFeature(featureSettings))
+                if (!FeatureSettingService.HasAllFeature(featureSettings))
                 {
                     foldersToExcludes = FeatureSettingService.GetFoldersToExcludes(featureSettings);
                     List<string> filesToExcludes = FeatureSettingService.GetFileToExcludes(versionAndOption, featureSettings);
@@ -311,8 +311,6 @@
 
         private void CleanProject(string projectPath, VersionAndOption versionAndOption, List<FeatureSetting> featureSettings)
         {
-            List<string> tags = null;
-
             if (!FeatureSettingService.HasAllFeature(versionAndOption.FeatureSettings.ToList()))
             {
                 this.CleanSln(projectPath, versionAndOption);
@@ -320,11 +318,11 @@
 
                 DirectoryHelper.DeleteEmptyDirectories(projectPath);
 
-                tags = FeatureSettingService.GetBiaFeatureTagToDeletes(featureSettings, "#if ");
-                FileHelper.CleanFilesByTag(projectPath, tags, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}", true);
+                List<string> tagToDeletes = FeatureSettingService.GetBiaFeatureTagToDeletes(featureSettings, "#if ");
+                FileHelper.CleanFilesByTag(projectPath, tagToDeletes, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}", true);
             }
 
-            tags = FeatureSettingService.GetAllBiaFeatureTag(null, "#if ");
+            List<string> tags = FeatureSettingService.GetAllBiaFeatureTag(featureSettings, "#if ");
             FileHelper.CleanFilesByTag(projectPath, tags, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}", false);
         }
     }

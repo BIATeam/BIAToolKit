@@ -33,6 +33,7 @@
         GitService gitService;
         RepositoryService repositoryService;
         IConsoleWriter consoleWriter;
+        FeatureSettingService featureSettingService;
 
         public VersionAndOptionViewModel vm;
 
@@ -42,17 +43,42 @@
             vm = (VersionAndOptionViewModel)base.DataContext;
         }
 
-        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter)
+        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, FeatureSettingService featureSettingService)
         {
             this.settings = settings;
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
             this.repositoryService = repositoryService;
+            this.featureSettingService = featureSettingService;
         }
 
-        public void LoadfeatureSettings(List<FeatureSetting> featureSettings)
+        public async Task LoadfeatureSettingsAsync()
         {
+            List<FeatureSetting> featureSettings = null;
+
+            await this.FillVersionFolderPathAsync();
+            if (!string.IsNullOrWhiteSpace(vm?.WorkTemplate?.VersionFolderPath))
+            {
+                featureSettings = this.featureSettingService.Get(vm.WorkTemplate.VersionFolderPath);
+            }
+
+            featureSettings = featureSettings ?? new List<FeatureSetting>();
             vm.FeatureSettings = new ObservableCollection<FeatureSetting>(featureSettings);
+        }
+
+        public async Task FillVersionFolderPathAsync()
+        {
+            if (vm?.WorkTemplate?.RepositorySettings != null)
+            {
+                if (vm.WorkTemplate.Version == "VX.Y.Z")
+                {
+                    vm.WorkTemplate.VersionFolderPath = vm.WorkTemplate.RepositorySettings.RootFolderPath;
+                }
+                else
+                {
+                    vm.WorkTemplate.VersionFolderPath = await this.repositoryService.PrepareVersionFolder(vm.WorkTemplate.RepositorySettings, vm.WorkTemplate.Version);
+                }
+            }
         }
 
         public void refreshConfig()
@@ -146,16 +172,9 @@
             }
         }
 
-        private void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (vm.WorkTemplate?.RepositorySettings?.Name == "BIATemplate")
-            {
-                vm.UseCompanyFiles = true;
-            }
-            else
-            {
-                vm.UseCompanyFiles = false;
-            }
+            vm.UseCompanyFiles = vm.WorkTemplate?.RepositorySettings?.Name == "BIATemplate";
 
             foreach (var WorkCompanyFile in vm.WorkCompanyFiles)
             {
@@ -165,7 +184,7 @@
                 }
             }
 
-            this.LoadfeatureSettings(FeatureSetting.GetAll());
+            await this.LoadfeatureSettingsAsync();
         }
 
         private void CompanyFileVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
