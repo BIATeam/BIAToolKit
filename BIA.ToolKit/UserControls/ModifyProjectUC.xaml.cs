@@ -73,8 +73,6 @@
                 CRUDGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
             }
             MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject.FrameworkVersion);
-
-            // this.LoadFeatureSetting();
         }
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
