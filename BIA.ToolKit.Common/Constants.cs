@@ -92,23 +92,12 @@ namespace BIA.ToolKit.Common
         /// </summary>
         public static class BiaProjectName
         {
-            //public const string DeployDB = "DeployDB";
-
-            //public const string WorkerService = "WorkerService";
-
             public const string Test = "Test";
         }
 
         public static class BiaFeatureTag
         {
             public const string ItemGroupTag = "Bia_ItemGroup_";
-
-            //public const string FrontFeature = "BIA_FRONT_FEATURE";
-
-            //public const string ServiceApi = "BIA_SERVICE_API";
-
-            
-
         }
     }
 }
