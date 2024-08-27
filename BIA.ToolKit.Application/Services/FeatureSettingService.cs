@@ -47,18 +47,18 @@
             return featureSettings;
         }
 
-        public static bool HasAllFeature(List<FeatureSetting> featureSettings)
+        public bool HasAllFeature(List<FeatureSetting> featureSettings)
         {
             return featureSettings?.Exists(x => !x.IsSelected) != true;
         }
 
-        public static List<string> GetFoldersToExcludes(List<FeatureSetting> settings)
+        public List<string> GetFoldersToExcludes(List<FeatureSetting> settings)
         {
             List<string> foldersToExcludes = settings.Where(x => !x.IsSelected).SelectMany(x => x.FoldersToExcludes).Distinct().ToList();
             return foldersToExcludes;
         }
 
-        public static List<string> GetBiaFeatureTagToDeletes(List<FeatureSetting> settings, string prefix = null)
+        public List<string> GetBiaFeatureTagToDeletes(List<FeatureSetting> settings, string prefix = null)
         {
             List<string> tags = settings
                 ?.Where(x => !x.IsSelected && x.Tags?.Any() == true)
@@ -67,7 +67,7 @@
             return tags;
         }
 
-        public static List<string> GetAllBiaFeatureTag(List<FeatureSetting> settings, string prefix = null)
+        public List<string> GetAllBiaFeatureTag(List<FeatureSetting> settings, string prefix = null)
         {
             List<string> tags = settings
                 ?.Where(x => x.Tags?.Any() == true)
@@ -76,57 +76,11 @@
             return tags;
         }
 
-        public static List<string> GetFileToExcludes(VersionAndOption versionAndOption, List<FeatureSetting> settings)
-        {
-            List<string> tags = GetBiaFeatureTagToDeletes(settings, BiaFeatureTag.ItemGroupTag);
-
-            List<string> filesToExcludes = new List<string>();
-
-            string csprojFile = (FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}")).FirstOrDefault();
-
-            if (!string.IsNullOrWhiteSpace(csprojFile))
-            {
-                XDocument document = XDocument.Load(csprojFile);
-                XNamespace ns = document.Root.Name.Namespace;
-
-                XElement itemGroup = document.Descendants(ns + "ItemGroup")
-                                        .FirstOrDefault(x => tags.Contains((string)x.Attribute("Label")));
-
-                if (itemGroup != null)
-                {
-                    List<string> compileRemoveItems = itemGroup.Elements(ns + "Compile")
-                                                      .Where(x => x.Attribute("Remove") != null)
-                                                      .Select(x => x.Attribute("Remove").Value)
-                                                      .ToList();
-
-                    foreach (string item in compileRemoveItems)
-                    {
-                        string newPattern;
-                        if (item.Contains("**\\*"))
-                        {
-                            newPattern = ".*" + Regex.Escape(item.Replace("**\\*", "").Replace(".cs", "").Replace("*", "")) + ".*\\.cs$";
-                        }
-                        else
-                        {
-                            newPattern = "^" + Regex.Escape(item.Replace("**\\", "").Replace(".cs", "")) + "\\.cs$";
-                        }
-
-                        if (!filesToExcludes.Contains(newPattern))
-                        {
-                            filesToExcludes.Add(newPattern);
-                        }
-                    }
-                }
-            }
-
-            return filesToExcludes;
-        }
-
         /// <summary>
         /// Gets all.
         /// </summary>
         /// <returns></returns>
-        public static List<FeatureSetting> GetAll()
+        public List<FeatureSetting> GetAll()
         {
             return new List<FeatureSetting>()
             {

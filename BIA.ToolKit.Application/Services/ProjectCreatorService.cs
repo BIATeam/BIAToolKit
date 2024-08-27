@@ -65,10 +65,10 @@
             else
             {
                 List<string> foldersToExcludes = null;
-                if (!FeatureSettingService.HasAllFeature(featureSettings))
+                if (!featureSettingService.HasAllFeature(featureSettings))
                 {
-                    foldersToExcludes = FeatureSettingService.GetFoldersToExcludes(featureSettings);
-                    List<string> filesToExcludes = FeatureSettingService.GetFileToExcludes(versionAndOption, featureSettings);
+                    foldersToExcludes = featureSettingService.GetFoldersToExcludes(featureSettings);
+                    List<string> filesToExcludes = this.GetFileToExcludes(versionAndOption, featureSettings);
                     localFilesToExcludes.AddRange(filesToExcludes);
                 }
 
@@ -240,89 +240,66 @@
             }
         }
 
-        //private List<string> GetFileToExcludes(VersionAndOption versionAndOption, FeatureSetting featureSetting)
-        //{
-        //    List<string> tags = GetBiaFeatureTagToDeletes(featureSetting, BiaFeatureTag.ItemGroupTag);
+        private List<string> GetFileToExcludes(VersionAndOption versionAndOption, List<FeatureSetting> settings)
+        {
+            List<string> tags = featureSettingService.GetBiaFeatureTagToDeletes(settings, BiaFeatureTag.ItemGroupTag);
 
-        //    List<string> filesToExcludes = new List<string>();
+            List<string> filesToExcludes = new List<string>();
 
-        //    string csprojFile = (FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}")).FirstOrDefault();
+            string csprojFile = (FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}")).FirstOrDefault();
 
-        //    if (!string.IsNullOrWhiteSpace(csprojFile))
-        //    {
-        //        XDocument document = XDocument.Load(csprojFile);
-        //        XNamespace ns = document.Root.Name.Namespace;
+            if (!string.IsNullOrWhiteSpace(csprojFile))
+            {
+                XDocument document = XDocument.Load(csprojFile);
+                XNamespace ns = document.Root.Name.Namespace;
 
-        //        XElement itemGroup = document.Descendants(ns + "ItemGroup")
-        //                                .FirstOrDefault(x => tags.Contains((string)x.Attribute("Label")));
+                XElement itemGroup = document.Descendants(ns + "ItemGroup")
+                                        .FirstOrDefault(x => tags.Contains((string)x.Attribute("Label")));
 
-        //        if (itemGroup != null)
-        //        {
-        //            List<string> compileRemoveItems = itemGroup.Elements(ns + "Compile")
-        //                                              .Where(x => x.Attribute("Remove") != null)
-        //                                              .Select(x => x.Attribute("Remove").Value)
-        //                                              .ToList();
+                if (itemGroup != null)
+                {
+                    List<string> compileRemoveItems = itemGroup.Elements(ns + "Compile")
+                                                      .Where(x => x.Attribute("Remove") != null)
+                                                      .Select(x => x.Attribute("Remove").Value)
+                                                      .ToList();
 
-        //            foreach (string item in compileRemoveItems)
-        //            {
-        //                string newPattern;
-        //                if (item.Contains("**\\*"))
-        //                {
-        //                    newPattern = ".*" + Regex.Escape(item.Replace("**\\*", "").Replace(".cs", "").Replace("*", "")) + ".*\\.cs$";
-        //                }
-        //                else
-        //                {
-        //                    newPattern = "^" + Regex.Escape(item.Replace("**\\", "").Replace(".cs", "")) + "\\.cs$";
-        //                }
+                    foreach (string item in compileRemoveItems)
+                    {
+                        string newPattern;
+                        if (item.Contains("**\\*"))
+                        {
+                            newPattern = ".*" + Regex.Escape(item.Replace("**\\*", "").Replace(".cs", "").Replace("*", "")) + ".*\\.cs$";
+                        }
+                        else
+                        {
+                            newPattern = "^" + Regex.Escape(item.Replace("**\\", "").Replace(".cs", "")) + "\\.cs$";
+                        }
 
-        //                if (!filesToExcludes.Contains(newPattern))
-        //                {
-        //                    filesToExcludes.Add(newPattern);
-        //                }
-        //            }
-        //        }
-        //    }
+                        if (!filesToExcludes.Contains(newPattern))
+                        {
+                            filesToExcludes.Add(newPattern);
+                        }
+                    }
+                }
+            }
 
-        //    return filesToExcludes;
-        //}
-
-        //private List<string> GetFoldersToExcludes(List<FeatureSetting> settings)
-        //{
-        //    List<string> foldersToExcludes = settings.Where(x => !x.IsSelected).SelectMany(x => x.FoldersToExcludes).Distinct().ToList();
-        //    return foldersToExcludes;
-        //}
-
-        //private List<string> GetBiaFeatureTagToDeletes(List<FeatureSetting> settings, string prefix = null)
-        //{
-        //    List<string> tags = settings
-        //        .Where(x => !x.IsSelected)
-        //        .SelectMany(x => x.Tags.Select(tag => $"{prefix}{tag}"))
-        //        .Distinct().ToList();
-        //    return tags;
-        //}
-
-        //private List<string> GetAllBiaFeatureTag(List<FeatureSetting> settings, string prefix = null)
-        //{
-        //    List<string> tags = settings
-        //        .SelectMany(x => x.Tags.Select(tag => $"{prefix}{tag}"))
-        //        .Distinct().ToList();
-        //    return tags;
-        //}
+            return filesToExcludes;
+        }
 
         private void CleanProject(string projectPath, VersionAndOption versionAndOption, List<FeatureSetting> featureSettings)
         {
-            if (!FeatureSettingService.HasAllFeature(versionAndOption.FeatureSettings.ToList()))
+            if (!featureSettingService.HasAllFeature(versionAndOption.FeatureSettings.ToList()))
             {
                 this.CleanSln(projectPath, versionAndOption);
                 this.CleanCsProj(projectPath);
 
                 DirectoryHelper.DeleteEmptyDirectories(projectPath);
 
-                List<string> tagToDeletes = FeatureSettingService.GetBiaFeatureTagToDeletes(featureSettings, "#if ");
+                List<string> tagToDeletes = featureSettingService.GetBiaFeatureTagToDeletes(featureSettings, "#if ");
                 FileHelper.CleanFilesByTag(projectPath, tagToDeletes, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}", true);
             }
 
-            List<string> tags = FeatureSettingService.GetAllBiaFeatureTag(featureSettings, "#if ");
+            List<string> tags = featureSettingService.GetAllBiaFeatureTag(featureSettings, "#if ");
             FileHelper.CleanFilesByTag(projectPath, tags, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}", false);
         }
     }
