@@ -36,11 +36,14 @@
         {
             List<FeatureSetting> featureSettings = null;
 
-            string jsonFile = Path.Combine(projectPath, fileName);
-
-            if (File.Exists(jsonFile))
+            if (!string.IsNullOrWhiteSpace(projectPath))
             {
-                featureSettings = CommonTools.DeserializeJsonFile<List<FeatureSetting>>(jsonFile);
+                string jsonFile = Path.Combine(projectPath, fileName);
+
+                if (File.Exists(jsonFile))
+                {
+                    featureSettings = CommonTools.DeserializeJsonFile<List<FeatureSetting>>(jsonFile);
+                }
             }
 
             return featureSettings;

@@ -1,28 +1,21 @@
 ﻿namespace BIA.ToolKit.UserControls
 {
-    using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.Helper;
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
-    using System.Text;
     using System.Text.Json;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
-    using System.Windows.Data;
-    using System.Windows.Documents;
-    using System.Windows.Input;
     using System.Windows.Media;
-    using System.Windows.Media.Imaging;
-    using System.Windows.Navigation;
-    using System.Windows.Shapes;
-    using BIA.ToolKit.Domain.Work;
-    using BIA.ToolKit.Domain.Settings;
-    using System.Collections.ObjectModel;
+    using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.Model;
+    using BIA.ToolKit.Domain.Settings;
+    using BIA.ToolKit.Domain.Work;
 
     /// <summary>
     /// Interaction logic for VersionAndOptionView.xaml
@@ -34,6 +27,7 @@
         RepositoryService repositoryService;
         IConsoleWriter consoleWriter;
         FeatureSettingService featureSettingService;
+        private string currentProjectPath;
 
         public VersionAndOptionViewModel vm;
 
@@ -57,14 +51,28 @@
             vm.WorkTemplate = vm.WorkTemplates.FirstOrDefault(workTemplate => workTemplate.Version == $"V{version}");
         }
 
-        public async Task LoadfeatureSettingsAsync()
+        public void SetCurrentProjectPath(string path)
         {
-            List<FeatureSetting> featureSettings = null;
+            this.currentProjectPath = path;
+            this.LoadfeatureSetting();
+        }
 
-            await this.FillVersionFolderPathAsync();
-            if (!string.IsNullOrWhiteSpace(vm?.WorkTemplate?.VersionFolderPath))
+        private void LoadfeatureSetting()
+        {
+            List<FeatureSetting> featureSettings = this.featureSettingService.Get(vm.WorkTemplate?.VersionFolderPath);
+            List<FeatureSetting> projectFeatureSettings = this.featureSettingService.Get(this.currentProjectPath);
+
+            if (featureSettings?.Any() == true && projectFeatureSettings?.Any() == true)
             {
-                featureSettings = this.featureSettingService.Get(vm.WorkTemplate.VersionFolderPath);
+                foreach (FeatureSetting featureSetting in featureSettings)
+                {
+                    FeatureSetting projectFeatureSetting = projectFeatureSettings.Find(x => x.Id == featureSetting.Id);
+
+                    if (projectFeatureSetting != null)
+                    {
+                        featureSetting.IsSelected = projectFeatureSetting.IsSelected;
+                    }
+                }
             }
 
             featureSettings = featureSettings ?? new List<FeatureSetting>();
@@ -189,7 +197,8 @@
                 }
             }
 
-            await this.LoadfeatureSettingsAsync();
+            await this.FillVersionFolderPathAsync();
+            this.LoadfeatureSetting();
         }
 
         private void CompanyFileVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)

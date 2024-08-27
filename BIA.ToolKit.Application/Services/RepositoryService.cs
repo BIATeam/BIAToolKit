@@ -8,6 +8,7 @@
     using System.Net;
     using System.IO.Compression;
     using System.Net.Http;
+    using System.Linq;
 
     public class RepositoryService
     {
@@ -80,7 +81,7 @@
                                 else
                                 {
                                     // Already downloaded
-                                    return string.Empty;
+                                    return Directory.GetDirectories(biaTemplatePathVersionUnzip).FirstOrDefault();
                                 }
                             }
 
