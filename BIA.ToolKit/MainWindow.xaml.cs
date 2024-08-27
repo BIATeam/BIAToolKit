@@ -49,7 +49,7 @@
 
             InitializeComponent();
 
-            CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter);
+            CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, featureSettingService);
             ModifyProject.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, cSharpParserService,
                 projectCreatorService, zipParserService, crudService, settingsService, featureSettingService);
 

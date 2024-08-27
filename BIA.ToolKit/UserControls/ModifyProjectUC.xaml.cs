@@ -48,8 +48,8 @@
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
             this.featureSettingService = featureSettingService;
-            MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
-            MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
+            MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService);
+            MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService);
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter);
             this.crudSettings = new(settingsService);
         }

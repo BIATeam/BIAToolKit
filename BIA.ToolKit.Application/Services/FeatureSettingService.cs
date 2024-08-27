@@ -15,7 +15,7 @@
     /// </summary>
     public class FeatureSettingService
     {
-        private const string fileName = "BiaToolKit_FeatureSetting.json";
+        private const string fileName = ".bia\\BiaToolKit_FeatureSetting.json";
 
         /// <summary>
         /// Saves the specified feature setting.
@@ -35,9 +35,14 @@
         /// <returns>List of <see cref="FeatureSetting"/></returns>
         public List<FeatureSetting> Get(string projectPath)
         {
+            List<FeatureSetting> featureSettings = null;
+
             string jsonFile = Path.Combine(projectPath, fileName);
 
-            List<FeatureSetting> featureSettings = CommonTools.DeserializeJsonFile<List<FeatureSetting>>(jsonFile);
+            if (File.Exists(jsonFile))
+            {
+                featureSettings = CommonTools.DeserializeJsonFile<List<FeatureSetting>>(jsonFile);
+            }
 
             return featureSettings;
         }
@@ -56,7 +61,7 @@
         public static List<string> GetBiaFeatureTagToDeletes(List<FeatureSetting> settings, string prefix = null)
         {
             List<string> tags = settings
-                .Where(x => !x.IsSelected)
+                ?.Where(x => !x.IsSelected && x.Tags?.Any() == true)
                 .SelectMany(x => x.Tags.Select(tag => $"{prefix}{tag}"))
                 .Distinct().ToList();
             return tags;
@@ -65,6 +70,7 @@
         public static List<string> GetAllBiaFeatureTag(List<FeatureSetting> settings, string prefix = null)
         {
             List<string> tags = settings
+                ?.Where(x => x.Tags?.Any() == true)
                 .SelectMany(x => x.Tags.Select(tag => $"{prefix}{tag}"))
                 .Distinct().ToList();
             return tags;
@@ -114,6 +120,60 @@
             }
 
             return filesToExcludes;
+        }
+
+        /// <summary>
+        /// Gets all.
+        /// </summary>
+        /// <returns></returns>
+        public static List<FeatureSetting> GetAll()
+        {
+            return new List<FeatureSetting>()
+            {
+                new FeatureSetting()
+                {
+                    Id = 1,
+                    DisplayName = "FrontEnd",
+                    Description = "FrontEnd desc",
+                    IsSelected = true,
+                    Tags = new List<string>() {"BIA_FRONT_FEATURE" },
+                    FoldersToExcludes = new List<string>()
+                    {
+                        ".*Angular.*$"
+                    }
+                },
+                new FeatureSetting()
+                {
+                    Id = 2,
+                    DisplayName = "BackToBackAuth",
+                    Description = "BackToBackAuth desc",
+                    Tags = new List<string>() {"BIA_SERVICE_API" },
+                    IsSelected = true,
+
+                },
+                new FeatureSetting()
+                {
+                    Id = 3,
+                    DisplayName = "DeployDb",
+                    Description = "DeployDb desc",
+                    IsSelected = true,
+                    FoldersToExcludes = new List<string>()
+                    {
+                        ".*DeployDB$"
+                    }
+                },
+                new FeatureSetting()
+                {
+                    Id = 4,
+                    DisplayName = "WorkerService",
+                    Description = "WorkerService desc",
+                    IsSelected = true,
+                    FoldersToExcludes = new List<string>()
+                    {
+                        ".*WorkerService$"
+                    }
+                },
+            };
         }
     }
 }
