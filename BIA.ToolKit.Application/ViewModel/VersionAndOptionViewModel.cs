@@ -5,10 +5,13 @@
     using BIA.ToolKit.Domain.Work;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.Linq;
 
     public class VersionAndOptionViewModel : ObservableObject
     {
         public VersionAndOption VersionAndOption { get; set; }
+
+        private bool hasFeature = false;
 
         public VersionAndOptionViewModel()
         {
@@ -127,7 +130,21 @@
                 if (VersionAndOption.FeatureSettings != value)
                 {
                     VersionAndOption.FeatureSettings = value;
+                    HasFeature = VersionAndOption.FeatureSettings.Any();
                     RaisePropertyChanged(nameof(FeatureSettings));
+                }
+            }
+        }
+
+        public bool HasFeature
+        {
+            get { return hasFeature; }
+            set
+            {
+                if (hasFeature != value)
+                {
+                    hasFeature = value;
+                    RaisePropertyChanged(nameof(HasFeature));
                 }
             }
         }

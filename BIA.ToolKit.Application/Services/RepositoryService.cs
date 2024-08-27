@@ -54,13 +54,13 @@
                 var releasePath = AppSettings.AppFolderPath + "\\" + repository.Name;
                 if (Directory.Exists(releasePath))
                 {
-                    Directory.Delete(releasePath,true);
+                    Directory.Delete(releasePath, true);
                 }
                 outPut.AddMessageLine("Release Cleaned.", "Pink");
             }
         }
 
-        public async Task<string> PrepareVersionFolder (RepositorySettings repository, string version)
+        public async Task<string> PrepareVersionFolder(RepositorySettings repository, string version)
         {
             if (repository.Versioning == VersioningType.Folder)
             {
@@ -84,11 +84,16 @@
                                 {
                                     File.Delete(zipPath);
                                 }
+                                else
+                                {
+                                    // Already downloaded
+                                    return string.Empty;
+                                }
                             }
 
                             if (!File.Exists(zipPath))
                             {
-                                outPut.AddMessageLine("Begin dowloading " + tag.CanonicalName + ".zip", "Pink");
+                                outPut.AddMessageLine("Begin downloading " + tag.CanonicalName + ".zip", "Pink");
                                 var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
                                 HttpClientHandler httpClientHandler = new HttpClientHandler
                                 {
@@ -104,7 +109,7 @@
                                         await response.Content.CopyToAsync(fs);
                                     }
                                 }
-                                outPut.AddMessageLine("Dowloaded.", "Pink");
+                                outPut.AddMessageLine("Downloaded.", "Pink");
                             }
 
                             if (!File.Exists(zipPath))
