@@ -220,6 +220,7 @@
                 fronts = _viewModel.BIAFronts.Split(", ");
             }
 
+
             await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, fronts);
 
             // Create project at target version.
@@ -227,7 +228,6 @@
             {
                 FileTransform.ForceDeleteDirectory(projectTargetPath);
             }
-
             await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, fronts);
 
             consoleWriter.AddMessageLine("Generate projects finished.", actionFinishedAtEnd ? "Green" : "Blue");
@@ -289,13 +289,5 @@
         {
             _viewModel.RefreshProjetsList();
         }
-
-        //private void LoadFeatureSetting()
-        //{
-        //    FeatureSetting featureSettingTarget = this.featureSettingService.Get(Path.Combine(_viewModel.ModifyProject.CurrentProject.Folder, _viewModel.ModifyProject.CurrentProject.Name));
-        //    FeatureSetting featureSettingOrigin = featureSettingTarget.DeepCopy();
-        //    ucFeatureTarget.ViewModel = new FeatureSettingVM(featureSettingTarget);
-        //    ucFeatureOrigin.ViewModel = new FeatureSettingVM(featureSettingOrigin);
-        //}
     }
 }
