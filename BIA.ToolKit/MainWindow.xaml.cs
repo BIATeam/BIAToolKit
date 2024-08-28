@@ -37,7 +37,7 @@
 
         public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter)
+            IConsoleWriter consoleWriter, FeatureSettingService featureSettingService)
         {
             AppSettings.AppFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
@@ -49,9 +49,9 @@
 
             InitializeComponent();
 
-            CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter);
+            CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, featureSettingService);
             ModifyProject.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, zipParserService, crudService, settingsService);
+                projectCreatorService, zipParserService, crudService, settingsService, featureSettingService);
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
@@ -298,6 +298,7 @@
                 MessageBox.Show("The project path is not empty : " + projectPath);
                 return;
             }
+
             await CreateProject(true, _viewModel.Settings.CreateCompanyName, CreateProjectName.Text, projectPath, CreateVersionAndOption, new string[] { "Angular" });
             Enable(true);
         }
@@ -306,7 +307,6 @@
         {
             await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
         }
-
 
         private void btnFileGenerator_OpenFolder_Click(object sender, RoutedEventArgs e)
         {

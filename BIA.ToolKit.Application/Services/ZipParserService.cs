@@ -41,6 +41,11 @@
         /// </summary>
         public bool ParseZipFile(ZipFeatureType zipData, string folderName, string dtoCustomAttributeName)
         {
+            if (string.IsNullOrWhiteSpace(zipData.ZipName))
+            {
+                return false;
+            }
+
             string fileName = Path.Combine(zipData.ZipPath, zipData.ZipName);
             if (string.IsNullOrWhiteSpace(fileName))
             {

@@ -8,6 +8,7 @@
     using System.Net;
     using System.IO.Compression;
     using System.Net.Http;
+    using System.Linq;
 
     public class RepositoryService
     {
@@ -77,11 +78,16 @@
                                 {
                                     File.Delete(zipPath);
                                 }
+                                else
+                                {
+                                    // Already downloaded
+                                    return Directory.GetDirectories(biaTemplatePathVersionUnzip).FirstOrDefault();
+                                }
                             }
 
                             if (!File.Exists(zipPath))
                             {
-                                outPut.AddMessageLine("Begin dowloading " + tag.CanonicalName + ".zip", "Pink");
+                                outPut.AddMessageLine("Begin downloading " + tag.CanonicalName + ".zip", "Pink");
                                 var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
                                 HttpClientHandler httpClientHandler = new HttpClientHandler
                                 {
@@ -97,7 +103,7 @@
                                         await response.Content.CopyToAsync(fs);
                                     }
                                 }
-                                outPut.AddMessageLine("Dowloaded.", "Pink");
+                                outPut.AddMessageLine("Downloaded.", "Pink");
                             }
 
                             if (!File.Exists(zipPath))
