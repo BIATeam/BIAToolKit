@@ -24,7 +24,8 @@
         internal const string BIA_DTO_FIELD_ISPARENT = "IsParent";
         internal const string BIA_DTO_FIELD_ITEMTYPE = "ItemType";
 
-        private const string ATTRIBUTE_TYPE_NOT_MANAGED = $"// CRUD GENERATOR FOR PLANE TO REVIEW : Field {ATTRIBUTE_TYPE_NOT_MANAGED_FIELD} or type {ATTRIBUTE_TYPE_NOT_MANAGED_TYPE} not managed.";
+        private const string ATTRIBUTE_TYPE_NOT_MANAGED = $"// CRUD GENERATOR FOR {NEW_CRUD_NAME_SINGULAR_UPPER} TO REVIEW : Field {ATTRIBUTE_TYPE_NOT_MANAGED_FIELD} or type {ATTRIBUTE_TYPE_NOT_MANAGED_TYPE} not managed.";
+        private const string NEW_CRUD_NAME_SINGULAR_UPPER = "WWWNameWWW";
         private const string ATTRIBUTE_TYPE_NOT_MANAGED_FIELD = "XXXFieldXXX";
         private const string ATTRIBUTE_TYPE_NOT_MANAGED_TYPE = "YYYTypeYYY";
         private const string IS_REQUIRED_PROPERTY = "isRequired:";
@@ -286,12 +287,11 @@
                 if (CommonTools.IsNamespaceOrUsingLine(fileLinesContent[i]))
                 {
                     fileLinesContent[i] = UpdateNamespaceUsing(fileLinesContent[i], currentProject, dtoClassDefiniton, crudNamespaceList);
+                    continue;
                 }
-                else
-                {
-                    // Convert Crud Name (Plane to XXX)
-                    fileLinesContent[i] = this.CrudNames.ConvertPascalOldToNewCrudName(fileLinesContent[i], type, false);
-                }
+
+                // Convert Crud Name (Plane to Xxx and plane to xxx)
+                fileLinesContent[i] = this.CrudNames.ConvertPascalOldToNewCrudName(this.CrudNames.ConvertPascalOldToNewCrudName(fileLinesContent[i], type, false), type, true);
             }
 
             // Generate new file
@@ -504,8 +504,8 @@
             List<string> fileLinesContent = File.ReadAllLines(fileName).ToList();
 
             // Update file content
-            fileLinesContent = UpdateFileLinesContent(fileLinesContent, type);
             fileLinesContent = UpdateFileContent(fileLinesContent, generationData, fileName, crudDtoEntity, crudDtoProperties, propertyList);
+            fileLinesContent = UpdateFileLinesContent(fileLinesContent, type);
 
             // Generate new file
             CommonTools.GenerateFile(newFileName, fileLinesContent);
@@ -1178,7 +1178,7 @@
                 string startBLockComment = extractBlock.BlockLines.First();
                 string endBLockComment = extractBlock.BlockLines.Last();
 
-                newBlockLines.Add(ATTRIBUTE_TYPE_NOT_MANAGED.Replace(ATTRIBUTE_TYPE_NOT_MANAGED_FIELD, attributeName).Replace(ATTRIBUTE_TYPE_NOT_MANAGED_TYPE, attributeType));
+                newBlockLines.Add(ATTRIBUTE_TYPE_NOT_MANAGED.Replace(NEW_CRUD_NAME_SINGULAR_UPPER, CrudNames.NewCrudNamePascalSingular.ToUpper()).Replace(ATTRIBUTE_TYPE_NOT_MANAGED_FIELD, attributeName).Replace(ATTRIBUTE_TYPE_NOT_MANAGED_TYPE, attributeType));
                 newBlockLines.Add(extractBlock.BlockLines[0]);                  // start block comment
                 newBlockLines.Add(extractBlock.BlockLines[1]);                  // first block code line
                 if (isRequired)
