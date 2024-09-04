@@ -29,7 +29,8 @@
         Navigation,
         Permission,
         Rights,
-        Routing
+        Routing,
+        TeamTypeId
     }
 
     public enum WebApiFileType

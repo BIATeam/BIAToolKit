@@ -82,6 +82,14 @@
                     GenerateWebApi(optionBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, FeatureType.Option, crudDtoEntity);
                 }
 
+                // Generate Team Angular files
+                ZipFeatureType teamFeatureType = zipFeatureTypeList.Where(x => x.FeatureType == FeatureType.Team && x.GenerationType == GenerationType.WebApi).FirstOrDefault();
+                if (teamFeatureType != null && teamFeatureType.IsChecked)
+                {
+                    consoleWriter.AddMessageLine($"Team DotNet generation implementation WIP !", "Orange");
+                    GenerateWebApi(teamFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, FeatureType.Team, crudDtoEntity);
+                }
+
                 // *** Generate Angular files ***
                 // Generate CRUD Angular files
                 ZipFeatureType crudFrontFeatureType = zipFeatureTypeList.Where(x => x.GenerationType == GenerationType.Front && x.FeatureType == FeatureType.CRUD).FirstOrDefault();
@@ -107,15 +115,6 @@
                     consoleWriter.AddMessageLine($"*** Generate Angular Option files on '{AngularFolderGeneration}' ***", "Green");
                     GenerateFrontOption(optionFrontFeatureType.FeatureDataList, crudDtoEntity);
                 }
-
-                // Generate Team Angular files
-                ZipFeatureType teamFeatureType = zipFeatureTypeList.Where(x => x.FeatureType == FeatureType.Team).FirstOrDefault();
-                if (teamFeatureType != null && teamFeatureType.IsChecked)
-                {
-                    consoleWriter.AddMessageLine($"Team generation not yet implemented!", "Orange");
-                    // GenerateTeam(angularDir, teamFeatureType.FeatureDataList);
-                }
-
 
             }
             catch (Exception ex)

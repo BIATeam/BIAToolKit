@@ -475,7 +475,7 @@
             // Parse Option Zip file
             parsed |= ParseZipFile(FeatureType.Option, GenerationType.WebApi);
             // TODO Team : Parse Team Zip file
-            // parsed |= ParseZipFile(FeatureType.Team, GenerationType.WebApi);
+            parsed |= ParseZipFile(FeatureType.Team, GenerationType.WebApi);
 
             // *** Parse Angular Zip files ***
             // Parse CRUD Zip file
