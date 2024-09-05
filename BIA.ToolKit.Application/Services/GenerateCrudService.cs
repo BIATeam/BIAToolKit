@@ -305,7 +305,7 @@
             string filePartPath = featureData.FilePath.Remove(featureData.FilePath.LastIndexOf(fileName));
             filePartPath = ReplaceCompagnyNameProjetName(filePartPath, currentProject, dtoClassDefiniton);
 
-            string newFilePartPath = this.CrudNames.ConvertPascalOldToNewCrudName(filePartPath, FeatureType.CRUD, false);
+            string newFilePartPath = this.CrudNames.ConvertPascalOldToNewCrudName(filePartPath, type, false);
             string newFileName = this.CrudNames.ConvertPascalOldToNewCrudName(fileName, type, false);
             string dest = Path.Combine(this.DotNetFolderGeneration, newFilePartPath, newFileName);
 
