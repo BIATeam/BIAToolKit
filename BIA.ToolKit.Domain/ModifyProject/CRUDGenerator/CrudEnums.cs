@@ -31,7 +31,8 @@
         Rights,
         Routing,
         TeamTypeId,
-        Constants
+        Constants,
+        TeamTypeModelBuilder
     }
 
     public enum WebApiFileType
