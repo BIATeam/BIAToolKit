@@ -1263,7 +1263,7 @@
             const string regexComponentAs = @"^\s*[\/\*]*\s*import\s+\*\s+as\s+([\w,]*)\s+from";
             const string regexPath = @"\s*from\s*\'([\S]*)\';$";
             const string regexPathThen = @"^\s*[\/\*]*\s*import\s*\('([\w.\/]*)'\)";
-            const string regexComponentPath = @"'([\.\/A-Za-z-]+)'[^\)]";
+            const string regexComponentPath = @"(?:templateUrl|styleUrls)\s*:\s*(?:\[\s*)?'([^']+)'";
             const string regexComponentHtml = @"<\/?app-([a-z-]+)>?";
 
             string newLine = line;
