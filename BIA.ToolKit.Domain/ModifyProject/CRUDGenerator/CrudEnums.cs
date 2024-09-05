@@ -30,7 +30,8 @@
         Permission,
         Rights,
         Routing,
-        TeamTypeId
+        TeamTypeId,
+        Constants
     }
 
     public enum WebApiFileType
