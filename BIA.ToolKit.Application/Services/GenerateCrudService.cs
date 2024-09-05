@@ -344,7 +344,7 @@
                     partPath = ReplaceCompagnyNameProjetName(partPath, currentProject, classDefiniton);
 
                     // Replace "plane" file name with good "crud" value
-                    string fileName = crudData.FileName.Replace(this.CrudNames.OldCrudNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
+                    string fileName = crudData.FileName.Replace(oldNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
 
                     // Search file on disk
                     string foundFile = Directory.EnumerateFiles(Path.Combine(destDir, partPath), fileName, SearchOption.AllDirectories).FirstOrDefault();
