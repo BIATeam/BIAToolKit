@@ -285,7 +285,7 @@
 
                 if (CommonTools.IsNamespaceOrUsingLine(fileLinesContent[i]))
                 {
-                    fileLinesContent[i] = UpdateNamespaceUsing(fileLinesContent[i], currentProject, dtoClassDefiniton, crudNamespaceList);
+                    fileLinesContent[i] = UpdateNamespaceUsing(fileLinesContent[i], currentProject, dtoClassDefiniton, crudNamespaceList, type);
                     continue;
                 }
 
@@ -315,6 +315,12 @@
         private List<WebApiNamespace> ListCrudNamespaces(string destDir, List<FeatureData> featureDataList, Project currentProject, ClassDefinition classDefiniton, FeatureType type)
         {
             List<WebApiNamespace> namespaceList = new();
+            var oldNamePascalSingular = type switch
+            {
+                FeatureType.CRUD => this.CrudNames.OldCrudNamePascalSingular,
+                FeatureType.Team => this.CrudNames.OldTeamNamePascalSingular,
+                _ => throw new NotImplementedException()
+            };
 
             foreach (WebApiFeatureData crudData in featureDataList)
             {
@@ -365,7 +371,7 @@
                         consoleWriter.AddMessageLine($"File '{fileName}' not found on path '{Path.Combine(destDir, partPath)}' folder or children.", "Orange");
                         webApiNamespace.CrudNamespaceGenerated =
                             ReplaceCompagnyNameProjetName(crudData.Namespace, currentProject, classDefiniton).
-                            Replace(this.CrudNames.OldCrudNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
+                            Replace(oldNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
                     }
                 }
                 else
@@ -374,13 +380,13 @@
 
                     webApiNamespace.CrudNamespaceGenerated =
                         ReplaceCompagnyNameProjetName(crudData.Namespace, currentProject, classDefiniton).
-                        Replace(this.CrudNames.OldCrudNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
+                        Replace(oldNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
                 }
             }
             return namespaceList;
         }
 
-        private string UpdateNamespaceUsing(string line, Project currentProject, ClassDefinition dtoClassDefiniton, List<WebApiNamespace> crudNamespaceList)
+        private string UpdateNamespaceUsing(string line, Project currentProject, ClassDefinition dtoClassDefiniton, List<WebApiNamespace> crudNamespaceList, FeatureType type)
         {
             string nmsp = CommonTools.GetNamespaceOrUsingValue(line);
             if (!string.IsNullOrWhiteSpace(nmsp))
@@ -395,9 +401,16 @@
                     if (line.Contains(dtoClassDefiniton.CompagnyName) ||
                         line.Contains(dtoClassDefiniton.ProjectName))
                     {
+                        var oldNamePascalSingular = type switch
+                        {
+                            FeatureType.CRUD => this.CrudNames.OldCrudNamePascalSingular,
+                            FeatureType.Team => this.CrudNames.OldTeamNamePascalSingular,
+                            _ => throw new NotImplementedException()
+                        };
+
                         // Replace Compagny name and Project name if exists
                         line = ReplaceCompagnyNameProjetName(line, currentProject, dtoClassDefiniton);
-                        line = line.Replace(this.CrudNames.OldCrudNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
+                        line = line.Replace(oldNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
                     }
                 }
             }
