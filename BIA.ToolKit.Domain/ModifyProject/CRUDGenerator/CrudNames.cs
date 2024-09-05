@@ -28,10 +28,10 @@
         public string OldOptionNameCamelSingular { get; private set; } = "airport";
         public string OldOptionNameCamelPlural { get; private set; } = "airports";
 
-        public string OldTeamNamePascalSingular { get; private set; } = "AircraftMaintenanceCompany";
-        public string OldTeamNamePascalPlural { get; private set; } = "AircraftMaintenanceCompanies";
-        public string OldTeamNameCamelSingular { get; private set; } = "aircraftMaintenanceCompany";
-        public string OldTeamNameCamelPlural { get; private set; } = "aircraftMaintenanceCompanies";
+        public string OldTeamNamePascalSingular { get; private set; } = "Site";
+        public string OldTeamNamePascalPlural { get; private set; } = "Sites";
+        public string OldTeamNameCamelSingular { get; private set; } = "site";
+        public string OldTeamNameCamelPlural { get; private set; } = "sites";
 
         public CrudNames(List<CrudGenerationSettings> backSettingsList, List<CrudGenerationSettings> frontSettingsList)
         {

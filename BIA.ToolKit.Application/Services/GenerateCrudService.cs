@@ -82,7 +82,7 @@
                     GenerateWebApi(optionBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, FeatureType.Option, crudDtoEntity);
                 }
 
-                // Generate Team Angular files
+                // Generate Team DotNet files
                 ZipFeatureType teamFeatureType = zipFeatureTypeList.Where(x => x.FeatureType == FeatureType.Team && x.GenerationType == GenerationType.WebApi).FirstOrDefault();
                 if (teamFeatureType != null && teamFeatureType.IsChecked)
                 {
@@ -332,7 +332,7 @@
                     crudData.FileType == WebApiFileType.Mapper)
                 {
                     // Get part of namespace before "plane" occurency
-                    string partPath = GetNamespacePathBeforeOccurency(crudData.Namespace);
+                    string partPath = GetNamespacePathBeforeOccurency(crudData.Namespace, type);
 
                     // Replace company + projet name on part path
                     partPath = ReplaceCompagnyNameProjetName(partPath, currentProject, classDefiniton);
@@ -1714,12 +1714,19 @@
             return new CRUDPropertyType(crudProperty.Name, angularType);
         }
 
-        private string GetNamespacePathBeforeOccurency(string line)
+        private string GetNamespacePathBeforeOccurency(string line, FeatureType featureType)
         {
+            var oldNamePascalSingular = featureType switch
+            {
+                FeatureType.CRUD => this.CrudNames.OldCrudNamePascalSingular,
+                FeatureType.Team => this.CrudNames.OldTeamNamePascalSingular,
+                _ => throw new NotImplementedException()
+            };
+
             string partPath = string.Empty;
             foreach (string nmsp in line.Split('.'))
             {
-                if (nmsp.Contains(this.CrudNames.OldCrudNamePascalSingular, StringComparison.OrdinalIgnoreCase))
+                if (nmsp.Contains(oldNamePascalSingular, StringComparison.OrdinalIgnoreCase))
                 {
                     partPath = partPath.Remove(partPath.Length - 1);
                     break;
