@@ -83,11 +83,11 @@
                 }
 
                 // Generate Team DotNet files
-                ZipFeatureType teamFeatureType = zipFeatureTypeList.Where(x => x.FeatureType == FeatureType.Team && x.GenerationType == GenerationType.WebApi).FirstOrDefault();
-                if (teamFeatureType != null && teamFeatureType.IsChecked)
+                ZipFeatureType teamBackFeatureType = zipFeatureTypeList.Where(x => x.FeatureType == FeatureType.Team && x.GenerationType == GenerationType.WebApi).FirstOrDefault();
+                if (teamBackFeatureType != null && teamBackFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"Team DotNet generation implementation WIP !", "Orange");
-                    GenerateWebApi(teamFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, FeatureType.Team, crudDtoEntity);
+                    GenerateWebApi(teamBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, FeatureType.Team, crudDtoEntity);
                 }
 
                 // *** Generate Angular files ***
@@ -104,7 +104,7 @@
                     else
                     {
                         WebApiFeatureData dtoRefFeature = (WebApiFeatureData)crudBackFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
-                        GenerateFrontCRUD(crudFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options);
+                        GenerateFrontCRUD(crudFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, crudFrontFeatureType.FeatureType);
                     }
                 }
 
@@ -114,6 +114,23 @@
                 {
                     consoleWriter.AddMessageLine($"*** Generate Angular Option files on '{AngularFolderGeneration}' ***", "Green");
                     GenerateFrontOption(optionFrontFeatureType.FeatureDataList, crudDtoEntity);
+                }
+
+                // Generate Team Angular files
+                ZipFeatureType teamFrontFeatureType = zipFeatureTypeList.Where(x => x.FeatureType == FeatureType.Team && x.GenerationType == GenerationType.Front).FirstOrDefault();
+                if (teamFrontFeatureType != null && teamBackFeatureType.IsChecked)
+                {
+                    consoleWriter.AddMessageLine($"Team Angular generation implementation WIP !", "Orange");
+
+                    if (crudDtoProperties == null)
+                    {
+                        consoleWriter.AddMessageLine($"Can't generate Angular CRUD files: Dto properties are empty.", "Red");
+                    }
+                    else
+                    {
+                        WebApiFeatureData dtoRefFeature = (WebApiFeatureData)teamBackFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
+                        GenerateFrontCRUD(teamFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, teamFrontFeatureType.FeatureType);
+                    }
                 }
 
             }
@@ -202,9 +219,8 @@
         }
 
         private void GenerateFrontCRUD(List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties, EntityInfo crudDtoEntity,
-            List<PropertyInfo> dtoRefProperties, string displayItem, List<string> optionItem)
+            List<PropertyInfo> dtoRefProperties, string displayItem, List<string> optionItem, FeatureType type)
         {
-            const FeatureType type = FeatureType.CRUD;
             try
             {
                 List<CRUDPropertyType> propertyList = ((ExtractPropertiesBlock)featureDataList.
@@ -527,6 +543,13 @@
         {
             string src = Path.Combine(featureData.ExtractDirPath, featureData.FilePath);
             string dest = this.CrudNames.ConvertCamelToKebabCrudName(Path.Combine(this.AngularFolderGeneration, featureData.FilePath), type);
+
+            if(type == FeatureType.Team)
+            {
+                dest = dest
+                    .Replace(this.CrudNames.OldTeamNameKebabPlural, this.CrudNames.NewCrudNameKebabPlural)
+                    .Replace(this.CrudNames.OldTeamNameKebabSingular, this.CrudNames.NewCrudNameKebabSingular);
+            }
 
             return (src, dest);
         }
@@ -1269,7 +1292,6 @@
                     string newPathValue = this.CrudNames.ConvertCamelToKebabCrudName(pathValue, type);
                     newLine = newLine.Replace(pathValue, newPathValue);
                 }
-                return newLine;
             }
             else if (CommonTools.IsMatchRegexValue(regexComponentPath, newLine))
             {
@@ -1277,7 +1299,7 @@
                 if (!string.IsNullOrEmpty(pathValue))
                 {
                     string newPathValue = this.CrudNames.ConvertCamelToKebabCrudName(pathValue, type);
-                    return newLine.Replace(pathValue, newPathValue);
+                    newLine = newLine.Replace(pathValue, newPathValue);
                 }
             }
             else if (CommonTools.IsMatchRegexValue(regexComponentHtml, newLine))
@@ -1286,11 +1308,22 @@
                 if (!string.IsNullOrEmpty(compValue))
                 {
                     string newPathValue = this.CrudNames.ConvertCamelToKebabCrudName(compValue, type);
-                    return newLine.Replace(compValue, newPathValue);
+                    newLine = newLine.Replace(compValue, newPathValue);
                 }
             }
+            else
+            {
+                newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, type, true);
+            }
 
-            return this.CrudNames.ConvertPascalOldToNewCrudName(newLine, type, true);
+            if(type == FeatureType.Team)
+            {
+                newLine = newLine
+                .Replace(this.CrudNames.OldTeamNameKebabPlural, this.CrudNames.NewCrudNameKebabPlural)
+                .Replace(this.CrudNames.OldTeamNameKebabSingular, this.CrudNames.NewCrudNameKebabSingular);
+            }
+
+            return newLine;
         }
 
         private string UpdateOptionFrontLine(string line, string oldOptionName, string newOptionName)

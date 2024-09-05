@@ -474,7 +474,7 @@
             parsed |= ParseZipFile(FeatureType.CRUD, GenerationType.WebApi);
             // Parse Option Zip file
             parsed |= ParseZipFile(FeatureType.Option, GenerationType.WebApi);
-            // TODO Team : Parse Team Zip file
+            // Parse Team Zip file
             parsed |= ParseZipFile(FeatureType.Team, GenerationType.WebApi);
 
             // *** Parse Angular Zip files ***
@@ -482,8 +482,8 @@
             parsed |= ParseZipFile(FeatureType.CRUD, GenerationType.Front);
             // Parse Option Zip file
             parsed |= ParseZipFile(FeatureType.Option, GenerationType.Front);
-            // TODO Team : Parse Team Zip file
-            // parsed |= ParseZipFile(FeatureType.Team, GenerationType.Front);
+            // Parse Team Zip file
+            parsed |= ParseZipFile(FeatureType.Team, GenerationType.Front);
 
             vm.IsZipParsed = parsed;
         }

@@ -32,6 +32,8 @@
         public string OldTeamNamePascalPlural { get; private set; } = "MaintenanceTeams";
         public string OldTeamNameCamelSingular { get; private set; } = "maintenanceTeam";
         public string OldTeamNameCamelPlural { get; private set; } = "maintenanceTeams";
+        public string OldTeamNameKebabSingular { get; private set; } = "maintenance-team";
+        public string OldTeamNameKebabPlural { get; private set; } = "maintenance-teams";
 
         public CrudNames(List<CrudGenerationSettings> backSettingsList, List<CrudGenerationSettings> frontSettingsList)
         {
@@ -70,6 +72,10 @@
             OldOptionNameCamelPlural = CommonTools.ConvertToCamelCase(OldOptionNamePascalPlural);
             OldTeamNameCamelSingular = CommonTools.ConvertToCamelCase(OldTeamNamePascalSingular);
             OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
+
+            //Convert value to Kebab case
+            OldTeamNameKebabSingular = CommonTools.ConvertPascalToKebabCase(OldTeamNamePascalSingular);
+            OldTeamNameKebabPlural = CommonTools.ConvertPascalToKebabCase(OldTeamNamePascalPlural);
         }
 
         private (string? singular, string? plurial) GetSingularPlurialNames(FeatureType type)
