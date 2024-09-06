@@ -31,11 +31,12 @@
         Rights,
         Routing,
         TeamTypeId,
-        Constants,
         TeamTypeModelBuilder,
         TeamTypeRoleModelBuilder,
         RoleModelBuilder,
-        RoleId
+        RoleId,
+        TeamTypeIdConstants,
+        TeamTypeRightPrefixConstants
     }
 
     public enum WebApiFileType
