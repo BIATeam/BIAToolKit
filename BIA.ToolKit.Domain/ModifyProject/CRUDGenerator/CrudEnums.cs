@@ -32,7 +32,10 @@
         Routing,
         TeamTypeId,
         Constants,
-        TeamTypeModelBuilder
+        TeamTypeModelBuilder,
+        TeamTypeRoleModelBuilder,
+        RoleModelBuilder,
+        RoleId
     }
 
     public enum WebApiFileType
