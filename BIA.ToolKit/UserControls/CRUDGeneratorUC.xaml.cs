@@ -175,7 +175,7 @@
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            crudService.CrudNames.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural, vm.IsWebApiSelected, vm.IsFrontSelected);
+            crudService.CrudNames.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural, vm.FeatureSelected, vm.IsWebApiSelected, vm.IsFrontSelected);
 
             // Generation DotNet + Angular files
             List<string> optionsItems = vm.OptionItems.Any() ? vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
@@ -206,7 +206,7 @@
                 List<CRUDGenerationHistory> historyOptions = crudHistory?.CRUDGenerationHistory?.Where(h => h.OptionItems.Contains(vm.CRUDNameSingular)).ToList();
 
                 // Delete last generation
-                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, historyOptions);
+                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, historyOptions, vm.FeatureSelected);
 
                 // Update history
                 DeleteLastGenerationHistory(history);

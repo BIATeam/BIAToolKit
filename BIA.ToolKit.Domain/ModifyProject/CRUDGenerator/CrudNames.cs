@@ -12,29 +12,12 @@
         private bool IsWebApiSelected;
         private bool IsFrontSelected;
 
-        public string? NewCrudNamePascalSingular { get; private set; }
-        public string? NewCrudNamePascalPlural { get; private set; }
-        public string? NewCrudNameCamelSingular { get; private set; }
-        public string? NewCrudNameCamelPlural { get; private set; }
-        public string? NewCrudNameKebabSingular { get; private set; }
-        public string? NewCrudNameKebabPlural { get; private set; }
-
-        public string OldCrudNamePascalSingular { get; private set; } = "Plane";
-        public string OldCrudNamePascalPlural { get; private set; } = "Planes";
-        public string OldCrudNameCamelSingular { get; private set; } = "plane";
-        public string OldCrudNameCamelPlural { get; private set; } = "planes";
-
-        public string OldOptionNamePascalSingular { get; private set; } = "Airport";
-        public string OldOptionNamePascalPlural { get; private set; } = "Airports";
-        public string OldOptionNameCamelSingular { get; private set; } = "airport";
-        public string OldOptionNameCamelPlural { get; private set; } = "airports";
-
-        public string OldTeamNamePascalSingular { get; private set; } = "MaintenanceTeam";
-        public string OldTeamNamePascalPlural { get; private set; } = "MaintenanceTeams";
-        public string OldTeamNameCamelSingular { get; private set; } = "maintenanceTeam";
-        public string OldTeamNameCamelPlural { get; private set; } = "maintenanceTeams";
-        public string OldTeamNameKebabSingular { get; private set; } = "maintenance-team";
-        public string OldTeamNameKebabPlural { get; private set; } = "maintenance-teams";
+        public string NewCrudNamePascalSingular { get; private set; }
+        public string NewCrudNamePascalPlural { get; private set; }
+        public string NewCrudNameCamelSingular { get; private set; }
+        public string NewCrudNameCamelPlural { get; private set; }
+        public string NewCrudNameKebabSingular { get; private set; }
+        public string NewCrudNameKebabPlural { get; private set; }
 
         public CrudNames(List<CrudGenerationSettings> backSettingsList, List<CrudGenerationSettings> frontSettingsList)
         {
@@ -42,17 +25,19 @@
             this.FrontSettingsList = frontSettingsList;
         }
 
-        private string GetFeatureName(string featureIdentifier, FeatureType featureType)
-        {
-            return AllSettings.First(x => x.Feature == featureIdentifier && x.Type == featureType.ToString()).FeatureName;
-        }
+        public string GetOldFeatureNameSingularPascal(string feature, FeatureType featureType) => AllSettings.First(x => x.Feature == feature && x.Type == featureType.ToString()).FeatureName;
 
-        private string GetFeatureNamePlural(string featureIdentifier, FeatureType featureType)
-        {
-            return AllSettings.First(x => x.Feature == featureIdentifier && x.Type == featureType.ToString()).FeatureNamePlural;
-        }
+        public string GetOldFeatureNamePluralPascal(string feature, FeatureType featureType) => AllSettings.First(x => x.Feature == feature && x.Type == featureType.ToString()).FeatureNamePlural;
 
-        public void InitRenameValues(string newValueSingular, string newValuePlural, bool isWebApiSelected = true, bool isFrontSelected = true)
+        public string GetOldFeatureNameSingularCamel(string feature, FeatureType featureType) => CommonTools.ConvertToCamelCase(GetOldFeatureNameSingularPascal(feature, featureType));
+
+        public string GetOldFeatureNamePluralCamel(string feature, FeatureType featureType) => CommonTools.ConvertToCamelCase(GetOldFeatureNamePluralPascal(feature, featureType));
+
+        public string GetOldFeatureNameSingularKebab(string feature, FeatureType featureType) => CommonTools.ConvertPascalToKebabCase(GetOldFeatureNameSingularPascal(feature, featureType));
+
+        public string GetOldFeatureNamePluralKebab(string feature, FeatureType featureType) => CommonTools.ConvertPascalToKebabCase(GetOldFeatureNamePluralPascal(feature, featureType));
+
+        public void InitRenameValues(string newValueSingular, string newValuePlural, string feature, bool isWebApiSelected = true, bool isFrontSelected = true)
         {
             this.NewCrudNamePascalSingular = newValueSingular;
             this.NewCrudNamePascalPlural = newValuePlural;
@@ -62,98 +47,25 @@
             NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
             this.IsWebApiSelected = isWebApiSelected;
             this.IsFrontSelected = isFrontSelected;
-
-            (string? crudNameSingular, string? crudNamePlural) = GetSingularPlurialNames(FeatureType.CRUD);
-            (string? optionNameSingular, string? optionNamePlural) = GetSingularPlurialNames(FeatureType.Option);
-            (string? teamNameSingular, string? teamNamePlural) = GetSingularPlurialNames(FeatureType.Team);
-
-            // Get Pascal case value
-            OldCrudNamePascalSingular = string.IsNullOrWhiteSpace(crudNameSingular) ? OldCrudNamePascalSingular : crudNameSingular;
-            OldCrudNamePascalPlural = string.IsNullOrWhiteSpace(crudNamePlural) ? OldCrudNamePascalPlural : crudNamePlural;
-            OldOptionNamePascalSingular = string.IsNullOrWhiteSpace(optionNameSingular) ? OldOptionNamePascalSingular : optionNameSingular;
-            OldOptionNamePascalPlural = string.IsNullOrWhiteSpace(optionNamePlural) ? OldOptionNamePascalPlural : optionNamePlural;
-            OldTeamNamePascalSingular = string.IsNullOrWhiteSpace(teamNameSingular) ? OldTeamNamePascalSingular : teamNameSingular;
-            OldTeamNamePascalPlural = string.IsNullOrWhiteSpace(teamNamePlural) ? OldTeamNamePascalPlural : teamNamePlural;
-
-            // Convert value to Camel case
-            OldCrudNameCamelSingular = CommonTools.ConvertToCamelCase(OldCrudNamePascalSingular);
-            OldCrudNameCamelPlural = CommonTools.ConvertToCamelCase(OldCrudNamePascalPlural);
-            OldOptionNameCamelSingular = CommonTools.ConvertToCamelCase(OldOptionNamePascalSingular);
-            OldOptionNameCamelPlural = CommonTools.ConvertToCamelCase(OldOptionNamePascalPlural);
-            OldTeamNameCamelSingular = CommonTools.ConvertToCamelCase(OldTeamNamePascalSingular);
-            OldTeamNameCamelPlural = CommonTools.ConvertToCamelCase(OldTeamNamePascalPlural);
-
-            //Convert value to Kebab case
-            OldTeamNameKebabSingular = CommonTools.ConvertPascalToKebabCase(OldTeamNamePascalSingular);
-            OldTeamNameKebabPlural = CommonTools.ConvertPascalToKebabCase(OldTeamNamePascalPlural);
         }
 
-        private (string? singular, string? plurial) GetSingularPlurialNames(FeatureType type)
-        {
-            CrudGenerationSettings? settings = null;
-
-            if (this.IsWebApiSelected)
-                settings = this.BackSettingsList.FirstOrDefault(x => x.Type == type.ToString());
-            else if (this.IsFrontSelected)
-                settings = this.FrontSettingsList.FirstOrDefault(x => x.Type == type.ToString());
-
-            return (settings?.FeatureName, settings?.FeatureNamePlural);
-        }
-
-        public string ConvertPascalOldToNewCrudName(string value, FeatureType type, bool convertCamel = true)
+        public string ConvertPascalOldToNewCrudName(string value, string feature, FeatureType type, bool convertCamel = true)
         {
             if (string.IsNullOrWhiteSpace(value)) return value;
 
-            switch (type)
-            {
-                //case FeatureType.WebApi:
-                case FeatureType.CRUD:
-                    value = ReplaceOldToNewValue(value, OldCrudNamePascalPlural, NewCrudNamePascalPlural, OldCrudNamePascalSingular, NewCrudNamePascalSingular);
-                    if (convertCamel)
-                    {
-                        value = ReplaceOldToNewValue(value, OldCrudNameCamelPlural, NewCrudNameCamelPlural, OldCrudNameCamelSingular, NewCrudNameCamelSingular);
-                    }
-                    break;
-                case FeatureType.Option:
-                    value = ReplaceOldToNewValue(value, OldOptionNamePascalPlural, NewCrudNamePascalPlural, OldOptionNamePascalSingular, NewCrudNamePascalSingular);
-                    if (convertCamel)
-                    {
-                        value = ReplaceOldToNewValue(value, OldOptionNameCamelPlural, NewCrudNameCamelPlural, OldOptionNameCamelSingular, NewCrudNameCamelSingular);
-                    }
-                    break;
-                case FeatureType.Team:
-                    value = ReplaceOldToNewValue(value, OldTeamNamePascalPlural, NewCrudNamePascalPlural, OldTeamNamePascalSingular, NewCrudNamePascalSingular);
-                    if (convertCamel)
-                    {
-                        value = ReplaceOldToNewValue(value, OldTeamNameCamelPlural, NewCrudNameCamelPlural, OldTeamNameCamelSingular, NewCrudNameCamelSingular);
-                    }
-                    break;
-            }
-
-            return value;
+            return convertCamel ?
+                ReplaceOldToNewValue(value, GetOldFeatureNamePluralCamel(feature, type), NewCrudNamePascalPlural, GetOldFeatureNameSingularCamel(feature, type), NewCrudNamePascalSingular) :
+                ReplaceOldToNewValue(value, GetOldFeatureNamePluralPascal(feature, type), NewCrudNamePascalPlural, GetOldFeatureNameSingularPascal(feature, type), NewCrudNamePascalSingular);
         }
 
         /// <summary>
         /// Convert value form Camel case to Kebab case
         /// </summary>
-        public string ConvertCamelToKebabCrudName(string value, FeatureType type)
+        public string ConvertCamelToKebabCrudName(string value, string feature, FeatureType type)
         {
             if (string.IsNullOrWhiteSpace(value)) return value;
 
-            switch (type)
-            {
-                case FeatureType.CRUD:
-                    value = ReplaceOldToNewValue(value, OldCrudNameCamelPlural, NewCrudNameKebabPlural, OldCrudNameCamelSingular, NewCrudNameKebabSingular);
-                    break;
-                case FeatureType.Option:
-                    value = ReplaceOldToNewValue(value, OldOptionNameCamelPlural, NewCrudNameKebabPlural, OldOptionNameCamelSingular, NewCrudNameKebabSingular);
-                    break;
-                case FeatureType.Team:
-                    value = ReplaceOldToNewValue(value, OldTeamNameCamelPlural, NewCrudNameKebabPlural, OldTeamNameCamelSingular, NewCrudNameKebabSingular);
-                    break;
-            }
-
-            return value;
+            return ReplaceOldToNewValue(value, GetOldFeatureNamePluralCamel(feature, type), NewCrudNameKebabPlural, GetOldFeatureNameSingularCamel(feature, type), NewCrudNameKebabSingular);
         }
 
         private string ReplaceOldToNewValue(string value, string oldValuePlural, string newValuePlural, string oldValueSingular, string newValueSingular)
