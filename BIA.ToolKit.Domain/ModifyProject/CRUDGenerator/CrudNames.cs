@@ -6,8 +6,9 @@
 
     public class CrudNames
     {
-        private List<CrudGenerationSettings> BackSettingsList;
-        private List<CrudGenerationSettings> FrontSettingsList;
+        private readonly List<CrudGenerationSettings> BackSettingsList;
+        private readonly List<CrudGenerationSettings> FrontSettingsList;
+        private IEnumerable<CrudGenerationSettings> AllSettings => BackSettingsList.Concat(FrontSettingsList);
         private bool IsWebApiSelected;
         private bool IsFrontSelected;
 
@@ -41,21 +42,30 @@
             this.FrontSettingsList = frontSettingsList;
         }
 
+        private string GetFeatureName(string featureIdentifier, FeatureType featureType)
+        {
+            return AllSettings.First(x => x.Feature == featureIdentifier && x.Type == featureType.ToString()).FeatureName;
+        }
+
+        private string GetFeatureNamePlural(string featureIdentifier, FeatureType featureType)
+        {
+            return AllSettings.First(x => x.Feature == featureIdentifier && x.Type == featureType.ToString()).FeatureNamePlural;
+        }
+
         public void InitRenameValues(string newValueSingular, string newValuePlural, bool isWebApiSelected = true, bool isFrontSelected = true)
         {
             this.NewCrudNamePascalSingular = newValueSingular;
             this.NewCrudNamePascalPlural = newValuePlural;
+            NewCrudNameCamelSingular = CommonTools.ConvertToCamelCase(NewCrudNamePascalSingular);
+            NewCrudNameCamelPlural = CommonTools.ConvertToCamelCase(NewCrudNamePascalPlural);
+            NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);
+            NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
             this.IsWebApiSelected = isWebApiSelected;
             this.IsFrontSelected = isFrontSelected;
 
             (string? crudNameSingular, string? crudNamePlural) = GetSingularPlurialNames(FeatureType.CRUD);
             (string? optionNameSingular, string? optionNamePlural) = GetSingularPlurialNames(FeatureType.Option);
             (string? teamNameSingular, string? teamNamePlural) = GetSingularPlurialNames(FeatureType.Team);
-
-            NewCrudNameCamelSingular = CommonTools.ConvertToCamelCase(NewCrudNamePascalSingular);
-            NewCrudNameCamelPlural = CommonTools.ConvertToCamelCase(NewCrudNamePascalPlural);
-            NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);
-            NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
 
             // Get Pascal case value
             OldCrudNamePascalSingular = string.IsNullOrWhiteSpace(crudNameSingular) ? OldCrudNamePascalSingular : crudNameSingular;

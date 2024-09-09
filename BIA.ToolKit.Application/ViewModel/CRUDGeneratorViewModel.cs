@@ -19,6 +19,7 @@
         {
             OptionItems = new();
             ZipFeatureTypeList = new();
+            Features = new();
         }
 
         #region CurrentProject
@@ -158,6 +159,57 @@
             }
         }
 
+        private ObservableCollection<string> features;
+        public ObservableCollection<string> Features
+        {
+            get => features;
+            set
+            {
+                if (features != value)
+                {
+                    features = value;
+                    RaisePropertyChanged(nameof(Features));
+                }
+            }
+        }
+
+        private string featureSelected;
+        public string FeatureSelected
+        {
+            get => featureSelected;
+            set
+            {
+                if (featureSelected != value)
+                {
+                    featureSelected = value;
+                    RaisePropertyChanged(nameof(FeatureSelected));
+                    RaisePropertyChanged(nameof(IsOptionItemEnable));
+                    UpdateFeatureSelection();
+                }
+            }
+        }
+
+        private void UpdateFeatureSelection()
+        {
+            ZipFeatureTypeList.ForEach(x => x.IsChecked = false);
+            if (string.IsNullOrEmpty(featureSelected))
+                return;
+
+            foreach (var zipFeatureType in ZipFeatureTypeList.Where(x => x.Feature == FeatureSelected))
+            {
+                if (zipFeatureType.GenerationType == GenerationType.WebApi && isWebApiSelected)
+                {
+                    zipFeatureType.IsChecked = true;
+                    continue;
+                }
+                if (zipFeatureType.GenerationType == GenerationType.Front && isFrontSelected)
+                {
+                    zipFeatureType.IsChecked = true;
+                    continue;
+                }
+            }
+        }
+
         #endregion
 
         #region CRUD Name
@@ -233,87 +285,6 @@
                 }
             }
         }
-
-        private bool isCrudSelected;
-        public bool IsCrudSelected
-        {
-            get => isCrudSelected;
-            set
-            {
-                if (isCrudSelected != value)
-                {
-                    isCrudSelected = value;
-                    RaisePropertyChanged(nameof(IsCrudSelected));
-                    RaisePropertyChanged(nameof(IsOptionItemEnable));
-                    UpdateFeatureSelection();
-                }
-            }
-        }
-
-        private bool isOptionSelected;
-        public bool IsOptionSelected
-        {
-            get => isOptionSelected;
-            set
-            {
-                if (isOptionSelected != value)
-                {
-                    isOptionSelected = value;
-                    RaisePropertyChanged(nameof(IsOptionSelected));
-                    RaisePropertyChanged(nameof(IsOptionItemEnable));
-                    UpdateFeatureSelection();
-                }
-            }
-        }
-
-        private bool isTeamSelected;
-        public bool IsTeamSelected
-        {
-            get => isTeamSelected;
-            set
-            {
-                if (isTeamSelected != value)
-                {
-                    isTeamSelected = value;
-                    RaisePropertyChanged(nameof(IsTeamSelected));
-                    UpdateFeatureSelection();
-                }
-            }
-        }
-
-        private void UpdateFeatureSelection()
-        {
-            IsSelectionChange = true;
-
-            foreach (GenerationType generation in Enum.GetValues(typeof(GenerationType)))
-            {
-                bool generationSelected = (generation == GenerationType.WebApi) ? IsWebApiSelected : IsFrontSelected;
-                foreach (FeatureType type in Enum.GetValues(typeof(FeatureType)))
-                {
-                    ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == type && x.GenerationType == generation).FirstOrDefault();
-                    if (feature != null)
-                    {
-                        bool typeSelected = false;
-                        switch (type)
-                        {
-                            case FeatureType.CRUD:
-                                typeSelected = isCrudSelected && generationSelected;
-                                break;
-
-                            case FeatureType.Option:
-                                typeSelected = isOptionSelected && generationSelected;
-                                break;
-
-                            case FeatureType.Team:
-                                typeSelected = IsTeamSelected && generationSelected;
-                                break;
-                        }
-
-                        feature.IsChecked = typeSelected;
-                    }
-                }
-            }
-        }
         #endregion
 
         #region ZipFile
@@ -347,7 +318,7 @@
         {
             get
             {
-                return IsCrudSelected && !IsOptionSelected;
+                return !string.IsNullOrEmpty(featureSelected) && ZipFeatureTypeList.Any(x => x.Feature == featureSelected && x.FeatureType == FeatureType.Option);
             }
         }
 
@@ -359,7 +330,7 @@
                     && !string.IsNullOrWhiteSpace(CRUDNameSingular)
                     && !string.IsNullOrWhiteSpace(CRUDNamePlural)
                     && !string.IsNullOrWhiteSpace(dtoDisplayItemSelected)
-                    && (IsWebApiSelected || isFrontSelected) && (IsCrudSelected || isOptionSelected || isTeamSelected);
+                    && (IsWebApiSelected || isFrontSelected) && !string.IsNullOrEmpty(featureSelected);
             }
         }
         #endregion
@@ -404,17 +375,23 @@
         /// </summary>
         public string ZipPath { get; }
 
+        /// <summary>
+        /// Name of the feature associated to the ZIP
+        /// </summary>
+        public string Feature { get; }
+
         public List<FeatureData> FeatureDataList { get; set; }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ZipFeatureType(FeatureType type, GenerationType generation, string name, string path)
+        public ZipFeatureType(FeatureType type, GenerationType generation, string zipName, string zipPath, string feature)
         {
             this.FeatureType = type;
             this.GenerationType = generation;
-            this.ZipName = name;
-            this.ZipPath = path;
+            this.ZipName = zipName;
+            this.ZipPath = zipPath;
+            this.Feature = feature;
         }
     }
 

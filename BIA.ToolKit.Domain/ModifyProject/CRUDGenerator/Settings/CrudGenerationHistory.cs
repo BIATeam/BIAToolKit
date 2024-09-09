@@ -22,6 +22,7 @@
         public List<string> OptionItems { get; set; }
         public Mapping Mapping { get; set; }
         public List<Generation> Generation { get; }
+        public string Feature { get; set; }
 
         public CRUDGenerationHistory()
         {
@@ -32,7 +33,7 @@
     public class Generation
     {
         public string GenerationType { get; set; }
-        public string Feature { get; set; }
+        public string FeatureType { get; set; }
         public string Folder { get; set; }
         public string Template { get; set; }
         public string Type { get; set; }

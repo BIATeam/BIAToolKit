@@ -1393,10 +1393,10 @@
         public void DeleteCrudOptionsGenerated(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, CRUDGenerationHistory generationHistory)
         {
             CrudNames.InitRenameValues(generationHistory.EntityNameSingular, generationHistory.EntityNamePlural);
-            foreach (Generation generation in generationHistory?.Generation.OrderBy(x => x.Feature))
+            foreach (Generation generation in generationHistory?.Generation.OrderBy(x => x.FeatureType))
             {
                 GenerationType generationType = CommonTools.GetEnumValue<GenerationType>(generation.GenerationType);
-                FeatureType featureType = CommonTools.GetEnumValue<FeatureType>(generation.Feature);
+                FeatureType featureType = CommonTools.GetEnumValue<FeatureType>(generation.FeatureType);
 
                 ZipFeatureType zipFeature = zipFeatureTypeList.FirstOrDefault(f => f.GenerationType == generationType && f.FeatureType == featureType);
                 if (zipFeature == null)
