@@ -58,7 +58,7 @@
         }
 
         public bool GenerateFiles(EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList,
-                                        string displayItem, List<string> options)
+                                        string displayItem, List<string> options, CrudParent parent)
         {
             try
             {

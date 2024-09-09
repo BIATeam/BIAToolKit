@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
+    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -112,6 +113,7 @@
                     isDtoParsed = value;
                     RaisePropertyChanged(nameof(IsDtoParsed));
                     RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                    RaisePropertyChanged(nameof(IsOptionItemEnable));
                 }
             }
         }
@@ -158,7 +160,9 @@
                 }
             }
         }
+        #endregion
 
+        #region Feature
         private ObservableCollection<string> features;
         public ObservableCollection<string> Features
         {
@@ -183,6 +187,7 @@
                 {
                     featureSelected = value;
                     RaisePropertyChanged(nameof(FeatureSelected));
+                    RaisePropertyChanged(nameof(ParentExists));
                     RaisePropertyChanged(nameof(IsOptionItemEnable));
                     UpdateFeatureSelection();
                 }
@@ -240,6 +245,88 @@
                 }
             }
         }
+        #endregion
+
+        #region Parent
+        public bool ParentExists
+        {
+            get
+            {
+                if (ZipFeatureTypeList.Any(x => x.Feature == FeatureSelected && x.Parents.Any(y => y.IsPrincipal)))
+                    return true;
+
+                HasParent = false;
+                return false;
+            }
+        }
+
+        private bool hasParent;
+        public bool HasParent
+        {
+            get { return hasParent; }
+            set 
+            {
+                if (hasParent != value)
+                {
+                    hasParent = value;
+                    RaisePropertyChanged(nameof(HasParent));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+
+                    if(value == false)
+                    {
+                        ParentDomain = null;
+                        ParentName = null;
+                        ParentNamePlural = null;
+                    }
+                }
+            }
+        }
+
+        private string parentDomain;
+        public string ParentDomain
+        {
+            get { return parentDomain; }
+            set 
+            {
+                if (parentDomain != value)
+                {
+                    parentDomain = value;
+                    RaisePropertyChanged(nameof(ParentDomain));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                }
+            }
+        }
+
+        private string parentName;
+        public string ParentName
+        {
+            get { return parentName; }
+            set
+            {
+                if (parentName != value)
+                {
+                    parentName = value;
+                    RaisePropertyChanged(nameof(ParentName));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                }
+            }
+        }
+
+        private string parentNamePlural;
+        public string ParentNamePlural
+        {
+            get { return parentNamePlural; }
+            set
+            {
+                if (parentNamePlural != value)
+                {
+                    parentNamePlural = value;
+                    RaisePropertyChanged(nameof(ParentNamePlural));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                }
+            }
+        }
+
         #endregion
 
         #region CheckBox
@@ -318,7 +405,7 @@
         {
             get
             {
-                return !string.IsNullOrEmpty(featureSelected) && ZipFeatureTypeList.Any(x => x.Feature == featureSelected && x.FeatureType == FeatureType.Option);
+                return isDtoParsed && !string.IsNullOrEmpty(featureSelected) && ZipFeatureTypeList.Any(x => x.Feature == featureSelected && x.FeatureType == FeatureType.Option);
             }
         }
 
@@ -330,7 +417,9 @@
                     && !string.IsNullOrWhiteSpace(CRUDNameSingular)
                     && !string.IsNullOrWhiteSpace(CRUDNamePlural)
                     && !string.IsNullOrWhiteSpace(dtoDisplayItemSelected)
-                    && (IsWebApiSelected || isFrontSelected) && !string.IsNullOrEmpty(featureSelected);
+                    && (IsWebApiSelected || isFrontSelected) 
+                    && !string.IsNullOrEmpty(featureSelected)
+                    && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural) && !string.IsNullOrEmpty(ParentDomain)));
             }
         }
         #endregion
@@ -383,15 +472,21 @@
         public List<FeatureData> FeatureDataList { get; set; }
 
         /// <summary>
+        /// Parents of the feature
+        /// </summary>
+        public List<Parent> Parents { get; set; }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
-        public ZipFeatureType(FeatureType type, GenerationType generation, string zipName, string zipPath, string feature)
+        public ZipFeatureType(FeatureType type, GenerationType generation, string zipName, string zipPath, string feature, List<Parent> parents)
         {
             this.FeatureType = type;
             this.GenerationType = generation;
             this.ZipName = zipName;
             this.ZipPath = zipPath;
             this.Feature = feature;
+            this.Parents = parents;
         }
     }
 
@@ -408,5 +503,13 @@
             this.FileType = fileType;
             this.CrudNamespace = crudNamespace;
         }
+    }
+
+    public class CrudParent
+    {
+        public bool Exists { get; set; }
+        public string Name { get; set; }
+        public string NamePlural { get; set; }
+        public string Domain { get; set; }
     }
 }

@@ -117,6 +117,10 @@
                         vm.CRUDNameSingular = history.EntityNameSingular;
                         vm.CRUDNamePlural = history.EntityNamePlural;
                         vm.FeatureSelected = history.Feature;
+                        vm.HasParent = history.HasParent;
+                        vm.ParentName = history.ParentName;
+                        vm.ParentNamePlural = history.ParentNamePlural;
+                        vm.ParentDomain = history.ParentDomain;
                         history.OptionItems?.ForEach(o =>
                         {
                             OptionItem item = vm.OptionItems.FirstOrDefault(x => x.OptionName == o);
@@ -175,11 +179,19 @@
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
+            var crudParent = new CrudParent
+            {
+                Exists = vm.HasParent,
+                Name = vm.ParentName,
+                NamePlural = vm.ParentNamePlural,
+                Domain = vm.ParentDomain
+            };
+
             crudService.CrudNames.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural, vm.FeatureSelected, vm.IsWebApiSelected, vm.IsFrontSelected);
 
             // Generation DotNet + Angular files
             List<string> optionsItems = vm.OptionItems.Any() ? vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
-            vm.IsDtoGenerated = crudService.GenerateFiles(vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems);
+            vm.IsDtoGenerated = crudService.GenerateFiles(vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, crudParent);
 
             // Generate generation history file
             UpdateCrudGenerationHistory();
@@ -313,14 +325,14 @@
             foreach(var setting in backSettingsList)
             {
                 var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
-                var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature);
+                var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents);
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
 
             foreach (var setting in frontSettingsList)
             {
                 var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
-                var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature);
+                var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature, setting.Parents);
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
 
@@ -350,6 +362,10 @@
                     DisplayItem = vm.DtoDisplayItemSelected,
                     OptionItems = vm.OptionItems?.Where(o => o.Check).Select(o => o.OptionName).ToList(),
                     Feature = vm.FeatureSelected,
+                    HasParent = vm.HasParent,
+                    ParentName = vm.ParentName,
+                    ParentNamePlural = vm.ParentNamePlural,
+                    ParentDomain = vm.ParentDomain,
 
                     // Create "Mapping" part
                     Mapping = new()

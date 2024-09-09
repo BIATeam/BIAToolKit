@@ -23,6 +23,10 @@
         public Mapping Mapping { get; set; }
         public List<Generation> Generation { get; }
         public string Feature { get; set; }
+        public bool HasParent { get; set; }
+        public string ParentName { get; set; }
+        public string ParentNamePlural { get; set; }
+        public string ParentDomain { get; set; }
 
         public CRUDGenerationHistory()
         {
