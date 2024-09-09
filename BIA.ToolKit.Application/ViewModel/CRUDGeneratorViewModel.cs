@@ -189,6 +189,7 @@
                     RaisePropertyChanged(nameof(FeatureSelected));
                     RaisePropertyChanged(nameof(ParentExists));
                     RaisePropertyChanged(nameof(IsOptionItemEnable));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
                     UpdateFeatureSelection();
                 }
             }
@@ -474,12 +475,12 @@
         /// <summary>
         /// Parents of the feature
         /// </summary>
-        public List<Parent> Parents { get; set; }
+        public List<FeatureParent> Parents { get; set; }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ZipFeatureType(FeatureType type, GenerationType generation, string zipName, string zipPath, string feature, List<Parent> parents)
+        public ZipFeatureType(FeatureType type, GenerationType generation, string zipName, string zipPath, string feature, List<FeatureParent> parents)
         {
             this.FeatureType = type;
             this.GenerationType = generation;

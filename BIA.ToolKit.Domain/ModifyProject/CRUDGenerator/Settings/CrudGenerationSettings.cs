@@ -13,7 +13,7 @@
         public List<string> Children { get; }
         public List<string> Options { get; }
         public List<string> Partial { get; }
-        public List<Parent> Parents { get; }
+        public List<FeatureParent> Parents { get; }
 
         public CrudGenerationSettings()
         {
@@ -30,7 +30,7 @@
         public List<string> Exclude { get; set; }
     }
 
-    public class Parent
+    public class FeatureParent
     {
         public string Name { get; set; }
         public string NamePlural { get; set; }
