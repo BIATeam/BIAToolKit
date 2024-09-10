@@ -110,7 +110,7 @@
                     else
                     {
                         WebApiFeatureData dtoRefFeature = (WebApiFeatureData)crudBackFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
-                        GenerateFrontCRUD(crudFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, crudFrontFeatureType.Feature, crudFrontFeatureType.FeatureType);
+                        GenerateFrontCRUD(crudFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, crudFrontFeatureType.Feature, crudFrontFeatureType.FeatureType, crudFrontFeatureType.Parents);
                     }
                 }
 
@@ -135,7 +135,7 @@
                     else
                     {
                         WebApiFeatureData dtoRefFeature = (WebApiFeatureData)teamBackFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
-                        GenerateFrontCRUD(teamFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, teamFrontFeatureType.Feature, teamFrontFeatureType.FeatureType);
+                        GenerateFrontCRUD(teamFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, teamFrontFeatureType.Feature, teamFrontFeatureType.FeatureType, teamFrontFeatureType.Parents);
                     }
                 }
 
@@ -229,10 +229,12 @@
         }
 
         private void GenerateFrontCRUD(List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties, EntityInfo crudDtoEntity,
-            List<PropertyInfo> dtoRefProperties, string displayItem, List<string> optionItem, string feature, FeatureType type)
+            List<PropertyInfo> dtoRefProperties, string displayItem, List<string> optionItem, string feature, FeatureType type, List<FeatureParent> featureParents)
         {
             try
             {
+                FeatureParentPrincipal = featureParents.FirstOrDefault(x => x.IsPrincipal);
+
                 List<CRUDPropertyType> propertyList = ((ExtractPropertiesBlock)featureDataList.
                     FirstOrDefault(f => f.IsPropertyFile)?.ExtractBlocks.
                     FirstOrDefault(b => b.DataUpdateType == CRUDDataUpdateType.Properties))?.PropertiesList;
@@ -583,7 +585,16 @@
         private (string, string) GetAngularFilesPath(FeatureData featureData, string feature, FeatureType type)
         {
             string src = Path.Combine(featureData.ExtractDirPath, featureData.FilePath);
-            string dest = this.CrudNames.ConvertCamelToKebabCrudName(Path.Combine(this.AngularFolderGeneration, featureData.FilePath), feature, type);
+
+            var filePathDest = featureData.FilePath;
+            if (FeatureParentPrincipal != null)
+            {
+                filePathDest = CrudParent.Exists ?
+                    GetFrontParentRelativePath(featureData) :
+                    filePathDest.Replace(FeatureParentPrincipal.PathToTranslate, string.Empty);
+            }
+
+            string dest = this.CrudNames.ConvertCamelToKebabCrudName(Path.Combine(this.AngularFolderGeneration, filePathDest), feature, type);
 
             if(type == FeatureType.Team)
             {
@@ -593,6 +604,19 @@
             }
 
             return (src, dest);
+        }
+
+        private string GetFrontParentRelativePath(FeatureData featureData)
+        {
+            var searchFolder = Path.Combine(this.AngularFolderGeneration, FeatureParentPrincipal.SearchInPath);
+            var parentFolders = Directory.EnumerateDirectories(searchFolder, CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural), SearchOption.AllDirectories);
+            if(parentFolders.Count() != 1)
+            {
+                throw new Exception($"Unable to find parent's directory '{CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural)}' from {searchFolder}");
+            }
+
+            var relativeFilePathAfterChildrenFolder = Regex.Match(featureData.FilePath, $"{Regex.Escape("children\\")}(.*)").Groups[1].Value;
+            return Path.Combine(parentFolders.First().Replace(this.AngularFolderGeneration, string.Empty), parentFolders.First(), "children", relativeFilePathAfterChildrenFolder);
         }
 
         private List<string> UpdateFileContent(List<string> fileLinesContent, GenerationCrudData generationData, string fileName, EntityInfo crudDtoEntity,
