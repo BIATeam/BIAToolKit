@@ -488,8 +488,8 @@
                         {
                             newBlockLines = DeleteBlocks(
                                 newBlockLines,
-                                $"{ZipParserService.MARKER_BEGIN_PARTIAL} {nestedBlockGroup.Key.DataUpdateType} {nestedBlockGroup.Key.Index}".TrimEnd(),
-                                $"{ZipParserService.MARKER_END_PARTIAL} {nestedBlockGroup.Key.DataUpdateType} {nestedBlockGroup.Key.Index}".TrimEnd());
+                                $"{ZipParserService.MARKER_BEGIN_NESTED} {nestedBlockGroup.Key.DataUpdateType} {nestedBlockGroup.Key.Index}".TrimEnd(),
+                                $"{ZipParserService.MARKER_END_NESTED} {nestedBlockGroup.Key.DataUpdateType} {nestedBlockGroup.Key.Index}".TrimEnd());
                         }
                         block.BlockLines.Clear();
                         block.BlockLines.AddRange(newBlockLines);

@@ -24,6 +24,7 @@
         Parent,
         NoParent,
         AncestorTeam,
+        Nested,
         // Partial
         Config,
         Dependency,
