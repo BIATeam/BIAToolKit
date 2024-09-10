@@ -658,14 +658,14 @@
                 if (generationData.ParentBlocks?.Count > 0)
                 {
                     fileLinesContent = UpdateParentBlocks(fileName, fileLinesContent, generationData.ParentBlocks, generationData.IsParentToAdd);
-                    UpdateAncestorAndParentMarkerNames(fileLinesContent, CRUDDataUpdateType.Parent);
+                    UpdateFeatureParentLines(fileLinesContent);
                 }
 
                 // Remove Ancestor
                 if (generationData.IsAncestorFound)
                 {
                     fileLinesContent = ManageAncestorBlocks(fileLinesContent, generationData.AncestorName, crudDtoEntity.ClassAnnotations);
-                    UpdateAncestorAndParentMarkerNames(fileLinesContent, CRUDDataUpdateType.AncestorTeam);
+                    UpdateFeatureParentLines(fileLinesContent);
                 }
             }
 
@@ -805,19 +805,24 @@
             return fileLinesContent;
         }
 
-        private void UpdateAncestorAndParentMarkerNames(List<string> fileLinesContent, CRUDDataUpdateType type)
+        private void UpdateFeatureParentLines(List<string> fileLinesContent)
         {
-            var beginMarker = $"{ZipParserService.MARKER_BEGIN} {type}";
-            var endMarker = $"{ZipParserService.MARKER_END} {type}";
-
             if (FeatureParentPrincipal != null && CrudParent.Exists)
             {
                 for(int i = 0; i < fileLinesContent.Count; i++)
                 {
                     var line = fileLinesContent[i];
-                    if (line.Contains(beginMarker) || line.Contains(endMarker))
+                    if (line.Contains(FeatureParentPrincipal.Name))
                     {
                         fileLinesContent[i] = line.Replace(FeatureParentPrincipal.Name, CrudParent.Name);
+                    }
+                    else if (line.Contains(CommonTools.ConvertToCamelCase(FeatureParentPrincipal.Name)))
+                    {
+                        fileLinesContent[i] = line.Replace(CommonTools.ConvertToCamelCase(FeatureParentPrincipal.Name), CommonTools.ConvertToCamelCase(CrudParent.Name));
+                    }
+                    else if (line.Contains(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.Name)))
+                    {
+                        fileLinesContent[i] = line.Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.Name), CommonTools.ConvertPascalToKebabCase(CrudParent.Name));
                     }
                 }
             }
