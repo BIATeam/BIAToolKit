@@ -419,33 +419,42 @@
         /// <summary>
         /// Extract block of lines from partial file.
         /// </summary>
-        private List<ExtractBlock> ExtractPartialFile(List<string> fileLines)
+        private static List<ExtractBlock> ExtractPartialFile(List<string> fileLines)
         {
             const string regex = @$"(?:{MARKER_BEGIN_PARTIAL})[\s+](\w+)(\s+\d*)?(\s*\w+)";
             List<ExtractBlock> extractBlocksList = new();
-            List<string> lines = new();
-            bool startFound = false;
-            string index = null, name = null, typeName = null;
-
+            ExtractPartialBlock currentExtractPartialBlock = null;
             // Add blocks found between markers
             foreach (string line in fileLines)
             {
                 if (line.Contains(MARKER_BEGIN_PARTIAL, StringComparison.InvariantCulture))
                 {
-                    lines = new();
-                    startFound = true;
-                    typeName = CommonTools.GetMatchRegexValue(regex, line, 1);
-                    index = CommonTools.GetMatchRegexValue(regex, line, 2);
-                    name = CommonTools.GetMatchRegexValue(regex, line, 3);
+                    var typeName = CommonTools.GetMatchRegexValue(regex, line, 1);
+                    var index = CommonTools.GetMatchRegexValue(regex, line, 2);
+                    var name = CommonTools.GetMatchRegexValue(regex, line, 3);
+
+                    if(currentExtractPartialBlock == null)
+                    {
+                        currentExtractPartialBlock = new ExtractPartialBlock(CommonTools.GetEnumElement<CRUDDataUpdateType>(typeName), name?.TrimStart(), index?.TrimStart());
+                    }
+                    else
+                    {
+                        currentExtractPartialBlock.AddNestedBlock(new ExtractPartialBlock(CommonTools.GetEnumElement<CRUDDataUpdateType>(typeName), name?.TrimStart(), index?.TrimStart()));
+                        currentExtractPartialBlock = currentExtractPartialBlock.GetLastNestedBlock();
+                    }
                 }
 
-                if (startFound)
-                    lines.Add(line);
+                currentExtractPartialBlock?.AddLine(line);
 
-                if (startFound && line.Contains(MARKER_END_PARTIAL, StringComparison.InvariantCulture))
+                if (line.Contains(MARKER_END_PARTIAL, StringComparison.InvariantCulture))
                 {
-                    startFound = false;
-                    extractBlocksList.Add(new ExtractPartialBlock(CommonTools.GetEnumElement<CRUDDataUpdateType>(typeName), name?.TrimStart(), index?.TrimStart(), lines));
+                    var parentBlock = currentExtractPartialBlock.ParentBlock;
+                    if(parentBlock == null)
+                    {
+                        extractBlocksList.Add(currentExtractPartialBlock);
+                    }
+
+                    currentExtractPartialBlock = parentBlock;
                 }
             }
 
