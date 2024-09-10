@@ -484,22 +484,10 @@
             }
 
             bool parsed = false;
-            // *** Parse DotNet Zip files ***
-            // Parse CRUD Zip file
-            parsed |= ParseZipFile(FeatureType.CRUD, GenerationType.WebApi);
-            // Parse Option Zip file
-            parsed |= ParseZipFile(FeatureType.Option, GenerationType.WebApi);
-            // Parse Team Zip file
-            parsed |= ParseZipFile(FeatureType.Team, GenerationType.WebApi);
-
-            // *** Parse Angular Zip files ***
-            // Parse CRUD Zip file
-            parsed |= ParseZipFile(FeatureType.CRUD, GenerationType.Front);
-            // Parse Option Zip file
-            parsed |= ParseZipFile(FeatureType.Option, GenerationType.Front);
-            // Parse Team Zip file
-            parsed |= ParseZipFile(FeatureType.Team, GenerationType.Front);
-
+            foreach(var zipFeatureType in vm.ZipFeatureTypeList)
+            {
+                parsed |= ParseZipFile(zipFeatureType);
+            }
             vm.IsZipParsed = parsed;
         }
 
@@ -569,26 +557,22 @@
         /// <summary>
         /// Parse Zip files (WebApi, CRUD, option or team).
         /// </summary>
-        private bool ParseZipFile(FeatureType featureType, GenerationType generationType)
+        private bool ParseZipFile(ZipFeatureType zipData)
         {
             try
             {
-                string folderName = (generationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.CurrentProject.BIAFronts;
+                string folderName = (zipData.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.CurrentProject.BIAFronts;
                 string biaFolder = Path.Combine(vm.CurrentProject.Folder, folderName, Constants.FolderBia);
                 if (!new DirectoryInfo(biaFolder).Exists)
                 {
                     return false;
                 }
 
-                ZipFeatureType zipData = vm.ZipFeatureTypeList.Where(x => x.GenerationType == generationType && x.FeatureType == featureType).FirstOrDefault();
-                if (zipData != null)
-                {
-                    return zipService.ParseZipFile(zipData, biaFolder, settings.DtoCustomAttributeFieldName);
-                }
+                return zipService.ParseZipFile(zipData, biaFolder, settings.DtoCustomAttributeFieldName);
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"Error on parsing '{featureType}' Zip File: {ex.Message}", "Red");
+                consoleWriter.AddMessageLine($"Error on parsing '{zipData.FeatureType}' Zip File: {ex.Message}", "Red");
             }
             return false;
         }
