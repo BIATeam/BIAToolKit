@@ -468,7 +468,7 @@
             var extractBlocks = crudData.ExtractBlocks.Where(b => b.Name == partialName);
             if(FeatureParentPrincipal != null && CrudParent.Exists)
             {
-                extractBlocks = extractBlocks.Concat(crudData.ExtractBlocks.Where(x => x.DataUpdateType == CRUDDataUpdateType.Parent && x.Name == FeatureParentPrincipal.Name));
+                extractBlocks = extractBlocks.Concat(crudData.ExtractBlocks.Where(x => x.Name == FeatureParentPrincipal.Name));
             }
 
             foreach (var block in extractBlocks.Cast<ExtractPartialBlock>())
@@ -479,7 +479,9 @@
                     var nestedBlocksToKeep = allNestedBlocks.Where(b => b.Name == partialName);
                     if (FeatureParentPrincipal != null && CrudParent.Exists)
                     {
-                        nestedBlocksToKeep = nestedBlocksToKeep.Concat(allNestedBlocks.Where(x => x.DataUpdateType == CRUDDataUpdateType.Parent && x.Name == FeatureParentPrincipal.Name));
+                        nestedBlocksToKeep = nestedBlocksToKeep
+                            .Where(x => x.DataUpdateType != CRUDDataUpdateType.NoParent)
+                            .Concat(allNestedBlocks.Where(x => x.DataUpdateType == CRUDDataUpdateType.Parent && x.Name == FeatureParentPrincipal.Name));
                     }
 
                     var nestedBlocksToDelete = allNestedBlocks.Except(nestedBlocksToKeep);
@@ -523,7 +525,13 @@
                         }
                         if (FeatureParentPrincipal != null && CrudParent.Exists)
                         {
+                            newline = newline.Replace(FeatureParentPrincipal.NamePlural, CrudParent.NamePlural);
+                            newline = newline.Replace(CommonTools.ConvertToCamelCase(FeatureParentPrincipal.NamePlural), CommonTools.ConvertToCamelCase(CrudParent.NamePlural));
+                            newline = newline.Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.NamePlural), CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural));
+
                             newline = newline.Replace(FeatureParentPrincipal.Name, CrudParent.Name);
+                            newline = newline.Replace(CommonTools.ConvertToCamelCase(FeatureParentPrincipal.Name), CommonTools.ConvertToCamelCase(CrudParent.Name));
+                            newline = newline.Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.Name), CommonTools.ConvertPascalToKebabCase(CrudParent.Name));
                         }
                         contentToAdd.Add(newline);
                     });
