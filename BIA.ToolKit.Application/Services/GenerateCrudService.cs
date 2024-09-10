@@ -1368,7 +1368,8 @@
                 }
                 if (!string.IsNullOrEmpty(componentValue))
                 {
-                    string newComponentValue = this.CrudNames.ConvertPascalOldToNewCrudName(componentValue, feature, type);
+                    var newComponentValue = this.CrudNames.ConvertPascalOldToNewCrudName(componentValue, feature, type, false);
+                    newComponentValue = this.CrudNames.ConvertPascalOldToNewCrudName(newComponentValue, feature, type, true);
                     newLine = newLine.Replace(componentValue, newComponentValue);
                 }
 

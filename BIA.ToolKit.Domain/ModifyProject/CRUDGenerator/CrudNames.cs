@@ -54,7 +54,7 @@
             if (string.IsNullOrWhiteSpace(value)) return value;
 
             return convertCamel ?
-                ReplaceOldToNewValue(value, GetOldFeatureNamePluralCamel(feature, type), NewCrudNamePascalPlural, GetOldFeatureNameSingularCamel(feature, type), NewCrudNamePascalSingular) :
+                ReplaceOldToNewValue(value, GetOldFeatureNamePluralCamel(feature, type), NewCrudNameCamelPlural, GetOldFeatureNameSingularCamel(feature, type), NewCrudNameCamelSingular) :
                 ReplaceOldToNewValue(value, GetOldFeatureNamePluralPascal(feature, type), NewCrudNamePascalPlural, GetOldFeatureNameSingularPascal(feature, type), NewCrudNamePascalSingular);
         }
 
