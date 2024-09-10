@@ -92,7 +92,7 @@
                 ZipFeatureType teamBackFeatureType = zipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Team && x.GenerationType == GenerationType.WebApi);
                 if (teamBackFeatureType != null && teamBackFeatureType.IsChecked)
                 {
-                    consoleWriter.AddMessageLine($"Team DotNet generation implementation WIP !", "Orange");
+                    consoleWriter.AddMessageLine($"*** Generate DotNet files on '{DotNetFolderGeneration}' ***", "Green");
                     GenerateWebApi(teamBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, teamBackFeatureType.Feature, FeatureType.Team, crudDtoEntity, teamBackFeatureType.Parents);
                 }
 
@@ -126,7 +126,7 @@
                 ZipFeatureType teamFrontFeatureType = zipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Team && x.GenerationType == GenerationType.Front);
                 if (teamFrontFeatureType != null && teamFrontFeatureType.IsChecked)
                 {
-                    consoleWriter.AddMessageLine($"Team Angular generation implementation WIP !", "Orange");
+                    consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{AngularFolderGeneration}' ***", "Green");
 
                     if (crudDtoProperties == null)
                     {
