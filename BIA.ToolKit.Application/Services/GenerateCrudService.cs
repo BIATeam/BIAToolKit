@@ -463,11 +463,42 @@
 
             string partialName = this.CrudNames.GetOldFeatureNameSingularPascal(feature, type);
 
-            foreach (ExtractPartialBlock block in crudData.ExtractBlocks.Where(b => b.Name == partialName))
+            var extractBlocks = crudData.ExtractBlocks.Where(b => b.Name == partialName);
+            if(FeatureParentPrincipal != null && CrudParent.Exists)
             {
-                contentToAdd = new();
-                if (block.BlockLines != null)
+                extractBlocks = extractBlocks.Concat(crudData.ExtractBlocks.Where(x => x.DataUpdateType == CRUDDataUpdateType.Parent && x.Name == FeatureParentPrincipal.Name));
+            }
+
+            foreach (var block in extractBlocks.Cast<ExtractPartialBlock>())
+            {
+                var allNestedBlocks = block.GetAllNestedBlocks();
+                if (allNestedBlocks.Any())
                 {
+                    var nestedBlocksToKeep = allNestedBlocks.Where(b => b.Name == partialName);
+                    if (FeatureParentPrincipal != null && CrudParent.Exists)
+                    {
+                        nestedBlocksToKeep = nestedBlocksToKeep.Concat(allNestedBlocks.Where(x => x.DataUpdateType == CRUDDataUpdateType.Parent && x.Name == FeatureParentPrincipal.Name));
+                    }
+
+                    var nestedBlocksToDelete = allNestedBlocks.Except(nestedBlocksToKeep);
+                    if (nestedBlocksToDelete.Any())
+                    {
+                        var newBlockLines = block.BlockLines;
+                        foreach (var nestedBlockGroup in nestedBlocksToDelete.GroupBy(x => new { x.DataUpdateType, x.Index }))
+                        {
+                            newBlockLines = DeleteBlocks(
+                                newBlockLines,
+                                $"{ZipParserService.MARKER_BEGIN_PARTIAL} {nestedBlockGroup.Key.DataUpdateType} {nestedBlockGroup.Key.Index}".TrimEnd(),
+                                $"{ZipParserService.MARKER_END_PARTIAL} {nestedBlockGroup.Key.DataUpdateType} {nestedBlockGroup.Key.Index}".TrimEnd());
+                        }
+                        block.BlockLines.Clear();
+                        block.BlockLines.AddRange(newBlockLines);
+                    }
+                }
+
+                if (block.BlockLines.Any())
+                {
+                    contentToAdd = new();
                     if (string.IsNullOrWhiteSpace(block.Index))
                     {
                         suffix = $"{block.DataUpdateType}";
@@ -487,6 +518,10 @@
                         if (dtoClassDefiniton != null)
                         {
                             newline = ReplaceCompagnyNameProjetName(newline, currentProject, dtoClassDefiniton);
+                        }
+                        if (FeatureParentPrincipal != null && CrudParent.Exists)
+                        {
+                            newline = newline.Replace(FeatureParentPrincipal.Name, CrudParent.Name);
                         }
                         contentToAdd.Add(newline);
                     });
