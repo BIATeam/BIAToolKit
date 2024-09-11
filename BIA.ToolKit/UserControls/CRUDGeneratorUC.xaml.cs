@@ -191,7 +191,7 @@
 
             // Generation DotNet + Angular files
             List<string> optionsItems = vm.OptionItems.Any() ? vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
-            vm.IsDtoGenerated = crudService.GenerateFiles(vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, crudParent);
+            vm.IsDtoGenerated = crudService.GenerateFiles(vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, crudParent, vm.FeatureSelected);
             
             // Generate generation history file
             UpdateCrudGenerationHistory();
@@ -480,6 +480,24 @@
                 {
                     if (value < FRAMEWORK_VERSION_MINIMUM)
                         return;
+                }
+            }
+
+            var biaBackFolder = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, Constants.FolderBia);
+            if (Directory.Exists(biaBackFolder))
+            {
+                foreach (var directory in Directory.GetDirectories(biaBackFolder))
+                {
+                    Directory.Delete(directory, true);
+                }
+            }
+
+            var biaFrontFolder = Path.Combine(vm.CurrentProject.Folder, Constants.FolderAngular, Constants.FolderBia);
+            if (Directory.Exists(biaFrontFolder))
+            {
+                foreach (var directory in Directory.GetDirectories(biaFrontFolder))
+                {
+                    Directory.Delete(directory, true);
                 }
             }
 

@@ -406,7 +406,7 @@
         {
             get
             {
-                return isDtoParsed && !string.IsNullOrEmpty(featureSelected) && ZipFeatureTypeList.Any(x => x.Feature == featureSelected && x.FeatureType == FeatureType.Option);
+                return isDtoParsed && !string.IsNullOrEmpty(featureSelected) && !ZipFeatureTypeList.Any(x => x.Feature == featureSelected && x.FeatureType == FeatureType.Option);
             }
         }
 

@@ -56,8 +56,6 @@
 
         public async Task<string> PrepareVersionFolder(RepositorySettings repository, string version)
         {
-            return repository.RootFolderPath + "\\" + version;
-
             if (repository.Versioning == VersioningType.Folder)
             {
                 return repository.RootFolderPath + "\\" + version;

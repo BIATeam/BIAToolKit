@@ -176,7 +176,7 @@
 
                 // Create working temporary folder
                 tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType, crudType.ToString());
-                CommonTools.CheckFolder(tempDir, true);
+                CommonTools.CheckFolder(tempDir);
 
                 // Extract and list files from archive to temprory folder
                 files = new();

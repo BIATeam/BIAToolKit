@@ -62,7 +62,7 @@
         }
 
         public bool GenerateFiles(EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList,
-                                        string displayItem, List<string> options, CrudParent crudParent)
+                                        string displayItem, List<string> options, CrudParent crudParent, string featureSelected)
         {
             try
             {
@@ -73,7 +73,7 @@
 
                 // *** Generate DotNet files ***
                 // Generate CRUD DotNet files
-                ZipFeatureType crudBackFeatureType = zipFeatureTypeList.FirstOrDefault(x => x.GenerationType == GenerationType.WebApi && x.FeatureType == FeatureType.CRUD);
+                ZipFeatureType crudBackFeatureType = zipFeatureTypeList.FirstOrDefault(x => x.GenerationType == GenerationType.WebApi && x.FeatureType == FeatureType.CRUD && x.Feature == featureSelected);
                 if (crudBackFeatureType != null && crudBackFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet files on '{DotNetFolderGeneration}' ***", "Green");
@@ -81,7 +81,7 @@
                 }
 
                 // Generate Option DotNet files
-                ZipFeatureType optionBackFeatureType = zipFeatureTypeList.FirstOrDefault(x => x.GenerationType == GenerationType.WebApi && x.FeatureType == FeatureType.Option);
+                ZipFeatureType optionBackFeatureType = zipFeatureTypeList.FirstOrDefault(x => x.GenerationType == GenerationType.WebApi && x.FeatureType == FeatureType.Option && x.Feature == featureSelected);
                 if (optionBackFeatureType != null && optionBackFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet Option files on '{DotNetFolderGeneration}' ***", "Green");
@@ -89,7 +89,7 @@
                 }
 
                 // Generate Team DotNet files
-                ZipFeatureType teamBackFeatureType = zipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Team && x.GenerationType == GenerationType.WebApi);
+                ZipFeatureType teamBackFeatureType = zipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Team && x.GenerationType == GenerationType.WebApi && x.Feature == featureSelected);
                 if (teamBackFeatureType != null && teamBackFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet files on '{DotNetFolderGeneration}' ***", "Green");
@@ -98,7 +98,7 @@
 
                 // *** Generate Angular files ***
                 // Generate CRUD Angular files
-                ZipFeatureType crudFrontFeatureType = zipFeatureTypeList.FirstOrDefault(x => x.GenerationType == GenerationType.Front && x.FeatureType == FeatureType.CRUD);
+                ZipFeatureType crudFrontFeatureType = zipFeatureTypeList.FirstOrDefault(x => x.GenerationType == GenerationType.Front && x.FeatureType == FeatureType.CRUD && x.Feature == featureSelected);
                 if (crudFrontFeatureType != null && crudFrontFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{AngularFolderGeneration}' ***", "Green");
@@ -115,7 +115,7 @@
                 }
 
                 // Generate Option Angular files
-                ZipFeatureType optionFrontFeatureType = zipFeatureTypeList.FirstOrDefault(x => x.GenerationType == GenerationType.Front && x.FeatureType == FeatureType.Option);
+                ZipFeatureType optionFrontFeatureType = zipFeatureTypeList.FirstOrDefault(x => x.GenerationType == GenerationType.Front && x.FeatureType == FeatureType.Option && x.Feature == featureSelected);
                 if (optionFrontFeatureType != null && optionFrontFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate Angular Option files on '{AngularFolderGeneration}' ***", "Green");
@@ -123,7 +123,7 @@
                 }
 
                 // Generate Team Angular files
-                ZipFeatureType teamFrontFeatureType = zipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Team && x.GenerationType == GenerationType.Front);
+                ZipFeatureType teamFrontFeatureType = zipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Team && x.GenerationType == GenerationType.Front && x.Feature == featureSelected);
                 if (teamFrontFeatureType != null && teamFrontFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate Angular CRUD files on '{AngularFolderGeneration}' ***", "Green");
