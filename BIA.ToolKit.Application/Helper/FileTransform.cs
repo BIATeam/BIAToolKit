@@ -14,6 +14,10 @@
             ".editorconfig", ".gitignore" , ".prettierrc", ".html" ,".css" ,".scss", ".svg" , ".js", ".ruleset", ".props" };
         static public IList<string> allTextFileNameWithoutExtension = new List<string>() { "browserslist", "Dockerfile" };
 
+        public static void SwapValues(this string[] source, long index1, long index2)
+        {
+            (source[index2], source[index1]) = (source[index1], source[index2]);
+        }
 
         /// <summary>
         /// Copy files for VSIX AdditionnalFiles folder to the root solution folder.
@@ -21,7 +25,53 @@
         /// <param name="sourceDir">source folder.</param>
         /// <param name="oldString">old string.</param>
         /// <param name="newString">new string.</param>
-        static public void ReplaceInFileAndFileName(string sourceDir, string oldString, string newString, IList<string> replaceInFileExtenssions)
+        static public void OrderUsing(string sourceDir)
+        {
+            string[] filesToOrder = Directory.GetFiles(sourceDir, "*.cs", SearchOption.AllDirectories);
+            foreach (string file in filesToOrder)
+            {
+                string[] lines = File.ReadAllLines(file);
+                OrderUsingInLines(lines);
+                File.WriteAllLines(file, lines);
+            }
+
+        }
+
+        private static void OrderUsingInLines(string[] lines)
+        {
+            bool orderChanged = false;
+            for (int i = 0; i < lines.Length - 1; i++)
+            {
+                string line = lines[i].Trim();
+                string nextLine = lines[i + 1].Trim();
+                if (!line.StartsWith("using System")
+                    && IsUsingStatement(line)
+                    && IsUsingStatement(nextLine)
+                    && line.Replace("using ", "").CompareTo(nextLine.Replace("using ", "")) > 0)
+                {
+                    orderChanged = true;
+                    lines.SwapValues(i, i + 1);
+                }
+            }
+            if (orderChanged)
+            {
+                OrderUsingInLines(lines);
+            }
+        }
+
+        private static bool IsUsingStatement(string line)
+        {
+            return line.StartsWith("using ") && line.EndsWith(";") && !line.Contains("=");
+        }
+
+        /// <summary>
+        /// Copy files for VSIX AdditionnalFiles folder to the root solution folder.
+        /// </summary>
+        /// <param name="sourceDir">source folder.</param>
+        /// <param name="oldString">old string.</param>
+        /// <param name="newString">new string.</param>
+        /// <param name="replaceInFileExtensions">types of files to include</param>
+        static public void ReplaceInFileAndFileName(string sourceDir, string oldString, string newString, IList<string> replaceInFileExtensions)
         {
             if (oldString == newString) return;
             foreach (var dir in Directory.GetDirectories(sourceDir))
@@ -45,7 +95,7 @@
                     targetfile = newName;
                 }
                 string extension = Path.GetExtension(targetfile).ToLower();
-                if (replaceInFileExtenssions.Contains(extension))
+                if (replaceInFileExtensions.Contains(extension))
                 {
                     ReplaceInFile(targetfile, oldString, newString);
                 }
@@ -60,7 +110,7 @@
 
             foreach (var directory in Directory.GetDirectories(sourceDir))
             {
-                ReplaceInFileAndFileName(directory, oldString, newString, replaceInFileExtenssions);
+                ReplaceInFileAndFileName(directory, oldString, newString, replaceInFileExtensions);
             }
         }
 
@@ -69,9 +119,10 @@
         /// Copy files for VSIX AdditionnalFiles folder to the root solution folder.
         /// </summary>
         /// <param name="sourceDir">source folder.</param>
-        /// <param name="oldString">old string.</param>
-        /// <param name="newString">new string.</param>
-        static public void RemoveTemplateOnly(string sourceDir, string beginString, string endString, IList<string> replaceInFileExtenssions)
+        /// <param name="beginString">starting string of code to remove.</param>
+        /// <param name="endString">ending string of code to remove.</param>
+        /// <param name="replaceInFileExtensions">types of files to include</param>
+        static public void RemoveTemplateOnly(string sourceDir, string beginString, string endString, IList<string> replaceInFileExtensions)
         {
 
             foreach (var file in Directory.GetFiles(sourceDir))
@@ -79,7 +130,7 @@
                 var name = Path.GetFileName(file);
                 string targetfile = file;
                 string extension = Path.GetExtension(targetfile).ToLower();
-                if (replaceInFileExtenssions.Contains(extension))
+                if (replaceInFileExtensions.Contains(extension))
                 {
                     RemoveTemplateOnlyInFile(targetfile, beginString, endString);
                 }
@@ -87,7 +138,7 @@
 
             foreach (var directory in Directory.GetDirectories(sourceDir))
             {
-                RemoveTemplateOnly(directory, beginString, endString, replaceInFileExtenssions);
+                RemoveTemplateOnly(directory, beginString, endString, replaceInFileExtensions);
             }
         }
 
