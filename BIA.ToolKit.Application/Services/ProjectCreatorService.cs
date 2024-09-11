@@ -128,6 +128,8 @@
                 consoleWriter.AddMessageLine("Start remove BIATemplate only.", "Pink");
                 FileTransform.RemoveTemplateOnly(projectPath, "# Begin BIATemplate only", "# End BIATemplate only", new List<string>() { ".gitignore" });
 
+                FileTransform.OrderUsing(projectPath);
+
                 bool containsFrontAngular = false;
                 if (angularFronts?.Length > 0)
                 {
