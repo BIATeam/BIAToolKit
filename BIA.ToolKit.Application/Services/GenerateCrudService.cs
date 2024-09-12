@@ -1442,8 +1442,8 @@
                 newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type, false);
             }
 
-            var pathToTranslate = FeatureParentPrincipal.PathToTranslate.Replace("\\", "/");
-            if (FeatureParentPrincipal != null && newLine.Contains(pathToTranslate))
+            var pathToTranslate = FeatureParentPrincipal?.PathToTranslate?.Replace("\\", "/");
+            if (FeatureParentPrincipal != null && !string.IsNullOrEmpty(pathToTranslate) && newLine.Contains(pathToTranslate))
             {
                 var pathTranslated = CrudParent.Exists ?
                     GetFrontParentRelativePath(featureData) :
