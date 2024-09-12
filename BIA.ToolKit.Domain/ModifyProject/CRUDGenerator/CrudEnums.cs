@@ -38,7 +38,8 @@
         RoleModelBuilder,
         RoleId,
         TeamTypeIdConstants,
-        TeamTypeRightPrefixConstants
+        TeamTypeRightPrefixConstants,
+        AllEnvironment
     }
 
     public enum WebApiFileType
