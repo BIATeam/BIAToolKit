@@ -254,7 +254,7 @@
                         (string src, string dest) = GetAngularFilesPath(crudData, feature, type);
 
                         // Replace blocks
-                        GenerateAngularFile(feature, type, src, dest, crudDtoEntity, generationData, crudDtoProperties, propertyList);
+                        GenerateAngularFile(feature, type, src, dest, crudDtoEntity, crudData, generationData, crudDtoProperties, propertyList);
                     }
                 }
             }
@@ -275,7 +275,7 @@
                     (string src, string dest) = GetAngularFilesPath(featureData, feature, type);
 
                     // replace blocks 
-                    GenerateAngularFile(feature, type, src, dest, crudDtoEntity);
+                    GenerateAngularFile(feature, type, src, dest, crudDtoEntity, featureData);
                 }
             }
             catch (Exception ex)
@@ -518,7 +518,7 @@
                     // Generate content to add
                     block.BlockLines.ForEach(line =>
                     {
-                        string newline = UpdateFrontLines(line, feature, type);
+                        string newline = UpdateFrontLines(line, feature, type, crudData);
                         if (dtoClassDefiniton != null)
                         {
                             newline = ReplaceCompagnyNameProjetName(newline, currentProject, dtoClassDefiniton);
@@ -567,7 +567,7 @@
         #endregion
 
         #region Angular Files
-        private void GenerateAngularFile(string feature, FeatureType type, string fileName, string newFileName, EntityInfo crudDtoEntity,
+        private void GenerateAngularFile(string feature, FeatureType type, string fileName, string newFileName, EntityInfo crudDtoEntity, FeatureData featureData,
             GenerationCrudData generationData = null, List<CrudProperty> crudDtoProperties = null, List<CRUDPropertyType> propertyList = null)
         {
             if (!File.Exists(fileName))
@@ -584,7 +584,7 @@
 
             // Update file content
             fileLinesContent = UpdateFileContent(fileLinesContent, generationData, fileName, crudDtoEntity, feature, crudDtoProperties, propertyList);
-            fileLinesContent = UpdateFileLinesContent(fileLinesContent, feature, type);
+            fileLinesContent = UpdateFileLinesContent(fileLinesContent, feature, type, featureData);
 
             // Generate new file
             CommonTools.GenerateFile(newFileName, fileLinesContent);
@@ -1333,7 +1333,7 @@
             return ReplaceBlock(feature, type, newBlock, attributeName, extractBlock.Name);
         }
 
-        private List<string> UpdateFileLinesContent(List<string> lines, string feature, FeatureType type)
+        private List<string> UpdateFileLinesContent(List<string> lines, string feature, FeatureType type, FeatureData featureData)
         {
             bool markerFound = false;
             for (int i = 0; i < lines?.Count; i++)
@@ -1354,13 +1354,13 @@
                     continue;
                 }
 
-                lines[i] = UpdateFrontLines(lines[i], feature, type);
+                lines[i] = UpdateFrontLines(lines[i], feature, type, featureData);
             }
 
             return lines;
         }
 
-        private string UpdateFrontLines(string line, string feature, FeatureType type)
+        private string UpdateFrontLines(string line, string feature, FeatureType type, FeatureData featureData)
         {
             const string startImportRegex = @"^\s*[\/\*]*\s*import\s*[{(*]";
             const string regexComponent = @"^\s*[\/\*]*\s*import\s+{([\s\w,]*)}";
@@ -1369,6 +1369,7 @@
             const string regexPathThen = @"^\s*[\/\*]*\s*import\s*\('([\w.\/]*)'\)";
             const string regexComponentPath = @"(?:templateUrl|styleUrls)\s*:\s*(?:\[\s*)?'([^']+)'";
             const string regexComponentHtml = @"<\/?app-([a-z-]+)>?";
+            const string regexSharedBiaComponentPath = @"(\.\.\/){6}shared\/bia-shared\/.*\.(html|scss)\'";
 
             string newLine = line;
             if (CommonTools.IsMatchRegexValue(startImportRegex, newLine))
@@ -1416,18 +1417,43 @@
                     newLine = newLine.Replace(compValue, newPathValue);
                 }
             }
+            else if(CommonTools.IsMatchRegexValue(regexSharedBiaComponentPath, newLine.TrimStart()))
+            {
+                if (FeatureParentPrincipal != null)
+                {
+                    if(!CrudParent.Exists)
+                    {
+                        newLine = newLine.Replace("'../../../../", "'../../");
+                    }
+                    else
+                    {
+                        var parentRelativePath = GetFrontParentRelativePath(featureData);
+                        var childrenCount = Regex.Matches(parentRelativePath, "children", RegexOptions.IgnoreCase).Count;
+                        for(int i = 1; i < childrenCount; i++)
+                        {
+                            newLine = newLine.Replace("'../../", "'../../../../");
+                        }
+                    }
+                }
+            }
             else
             {
                 newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type, true);
                 newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type, false);
             }
 
-            if(type == FeatureType.Team)
+            var pathToTranslate = FeatureParentPrincipal.PathToTranslate.Replace("\\", "/");
+            if (FeatureParentPrincipal != null && newLine.Contains(pathToTranslate))
             {
-                newLine = newLine
-                .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
-                .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                var pathTranslated = CrudParent.Exists ?
+                    GetFrontParentRelativePath(featureData) :
+                    string.Empty;
+                newLine = newLine.Replace(pathToTranslate, pathTranslated);
             }
+
+            newLine = newLine
+            .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
+            .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
 
             return newLine;
         }
