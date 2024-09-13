@@ -305,7 +305,7 @@
             // Read file
             List<string> fileLinesContent = File.ReadAllLines(src).ToList();
 
-            fileLinesContent = UpdateFileContent(fileLinesContent, generationData, src, crudDtoEntity, feature);
+            fileLinesContent = UpdateFileContent(fileLinesContent, generationData, src, crudDtoEntity, feature, type);
 
             for (int i = 0; i < fileLinesContent.Count; i++)
             {
@@ -583,7 +583,7 @@
             List<string> fileLinesContent = File.ReadAllLines(fileName).ToList();
 
             // Update file content
-            fileLinesContent = UpdateFileContent(fileLinesContent, generationData, fileName, crudDtoEntity, feature, crudDtoProperties, propertyList);
+            fileLinesContent = UpdateFileContent(fileLinesContent, generationData, fileName, crudDtoEntity, feature, type, crudDtoProperties, propertyList);
             fileLinesContent = UpdateFileLinesContent(fileLinesContent, feature, type, featureData);
 
             // Generate new file
@@ -598,7 +598,7 @@
             if (FeatureParentPrincipal != null)
             {
                 filePathDest = CrudParent.Exists ?
-                    GetFrontParentRelativePath(featureData) :
+                    GetFrontParentRelativePath(featureData.FilePath) :
                     filePathDest.Replace(FeatureParentPrincipal.PathToTranslate, string.Empty);
             }
 
@@ -614,7 +614,7 @@
             return (src, dest);
         }
 
-        private string GetFrontParentRelativePath(FeatureData featureData)
+        private string GetFrontParentRelativePath(string filePath)
         {
             var searchFolder = Path.Combine(this.AngularFolderGeneration, FeatureParentPrincipal.SearchInPath);
             var parentFolders = Directory.EnumerateDirectories(searchFolder, CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural), SearchOption.AllDirectories);
@@ -623,12 +623,12 @@
                 throw new Exception($"Unable to find parent's directory '{CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural)}' from {searchFolder}");
             }
 
-            var relativeFilePathAfterChildrenFolder = Regex.Match(featureData.FilePath, $"{Regex.Escape("children\\")}(.*)").Groups[1].Value;
+            var relativeFilePathAfterChildrenFolder = Regex.Match(filePath, $"{Regex.Escape("children\\")}(.*)").Groups[1].Value;
             return Path.Combine(parentFolders.First().Replace(this.AngularFolderGeneration, string.Empty), parentFolders.First(), "children", relativeFilePathAfterChildrenFolder);
         }
 
         private List<string> UpdateFileContent(List<string> fileLinesContent, GenerationCrudData generationData, string fileName, EntityInfo crudDtoEntity,
-            string feature, List<CrudProperty> crudDtoProperties = null, List<CRUDPropertyType> propertyList = null)
+            string feature, FeatureType featureType, List<CrudProperty> crudDtoProperties = null, List<CRUDPropertyType> propertyList = null)
         {
             if (generationData != null)
             {
@@ -641,7 +641,7 @@
                 // Replace blocks
                 if (generationData.BlocksToAdd?.Count > 0)
                 {
-                    fileLinesContent = ReplaceBlocks(fileName, fileLinesContent, generationData.BlocksToAdd);
+                    fileLinesContent = ReplaceBlocks(fileName, fileLinesContent, generationData.BlocksToAdd, feature, featureType);
                 }
 
                 // Replace display item
@@ -680,7 +680,7 @@
             return fileLinesContent;
         }
 
-        private List<string> ReplaceBlocks(string fileName, List<string> fileLinesContent, List<string> blockList)
+        private List<string> ReplaceBlocks(string fileName, List<string> fileLinesContent, List<string> blockList, string feature, FeatureType featureType)
         {
             string spaces = string.Empty;
             int indexBegin = fileLinesContent.IndexOf(fileLinesContent.Where(l => l.Contains($"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Block}")).FirstOrDefault());
@@ -692,7 +692,9 @@
             List<string> newBlockList = new();
             for (int i = 0; i < blockList.Count; i++)
             {
-                newBlockList.Add(blockList[i]);
+                var line = this.CrudNames.ConvertPascalOldToNewCrudName(blockList[i], feature, featureType, false);
+                line = this.CrudNames.ConvertPascalOldToNewCrudName(blockList[i], feature, featureType, true);
+                newBlockList.Add(line);
             }
 
             return UpdateBlocks(fileName, fileLinesContent, newBlockList, CRUDDataUpdateType.Block);
@@ -1370,6 +1372,7 @@
             const string regexComponentPath = @"(?:templateUrl|styleUrls)\s*:\s*(?:\[\s*)?'([^']+)'";
             const string regexComponentHtml = @"<\/?app-([a-z-]+)>?";
             const string regexSharedBiaComponentPath = @"(\.\.\/){6}shared\/bia-shared\/.*\.(html|scss)\'";
+            const string regexPathInFrontLine = @"^'([^']*)'$";
 
             string newLine = line;
             if (CommonTools.IsMatchRegexValue(startImportRegex, newLine))
@@ -1427,28 +1430,35 @@
                     }
                     else
                     {
-                        var parentRelativePath = GetFrontParentRelativePath(featureData);
-                        var childrenCount = Regex.Matches(parentRelativePath, "children", RegexOptions.IgnoreCase).Count;
-                        for(int i = 1; i < childrenCount; i++)
+                        var parentRelativePath = GetFrontParentRelativePath(featureData.FilePath);
+                        var newPathChildrenCount = Regex.Matches(parentRelativePath, "children", RegexOptions.IgnoreCase).Count;
+                        var originalPathChildrenCount = Regex.Matches(featureData.FilePath, "children", RegexOptions.IgnoreCase).Count;
+                        for (int i = originalPathChildrenCount; i < newPathChildrenCount; i++)
                         {
                             newLine = newLine.Replace("'../../", "'../../../../");
                         }
                     }
                 }
             }
+            else if(CommonTools.IsMatchRegexValue(regexPathInFrontLine, newLine.Trim()))
+            {
+                var pathToTranslate = FeatureParentPrincipal.PathToTranslate.Replace("\\", "/");
+                if (!string.IsNullOrEmpty(pathToTranslate) && newLine.Contains(pathToTranslate))
+                {
+                    var frontLinePath = Regex.Match(newLine.Trim(), regexPathInFrontLine).Groups[1].Value.Replace("/", "\\");
+                    var pathTranslated = CrudParent.Exists ?
+                        GetFrontParentRelativePath(frontLinePath) :
+                        string.Empty;
+                    newLine = newLine
+                        .Replace(frontLinePath, pathTranslated.Replace(@"src\app", ".").Replace("\\", "/"))
+                        .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.NamePlural), CommonTools.ConvertPascalToKebabCase(this.CrudParent.NamePlural))
+                        .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.Name), CommonTools.ConvertPascalToKebabCase(this.CrudParent.NamePlural));
+                }
+            }
             else
             {
                 newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type, true);
                 newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type, false);
-            }
-
-            var pathToTranslate = FeatureParentPrincipal?.PathToTranslate?.Replace("\\", "/");
-            if (FeatureParentPrincipal != null && !string.IsNullOrEmpty(pathToTranslate) && newLine.Contains(pathToTranslate))
-            {
-                var pathTranslated = CrudParent.Exists ?
-                    GetFrontParentRelativePath(featureData) :
-                    string.Empty;
-                newLine = newLine.Replace(pathToTranslate, pathTranslated);
             }
 
             newLine = newLine
