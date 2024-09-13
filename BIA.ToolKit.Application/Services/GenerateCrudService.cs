@@ -1442,17 +1442,22 @@
             }
             else if(CommonTools.IsMatchRegexValue(regexPathInFrontLine, newLine.Trim()))
             {
-                var pathToTranslate = FeatureParentPrincipal.PathToTranslate.Replace("\\", "/");
+                var pathToTranslate = FeatureParentPrincipal?.PathToTranslate?.Replace("\\", "/");
                 if (!string.IsNullOrEmpty(pathToTranslate) && newLine.Contains(pathToTranslate))
                 {
-                    var frontLinePath = Regex.Match(newLine.Trim(), regexPathInFrontLine).Groups[1].Value.Replace("/", "\\");
-                    var pathTranslated = CrudParent.Exists ?
-                        GetFrontParentRelativePath(frontLinePath) :
-                        string.Empty;
-                    newLine = newLine
-                        .Replace(frontLinePath, pathTranslated.Replace(@"src\app", ".").Replace("\\", "/"))
-                        .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.NamePlural), CommonTools.ConvertPascalToKebabCase(this.CrudParent.NamePlural))
-                        .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.Name), CommonTools.ConvertPascalToKebabCase(this.CrudParent.NamePlural));
+                    if (!CrudParent.Exists)
+                    {
+                        newLine = newLine.Replace(pathToTranslate, string.Empty);
+                    }
+                    else
+                    {
+                        var frontLinePath = Regex.Match(newLine.Trim(), regexPathInFrontLine).Groups[1].Value.Replace("/", "\\");
+                        var pathTranslated = GetFrontParentRelativePath(frontLinePath);
+                        newLine = newLine
+                            .Replace(frontLinePath, pathTranslated.Replace(@"src\app", ".").Replace("\\", "/"))
+                            .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.NamePlural), CommonTools.ConvertPascalToKebabCase(this.CrudParent.NamePlural))
+                            .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.Name), CommonTools.ConvertPascalToKebabCase(this.CrudParent.NamePlural));
+                    }
                 }
             }
             else
