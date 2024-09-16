@@ -594,13 +594,7 @@
         {
             string src = Path.Combine(featureData.ExtractDirPath, featureData.FilePath);
 
-            var filePathDest = featureData.FilePath;
-            if (FeatureParentPrincipal != null)
-            {
-                filePathDest = CrudParent.Exists ?
-                    GetFrontParentRelativePath(featureData.FilePath) :
-                    filePathDest.Replace(FeatureParentPrincipal.PathToTranslate, string.Empty);
-            }
+            var filePathDest = GetDestFilePath(featureData, GenerationType.Front);
 
             string dest = this.CrudNames.ConvertCamelToKebabCrudName(Path.Combine(this.AngularFolderGeneration, filePathDest), feature, type);
 
@@ -612,19 +606,6 @@
             }
 
             return (src, dest);
-        }
-
-        private string GetFrontParentRelativePath(string filePath)
-        {
-            var searchFolder = Path.Combine(this.AngularFolderGeneration, FeatureParentPrincipal.SearchInPath);
-            var parentFolders = Directory.EnumerateDirectories(searchFolder, CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural), SearchOption.AllDirectories);
-            if(parentFolders.Count() != 1)
-            {
-                throw new Exception($"Unable to find parent's directory '{CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural)}' from {searchFolder}");
-            }
-
-            var relativeFilePathAfterChildrenFolder = Regex.Match(filePath, $"{Regex.Escape("children\\")}(.*)").Groups[1].Value;
-            return Path.Combine(parentFolders.First().Replace(this.AngularFolderGeneration, string.Empty), parentFolders.First(), "children", relativeFilePathAfterChildrenFolder);
         }
 
         private List<string> UpdateFileContent(List<string> fileLinesContent, GenerationCrudData generationData, string fileName, EntityInfo crudDtoEntity,
@@ -1440,26 +1421,26 @@
                     }
                 }
             }
-            else if(CommonTools.IsMatchRegexValue(regexPathInFrontLine, newLine.Trim()))
-            {
-                var pathToTranslate = FeatureParentPrincipal?.PathToTranslate?.Replace("\\", "/");
-                if (!string.IsNullOrEmpty(pathToTranslate) && newLine.Contains(pathToTranslate))
-                {
-                    if (!CrudParent.Exists)
-                    {
-                        newLine = newLine.Replace(pathToTranslate, string.Empty);
-                    }
-                    else
-                    {
-                        var frontLinePath = Regex.Match(newLine.Trim(), regexPathInFrontLine).Groups[1].Value.Replace("/", "\\");
-                        var pathTranslated = GetFrontParentRelativePath(frontLinePath);
-                        newLine = newLine
-                            .Replace(frontLinePath, pathTranslated.Replace(@"src\app", ".").Replace("\\", "/"))
-                            .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.NamePlural), CommonTools.ConvertPascalToKebabCase(this.CrudParent.NamePlural))
-                            .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.Name), CommonTools.ConvertPascalToKebabCase(this.CrudParent.NamePlural));
-                    }
-                }
-            }
+            //else if(CommonTools.IsMatchRegexValue(regexPathInFrontLine, newLine.Trim()))
+            //{
+            //    var pathToTranslate = FeatureParentPrincipal?.PathToTranslate?.Replace("\\", "/");
+            //    if (!string.IsNullOrEmpty(pathToTranslate) && newLine.Contains(pathToTranslate))
+            //    {
+            //        if (!CrudParent.Exists)
+            //        {
+            //            newLine = newLine.Replace(pathToTranslate, string.Empty);
+            //        }
+            //        else
+            //        {
+            //            var frontLinePath = Regex.Match(newLine.Trim(), regexPathInFrontLine).Groups[1].Value.Replace("/", "\\");
+            //            var pathTranslated = GetFrontParentRelativePath(frontLinePath);
+            //            newLine = newLine
+            //                .Replace(frontLinePath, pathTranslated.Replace(@"src\app", ".").Replace("\\", "/"))
+            //                .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.NamePlural), CommonTools.ConvertPascalToKebabCase(this.CrudParent.NamePlural))
+            //                .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.Name), CommonTools.ConvertPascalToKebabCase(this.CrudParent.NamePlural));
+            //        }
+            //    }
+            //}
             else
             {
                 newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type, true);
@@ -1533,6 +1514,55 @@
         private string ReplaceCompagnyNameProjetName(string value, Project currentProject, ClassDefinition classDef)
         {
             return value.Replace(classDef.CompagnyName, currentProject.CompanyName).Replace(classDef.ProjectName, currentProject.Name);
+        }
+
+        private void ReplaceWithFeatureParentPrincipalAdaptPaths(FeatureData featureData, List<string> newLines, GenerationType generationType)
+        {
+            if (FeatureParentPrincipal == null)
+                return;
+
+            foreach (var featureParentAdaptPath in FeatureParentPrincipal.AdaptPaths)
+            {
+                foreach (var featureParentReplaceInFile in featureParentAdaptPath.ReplaceInFiles)
+                {
+                    for (int lineIndex = 0; lineIndex < newLines.Count; lineIndex++)
+                    {
+                        var currentLine = newLines[lineIndex];
+
+                        if (!Regex.IsMatch(currentLine, featureParentReplaceInFile.RegexMatch) || !currentLine.Contains(featureParentReplaceInFile.Pattern))
+                            continue;
+
+                        if (!string.IsNullOrEmpty(featureParentReplaceInFile.NoParentValue) && !CrudParent.Exists)
+                        {
+                            currentLine = currentLine.Replace(featureParentReplaceInFile.Pattern, featureParentReplaceInFile.NoParentValue);
+                        }
+
+                        if (!string.IsNullOrEmpty(featureParentReplaceInFile.WithParentValue) && CrudParent.Exists)
+                        {
+                            currentLine = currentLine.Replace(featureParentReplaceInFile.Pattern, featureParentReplaceInFile.WithParentValue);
+                        }
+
+                        if (!string.IsNullOrEmpty(featureParentReplaceInFile.WithParentAddByDeeperLevel) && CrudParent.Exists)
+                        {
+                            if (generationType == GenerationType.Front)
+                            {
+                                var parentRelativePath = GetFrontParentRelativePath(featureParentAdaptPath.RootPath);
+                                var deepLevelIdentifierMatchesCount = Regex.Matches(parentRelativePath, featureParentAdaptPath.DeepLevelIdentifier).Count;
+
+                                var replaceValue = featureParentReplaceInFile.Pattern;
+                                for (int i = featureParentAdaptPath.InitialDeepLevel; i < deepLevelIdentifierMatchesCount; i++)
+                                {
+                                    replaceValue += featureParentReplaceInFile.WithParentAddByDeeperLevel;
+                                }
+
+                                currentLine = currentLine.Replace(featureParentReplaceInFile.Pattern, replaceValue);
+                            }
+                        }
+
+                        newLines[lineIndex] = currentLine;
+                    }
+                }
+            }
         }
         #endregion
 
@@ -1929,6 +1959,57 @@
             }
 
             return partPath;
+        }
+
+        private string GetFrontParentRelativePath(string rootPath)
+        {
+            var searchFolder = Path.Combine(this.AngularFolderGeneration, rootPath);
+            var parentFolders = Directory.EnumerateDirectories(searchFolder, CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural), SearchOption.AllDirectories);
+            if (parentFolders.Count() != 1)
+            {
+                throw new Exception($"Unable to find parent's directory '{CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural)}' from {searchFolder}");
+            }
+
+            return parentFolders.First().Replace(this.AngularFolderGeneration, string.Empty);
+        }
+
+        private string GetDestFilePath(FeatureData featureData, GenerationType generationType)
+        {
+            if (FeatureParentPrincipal == null)
+                return featureData.FilePath;
+
+            if (generationType == GenerationType.WebApi)
+            {
+                return featureData.FilePath;
+            }
+
+            foreach(var featureParentAdaptPath in FeatureParentPrincipal.AdaptPaths)
+            {
+                foreach (var featureParentMoveFiles in featureParentAdaptPath.MoveFiles)
+                {
+                    var featureParentFullPathFrom = Path.Combine(this.AngularFolderGeneration, featureParentAdaptPath.RootPath, featureParentMoveFiles.FromRelativePath);
+                    if (!featureData.FilePath.StartsWith(featureParentFullPathFrom))
+                        continue;
+
+                    if(!CrudParent.Exists)
+                    {
+                        return featureData.FilePath.Replace(featureParentMoveFiles.FromRelativePath, featureParentMoveFiles.ToRelativePathNoParent);
+                    }
+
+                    if (!string.IsNullOrEmpty(featureParentMoveFiles.ToRelativePathWithParent))
+                    {
+                        if (featureParentMoveFiles.ToRelativePathWithParent.Contains(Constants.FeaturePathAdaptation.ParentRelativePath))
+                        {
+                            var parentRelativePath = Path.Combine(GetFrontParentRelativePath(featureParentAdaptPath.RootPath));
+                            return featureData.FilePath.Replace(featureParentMoveFiles.FromRelativePath, featureParentMoveFiles.ToRelativePathWithParent.Replace(Constants.FeaturePathAdaptation.ParentRelativePath, parentRelativePath));
+                        }
+
+                        return featureData.FilePath.Replace(featureParentMoveFiles.FromRelativePath, featureParentMoveFiles.ToRelativePathWithParent);
+                    }
+                }
+            }
+
+            return featureData.FilePath;
         }
         #endregion
     }

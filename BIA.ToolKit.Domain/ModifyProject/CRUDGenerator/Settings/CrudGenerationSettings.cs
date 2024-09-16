@@ -35,8 +35,32 @@
         public string Name { get; set; }
         public string NamePlural { get; set; }
         public string DomainName { get; set; }
-        public string PathToTranslate { get; set; }
-        public string SearchInPath { get; set; }
         public bool IsPrincipal { get; set; }
+        public List<FeatureAdaptPath> AdaptPaths { get; set; } = new();
+    }
+
+    public class FeatureAdaptPath
+    {
+        public string RootPath { get; set; }
+        public int InitialDeepLevel { get; set; }
+        public string DeepLevelIdentifier { get; set; }
+        public List<FeatureMoveFiles> MoveFiles { get; set; } = new();
+        public List<FeatureReplaceInFiles> ReplaceInFiles { get; set; } = new();
+    }
+
+    public class FeatureMoveFiles
+    {
+        public string FromRelativePath { get; set; }
+        public string ToRelativePathNoParent { get; set; }
+        public string ToRelativePathWithParent { get; set; }
+    }
+
+    public class FeatureReplaceInFiles
+    {
+        public string RegexMatch { get; set; }
+        public string Pattern { get; set; }
+        public string NoParentValue { get; set; }
+        public string WithParentValue { get; set; }
+        public string WithParentAddByDeeperLevel { get; set; }
     }
 }

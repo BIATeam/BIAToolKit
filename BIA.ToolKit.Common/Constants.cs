@@ -99,5 +99,10 @@ namespace BIA.ToolKit.Common
         {
             public const string ItemGroupTag = "Bia_ItemGroup_";
         }
+
+        public static class FeaturePathAdaptation
+        {
+            public const string ParentRelativePath = "ParentRelativePath";
+        }
     }
 }
