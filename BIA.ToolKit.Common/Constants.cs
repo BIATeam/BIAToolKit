@@ -104,6 +104,8 @@ namespace BIA.ToolKit.Common
         {
             public const string ParentRelativePath = "{ParentRelativePath}";
             public const string ParentRelativePathLinux = "{ParentRelativePathLinux}";
+            public const string NewCrudNamePascalSingular = "{NewCrudNamePascalSingular}";
+            public const string ParentDomainName = "{ParentDomainName}";
         }
     }
 }
