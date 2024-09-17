@@ -482,7 +482,7 @@
                     {
                         nestedBlocksToKeep = nestedBlocksToKeep
                             .Where(x => x.DataUpdateType != CRUDDataUpdateType.NoParent)
-                            .Concat(allNestedBlocks.Where(x => x.DataUpdateType == CRUDDataUpdateType.Parent && x.Name == FeatureParentPrincipal.Name));
+                            .Concat(allNestedBlocks.Where(x => x.DataUpdateType == CRUDDataUpdateType.Parent || x.DataUpdateType == CRUDDataUpdateType.AncestorTeam));
                     }
 
                     var nestedBlocksToDelete = allNestedBlocks.Except(nestedBlocksToKeep);

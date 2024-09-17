@@ -40,7 +40,11 @@
         TeamTypeIdConstants,
         TeamTypeRightPrefixConstants,
         AllEnvironment,
-        TeamConfig
+        TeamConfig,
+        AuthController,
+        TeamMapperUsing,
+        TeamMapperParentTeamId,
+        TeamMapperParentTeamTitle
     }
 
     public enum WebApiFileType
