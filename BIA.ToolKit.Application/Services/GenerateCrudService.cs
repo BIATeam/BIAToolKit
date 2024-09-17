@@ -326,7 +326,7 @@
                 fileLinesContent[i] = this.CrudNames.ConvertPascalOldToNewCrudName(this.CrudNames.ConvertPascalOldToNewCrudName(fileLinesContent[i], feature, type, false), feature, type, true);
             }
 
-            ReplaceLinesWithFeatureParentPrincipalData(fileLinesContent, GenerationType.WebApi);
+            ReplaceLineContentFromFeatureParentPrincipal(fileLinesContent, GenerationType.WebApi);
 
             // Generate new file
             CommonTools.GenerateFile(dest, fileLinesContent);
@@ -516,7 +516,7 @@
                     markerBegin = $"{ZipParserService.MARKER_BEGIN} {suffix}";
                     markerEnd = $"{ZipParserService.MARKER_END} {suffix}";
 
-                    ReplaceLinesWithFeatureParentPrincipalData(block.BlockLines, generationType);
+                    ReplaceLineContentFromFeatureParentPrincipal(block.BlockLines, generationType);
 
                     // Generate content to add
                     block.BlockLines.ForEach(line =>
@@ -589,7 +589,7 @@
             fileLinesContent = UpdateFileContent(fileLinesContent, generationData, fileName, crudDtoEntity, feature, type, crudDtoProperties, propertyList);
             fileLinesContent = UpdateFileLinesContent(fileLinesContent, feature, type, featureData);
 
-            ReplaceLinesWithFeatureParentPrincipalData(fileLinesContent, GenerationType.Front);
+            ReplaceLineContentFromFeatureParentPrincipal(fileLinesContent, GenerationType.Front);
 
             // Generate new file
             CommonTools.GenerateFile(newFileName, fileLinesContent);
@@ -1475,64 +1475,109 @@
             return value.Replace(classDef.CompagnyName, currentProject.CompanyName).Replace(classDef.ProjectName, currentProject.Name);
         }
 
-        private void ReplaceLinesWithFeatureParentPrincipalData(List<string> newLines, GenerationType generationType)
+        private void ReplaceLineContentFromFeatureParentPrincipal(List<string> newLines, GenerationType generationType)
         {
             if (FeatureParentPrincipal == null)
                 return;
 
-            foreach (var featureParentAdaptPath in FeatureParentPrincipal.AdaptPaths)
+            Func<string, FeatureReplaceInFiles, FeatureAdaptPath, string> replaceFunc = generationType switch
             {
-                foreach (var featureParentReplaceInFile in featureParentAdaptPath.ReplaceInFiles)
+                GenerationType.WebApi => ReplaceLineForWebApi,
+                GenerationType.Front => ReplaceLineForFront,
+                _ => throw new NotSupportedException($"GenerationType {generationType} not supported.")
+            };
+
+            foreach (var featureAdaptPath in FeatureParentPrincipal.AdaptPaths)
+            {
+                foreach (var replaceInFile in featureAdaptPath.ReplaceInFiles)
                 {
                     for (int lineIndex = 0; lineIndex < newLines.Count; lineIndex++)
                     {
                         var currentLine = newLines[lineIndex];
 
-                        if (!Regex.IsMatch(currentLine, featureParentReplaceInFile.RegexMatch) || !currentLine.Contains(featureParentReplaceInFile.Pattern))
+                        if (!Regex.IsMatch(currentLine, replaceInFile.RegexMatch) || !currentLine.Contains(replaceInFile.Pattern))
                             continue;
 
-                        if (featureParentReplaceInFile.NoParentValue != null && !CrudParent.Exists)
-                        {
-                            currentLine = currentLine.Replace(featureParentReplaceInFile.Pattern, featureParentReplaceInFile.NoParentValue);
-                        }
-
-                        if (featureParentReplaceInFile.WithParentValue != null && CrudParent.Exists)
-                        {
-                            if (generationType == GenerationType.Front)
-                            {
-                                if (featureParentReplaceInFile.WithParentValue.Contains(Constants.FeaturePathAdaptation.ParentRelativePathLinux))
-                                {
-                                    var parentRelativePathLinux = GetFrontParentRelativePath(featureParentAdaptPath.RootPath).Replace($"\\{featureParentAdaptPath.RootPath}", string.Empty).Replace("\\", "/");
-                                    currentLine = currentLine.Replace(featureParentReplaceInFile.Pattern, featureParentReplaceInFile.WithParentValue.Replace(Constants.FeaturePathAdaptation.ParentRelativePathLinux, parentRelativePathLinux));
-                                }
-                                else
-                                {
-                                    currentLine = currentLine.Replace(featureParentReplaceInFile.Pattern, featureParentReplaceInFile.WithParentValue);
-                                }
-                            }
-                        }
-
-                        if (featureParentReplaceInFile.WithParentAddByDeeperLevel != null && CrudParent.Exists)
-                        {
-                            if (generationType == GenerationType.Front)
-                            {
-                                var parentRelativePath = Path.Combine(GetFrontParentRelativePath(featureParentAdaptPath.RootPath), featureParentAdaptPath.DeepLevelIdentifier);
-                                var deepLevelIdentifierMatchesCount = Regex.Matches(parentRelativePath, featureParentAdaptPath.DeepLevelIdentifier).Count;
-
-                                var replaceValue = featureParentReplaceInFile.Pattern;
-                                for (int i = featureParentAdaptPath.InitialDeepLevel; i < deepLevelIdentifierMatchesCount; i++)
-                                {
-                                    replaceValue += featureParentReplaceInFile.WithParentAddByDeeperLevel;
-                                }
-
-                                currentLine = currentLine.Replace(featureParentReplaceInFile.Pattern, replaceValue);
-                            }
-                        }
+                        currentLine = replaceFunc(currentLine, replaceInFile, featureAdaptPath);
 
                         newLines[lineIndex] = currentLine;
                     }
                 }
             }
+        }
+
+        // WebApi-specific replacement logic
+        private string ReplaceLineForWebApi(string line, FeatureReplaceInFiles replaceInFile, FeatureAdaptPath featureAdaptPath)
+        {
+            if (!CrudParent.Exists)
+            {
+                return ReplaceNoParent(line, replaceInFile);
+            }
+
+            return ReplaceWithParent(line, replaceInFile);
+        }
+
+        // Front-specific replacement logic
+        private string ReplaceLineForFront(string line, FeatureReplaceInFiles replaceInFile, FeatureAdaptPath featureAdaptPath)
+        {
+            if (!CrudParent.Exists)
+            {
+                return ReplaceNoParent(line, replaceInFile);
+            }
+
+            if (replaceInFile.WithParentAddByDeeperLevel != null)
+            {
+                return ReplaceWithDeeperLevelForFront(line, replaceInFile, featureAdaptPath);
+            }
+
+            return ReplaceWithParentForFront(line, replaceInFile, featureAdaptPath);
+        }
+
+        // Common logic when CrudParent doesn't exist
+        private static string ReplaceNoParent(string line, FeatureReplaceInFiles replaceInFile)
+        {
+            if (replaceInFile.NoParentValue != null)
+            {
+                return line.Replace(replaceInFile.Pattern, replaceInFile.NoParentValue);
+            }
+
+            return line;
+        }
+
+        // Common logic when CrudParent exists (used in WebApi)
+        private static string ReplaceWithParent(string line, FeatureReplaceInFiles replaceInFile)
+        {
+            return line.Replace(replaceInFile.Pattern, replaceInFile.WithParentValue);
+        }
+
+        // Front-specific logic for deeper-level replacement
+        private string ReplaceWithDeeperLevelForFront(string line, FeatureReplaceInFiles replaceInFile, FeatureAdaptPath featureAdaptPath)
+        {
+            var parentRelativePath = Path.Combine(GetFrontParentRelativePath(featureAdaptPath.RootPath), featureAdaptPath.DeepLevelIdentifier);
+            var deepLevelIdentifierMatchesCount = Regex.Matches(parentRelativePath, featureAdaptPath.DeepLevelIdentifier).Count;
+
+            var replaceValue = replaceInFile.Pattern;
+            for (int i = featureAdaptPath.InitialDeepLevel; i < deepLevelIdentifierMatchesCount; i++)
+            {
+                replaceValue += replaceInFile.WithParentAddByDeeperLevel;
+            }
+
+            return line.Replace(replaceInFile.Pattern, replaceValue);
+        }
+
+        // Front-specific logic for replacing with parent value (Linux path logic)
+        private string ReplaceWithParentForFront(string line, FeatureReplaceInFiles replaceInFile, FeatureAdaptPath featureAdaptPath)
+        {
+            if (replaceInFile.WithParentValue.Contains(Constants.FeaturePathAdaptation.ParentRelativePathLinux))
+            {
+                var parentRelativePathLinux = GetFrontParentRelativePath(featureAdaptPath.RootPath)
+                    .Replace($"\\{featureAdaptPath.RootPath}", string.Empty)
+                    .Replace("\\", "/");
+
+                return line.Replace(replaceInFile.Pattern, replaceInFile.WithParentValue.Replace(Constants.FeaturePathAdaptation.ParentRelativePathLinux, parentRelativePathLinux));
+            }
+
+            return line.Replace(replaceInFile.Pattern, replaceInFile.WithParentValue);
         }
         #endregion
 
