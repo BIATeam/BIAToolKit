@@ -13,7 +13,7 @@
         public List<string> Children { get; }
         public List<string> Options { get; }
         public List<string> Partial { get; }
-        public List<FeatureParent> Parents { get; }
+        public List<FeatureParent> Parents { get; set; }
 
         public CrudGenerationSettings()
         {

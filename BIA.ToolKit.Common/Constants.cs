@@ -102,7 +102,8 @@ namespace BIA.ToolKit.Common
 
         public static class FeaturePathAdaptation
         {
-            public const string ParentRelativePath = "ParentRelativePath";
+            public const string ParentRelativePath = "{ParentRelativePath}";
+            public const string ParentRelativePathLinux = "{ParentRelativePathLinux}";
         }
     }
 }

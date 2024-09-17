@@ -218,7 +218,7 @@
                 foreach (WebApiFeatureData crudData in featureDataList.Where(ft => ft.IsPartialFile))
                 {
                     // Update with partial value
-                    UpdatePartialFile(this.DotNetFolderGeneration, currentProject, crudData, feature, type, classDefiniton);
+                    UpdatePartialFile(this.DotNetFolderGeneration, currentProject, crudData, feature, type, GenerationType.WebApi, classDefiniton);
                 }
 
             }
@@ -244,7 +244,7 @@
                     if (crudData.IsPartialFile)
                     {
                         // Update with partial file
-                        UpdatePartialFile(this.AngularFolderGeneration, currentProject, crudData, feature, type);
+                        UpdatePartialFile(this.AngularFolderGeneration, currentProject, crudData, feature, type, GenerationType.Front);
                     }
                     else
                     {
@@ -456,7 +456,7 @@
         #endregion
 
         #region Partial Files
-        private void UpdatePartialFile(string workingFolder, Project currentProject, FeatureData crudData, string feature, FeatureType type, ClassDefinition dtoClassDefiniton = null)
+        private void UpdatePartialFile(string workingFolder, Project currentProject, FeatureData crudData, string feature, FeatureType type, GenerationType generationType, ClassDefinition dtoClassDefiniton = null)
         {
             string markerBegin, markerEnd, suffix;
             List<string> contentToAdd;
@@ -536,6 +536,8 @@
                         contentToAdd.Add(newline);
                     });
 
+                    ReplaceLinesWithFeatureParentPrincipalData(crudData, contentToAdd, generationType);
+
                     // Update file
                     UpdatePartialCrudFile(partialFilePath, contentToAdd, markerBegin, markerEnd);
                 }
@@ -586,6 +588,8 @@
             fileLinesContent = UpdateFileContent(fileLinesContent, generationData, fileName, crudDtoEntity, feature, type, crudDtoProperties, propertyList);
             fileLinesContent = UpdateFileLinesContent(fileLinesContent, feature, type, featureData);
 
+            ReplaceLinesWithFeatureParentPrincipalData(featureData, fileLinesContent, GenerationType.Front);
+
             // Generate new file
             CommonTools.GenerateFile(newFileName, fileLinesContent);
         }
@@ -597,13 +601,9 @@
             var filePathDest = GetDestFilePath(featureData, GenerationType.Front);
 
             string dest = this.CrudNames.ConvertCamelToKebabCrudName(Path.Combine(this.AngularFolderGeneration, filePathDest), feature, type);
-
-            if(type == FeatureType.Team)
-            {
-                dest = dest
-                    .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
-                    .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
-            }
+            dest = dest
+                .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
+                .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
 
             return (src, dest);
         }
@@ -1401,26 +1401,26 @@
                     newLine = newLine.Replace(compValue, newPathValue);
                 }
             }
-            else if(CommonTools.IsMatchRegexValue(regexSharedBiaComponentPath, newLine.TrimStart()))
-            {
-                if (FeatureParentPrincipal != null)
-                {
-                    if(!CrudParent.Exists)
-                    {
-                        newLine = newLine.Replace("'../../../../", "'../../");
-                    }
-                    else
-                    {
-                        var parentRelativePath = GetFrontParentRelativePath(featureData.FilePath);
-                        var newPathChildrenCount = Regex.Matches(parentRelativePath, "children", RegexOptions.IgnoreCase).Count;
-                        var originalPathChildrenCount = Regex.Matches(featureData.FilePath, "children", RegexOptions.IgnoreCase).Count;
-                        for (int i = originalPathChildrenCount; i < newPathChildrenCount; i++)
-                        {
-                            newLine = newLine.Replace("'../../", "'../../../../");
-                        }
-                    }
-                }
-            }
+            //else if(CommonTools.IsMatchRegexValue(regexSharedBiaComponentPath, newLine.TrimStart()))
+            //{
+            //    if (FeatureParentPrincipal != null)
+            //    {
+            //        if(!CrudParent.Exists)
+            //        {
+            //            newLine = newLine.Replace("'../../../../", "'../../");
+            //        }
+            //        else
+            //        {
+            //            var parentRelativePath = GetFrontParentRelativePath(featureData.FilePath);
+            //            var newPathChildrenCount = Regex.Matches(parentRelativePath, "children", RegexOptions.IgnoreCase).Count;
+            //            var originalPathChildrenCount = Regex.Matches(featureData.FilePath, "children", RegexOptions.IgnoreCase).Count;
+            //            for (int i = originalPathChildrenCount; i < newPathChildrenCount; i++)
+            //            {
+            //                newLine = newLine.Replace("'../../", "'../../../../");
+            //            }
+            //        }
+            //    }
+            //}
             //else if(CommonTools.IsMatchRegexValue(regexPathInFrontLine, newLine.Trim()))
             //{
             //    var pathToTranslate = FeatureParentPrincipal?.PathToTranslate?.Replace("\\", "/");
@@ -1516,7 +1516,7 @@
             return value.Replace(classDef.CompagnyName, currentProject.CompanyName).Replace(classDef.ProjectName, currentProject.Name);
         }
 
-        private void ReplaceWithFeatureParentPrincipalAdaptPaths(FeatureData featureData, List<string> newLines, GenerationType generationType)
+        private void ReplaceLinesWithFeatureParentPrincipalData(FeatureData featureData, List<string> newLines, GenerationType generationType)
         {
             if (FeatureParentPrincipal == null)
                 return;
@@ -1532,17 +1532,28 @@
                         if (!Regex.IsMatch(currentLine, featureParentReplaceInFile.RegexMatch) || !currentLine.Contains(featureParentReplaceInFile.Pattern))
                             continue;
 
-                        if (!string.IsNullOrEmpty(featureParentReplaceInFile.NoParentValue) && !CrudParent.Exists)
+                        if (featureParentReplaceInFile.NoParentValue != null && !CrudParent.Exists)
                         {
                             currentLine = currentLine.Replace(featureParentReplaceInFile.Pattern, featureParentReplaceInFile.NoParentValue);
                         }
 
-                        if (!string.IsNullOrEmpty(featureParentReplaceInFile.WithParentValue) && CrudParent.Exists)
+                        if (featureParentReplaceInFile.WithParentValue != null && CrudParent.Exists)
                         {
-                            currentLine = currentLine.Replace(featureParentReplaceInFile.Pattern, featureParentReplaceInFile.WithParentValue);
+                            if (generationType == GenerationType.Front)
+                            {
+                                if (featureParentReplaceInFile.WithParentValue.Contains(Constants.FeaturePathAdaptation.ParentRelativePathLinux))
+                                {
+                                    var parentRelativePathLinux = Path.Combine(GetFrontParentRelativePath(featureParentAdaptPath.RootPath)).Replace("\\", "/");
+                                    currentLine = currentLine.Replace(featureParentReplaceInFile.Pattern, featureParentReplaceInFile.WithParentValue.Replace(Constants.FeaturePathAdaptation.ParentRelativePathLinux, parentRelativePathLinux));
+                                }
+                                else
+                                {
+                                    currentLine = currentLine.Replace(featureParentReplaceInFile.Pattern, featureParentReplaceInFile.WithParentValue);
+                                }
+                            }
                         }
 
-                        if (!string.IsNullOrEmpty(featureParentReplaceInFile.WithParentAddByDeeperLevel) && CrudParent.Exists)
+                        if (featureParentReplaceInFile.WithParentAddByDeeperLevel != null && CrudParent.Exists)
                         {
                             if (generationType == GenerationType.Front)
                             {
@@ -1987,8 +1998,8 @@
             {
                 foreach (var featureParentMoveFiles in featureParentAdaptPath.MoveFiles)
                 {
-                    var featureParentFullPathFrom = Path.Combine(this.AngularFolderGeneration, featureParentAdaptPath.RootPath, featureParentMoveFiles.FromRelativePath);
-                    if (!featureData.FilePath.StartsWith(featureParentFullPathFrom))
+                    var featureParentRelativePathFrom = Path.Combine(featureParentAdaptPath.RootPath, featureParentMoveFiles.FromRelativePath);
+                    if (!featureData.FilePath.StartsWith(featureParentRelativePathFrom))
                         continue;
 
                     if(!CrudParent.Exists)
