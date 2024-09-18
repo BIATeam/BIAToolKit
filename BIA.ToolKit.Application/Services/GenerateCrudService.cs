@@ -14,6 +14,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Text.RegularExpressions;
 
@@ -51,7 +52,6 @@
 
         private CrudParent CrudParent { get; set; }
         private FeatureParent FeatureParentPrincipal { get; set; }
-        public List<string> FeaturePathAdapatationConstValues { get; }
 
         /// <summary>
         /// Constructor.
@@ -59,11 +59,6 @@
         public GenerateCrudService(IConsoleWriter consoleWriter)
         {
             this.consoleWriter = consoleWriter;
-            FeaturePathAdapatationConstValues = typeof(Constants.FeaturePathAdaptation)
-                .GetFields()
-                .Where(f => f.IsLiteral && f.FieldType == typeof(string))
-                .Select(f => (string)f.GetRawConstantValue())
-                .ToList();
         }
 
         public bool GenerateFiles(EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList,
@@ -326,7 +321,7 @@
                 fileLinesContent[i] = this.CrudNames.ConvertPascalOldToNewCrudName(this.CrudNames.ConvertPascalOldToNewCrudName(fileLinesContent[i], feature, type, false), feature, type, true);
             }
 
-            ReplaceLineContentFromFeatureParentPrincipal(fileLinesContent, GenerationType.WebApi);
+            ReplaceContentWithFeatureParentPrincipal(fileLinesContent, GenerationType.WebApi);
 
             // Generate new file
             CommonTools.GenerateFile(dest, fileLinesContent);
@@ -338,7 +333,7 @@
 
             string fileName = Path.GetFileName(featureData.FilePath);
             string filePartPath = featureData.FilePath.Remove(featureData.FilePath.LastIndexOf(fileName));
-            filePartPath = AdaptFilePathFromFeatureParentPrincipal(filePartPath, GenerationType.WebApi);
+            filePartPath = ReplaceFilePathWithFeatureParentPrincipal(filePartPath, GenerationType.WebApi);
             filePartPath = ReplaceCompagnyNameProjetName(filePartPath, currentProject, dtoClassDefiniton);
 
             string newFilePartPath = this.CrudNames.ConvertPascalOldToNewCrudName(filePartPath, feature, type, false);
@@ -415,7 +410,7 @@
                         ReplaceCompagnyNameProjetName(crudData.Namespace, currentProject, classDefiniton).
                         Replace(oldNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
 
-                    if(FeatureParentPrincipal != null)
+                    if (FeatureParentPrincipal != null)
                     {
                         webApiNamespace.CrudNamespaceGenerated = CrudParent.Exists ?
                             webApiNamespace.CrudNamespaceGenerated.Replace(FeatureParentPrincipal.DomainName, CrudParent.Domain) :
@@ -467,7 +462,7 @@
             string partialName = this.CrudNames.GetOldFeatureNameSingularPascal(feature, type);
 
             var extractBlocks = crudData.ExtractBlocks.Where(b => b.Name == partialName);
-            if(FeatureParentPrincipal != null && CrudParent.Exists)
+            if (FeatureParentPrincipal != null && CrudParent.Exists)
             {
                 extractBlocks = extractBlocks.Concat(crudData.ExtractBlocks.Where(x => x.Name == FeatureParentPrincipal.Name));
             }
@@ -516,7 +511,7 @@
                     markerBegin = $"{ZipParserService.MARKER_BEGIN} {suffix}";
                     markerEnd = $"{ZipParserService.MARKER_END} {suffix}";
 
-                    ReplaceLineContentFromFeatureParentPrincipal(block.BlockLines, generationType);
+                    ReplaceContentWithFeatureParentPrincipal(block.BlockLines, generationType);
 
                     // Generate content to add
                     block.BlockLines.ForEach(line =>
@@ -589,7 +584,7 @@
             fileLinesContent = UpdateFileContent(fileLinesContent, generationData, fileName, crudDtoEntity, feature, type, crudDtoProperties, propertyList);
             fileLinesContent = UpdateFileLinesContent(fileLinesContent, feature, type, featureData);
 
-            ReplaceLineContentFromFeatureParentPrincipal(fileLinesContent, GenerationType.Front);
+            ReplaceContentWithFeatureParentPrincipal(fileLinesContent, GenerationType.Front);
 
             // Generate new file
             CommonTools.GenerateFile(newFileName, fileLinesContent);
@@ -599,7 +594,7 @@
         {
             string src = Path.Combine(featureData.ExtractDirPath, featureData.FilePath);
 
-            var filePathDest = AdaptFilePathFromFeatureParentPrincipal(featureData.FilePath, GenerationType.Front);
+            var filePathDest = ReplaceFilePathWithFeatureParentPrincipal(featureData.FilePath, GenerationType.Front);
 
             string dest = this.CrudNames.ConvertCamelToKebabCrudName(Path.Combine(this.AngularFolderGeneration, filePathDest), feature, type);
             dest = dest
@@ -641,7 +636,7 @@
                 // Update options blocks
                 if (generationData.IsOptionFound)
                 {
-                   fileLinesContent = ManageOptionsBlocks(fileLinesContent, generationData.OptionsName, generationData.OptionsToAdd, generationData.OptionsFields, crudDtoProperties, propertyList, feature);
+                    fileLinesContent = ManageOptionsBlocks(fileLinesContent, generationData.OptionsName, generationData.OptionsToAdd, generationData.OptionsFields, crudDtoProperties, propertyList, feature);
                 }
 
                 // Update parent blocks
@@ -779,7 +774,7 @@
                     ancestorName?.ForEach(ancestor =>
                     {
                         // Keep if parent exist and ancestor name equals feature parent principal name
-                        if(!string.IsNullOrEmpty(ancestor) && CrudParent.Exists && FeatureParentPrincipal?.Name == ancestor)
+                        if (!string.IsNullOrEmpty(ancestor) && CrudParent.Exists && FeatureParentPrincipal?.Name == ancestor)
                         {
                             return;
                         }
@@ -801,7 +796,7 @@
         {
             if (FeatureParentPrincipal != null && CrudParent.Exists)
             {
-                for(int i = 0; i < fileLinesContent.Count; i++)
+                for (int i = 0; i < fileLinesContent.Count; i++)
                 {
                     var line = fileLinesContent[i];
                     if (line.Contains(FeatureParentPrincipal.Name))
@@ -1474,111 +1469,6 @@
         {
             return value.Replace(classDef.CompagnyName, currentProject.CompanyName).Replace(classDef.ProjectName, currentProject.Name);
         }
-
-        private void ReplaceLineContentFromFeatureParentPrincipal(List<string> newLines, GenerationType generationType)
-        {
-            if (FeatureParentPrincipal == null)
-                return;
-
-            Func<string, FeatureReplaceInFiles, FeatureAdaptPath, string> replaceFunc = generationType switch
-            {
-                GenerationType.WebApi => ReplaceLineForWebApi,
-                GenerationType.Front => ReplaceLineForFront,
-                _ => throw new NotSupportedException($"GenerationType {generationType} not supported.")
-            };
-
-            foreach (var featureAdaptPath in FeatureParentPrincipal.AdaptPaths)
-            {
-                foreach (var replaceInFile in featureAdaptPath.ReplaceInFiles)
-                {
-                    for (int lineIndex = 0; lineIndex < newLines.Count; lineIndex++)
-                    {
-                        var currentLine = newLines[lineIndex];
-
-                        if (!Regex.IsMatch(currentLine, replaceInFile.RegexMatch) || !currentLine.Contains(replaceInFile.Pattern))
-                            continue;
-
-                        currentLine = replaceFunc(currentLine, replaceInFile, featureAdaptPath);
-
-                        newLines[lineIndex] = currentLine;
-                    }
-                }
-            }
-        }
-
-        // WebApi-specific replacement logic
-        private string ReplaceLineForWebApi(string line, FeatureReplaceInFiles replaceInFile, FeatureAdaptPath featureAdaptPath)
-        {
-            if (!CrudParent.Exists)
-            {
-                return ReplaceNoParent(line, replaceInFile);
-            }
-
-            return ReplaceWithParent(line, replaceInFile);
-        }
-
-        // Front-specific replacement logic
-        private string ReplaceLineForFront(string line, FeatureReplaceInFiles replaceInFile, FeatureAdaptPath featureAdaptPath)
-        {
-            if (!CrudParent.Exists)
-            {
-                return ReplaceNoParent(line, replaceInFile);
-            }
-
-            if (replaceInFile.WithParentAddByDeeperLevel != null)
-            {
-                return ReplaceWithDeeperLevelForFront(line, replaceInFile, featureAdaptPath);
-            }
-
-            return ReplaceWithParentForFront(line, replaceInFile, featureAdaptPath);
-        }
-
-        // Common logic when CrudParent doesn't exist
-        private static string ReplaceNoParent(string line, FeatureReplaceInFiles replaceInFile)
-        {
-            if (replaceInFile.NoParentValue != null)
-            {
-                return line.Replace(replaceInFile.Pattern, replaceInFile.NoParentValue);
-            }
-
-            return line;
-        }
-
-        // Common logic when CrudParent exists (used in WebApi)
-        private static string ReplaceWithParent(string line, FeatureReplaceInFiles replaceInFile)
-        {
-            return line.Replace(replaceInFile.Pattern, replaceInFile.WithParentValue);
-        }
-
-        // Front-specific logic for deeper-level replacement
-        private string ReplaceWithDeeperLevelForFront(string line, FeatureReplaceInFiles replaceInFile, FeatureAdaptPath featureAdaptPath)
-        {
-            var parentRelativePath = Path.Combine(GetFrontParentRelativePath(featureAdaptPath.RootPath), featureAdaptPath.DeepLevelIdentifier);
-            var deepLevelIdentifierMatchesCount = Regex.Matches(parentRelativePath, featureAdaptPath.DeepLevelIdentifier).Count;
-
-            var replaceValue = replaceInFile.Pattern;
-            for (int i = featureAdaptPath.InitialDeepLevel; i < deepLevelIdentifierMatchesCount; i++)
-            {
-                replaceValue += replaceInFile.WithParentAddByDeeperLevel;
-            }
-
-            return line.Replace(replaceInFile.Pattern, replaceValue);
-        }
-
-        // Front-specific logic for replacing with parent value (Linux path logic)
-        private string ReplaceWithParentForFront(string line, FeatureReplaceInFiles replaceInFile, FeatureAdaptPath featureAdaptPath)
-        {
-            if (replaceInFile.WithParentValue.Contains(Constants.FeaturePathAdaptation.ParentRelativePathLinux))
-            {
-                var parentRelativePathLinux = GetFrontParentRelativePath(featureAdaptPath.RootPath)
-                    .Replace($"\\{featureAdaptPath.RootPath}", string.Empty)
-                    .Replace("\\", "/");
-
-                return line.Replace(replaceInFile.Pattern, replaceInFile.WithParentValue.Replace(Constants.FeaturePathAdaptation.ParentRelativePathLinux, parentRelativePathLinux));
-            }
-
-            return line.Replace(replaceInFile.Pattern, replaceInFile.WithParentValue);
-        }
         #endregion
 
         #region Delete Generation
@@ -1743,6 +1633,105 @@
 
             // Generate new file
             CommonTools.GenerateFile(file, newfileLinesContent);
+        }
+        #endregion
+
+        #region Replace with FeatureParentPrincipal
+        private string ReplaceFilePathWithFeatureParentPrincipal(string filePath, GenerationType generationType)
+        {
+            if (FeatureParentPrincipal == null)
+                return filePath;
+
+            foreach (var featureAdaptPath in FeatureParentPrincipal.AdaptPaths)
+            {
+                foreach (var featureMoveFiles in featureAdaptPath.MoveFiles)
+                {
+                    var featureRelativePathFrom = Path.Combine(featureAdaptPath.RootPath, featureMoveFiles.FromRelativePath);
+                    if (!filePath.StartsWith(featureRelativePathFrom))
+                        continue;
+
+                    var replaceValue = CrudParent.Exists ? 
+                        featureMoveFiles.ToRelativePathWithParent :
+                        featureMoveFiles.ToRelativePathNoParent;
+
+                    if (replaceValue != null)
+                    {
+                        ReplaceFeaturePathAdaptationVariables(replaceValue, generationType, featureAdaptPath.RootPath);
+                        return filePath.Replace(featureMoveFiles.FromRelativePath, replaceValue);
+                    }
+                }
+            }
+
+            return filePath;
+        }
+
+        private void ReplaceContentWithFeatureParentPrincipal(List<string> content, GenerationType generationType)
+        {
+            if (FeatureParentPrincipal == null)
+                return;
+
+            foreach (var featureAdaptPath in FeatureParentPrincipal.AdaptPaths)
+            {
+                foreach (var replaceInFile in featureAdaptPath.ReplaceInFiles)
+                {
+                    for (int lineIndex = 0; lineIndex < content.Count; lineIndex++)
+                    {
+                        var currentLine = content[lineIndex];
+
+                        if (!Regex.IsMatch(currentLine, replaceInFile.RegexMatch) || !currentLine.Contains(replaceInFile.Pattern))
+                            continue;
+
+                        var replaceValue = CrudParent.Exists ?
+                            replaceInFile.NoParentValue :
+                            replaceInFile.WithParentValue;
+
+                        if (replaceValue != null)
+                        {
+                            ReplaceFeaturePathAdaptationVariables(replaceValue, generationType, featureAdaptPath.RootPath);
+                            currentLine = currentLine.Replace(replaceInFile.Pattern, replaceValue);
+                        }
+
+                        if (CrudParent.Exists && replaceInFile.WithParentAddByDeeperLevel != null)
+                        {
+                            var deepLevelIdentifierMatchesCount = Regex.Matches(
+                                Path.Combine(
+                                    GetParentRelativePathByGenerationType(generationType, featureAdaptPath.RootPath), 
+                                    featureAdaptPath.DeepLevelIdentifier),
+                                featureAdaptPath.DeepLevelIdentifier)
+                                .Count;
+
+                            replaceValue = replaceInFile.Pattern;
+                            for (int i = featureAdaptPath.InitialDeepLevel; i < deepLevelIdentifierMatchesCount; i++)
+                            {
+                                replaceValue += replaceInFile.WithParentAddByDeeperLevel;
+                            }
+
+                            currentLine = currentLine.Replace(replaceInFile.Pattern, replaceValue);
+                        }
+
+                        content[lineIndex] = currentLine;
+                    }
+                }
+            }
+        }
+
+        private void ReplaceFeaturePathAdaptationVariables(string content, GenerationType generationType, string rootPath)
+        {
+            content = content.Replace(
+                Constants.FeaturePathAdaptation.NewCrudNamePascalSingular,
+                CrudNames.NewCrudNamePascalSingular);
+
+            content = content.Replace(
+                Constants.FeaturePathAdaptation.ParentDomainName,
+                CrudParent.Domain);
+
+            content = content.Replace(
+                 Constants.FeaturePathAdaptation.ParentRelativePath,
+                 GetParentRelativePathByGenerationType(generationType, rootPath));
+
+            content = content.Replace(
+                Constants.FeaturePathAdaptation.ParentRelativePathLinux,
+                GetParentRelativePathByGenerationType(generationType, rootPath).Replace("\\", "/"));
         }
         #endregion
 
@@ -1976,96 +1965,27 @@
             return partPath;
         }
 
-        private string GetFrontParentRelativePath(string rootPath)
+        private string GetParentRelativePathByGenerationType(GenerationType generationType, string searchPath)
         {
-            var searchFolder = Path.Combine(this.AngularFolderGeneration, rootPath);
-            var parentFolders = Directory.EnumerateDirectories(searchFolder, CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural), SearchOption.AllDirectories);
+            var parentRelativePathWithSearchPath = generationType switch
+            {
+                GenerationType.Front => GetParentRelativePath(Path.Combine(this.DotNetFolderGeneration, searchPath), CrudParent.Domain),
+                GenerationType.WebApi => GetParentRelativePath(Path.Combine(this.AngularFolderGeneration, searchPath), CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural)),
+                _ => throw new NotSupportedException($"GenerationType {generationType} not supported.")
+            };
+
+            return parentRelativePathWithSearchPath.Replace($"\\{searchPath}", string.Empty);
+        }
+
+        private string GetParentRelativePath(string searchPath, string parentFolder)
+        {
+            var parentFolders = Directory.EnumerateDirectories(searchPath, parentFolder, SearchOption.AllDirectories);
             if (parentFolders.Count() != 1)
             {
-                throw new Exception($"Unable to find single parent's directory '{CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural)}' from {searchFolder}");
+                throw new Exception($"Unable to find single parent's directory '{parentFolder}' from {searchPath}");
             }
 
             return parentFolders.First().Replace(this.AngularFolderGeneration, string.Empty);
-        }
-
-        private string AdaptFilePathFromFeatureParentPrincipal(string filePath, GenerationType generationType)
-        {
-            if (FeatureParentPrincipal == null)
-                return filePath;
-
-            foreach (var featureAdaptPath in FeatureParentPrincipal.AdaptPaths)
-            {
-                foreach (var featureMoveFiles in featureAdaptPath.MoveFiles)
-                {
-                    var featureRelativePathFrom = Path.Combine(featureAdaptPath.RootPath, featureMoveFiles.FromRelativePath);
-                    if (!filePath.StartsWith(featureRelativePathFrom))
-                        continue;
-
-                    return AdaptFilePathByGenerationType(filePath, generationType, featureMoveFiles, featureAdaptPath);
-                }
-            }
-
-            return filePath;
-        }
-
-        private string AdaptFilePathByGenerationType(string filePath, GenerationType generationType, FeatureMoveFiles featureMoveFiles, FeatureAdaptPath featureAdaptPath)
-        {
-            return generationType switch
-            {
-                GenerationType.WebApi => AdaptFilePathGeneric(filePath, featureMoveFiles, featureAdaptPath, AdaptFilePathReplaceValueWebApi),
-                GenerationType.Front => AdaptFilePathGeneric(filePath, featureMoveFiles, featureAdaptPath, AdaptFilePathReplaceValueFront),
-                _ => throw new NotSupportedException($"GenerationType {generationType} not supported."),
-            };
-        }
-
-        private string AdaptFilePathGeneric(
-            string filePath,
-            FeatureMoveFiles featureMoveFiles,
-            FeatureAdaptPath featureAdaptPath,
-            Func<string, FeatureMoveFiles, FeatureAdaptPath, string> adaptFilePathReplaceValueFunc)
-        {
-            var replaceValue = CrudParent.Exists
-                ? featureMoveFiles.ToRelativePathWithParent
-                : featureMoveFiles.ToRelativePathNoParent;
-
-            if (!FeaturePathAdapatationConstValues.Any(x => replaceValue.Contains(x)))
-            {
-                return filePath.Replace(featureMoveFiles.FromRelativePath, replaceValue);
-            }
-
-            replaceValue = adaptFilePathReplaceValueFunc(replaceValue, featureMoveFiles, featureAdaptPath);
-            return filePath.Replace(featureMoveFiles.FromRelativePath, replaceValue);
-        }
-
-        private string AdaptFilePathReplaceValueWebApi(string replaceValue, FeatureMoveFiles featureMoveFiles, FeatureAdaptPath featureAdaptPath)
-        {
-            if (replaceValue.Contains(Constants.FeaturePathAdaptation.NewCrudNamePascalSingular))
-            {
-                replaceValue = replaceValue.Replace(
-                    Constants.FeaturePathAdaptation.NewCrudNamePascalSingular,
-                    CrudNames.NewCrudNamePascalSingular);
-            }
-
-            if (replaceValue.Contains(Constants.FeaturePathAdaptation.ParentDomainName))
-            {
-                replaceValue = replaceValue.Replace(
-                    Constants.FeaturePathAdaptation.ParentDomainName,
-                    CrudParent.Domain);
-            }
-
-            return replaceValue;
-        }
-
-        private string AdaptFilePathReplaceValueFront(string replaceValue, FeatureMoveFiles featureMoveFiles, FeatureAdaptPath featureAdaptPath)
-        {
-            if (replaceValue.Contains(Constants.FeaturePathAdaptation.ParentRelativePath))
-            {
-                var parentRelativePath = GetFrontParentRelativePath(featureAdaptPath.RootPath)
-                    .Replace($"\\{featureAdaptPath.RootPath}", string.Empty);
-                replaceValue = replaceValue.Replace(Constants.FeaturePathAdaptation.ParentRelativePath, parentRelativePath);
-            }
-
-            return replaceValue;
         }
         #endregion
     }
