@@ -140,7 +140,7 @@
                 return f.ExtractBlocks.Select(b => b.DataUpdateType == CRUDDataUpdateType.Display).FirstOrDefault();
             }).ToList();
 
-            if (featureProperties != null && featureDisplay != null)
+            if (featureProperties.Any() && featureDisplay.Any())
             {
                 ExtractPropertiesBlock propBlock = (ExtractPropertiesBlock)featureProperties.FirstOrDefault().ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.Properties).FirstOrDefault();
 
@@ -190,7 +190,7 @@
                     }
 
                     CommonTools.CheckFolder(Path.Combine(tempDir, entry.FullName.Replace(entry.Name, "")));
-                    entry.ExtractToFile(Path.Combine(tempDir, entry.FullName));
+                    entry.ExtractToFile(Path.Combine(tempDir, entry.FullName), true);
                     files.Add(entry.FullName, entry.Name);
                 }
             }

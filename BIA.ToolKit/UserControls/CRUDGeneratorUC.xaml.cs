@@ -276,8 +276,8 @@
             vm.Features.Clear();
 
             vm.DtoFiles = null;
-            vm.IsWebApiSelected = true;
-            vm.IsFrontSelected = true;
+            vm.IsWebApiSelected = false;
+            vm.IsFrontSelected = false;
             vm.FeatureSelected = null;
 
             this.crudHistory = null;

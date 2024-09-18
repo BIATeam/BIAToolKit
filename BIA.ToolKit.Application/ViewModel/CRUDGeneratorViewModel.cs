@@ -190,7 +190,10 @@
                     RaisePropertyChanged(nameof(ParentExists));
                     RaisePropertyChanged(nameof(IsOptionItemEnable));
                     RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                    UpdateFeatureSelection();
+                    RaisePropertyChanged(nameof(IsWebApiAvailable));
+                    RaisePropertyChanged(nameof(IsFrontAvailable));
+                    IsWebApiSelected = IsWebApiAvailable;
+                    IsFrontSelected = IsFrontAvailable;
                 }
             }
         }
@@ -373,6 +376,9 @@
                 }
             }
         }
+
+        public bool IsWebApiAvailable => !string.IsNullOrEmpty(FeatureSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureSelected && x.GenerationType == GenerationType.WebApi);
+        public bool IsFrontAvailable => !string.IsNullOrEmpty(FeatureSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureSelected && x.GenerationType == GenerationType.Front);
         #endregion
 
         #region ZipFile

@@ -23,8 +23,8 @@
         <CheckBox Margin="350,84,0,0" Content="Has parent" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding HasParent,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding ParentExists}"/>
 
         <Label Content="Generation Type:" Margin="480,55,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-        <CheckBox Margin="590,62,0,0" Content="WebApi" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsWebApiSelected}" IsEnabled="{Binding IsProjectChosen}"/>
-        <CheckBox Margin="590,82,0,0" Content="Front" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsFrontSelected}" IsEnabled="{Binding IsProjectChosen}"/>
+        <CheckBox Margin="590,62,0,0" Content="WebApi" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsWebApiSelected}" IsEnabled="{Binding IsWebApiAvailable}"/>
+        <CheckBox Margin="590,82,0,0" Content="Front" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsFrontSelected}" IsEnabled="{Binding IsFrontAvailable}"/>
 
         <Label Content="Entity name (singular):" Margin="20,115,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
         <TextBox Text="{Binding CRUDNameSingular,UpdateSourceTrigger=PropertyChanged}" Margin="40,140,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntitySingular_TextChange" Height="21" IsEnabled="{Binding IsProjectChosen}"/>
