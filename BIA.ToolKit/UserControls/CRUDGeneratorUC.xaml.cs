@@ -98,11 +98,13 @@
 
             vm.IsDtoParsed = false;
             vm.DtoDisplayItems = null;
-            bool isBackSelected = true, isFrontSelected = true;
             Visibility msgVisibility = Visibility.Hidden;
 
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
             ParseDomains();
+
+            var isBackSelected = vm.IsWebApiAvailable;
+            var isFrontSelected = vm.IsFrontAvailable;
 
             if (this.crudHistory != null)
             {
