@@ -26,6 +26,9 @@
         // Tags Partial
         public const string MARKER_BEGIN_PARTIAL = $"{MARKER_BEGIN} Partial";
         public const string MARKER_END_PARTIAL = $"{MARKER_END} Partial";
+        // Tags Nested
+        public const string MARKER_BEGIN_NESTED = $"{MARKER_BEGIN} Nested";
+        public const string MARKER_END_NESTED = $"{MARKER_END} Nested";
 
         /// <summary>
         /// Constructor.
@@ -137,7 +140,7 @@
                 return f.ExtractBlocks.Select(b => b.DataUpdateType == CRUDDataUpdateType.Display).FirstOrDefault();
             }).ToList();
 
-            if (featureProperties != null && featureDisplay != null)
+            if (featureProperties.Any() && featureDisplay.Any())
             {
                 ExtractPropertiesBlock propBlock = (ExtractPropertiesBlock)featureProperties.FirstOrDefault().ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.Properties).FirstOrDefault();
 
@@ -173,7 +176,7 @@
 
                 // Create working temporary folder
                 tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType, crudType.ToString());
-                CommonTools.CheckFolder(tempDir, true);
+                CommonTools.CheckFolder(tempDir);
 
                 // Extract and list files from archive to temprory folder
                 files = new();
@@ -187,7 +190,7 @@
                     }
 
                     CommonTools.CheckFolder(Path.Combine(tempDir, entry.FullName.Replace(entry.Name, "")));
-                    entry.ExtractToFile(Path.Combine(tempDir, entry.FullName));
+                    entry.ExtractToFile(Path.Combine(tempDir, entry.FullName), true);
                     files.Add(entry.FullName, entry.Name);
                 }
             }
@@ -419,33 +422,44 @@
         /// <summary>
         /// Extract block of lines from partial file.
         /// </summary>
-        private List<ExtractBlock> ExtractPartialFile(List<string> fileLines)
+        private static List<ExtractBlock> ExtractPartialFile(List<string> fileLines)
         {
-            const string regex = @$"(?:{MARKER_BEGIN_PARTIAL})[\s+](\w+)(\s+\d*)?(\s*\w+)";
+            const string regexPartial = @$"(?:{MARKER_BEGIN_PARTIAL})[\s+](\w+)(\s+\d*)?(\s*\w+)";
+            const string regexNested = @$"(?:{MARKER_BEGIN_NESTED})[\s+](\w+)(\s+\d*)?(\s*\w+)";
             List<ExtractBlock> extractBlocksList = new();
-            List<string> lines = new();
-            bool startFound = false;
-            string index = null, name = null, typeName = null;
-
+            ExtractPartialBlock currentExtractPartialBlock = null;
             // Add blocks found between markers
             foreach (string line in fileLines)
             {
                 if (line.Contains(MARKER_BEGIN_PARTIAL, StringComparison.InvariantCulture))
                 {
-                    lines = new();
-                    startFound = true;
-                    typeName = CommonTools.GetMatchRegexValue(regex, line, 1);
-                    index = CommonTools.GetMatchRegexValue(regex, line, 2);
-                    name = CommonTools.GetMatchRegexValue(regex, line, 3);
+                    var typeName = CommonTools.GetMatchRegexValue(regexPartial, line, 1);
+                    var index = CommonTools.GetMatchRegexValue(regexPartial, line, 2);
+                    var name = CommonTools.GetMatchRegexValue(regexPartial, line, 3);
+
+                    currentExtractPartialBlock = new ExtractPartialBlock(CommonTools.GetEnumElement<CRUDDataUpdateType>(typeName), name?.TrimStart(), index?.TrimStart());
                 }
 
-                if (startFound)
-                    lines.Add(line);
-
-                if (startFound && line.Contains(MARKER_END_PARTIAL, StringComparison.InvariantCulture))
+                if (line.Contains(MARKER_BEGIN_NESTED, StringComparison.InvariantCulture))
                 {
-                    startFound = false;
-                    extractBlocksList.Add(new ExtractPartialBlock(CommonTools.GetEnumElement<CRUDDataUpdateType>(typeName), name?.TrimStart(), index?.TrimStart(), lines));
+                    var typeName = CommonTools.GetMatchRegexValue(regexNested, line, 1);
+                    var index = CommonTools.GetMatchRegexValue(regexNested, line, 2);
+                    var name = CommonTools.GetMatchRegexValue(regexNested, line, 3);
+
+                    currentExtractPartialBlock.AddNestedBlock(new ExtractPartialBlock(CommonTools.GetEnumElement<CRUDDataUpdateType>(typeName), name?.TrimStart(), index?.TrimStart()));
+                    currentExtractPartialBlock = currentExtractPartialBlock.GetLastNestedBlock();
+                }
+
+                currentExtractPartialBlock?.AddLine(line);
+
+                if (line.Contains(MARKER_END_NESTED, StringComparison.InvariantCulture))
+                {
+                    currentExtractPartialBlock = currentExtractPartialBlock.ParentBlock;
+                }
+
+                if (line.Contains(MARKER_END_PARTIAL, StringComparison.InvariantCulture))
+                {
+                    extractBlocksList.Add(currentExtractPartialBlock);
                 }
             }
 
