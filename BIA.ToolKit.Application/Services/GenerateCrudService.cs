@@ -333,8 +333,8 @@
 
             string fileName = Path.GetFileName(featureData.FilePath);
             string filePartPath = featureData.FilePath.Remove(featureData.FilePath.LastIndexOf(fileName));
-            filePartPath = ReplaceFilePathWithFeatureParentPrincipal(filePartPath, GenerationType.WebApi);
             filePartPath = ReplaceCompagnyNameProjetName(filePartPath, currentProject, dtoClassDefiniton);
+            filePartPath = ReplaceFilePathWithFeatureParentPrincipal(filePartPath, GenerationType.WebApi);
 
             string newFilePartPath = this.CrudNames.ConvertPascalOldToNewCrudName(filePartPath, feature, type, false);
             string newFileName = this.CrudNames.ConvertPascalOldToNewCrudName(fileName, feature, type, false);
@@ -1656,7 +1656,7 @@
 
                     if (replaceValue != null)
                     {
-                        ReplaceFeaturePathAdaptationVariables(replaceValue, generationType, featureAdaptPath.RootPath);
+                        replaceValue = ReplaceFeaturePathAdaptationVariables(replaceValue, generationType, featureAdaptPath.RootPath);
                         return filePath.Replace(featureMoveFiles.FromRelativePath, replaceValue);
                     }
                 }
@@ -1682,12 +1682,12 @@
                             continue;
 
                         var replaceValue = CrudParent.Exists ?
-                            replaceInFile.NoParentValue :
-                            replaceInFile.WithParentValue;
+                            replaceInFile.WithParentValue :
+                            replaceInFile.NoParentValue;
 
                         if (replaceValue != null)
                         {
-                            ReplaceFeaturePathAdaptationVariables(replaceValue, generationType, featureAdaptPath.RootPath);
+                            replaceValue = ReplaceFeaturePathAdaptationVariables(replaceValue, generationType, featureAdaptPath.RootPath);
                             currentLine = currentLine.Replace(replaceInFile.Pattern, replaceValue);
                         }
 
@@ -1715,23 +1715,28 @@
             }
         }
 
-        private void ReplaceFeaturePathAdaptationVariables(string content, GenerationType generationType, string rootPath)
+        private string ReplaceFeaturePathAdaptationVariables(string content, GenerationType generationType, string rootPath)
         {
             content = content.Replace(
                 Constants.FeaturePathAdaptation.NewCrudNamePascalSingular,
                 CrudNames.NewCrudNamePascalSingular);
 
-            content = content.Replace(
-                Constants.FeaturePathAdaptation.ParentDomainName,
-                CrudParent.Domain);
+            if (CrudParent.Exists)
+            {
+                content = content.Replace(
+                    Constants.FeaturePathAdaptation.ParentDomainName,
+                    CrudParent.Domain);
 
-            content = content.Replace(
-                 Constants.FeaturePathAdaptation.ParentRelativePath,
-                 GetParentRelativePathByGenerationType(generationType, rootPath));
+                content = content.Replace(
+                     Constants.FeaturePathAdaptation.ParentRelativePath,
+                     GetParentRelativePathByGenerationType(generationType, rootPath));
 
-            content = content.Replace(
-                Constants.FeaturePathAdaptation.ParentRelativePathLinux,
-                GetParentRelativePathByGenerationType(generationType, rootPath).Replace("\\", "/"));
+                content = content.Replace(
+                    Constants.FeaturePathAdaptation.ParentRelativePathLinux,
+                    GetParentRelativePathByGenerationType(generationType, rootPath).Replace("\\", "/"));
+            }
+
+            return content;
         }
         #endregion
 
@@ -1967,17 +1972,24 @@
 
         private string GetParentRelativePathByGenerationType(GenerationType generationType, string searchPath)
         {
-            var parentRelativePathWithSearchPath = generationType switch
+            searchPath = generationType switch
             {
-                GenerationType.Front => GetParentRelativePath(Path.Combine(this.DotNetFolderGeneration, searchPath), CrudParent.Domain),
-                GenerationType.WebApi => GetParentRelativePath(Path.Combine(this.AngularFolderGeneration, searchPath), CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural)),
+                GenerationType.WebApi => Path.Combine(this.DotNetFolderGeneration, searchPath),
+                GenerationType.Front => Path.Combine(this.AngularFolderGeneration, searchPath),
                 _ => throw new NotSupportedException($"GenerationType {generationType} not supported.")
             };
 
-            return parentRelativePathWithSearchPath.Replace($"\\{searchPath}", string.Empty);
+            var parentRelativePathWithSearchPath = generationType switch
+            {
+                GenerationType.WebApi => GetParentFullPath(searchPath, CrudParent.Domain),
+                GenerationType.Front => GetParentFullPath(searchPath, CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural)),
+                _ => throw new NotSupportedException($"GenerationType {generationType} not supported.")
+            };
+
+            return parentRelativePathWithSearchPath.Replace(searchPath, string.Empty);
         }
 
-        private string GetParentRelativePath(string searchPath, string parentFolder)
+        private string GetParentFullPath(string searchPath, string parentFolder)
         {
             var parentFolders = Directory.EnumerateDirectories(searchPath, parentFolder, SearchOption.AllDirectories);
             if (parentFolders.Count() != 1)
@@ -1985,7 +1997,7 @@
                 throw new Exception($"Unable to find single parent's directory '{parentFolder}' from {searchPath}");
             }
 
-            return parentFolders.First().Replace(this.AngularFolderGeneration, string.Empty);
+            return parentFolders.First();
         }
         #endregion
     }
