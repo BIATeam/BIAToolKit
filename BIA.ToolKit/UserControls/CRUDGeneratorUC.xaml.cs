@@ -318,10 +318,23 @@
             if (File.Exists(backSettingsFileName))
             {
                 backSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<CrudGenerationSettings>>(backSettingsFileName));
+                if(vm.CurrentProject.FrameworkVersion == "3.9.0")
+                {
+                    var crudPlanesFeature = backSettingsList.FirstOrDefault(x => x.Feature == "crud-planes");
+                    if (crudPlanesFeature != null)
+                    {
+                        crudPlanesFeature.Feature = "planes";
+                    }
+                }
             }
             if (File.Exists(frontSettingsFileName))
             {
                 frontSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<CrudGenerationSettings>>(frontSettingsFileName));
+                if (vm.CurrentProject.FrameworkVersion == "3.9.0")
+                {
+                    var featuresToRemove = frontSettingsList.Where(x => x.Feature == "planes-full-code" || x.Feature == "aircraft-maintenance-companies");
+                    frontSettingsList = frontSettingsList.Except(featuresToRemove).ToList();
+                }
             }
 
             foreach(var setting in backSettingsList)
