@@ -56,6 +56,7 @@
                 if (dtoEntity != value)
                 {
                     dtoEntity = value;
+                    UpdateParentPreSelection();
                 }
             }
         }
@@ -187,13 +188,13 @@
                 {
                     featureSelected = value;
                     RaisePropertyChanged(nameof(FeatureSelected));
-                    RaisePropertyChanged(nameof(ParentExists));
                     RaisePropertyChanged(nameof(IsOptionItemEnable));
                     RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
                     RaisePropertyChanged(nameof(IsWebApiAvailable));
                     RaisePropertyChanged(nameof(IsFrontAvailable));
                     IsWebApiSelected = IsWebApiAvailable;
                     IsFrontSelected = IsFrontAvailable;
+                    UpdateParentPreSelection();
                 }
             }
         }
@@ -252,7 +253,7 @@
         #endregion
 
         #region Parent
-        public bool ParentExists
+        public bool FeatureParentExists
         {
             get
             {
@@ -327,6 +328,23 @@
                     parentNamePlural = value;
                     RaisePropertyChanged(nameof(ParentNamePlural));
                     RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                }
+            }
+        }
+
+        private void UpdateParentPreSelection()
+        {
+            RaisePropertyChanged(nameof(FeatureParentExists));
+            if (FeatureParentExists && DtoEntity != null)
+            {
+                var propertiesWithParent = DtoEntity.Properties.Where(x => x.Annotations != null && x.Annotations.Any(y => y.Key == "IsParent"));
+                HasParent = DtoEntity != null && propertiesWithParent.Any();
+                var parentPropertyName = propertiesWithParent.FirstOrDefault(x => x.Name.EndsWith("Id"))?.Name;
+                if(!string.IsNullOrEmpty(parentPropertyName))
+                {
+                    var parentName = parentPropertyName.Replace("Id", string.Empty);
+                    ParentName = parentName;
+                    ParentDomain = parentName;
                 }
             }
         }
