@@ -44,7 +44,12 @@
         AuthController,
         TeamMapperUsing,
         TeamMapperParentTeamId,
-        TeamMapperParentTeamTitle
+        TeamMapperParentTeamTitle,
+        PlaneModuleChildPath,
+        PlaneIndexHtml,
+        PlaneIndexTsCanViewChildDeclaration,
+        PlaneIndexTsCanViewChildSet,
+        PlaneIndexTsOnViewChild
     }
 
     public enum WebApiFileType

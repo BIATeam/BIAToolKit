@@ -458,10 +458,11 @@
             List<string> contentToAdd;
 
             string partialFilePath = GetPartialFilePath(crudData, dtoClassDefiniton, workingFolder);
+            partialFilePath = ReplaceFilePathWithFeatureParentPrincipal(partialFilePath, generationType);
 
             string partialName = this.CrudNames.GetOldFeatureNameSingularPascal(feature, type);
 
-            var extractBlocks = crudData.ExtractBlocks.Where(b => b.Name == partialName);
+            var extractBlocks = crudData.ExtractBlocks != null ? crudData.ExtractBlocks.Where(b => b.Name == partialName) : Enumerable.Empty<ExtractBlock>();
             if (FeatureParentPrincipal != null && CrudParent.Exists)
             {
                 extractBlocks = extractBlocks.Concat(crudData.ExtractBlocks.Where(x => x.Name == FeatureParentPrincipal.Name));
@@ -1642,12 +1643,19 @@
             if (FeatureParentPrincipal == null)
                 return filePath;
 
+            var relativeFilePath = generationType switch
+            {
+                GenerationType.WebApi => filePath.Replace($"{this.DotNetFolderGeneration}\\", string.Empty),
+                GenerationType.Front => filePath.Replace($"{this.AngularFolderGeneration}\\", string.Empty),
+                _ => filePath
+            };
+
             foreach (var featureAdaptPath in FeatureParentPrincipal.AdaptPaths)
             {
                 foreach (var featureMoveFiles in featureAdaptPath.MoveFiles)
                 {
                     var featureRelativePathFrom = Path.Combine(featureAdaptPath.RootPath, featureMoveFiles.FromRelativePath);
-                    if (!filePath.StartsWith(featureRelativePathFrom))
+                    if (!relativeFilePath.StartsWith(featureRelativePathFrom))
                         continue;
 
                     var replaceValue = CrudParent.Exists ? 
@@ -1734,6 +1742,14 @@
                 content = content.Replace(
                     Constants.FeaturePathAdaptation.ParentRelativePathLinux,
                     GetParentRelativePathByGenerationType(generationType, rootPath).Replace("\\", "/"));
+
+                content = content.Replace(
+                    Constants.FeaturePathAdaptation.ParentNameKebabSingular,
+                    CommonTools.ConvertPascalToKebabCase(CrudParent.Name));
+
+                content = content.Replace(
+                    Constants.FeaturePathAdaptation.ParentNameKebabPlural,
+                    CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural));
             }
 
             return content;
