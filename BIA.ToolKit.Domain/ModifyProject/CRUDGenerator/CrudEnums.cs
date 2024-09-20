@@ -60,6 +60,7 @@
         Entity,
         IAppService,
         Mapper,
-        Partial
+        Partial,
+        Specification
     }
 }

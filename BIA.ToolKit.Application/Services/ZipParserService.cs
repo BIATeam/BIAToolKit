@@ -281,6 +281,8 @@
                     return WebApiFileType.Controller;
                 else if (fileName.EndsWith("Mapper.cs"))
                     return WebApiFileType.Mapper;
+                else if (fileName.EndsWith("Specification.cs"))
+                    return WebApiFileType.Specification;
                 else
                     return WebApiFileType.Entity;
             }
@@ -319,6 +321,9 @@
                     break;
                 case WebApiFileType.Entity:
                     pattern = @"^(\w+)\.cs$";
+                    break;
+                case WebApiFileType.Specification:
+                    pattern = @"^(\w+)Specification\.cs$";
                     break;
                 default:
                     consoleWriter.AddMessageLine($"Get entity name not implemented for type: '{type}' and file '{fileName}'", "Orange");
