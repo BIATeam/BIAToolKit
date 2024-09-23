@@ -118,7 +118,7 @@
                         // Apply last generation values
                         vm.CRUDNameSingular = history.EntityNameSingular;
                         vm.CRUDNamePlural = history.EntityNamePlural;
-                        vm.FeatureSelected = history.Feature;
+                        vm.FeatureNameSelected = history.Feature;
                         vm.HasParent = history.HasParent;
                         vm.ParentName = history.ParentName;
                         vm.ParentNamePlural = history.ParentNamePlural;
@@ -189,11 +189,11 @@
                 Domain = vm.ParentDomain
             };
 
-            crudService.CrudNames.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural, vm.FeatureSelected, vm.IsWebApiSelected, vm.IsFrontSelected);
+            crudService.CrudNames.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural, vm.FeatureNameSelected, vm.IsWebApiSelected, vm.IsFrontSelected);
 
             // Generation DotNet + Angular files
             List<string> optionsItems = vm.OptionItems.Any() ? vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
-            vm.IsDtoGenerated = crudService.GenerateFiles(vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, crudParent, vm.FeatureSelected);
+            vm.IsDtoGenerated = crudService.GenerateFiles(vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, crudParent, vm.FeatureNameSelected);
             
             // Generate generation history file
             UpdateCrudGenerationHistory();
@@ -220,7 +220,7 @@
                 List<CRUDGenerationHistory> historyOptions = crudHistory?.CRUDGenerationHistory?.Where(h => h.OptionItems.Contains(vm.CRUDNameSingular)).ToList();
 
                 // Delete last generation
-                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, historyOptions, vm.FeatureSelected);
+                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, historyOptions, vm.FeatureNameSelected);
 
                 // Update history
                 DeleteLastGenerationHistory(history);
@@ -275,12 +275,14 @@
             this.frontSettingsList.Clear();
             vm.OptionItems?.Clear();
             vm.ZipFeatureTypeList.Clear();
-            vm.Features.Clear();
+            vm.FeatureNames.Clear();
 
+            vm.DtoEntity = null;
+            vm.DtoSelected = null;
             vm.DtoFiles = null;
             vm.IsWebApiSelected = false;
             vm.IsFrontSelected = false;
-            vm.FeatureSelected = null;
+            vm.FeatureNameSelected = null;
 
             this.crudHistory = null;
         }
@@ -340,20 +342,20 @@
             foreach(var setting in backSettingsList)
             {
                 var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
-                var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents);
+                var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent);
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
 
             foreach (var setting in frontSettingsList)
             {
                 var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
-                var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature, setting.Parents);
+                var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent);
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
 
-            foreach (var feature in vm.ZipFeatureTypeList.Select(x => x.Feature).Distinct())
+            foreach (var featureName in vm.ZipFeatureTypeList.Select(x => x.Feature).Distinct())
             {
-                vm.Features.Add(feature);
+                vm.FeatureNames.Add(featureName);
             }
 
             // Load generation history
@@ -376,7 +378,7 @@
                     EntityNamePlural = vm.CRUDNamePlural,
                     DisplayItem = vm.DtoDisplayItemSelected,
                     OptionItems = vm.OptionItems?.Where(o => o.Check).Select(o => o.OptionName).ToList(),
-                    Feature = vm.FeatureSelected,
+                    Feature = vm.FeatureNameSelected,
                     HasParent = vm.HasParent,
                     ParentName = vm.ParentName,
                     ParentNamePlural = vm.ParentNamePlural,
