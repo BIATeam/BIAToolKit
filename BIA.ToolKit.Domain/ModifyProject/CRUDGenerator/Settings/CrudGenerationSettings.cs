@@ -14,6 +14,7 @@
         public List<string> Options { get; }
         public List<string> Partial { get; }
         public List<FeatureParent> Parents { get; set; }
+        public bool NeedParent { get; set; }
 
         public CrudGenerationSettings()
         {
