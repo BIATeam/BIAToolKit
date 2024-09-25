@@ -556,7 +556,7 @@
                 if (vm.DtoEntity == null || vm.DtoEntity.Properties == null || vm.DtoEntity.Properties.Count <= 0)
                 {
                     consoleWriter.AddMessageLine("No properties found on Dto file.", "Orange");
-                    return false;
+                    return true;
                 }
 
                 // Fill display item list
