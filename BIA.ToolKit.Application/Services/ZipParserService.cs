@@ -95,7 +95,12 @@
                                 }
                             }
 
-                            if (fileType != WebApiFileType.Dto || fileType != WebApiFileType.Entity || fileType != WebApiFileType.Mapper)    // Not Dto, Entity or Mapper
+                            if (
+                                fileType != WebApiFileType.Dto ||
+                                fileType != WebApiFileType.OptionDto ||
+                                fileType != WebApiFileType.Entity ||
+                                fileType != WebApiFileType.Mapper ||
+                                fileType != WebApiFileType.OptionMapper)    // Not Dto, Entity or Mapper
                             {
                                 featureData.ExtractBlocks = AnalyzeFile(filePath, featureData);
                             }
@@ -310,14 +315,27 @@
                 case WebApiFileType.IAppService:
                     pattern = @"^I?(\w+)AppService\.cs$";
                     break;
+                case WebApiFileType.OptionAppService:
+                case WebApiFileType.IOptionAppService:
+                    pattern = @"^I?(\w+)OptionAppService\.cs$";
+                    break;
                 case WebApiFileType.Dto:
                     pattern = @"^(\w+)Dto\.cs$";
+                    break;
+                case WebApiFileType.OptionDto:
+                    pattern = @"^(\w+)OptionDto\.cs$";
                     break;
                 case WebApiFileType.Controller:
                     pattern = @"^((\w+)s|(\w+))Controller\.cs$";
                     break;
+                case WebApiFileType.OptionsController:
+                    pattern = @"^((\w+)s|(\w+))OptionsController\.cs$";
+                    break;
                 case WebApiFileType.Mapper:
                     pattern = @"^(\w+)Mapper\.cs$";
+                    break;
+                case WebApiFileType.OptionMapper:
+                    pattern = @"^(\w+)OptionMapper\.cs$";
                     break;
                 case WebApiFileType.Entity:
                     pattern = @"^(\w+)\.cs$";

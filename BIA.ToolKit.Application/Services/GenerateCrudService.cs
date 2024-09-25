@@ -196,15 +196,17 @@
         {
             try
             {
-                ClassDefinition classDefiniton = ((WebApiFeatureData)featureDataList.FirstOrDefault(x => ((WebApiFeatureData)x).FileType == WebApiFileType.Controller))?.ClassFileDefinition;
+                ClassDefinition classDefiniton = featureDataList.Cast<WebApiFeatureData>().FirstOrDefault(x => x.FileType == WebApiFileType.Controller || x.FileType == WebApiFileType.OptionsController)?.ClassFileDefinition;
                 List<WebApiNamespace> crudNamespaceList = ListCrudNamespaces(this.DotNetFolderGeneration, featureDataList, currentProject, classDefiniton, feature, type, featureParents);
 
                 // Generate files
                 foreach (WebApiFeatureData crudData in featureDataList.Where(ft => !ft.IsPartialFile))
                 {
                     if (crudData.FileType == WebApiFileType.Dto ||
+                        crudData.FileType == WebApiFileType.OptionDto ||
                         crudData.FileType == WebApiFileType.Entity ||
-                        crudData.FileType == WebApiFileType.Mapper)
+                        crudData.FileType == WebApiFileType.Mapper ||
+                        crudData.FileType == WebApiFileType.OptionMapper)
                     {
                         // Ignore file : not necessary to regenerate it
                         continue;
@@ -1493,7 +1495,7 @@
 
                 ClassDefinition classDefiniton = null;
                 if (generationType == GenerationType.WebApi)
-                    classDefiniton = ((WebApiFeatureData)zipFeature.FeatureDataList.FirstOrDefault(x => ((WebApiFeatureData)x).FileType == WebApiFileType.Controller))?.ClassFileDefinition;
+                    classDefiniton = zipFeature.FeatureDataList.Cast<WebApiFeatureData>().FirstOrDefault(x => x.FileType == WebApiFileType.Controller || x.FileType == WebApiFileType.OptionsController)?.ClassFileDefinition;
 
                 foreach (FeatureData featureData in zipFeature.FeatureDataList)
                 {
@@ -1506,7 +1508,9 @@
 
                             if (webApiFeatureData.FileType == WebApiFileType.Entity ||
                                 webApiFeatureData.FileType == WebApiFileType.Dto ||
-                                webApiFeatureData.FileType == WebApiFileType.Mapper)
+                                webApiFeatureData.FileType == WebApiFileType.OptionDto ||
+                                webApiFeatureData.FileType == WebApiFileType.Mapper ||
+                                webApiFeatureData.FileType == WebApiFileType.OptionMapper)
                                 continue;
 
                             if (featureData.IsPartialFile)
