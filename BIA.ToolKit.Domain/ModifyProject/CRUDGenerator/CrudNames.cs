@@ -9,8 +9,6 @@
         private readonly List<CrudGenerationSettings> BackSettingsList;
         private readonly List<CrudGenerationSettings> FrontSettingsList;
         private IEnumerable<CrudGenerationSettings> AllSettings => BackSettingsList.Concat(FrontSettingsList);
-        private bool IsWebApiSelected;
-        private bool IsFrontSelected;
 
         public string NewCrudNamePascalSingular { get; private set; }
         public string NewCrudNamePascalPlural { get; private set; }
@@ -37,7 +35,7 @@
 
         public string GetOldFeatureNamePluralKebab(string feature, FeatureType featureType) => CommonTools.ConvertPascalToKebabCase(GetOldFeatureNamePluralPascal(feature, featureType));
 
-        public void InitRenameValues(string newValueSingular, string newValuePlural, string feature, bool isWebApiSelected = true, bool isFrontSelected = true)
+        public void InitRenameValues(string newValueSingular, string newValuePlural)
         {
             this.NewCrudNamePascalSingular = newValueSingular;
             this.NewCrudNamePascalPlural = newValuePlural;
@@ -45,73 +43,30 @@
             NewCrudNameCamelPlural = CommonTools.ConvertToCamelCase(NewCrudNamePascalPlural);
             NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);
             NewCrudNameKebabPlural = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalPlural);
-            this.IsWebApiSelected = isWebApiSelected;
-            this.IsFrontSelected = isFrontSelected;
         }
 
-        public string ConvertPascalOldToNewCrudName(string value, string feature, FeatureType type, bool convertCamel = true)
+        public string ConvertPascalOldToNewCrudName(string value, string feature, FeatureType type)
         {
-            if (string.IsNullOrWhiteSpace(value)) return value;
+            if (string.IsNullOrWhiteSpace(value)) 
+                return value;
 
-            return convertCamel ?
-                ReplaceOldToNewValue(value, GetOldFeatureNamePluralCamel(feature, type), NewCrudNameCamelPlural, GetOldFeatureNameSingularCamel(feature, type), NewCrudNameCamelSingular) :
-                ReplaceOldToNewValue(value, GetOldFeatureNamePluralPascal(feature, type), NewCrudNamePascalPlural, GetOldFeatureNameSingularPascal(feature, type), NewCrudNamePascalSingular);
+            return ReplaceOldToNewValue(value, GetOldFeatureNamePluralPascal(feature, type), NewCrudNamePascalPlural, GetOldFeatureNameSingularPascal(feature, type), NewCrudNamePascalSingular);
         }
 
-        /// <summary>
-        /// Convert value form Camel case to Kebab case
-        /// </summary>
-        public string ConvertCamelToKebabCrudName(string value, string feature, FeatureType type)
+        public string ConvertCamelOldToNewCrudName(string value, string feature, FeatureType type)
         {
-            if (string.IsNullOrWhiteSpace(value)) return value;
+            if (string.IsNullOrWhiteSpace(value)) 
+                return value;
 
-            return ReplaceOldToNewValue(value, GetOldFeatureNamePluralCamel(feature, type), NewCrudNameKebabPlural, GetOldFeatureNameSingularCamel(feature, type), NewCrudNameKebabSingular);
+            return ReplaceOldToNewValue(value, GetOldFeatureNamePluralCamel(feature, type), NewCrudNameCamelPlural, GetOldFeatureNameSingularCamel(feature, type), NewCrudNameCamelSingular);
         }
 
-        private string ReplaceOldToNewValue(string value, string oldValuePlural, string newValuePlural, string oldValueSingular, string newValueSingular)
+        private static string ReplaceOldToNewValue(string value, string oldValuePlural, string newValuePlural, string oldValueSingular, string newValueSingular)
         {
-            if (string.IsNullOrWhiteSpace(value)) return value;
+            if (string.IsNullOrWhiteSpace(value)) 
+                return value;
 
-            List<int> nbAllOccurOldValue = FindOccurences(value, oldValueSingular);
-            List<int> nbOccurOldValuePlural = FindOccurences(value, oldValuePlural);
-            List<int> nbOccurOldValueSingular = nbAllOccurOldValue.Except(nbOccurOldValuePlural).ToList();
-
-            foreach (int index in nbAllOccurOldValue.OrderByDescending(i => i))
-            {
-                string before = value[..index];
-                if (nbOccurOldValuePlural.Contains(index))
-                {
-                    string after = value[(index + oldValuePlural.Length)..];
-                    value = $"{before}{newValuePlural}{after}";
-                }
-                else if (nbOccurOldValueSingular.Contains(index))
-                {
-                    string after = value[(index + oldValueSingular.Length)..];
-                    value = $"{before}{newValueSingular}{after}";
-                }
-            }
-
-            return value;
-        }
-
-        private List<int> FindOccurences(string line, string search)
-        {
-            int lastIndex = 0;
-            List<int> indexList = new();
-            for (int count = 0; line.Length > 0; count++)
-            {
-                int index = line.IndexOf(search);
-                if (index < 0)
-                    break;
-                else
-                {
-                    indexList.Add(lastIndex + index);
-                    lastIndex += index + search.Length;
-                    line = line.Substring(index + search.Length);
-                }
-            }
-
-            return indexList;
+            return value.Replace(oldValuePlural, newValuePlural).Replace(oldValueSingular, newValueSingular);
         }
     }
 

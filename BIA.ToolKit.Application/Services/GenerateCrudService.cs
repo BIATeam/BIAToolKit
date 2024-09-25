@@ -318,7 +318,7 @@
                 }
 
                 // Convert Crud Name (Plane to Xxx and plane to xxx)
-                fileLinesContent[i] = this.CrudNames.ConvertPascalOldToNewCrudName(this.CrudNames.ConvertPascalOldToNewCrudName(fileLinesContent[i], feature, type, false), feature, type, true);
+                fileLinesContent[i] = this.CrudNames.ConvertCamelOldToNewCrudName(this.CrudNames.ConvertPascalOldToNewCrudName(fileLinesContent[i], feature, type), feature, type);
             }
 
             ReplaceContentWithFeatureParentPrincipal(fileLinesContent, GenerationType.WebApi);
@@ -337,7 +337,7 @@
 
             var relativeFilePath = Path.Combine(filePartPath, fileName);
             relativeFilePath = ReplaceFilePathWithFeatureParentPrincipal(relativeFilePath, GenerationType.WebApi);
-            relativeFilePath = this.CrudNames.ConvertPascalOldToNewCrudName(relativeFilePath, feature, type, false);
+            relativeFilePath = this.CrudNames.ConvertPascalOldToNewCrudName(relativeFilePath, feature, type);
             string dest = Path.Combine(this.DotNetFolderGeneration, relativeFilePath);
 
             return (src, dest);
@@ -587,7 +587,7 @@
 
             var filePathDest = ReplaceFilePathWithFeatureParentPrincipal(featureData.FilePath, GenerationType.Front);
 
-            string dest = this.CrudNames.ConvertCamelToKebabCrudName(Path.Combine(this.AngularFolderGeneration, filePathDest), feature, type);
+            string dest = this.CrudNames.ConvertCamelOldToNewCrudName(Path.Combine(this.AngularFolderGeneration, filePathDest), feature, type);
             dest = dest
                 .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
                 .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
@@ -660,8 +660,8 @@
             List<string> newBlockList = new();
             for (int i = 0; i < blockList.Count; i++)
             {
-                var line = this.CrudNames.ConvertPascalOldToNewCrudName(blockList[i], feature, featureType, false);
-                line = this.CrudNames.ConvertPascalOldToNewCrudName(blockList[i], feature, featureType, true);
+                var line = this.CrudNames.ConvertPascalOldToNewCrudName(blockList[i], feature, featureType);
+                line = this.CrudNames.ConvertCamelOldToNewCrudName(blockList[i], feature, featureType);
                 newBlockList.Add(line);
             }
 
@@ -1351,8 +1351,8 @@
                 }
                 if (!string.IsNullOrEmpty(componentValue))
                 {
-                    var newComponentValue = this.CrudNames.ConvertPascalOldToNewCrudName(componentValue, feature, type, false);
-                    newComponentValue = this.CrudNames.ConvertPascalOldToNewCrudName(newComponentValue, feature, type, true);
+                    var newComponentValue = this.CrudNames.ConvertPascalOldToNewCrudName(componentValue, feature, type);
+                    newComponentValue = this.CrudNames.ConvertCamelOldToNewCrudName(newComponentValue, feature, type);
                     newLine = newLine.Replace(componentValue, newComponentValue);
                 }
 
@@ -1364,7 +1364,7 @@
                 }
                 if (!string.IsNullOrEmpty(pathValue))
                 {
-                    string newPathValue = this.CrudNames.ConvertCamelToKebabCrudName(pathValue, feature, type);
+                    string newPathValue = this.CrudNames.ConvertCamelOldToNewCrudName(pathValue, feature, type);
                     newLine = newLine.Replace(pathValue, newPathValue);
                 }
             }
@@ -1373,7 +1373,7 @@
                 string pathValue = CommonTools.GetMatchRegexValue(regexComponentPath, newLine, 1);
                 if (!string.IsNullOrEmpty(pathValue))
                 {
-                    string newPathValue = this.CrudNames.ConvertCamelToKebabCrudName(pathValue, feature, type);
+                    string newPathValue = this.CrudNames.ConvertCamelOldToNewCrudName(pathValue, feature, type);
                     newLine = newLine.Replace(pathValue, newPathValue);
                 }
             }
@@ -1382,7 +1382,7 @@
                 string compValue = CommonTools.GetMatchRegexValue(regexComponentHtml, newLine, 1);
                 if (!string.IsNullOrEmpty(compValue))
                 {
-                    string newPathValue = this.CrudNames.ConvertCamelToKebabCrudName(compValue, feature, type);
+                    string newPathValue = this.CrudNames.ConvertCamelOldToNewCrudName(compValue, feature, type);
                     newLine = newLine.Replace(compValue, newPathValue);
                 }
             }
@@ -1391,8 +1391,8 @@
             newLine = newLine
                 .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
                 .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
-            newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type, true);
-            newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type, false);
+            newLine = this.CrudNames.ConvertCamelOldToNewCrudName(newLine, feature, type);
+            newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type);
 
             if(FeatureParentPrincipal != null && CrudParent.Exists)
             {
@@ -1478,7 +1478,7 @@
         #region Delete Generation
         public void DeleteCrudOptionsGenerated(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, CRUDGenerationHistory generationHistory, string feature)
         {
-            CrudNames.InitRenameValues(generationHistory.EntityNameSingular, generationHistory.EntityNamePlural, feature);
+            CrudNames.InitRenameValues(generationHistory.EntityNameSingular, generationHistory.EntityNamePlural);
             foreach (Generation generation in generationHistory?.Generation.OrderBy(x => x.FeatureType))
             {
                 GenerationType generationType = CommonTools.GetEnumValue<GenerationType>(generation.GenerationType);
@@ -1560,7 +1560,7 @@
                 GenerationType generationType = GenerationType.Front;
                 FeatureType featureType = FeatureType.CRUD;
 
-                CrudNames.InitRenameValues(optionGenerationHistory.EntityNameSingular, optionGenerationHistory.EntityNamePlural, feature);
+                CrudNames.InitRenameValues(optionGenerationHistory.EntityNameSingular, optionGenerationHistory.EntityNamePlural);
 
                 ZipFeatureType zipFeature = zipFeatureTypeList.FirstOrDefault(f => f.GenerationType == generationType && f.FeatureType == featureType);
                 if (zipFeature == null)

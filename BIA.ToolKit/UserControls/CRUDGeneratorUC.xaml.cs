@@ -189,7 +189,7 @@
                 Domain = vm.ParentDomain
             };
 
-            crudService.CrudNames.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural, vm.FeatureNameSelected, vm.IsWebApiSelected, vm.IsFrontSelected);
+            crudService.CrudNames.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural);
 
             // Generation DotNet + Angular files
             List<string> optionsItems = vm.OptionItems.Any() ? vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
