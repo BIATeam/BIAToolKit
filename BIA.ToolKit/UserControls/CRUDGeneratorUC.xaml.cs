@@ -313,7 +313,14 @@
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.BIAFronts, Constants.FolderBia);
             string backSettingsFileName = Path.Combine(dotnetBiaFolderPath, settings.GenerationSettingsFileName);
             string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
-            this.crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, settings.GenerationHistoryFileName);
+            this.crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.GenerationHistoryFileName);
+
+            // Handle old path of CRUD history file
+            var oldCrudHistoryFilePath = Path.Combine(vm.CurrentProject.Folder, settings.GenerationHistoryFileName);
+            if (File.Exists(oldCrudHistoryFilePath))
+            {
+                File.Move(oldCrudHistoryFilePath, this.crudHistoryFileName);
+            }
 
 
             // Load BIA settings
