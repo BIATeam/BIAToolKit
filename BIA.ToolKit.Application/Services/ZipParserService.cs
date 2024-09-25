@@ -57,7 +57,7 @@
             }
 
             // Unzip archive
-            (string workingDirectoryPath, Dictionary<string, string> fileList) = ReadZipAndExtract(fileName, folderName, zipData.FeatureType);
+            (string workingDirectoryPath, Dictionary<string, string> fileList) = ReadZipAndExtract(fileName, folderName, zipData.ZipName);
             if (string.IsNullOrWhiteSpace(workingDirectoryPath))
             {
                 consoleWriter.AddMessageLine($"Zip archive '{fileName}' not found.", "Orange");
@@ -159,7 +159,7 @@
         /// Read Zip archive and extract files on temporary working directory.
         /// </summary>
         /// <returns>A tuple with working temporary directory and a dictionnary of files contains (key: file full path on archive, value : file name) in zip archives.</returns>
-        private (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string folderType, FeatureType crudType)
+        private (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string folderType, string zipName)
         {
             string tempDir = null;
             Dictionary<string, string> files = null;
@@ -175,7 +175,7 @@
                 consoleWriter.AddMessageLine($"*** Parse zip file: '{zipPath}' ***", "Green");
 
                 // Create working temporary folder
-                tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType, crudType.ToString());
+                tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType, Path.GetFileNameWithoutExtension(zipName));
                 CommonTools.CheckFolder(tempDir);
 
                 // Extract and list files from archive to temprory folder
