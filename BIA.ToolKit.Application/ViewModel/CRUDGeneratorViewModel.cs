@@ -449,7 +449,7 @@
                 return IsDtoParsed && IsZipParsed
                     && !string.IsNullOrWhiteSpace(CRUDNameSingular)
                     && !string.IsNullOrWhiteSpace(CRUDNamePlural)
-                    && !string.IsNullOrWhiteSpace(dtoDisplayItemSelected)
+                    && (!string.IsNullOrWhiteSpace(dtoDisplayItemSelected) || ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option))
                     && (IsWebApiSelected || isFrontSelected) 
                     && !string.IsNullOrEmpty(featureNameSelected)
                     && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural) && !string.IsNullOrEmpty(ParentDomain)));
