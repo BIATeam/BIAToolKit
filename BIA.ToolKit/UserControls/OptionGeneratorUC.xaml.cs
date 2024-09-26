@@ -151,7 +151,6 @@
         {
             var crudParent = new CrudParent
             {
-                Exists = true,
                 Domain = vm.Domain
             };
 
@@ -159,7 +158,7 @@
 
             // Generation DotNet + Angular files
             var featureName = vm.ZipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Option)?.Feature;
-            vm.IsGenerated = crudService.GenerateFiles(vm.Entity, vm.ZipFeatureTypeList, vm.EntityDisplayItemSelected, null, crudParent, featureName);
+            vm.IsGenerated = crudService.GenerateFiles(vm.Entity, vm.ZipFeatureTypeList, vm.EntityDisplayItemSelected, null, crudParent, FeatureType.Option.ToString());
             
             // Generate generation history file
             UpdateOptionGenerationHistory();
@@ -271,7 +270,7 @@
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.BIAFronts, Constants.FolderBia);
             string backSettingsFileName = Path.Combine(dotnetBiaFolderPath, settings.GenerationSettingsFileName);
             string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
-            this.optionHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.CrudGenerationHistoryFileName);
+            this.optionHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.OptionGenerationHistoryFileName);
 
             // Load BIA settings
             if (File.Exists(backSettingsFileName))
@@ -283,7 +282,10 @@
                     if (featureType != FeatureType.Option)
                         continue;
 
-                    var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent);
+                    var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent)
+                    {
+                        IsChecked = true
+                    };
                     vm.ZipFeatureTypeList.Add(zipFeatureType);
                 }
             }
@@ -296,7 +298,11 @@
                     if (featureType != FeatureType.Option)
                         continue;
 
-                    var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent);
+                    var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent)
+                    {
+                        IsChecked = true
+                    };
+
                     vm.ZipFeatureTypeList.Add(zipFeatureType);
                 }
             }
@@ -501,7 +507,7 @@
                 vm.EntityDisplayItems = displayItems;
 
                 // Set by default previous generation selected value
-                var history = this.optionGenerationHistory?.OptionGenerationHistory?.FirstOrDefault(gh => (vm.EntitySelected == Path.GetFileName(gh.Mapping.Entity)));
+                var history = this.optionGenerationHistory?.OptionGenerationHistory?.FirstOrDefault(gh => (vm.EntitySelected == Path.GetFileNameWithoutExtension(gh.Mapping.Entity)));
                 vm.EntityDisplayItemSelected = history?.DisplayItem;
 
                 return true;

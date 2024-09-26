@@ -59,7 +59,6 @@
         Controller,
         OptionsController,
         Dto,
-        OptionDto,
         Entity,
         IAppService,
         IOptionAppService,

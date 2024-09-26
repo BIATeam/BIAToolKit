@@ -203,10 +203,8 @@
                 foreach (WebApiFeatureData crudData in featureDataList.Where(ft => !ft.IsPartialFile))
                 {
                     if (crudData.FileType == WebApiFileType.Dto ||
-                        crudData.FileType == WebApiFileType.OptionDto ||
                         crudData.FileType == WebApiFileType.Entity ||
-                        crudData.FileType == WebApiFileType.Mapper ||
-                        crudData.FileType == WebApiFileType.OptionMapper)
+                        crudData.FileType == WebApiFileType.Mapper)
                     {
                         // Ignore file : not necessary to regenerate it
                         continue;
@@ -250,7 +248,7 @@
                     }
                     else
                     {
-                        GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, dtoRefProperties, displayItem, feature, type, optionItem);
+                        GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, dtoRefProperties, displayItem, feature, type, GenerationType.Front, optionItem);
 
                         // Create file
                         (string src, string dest) = GetAngularFilesPath(crudData, feature, type);
@@ -302,7 +300,7 @@
             // Prepare destination folder
             CommonTools.CheckFolder(new FileInfo(dest).DirectoryName);
 
-            GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, null, displayItem, feature, type);
+            GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, null, displayItem, feature, type, GenerationType.WebApi);
 
             // Read file
             List<string> fileLinesContent = File.ReadAllLines(src).ToList();
@@ -1508,9 +1506,7 @@
 
                             if (webApiFeatureData.FileType == WebApiFileType.Entity ||
                                 webApiFeatureData.FileType == WebApiFileType.Dto ||
-                                webApiFeatureData.FileType == WebApiFileType.OptionDto ||
-                                webApiFeatureData.FileType == WebApiFileType.Mapper ||
-                                webApiFeatureData.FileType == WebApiFileType.OptionMapper)
+                                webApiFeatureData.FileType == WebApiFileType.Mapper)
                                 continue;
 
                             if (featureData.IsPartialFile)
@@ -1736,6 +1732,13 @@
                 Constants.FeaturePathAdaptation.NewCrudNamePascalSingular,
                 CrudNames.NewCrudNamePascalSingular);
 
+            if (content.Contains(Constants.FeaturePathAdaptation.DomainName))
+            {
+                content = content.Replace(
+                    Constants.FeaturePathAdaptation.DomainName,
+                    CrudParent.Domain);
+            }
+
             if (CrudParent.Exists)
             {
                 if (content.Contains(Constants.FeaturePathAdaptation.ParentDomainName))
@@ -1780,7 +1783,7 @@
 
         #region Tools
         private GenerationCrudData ExtractGenerationCrudData(FeatureData crudData, List<CrudProperty> crudDtoProperties, List<PropertyInfo> dtoRefProperties,
-            string displayItem, string feature, FeatureType type, List<string> optionItem = null)
+            string displayItem, string feature, FeatureType type, GenerationType generationType, List<string> optionItem = null)
         {
             GenerationCrudData generationData = null;
             if (crudData.ExtractBlocks?.Count > 0)
@@ -1810,7 +1813,16 @@
                         case CRUDDataUpdateType.Display:
                             string extractItem = ((ExtractDisplayBlock)block).ExtractItem;
                             string extractLine = ((ExtractDisplayBlock)block).ExtractLine;
-                            string newDisplayLine = this.CrudNames.ConvertPascalOldToNewCrudName(extractLine, feature, type).Replace(extractItem, CommonTools.ConvertToCamelCase(displayItem));
+                            string newDisplayLine = this.CrudNames.ConvertPascalOldToNewCrudName(extractLine, feature, type);
+                            switch(generationType)
+                            {
+                                case GenerationType.WebApi:
+                                    newDisplayLine = newDisplayLine.Replace(extractItem, displayItem);
+                                    break;
+                                case GenerationType.Front:
+                                    newDisplayLine = newDisplayLine.Replace(extractItem, CommonTools.ConvertToCamelCase(displayItem));
+                                    break;
+                            }
                             generationData.DisplayToUpdate.Add(new KeyValuePair<string, string>(extractLine, newDisplayLine));
                             break;
                         case CRUDDataUpdateType.AncestorTeam:
