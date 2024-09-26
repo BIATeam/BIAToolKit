@@ -8,7 +8,8 @@
 
         // File name
         public string GenerationSettingsFileName { get; private set; }
-        public string GenerationHistoryFileName { get; private set; }
+        public string CrudGenerationHistoryFileName { get; private set; }
+        public string OptionGenerationHistoryFileName { get; private set; }
 
         public string DtoCustomAttributeFieldName { get; private set; }
 
@@ -32,7 +33,8 @@
         private void Init()
         {
             GenerationSettingsFileName = settingsService.ReadSetting("GenerationSettings");
-            GenerationHistoryFileName = settingsService.ReadSetting("GenerationHistory");
+            CrudGenerationHistoryFileName = settingsService.ReadSetting("CrudGenerationHistory");
+            OptionGenerationHistoryFileName = settingsService.ReadSetting("OptionGenerationHistory");
             DtoCustomAttributeFieldName = settingsService.ReadSetting("DtoCustomAttributeField");
             DtoCustomAttributeClassName = settingsService.ReadSetting("DtoCustomAttributeClass");
             PackageLockFileName = settingsService.ReadSetting("PackageLockFileName");

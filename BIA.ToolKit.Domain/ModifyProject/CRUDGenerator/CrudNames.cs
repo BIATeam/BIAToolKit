@@ -6,9 +6,9 @@
 
     public class CrudNames
     {
-        private readonly List<CrudGenerationSettings> BackSettingsList;
-        private readonly List<CrudGenerationSettings> FrontSettingsList;
-        private IEnumerable<CrudGenerationSettings> AllSettings => BackSettingsList.Concat(FrontSettingsList);
+        private readonly List<FeatureGenerationSettings> BackSettingsList;
+        private readonly List<FeatureGenerationSettings> FrontSettingsList;
+        private IEnumerable<FeatureGenerationSettings> AllSettings => BackSettingsList.Concat(FrontSettingsList);
 
         public string NewCrudNamePascalSingular { get; private set; }
         public string NewCrudNamePascalPlural { get; private set; }
@@ -17,7 +17,7 @@
         public string NewCrudNameKebabSingular { get; private set; }
         public string NewCrudNameKebabPlural { get; private set; }
 
-        public CrudNames(List<CrudGenerationSettings> backSettingsList, List<CrudGenerationSettings> frontSettingsList)
+        public CrudNames(List<FeatureGenerationSettings> backSettingsList, List<FeatureGenerationSettings> frontSettingsList)
         {
             this.BackSettingsList = backSettingsList;
             this.FrontSettingsList = frontSettingsList;

@@ -34,8 +34,8 @@
         private readonly CRUDGeneratorViewModel vm;
         private CRUDGeneration crudHistory;
         private string crudHistoryFileName;
-        private List<CrudGenerationSettings> backSettingsList;
-        private List<CrudGenerationSettings> frontSettingsList;
+        private List<FeatureGenerationSettings> backSettingsList;
+        private List<FeatureGenerationSettings> frontSettingsList;
 
         /// <summary>
         /// Constructor
@@ -313,10 +313,10 @@
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.BIAFronts, Constants.FolderBia);
             string backSettingsFileName = Path.Combine(dotnetBiaFolderPath, settings.GenerationSettingsFileName);
             string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
-            this.crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.GenerationHistoryFileName);
+            this.crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.CrudGenerationHistoryFileName);
 
             // Handle old path of CRUD history file
-            var oldCrudHistoryFilePath = Path.Combine(vm.CurrentProject.Folder, settings.GenerationHistoryFileName);
+            var oldCrudHistoryFilePath = Path.Combine(vm.CurrentProject.Folder, settings.CrudGenerationHistoryFileName);
             if (File.Exists(oldCrudHistoryFilePath))
             {
                 File.Move(oldCrudHistoryFilePath, this.crudHistoryFileName);
@@ -326,7 +326,7 @@
             // Load BIA settings
             if (File.Exists(backSettingsFileName))
             {
-                backSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<CrudGenerationSettings>>(backSettingsFileName));
+                backSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(backSettingsFileName));
                 if(vm.CurrentProject.FrameworkVersion == "3.9.0")
                 {
                     var crudPlanesFeature = backSettingsList.FirstOrDefault(x => x.Feature == "crud-planes");
@@ -338,7 +338,7 @@
             }
             if (File.Exists(frontSettingsFileName))
             {
-                frontSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<CrudGenerationSettings>>(frontSettingsFileName));
+                frontSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(frontSettingsFileName));
                 if (vm.CurrentProject.FrameworkVersion == "3.9.0")
                 {
                     var featuresToRemove = frontSettingsList.Where(x => x.Feature == "planes-full-code" || x.Feature == "aircraft-maintenance-companies");
@@ -349,6 +349,9 @@
             foreach(var setting in backSettingsList)
             {
                 var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
+                if (featureType == FeatureType.Option)
+                    continue;
+
                 var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent);
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
@@ -356,6 +359,9 @@
             foreach (var setting in frontSettingsList)
             {
                 var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
+                if (featureType == FeatureType.Option)
+                    continue;
+
                 var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent);
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
@@ -556,7 +562,7 @@
                 if (vm.DtoEntity == null || vm.DtoEntity.Properties == null || vm.DtoEntity.Properties.Count <= 0)
                 {
                     consoleWriter.AddMessageLine("No properties found on Dto file.", "Orange");
-                    return true;
+                    return false;
                 }
 
                 // Fill display item list

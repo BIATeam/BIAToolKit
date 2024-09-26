@@ -68,6 +68,11 @@
                     <uc:CRUDGeneratorUC x:Name="CRUDGenerator" />
                 </Grid>
             </TabItem>
+            <TabItem Header="Add Option" Margin="3,0,-7,0" >
+                <Grid Background="Transparent">
+                    <uc:OptionGeneratorUC x:Name="OptionGenerator" />
+                </Grid>
+            </TabItem>
             <TabItem Header="Rename project" Margin="5,0,-5,0" Visibility="Hidden">
                 <Grid Background="Transparent"/>
             </TabItem>

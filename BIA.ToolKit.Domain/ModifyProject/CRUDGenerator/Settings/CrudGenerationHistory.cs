@@ -20,7 +20,7 @@
         public string EntityNamePlural { get; set; }
         public string DisplayItem { get; set; }
         public List<string> OptionItems { get; set; }
-        public Mapping Mapping { get; set; }
+        public DtoMapping Mapping { get; set; }
         public List<Generation> Generation { get; }
         public string Feature { get; set; }
         public bool HasParent { get; set; }
@@ -43,7 +43,7 @@
         public string Type { get; set; }
     }
 
-    public class Mapping
+    public class DtoMapping
     {
         public string Dto { get; set; }
         public string Type { get; set; }
