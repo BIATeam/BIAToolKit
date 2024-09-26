@@ -90,7 +90,7 @@
                                     ((WebApiFeatureData)featureData).ClassFileDefinition = classFile;
                                     if (fileType == WebApiFileType.Dto)
                                     {
-                                        ((WebApiFeatureData)featureData).PropertiesInfos = service.GetPlaneDtoPropertyList(classFile.PropertyList, dtoCustomAttributeName);
+                                        ((WebApiFeatureData)featureData).PropertiesInfos = service.GetPropertyList(classFile.PropertyList, dtoCustomAttributeName);
                                     }
                                 }
                             }

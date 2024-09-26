@@ -1,7 +1,7 @@
 ﻿namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator
 {
-    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using System.Collections.Generic;
 
     public class CrudNames

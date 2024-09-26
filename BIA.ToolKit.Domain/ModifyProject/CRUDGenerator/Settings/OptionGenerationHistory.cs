@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Settings
+﻿namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings
 {
     using System;
     using System.Collections.Generic;
@@ -13,21 +13,11 @@
         }
     }
 
-    public class OptionGenerationHistory
+    public class OptionGenerationHistory : GenerationHistory
     {
-        public DateTime Date { get; set; }
-        public string EntityNameSingular { get; set; }
-        public string EntityNamePlural { get; set; }
         public string DisplayItem { get; set; }
         public string Domain { get; set; }
-        public List<Generation> Generation { get; }
         public EntityMapping Mapping { get; set; }
-
-
-        public OptionGenerationHistory()
-        {
-            Generation = new();
-        }
     }
 
     public class EntityMapping

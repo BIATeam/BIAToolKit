@@ -10,6 +10,7 @@
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.ExtractBlock;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -153,9 +154,9 @@
             return true;
         }
 
-        public void DeleteLastGeneration(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, CRUDGenerationHistory generationHistory, List<CRUDGenerationHistory> optionsGenerationHistory, string feature)
+        public void DeleteLastGeneration(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, GenerationHistory generationHistory, List<CRUDGenerationHistory> optionsGenerationHistory, string feature)
         {
-            DeleteCrudOptionsGenerated(zipFeatureTypeList, currentProject, generationHistory, feature);
+            DeleteCrudGenerated(zipFeatureTypeList, currentProject, generationHistory, feature);
 
             DeleteCrudOptionsGenerated(zipFeatureTypeList, generationHistory, optionsGenerationHistory, feature);
         }
@@ -1476,7 +1477,7 @@
         #endregion
 
         #region Delete Generation
-        public void DeleteCrudOptionsGenerated(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, CRUDGenerationHistory generationHistory, string feature)
+        public void DeleteCrudGenerated(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, GenerationHistory generationHistory, string feature)
         {
             CrudNames.InitRenameValues(generationHistory.EntityNameSingular, generationHistory.EntityNamePlural);
             foreach (Generation generation in generationHistory?.Generation.OrderBy(x => x.FeatureType))
@@ -1552,7 +1553,7 @@
             }
         }
 
-        public void DeleteCrudOptionsGenerated(List<ZipFeatureType> zipFeatureTypeList, CRUDGenerationHistory generationHistory, List<CRUDGenerationHistory> optionsGenerationHistory, string feature)
+        public void DeleteCrudOptionsGenerated(List<ZipFeatureType> zipFeatureTypeList, GenerationHistory generationHistory, List<CRUDGenerationHistory> optionsGenerationHistory, string feature)
         {
             foreach (CRUDGenerationHistory optionGenerationHistory in optionsGenerationHistory)
             {

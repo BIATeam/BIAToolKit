@@ -7,12 +7,13 @@ namespace BIA.ToolKit.Domain.DtoGenerator
 
     public class EntityInfo
     {
-        public EntityInfo(string @namespace, string name, string? baseType, string? primaryKey/*, string relativeDirectory*/, List<AttributeArgumentSyntax>? arguments)
+        public EntityInfo(string @namespace, string name, string? baseType, string? primaryKey/*, string relativeDirectory*/, List<AttributeArgumentSyntax>? arguments, List<string>? baseList)
         {
             Namespace = @namespace;
             Name = name;
             BaseType = baseType;
             PrimaryKey = primaryKey;
+            BaseList = baseList ?? new List<string>();
             //RelativeDirectory = relativeDirectory.NormalizePath();
             if (arguments != null && arguments.Count > 0)
             {
@@ -31,6 +32,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
         public string NamePluralized => Name.Pluralize();
         public string? BaseType { get; }
         public string? PrimaryKey { get; }
+        public List<string> BaseList { get; }
         public List<PropertyInfo> Properties { get; } = new List<PropertyInfo>();
         public string? CompositeKeyName { get; set; }
         public List<PropertyInfo> CompositeKeys { get; } = new List<PropertyInfo>();

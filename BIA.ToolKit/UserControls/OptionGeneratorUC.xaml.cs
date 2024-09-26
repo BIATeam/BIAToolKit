@@ -5,8 +5,10 @@
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -15,6 +17,7 @@
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
+    using System.Windows.Markup;
 
     /// <summary>
     /// Interaction logic for OptionGenerator.xaml
@@ -38,6 +41,7 @@
         private List<FeatureGenerationSettings> frontSettingsList;
         private readonly List<string> excludedEntitiesFolders = new List<string> { "bin", "obj" };
         private readonly List<string> excludedEntitiesFilesSuffixes = new List<string> { "Mapper", "Service", "Repository", "Customizer", "Specification" };
+        private readonly Dictionary<string, EntityInfo> entityInfoFiles = new Dictionary<string, EntityInfo>();
 
         /// <summary>
         /// Constructor
@@ -183,7 +187,7 @@
                 }
 
                 // Delete last generation
-                //crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, null, vm.FeatureNameSelected);
+                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, null, FeatureType.Option.ToString());
 
                 // Update history
                 DeleteLastGenerationHistory(history);
@@ -417,10 +421,23 @@
                         files.AddRange(subFolderFiles.Where(file => !excludedEntitiesFilesSuffixes.Any(suffix => Path.GetFileNameWithoutExtension(file).EndsWith(suffix))));
                     }
                 }
-                // Build dictionnary: key = file Name, Value = full path
+
                 foreach(var file in files.OrderBy(x => Path.GetFileName(x)))
                 {
-                    entityFiles.Add(Path.GetFileNameWithoutExtension(file), file);
+                    try
+                    {
+                        var entityInfo = service.ParseEntity(file, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
+                        entityInfo.Properties.RemoveAll(p => p.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase));
+                        if (!entityInfo.BaseList.Any(x => x.StartsWith("IEntity<")))
+                            continue;
+
+                        entityInfoFiles.Add(file, entityInfo);
+                        entityFiles.Add(Path.GetFileNameWithoutExtension(file), file);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
                 }
             }
             catch (Exception ex)
@@ -487,15 +504,16 @@
 
                 // Check selected Entity file
                 string fileName = vm.EntityFiles[vm.EntitySelected];
-                if (string.IsNullOrWhiteSpace(fileName))
+                var entityInfo = entityInfoFiles[fileName];
+                if (entityInfo == null)
                 {
-                    consoleWriter.AddMessageLine($"Entity file '{fileName}' not found to parse.", "Orange");
-                    return false;
+                    consoleWriter.AddMessageLine($"Entity '{fileName}' not parsed.", "Orange");
+                    entityInfo = service.ParseEntity(fileName, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
                 }
 
-                // Parse Entity entity file
-                vm.Entity = service.ParseEntity(fileName, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
-                if (vm.Entity == null || vm.Entity.Properties == null || vm.Entity.Properties.Count <= 0)
+                // Check parsed Entity entity file
+                vm.Entity = entityInfo;
+                if (!vm.Entity.Properties.Any())
                 {
                     consoleWriter.AddMessageLine("No properties found on entity file.", "Orange");
                     return false;
@@ -503,10 +521,7 @@
 
                 // Fill display item list
                 List<string> displayItems = new();
-                vm.Entity.Properties.ForEach(p => {
-                    if (!p.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase))
-                        displayItems.Add(p.Name);
-                    });
+                vm.Entity.Properties.ForEach(p => displayItems.Add(p.Name));
                 vm.EntityDisplayItems = displayItems;
 
                 // Set by default previous generation selected value

@@ -6,6 +6,7 @@
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
