@@ -102,7 +102,8 @@
             vm.EntityDisplayItems = null;
             Visibility msgVisibility = Visibility.Hidden;
 
-            vm.EntitySelected = vm.EntitySelected;
+            vm.Domain = vm.EntitySelected;
+            vm.EntityNamePlural = null;
 
             if (this.optionGenerationHistory != null)
             {
@@ -240,6 +241,8 @@
             vm.Entity = null;
             vm.EntitySelected = null;
             vm.EntityFiles = null;
+            vm.EntityNamePlural = null;
+            vm.Domain = null;
 
             this.optionGenerationHistory = null;
         }

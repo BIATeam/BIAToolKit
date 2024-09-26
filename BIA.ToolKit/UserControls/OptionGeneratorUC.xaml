@@ -21,11 +21,11 @@
         <Label Content="Entity name plural:" Margin="377,1,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
         <TextBox Text="{Binding EntityNamePlural,UpdateSourceTrigger=PropertyChanged}" Margin="397,26,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Height="21" IsEnabled="{Binding IsEntityParsed}"/>
 
-        <Label Content="Domain:" Margin="20,53,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-        <TextBox Text="{Binding Domain,UpdateSourceTrigger=PropertyChanged}" Margin="40,78,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Height="21" IsEnabled="{Binding IsEntityParsed}"/>
+        <Label Content="Domain:" Margin="20,71,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+        <TextBox Text="{Binding Domain,UpdateSourceTrigger=PropertyChanged}" Margin="40,96,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Height="21" IsEnabled="{Binding IsEntityParsed}"/>
 
-        <Label Content="Display item name:"  Margin="377,53,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-        <ComboBox ItemsSource="{Binding EntityDisplayItems}" SelectedValue="{Binding EntityDisplayItemSelected}" Margin="397,77,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsEntityParsed}"/>
+        <Label Content="Display item name:"  Margin="377,71,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+        <ComboBox ItemsSource="{Binding EntityDisplayItems}" SelectedValue="{Binding EntityDisplayItemSelected}" Margin="397,95,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsEntityParsed}"/>
 
         <!-- Right side -->
         <Button Content="Generate" IsEnabled="{Binding IsButtonGenerateOptionEnable}" Margin="0,59,135,0" Width="160" x:Name="GenerateCrud" Height="60" HorizontalAlignment="Right" VerticalAlignment="Top" Click="Generate_Click"/>
