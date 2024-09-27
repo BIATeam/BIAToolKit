@@ -514,24 +514,6 @@
                 }
             }
 
-            var biaBackFolder = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, Constants.FolderBia);
-            if (Directory.Exists(biaBackFolder))
-            {
-                foreach (var directory in Directory.GetDirectories(biaBackFolder))
-                {
-                    Directory.Delete(directory, true);
-                }
-            }
-
-            var biaFrontFolder = Path.Combine(vm.CurrentProject.Folder, Constants.FolderAngular, Constants.FolderBia);
-            if (Directory.Exists(biaFrontFolder))
-            {
-                foreach (var directory in Directory.GetDirectories(biaFrontFolder))
-                {
-                    Directory.Delete(directory, true);
-                }
-            }
-
             bool parsed = false;
             foreach(var zipFeatureType in vm.ZipFeatureTypeList)
             {
