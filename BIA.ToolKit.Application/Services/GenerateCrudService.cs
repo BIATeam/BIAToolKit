@@ -517,7 +517,7 @@
                     // Generate content to add
                     block.BlockLines.ForEach(line =>
                     {
-                        string newline = UpdateLines(line, feature, type, crudData);
+                        string newline = UpdateLine(line, feature, type);
                         if (dtoClassDefiniton != null)
                         {
                             newline = ReplaceCompagnyNameProjetName(newline, currentProject, dtoClassDefiniton);
@@ -573,7 +573,7 @@
 
             // Update file content
             fileLinesContent = UpdateFileContent(fileLinesContent, generationData, fileName, crudDtoEntity, feature, type, crudDtoProperties, propertyList);
-            fileLinesContent = UpdateFileLinesContent(fileLinesContent, feature, type, featureData);
+            fileLinesContent = UpdateFileLinesContent(fileLinesContent, feature, type);
 
             ReplaceContentWithFeatureParentPrincipal(fileLinesContent, GenerationType.Front);
 
@@ -627,7 +627,7 @@
                 // Update options blocks
                 if (generationData.IsOptionFound)
                 {
-                    fileLinesContent = ManageOptionsBlocks(fileLinesContent, generationData.OptionsName, generationData.OptionsToAdd, generationData.OptionsFields, crudDtoProperties, propertyList, feature);
+                    fileLinesContent = ManageOptionsBlocks(fileLinesContent, generationData.OptionsName, generationData.OptionsToAdd, generationData.OptionsFields, crudDtoProperties, propertyList, feature, featureType);
                 }
 
                 // Update parent blocks
@@ -807,8 +807,10 @@
         }
 
         private List<string> ManageOptionsBlocks(List<string> fileLinesContent, List<string> optionsName, List<string> newOptionsName, List<string> optionsFields,
-            List<CrudProperty> crudDtoProperties, List<CRUDPropertyType> propertyList, string feature)
+            List<CrudProperty> crudDtoProperties, List<CRUDPropertyType> propertyList, string feature, FeatureType featureType)
         {
+            UpdateOptionBlocks(fileLinesContent, feature, featureType);
+
             if (newOptionsName == null || !newOptionsName.Any())
             {
                 // Delete options blocks
@@ -827,6 +829,31 @@
             return fileLinesContent;
         }
 
+        private void UpdateOptionBlocks(List<string> fileLinesContent, string feature, FeatureType featureType)
+        {
+            var markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option}";
+            var markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Option}";
+
+            var beginMarkerFound = false;
+            for (int i = 0; i < fileLinesContent.Count; i++)
+            {
+                var currentLine = fileLinesContent[i];
+                if (currentLine.TrimEnd().EndsWith(markerBegin))
+                {
+                    beginMarkerFound = true;
+                    continue;
+                }
+                if (currentLine.TrimEnd().EndsWith(markerEnd))
+                {
+                    beginMarkerFound = false;
+                    continue;
+                }
+                if (beginMarkerFound)
+                {
+                    fileLinesContent[i] = UpdateLine(currentLine, feature, featureType);
+                }
+            }
+        }
 
         private List<string> UpdateOptions(List<string> fileLinesContent, List<string> options, List<string> newOptionsName, CRUDDataUpdateType crudType,
             List<CrudProperty> crudDtoProperties = null, List<CRUDPropertyType> propertyList = null)
@@ -834,16 +861,16 @@
             if (!options.Any())
                 return fileLinesContent;
 
-            string markerBeginPattern = $"{ZipParserService.MARKER_BEGIN} {crudType}" + " {0}";
-            string markerEndPattern = $"{ZipParserService.MARKER_BEGIN} {crudType}" + " {0}";
+            var markerBeginOptionPattern = $"{ZipParserService.MARKER_BEGIN} {crudType}" + " {0}";
+            var markerEndOptionPattern = $"{ZipParserService.MARKER_END} {crudType}" + " {0}";
 
             var optionBlockNameToDelete = options.Skip(1);
             foreach(var optionBlockName in optionBlockNameToDelete)
             {
                 fileLinesContent = DeleteBlocks(
                     fileLinesContent, 
-                    string.Format(markerBeginPattern, optionBlockName), 
-                    string.Format(markerEndPattern, optionBlockName));
+                    string.Format(markerBeginOptionPattern, optionBlockName), 
+                    string.Format(markerEndOptionPattern, optionBlockName));
             }
 
             var optionBlockNameReference = options.First();
@@ -851,8 +878,8 @@
                 fileLinesContent, 
                 optionBlockNameReference, 
                 newOptionsName, 
-                string.Format(markerBeginPattern, optionBlockNameReference), 
-                string.Format(markerEndPattern, optionBlockNameReference), 
+                string.Format(markerBeginOptionPattern, optionBlockNameReference), 
+                string.Format(markerEndOptionPattern, optionBlockNameReference), 
                 crudDtoProperties, 
                 propertyList);
 
@@ -928,7 +955,7 @@
                                         string newLine = optionLine;
                                         if (!string.IsNullOrWhiteSpace(newProperty))
                                             newLine = newLine.Replace(CommonTools.ConvertToCamelCase(fieldName), CommonTools.ConvertToCamelCase(newProperty));
-                                        newLine = UpdateOptionFrontLine(newLine, oldOptionName, newOptionName);
+                                        newLine = UpdateOptionLine(newLine, oldOptionName, newOptionName);
                                         newLines.Add(newLine);
                                     }
                                 }
@@ -938,7 +965,7 @@
                         {
                             foreach (string optionLine in optionBlock)
                             {
-                                string newLine = UpdateOptionFrontLine(optionLine, oldOptionName, newOptionName);
+                                string newLine = UpdateOptionLine(optionLine, oldOptionName, newOptionName);
                                 newLines.Add(newLine);
                             }
                         }
@@ -1311,7 +1338,7 @@
             return ReplaceBlock(feature, type, newBlock, attributeName, extractBlock.Name);
         }
 
-        private List<string> UpdateFileLinesContent(List<string> lines, string feature, FeatureType type, FeatureData featureData)
+        private List<string> UpdateFileLinesContent(List<string> lines, string feature, FeatureType type)
         {
             bool markerFound = false;
             for (int i = 0; i < lines?.Count; i++)
@@ -1332,13 +1359,13 @@
                     continue;
                 }
 
-                lines[i] = UpdateLines(lines[i], feature, type, featureData);
+                lines[i] = UpdateLine(lines[i], feature, type);
             }
 
             return lines;
         }
 
-        private string UpdateLines(string line, string feature, FeatureType type, FeatureData featureData)
+        private string UpdateLine(string line, string feature, FeatureType type)
         {
             const string startImportRegex = @"^\s*[\/\*]*\s*import\s*[{(*]";
             const string regexComponent = @"^\s*[\/\*]*\s*import\s+{([\s\w,]*)}";
@@ -1420,7 +1447,7 @@
             return newLine;
         }
 
-        private string UpdateOptionFrontLine(string line, string oldOptionName, string newOptionName)
+        private string UpdateOptionLine(string line, string oldOptionName, string newOptionName)
         {
             const string startImportRegex = @"^\s*[\/\*]*\s*import\s*[{(*]";
             const string regexComponent = @"^\s*[\/\*]*\s*import\s+{([\s\w,]*)}";
@@ -1457,7 +1484,9 @@
                 return newLine;
             }
 
-            return newLine.Replace(oldOptionName, newOptionName).Replace(CommonTools.ConvertToCamelCase(oldOptionName), CommonTools.ConvertToCamelCase(newOptionName));
+            return newLine
+                .Replace(oldOptionName, newOptionName)
+                .Replace(CommonTools.ConvertToCamelCase(oldOptionName), CommonTools.ConvertToCamelCase(newOptionName));
         }
 
         private void PrepareParentBlock(List<ExtractBlock> parentBlocks, GenerationCrudData generationData, List<CrudProperty> crudDtoProperties)
