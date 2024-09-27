@@ -601,7 +601,7 @@
 
             var filePathDest = ReplaceFilePathWithFeatureParentPrincipal(featureData.FilePath, GenerationType.Front);
 
-            string dest = this.CrudNames.ConvertCamelOldToNewCrudName(Path.Combine(this.AngularFolderGeneration, filePathDest), feature, type);
+            string dest = Path.Combine(this.AngularFolderGeneration, filePathDest);
             dest = dest
                 .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
                 .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
