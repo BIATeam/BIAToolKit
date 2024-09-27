@@ -833,9 +833,9 @@
             else
             {
                 // Manage Options
-                fileLinesContent = UpdateOptions(fileLinesContent, optionsName, newOptionsName, CRUDDataUpdateType.Option, feature);
+                fileLinesContent = UpdateOptions(fileLinesContent, optionsName, newOptionsName, CRUDDataUpdateType.Option);
                 // Manage OptionsFields
-                fileLinesContent = UpdateOptions(fileLinesContent, optionsFields, newOptionsName, CRUDDataUpdateType.OptionField, feature, crudDtoProperties, propertyList);
+                fileLinesContent = UpdateOptions(fileLinesContent, optionsFields, newOptionsName, CRUDDataUpdateType.OptionField, crudDtoProperties, propertyList);
             }
 
             return fileLinesContent;
@@ -843,17 +843,19 @@
 
 
         private List<string> UpdateOptions(List<string> fileLinesContent, List<string> options, List<string> newOptionsName, CRUDDataUpdateType crudType,
-            string feature, List<CrudProperty> crudDtoProperties = null, List<CRUDPropertyType> propertyList = null)
+            List<CrudProperty> crudDtoProperties = null, List<CRUDPropertyType> propertyList = null)
         {
+            var isFirstOptionName = true;
             foreach (string optionName in options)
             {
                 string markerBegin = $"{ZipParserService.MARKER_BEGIN} {crudType} {optionName}";
                 string markerEnd = $"{ZipParserService.MARKER_END} {crudType} {optionName}";
 
-                if (optionName == this.CrudNames.GetOldFeatureNameSingularPascal(feature, FeatureType.Option))
+                if (isFirstOptionName)
                 {
                     // replace options blocks
                     fileLinesContent = ReplaceOptions(fileLinesContent, optionName, newOptionsName, markerBegin, markerEnd, crudDtoProperties, propertyList);
+                    isFirstOptionName= false;
                 }
                 else
                 {
