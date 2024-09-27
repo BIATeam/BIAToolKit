@@ -149,16 +149,29 @@
             finally
             {
                 CrudParent = null;
+                FeatureParentPrincipal = null;
             }
 
             return true;
         }
 
-        public void DeleteLastGeneration(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, GenerationHistory generationHistory, List<CRUDGenerationHistory> optionsGenerationHistory, string feature)
+        public void DeleteLastGeneration(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, GenerationHistory generationHistory, string feature, CrudParent crudParent, List<CRUDGenerationHistory> optionsGenerationHistory = null)
         {
-            DeleteCrudGenerated(zipFeatureTypeList, currentProject, generationHistory, feature);
+            try
+            {
+                CrudParent = crudParent;
+                DeleteFilesGenerated(zipFeatureTypeList, currentProject, generationHistory, feature);
 
-            DeleteCrudOptionsGenerated(zipFeatureTypeList, generationHistory, optionsGenerationHistory, feature);
+                if (optionsGenerationHistory != null)
+                {
+                    DeleteCrudOptionsGenerated(zipFeatureTypeList, generationHistory, optionsGenerationHistory, feature);
+                }
+            }
+            finally
+            {
+                CrudParent = null;
+                FeatureParentPrincipal = null;
+            }
         }
 
         public void DeleteBIAToolkitAnnotations(List<string> folders)
@@ -1477,7 +1490,7 @@
         #endregion
 
         #region Delete Generation
-        public void DeleteCrudGenerated(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, GenerationHistory generationHistory, string feature)
+        public void DeleteFilesGenerated(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, GenerationHistory generationHistory, string feature)
         {
             CrudNames.InitRenameValues(generationHistory.EntityNameSingular, generationHistory.EntityNamePlural);
             foreach (Generation generation in generationHistory?.Generation.OrderBy(x => x.FeatureType))
@@ -1492,6 +1505,7 @@
                     continue;
                 }
 
+                FeatureParentPrincipal = zipFeature.Parents.FirstOrDefault(x => x.IsPrincipal);
                 ClassDefinition classDefiniton = null;
                 if (generationType == GenerationType.WebApi)
                     classDefiniton = zipFeature.FeatureDataList.Cast<WebApiFeatureData>().FirstOrDefault(x => x.FileType == WebApiFileType.Controller || x.FileType == WebApiFileType.OptionsController)?.ClassFileDefinition;
@@ -1570,6 +1584,7 @@
                     continue;
                 }
 
+                FeatureParentPrincipal = zipFeature.Parents.FirstOrDefault(x => x.IsPrincipal);
                 foreach (FeatureData featureData in zipFeature.FeatureDataList)
                 {
                     if (featureData.IsPartialFile)

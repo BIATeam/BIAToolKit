@@ -221,7 +221,7 @@
                 List<CRUDGenerationHistory> historyOptions = crudHistory?.CRUDGenerationHistory?.Where(h => h.OptionItems.Contains(vm.CRUDNameSingular)).ToList();
 
                 // Delete last generation
-                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, historyOptions, vm.FeatureNameSelected);
+                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, vm.FeatureNameSelected, new CrudParent {  Exists = history.HasParent, Domain = history.ParentDomain, Name = history.ParentName, NamePlural = history.ParentNamePlural }, historyOptions);
 
                 // Update history
                 DeleteLastGenerationHistory(history);

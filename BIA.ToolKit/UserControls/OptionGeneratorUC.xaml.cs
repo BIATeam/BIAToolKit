@@ -187,7 +187,7 @@
                 }
 
                 // Delete last generation
-                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, null, FeatureType.Option.ToString());
+                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, FeatureType.Option.ToString(), new CrudParent { Domain = history.Domain });
 
                 // Update history
                 DeleteLastGenerationHistory(history);
