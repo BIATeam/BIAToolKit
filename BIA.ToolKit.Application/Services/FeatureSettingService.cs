@@ -56,7 +56,7 @@
 
         public List<string> GetFoldersToExcludes(List<FeatureSetting> settings)
         {
-            List<string> foldersToExcludes = settings.Where(x => !x.IsSelected).SelectMany(x => x.FoldersToExcludes).Distinct().ToList();
+            List<string> foldersToExcludes = settings.Where(x => !x.IsSelected && x.FoldersToExcludes?.Any() == true).SelectMany(x => x.FoldersToExcludes).Distinct().ToList();
             return foldersToExcludes;
         }
 
