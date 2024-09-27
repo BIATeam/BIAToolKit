@@ -831,24 +831,30 @@
         private List<string> UpdateOptions(List<string> fileLinesContent, List<string> options, List<string> newOptionsName, CRUDDataUpdateType crudType,
             List<CrudProperty> crudDtoProperties = null, List<CRUDPropertyType> propertyList = null)
         {
-            var isFirstOptionName = true;
-            foreach (string optionName in options)
-            {
-                string markerBegin = $"{ZipParserService.MARKER_BEGIN} {crudType} {optionName}";
-                string markerEnd = $"{ZipParserService.MARKER_END} {crudType} {optionName}";
+            if (!options.Any())
+                return fileLinesContent;
 
-                if (isFirstOptionName)
-                {
-                    // replace options blocks
-                    fileLinesContent = ReplaceOptions(fileLinesContent, optionName, newOptionsName, markerBegin, markerEnd, crudDtoProperties, propertyList);
-                    isFirstOptionName= false;
-                }
-                else
-                {
-                    // delete options blocks
-                    fileLinesContent = DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
-                }
+            string markerBeginPattern = $"{ZipParserService.MARKER_BEGIN} {crudType}" + " {0}";
+            string markerEndPattern = $"{ZipParserService.MARKER_BEGIN} {crudType}" + " {0}";
+
+            var optionBlockNameToDelete = options.Skip(1);
+            foreach(var optionBlockName in optionBlockNameToDelete)
+            {
+                fileLinesContent = DeleteBlocks(
+                    fileLinesContent, 
+                    string.Format(markerBeginPattern, optionBlockName), 
+                    string.Format(markerEndPattern, optionBlockName));
             }
+
+            var optionBlockNameReference = options.First();
+            fileLinesContent = ReplaceOptions(
+                fileLinesContent, 
+                optionBlockNameReference, 
+                newOptionsName, 
+                string.Format(markerBeginPattern, optionBlockNameReference), 
+                string.Format(markerEndPattern, optionBlockNameReference), 
+                crudDtoProperties, 
+                propertyList);
 
             return fileLinesContent;
         }
