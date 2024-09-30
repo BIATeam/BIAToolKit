@@ -25,10 +25,10 @@
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type local:EntityPropertyViewModel}" ItemsSource="{Binding Properties}">
                     <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding IsSelected}" Margin="0,0,5,0" Visibility="{Binding IsPrincipal, Converter={StaticResource BoolToVisConverter}}"/>
-                        <TextBlock Text="➜" Margin="0,0,5,0" Visibility="{Binding IsChild, Converter={StaticResource BoolToVisConverter}}"/>
+                        <CheckBox IsChecked="{Binding IsSelected}" Margin="0,0,5,0"/>
                         <TextBlock FontWeight="Bold" Text="{Binding Name}" Margin="0,0,5,0" />
                         <TextBlock Text="{Binding Type, StringFormat=({0})}" />
+                        <TextBlock Text="{Binding CompositeName}" />
                     </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>

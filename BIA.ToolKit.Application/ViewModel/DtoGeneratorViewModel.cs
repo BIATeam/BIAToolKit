@@ -106,7 +106,8 @@
                 {
                     Name = property.Name,
                     Type = property.Type,
-                    IsPrincipal = true
+                    CompositeName = property.Name,
+                    IsSelected = true
                 };
                 FillEntityProperties(propertyViewModel);
                 EntityProperties.Add(propertyViewModel);
@@ -121,7 +122,7 @@
                 return;
             }
 
-            property.Properties.AddRange(propertyEntity.Properties.Select(p => new EntityPropertyViewModel { Name = p.Name, Type = p.Type }));
+            property.Properties.AddRange(propertyEntity.Properties.Select(p => new EntityPropertyViewModel { Name = p.Name, Type = p.Type, CompositeName = $"{property.CompositeName}.{p.Name}" }));
             property.Properties.ForEach(p => FillEntityProperties(p));
         }
     }
@@ -131,8 +132,7 @@
         public string Name { get; set; }
         public string Type { get; set; }
         public bool IsSelected { get; set; }
-        public bool IsPrincipal { get; set; }
-        public bool IsChild => !IsPrincipal;
+        public string CompositeName { get; set; }
         public List<EntityPropertyViewModel> Properties { get; set; } = new();
     }
 }
