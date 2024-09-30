@@ -28,6 +28,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
         public string CompagnyName => Namespace.Split('.').First();
         public string ProjectName => Namespace.Split('.').ElementAt(1);
         public string Name { get; }
+        public string FullNamespace => string.Join(".", Namespace, Name);
         public string NamePluralized => Name.Pluralize();
         public string? BaseType { get; }
         public string? PrimaryKey { get; }

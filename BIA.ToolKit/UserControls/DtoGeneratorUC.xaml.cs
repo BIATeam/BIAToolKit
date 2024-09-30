@@ -4,8 +4,10 @@
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
+    using System.IO;
     using System.Windows;
     using System.Windows.Controls;
 
@@ -27,12 +29,6 @@
         {
             InitializeComponent();
             vm = (DtoGeneratorViewModel)DataContext;
-            vm.EntityChanged += Vm_EntityChanged;
-        }
-
-        private void Vm_EntityChanged(object sender, EntityInfo e)
-        {
-            consoleWriter.AddMessageLine($"Selected entity = {e.Name}");
         }
 
         /// <summary>
@@ -50,6 +46,8 @@
             this.project = project;
             vm.SetProject(project);
             ListEntities();
+
+            var projectDomainNamespace = $"{project.CompanyName}.{project.Name}.Domain";
         }
 
         private void ListEntities()

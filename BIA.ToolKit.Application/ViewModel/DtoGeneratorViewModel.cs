@@ -18,9 +18,8 @@
         {
             entities = new();
             EntitiesNames = new();
+            EntityProperties = new();
         }
-
-        public event EventHandler<EntityInfo> EntityChanged;
 
         private bool isProjectChosen;
         public bool IsProjectChosen
@@ -52,9 +51,18 @@
             { 
                 selectedEntityName = value; 
                 RaisePropertyChanged(nameof(SelectedEntityName));
-                NotifyEntityChanged();
+                RefreshEntityPropertiesTreeView();
             }
         }
+
+        private ObservableCollection<EntityPropertyViewModel> entityProperties;
+
+        public ObservableCollection<EntityPropertyViewModel> EntityProperties
+        {
+            get => entityProperties;
+            set { entityProperties = value; }
+        }
+
 
         public void SetProject(Project project)
         {
@@ -68,7 +76,7 @@
             this.entities.AddRange(entities);
 
             var entitiesNames = entities
-                .Select(x => string.Join(".", x.Namespace, x.Name).Replace($"{projectDomainNamespace}.", string.Empty))
+                .Select(x => x.FullNamespace.Replace($"{projectDomainNamespace}.", string.Empty))
                 .OrderBy(x => x)
                 .ToList();
 
@@ -79,13 +87,6 @@
             }
         }
 
-        private void NotifyEntityChanged()
-        {
-            var selectedEntityNamespace = $"{projectDomainNamespace}.{SelectedEntityName}";
-            var entity = entities.First(e => string.Join(".", e.Namespace, e.Name).Equals(selectedEntityNamespace));
-            EntityChanged?.Invoke(this, entity);
-        }
-
         private static string GetProjectDomainNamespace(Project project)
         {
             if (project == null)
@@ -93,5 +94,45 @@
 
             return string.Join(".", project.CompanyName, project.Name, "Domain");
         }
+
+        private void RefreshEntityPropertiesTreeView()
+        {
+            EntityProperties.Clear();
+
+            var selectedEntity = entities.First(e => e.FullNamespace.EndsWith(SelectedEntityName));
+            foreach(var property in selectedEntity.Properties)
+            {
+                var propertyViewModel = new EntityPropertyViewModel
+                {
+                    Name = property.Name,
+                    Type = property.Type,
+                    IsPrincipal = true
+                };
+                FillEntityProperties(propertyViewModel);
+                EntityProperties.Add(propertyViewModel);
+            }
+        }
+
+        private void FillEntityProperties(EntityPropertyViewModel property)
+        {
+            var propertyEntity = entities.FirstOrDefault(e => e.Name == property.Type);
+            if(propertyEntity == null)
+            {
+                return;
+            }
+
+            property.Properties.AddRange(propertyEntity.Properties.Select(p => new EntityPropertyViewModel { Name = p.Name, Type = p.Type }));
+            property.Properties.ForEach(p => FillEntityProperties(p));
+        }
+    }
+
+    public class EntityPropertyViewModel
+    {
+        public string Name { get; set; }
+        public string Type { get; set; }
+        public bool IsSelected { get; set; }
+        public bool IsPrincipal { get; set; }
+        public bool IsChild => !IsPrincipal;
+        public List<EntityPropertyViewModel> Properties { get; set; } = new();
     }
 }

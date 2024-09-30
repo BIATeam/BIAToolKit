@@ -10,12 +10,28 @@
         <!-- Declaratively create an instance of our SongViewModel -->
         <local:DtoGeneratorViewModel />
     </UserControl.DataContext>
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+    </UserControl.Resources>
     <Grid Margin="0,0,-120,0">
         <Label Content="Entity:"  Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-        <ComboBox ItemsSource="{Binding EntitiesNames}" SelectedValue="{Binding SelectedEntityName, UpdateSourceTrigger=PropertyChanged}" Margin="40,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="400
-" IsEnabled="{Binding IsProjectChosen}"/>
+        <ComboBox ItemsSource="{Binding EntitiesNames}" SelectedValue="{Binding SelectedEntityName, UpdateSourceTrigger=PropertyChanged}" Margin="40,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="400" IsEnabled="{Binding IsProjectChosen}"/>
         <Button IsEnabled="{Binding IsProjectChosen}" Margin="450,24,0,0" Width="24" x:Name="RefreshDtoList" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshEntitiesList_Click" ToolTip="Refresh list">
             <Image Source="/Images/rafraichir-32.png" />
         </Button>
+
+        <Label Content="Properties:"  Margin="20,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
+        <TreeView Name="ClassTreeView" Margin="40,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="270" Width="400" ItemsSource="{Binding EntityProperties}">
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type local:EntityPropertyViewModel}" ItemsSource="{Binding Properties}">
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox IsChecked="{Binding IsSelected}" Margin="0,0,5,0" Visibility="{Binding IsPrincipal, Converter={StaticResource BoolToVisConverter}}"/>
+                        <TextBlock Text="➜" Margin="0,0,5,0" Visibility="{Binding IsChild, Converter={StaticResource BoolToVisConverter}}"/>
+                        <TextBlock FontWeight="Bold" Text="{Binding Name}" Margin="0,0,5,0" />
+                        <TextBlock Text="{Binding Type, StringFormat=({0})}" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+            </TreeView.Resources>
+        </TreeView>
     </Grid>
 </UserControl>
