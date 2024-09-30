@@ -32,7 +32,7 @@
             {
                 string[] lines = File.ReadAllLines(file);
                 OrderUsingInLines(lines);
-                File.WriteAllLines(file, lines);
+                File.WriteAllText(file, string.Join(Environment.NewLine, lines));
             }
 
         }
