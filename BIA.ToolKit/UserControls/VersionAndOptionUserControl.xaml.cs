@@ -183,6 +183,8 @@
                     WorkTemplates.Add(new WorkRepository(repositorySettings, version));
                 }
             }
+
+            WorkTemplates.Sort(new WorkRepository.VersionComparer());
         }
 
         private async void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
