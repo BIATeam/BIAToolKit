@@ -1,12 +1,13 @@
 ﻿namespace BIA.ToolKit.Domain.Work
 {
+    using System;
     using BIA.ToolKit.Domain.Settings;
 
     public class WorkRepository
     {
         public RepositorySettings RepositorySettings { get; private set; }
         public string Version { get; private set; }
-
+        public Version VersionData { get; private set; }
         public string? VersionFolderPath { get; set; }
 
         //public string? VersionFolderPath
@@ -28,6 +29,30 @@
         {
             RepositorySettings = template;
             Version = version;
+            SetVersionData();
+        }
+
+        private void SetVersionData()
+        {
+            try
+            {
+                VersionData = new Version(Version.Remove(0, 1));
+            }
+            catch
+            {
+                VersionData = new Version();
+            }
+        }
+
+        public class VersionComparer : IComparer<WorkRepository>
+        {
+            public int Compare(WorkRepository? x, WorkRepository? y)
+            {
+                if (x == null || y == null)
+                    throw new ArgumentNullException("Cannot compare null objects.");
+
+                return x.VersionData.CompareTo(y.VersionData);
+            }
         }
     }
 }
