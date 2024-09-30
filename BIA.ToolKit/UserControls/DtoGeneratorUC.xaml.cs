@@ -46,8 +46,6 @@
             this.project = project;
             vm.SetProject(project);
             ListEntities();
-
-            var projectDomainNamespace = $"{project.CompanyName}.{project.Name}.Domain";
         }
 
         private void ListEntities()
@@ -59,6 +57,11 @@
         private void RefreshEntitiesList_Click(object sender, RoutedEventArgs e)
         {
             ListEntities();
+        }
+
+        private void SelectProperties_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

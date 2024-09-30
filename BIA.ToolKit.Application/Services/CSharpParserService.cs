@@ -323,7 +323,7 @@ using Roslyn.Services;*/
                     try
                     {
                         var entityInfo = ParseEntity(file, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
-                        if (!entityInfo.BaseList.Any(x => x.StartsWith("IEntity<")))
+                        if (!entityInfo.BaseList.Any(x => x.StartsWith("IEntity<") || x.Equals("Team")))
                             continue;
 
                         if(excludedPropertiesNames != null)
