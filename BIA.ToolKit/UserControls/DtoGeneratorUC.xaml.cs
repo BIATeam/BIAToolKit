@@ -1,111 +1,66 @@
 ﻿namespace BIA.ToolKit.UserControls
 {
+    using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject;
     using System.Windows;
     using System.Windows.Controls;
-    using System.Windows.Data;
-    using System.Windows.Documents;
-    using System.Windows.Input;
-    using System.Windows.Media;
-    using System.Windows.Media.Imaging;
-    using System.Windows.Navigation;
-    using System.Windows.Shapes;
 
     /// <summary>
     /// Interaction logic for DtoGenerator.xaml
     /// </summary>
     public partial class DtoGeneratorUC : UserControl
     {
-        DtoGeneratorViewModel _viewModel;
+        private readonly DtoGeneratorViewModel vm;
+
+        private IConsoleWriter consoleWriter;
+        private CSharpParserService parserService;
+        private CRUDSettings settings;
+        private Project project;
+
+
 
         public DtoGeneratorUC()
         {
             InitializeComponent();
-            _viewModel = (DtoGeneratorViewModel)base.DataContext;
+            vm = (DtoGeneratorViewModel)DataContext;
+            vm.EntityChanged += Vm_EntityChanged;
         }
 
-        private void LoadProject_Click(object sender, RoutedEventArgs e)
+        private void Vm_EntityChanged(object sender, EntityInfo e)
         {
-
+            consoleWriter.AddMessageLine($"Selected entity = {e.Name}");
         }
 
-        private void ProjectBrowse_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Injection of services.
+        /// </summary>
+        public void Inject(CSharpParserService parserService,SettingsService settingsService, IConsoleWriter consoleWriter)
         {
-
+            this.consoleWriter = consoleWriter;
+            this.parserService = parserService;
+            this.settings = new(settingsService);
         }
 
-/*
-        private void ModifyProjectAddDTOEntityBrowse_Click(object sender, RoutedEventArgs e)
+        public void SetCurrentProject(Project project)
         {
-
-            string projectDir = "";
-            string path = ModifyProjectRootFolderText.Text;
-            if (Directory.Exists(path))
-            {
-                projectDir = path;
-                path = projectDir + "\\" + ModifyProjectName.Content;
-                if (Directory.Exists(path))
-                {
-                    projectDir = path;
-                    path = projectDir + "\\DotNet";
-                    if (Directory.Exists(path))
-                    {
-                        projectDir = path;
-                        path = projectDir + "\\" + ModifyProjectCompany.Content.ToString() + "." + ModifyProjectName.Content + ".Domain";
-                        if (Directory.Exists(path))
-                        {
-                            projectDir = path;
-                        }
-                    }
-                }
-            }
-            
-                 if (FileDialog.BrowseFile(ModifyProjectAddDTOEntity, projectDir))
-                 {
-                     cSharpParserService.ParseEntity(ModifyProjectAddDTOEntity.Text);
-                 }
+            this.project = project;
+            vm.SetProject(project);
+            ListEntities();
         }
 
-        private void ModifyProjectAddDTOLoadSolution_Click(object sender, RoutedEventArgs e)
+        private void ListEntities()
         {
-            string projectDir = "";
-            string projectPath = "";
-            string path = ModifyProjectRootFolderText.Text;
-            if (Directory.Exists(path))
-            {
-                projectDir = path;
-                path = projectDir + "\\" + ModifyProjectName.Content;
-                if (Directory.Exists(path))
-                {
-                    projectDir = path;
-                    path = projectDir + "\\DotNet";
-                    if (Directory.Exists(path))
-                    {
-                        projectDir = path;
-                        path = projectDir + "\\" + ModifyProjectCompany.Content.ToString() + "." + ModifyProjectName.Content + ".Domain";
-                        if (Directory.Exists(path))
-                        {
-                            projectDir = path;
-                            path = projectDir + "\\" + ModifyProjectCompany.Content.ToString() + "." + ModifyProjectName.Content + ".Domain.csproj";
-                            if (File.Exists(path))
-                            {
-                                projectPath = path;
-                            }
-                        }
-                    }
-                }
-            }
+            var domainEntities = parserService.GetDomainEntities(project, settings);
+            vm.SetEntities(domainEntities);
+        }
 
-            if (!string.IsNullOrEmpty(projectPath))
-            {
-                _ = cSharpParserService.ParseSolution(projectPath);
-            }
-        }*/
+        private void RefreshEntitiesList_Click(object sender, RoutedEventArgs e)
+        {
+            ListEntities();
+        }
     }
 }

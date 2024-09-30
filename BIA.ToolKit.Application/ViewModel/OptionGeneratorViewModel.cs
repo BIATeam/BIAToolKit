@@ -19,6 +19,7 @@
         public OptionGeneratorViewModel()
         {
             ZipFeatureTypeList = new();
+            EntityFiles = new();
         }
 
         #region CurrentProject

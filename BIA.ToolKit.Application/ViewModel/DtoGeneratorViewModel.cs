@@ -2,54 +2,96 @@
 {
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject;
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.IO;
+    using System.Linq;
 
     public class DtoGeneratorViewModel : ObservableObject
     {
-        /// <summary>
-        /// NOTE: You need a parameterless     
-        /// constructor for post-backs in MVC    
-        /// </summary>
+        private string projectDomainNamespace;
+        private readonly List<EntityInfo> entities;
+
         public DtoGeneratorViewModel()
         {
-            DtoGenerator = new DtoGenerator();
+            entities = new();
+            EntitiesNames = new();
         }
-        /*
-        public DtoGeneratorViewModel(IProductRepository repository)
-        {
-            //Repository = repository;
-        }*/
 
-        //public IProductRepository Repository { get; set; }
-        public DtoGenerator DtoGenerator { get; set; }
+        public event EventHandler<EntityInfo> EntityChanged;
 
-        public void InitProject(string rootFolder, string projectCompanyName = "", string projectName = "")
+        private bool isProjectChosen;
+        public bool IsProjectChosen
         {
-            string path = rootFolder;
-            if (Directory.Exists(path))
+            get => isProjectChosen;
+            set
             {
-                DtoGenerator.ProjectDir = path;
-                path = DtoGenerator.ProjectDir + "\\" + projectName;
-                if (Directory.Exists(path))
-                {
-                    DtoGenerator.ProjectDir = path;
-                    path = DtoGenerator.ProjectDir + "\\DotNet";
-                    if (Directory.Exists(path))
-                    {
-                        DtoGenerator.ProjectDir = path;
-                        path = DtoGenerator.ProjectDir + "\\" + projectCompanyName + "." + projectName + ".Domain";
-                        if (Directory.Exists(path))
-                        {
-                            DtoGenerator.ProjectDir = path;
-                            path = DtoGenerator.ProjectDir + "\\" + projectCompanyName + "." + projectName + ".Domain.csproj";
-                            if (File.Exists(path))
-                            {
-                                DtoGenerator.ProjectPath = path;
-                            }
-                        }
-                    }
-                }
+                isProjectChosen = value;
+                RaisePropertyChanged(nameof(IsProjectChosen));
             }
+        }
+
+        private ObservableCollection<string> entitiesNames;
+        public ObservableCollection<string> EntitiesNames
+        {
+            get => entitiesNames;
+            set 
+            { 
+                entitiesNames = value; 
+                RaisePropertyChanged(nameof(EntitiesNames));
+            }
+        }
+
+        private string selectedEntityName;
+        public string SelectedEntityName
+        {
+            get => selectedEntityName;
+            set 
+            { 
+                selectedEntityName = value; 
+                RaisePropertyChanged(nameof(SelectedEntityName));
+                NotifyEntityChanged();
+            }
+        }
+
+        public void SetProject(Project project)
+        {
+            projectDomainNamespace = GetProjectDomainNamespace(project);
+            IsProjectChosen = true;
+        }
+
+        public void SetEntities(List<EntityInfo> entities)
+        {
+            this.entities.Clear();
+            this.entities.AddRange(entities);
+
+            var entitiesNames = entities
+                .Select(x => string.Join(".", x.Namespace, x.Name).Replace($"{projectDomainNamespace}.", string.Empty))
+                .OrderBy(x => x)
+                .ToList();
+
+            EntitiesNames.Clear();
+            foreach (var entityName in entitiesNames)
+            {
+                EntitiesNames.Add(entityName);
+            }
+        }
+
+        private void NotifyEntityChanged()
+        {
+            var selectedEntityNamespace = $"{projectDomainNamespace}.{SelectedEntityName}";
+            var entity = entities.First(e => string.Join(".", e.Namespace, e.Name).Equals(selectedEntityNamespace));
+            EntityChanged?.Invoke(this, entity);
+        }
+
+        private static string GetProjectDomainNamespace(Project project)
+        {
+            if (project == null)
+                return string.Empty;
+
+            return string.Join(".", project.CompanyName, project.Name, "Domain");
         }
     }
 }

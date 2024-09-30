@@ -49,7 +49,7 @@
         public OptionGeneratorUC()
         {
             InitializeComponent();
-            vm = (OptionGeneratorViewModel)base.DataContext;
+            vm = (OptionGeneratorViewModel)DataContext;
             backSettingsList = new();
             frontSettingsList = new();
         }
@@ -244,7 +244,7 @@
 
             vm.Entity = null;
             vm.EntitySelected = null;
-            vm.EntityFiles = null;
+            vm.EntityFiles.Clear();
             vm.EntityNamePlural = null;
             vm.Domain = null;
 
@@ -404,48 +404,15 @@
         /// </summary>
         private void ListEntityFiles()
         {
-            Dictionary<string, string> entityFiles = new();
+            vm.EntityFiles.Clear();
+            entityInfoFiles.Clear();
 
-            string entitiesFolder = $"{vm.CurrentProject.CompanyName}.{vm.CurrentProject.Name}.Domain";
-            string path = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, entitiesFolder);
-
-            try
+            var entities = service.GetDomainEntities(vm.CurrentProject, settings, new List<string> { "id" });
+            foreach (var entity in entities)
             {
-                var files = new List<string>();
-                if (Directory.Exists(path))
-                {
-                    var subFolders = Directory.GetDirectories(path).Where(x => !excludedEntitiesFolders.Contains(Path.GetFileName(x))).ToList();
-                    foreach(var subFolder in subFolders)
-                    {
-                        var subFolderFiles = Directory.EnumerateFiles(subFolder, "*.cs", SearchOption.AllDirectories);
-                        files.AddRange(subFolderFiles.Where(file => !excludedEntitiesFilesSuffixes.Any(suffix => Path.GetFileNameWithoutExtension(file).EndsWith(suffix))));
-                    }
-                }
-
-                foreach(var file in files.OrderBy(x => Path.GetFileName(x)))
-                {
-                    try
-                    {
-                        var entityInfo = service.ParseEntity(file, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
-                        entityInfo.Properties.RemoveAll(p => p.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase));
-                        if (!entityInfo.BaseList.Any(x => x.StartsWith("IEntity<")))
-                            continue;
-
-                        entityInfoFiles.Add(file, entityInfo);
-                        entityFiles.Add(Path.GetFileNameWithoutExtension(file), file);
-                    }
-                    catch
-                    {
-                        continue;
-                    }
-                }
+                entityInfoFiles.Add(entity.Path, entity);
+                vm.EntityFiles.Add(Path.GetFileNameWithoutExtension(entity.Path), entity.Path);
             }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine(ex.Message, "Red");
-            }
-
-            vm.EntityFiles = entityFiles;
         }
 
         /// <summary>

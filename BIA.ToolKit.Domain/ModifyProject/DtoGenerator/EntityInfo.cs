@@ -7,14 +7,14 @@ namespace BIA.ToolKit.Domain.DtoGenerator
 
     public class EntityInfo
     {
-        public EntityInfo(string @namespace, string name, string? baseType, string? primaryKey/*, string relativeDirectory*/, List<AttributeArgumentSyntax>? arguments, List<string>? baseList)
+        public EntityInfo(string path, string @namespace, string name, string? baseType, string? primaryKey, List<AttributeArgumentSyntax>? arguments, List<string>? baseList)
         {
+            Path = path;
             Namespace = @namespace;
             Name = name;
             BaseType = baseType;
             PrimaryKey = primaryKey;
             BaseList = baseList ?? new List<string>();
-            //RelativeDirectory = relativeDirectory.NormalizePath();
             if (arguments != null && arguments.Count > 0)
             {
                 ClassAnnotations = new();
@@ -23,8 +23,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
         }
 
         public string Namespace { get; }
-        //public string RelativeNamespace => RelativeDirectory.Replace('/', '.');
-        //public string RelativeDirectory { get; }
+        public string Path { get; }
         public string NamespaceLastPart => Namespace.Split('.').Last();
         public string CompagnyName => Namespace.Split('.').First();
         public string ProjectName => Namespace.Split('.').ElementAt(1);

@@ -3,6 +3,8 @@
     using BIA.ToolKit.Application.Extensions;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Parser;
+    using BIA.ToolKit.Application.Settings;
+    using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.DtoGenerator;
     using Microsoft.Build.Locator;
@@ -23,6 +25,8 @@ using Roslyn.Services;*/
 
     public class CSharpParserService
     {
+        private readonly List<string> excludedEntitiesFolders = new() { "bin", "obj" };
+        private readonly List<string> excludedEntitiesFilesSuffixes = new() { "Mapper", "Service", "Repository", "Customizer", "Specification" };
         private readonly IConsoleWriter consoleWriter;
 
         public CSharpParserService(IConsoleWriter consoleWriter)
@@ -104,7 +108,7 @@ using Roslyn.Services;*/
             var properties = GetPropertyList(root.Descendants<PropertyDeclarationSyntax>().ToList(), dtoCustomFieldName);
             var classAnnotations = GetClassAnnotationList(classDeclarationSyntax.AttributeLists, dtoCustomClassName);
 
-            var entityInfo = new EntityInfo(@namespace, className, baseType, primaryKey/*, relativeDirectory*/, classAnnotations, baseListNames);
+            var entityInfo = new EntityInfo(fileName, @namespace, className, baseType, primaryKey/*, relativeDirectory*/, classAnnotations, baseListNames);
             entityInfo.Properties.AddRange(properties);
             if (keyNames != null)
             {
@@ -294,5 +298,53 @@ using Roslyn.Services;*/
             return null;
         }
 
+        public List<EntityInfo> GetDomainEntities(Domain.ModifyProject.Project project, CRUDSettings settings, IEnumerable<string> excludedPropertiesNames = null)
+        {
+            List<EntityInfo> entities = new();
+
+            string entitiesFolder = $"{project.CompanyName}.{project.Name}.Domain";
+            string projectDomainPath = Path.Combine(project.Folder, Constants.FolderDotNet, entitiesFolder);
+
+            try
+            {
+                var files = new List<string>();
+                if (Directory.Exists(projectDomainPath))
+                {
+                    var subFolders = Directory.GetDirectories(projectDomainPath).Where(x => !excludedEntitiesFolders.Contains(Path.GetFileName(x))).ToList();
+                    foreach (var subFolder in subFolders)
+                    {
+                        var subFolderFiles = Directory.EnumerateFiles(subFolder, "*.cs", SearchOption.AllDirectories);
+                        files.AddRange(subFolderFiles.Where(file => !excludedEntitiesFilesSuffixes.Any(suffix => Path.GetFileNameWithoutExtension(file).EndsWith(suffix))));
+                    }
+                }
+
+                foreach (var file in files.OrderBy(x => Path.GetFileName(x)))
+                {
+                    try
+                    {
+                        var entityInfo = ParseEntity(file, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
+                        if (!entityInfo.BaseList.Any(x => x.StartsWith("IEntity<")))
+                            continue;
+
+                        if(excludedPropertiesNames != null)
+                        {
+                            entityInfo.Properties.RemoveAll(p => excludedPropertiesNames.Any(x => p.Name.Equals(x, StringComparison.InvariantCultureIgnoreCase)));
+                        }
+
+                        entities.Add(entityInfo);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine(ex.Message, "Red");
+            }
+
+            return entities;
+        }
     }
 }

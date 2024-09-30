@@ -11,9 +11,11 @@
         <local:DtoGeneratorViewModel />
     </UserControl.DataContext>
     <Grid Margin="0,0,-120,0">
-        <Label Content="Project file :" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="9,0,0,0" />
-        <TextBox HorizontalAlignment="Left" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="861" x:Name="ProjectPath" Height="21"  Margin="10,26,0,0"/>
-        <Button Content="..." VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" x:Name="ProjectBrowse" Margin="871,27,0,0" Click="ProjectBrowse_Click" HorizontalAlignment="Left" Width="35"/>
-        <Button Content="Load Project" HorizontalAlignment="Left" Margin="11,58,0,0" x:Name="LoadProject" VerticalAlignment="Top" Click="LoadProject_Click" Width="99"/>
+        <Label Content="Entity:"  Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
+        <ComboBox ItemsSource="{Binding EntitiesNames}" SelectedValue="{Binding SelectedEntityName, UpdateSourceTrigger=PropertyChanged}" Margin="40,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="400
+" IsEnabled="{Binding IsProjectChosen}"/>
+        <Button IsEnabled="{Binding IsProjectChosen}" Margin="450,24,0,0" Width="24" x:Name="RefreshDtoList" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshEntitiesList_Click" ToolTip="Refresh list">
+            <Image Source="/Images/rafraichir-32.png" />
+        </Button>
     </Grid>
 </UserControl>
