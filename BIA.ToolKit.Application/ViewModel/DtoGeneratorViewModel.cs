@@ -3,11 +3,13 @@
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
+    using Microsoft.Extensions.FileSystemGlobbing.Internal;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Windows.Input;
 
@@ -209,12 +211,19 @@
             {
                 if (selectedEntityProperty.IsSelected && !mappingEntityProperties.Any(x => x.CompositeName == selectedEntityProperty.CompositeName))
                 {
-                    mappingEntityProperties.Add(new MappingEntityProperty
+                    var mappingEntityProperty = new MappingEntityProperty
                     {
                         CompositeName = selectedEntityProperty.CompositeName,
                         MappingName = selectedEntityProperty.CompositeName.Replace(".", string.Empty),
                         MappingType = ComputeMappingType(selectedEntityProperty)
-                    });
+                    };
+
+                    if(mappingEntityProperty.IsOption)
+                    {
+                        mappingEntityProperty.OptionType = ExtractOptionType(selectedEntityProperty.Type);
+                    }
+
+                    mappingEntityProperties.Add(mappingEntityProperty);
                 }
                 AddMappingProperties(selectedEntityProperty.Properties, mappingEntityProperties);
             }
@@ -222,7 +231,7 @@
 
         private string ComputeMappingType(EntityProperty entityProperty)
         {
-            const string ListOptionDto = "List<OptionDto>";
+            const string ListOptionDto = "ICollection<OptionDto>";
             const string OptionDto = "OptionDto";
 
             if (OptionsMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
@@ -236,6 +245,15 @@
             }
 
             return OptionDto;
+        }
+
+        private string ExtractOptionType(string optionType)
+        {
+            if (!optionType.Contains('<'))
+                return optionType;
+
+            var regex = new Regex(@"<\s*(\w+)\s*>");
+            return regex.Match(optionType).Groups[1].Value;
         }
 
         private void RemoveMappingProperty(MappingEntityProperty mappingEntityProperty)
@@ -269,5 +287,7 @@
         public string CompositeName { get; set; }
         public string MappingName { get; set; }
         public string MappingType { get; set; }
+        public bool IsOption => MappingType.Equals("OptionDto") || MappingType.Equals("ICollection<OptionDto>");
+        public string OptionType { get; set; }
     }
 }

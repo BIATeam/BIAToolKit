@@ -44,7 +44,9 @@
                 Properties = mappingEntityProperties.Select(x => new PropertyModel() 
                 {
                     Name = x.MappingName,
-                    Type = x.MappingType
+                    Type = x.MappingType,
+                    IsOption = x.IsOption,
+                    OptionType = x.OptionType
                 }).ToList()
             };
 

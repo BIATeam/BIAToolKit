@@ -8,7 +8,17 @@
 
 namespace @(Model.CompanyName).@(Model.ProjectName).DomainDto.@(Model.DomainName).@(Model.DtoName)
 {
+    using System;
+    @if (Model.HasCollectionOptions)
+    {
+    @:using System.Collections.Generic; 
+    }
     using BIA.Net.Core.Domain.Dto.Base;
+    @if (Model.HasOptions)
+    {
+    @:using BIA.Net.Core.Domain.Dto.CustomAttribute;
+    @:using BIA.Net.Core.Domain.Dto.Option; 
+    }
 
     /// <summary>
     /// The DTO used to represent @(Model.NameArticle) @(Model.EntityName).
@@ -17,11 +27,15 @@ namespace @(Model.CompanyName).@(Model.ProjectName).DomainDto.@(Model.DomainName
     {
         @foreach (var property in Model.Properties)
         {
-            @:/// <summary>
-            @:/// Gets or sets the @property.Name
-            @:/// </summary>
-            @:public @property.Type @property.Name { get; set; }
-            @:
+        @:/// <summary>
+        @:/// Gets or sets the @property.Name
+        @:/// </summary>
+        if(property.IsOption)
+        {
+        @:[BiaDtoField(ItemType = "@property.OptionType")]    
+        }
+        @:public @Raw(property.Type) @property.Name { get; set; }
+        @:
         }
     }
 }
