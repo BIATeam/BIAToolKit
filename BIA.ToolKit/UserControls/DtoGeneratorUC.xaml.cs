@@ -80,5 +80,10 @@
                 column.Width = double.NaN;
             }
         }
+
+        private void GenerateButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

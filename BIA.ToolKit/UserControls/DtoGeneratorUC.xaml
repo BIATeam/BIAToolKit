@@ -7,7 +7,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" Width="930">
     <UserControl.DataContext>
-        <!-- Declaratively create an instance of our SongViewModel -->
         <local:DtoGeneratorViewModel />
     </UserControl.DataContext>
     <UserControl.Resources>
@@ -20,8 +19,10 @@
             <Image Source="/Images/rafraichir-32.png" />
         </Button>
 
+        <Button x:Name="GenerateButton" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,15,5,0" Content="Generate" Width="160" Height="50" Click="GenerateButton_Click" IsEnabled="{Binding IsGenerateButtonEnabled}"></Button>
+
         <Label Content="Properties:"  Margin="20,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-        <TreeView Name="ClassTreeView" Margin="40,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="270" Width="400" ItemsSource="{Binding EntityProperties}" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
+        <TreeView Name="ClassTreeView" Margin="40,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="250" Width="400" ItemsSource="{Binding EntityProperties}" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type local:EntityPropertyViewModel}" ItemsSource="{Binding Properties}">
                     <StackPanel Orientation="Horizontal">
@@ -35,9 +36,8 @@
 
         <Button Content="Map to ➜" Margin="450,200,0,0" Width="60" x:Name="SelectProperties" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="SelectProperties_Click" ToolTip="Select properties"></Button>
 
-        <Button Content="Remove all" Margin="0,50,5,0" Width="70" x:Name="RemoveAllMappingProperties" Height="24" HorizontalAlignment="Right" VerticalAlignment="Top" Click="RemoveAllMappingProperties_Click" ToolTip="Select properties"></Button>
         <Label Content="Mapping:"  Margin="500,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-        <ListView Name="PropertiesListView" Margin="520,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="270" Width="435" ItemsSource="{Binding MappingEntityProperties}" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
+        <ListView Name="PropertiesListView" Margin="520,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="250" Width="435" ItemsSource="{Binding MappingEntityProperties}" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="auto">
@@ -79,5 +79,7 @@
                 </GridView>
             </ListView.View>
         </ListView>
+        <Button Content="Remove all" Margin="0,0,5,2" Width="70" x:Name="RemoveAllMappingProperties" Height="24" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="RemoveAllMappingProperties_Click" ToolTip="Select properties"></Button>
+
     </Grid>
 </UserControl>

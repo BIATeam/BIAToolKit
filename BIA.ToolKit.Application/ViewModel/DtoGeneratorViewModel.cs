@@ -105,6 +105,8 @@
             }
         }
 
+        public bool IsGenerateButtonEnabled => MappingEntityProperties.Count > 0;
+
         public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityPropertyViewModel>((mappingEntityProperty) => RemoveMappingProperty(mappingEntityProperty));
 
         public void SetProject(Project project)
@@ -176,6 +178,7 @@
             var mappingEntityProperties = new List<MappingEntityPropertyViewModel>(MappingEntityProperties);
             AddMappingProperties(EntityProperties, mappingEntityProperties);
             MappingEntityProperties = new(mappingEntityProperties.OrderBy(x => x.CompositeName));
+            RaisePropertyChanged(nameof(IsGenerateButtonEnabled));
         }
 
         private void AddMappingProperties(IEnumerable<EntityPropertyViewModel> entityProperties, List<MappingEntityPropertyViewModel> mappingEntityProperties)
@@ -216,11 +219,13 @@
         private void RemoveMappingProperty(MappingEntityPropertyViewModel mappingEntityProperty)
         {
             MappingEntityProperties.Remove(mappingEntityProperty);
+            RaisePropertyChanged(nameof(IsGenerateButtonEnabled));
         }
 
         public void RemoveAllMappingProperties()
         {
             MappingEntityProperties.Clear();
+            RaisePropertyChanged(nameof(IsGenerateButtonEnabled));
         }
     }
 
