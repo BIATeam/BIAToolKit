@@ -83,7 +83,7 @@
 
         private void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
-
+            var mappingProperties = vm.MappingEntityProperties;
         }
     }
 }

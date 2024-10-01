@@ -238,7 +238,7 @@
         public List<EntityPropertyViewModel> Properties { get; set; } = new();
     }
 
-    public class MappingEntityPropertyViewModel : ObservableObject
+    public class MappingEntityPropertyViewModel
     {
         public string CompositeName { get; set; }
         public string MappingName { get; set; }
