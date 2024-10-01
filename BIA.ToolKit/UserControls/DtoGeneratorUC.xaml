@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
              mc:Ignorable="d" 
-             d:DesignHeight="450" Width="922">
+             d:DesignHeight="450" Width="930">
     <UserControl.DataContext>
         <!-- Declaratively create an instance of our SongViewModel -->
         <local:DtoGeneratorViewModel />
@@ -21,7 +21,7 @@
         </Button>
 
         <Label Content="Properties:"  Margin="20,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-        <TreeView Name="ClassTreeView" Margin="40,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="270" Width="400" ItemsSource="{Binding EntityProperties}">
+        <TreeView Name="ClassTreeView" Margin="40,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="270" Width="400" ItemsSource="{Binding EntityProperties}" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type local:EntityPropertyViewModel}" ItemsSource="{Binding Properties}">
                     <StackPanel Orientation="Horizontal">
@@ -35,34 +35,44 @@
 
         <Button Content="Map to ➜" Margin="450,200,0,0" Width="60" x:Name="SelectProperties" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="SelectProperties_Click" ToolTip="Select properties"></Button>
 
+        <Button Content="Remove all" Margin="0,50,5,0" Width="70" x:Name="RemoveAllMappingProperties" Height="24" HorizontalAlignment="Right" VerticalAlignment="Top" Click="RemoveAllMappingProperties_Click" ToolTip="Select properties"></Button>
         <Label Content="Mapping:"  Margin="500,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-        <ListView Name="PropertiesListView" Margin="520,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="270" Width="435" ItemsSource="{Binding MappingEntityProperties}">
+        <ListView Name="PropertiesListView" Margin="520,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="270" Width="435" ItemsSource="{Binding MappingEntityProperties}" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Entity property" Width="130" DisplayMemberBinding="{Binding CompositeName}"></GridViewColumn>
-                    <GridViewColumn Header="Mapping property" Width="130">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBox HorizontalAlignment="Stretch" MinWidth="120" Text="{Binding MappingName}"></TextBox>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Mapping Type" Width="120">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <ComboBox HorizontalAlignment="Stretch" MinWidth="110" ItemsSource="{Binding MappingTypes}" SelectedValue="{Binding MappingType, UpdateSourceTrigger=PropertyChanged}" IsEnabled="true"></ComboBox>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
                     <GridViewColumn Width="auto">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <Button 
-                                    Content="D" 
-                                    Width="30"
+                                <Button
+                                    Width="15"
+                                    Padding="3"
+                                    BorderThickness="0"
+                                    Background="Transparent"
                                     Command="{Binding DataContext.RemoveMappingPropertyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}">
+                                    <Image Source="/Images/cross.png" RenderOptions.BitmapScalingMode="Fant" />
                                 </Button>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Entity property" Width="auto">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock HorizontalAlignment="Stretch" FontWeight="Bold" Foreground="Black" Text="{Binding CompositeName}"></TextBlock>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Mapping property" Width="auto">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Padding="2" HorizontalAlignment="Stretch" MinWidth="100" Text="{Binding MappingName}"></TextBox>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Mapping Type" Width="auto">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock HorizontalAlignment="Stretch" Foreground="Black" Text="{Binding MappingType}"></TextBlock>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>

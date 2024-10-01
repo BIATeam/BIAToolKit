@@ -7,6 +7,7 @@
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
+    using System.Data.Common;
     using System.IO;
     using System.Windows;
     using System.Windows.Controls;
@@ -62,6 +63,22 @@
         private void SelectProperties_Click(object sender, RoutedEventArgs e)
         {
             vm.RefreshMappingProperties();
+            ResetMappingColumnsWidths();
+        }
+
+        private void RemoveAllMappingProperties_Click(object sender, RoutedEventArgs e)
+        {
+            vm.RemoveAllMappingProperties();
+        }
+
+        private void ResetMappingColumnsWidths()
+        {
+            var gridView = PropertiesListView.View as GridView;
+            foreach (var column in gridView.Columns)
+            {
+                column.Width = 0;
+                column.Width = double.NaN;
+            }
         }
     }
 }

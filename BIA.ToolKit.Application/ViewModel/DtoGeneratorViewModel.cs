@@ -14,12 +14,12 @@
     {
         private string projectDomainNamespace;
         private readonly List<EntityInfo> entities;
-        private readonly List<string> OptionsMappingTypes = new List<string>
+        private readonly List<string> OptionsMappingTypes = new()
         {
             "icollection",
             "list"
         };
-        private readonly List<string> PrimitiveTypes = new List<string>
+        private readonly List<string> StandardMappingTypes = new()
         {
             "bool",
             "byte",
@@ -34,7 +34,12 @@
             "ulong",
             "short",
             "ushort",
-            "string"
+            "string",
+            "DateTime",
+            "DateOnly",
+            "TimeSpan",
+            "TimeOnly",
+            "byte[]"
         };
 
         public DtoGeneratorViewModel()
@@ -76,6 +81,7 @@
                 selectedEntityName = value;
                 RaisePropertyChanged(nameof(SelectedEntityName));
                 RefreshEntityPropertiesTreeView();
+                RemoveAllMappingProperties();
             }
         }
 
@@ -135,6 +141,8 @@
         private void RefreshEntityPropertiesTreeView()
         {
             EntityProperties.Clear();
+            if (SelectedEntityName == null)
+                return;
 
             var selectedEntity = entities.First(e => e.FullNamespace.EndsWith(SelectedEntityName));
             foreach (var property in selectedEntity.Properties)
@@ -176,13 +184,11 @@
             {
                 if (selectedEntityProperty.IsSelected && !mappingEntityProperties.Any(x => x.CompositeName == selectedEntityProperty.CompositeName))
                 {
-                    var mappingType = ComputeMappingType(selectedEntityProperty);
                     mappingEntityProperties.Add(new MappingEntityPropertyViewModel
                     {
                         CompositeName = selectedEntityProperty.CompositeName,
                         MappingName = selectedEntityProperty.CompositeName.Replace(".", string.Empty),
-                        MappingType = selectedEntityProperty.Type,
-                        MappingTypes = new ObservableCollection<string> { mappingType }
+                        MappingType = ComputeMappingType(selectedEntityProperty)
                     });
                 }
                 AddMappingProperties(selectedEntityProperty.Properties, mappingEntityProperties);
@@ -191,22 +197,30 @@
 
         private string ComputeMappingType(EntityPropertyViewModel entityProperty)
         {
-            if(OptionsMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
+            const string ListOptionDto = "List<OptionDto>";
+            const string OptionDto = "OptionDto";
+
+            if (OptionsMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
             {
-                return "List<OptionDto>";
+                return ListOptionDto;
             }
 
-            if(PrimitiveTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
+            if(StandardMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return entityProperty.Type;
             }
 
-            return "OptionDto";
+            return OptionDto;
         }
 
         private void RemoveMappingProperty(MappingEntityPropertyViewModel mappingEntityProperty)
         {
             MappingEntityProperties.Remove(mappingEntityProperty);
+        }
+
+        public void RemoveAllMappingProperties()
+        {
+            MappingEntityProperties.Clear();
         }
     }
 
@@ -234,7 +248,5 @@
                 RaisePropertyChanged(nameof(MappingType));
             }
         }
-
-        public ObservableCollection<string> MappingTypes { get; set; }
     }
 }

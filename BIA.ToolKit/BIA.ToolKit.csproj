@@ -12,10 +12,13 @@
 
   <ItemGroup>
     <None Remove="bg-default.jpg" />
+    <None Remove="Images\cross.png" />
     <None Remove="Images\fileGenerator.jpg" />
     <None Remove="Images\LogoBIA.png" />
     <None Remove="Images\rafraichir-32.png" />
     <None Remove="Images\Tools.ico" />
+    <None Remove="Images\trash.224x256.png" />
+    <None Remove="Images\trash.png" />
     <None Remove="Images\Warning.png" />
     <None Remove="Images\workOnComputer2.jpg" />
     <None Remove="Test4.gif" />
@@ -32,6 +35,9 @@
     <Resource Include="Images\bg-default.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Content Include="Images\cross.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\fileGenerator.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
