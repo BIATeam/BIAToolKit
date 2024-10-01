@@ -2,6 +2,7 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
@@ -9,6 +10,7 @@
     using BIA.ToolKit.Domain.ModifyProject;
     using System.Data.Common;
     using System.IO;
+    using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
 
@@ -21,6 +23,7 @@
 
         private IConsoleWriter consoleWriter;
         private CSharpParserService parserService;
+        private FileGeneratorService fileGeneratorService;
         private CRUDSettings settings;
         private Project project;
 
@@ -35,11 +38,12 @@
         /// <summary>
         /// Injection of services.
         /// </summary>
-        public void Inject(CSharpParserService parserService,SettingsService settingsService, IConsoleWriter consoleWriter)
+        public void Inject(CSharpParserService parserService,SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService)
         {
             this.consoleWriter = consoleWriter;
             this.parserService = parserService;
             this.settings = new(settingsService);
+            this.fileGeneratorService = fileGeneratorService;
         }
 
         public void SetCurrentProject(Project project)
@@ -83,7 +87,7 @@
 
         private void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
-            var mappingProperties = vm.MappingEntityProperties;
+            fileGeneratorService.GenerateDto(vm.SelectedEntityInfo, vm.MappingEntityProperties);
         }
     }
 }

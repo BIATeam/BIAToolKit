@@ -8,6 +8,7 @@
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
     using System.Windows.Input;
 
     public class DtoGeneratorViewModel : ObservableObject
@@ -80,22 +81,26 @@
             {
                 selectedEntityName = value;
                 RaisePropertyChanged(nameof(SelectedEntityName));
+
+                SelectedEntityInfo = selectedEntityName == null ? null : entities.First(e => e.FullNamespace.EndsWith(selectedEntityName));
                 RefreshEntityPropertiesTreeView();
                 RemoveAllMappingProperties();
             }
         }
 
-        private ObservableCollection<EntityPropertyViewModel> entityProperties;
+        public EntityInfo SelectedEntityInfo { get; private set; }
 
-        public ObservableCollection<EntityPropertyViewModel> EntityProperties
+        private ObservableCollection<EntityProperty> entityProperties;
+
+        public ObservableCollection<EntityProperty> EntityProperties
         {
             get => entityProperties;
             set { entityProperties = value; }
         }
 
-        private ObservableCollection<MappingEntityPropertyViewModel> mappingEntityProperties;
+        private ObservableCollection<MappingEntityProperty> mappingEntityProperties;
 
-        public ObservableCollection<MappingEntityPropertyViewModel> MappingEntityProperties
+        public ObservableCollection<MappingEntityProperty> MappingEntityProperties
         {
             get => mappingEntityProperties;
             set
@@ -107,7 +112,7 @@
 
         public bool IsGenerateButtonEnabled => MappingEntityProperties.Count > 0;
 
-        public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityPropertyViewModel>((mappingEntityProperty) => RemoveMappingProperty(mappingEntityProperty));
+        public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>((mappingEntityProperty) => RemoveMappingProperty(mappingEntityProperty));
 
         public void SetProject(Project project)
         {
@@ -143,13 +148,12 @@
         private void RefreshEntityPropertiesTreeView()
         {
             EntityProperties.Clear();
-            if (SelectedEntityName == null)
+            if (SelectedEntityInfo == null)
                 return;
 
-            var selectedEntity = entities.First(e => e.FullNamespace.EndsWith(SelectedEntityName));
-            foreach (var property in selectedEntity.Properties)
+            foreach (var property in SelectedEntityInfo.Properties)
             {
-                var propertyViewModel = new EntityPropertyViewModel
+                var propertyViewModel = new EntityProperty
                 {
                     Name = property.Name,
                     Type = property.Type,
@@ -161,7 +165,7 @@
             }
         }
 
-        private void FillEntityProperties(EntityPropertyViewModel property)
+        private void FillEntityProperties(EntityProperty property)
         {
             var propertyEntity = entities.FirstOrDefault(e => e.Name == property.Type);
             if (propertyEntity == null)
@@ -169,25 +173,25 @@
                 return;
             }
 
-            property.Properties.AddRange(propertyEntity.Properties.Select(p => new EntityPropertyViewModel { Name = p.Name, Type = p.Type, CompositeName = $"{property.CompositeName}.{p.Name}" }));
+            property.Properties.AddRange(propertyEntity.Properties.Select(p => new EntityProperty { Name = p.Name, Type = p.Type, CompositeName = $"{property.CompositeName}.{p.Name}" }));
             property.Properties.ForEach(p => FillEntityProperties(p));
         }
 
         public void RefreshMappingProperties()
         {
-            var mappingEntityProperties = new List<MappingEntityPropertyViewModel>(MappingEntityProperties);
+            var mappingEntityProperties = new List<MappingEntityProperty>(MappingEntityProperties);
             AddMappingProperties(EntityProperties, mappingEntityProperties);
             MappingEntityProperties = new(mappingEntityProperties.OrderBy(x => x.CompositeName));
             RaisePropertyChanged(nameof(IsGenerateButtonEnabled));
         }
 
-        private void AddMappingProperties(IEnumerable<EntityPropertyViewModel> entityProperties, List<MappingEntityPropertyViewModel> mappingEntityProperties)
+        private void AddMappingProperties(IEnumerable<EntityProperty> entityProperties, List<MappingEntityProperty> mappingEntityProperties)
         {
             foreach (var selectedEntityProperty in entityProperties)
             {
                 if (selectedEntityProperty.IsSelected && !mappingEntityProperties.Any(x => x.CompositeName == selectedEntityProperty.CompositeName))
                 {
-                    mappingEntityProperties.Add(new MappingEntityPropertyViewModel
+                    mappingEntityProperties.Add(new MappingEntityProperty
                     {
                         CompositeName = selectedEntityProperty.CompositeName,
                         MappingName = selectedEntityProperty.CompositeName.Replace(".", string.Empty),
@@ -198,7 +202,7 @@
             }
         }
 
-        private string ComputeMappingType(EntityPropertyViewModel entityProperty)
+        private string ComputeMappingType(EntityProperty entityProperty)
         {
             const string ListOptionDto = "List<OptionDto>";
             const string OptionDto = "OptionDto";
@@ -216,7 +220,7 @@
             return OptionDto;
         }
 
-        private void RemoveMappingProperty(MappingEntityPropertyViewModel mappingEntityProperty)
+        private void RemoveMappingProperty(MappingEntityProperty mappingEntityProperty)
         {
             MappingEntityProperties.Remove(mappingEntityProperty);
             RaisePropertyChanged(nameof(IsGenerateButtonEnabled));
@@ -229,16 +233,16 @@
         }
     }
 
-    public class EntityPropertyViewModel
+    public class EntityProperty
     {
         public string Name { get; set; }
         public string Type { get; set; }
         public bool IsSelected { get; set; }
         public string CompositeName { get; set; }
-        public List<EntityPropertyViewModel> Properties { get; set; } = new();
+        public List<EntityProperty> Properties { get; set; } = new();
     }
 
-    public class MappingEntityPropertyViewModel
+    public class MappingEntityProperty
     {
         public string CompositeName { get; set; }
         public string MappingName { get; set; }

@@ -8,6 +8,7 @@
     using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common.Extensions;
@@ -38,7 +39,8 @@
         }
 
         public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
-            ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService, FeatureSettingService featureSettingService)
+            ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService, FeatureSettingService featureSettingService,
+            FileGeneratorService fileGeneratorService)
         {
             this.settings = settings;
             this.repositoryService = repositoryService;
@@ -50,7 +52,7 @@
             MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService);
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter);
             OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter);
-            DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter);
+            DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService);
             this.crudSettings = new(settingsService);
         }
 

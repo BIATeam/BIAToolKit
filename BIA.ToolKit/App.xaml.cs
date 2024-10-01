@@ -2,6 +2,7 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Helper;
     using Microsoft.Extensions.DependencyInjection;
     using System;
@@ -32,6 +33,7 @@
             services.AddSingleton<GenerateCrudService>();
             services.AddSingleton<SettingsService>();
             services.AddSingleton<FeatureSettingService>();
+            services.AddSingleton<FileGeneratorService>();
         }
         private void OnStartup(object sender, StartupEventArgs e)
         {
