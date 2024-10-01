@@ -31,14 +31,14 @@
             this.consoleWriter = consoleWriter;
         }
 
-        public async Task GenerateDto(Project project, EntityInfo entityInfo, IEnumerable<MappingEntityProperty> mappingEntityProperties)
+        public async Task GenerateDto(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
         {
             var model = new DtoModel
             {
                 CompanyName = project.CompanyName,
                 ProjectName = project.Name,
                 NameArticle = ComputeNameArticle(entityInfo.Name),
-                DomainName = entityInfo.Name,
+                DomainName = domainName,
                 DtoName = entityInfo.Name + "Dto",
                 EntityName = entityInfo.Name,
                 Properties = mappingEntityProperties.Select(x => new PropertyModel() 
@@ -55,7 +55,7 @@
                 project.Folder, 
                 Constants.FolderDotNet, 
                 string.Join(".", project.CompanyName, project.Name, "Domain", "Dto"),
-                entityInfo.Name, 
+                model.DomainName, 
                 $"{model.DtoName}.cs");
 
             await GenerateFile(content, destPath);

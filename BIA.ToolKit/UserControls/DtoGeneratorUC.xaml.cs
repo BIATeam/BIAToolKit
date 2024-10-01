@@ -85,7 +85,7 @@
 
         private async void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
-            await fileGeneratorService.GenerateDto(project, vm.SelectedEntityInfo, vm.MappingEntityProperties);
+            await fileGeneratorService.GenerateDto(project, vm.SelectedEntityInfo, vm.EntityDomain, vm.MappingEntityProperties);
         }
     }
 }

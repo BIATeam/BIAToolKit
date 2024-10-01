@@ -83,15 +83,28 @@
                 RaisePropertyChanged(nameof(SelectedEntityName));
 
                 SelectedEntityInfo = selectedEntityName == null ? null : entities.First(e => e.FullNamespace.EndsWith(selectedEntityName));
+                RaisePropertyChanged(nameof(IsEntitySelected));
+
+                EntityDomain = selectedEntityName?.Split(".").First();
+
                 RefreshEntityPropertiesTreeView();
                 RemoveAllMappingProperties();
             }
         }
 
-        public EntityInfo SelectedEntityInfo { get; private set; }
+        private string entityDomain;
+        public string EntityDomain
+        {
+            get => entityDomain;
+            set 
+            { 
+                entityDomain = value; 
+                RaisePropertyChanged(nameof(EntityDomain));
+                RaisePropertyChanged(nameof(IsGenerationEnabled));
+            }
+        }
 
         private ObservableCollection<EntityProperty> entityProperties;
-
         public ObservableCollection<EntityProperty> EntityProperties
         {
             get => entityProperties;
@@ -99,7 +112,6 @@
         }
 
         private ObservableCollection<MappingEntityProperty> mappingEntityProperties;
-
         public ObservableCollection<MappingEntityProperty> MappingEntityProperties
         {
             get => mappingEntityProperties;
@@ -107,10 +119,14 @@
             {
                 mappingEntityProperties = value;
                 RaisePropertyChanged(nameof(MappingEntityProperties));
+                RaisePropertyChanged(nameof(IsGenerationEnabled));
             }
         }
 
-        public bool IsGenerateButtonEnabled => MappingEntityProperties.Count > 0;
+        public EntityInfo SelectedEntityInfo { get; private set; }
+        public bool IsEntitySelected => SelectedEntityInfo != null;
+        public bool HasMappingProperties => MappingEntityProperties.Count > 0;
+        public bool IsGenerationEnabled => HasMappingProperties && !string.IsNullOrWhiteSpace(EntityDomain);
 
         public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>((mappingEntityProperty) => RemoveMappingProperty(mappingEntityProperty));
 
@@ -182,7 +198,9 @@
             var mappingEntityProperties = new List<MappingEntityProperty>(MappingEntityProperties);
             AddMappingProperties(EntityProperties, mappingEntityProperties);
             MappingEntityProperties = new(mappingEntityProperties.OrderBy(x => x.CompositeName));
-            RaisePropertyChanged(nameof(IsGenerateButtonEnabled));
+
+            RaisePropertyChanged(nameof(HasMappingProperties));
+            RaisePropertyChanged(nameof(IsGenerationEnabled));
         }
 
         private void AddMappingProperties(IEnumerable<EntityProperty> entityProperties, List<MappingEntityProperty> mappingEntityProperties)
@@ -223,13 +241,17 @@
         private void RemoveMappingProperty(MappingEntityProperty mappingEntityProperty)
         {
             MappingEntityProperties.Remove(mappingEntityProperty);
-            RaisePropertyChanged(nameof(IsGenerateButtonEnabled));
+
+            RaisePropertyChanged(nameof(HasMappingProperties));
+            RaisePropertyChanged(nameof(IsGenerationEnabled));
         }
 
         public void RemoveAllMappingProperties()
         {
             MappingEntityProperties.Clear();
-            RaisePropertyChanged(nameof(IsGenerateButtonEnabled));
+
+            RaisePropertyChanged(nameof(HasMappingProperties));
+            RaisePropertyChanged(nameof(IsGenerationEnabled));
         }
     }
 
