@@ -242,16 +242,6 @@
     {
         public string CompositeName { get; set; }
         public string MappingName { get; set; }
-
-        private string mappingType;
-        public string MappingType
-        {
-            get => mappingType;
-            set 
-            { 
-                mappingType = value; 
-                RaisePropertyChanged(nameof(MappingType));
-            }
-        }
+        public string MappingType { get; set; }
     }
 }
