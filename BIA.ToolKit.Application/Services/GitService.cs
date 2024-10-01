@@ -133,7 +133,7 @@
         public bool ApplyDiff(bool actionFinishedAtEnd, string projectPath, string migrateFilePath)
         {
             outPut.AddMessageLine($"Apply diff", "Pink");
-
+            outPut.AddMessageLine($"On project : {projectPath}", "Pink");
             // cd "...\\YourProject" git apply --reject --whitespace=fix "3.2.2-3.3.0.patch" \
             int result = RunScript("git", $"apply --reject --whitespace=fix {migrateFilePath}", projectPath).Result;
             if (result == 0)

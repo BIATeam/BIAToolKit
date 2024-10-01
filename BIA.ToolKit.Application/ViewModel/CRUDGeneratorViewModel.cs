@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
+    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -19,6 +20,7 @@
         {
             OptionItems = new();
             ZipFeatureTypeList = new();
+            FeatureNames = new();
         }
 
         #region CurrentProject
@@ -54,6 +56,7 @@
                 if (dtoEntity != value)
                 {
                     dtoEntity = value;
+                    UpdateParentPreSelection();
                 }
             }
         }
@@ -111,6 +114,7 @@
                     isDtoParsed = value;
                     RaisePropertyChanged(nameof(IsDtoParsed));
                     RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                    RaisePropertyChanged(nameof(IsOptionItemEnable));
                 }
             }
         }
@@ -157,6 +161,64 @@
                 }
             }
         }
+        #endregion
+
+        #region Feature
+        private ObservableCollection<string> featureNames;
+        public ObservableCollection<string> FeatureNames
+        {
+            get => featureNames;
+            set
+            {
+                if (featureNames != value)
+                {
+                    featureNames = value;
+                    RaisePropertyChanged(nameof(FeatureNames));
+                }
+            }
+        }
+
+        private string featureNameSelected;
+        public string FeatureNameSelected
+        {
+            get => featureNameSelected;
+            set
+            {
+                if (featureNameSelected != value)
+                {
+                    featureNameSelected = value;
+                    RaisePropertyChanged(nameof(FeatureNameSelected));
+                    RaisePropertyChanged(nameof(IsOptionItemEnable));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                    RaisePropertyChanged(nameof(IsWebApiAvailable));
+                    RaisePropertyChanged(nameof(IsFrontAvailable));
+                    IsWebApiSelected = IsWebApiAvailable;
+                    IsFrontSelected = IsFrontAvailable;
+                    UpdateParentPreSelection();
+                }
+            }
+        }
+
+        private void UpdateFeatureSelection()
+        {
+            ZipFeatureTypeList.ForEach(x => x.IsChecked = false);
+            if (string.IsNullOrEmpty(featureNameSelected))
+                return;
+
+            foreach (var zipFeatureType in ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected))
+            {
+                if (zipFeatureType.GenerationType == GenerationType.WebApi && isWebApiSelected)
+                {
+                    zipFeatureType.IsChecked = true;
+                    continue;
+                }
+                if (zipFeatureType.GenerationType == GenerationType.Front && isFrontSelected)
+                {
+                    zipFeatureType.IsChecked = true;
+                    continue;
+                }
+            }
+        }
 
         #endregion
 
@@ -188,6 +250,113 @@
                 }
             }
         }
+        #endregion
+
+        #region Parent
+        public bool IsCheckboxParentEnable
+        {
+            get
+            {
+                var selectedFeaturesWithParent = ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected && x.Parents.Any(y => y.IsPrincipal));
+                // Let checkbox editable if parent is not needed
+                if (selectedFeaturesWithParent.Any() && selectedFeaturesWithParent.All(x => !x.NeedParent))
+                    return true;
+
+                return false;
+            }
+        }
+
+        private bool hasParent;
+        public bool HasParent
+        {
+            get { return hasParent; }
+            set 
+            {
+                if (hasParent != value)
+                {
+                    hasParent = value;
+                    RaisePropertyChanged(nameof(HasParent));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+
+                    if(value == false)
+                    {
+                        ParentDomain = null;
+                        ParentName = null;
+                        ParentNamePlural = null;
+                    }
+                }
+            }
+        }
+
+        private string parentDomain;
+        public string ParentDomain
+        {
+            get { return parentDomain; }
+            set 
+            {
+                if (parentDomain != value)
+                {
+                    parentDomain = value;
+                    RaisePropertyChanged(nameof(ParentDomain));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                }
+            }
+        }
+
+        private string parentName;
+        public string ParentName
+        {
+            get { return parentName; }
+            set
+            {
+                if (parentName != value)
+                {
+                    parentName = value;
+                    RaisePropertyChanged(nameof(ParentName));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                }
+            }
+        }
+
+        private string parentNamePlural;
+        public string ParentNamePlural
+        {
+            get { return parentNamePlural; }
+            set
+            {
+                if (parentNamePlural != value)
+                {
+                    parentNamePlural = value;
+                    RaisePropertyChanged(nameof(ParentNamePlural));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                }
+            }
+        }
+
+        private void UpdateParentPreSelection()
+        {
+            var selectedFeaturesWithParent = ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected && x.Parents.Any(y => y.IsPrincipal));
+            if (selectedFeaturesWithParent.Any() && DtoEntity != null)
+            {
+                var propertiesWithParent = DtoEntity.Properties.Where(x => x.Annotations != null && x.Annotations.Any(y => y.Key == "IsParent"));
+                HasParent = selectedFeaturesWithParent.Any(x => x.NeedParent) || propertiesWithParent.Any();
+
+                var parentPropertyName = propertiesWithParent.FirstOrDefault(x => x.Name.EndsWith("Id"))?.Name;
+                if(!string.IsNullOrEmpty(parentPropertyName))
+                {
+                    var parentName = parentPropertyName.Replace("Id", string.Empty);
+                    ParentName = parentName;
+                    ParentDomain = parentName;
+                }
+            }
+            else
+            {
+                HasParent = selectedFeaturesWithParent.Any(x => x.NeedParent);
+            }
+
+            RaisePropertyChanged(nameof(IsCheckboxParentEnable));
+        }
+
         #endregion
 
         #region CheckBox
@@ -234,86 +403,8 @@
             }
         }
 
-        private bool isCrudSelected;
-        public bool IsCrudSelected
-        {
-            get => isCrudSelected;
-            set
-            {
-                if (isCrudSelected != value)
-                {
-                    isCrudSelected = value;
-                    RaisePropertyChanged(nameof(IsCrudSelected));
-                    RaisePropertyChanged(nameof(IsOptionItemEnable));
-                    UpdateFeatureSelection();
-                }
-            }
-        }
-
-        private bool isOptionSelected;
-        public bool IsOptionSelected
-        {
-            get => isOptionSelected;
-            set
-            {
-                if (isOptionSelected != value)
-                {
-                    isOptionSelected = value;
-                    RaisePropertyChanged(nameof(IsOptionSelected));
-                    RaisePropertyChanged(nameof(IsOptionItemEnable));
-                    UpdateFeatureSelection();
-                }
-            }
-        }
-
-        private bool isTeamSelected;
-        public bool IsTeamSelected
-        {
-            get => isTeamSelected;
-            set
-            {
-                if (isTeamSelected != value)
-                {
-                    isTeamSelected = value;
-                    RaisePropertyChanged(nameof(IsTeamSelected));
-                    UpdateFeatureSelection();
-                }
-            }
-        }
-
-        private void UpdateFeatureSelection()
-        {
-            IsSelectionChange = true;
-
-            foreach (GenerationType generation in Enum.GetValues(typeof(GenerationType)))
-            {
-                bool generationSelected = (generation == GenerationType.WebApi) ? IsWebApiSelected : IsFrontSelected;
-                foreach (FeatureType type in Enum.GetValues(typeof(FeatureType)))
-                {
-                    ZipFeatureType feature = ZipFeatureTypeList.Where(x => x.FeatureType == type && x.GenerationType == generation).FirstOrDefault();
-                    if (feature != null)
-                    {
-                        bool typeSelected = false;
-                        switch (type)
-                        {
-                            case FeatureType.CRUD:
-                                typeSelected = isCrudSelected && generationSelected;
-                                break;
-
-                            case FeatureType.Option:
-                                typeSelected = isOptionSelected && generationSelected;
-                                break;
-
-                            case FeatureType.Team:
-                                typeSelected = IsTeamSelected && generationSelected;
-                                break;
-                        }
-
-                        feature.IsChecked = typeSelected;
-                    }
-                }
-            }
-        }
+        public bool IsWebApiAvailable => !string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.WebApi);
+        public bool IsFrontAvailable => !string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.Front);
         #endregion
 
         #region ZipFile
@@ -347,7 +438,7 @@
         {
             get
             {
-                return IsCrudSelected && !IsOptionSelected;
+                return isDtoParsed && !string.IsNullOrEmpty(featureNameSelected) && !ZipFeatureTypeList.Any(x => x.Feature == featureNameSelected && x.FeatureType == FeatureType.Option);
             }
         }
 
@@ -359,7 +450,9 @@
                     && !string.IsNullOrWhiteSpace(CRUDNameSingular)
                     && !string.IsNullOrWhiteSpace(CRUDNamePlural)
                     && !string.IsNullOrWhiteSpace(dtoDisplayItemSelected)
-                    && (IsWebApiSelected || isFrontSelected) && (IsCrudSelected || isOptionSelected || isTeamSelected);
+                    && (IsWebApiSelected || isFrontSelected) 
+                    && !string.IsNullOrEmpty(featureNameSelected)
+                    && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural) && !string.IsNullOrEmpty(ParentDomain)));
             }
         }
         #endregion
@@ -404,17 +497,35 @@
         /// </summary>
         public string ZipPath { get; }
 
+        /// <summary>
+        /// Name of the feature associated to the ZIP
+        /// </summary>
+        public string Feature { get; }
+
         public List<FeatureData> FeatureDataList { get; set; }
+
+        /// <summary>
+        /// Parents of the feature
+        /// </summary>
+        public List<FeatureParent> Parents { get; set; }
+
+        /// <summary>
+        /// Indicates if the feature needs a parent
+        /// </summary>
+        public bool NeedParent { get; set; }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ZipFeatureType(FeatureType type, GenerationType generation, string name, string path)
+        public ZipFeatureType(FeatureType type, GenerationType generation, string zipName, string zipPath, string feature, List<FeatureParent> parents, bool needParent)
         {
             this.FeatureType = type;
             this.GenerationType = generation;
-            this.ZipName = name;
-            this.ZipPath = path;
+            this.ZipName = zipName;
+            this.ZipPath = zipPath;
+            this.Feature = feature;
+            this.Parents = parents;
+            this.NeedParent = needParent;
         }
     }
 
@@ -431,5 +542,13 @@
             this.FileType = fileType;
             this.CrudNamespace = crudNamespace;
         }
+    }
+
+    public class CrudParent
+    {
+        public bool Exists { get; set; }
+        public string Name { get; set; }
+        public string NamePlural { get; set; }
+        public string Domain { get; set; }
     }
 }

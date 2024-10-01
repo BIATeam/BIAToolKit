@@ -31,6 +31,7 @@
             services.AddSingleton<ZipParserService>();
             services.AddSingleton<GenerateCrudService>();
             services.AddSingleton<SettingsService>();
+            services.AddSingleton<FeatureSettingService>();
         }
         private void OnStartup(object sender, StartupEventArgs e)
         {

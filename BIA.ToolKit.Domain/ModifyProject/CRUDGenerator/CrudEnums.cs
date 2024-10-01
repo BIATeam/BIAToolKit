@@ -22,14 +22,34 @@
         OptionField,
         Display,
         Parent,
+        NoParent,
         AncestorTeam,
+        Nested,
         // Partial
         Config,
         Dependency,
         Navigation,
         Permission,
         Rights,
-        Routing
+        Routing,
+        TeamTypeId,
+        TeamTypeModelBuilder,
+        TeamTypeRoleModelBuilder,
+        RoleModelBuilder,
+        RoleId,
+        TeamTypeIdConstants,
+        TeamTypeRightPrefixConstants,
+        AllEnvironment,
+        TeamConfig,
+        AuthController,
+        TeamMapperUsing,
+        TeamMapperParentTeamId,
+        TeamMapperParentTeamTitle,
+        PlaneModuleChildPath,
+        PlaneIndexHtml,
+        PlaneIndexTsCanViewChildDeclaration,
+        PlaneIndexTsCanViewChildSet,
+        PlaneIndexTsOnViewChild
     }
 
     public enum WebApiFileType
@@ -40,6 +60,7 @@
         Entity,
         IAppService,
         Mapper,
-        Partial
+        Partial,
+        Specification
     }
 }

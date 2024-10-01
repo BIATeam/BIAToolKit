@@ -8,6 +8,7 @@
     using System.Net;
     using System.IO.Compression;
     using System.Net.Http;
+    using System.Linq;
 
     public class RepositoryService
     {
@@ -77,11 +78,17 @@
                                 {
                                     File.Delete(zipPath);
                                 }
+                                else
+                                {
+                                    // Already downloaded
+                                    UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip);
+                                    return Directory.GetDirectories(biaTemplatePathVersionUnzip).FirstOrDefault();
+                                }
                             }
 
                             if (!File.Exists(zipPath))
                             {
-                                outPut.AddMessageLine("Begin dowloading " + tag.CanonicalName + ".zip", "Pink");
+                                outPut.AddMessageLine("Begin downloading " + tag.CanonicalName + ".zip", "Pink");
                                 var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
                                 HttpClientHandler httpClientHandler = new HttpClientHandler
                                 {
@@ -97,7 +104,7 @@
                                         await response.Content.CopyToAsync(fs);
                                     }
                                 }
-                                outPut.AddMessageLine("Dowloaded.", "Pink");
+                                outPut.AddMessageLine("Downloaded.", "Pink");
                             }
 
                             if (!File.Exists(zipPath))
@@ -112,11 +119,7 @@
                                     Directory.Delete(biaTemplatePathVersionUnzip, true);
                                 }
 
-                                if (!Directory.Exists(biaTemplatePathVersionUnzip))
-                                {
-                                    ZipFile.ExtractToDirectory(zipPath, biaTemplatePathVersionUnzip);
-                                    FileTransform.FolderUnix2Dos(biaTemplatePathVersionUnzip);
-                                }
+                                UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip);
                                 var dirContent = Directory.GetDirectories(biaTemplatePathVersionUnzip, "*.*", SearchOption.TopDirectoryOnly);
                                 if (dirContent.Length == 1)
                                 {
@@ -133,6 +136,15 @@
             {
                 this.gitService.CheckoutTag(repository, version);
                 return repository.RootFolderPath;
+            }
+        }
+
+        private static void UnzipIfNotExist(string zipPath, string biaTemplatePathVersionUnzip)
+        {
+            if (!Directory.Exists(biaTemplatePathVersionUnzip))
+            {
+                ZipFile.ExtractToDirectory(zipPath, biaTemplatePathVersionUnzip);
+                FileTransform.FolderUnix2Dos(biaTemplatePathVersionUnzip);
             }
         }
 

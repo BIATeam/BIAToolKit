@@ -1,18 +1,20 @@
 ﻿namespace BIA.ToolKit.UserControls
 {
-    using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.Settings;
-    using BIA.ToolKit.Application.ViewModel;
-    using BIA.ToolKit.Domain.Settings;
-    using BIA.ToolKit.Helper;
-    using BIA.ToolKit.Properties;
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
+    using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Settings;
+    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Common.Extensions;
+    using BIA.ToolKit.Domain.Model;
+    using BIA.ToolKit.Domain.Settings;
+    using BIA.ToolKit.Helper;
+    using BIA.ToolKit.Properties;
 
     /// <summary>
     /// Interaction logic for ModifyProjectUC.xaml
@@ -36,7 +38,7 @@
         }
 
         public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
-            ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService)
+            ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService, FeatureSettingService featureSettingService)
         {
             this.settings = settings;
             this.repositoryService = repositoryService;
@@ -44,8 +46,8 @@
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
-            MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
-            MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter);
+            MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService);
+            MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService);
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter);
             this.crudSettings = new(settingsService);
         }
@@ -69,6 +71,8 @@
                 CRUDGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
             }
             MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject.FrameworkVersion);
+            MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder);
+            MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder);
         }
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
