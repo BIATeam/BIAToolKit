@@ -1,4 +1,27 @@
-﻿@using BIA.ToolKit.Application.Services.FileGenerator.RazorModels
+﻿@using RazorLight
+@using BIA.ToolKit.Application.Services.FileGenerator.RazorModels
 @inherits RazorLight.TemplatePage<DtoModel>
 
-namespace @(Model.CompanyName).@(Model.ProjectName).DomainDto
+// <copyright file="@(Model.DtoName).cs" company="@(Model.CompanyName)">
+//     Copyright (c) @(Model.CompanyName). All rights reserved.
+// </copyright>
+
+namespace @(Model.CompanyName).@(Model.ProjectName).DomainDto.@(Model.DomainName).@(Model.DtoName)
+{
+    using BIA.Net.Core.Domain.Dto.Base;
+
+    /// <summary>
+    /// The DTO used to represent @(Model.NameArticle) @(Model.EntityName).
+    /// </summary>
+    public class @(Model.DtoName) : BaseDto<int>
+    {
+        @foreach (var property in Model.Properties)
+        {
+            @:/// <summary>
+            @:/// Gets or sets the @property.Name
+            @:/// </summary>
+            @:public @property.Type @property.Name { get; set; }
+            @:
+        }
+    }
+}

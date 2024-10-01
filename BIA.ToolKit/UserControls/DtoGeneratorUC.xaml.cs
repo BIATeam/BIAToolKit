@@ -27,8 +27,6 @@
         private CRUDSettings settings;
         private Project project;
 
-
-
         public DtoGeneratorUC()
         {
             InitializeComponent();
@@ -85,9 +83,9 @@
             }
         }
 
-        private void GenerateButton_Click(object sender, RoutedEventArgs e)
+        private async void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
-            fileGeneratorService.GenerateDto(vm.SelectedEntityInfo, vm.MappingEntityProperties);
+            await fileGeneratorService.GenerateDto(project, vm.SelectedEntityInfo, vm.MappingEntityProperties);
         }
     }
 }
