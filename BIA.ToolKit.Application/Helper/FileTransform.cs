@@ -20,7 +20,7 @@
         }
 
         /// <summary>
-        /// Copy files for VSIX AdditionnalFiles folder to the root solution folder.
+        /// Order the usings in a csharp file
         /// </summary>
         /// <param name="sourceDir">source folder.</param>
         /// <param name="oldString">old string.</param>
