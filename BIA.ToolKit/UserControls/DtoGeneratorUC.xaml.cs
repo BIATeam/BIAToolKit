@@ -61,7 +61,7 @@
 
         private void SelectProperties_Click(object sender, RoutedEventArgs e)
         {
-
+            vm.RefreshMappingProperties();
         }
     }
 }

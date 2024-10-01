@@ -13,7 +13,7 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     </UserControl.Resources>
-    <Grid Margin="0,0,-120,0">
+    <Grid Margin="-30,0,0,0">
         <Label Content="Entity:"  Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
         <ComboBox ItemsSource="{Binding EntitiesNames}" SelectedValue="{Binding SelectedEntityName, UpdateSourceTrigger=PropertyChanged}" Margin="40,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="400" IsEnabled="{Binding IsProjectChosen}"/>
         <Button IsEnabled="{Binding IsProjectChosen}" Margin="450,24,0,0" Width="24" x:Name="RefreshDtoList" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshEntitiesList_Click" ToolTip="Refresh list">
@@ -33,11 +33,41 @@
             </TreeView.Resources>
         </TreeView>
 
-        <Button Content="➜" Margin="450,200,0,0" Width="60" x:Name="SelectProperties" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="SelectProperties_Click" ToolTip="Select properties"></Button>
+        <Button Content="Map to ➜" Margin="450,200,0,0" Width="60" x:Name="SelectProperties" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="SelectProperties_Click" ToolTip="Select properties"></Button>
 
-        <Label Content="Map to:"  Margin="500,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-        <ListView Name="PropertiesListView" Margin="520,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="270" Width="400">
-            
+        <Label Content="Mapping:"  Margin="500,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
+        <ListView Name="PropertiesListView" Margin="520,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="270" Width="435" ItemsSource="{Binding MappingEntityProperties}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Entity property" Width="130" DisplayMemberBinding="{Binding CompositeName}"></GridViewColumn>
+                    <GridViewColumn Header="Mapping property" Width="130">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox HorizontalAlignment="Stretch" MinWidth="120" Text="{Binding MappingName}"></TextBox>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Mapping Type" Width="120">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <ComboBox HorizontalAlignment="Stretch" MinWidth="110" ItemsSource="{Binding MappingTypes}" SelectedValue="{Binding MappingType, UpdateSourceTrigger=PropertyChanged}" IsEnabled="true"></ComboBox>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="auto">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button 
+                                    Content="D" 
+                                    Width="30"
+                                    Command="{Binding DataContext.RemoveMappingPropertyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}">
+                                </Button>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
         </ListView>
     </Grid>
 </UserControl>

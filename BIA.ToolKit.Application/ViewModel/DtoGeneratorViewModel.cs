@@ -8,17 +8,41 @@
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
+    using System.Windows.Input;
 
     public class DtoGeneratorViewModel : ObservableObject
     {
         private string projectDomainNamespace;
         private readonly List<EntityInfo> entities;
+        private readonly List<string> OptionsMappingTypes = new List<string>
+        {
+            "icollection",
+            "list"
+        };
+        private readonly List<string> PrimitiveTypes = new List<string>
+        {
+            "bool",
+            "byte",
+            "sbyte",
+            "char",
+            "decimal",
+            "double",
+            "float",
+            "int",
+            "uint",
+            "long",
+            "ulong",
+            "short",
+            "ushort",
+            "string"
+        };
 
         public DtoGeneratorViewModel()
         {
             entities = new();
             EntitiesNames = new();
             EntityProperties = new();
+            MappingEntityProperties = new();
         }
 
         private bool isProjectChosen;
@@ -36,9 +60,9 @@
         public ObservableCollection<string> EntitiesNames
         {
             get => entitiesNames;
-            set 
-            { 
-                entitiesNames = value; 
+            set
+            {
+                entitiesNames = value;
                 RaisePropertyChanged(nameof(EntitiesNames));
             }
         }
@@ -47,9 +71,9 @@
         public string SelectedEntityName
         {
             get => selectedEntityName;
-            set 
-            { 
-                selectedEntityName = value; 
+            set
+            {
+                selectedEntityName = value;
                 RaisePropertyChanged(nameof(SelectedEntityName));
                 RefreshEntityPropertiesTreeView();
             }
@@ -63,6 +87,19 @@
             set { entityProperties = value; }
         }
 
+        private ObservableCollection<MappingEntityPropertyViewModel> mappingEntityProperties;
+
+        public ObservableCollection<MappingEntityPropertyViewModel> MappingEntityProperties
+        {
+            get => mappingEntityProperties;
+            set
+            {
+                mappingEntityProperties = value;
+                RaisePropertyChanged(nameof(MappingEntityProperties));
+            }
+        }
+
+        public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityPropertyViewModel>((mappingEntityProperty) => RemoveMappingProperty(mappingEntityProperty));
 
         public void SetProject(Project project)
         {
@@ -100,7 +137,7 @@
             EntityProperties.Clear();
 
             var selectedEntity = entities.First(e => e.FullNamespace.EndsWith(SelectedEntityName));
-            foreach(var property in selectedEntity.Properties)
+            foreach (var property in selectedEntity.Properties)
             {
                 var propertyViewModel = new EntityPropertyViewModel
                 {
@@ -117,13 +154,59 @@
         private void FillEntityProperties(EntityPropertyViewModel property)
         {
             var propertyEntity = entities.FirstOrDefault(e => e.Name == property.Type);
-            if(propertyEntity == null)
+            if (propertyEntity == null)
             {
                 return;
             }
 
             property.Properties.AddRange(propertyEntity.Properties.Select(p => new EntityPropertyViewModel { Name = p.Name, Type = p.Type, CompositeName = $"{property.CompositeName}.{p.Name}" }));
             property.Properties.ForEach(p => FillEntityProperties(p));
+        }
+
+        public void RefreshMappingProperties()
+        {
+            var mappingEntityProperties = new List<MappingEntityPropertyViewModel>(MappingEntityProperties);
+            AddMappingProperties(EntityProperties, mappingEntityProperties);
+            MappingEntityProperties = new(mappingEntityProperties.OrderBy(x => x.CompositeName));
+        }
+
+        private void AddMappingProperties(IEnumerable<EntityPropertyViewModel> entityProperties, List<MappingEntityPropertyViewModel> mappingEntityProperties)
+        {
+            foreach (var selectedEntityProperty in entityProperties)
+            {
+                if (selectedEntityProperty.IsSelected && !mappingEntityProperties.Any(x => x.CompositeName == selectedEntityProperty.CompositeName))
+                {
+                    var mappingType = ComputeMappingType(selectedEntityProperty);
+                    mappingEntityProperties.Add(new MappingEntityPropertyViewModel
+                    {
+                        CompositeName = selectedEntityProperty.CompositeName,
+                        MappingName = selectedEntityProperty.CompositeName.Replace(".", string.Empty),
+                        MappingType = selectedEntityProperty.Type,
+                        MappingTypes = new ObservableCollection<string> { mappingType }
+                    });
+                }
+                AddMappingProperties(selectedEntityProperty.Properties, mappingEntityProperties);
+            }
+        }
+
+        private string ComputeMappingType(EntityPropertyViewModel entityProperty)
+        {
+            if(OptionsMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return "List<OptionDto>";
+            }
+
+            if(PrimitiveTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return entityProperty.Type;
+            }
+
+            return "OptionDto";
+        }
+
+        private void RemoveMappingProperty(MappingEntityPropertyViewModel mappingEntityProperty)
+        {
+            MappingEntityProperties.Remove(mappingEntityProperty);
         }
     }
 
@@ -134,5 +217,24 @@
         public bool IsSelected { get; set; }
         public string CompositeName { get; set; }
         public List<EntityPropertyViewModel> Properties { get; set; } = new();
+    }
+
+    public class MappingEntityPropertyViewModel : ObservableObject
+    {
+        public string CompositeName { get; set; }
+        public string MappingName { get; set; }
+
+        private string mappingType;
+        public string MappingType
+        {
+            get => mappingType;
+            set 
+            { 
+                mappingType = value; 
+                RaisePropertyChanged(nameof(MappingType));
+            }
+        }
+
+        public ObservableCollection<string> MappingTypes { get; set; }
     }
 }
