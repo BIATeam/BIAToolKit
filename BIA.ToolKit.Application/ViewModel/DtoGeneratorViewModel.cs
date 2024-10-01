@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using Microsoft.Extensions.FileSystemGlobbing.Internal;
@@ -9,6 +10,7 @@
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
+    using System.Reflection.Metadata;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Windows.Input;
@@ -231,12 +233,9 @@
 
         private string ComputeMappingType(EntityProperty entityProperty)
         {
-            const string ListOptionDto = "ICollection<OptionDto>";
-            const string OptionDto = "OptionDto";
-
             if (OptionsMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
             {
-                return ListOptionDto;
+                return Constants.BiaClassName.CollectionOptionDto;
             }
 
             if(StandardMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
@@ -244,10 +243,10 @@
                 return entityProperty.Type;
             }
 
-            return OptionDto;
+            return Constants.BiaClassName.OptionDto;
         }
 
-        private string ExtractOptionType(string optionType)
+        private static string ExtractOptionType(string optionType)
         {
             if (!optionType.Contains('<'))
                 return optionType;
@@ -287,7 +286,7 @@
         public string CompositeName { get; set; }
         public string MappingName { get; set; }
         public string MappingType { get; set; }
-        public bool IsOption => MappingType.Equals("OptionDto") || MappingType.Equals("ICollection<OptionDto>");
+        public bool IsOption => MappingType.Equals(Constants.BiaClassName.OptionDto) || MappingType.Equals(Constants.BiaClassName.CollectionOptionDto);
         public string OptionType { get; set; }
     }
 }

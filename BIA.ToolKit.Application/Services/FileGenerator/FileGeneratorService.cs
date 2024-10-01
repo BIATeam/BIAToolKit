@@ -24,11 +24,11 @@
 
         public FileGeneratorService(IConsoleWriter consoleWriter)
         {
+            this.consoleWriter = consoleWriter;
             razorLightEngine = new RazorLightEngineBuilder()
                 .UseEmbeddedResourcesProject(typeof(FileGeneratorService).Assembly, EmbeddedResourcesNamespace)
                 .UseMemoryCachingProvider()
                 .Build();
-            this.consoleWriter = consoleWriter;
         }
 
         public async Task GenerateDto(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
@@ -87,6 +87,8 @@
             try
             {
                 content = await razorLightEngine.CompileRenderAsync(TemplateKey_Dto, model);
+
+                //Remove \r\n from generated content to avoid empty first line
                 content = content.Remove(0, 2);
             }
             catch (Exception ex)
