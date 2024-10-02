@@ -41,6 +41,7 @@
                 DomainName = domainName,
                 DtoName = entityInfo.Name + "Dto",
                 EntityName = entityInfo.Name,
+                BaseKeyType = mappingEntityProperties.FirstOrDefault(x => x.IsBaseKey)?.MappingType,
                 Properties = mappingEntityProperties.Select(x => new PropertyModel()
                 {
                     Name = x.MappingName,
@@ -51,6 +52,11 @@
                     OptionDisplayProperty = x.OptionDisplayProperty
                 }).ToList()
             };
+
+            if(string.IsNullOrWhiteSpace(model.BaseKeyType))
+            {
+                consoleWriter.AddMessageLine("WARNING: No base key defined, you'll must complete the BaseDto key after the generation.", "orange");
+            }
 
             consoleWriter.AddMessageLine($"Generate DTO file...");
 

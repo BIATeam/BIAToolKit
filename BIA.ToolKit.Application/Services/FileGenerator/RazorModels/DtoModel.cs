@@ -15,5 +15,6 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.RazorModels
         public List<PropertyModel> Properties { get; set; } = new();
         public bool HasCollectionOptions => Properties.Any(p => p.Type.Equals(Constants.BiaClassName.CollectionOptionDto));
         public bool HasOptions => HasCollectionOptions || Properties.Any(p => p.Type.Equals(Constants.BiaClassName.OptionDto));
+        public string BaseKeyType { get; set; }
     }
 }
