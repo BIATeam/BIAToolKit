@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
              mc:Ignorable="d" 
-             d:DesignHeight="640" Width="1400">
+             d:DesignHeight="430" Width="1400">
     <UserControl.DataContext>
         <local:CRUDGeneratorViewModel />
     </UserControl.DataContext>
@@ -64,7 +64,7 @@
         </Grid>
 
         <Grid Grid.Column="3">
-            <Button Grid.Column="3" Content="Generate" IsEnabled="{Binding IsButtonGenerateCrudEnable}" Margin="0,59,0,0" Width="160" x:Name="GenerateCrud" Height="60" HorizontalAlignment="Center" VerticalAlignment="Top" Click="Generate_Click"/>
+            <Button Grid.Column="3" Content="Generate" IsEnabled="{Binding IsButtonGenerateCrudEnable}" Margin="0,30,0,0" Width="160" x:Name="GenerateCrud" Height="60" HorizontalAlignment="Center" VerticalAlignment="Top" Click="Generate_Click"/>
             <Button Grid.Column="3" Content="Delete previous generation" Margin="0,230,0,0" Width="160" x:Name="DeleteGeneration" Height="40" HorizontalAlignment="Center" VerticalAlignment="Top" Click="DeleteLastGeneration_Click" IsEnabled="{Binding IsDtoGenerated}"/>
             
             <Label Grid.Column="3" Content="After all generations :" Margin="0,275,0,0" HorizontalAlignment="Center" VerticalAlignment="Top" Foreground="White"/>

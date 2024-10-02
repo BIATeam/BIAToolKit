@@ -5,84 +5,98 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
              mc:Ignorable="d" 
-             d:DesignHeight="450" Width="930">
+             d:DesignHeight="430" Width="1400">
     <UserControl.DataContext>
         <local:DtoGeneratorViewModel />
     </UserControl.DataContext>
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     </UserControl.Resources>
-    <Grid Margin="-30,0,0,0">
-        <Label Content="Entity:"  Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-        <ComboBox ItemsSource="{Binding EntitiesNames}" SelectedValue="{Binding SelectedEntityName, UpdateSourceTrigger=PropertyChanged}" Margin="40,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="400" IsEnabled="{Binding IsProjectChosen}"/>
-        <Button IsEnabled="{Binding IsProjectChosen}" Margin="450,24,0,0" Width="24" x:Name="RefreshDtoList" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshEntitiesList_Click" ToolTip="Refresh list">
-            <Image Source="/Images/rafraichir-32.png" />
-        </Button>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.6*"/>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="0.25*"/>
+        </Grid.ColumnDefinitions>
 
-        <Label Content="Domain:"  Margin="500,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-        <TextBox Text="{Binding EntityDomain, UpdateSourceTrigger=PropertyChanged}" Padding="2" Margin="520,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" IsEnabled="{Binding IsEntitySelected}"/>
+        <Grid Grid.Column="0" Margin="5,0">
+            <Label Content="Entity:"  Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
+            <ComboBox ItemsSource="{Binding EntitiesNames}" SelectedValue="{Binding SelectedEntityName, UpdateSourceTrigger=PropertyChanged}" Margin="20,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsProjectChosen}"/>
+            <Button IsEnabled="{Binding IsProjectChosen}" Margin="330,24,0,0" Width="24" x:Name="RefreshDtoList" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshEntitiesList_Click" ToolTip="Refresh list">
+                <Image Source="/Images/rafraichir-32.png" />
+            </Button>
 
-        <Button x:Name="GenerateButton" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,15,5,0" Content="Generate" Width="160" Height="50" Click="GenerateButton_Click" IsEnabled="{Binding IsGenerationEnabled}"></Button>
+            <Label Content="Domain:"  Margin="0,55,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
+            <TextBox Text="{Binding EntityDomain, UpdateSourceTrigger=PropertyChanged}" Padding="2" Margin="20,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsEntitySelected}"/>
 
-        <Label Content="Properties:"  Margin="20,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-        <TreeView Name="ClassTreeView" Margin="40,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="250" Width="400" ItemsSource="{Binding EntityProperties}" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
-            <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type local:EntityProperty}" ItemsSource="{Binding Properties}">
-                    <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding IsSelected}" Margin="0,0,5,0"/>
-                        <TextBlock FontWeight="Bold" Text="{Binding Name}" Margin="0,0,5,0" />
-                        <TextBlock Text="{Binding Type, StringFormat=({0})}" />
-                    </StackPanel>
-                </HierarchicalDataTemplate>
-            </TreeView.Resources>
-        </TreeView>
+            <Label Content="Properties:"  Margin="0,115,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
+            <TreeView Name="ClassTreeView" Margin="20,140,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="250" Width="375" ItemsSource="{Binding EntityProperties}" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
+                <TreeView.Resources>
+                    <HierarchicalDataTemplate DataType="{x:Type local:EntityProperty}" ItemsSource="{Binding Properties}">
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding IsSelected}" Margin="0,0,5,0"/>
+                            <TextBlock FontWeight="Bold" Text="{Binding Name}" Margin="0,0,5,0" />
+                            <TextBlock Text="{Binding Type, StringFormat=({0})}" />
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.Resources>
+            </TreeView>
+        </Grid>
 
-        <Button Content="Map to ➜" Margin="450,200,0,0" Width="60" x:Name="SelectProperties" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="SelectProperties_Click" ToolTip="Select properties" IsEnabled="{Binding IsEntitySelected}"></Button>
+        <Grid Grid.Column="1" Margin="5,0">
+            <Button Content="Map to ➜" Width="90" x:Name="SelectProperties" Height="24" Margin="0,105,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="SelectProperties_Click" ToolTip="Select properties" IsEnabled="{Binding IsEntitySelected}"></Button>
+        </Grid>
 
-        <Label Content="Mapping:"  Margin="500,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-        <ListView Name="PropertiesListView" Margin="520,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="250" Width="435" ItemsSource="{Binding MappingEntityProperties}" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Width="auto">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button
+        <Grid Grid.Column="2" Margin="5,0" Grid.ColumnSpan="2">
+            <Label Content="Mapping:"  Margin="0,115,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
+            <ListView Name="PropertiesListView" Margin="20,140,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="250" Width="845" ItemsSource="{Binding MappingEntityProperties}" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Width="auto">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button
                                     Width="15"
                                     Padding="3"
                                     BorderThickness="0"
                                     Background="Transparent"
                                     Command="{Binding DataContext.RemoveMappingPropertyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}">
-                                    <Image Source="/Images/cross.png" RenderOptions.BitmapScalingMode="Fant" />
-                                </Button>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Entity property" Width="auto">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock HorizontalAlignment="Stretch" FontWeight="Bold" Foreground="Black" Text="{Binding CompositeName}"></TextBlock>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Mapping property" Width="auto">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBox Padding="2" HorizontalAlignment="Stretch" MinWidth="100" Text="{Binding MappingName}"></TextBox>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Mapping Type" Width="auto">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock HorizontalAlignment="Stretch" Foreground="Black" Text="{Binding MappingType}"></TextBlock>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                </GridView>
-            </ListView.View>
-        </ListView>
-        <Button Content="Remove all" Margin="0,0,5,2" Width="70" x:Name="RemoveAllMappingProperties" Height="24" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="RemoveAllMappingProperties_Click" ToolTip="Select properties" IsEnabled="{Binding HasMappingProperties}"></Button>
+                                        <Image Source="/Images/cross.png" RenderOptions.BitmapScalingMode="Fant" />
+                                    </Button>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Entity property" Width="auto">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock HorizontalAlignment="Stretch" FontWeight="Bold" Foreground="Black" Text="{Binding CompositeName}"></TextBlock>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Mapping property" Width="auto">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Padding="2" HorizontalAlignment="Stretch" MinWidth="100" Text="{Binding MappingName}"></TextBox>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Mapping Type" Width="auto">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock HorizontalAlignment="Stretch" Foreground="Black" Text="{Binding MappingType}"></TextBlock>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+            <Button Content="Remove all" Margin="20,395,0,0" Width="90" x:Name="RemoveAllMappingProperties" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RemoveAllMappingProperties_Click" ToolTip="Select properties" IsEnabled="{Binding HasMappingProperties}"></Button>
+        </Grid>
 
+        <Grid Grid.Column="3">
+            <Button x:Name="GenerateButton" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,30,-1,0" Content="Generate" Width="160" Height="60" Click="GenerateButton_Click" IsEnabled="{Binding IsGenerationEnabled}"></Button>
+        </Grid>
     </Grid>
 </UserControl>
