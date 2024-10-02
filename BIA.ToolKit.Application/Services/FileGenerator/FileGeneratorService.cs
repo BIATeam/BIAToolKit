@@ -18,6 +18,7 @@
     public class FileGeneratorService
     {
         private const string EmbeddedResourcesNamespace = "BIA.ToolKit.Application.Services.FileGenerator.RazorTemplates";
+        private const string TemplateKey_Mapper = "MapperTemplate.cshtml";
         private const string TemplateKey_Dto = "DtoTemplate.cshtml";
         private readonly RazorLightEngine razorLightEngine;
         private readonly IConsoleWriter consoleWriter;
@@ -33,7 +34,7 @@
 
         public async Task GenerateDto(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
         {
-            var model = new DtoModel
+            var model = new MapperModel
             {
                 CompanyName = project.CompanyName,
                 ProjectName = project.Name,
@@ -44,34 +45,42 @@
                 BaseKeyType = mappingEntityProperties.FirstOrDefault(x => x.IsBaseKey)?.MappingType,
                 Properties = mappingEntityProperties.Select(x => new PropertyModel()
                 {
-                    Name = x.MappingName,
-                    CompositeName = x.CompositeName,
-                    Type = x.MappingType,
-                    IsOption = x.IsOption,
+                    MappingName = x.MappingName,
+                    EntityCompositeName = x.EntityCompositeName,
+                    MappingType = x.MappingType,
+                    IsOption = x.MappingType.Equals(Constants.BiaClassName.OptionDto),
+                    IsOptionCollection = x.MappingType.Equals(Constants.BiaClassName.CollectionOptionDto),
                     OptionType = x.OptionType,
                     IsRequired = x.IsRequired,
                     OptionDisplayProperty = x.OptionDisplayProperty
-                }).ToList()
+                }).ToList(),
+                EntityNamespace = entityInfo.Namespace,
+                MapperName = entityInfo.Name + "Mapper"
             };
 
             if(string.IsNullOrWhiteSpace(model.BaseKeyType))
             {
-                consoleWriter.AddMessageLine("WARNING: No base key defined, you'll must complete the BaseDto key after the generation.", "orange");
+                consoleWriter.AddMessageLine("WARNING: No base key defined, you'll must complete the base key inside the DTO and mapper after generation.", "orange");
             }
 
-            consoleWriter.AddMessageLine($"Generate DTO file...");
-
-            var content = await GenerateFromTemplate(TemplateKey_Dto, model);
-            var destPath = Path.Combine(
+            consoleWriter.AddMessageLine($"Generating DTO...");
+            var dtoContent = await GenerateFromTemplate(TemplateKey_Dto, model);
+            var dtoDestPath = Path.Combine(
                 project.Folder, 
                 Constants.FolderDotNet, 
                 string.Join(".", project.CompanyName, project.Name, "Domain", "Dto"),
                 model.DomainName, 
                 $"{model.DtoName}.cs");
+            await GenerateFile(dtoContent, dtoDestPath);
+            consoleWriter.AddMessageLine($"DTO successfully generated !");
 
-            await GenerateFile(content, destPath);
-
-            consoleWriter.AddMessageLine($"DTO file successfully generated !");
+            consoleWriter.AddMessageLine($"Generating mapper...");
+            var mapperContent = await GenerateFromTemplate(TemplateKey_Mapper, model);
+            var mapperDestPath = Path.Combine(
+                Path.GetDirectoryName(entityInfo.Path),
+                $"{model.MapperName}.cs");
+            await GenerateFile(mapperContent, mapperDestPath);
+            consoleWriter.AddMessageLine($"Mapper successfully generated !");
         }
 
         private static string ComputeNameArticle(string name)

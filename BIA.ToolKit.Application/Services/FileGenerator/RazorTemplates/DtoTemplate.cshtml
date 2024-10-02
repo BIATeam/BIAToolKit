@@ -6,7 +6,7 @@
 //     Copyright (c) @(Model.CompanyName). All rights reserved.
 // </copyright>
 
-namespace @(Model.CompanyName).@(Model.ProjectName).DomainDto.@(Model.DomainName)
+namespace @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainName)
 {
     using System;
     @if (Model.HasCollectionOptions)
@@ -28,10 +28,10 @@ namespace @(Model.CompanyName).@(Model.ProjectName).DomainDto.@(Model.DomainName
         @foreach (var property in Model.Properties)
         {
         @:/// <summary>
-        @:/// Gets or sets the @property.Name
+        @:/// Gets or sets the @property.MappingName
         @:/// </summary>
         @:[BiaDtoField(@property.BiaDtoFieldAttributeProperties)]
-        @:public @Raw(property.Type) @property.Name { get; set; }
+        @:public @Raw(property.MappingType) @property.MappingName { get; set; }
         @:
         }
     }

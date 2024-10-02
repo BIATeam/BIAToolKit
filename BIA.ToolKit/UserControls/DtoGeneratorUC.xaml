@@ -71,7 +71,7 @@
                         <GridViewColumn Header="Entity property" Width="auto">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock HorizontalAlignment="Stretch" FontWeight="Bold" Foreground="Black" Text="{Binding CompositeName}"></TextBlock>
+                                    <TextBlock HorizontalAlignment="Stretch" FontWeight="Bold" Foreground="Black" Text="{Binding EntityCompositeName}"></TextBlock>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>

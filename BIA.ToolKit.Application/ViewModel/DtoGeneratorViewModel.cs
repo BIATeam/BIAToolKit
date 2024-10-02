@@ -202,7 +202,7 @@
         {
             var mappingEntityProperties = new List<MappingEntityProperty>(MappingEntityProperties);
             AddMappingProperties(EntityProperties, mappingEntityProperties);
-            MappingEntityProperties = new(mappingEntityProperties.OrderBy(x => x.CompositeName));
+            MappingEntityProperties = new(mappingEntityProperties.OrderBy(x => x.EntityCompositeName));
 
             RaisePropertyChanged(nameof(HasMappingProperties));
             RaisePropertyChanged(nameof(IsGenerationEnabled));
@@ -212,11 +212,11 @@
         {
             foreach (var selectedEntityProperty in entityProperties)
             {
-                if (selectedEntityProperty.IsSelected && !mappingEntityProperties.Any(x => x.CompositeName == selectedEntityProperty.CompositeName))
+                if (selectedEntityProperty.IsSelected && !mappingEntityProperties.Any(x => x.EntityCompositeName == selectedEntityProperty.CompositeName))
                 {
                     var mappingEntityProperty = new MappingEntityProperty
                     {
-                        CompositeName = selectedEntityProperty.CompositeName,
+                        EntityCompositeName = selectedEntityProperty.CompositeName,
                         MappingName = selectedEntityProperty.CompositeName.Replace(".", string.Empty),
                         MappingType = ComputeMappingType(selectedEntityProperty)
                     };
@@ -287,7 +287,7 @@
         {
             if (mappingEntityProperty.IsBaseKey)
             {
-                foreach (var item in MappingEntityProperties.Where(x => x.CompositeName != mappingEntityProperty.CompositeName))
+                foreach (var item in MappingEntityProperties.Where(x => x.EntityCompositeName != mappingEntityProperty.EntityCompositeName))
                 {
                     item.IsBaseKey = false;
                 }
@@ -311,13 +311,13 @@
 
     public class MappingEntityProperty : ObservableObject
     {
-        public string CompositeName { get; set; }
+        public string EntityCompositeName { get; set; }
         public string MappingName { get; set; }
         public string MappingType { get; set; }
         public bool IsOption => MappingType.Equals(Constants.BiaClassName.OptionDto) || MappingType.Equals(Constants.BiaClassName.CollectionOptionDto);
         public string OptionType { get; set; }
-        private bool isBaseKey;
 
+        private bool isBaseKey;
         public bool IsBaseKey
         {
             get => isBaseKey;
