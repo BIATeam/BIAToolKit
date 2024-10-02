@@ -9,11 +9,6 @@
 namespace @(Model.EntityNamespace)
 {
     using System;
-    @if (Model.HasCollectionOptions)
-    {
-    @:using System.Collections.Generic; 
-    }
-    using System.Globalization;
     using System.Linq;
     using System.Linq.Expressions;
     using BIA.Net.Core.Domain;
@@ -27,7 +22,7 @@ namespace @(Model.EntityNamespace)
     /// <summary>
     /// The mapper used for @(Model.EntityName).
     /// </summary>
-    public class PlaneMapper : BaseMapper<@(Model.DtoName), @(Model.EntityName), @(Model.BaseKeyType)>
+    public class @(Model.EntityName)Mapper : BaseMapper<@(Model.DtoName), @(Model.EntityName), @(Model.BaseKeyType)>
     {
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToEntity"/>
         public override void DtoToEntity(@(Model.DtoName) dto, @(Model.EntityName) entity)
@@ -43,8 +38,7 @@ namespace @(Model.EntityNamespace)
                 {
             @:entity.@(property.EntityCompositeName) = dto.@(property.MappingName);
                 }
-
-                if(property.IsOptionCollection)
+                else if(property.IsOptionCollection)
                 {
             @:if (dto.@(property.MappingName) != null && dto.@(property.MappingName).Any())
             @:{
@@ -56,12 +50,13 @@ namespace @(Model.EntityNamespace)
             @:            entity.@(property.EntityCompositeName).Remove(entityToRemove);
             @:        }
             @:    }
-            @:
+@:
             @:    foreach (var optionDto in dto.@(property.MappingName).Where(x => x.DtoState == DtoState.Added))
             @:    {
             @:        entity.@(property.EntityCompositeName).Add(new @(property.OptionType)
             @:        {
             @:            @(property.OptionDisplayProperty) = optionDto.Display,
+@:
             @:            // TODO complete mapping
             @:        });
             @:    }
@@ -73,31 +68,29 @@ namespace @(Model.EntityNamespace)
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
         public override Expression<Func<@(Model.EntityName), @(Model.DtoName)>> EntityToDto()
         {
-            return entity => new PlaneDto
+            return entity => new @(Model.DtoName)
             {
                 @foreach (var property in Model.Properties)
                 {
-                    if(!property.IsOption)
+                    if(!property.IsOption && !property.IsOptionCollection)
                     {
                 @:@(property.MappingName) = entity.@(property.EntityCompositeName),
                     }
-
-                    if(property.IsOption)
+                    else if(property.IsOption)
                     {
                 @:@(property.MappingName) = entity.@(property.EntityCompositeName) != null ?
                 @:  new OptionDto { Id = entity.@(property.EntityCompositeName).Id, Display = entity.@(property.EntityCompositeName).@(property.OptionDisplayProperty) } :
                 @:  null,
                     }
-                    
-                    if(property.IsOptionCollection)
+                    else if(property.IsOptionCollection)
                     {
                 @:@(property.MappingName) = entity.@(property.EntityCompositeName)
                 @:.Select(x => new OptionDto { Id = x.Id, Display = x.@(property.OptionDisplayProperty) })
                 @:.OrderBy(x => x.Display)
-                @:.ToList(),     
+                @:.ToList(),
                     }
                 }
-            }
+            };
         }
     }
 }

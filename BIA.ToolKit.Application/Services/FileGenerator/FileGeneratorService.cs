@@ -104,7 +104,7 @@
 
             try
             {
-                content = await razorLightEngine.CompileRenderAsync(TemplateKey_Dto, model);
+                content = await razorLightEngine.CompileRenderAsync(templateKey, model);
 
                 //Remove \r\n from generated content to avoid empty first line
                 content = content.Remove(0, 2);

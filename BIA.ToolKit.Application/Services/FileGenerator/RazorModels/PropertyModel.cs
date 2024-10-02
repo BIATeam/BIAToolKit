@@ -28,12 +28,12 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.RazorModels
         {
             var attributeProperties = new List<string>
             {
-                $"Required = {IsRequired}"
+                $"Required = {IsRequired.ToString().ToLower()}"
             };
 
             if (IsOption)
             {
-                attributeProperties.Add($"ItemType = {OptionType}");
+                attributeProperties.Add($"ItemType = \"{OptionType}\"");
             }
 
             return string.Join(", ", attributeProperties);
