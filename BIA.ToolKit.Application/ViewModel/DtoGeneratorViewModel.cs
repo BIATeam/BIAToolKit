@@ -130,7 +130,7 @@
         public EntityInfo SelectedEntityInfo { get; private set; }
         public bool IsEntitySelected => SelectedEntityInfo != null;
         public bool HasMappingProperties => MappingEntityProperties.Count > 0;
-        public bool IsGenerationEnabled => HasMappingProperties && !string.IsNullOrWhiteSpace(EntityDomain);
+        public bool IsGenerationEnabled => HasMappingProperties && MappingEntityProperties.All(x => x.IsValid) && !string.IsNullOrWhiteSpace(EntityDomain);
 
         public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>((mappingEntityProperty) => RemoveMappingProperty(mappingEntityProperty));
         public ICommand UpdateBaseKeyMappingCommand => new RelayCommand<MappingEntityProperty>((mappingEntityProperty) => UpdateBaseKeyMapping(mappingEntityProperty));
@@ -293,6 +293,11 @@
                 }
             }
         }
+
+        public void OnOptionDisplayPropertyChanged()
+        {
+            RaisePropertyChanged(nameof(IsGenerationEnabled));
+        }
     }
 
     public class EntityProperty
@@ -324,9 +329,11 @@
         }
 
         public bool CanBeBaseKey => !IsOption;
-
         public bool IsRequired { get; set; }
         public string OptionDisplayProperty { get; set; }
         public List<string> OptionDisplayProperties { get; set; } = new();
+        public bool CanSetOptionDisplayPropertyComboBox => IsOption && OptionDisplayProperties.Count > 0;
+        public bool MustSetOptionDisplayPropertyTextBox => IsOption && OptionDisplayProperties.Count == 0;
+        public bool IsValid => !IsOption || !string.IsNullOrWhiteSpace(OptionDisplayProperty);
     }
 }

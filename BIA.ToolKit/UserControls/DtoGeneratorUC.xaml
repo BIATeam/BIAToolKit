@@ -22,20 +22,20 @@
 
         <Grid Grid.Column="0" Margin="5,0">
             <Label Content="Entity:"  Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-            <ComboBox ItemsSource="{Binding EntitiesNames}" SelectedValue="{Binding SelectedEntityName, UpdateSourceTrigger=PropertyChanged}" Margin="20,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsProjectChosen}"/>
+            <ComboBox ItemsSource="{Binding EntitiesNames}" SelectedValue="{Binding SelectedEntityName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="20,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsProjectChosen}"/>
             <Button IsEnabled="{Binding IsProjectChosen}" Margin="330,24,0,0" Width="24" x:Name="RefreshDtoList" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshEntitiesList_Click" ToolTip="Refresh list">
                 <Image Source="/Images/rafraichir-32.png" />
             </Button>
 
             <Label Content="Domain:"  Margin="0,55,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-            <TextBox Text="{Binding EntityDomain, UpdateSourceTrigger=PropertyChanged}" Padding="2" Margin="20,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsEntitySelected}"/>
+            <TextBox Text="{Binding EntityDomain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Padding="2" Margin="20,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsEntitySelected}"/>
 
             <Label Content="Properties:"  Margin="0,115,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
             <TreeView Name="ClassTreeView" Margin="20,140,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="250" Width="375" ItemsSource="{Binding EntityProperties}" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
                 <TreeView.Resources>
                     <HierarchicalDataTemplate DataType="{x:Type local:EntityProperty}" ItemsSource="{Binding Properties}">
                         <StackPanel Orientation="Horizontal">
-                            <CheckBox IsChecked="{Binding IsSelected}" Margin="0,0,5,0"/>
+                            <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="0,0,5,0"/>
                             <TextBlock FontWeight="Bold" Text="{Binding Name}" Margin="0,0,5,0" />
                             <TextBlock Text="{Binding Type, StringFormat=({0})}" />
                         </StackPanel>
@@ -78,7 +78,7 @@
                         <GridViewColumn Header="Mapping property" Width="auto">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBox Padding="2" HorizontalAlignment="Stretch" MinWidth="100" Text="{Binding MappingName}"></TextBox>
+                                    <TextBox Padding="2" HorizontalAlignment="Stretch" MinWidth="100" Text="{Binding MappingName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></TextBox>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
@@ -87,16 +87,16 @@
                                 <DataTemplate>
                                     <CheckBox
                                         Visibility="{Binding CanBeBaseKey, Converter={StaticResource BoolToVisConverter}}"
-                                        IsChecked="{Binding IsBaseKey}" 
+                                        IsChecked="{Binding IsBaseKey, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
                                         Command="{Binding DataContext.UpdateBaseKeyMappingCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                                        CommandParameter="{Binding}"></CheckBox>        
+                                        CommandParameter="{Binding}"></CheckBox>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
                         <GridViewColumn Header="Required" Width="auto">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <CheckBox IsChecked="{Binding IsRequired}"></CheckBox>
+                                    <CheckBox IsChecked="{Binding IsRequired, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></CheckBox>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
@@ -107,13 +107,21 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Option Display" Width="auto">
+                        <GridViewColumn Header="Option Display Property" Width="auto">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <ComboBox 
-                                        ItemsSource="{Binding OptionDisplayProperties}" 
-                                        SelectedValue="{Binding OptionDisplayProperty}" 
-                                        Visibility="{Binding IsOption, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
+                                    <Grid>
+                                        <ComboBox 
+                                            ItemsSource="{Binding OptionDisplayProperties}" 
+                                            SelectedValue="{Binding OptionDisplayProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                            Visibility="{Binding CanSetOptionDisplayPropertyComboBox, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
+                                        <TextBox 
+                                            x:Name="OptionDisplayPropertTextBox"
+                                            MinWidth="100"
+                                            TextChanged="OptionDisplayPropertTextBox_TextChanged"
+                                            Text="{Binding OptionDisplayProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"  
+                                            Visibility="{Binding MustSetOptionDisplayPropertyTextBox, Converter={StaticResource BoolToVisConverter}}"></TextBox>
+                                    </Grid>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>

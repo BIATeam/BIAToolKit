@@ -87,5 +87,10 @@
         {
             await fileGeneratorService.GenerateDto(project, vm.SelectedEntityInfo, vm.EntityDomain, vm.MappingEntityProperties);
         }
+
+        private void OptionDisplayPropertTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            vm.OnOptionDisplayPropertyChanged();
+        }
     }
 }
