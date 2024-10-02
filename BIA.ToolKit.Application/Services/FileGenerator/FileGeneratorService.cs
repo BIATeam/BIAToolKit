@@ -20,6 +20,7 @@
         private const string EmbeddedResourcesNamespace = "BIA.ToolKit.Application.Services.FileGenerator.RazorTemplates";
         private const string TemplateKey_Mapper = "MapperTemplate.cshtml";
         private const string TemplateKey_Dto = "DtoTemplate.cshtml";
+        private const string TemplateValue_BaseKeyType = "{BaseKeyType}";
         private readonly RazorLightEngine razorLightEngine;
         private readonly IConsoleWriter consoleWriter;
 
@@ -60,7 +61,8 @@
 
             if(string.IsNullOrWhiteSpace(model.BaseKeyType))
             {
-                consoleWriter.AddMessageLine("WARNING: No base key type found, you'll must complete the base key type inside the DTO and mapper after generation.", "orange");
+                consoleWriter.AddMessageLine($"WARNING: Unable to retrieve entity's base key type, you'll must replace the template '{TemplateValue_BaseKeyType}' by corresponding type value inside the DTO and mapper after generation.", "orange");
+                model.BaseKeyType = TemplateValue_BaseKeyType;
             }
 
             consoleWriter.AddMessageLine($"Generating DTO...");
