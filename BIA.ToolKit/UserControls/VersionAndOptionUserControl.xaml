@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
-             mc:Ignorable="d" d:DesignWidth="550" Height="150">
+             mc:Ignorable="d" d:DesignWidth="800" Height="250">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     </UserControl.Resources>
@@ -12,7 +12,7 @@
         <!-- Declaratively create an instance of our SongViewModel -->
         <local:VersionAndOptionViewModel />
     </UserControl.DataContext>
-    <Grid Margin="0">
+    <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*"/>
             <ColumnDefinition Width="1*"/>
@@ -24,8 +24,8 @@
                   SelectionChanged="FrameworkVersion_SelectionChanged"
                   HorizontalAlignment="Left" Margin="20,25,0,0" VerticalAlignment="Top" Width="120"/>
         <CheckBox IsChecked="{Binding UseCompanyFiles}" Name="UseCompanyFiles" Content="Use Company Files" Foreground="White"  Height="16" VerticalAlignment="Top" Margin="10,58,-10,0" Checked="UseCompanyFile_Checked" Unchecked="UseCompanyFile_Checked" />
-        <GroupBox Header="Company files" Margin="0,0,0,10" Foreground="White" BorderBrush="White" Name="CompanyFileGroup" HorizontalAlignment="Right" Width="400" Visibility="Visible">
-            <Grid Margin="0,0,0,0">
+        <GroupBox Header="Company files" Foreground="White" BorderBrush="White" Name="CompanyFileGroup" HorizontalAlignment="Right" Width="400" Visibility="Visible" Height="auto" VerticalAlignment="Top">
+            <Grid Margin="5">
                 <Label Content="Company file version" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Foreground="White" Name="CompanyFileVersionLabel"/>
                 <ComboBox 
                     ItemsSource="{Binding WorkCompanyFiles}" 
@@ -52,8 +52,8 @@
                 </ScrollViewer>
             </Grid>
         </GroupBox>
-        <Image Name="Warning" Source="..\Images\Warning.png" HorizontalAlignment="Left" Height="50" Margin="13,20,0,0" VerticalAlignment="Top" Width="50"/>
-        <Label Name="WarningLabel"  Content="You haven't select Company Files in config screen." HorizontalAlignment="Left" Margin="60,20,0,0" VerticalAlignment="Top" Foreground="White" FontSize="20"/>
+        <Image Name="Warning" Source="..\Images\Warning.png" HorizontalAlignment="Left" Height="50" Margin="13,50,0,0" VerticalAlignment="Top" Width="50"/>
+        <Label Name="WarningLabel"  Content="You haven't select Company Files in config screen." HorizontalAlignment="Left" Margin="60,55,0,0" VerticalAlignment="Top" Foreground="White" FontSize="20"/>
         <GroupBox Grid.Column="1" Header="Feature Settings" Margin="0,0,0,10" Foreground="White" BorderBrush="White" Name="FeatureSettingsGroup" Visibility="{Binding Path=HasFeature, Converter={StaticResource BoolToVisConverter} }">
             <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto">
                 <ItemsControl Grid.Column="1" ItemsSource="{Binding FeatureSettings}">
