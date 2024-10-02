@@ -6,5 +6,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.RazorModels
         public string Type { get; set; }
         public bool IsOption { get; set; }
         public string OptionType { get; set; }
+        public bool IsRequired { get; set; }
+        public string OptionDisplayProperty { get; set; }
     }
 }

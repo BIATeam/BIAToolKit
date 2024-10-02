@@ -41,12 +41,14 @@
                 DomainName = domainName,
                 DtoName = entityInfo.Name + "Dto",
                 EntityName = entityInfo.Name,
-                Properties = mappingEntityProperties.Select(x => new PropertyModel() 
+                Properties = mappingEntityProperties.Select(x => new PropertyModel()
                 {
                     Name = x.MappingName,
                     Type = x.MappingType,
                     IsOption = x.IsOption,
-                    OptionType = x.OptionType
+                    OptionType = x.OptionType,
+                    IsRequired = x.IsRequired,
+                    OptionDisplayProperty = x.OptionDisplayProperty
                 }).ToList()
             };
 

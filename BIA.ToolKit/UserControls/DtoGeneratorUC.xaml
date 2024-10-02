@@ -82,10 +82,38 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
+                        <GridViewColumn Header="Base Key" Width="auto">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox
+                                        Visibility="{Binding CanBeBaseKey, Converter={StaticResource BoolToVisConverter}}"
+                                        IsChecked="{Binding IsBaseKey}" 
+                                        Command="{Binding DataContext.UpdateBaseKeyMappingCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                        CommandParameter="{Binding}"></CheckBox>        
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Required" Width="auto">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsRequired}"></CheckBox>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
                         <GridViewColumn Header="Mapping Type" Width="auto">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock HorizontalAlignment="Stretch" Foreground="Black" Text="{Binding MappingType}"></TextBlock>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Option Display" Width="auto">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox 
+                                        ItemsSource="{Binding OptionDisplayProperties}" 
+                                        SelectedValue="{Binding OptionDisplayProperty}" 
+                                        Visibility="{Binding IsOption, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>

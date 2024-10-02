@@ -100,9 +100,9 @@
         public string EntityDomain
         {
             get => entityDomain;
-            set 
-            { 
-                entityDomain = value; 
+            set
+            {
+                entityDomain = value;
                 RaisePropertyChanged(nameof(EntityDomain));
                 RaisePropertyChanged(nameof(IsGenerationEnabled));
             }
@@ -133,6 +133,7 @@
         public bool IsGenerationEnabled => HasMappingProperties && !string.IsNullOrWhiteSpace(EntityDomain);
 
         public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>((mappingEntityProperty) => RemoveMappingProperty(mappingEntityProperty));
+        public ICommand UpdateBaseKeyMappingCommand => new RelayCommand<MappingEntityProperty>((mappingEntityProperty) => UpdateBaseKeyMapping(mappingEntityProperty));
 
         public void SetProject(Project project)
         {
@@ -220,9 +221,20 @@
                         MappingType = ComputeMappingType(selectedEntityProperty)
                     };
 
-                    if(mappingEntityProperty.IsOption)
+                    if (mappingEntityProperty.IsOption)
                     {
                         mappingEntityProperty.OptionType = ExtractOptionType(selectedEntityProperty.Type);
+                        var optionEntity = entities.FirstOrDefault(x => x.Name == mappingEntityProperty.OptionType);
+                        if (optionEntity != null)
+                        {
+                            mappingEntityProperty.OptionDisplayProperties.AddRange(optionEntity.Properties.Where(x => !x.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase)).Select(x => x.Name));
+                            mappingEntityProperty.OptionDisplayProperty = mappingEntityProperty.OptionDisplayProperties.FirstOrDefault();
+                        }
+                    }
+
+                    if (selectedEntityProperty.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        mappingEntityProperty.IsBaseKey = true;
                     }
 
                     mappingEntityProperties.Add(mappingEntityProperty);
@@ -238,7 +250,7 @@
                 return Constants.BiaClassName.CollectionOptionDto;
             }
 
-            if(StandardMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
+            if (StandardMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return entityProperty.Type;
             }
@@ -270,6 +282,17 @@
             RaisePropertyChanged(nameof(HasMappingProperties));
             RaisePropertyChanged(nameof(IsGenerationEnabled));
         }
+
+        private void UpdateBaseKeyMapping(MappingEntityProperty mappingEntityProperty)
+        {
+            if (mappingEntityProperty.IsBaseKey)
+            {
+                foreach (var item in MappingEntityProperties.Where(x => x.CompositeName != mappingEntityProperty.CompositeName))
+                {
+                    item.IsBaseKey = false;
+                }
+            }
+        }
     }
 
     public class EntityProperty
@@ -281,12 +304,29 @@
         public List<EntityProperty> Properties { get; set; } = new();
     }
 
-    public class MappingEntityProperty
+    public class MappingEntityProperty : ObservableObject
     {
         public string CompositeName { get; set; }
         public string MappingName { get; set; }
         public string MappingType { get; set; }
         public bool IsOption => MappingType.Equals(Constants.BiaClassName.OptionDto) || MappingType.Equals(Constants.BiaClassName.CollectionOptionDto);
         public string OptionType { get; set; }
+        private bool isBaseKey;
+
+        public bool IsBaseKey
+        {
+            get => isBaseKey;
+            set
+            {
+                isBaseKey = value;
+                RaisePropertyChanged(nameof(IsBaseKey));
+            }
+        }
+
+        public bool CanBeBaseKey => !IsOption;
+
+        public bool IsRequired { get; set; }
+        public string OptionDisplayProperty { get; set; }
+        public List<string> OptionDisplayProperties { get; set; } = new();
     }
 }
