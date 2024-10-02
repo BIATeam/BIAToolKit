@@ -1,6 +1,7 @@
 ﻿
 namespace BIA.ToolKit.Domain.DtoGenerator
 {
+    using System.Text.RegularExpressions;
     using BIA.ToolKit.Common;
     using Humanizer;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,6 +16,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
             BaseType = baseType;
             PrimaryKey = primaryKey;
             BaseList = baseList ?? new List<string>();
+            ParseBaseKey(BaseList);
             if (arguments != null && arguments.Count > 0)
             {
                 ClassAnnotations = new();
@@ -37,6 +39,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
         public string? CompositeKeyName { get; set; }
         public List<PropertyInfo> CompositeKeys { get; } = new List<PropertyInfo>();
         public List<KeyValuePair<string, string>> ClassAnnotations { get; }
+        public string BaseKeyType { get; private set; }
 
         private void ParseAnnotations(List<AttributeArgumentSyntax> annotations)
         {
@@ -50,6 +53,16 @@ namespace BIA.ToolKit.Domain.DtoGenerator
                     ClassAnnotations.Add(new KeyValuePair<string, string>(key, value));
                 }
             }
+        }
+
+        private void ParseBaseKey(List<string> baseList)
+        {
+            var iEntityBase = baseList.FirstOrDefault(x => x.StartsWith("IEntity<"));
+            if (iEntityBase == null)
+                return;
+
+            var regex = new Regex(@"<\s*(\w+)\s*>");
+            BaseKeyType = regex.Match(iEntityBase).Groups[1].Value;
         }
     }
 }

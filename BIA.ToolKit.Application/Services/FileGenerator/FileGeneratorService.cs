@@ -42,7 +42,7 @@
                 DomainName = domainName,
                 DtoName = entityInfo.Name + "Dto",
                 EntityName = entityInfo.Name,
-                BaseKeyType = mappingEntityProperties.FirstOrDefault(x => x.IsBaseKey)?.MappingType,
+                BaseKeyType = entityInfo.BaseKeyType,
                 Properties = mappingEntityProperties.Select(x => new PropertyModel()
                 {
                     MappingName = x.MappingName,
@@ -60,7 +60,7 @@
 
             if(string.IsNullOrWhiteSpace(model.BaseKeyType))
             {
-                consoleWriter.AddMessageLine("WARNING: No base key defined, you'll must complete the base key inside the DTO and mapper after generation.", "orange");
+                consoleWriter.AddMessageLine("WARNING: No base key type found, you'll must complete the base key type inside the DTO and mapper after generation.", "orange");
             }
 
             consoleWriter.AddMessageLine($"Generating DTO...");

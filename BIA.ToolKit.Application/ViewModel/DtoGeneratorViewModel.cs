@@ -133,7 +133,6 @@
         public bool IsGenerationEnabled => HasMappingProperties && MappingEntityProperties.All(x => x.IsValid) && !string.IsNullOrWhiteSpace(EntityDomain);
 
         public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>((mappingEntityProperty) => RemoveMappingProperty(mappingEntityProperty));
-        public ICommand UpdateBaseKeyMappingCommand => new RelayCommand<MappingEntityProperty>((mappingEntityProperty) => UpdateBaseKeyMapping(mappingEntityProperty));
 
         public void SetProject(Project project)
         {
@@ -232,11 +231,6 @@
                         }
                     }
 
-                    if (selectedEntityProperty.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        mappingEntityProperty.IsBaseKey = true;
-                    }
-
                     mappingEntityProperties.Add(mappingEntityProperty);
                 }
                 AddMappingProperties(selectedEntityProperty.Properties, mappingEntityProperties);
@@ -283,17 +277,6 @@
             RaisePropertyChanged(nameof(IsGenerationEnabled));
         }
 
-        private void UpdateBaseKeyMapping(MappingEntityProperty mappingEntityProperty)
-        {
-            if (mappingEntityProperty.IsBaseKey)
-            {
-                foreach (var item in MappingEntityProperties.Where(x => x.EntityCompositeName != mappingEntityProperty.EntityCompositeName))
-                {
-                    item.IsBaseKey = false;
-                }
-            }
-        }
-
         public void OnOptionDisplayPropertyChanged()
         {
             RaisePropertyChanged(nameof(IsGenerationEnabled));
@@ -316,19 +299,6 @@
         public string MappingType { get; set; }
         public bool IsOption => MappingType.Equals(Constants.BiaClassName.OptionDto) || MappingType.Equals(Constants.BiaClassName.CollectionOptionDto);
         public string OptionType { get; set; }
-
-        private bool isBaseKey;
-        public bool IsBaseKey
-        {
-            get => isBaseKey;
-            set
-            {
-                isBaseKey = value;
-                RaisePropertyChanged(nameof(IsBaseKey));
-            }
-        }
-
-        public bool CanBeBaseKey => !IsOption;
         public bool IsRequired { get; set; }
         public string OptionDisplayProperty { get; set; }
         public List<string> OptionDisplayProperties { get; set; } = new();

@@ -82,17 +82,6 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Base Key" Width="auto">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <CheckBox
-                                        Visibility="{Binding CanBeBaseKey, Converter={StaticResource BoolToVisConverter}}"
-                                        IsChecked="{Binding IsBaseKey, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                        Command="{Binding DataContext.UpdateBaseKeyMappingCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                                        CommandParameter="{Binding}"></CheckBox>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
                         <GridViewColumn Header="Required" Width="auto">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
