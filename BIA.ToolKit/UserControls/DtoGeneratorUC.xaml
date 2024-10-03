@@ -96,20 +96,26 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
+                        <GridViewColumn Header="Option ID Property" Width="auto">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <ComboBox 
+                                            ItemsSource="{Binding OptionIdProperties}" 
+                                            SelectedValue="{Binding OptionIdProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                            Visibility="{Binding IsVisibleOptionPropertiesComboBox, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
+                                    </Grid>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
                         <GridViewColumn Header="Option Display Property" Width="auto">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
                                         <ComboBox 
                                             ItemsSource="{Binding OptionDisplayProperties}" 
-                                            SelectedValue="{Binding OptionDisplayProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                            Visibility="{Binding CanSetOptionDisplayPropertyComboBox, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
-                                        <TextBox 
-                                            x:Name="OptionDisplayPropertTextBox"
-                                            MinWidth="100"
-                                            TextChanged="OptionDisplayPropertTextBox_TextChanged"
-                                            Text="{Binding OptionDisplayProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"  
-                                            Visibility="{Binding MustSetOptionDisplayPropertyTextBox, Converter={StaticResource BoolToVisConverter}}"></TextBox>
+                                            SelectedValue="{Binding OptionDisplayProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                            Visibility="{Binding IsVisibleOptionPropertiesComboBox, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
                                     </Grid>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>

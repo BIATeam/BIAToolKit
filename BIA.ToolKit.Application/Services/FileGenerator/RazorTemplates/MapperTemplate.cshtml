@@ -44,7 +44,7 @@ namespace @(Model.EntityNamespace)
             @:{
             @:    foreach (var optionDto in dto.@(property.MappingName).Where(x => x.DtoState == DtoState.Deleted))
             @:    {
-            @:        var entityToRemove = entity.@(property.MappingName).FirstOrDefault(x => x.Id == optionDto.Id);
+            @:        var entityToRemove = entity.@(property.EntityCompositeName).FirstOrDefault(x => x.@(property.OptionIdProperty) == optionDto.Id);
             @:        if (entityToRemove != null)
             @:        {
             @:            entity.@(property.EntityCompositeName).Remove(entityToRemove);
@@ -80,13 +80,13 @@ namespace @(Model.EntityNamespace)
                     else if(property.IsOption)
                     {
                 @:@(property.MappingName) = entity.@(property.EntityCompositeName) != null ?
-                @:  new OptionDto { Id = entity.@(property.EntityCompositeName).Id, Display = entity.@(property.EntityCompositeName).@(property.OptionDisplayProperty) } :
+                @:  new OptionDto { Id = entity.@(property.EntityCompositeName).@(property.OptionIdProperty), Display = entity.@(property.EntityCompositeName).@(property.OptionDisplayProperty) } :
                 @:  null,
                     }
                     else if(property.IsOptionCollection)
                     {
                 @:@(property.MappingName) = entity.@(property.EntityCompositeName)
-                @:.Select(x => new OptionDto { Id = x.Id, Display = x.@(property.OptionDisplayProperty) })
+                @:.Select(x => new OptionDto { Id = x.@(property.OptionIdProperty), Display = x.@(property.OptionDisplayProperty) })
                 @:.OrderBy(x => x.Display)
                 @:.ToList(),
                     }

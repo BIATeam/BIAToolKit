@@ -49,11 +49,12 @@
                     MappingName = x.MappingName,
                     EntityCompositeName = x.EntityCompositeName,
                     MappingType = x.MappingType,
-                    IsOption = x.MappingType.Equals(Constants.BiaClassName.OptionDto),
-                    IsOptionCollection = x.MappingType.Equals(Constants.BiaClassName.CollectionOptionDto),
+                    IsOption = x.IsOption,
+                    IsOptionCollection = x.IsOptionCollection,
                     OptionType = x.OptionType,
                     IsRequired = x.IsRequired,
-                    OptionDisplayProperty = x.OptionDisplayProperty
+                    OptionDisplayProperty = x.OptionDisplayProperty,
+                    OptionIdProperty = x.OptionIdProperty,
                 }).ToList(),
                 EntityNamespace = entityInfo.Namespace,
                 MapperName = entityInfo.Name + "Mapper"

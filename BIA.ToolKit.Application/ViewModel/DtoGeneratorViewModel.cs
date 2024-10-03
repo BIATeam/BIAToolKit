@@ -220,14 +220,17 @@
                         MappingType = ComputeMappingType(selectedEntityProperty)
                     };
 
-                    if (mappingEntityProperty.IsOption)
+                    if (mappingEntityProperty.IsOption || mappingEntityProperty.IsOptionCollection)
                     {
                         mappingEntityProperty.OptionType = ExtractOptionType(selectedEntityProperty.Type);
                         var optionEntity = entities.FirstOrDefault(x => x.Name == mappingEntityProperty.OptionType);
                         if (optionEntity != null)
                         {
-                            mappingEntityProperty.OptionDisplayProperties.AddRange(optionEntity.Properties.Where(x => !x.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase)).Select(x => x.Name));
-                            mappingEntityProperty.OptionDisplayProperty = mappingEntityProperty.OptionDisplayProperties.FirstOrDefault();
+                            mappingEntityProperty.OptionDisplayProperties.AddRange(optionEntity.Properties.Select(x => x.Name));
+                            mappingEntityProperty.OptionDisplayProperty = mappingEntityProperty.OptionDisplayProperties.Where(x => !x.Equals("id", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
+
+                            mappingEntityProperty.OptionIdProperties.AddRange(optionEntity.Properties.Where(x => x.Type.Equals("int", StringComparison.InvariantCultureIgnoreCase)).Select(x => x.Name));
+                            mappingEntityProperty.OptionIdProperty = mappingEntityProperty.OptionIdProperties.FirstOrDefault(x => x.Equals("id", StringComparison.InvariantCultureIgnoreCase));
                         }
                     }
 
@@ -276,11 +279,6 @@
             RaisePropertyChanged(nameof(HasMappingProperties));
             RaisePropertyChanged(nameof(IsGenerationEnabled));
         }
-
-        public void OnOptionDisplayPropertyChanged()
-        {
-            RaisePropertyChanged(nameof(IsGenerationEnabled));
-        }
     }
 
     public class EntityProperty
@@ -297,13 +295,19 @@
         public string EntityCompositeName { get; set; }
         public string MappingName { get; set; }
         public string MappingType { get; set; }
-        public bool IsOption => MappingType.Equals(Constants.BiaClassName.OptionDto) || MappingType.Equals(Constants.BiaClassName.CollectionOptionDto);
+        public bool IsOption => MappingType.Equals(Constants.BiaClassName.OptionDto);
+        public bool IsOptionCollection => MappingType.Equals(Constants.BiaClassName.CollectionOptionDto);
         public string OptionType { get; set; }
         public bool IsRequired { get; set; }
-        public string OptionDisplayProperty { get; set; }
+        public List<string> OptionIdProperties { get; set; } = new();
         public List<string> OptionDisplayProperties { get; set; } = new();
-        public bool CanSetOptionDisplayPropertyComboBox => IsOption && OptionDisplayProperties.Count > 0;
-        public bool MustSetOptionDisplayPropertyTextBox => IsOption && OptionDisplayProperties.Count == 0;
-        public bool IsValid => !IsOption || !string.IsNullOrWhiteSpace(OptionDisplayProperty);
+        public string OptionDisplayProperty { get; set; }
+        public string OptionIdProperty { get; set; }
+        public bool IsVisibleOptionPropertiesComboBox => IsOption || IsOptionCollection;
+
+        public bool IsValid => 
+            (!IsOption && !IsOptionCollection) 
+            || (!string.IsNullOrWhiteSpace(OptionDisplayProperty) 
+                && !string.IsNullOrWhiteSpace(OptionIdProperty));
     }
 }
