@@ -8,12 +8,14 @@
 
 namespace @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainName)
 {
-    using System;
     @if (Model.HasCollectionOptions)
     {
     @:using System.Collections.Generic;
     }
-    using BIA.Net.Core.Domain.Dto.Base;
+    @if (!Model.IsTeamType)
+    {
+    @:using BIA.Net.Core.Domain.Dto.Base;
+    }
     using BIA.Net.Core.Domain.Dto.CustomAttribute;
     @if (Model.HasOptions)
     {
@@ -29,7 +31,7 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainNam
     /// </summary>
     public class @(Model.DtoName) : @Raw(Model.IsTeamType ? "TeamDto" : $"BaseDto<{Model.BaseKeyType}>")
     {
-        @foreach (var property in Model.Properties)
+        @foreach (var property in Model.Properties.Where(p => !p.MappingName.Equals("Id")))
         {
         @:/// <summary>
         @:/// Gets or sets the @(property.MappingName).
