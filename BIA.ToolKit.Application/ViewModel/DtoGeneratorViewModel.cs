@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
+    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
@@ -19,16 +20,17 @@
     public class DtoGeneratorViewModel : ObservableObject
     {
         private string projectDomainNamespace;
+        private IConsoleWriter consoleWriter;
         private readonly List<EntityInfo> domainEntities = new();
         private readonly List<string> excludedEntityDomains = new()
         {
-            "AuditModule",
-            "NotificationModule",
-            "SiteModule",
-            "TranslationModule",
-            "UserModule",
-            "RepoContract",
-            "ViewModule"
+            //"AuditModule",
+            //"NotificationModule",
+            //"SiteModule",
+            //"TranslationModule",
+            //"UserModule",
+            //"RepoContract",
+            //"ViewModule"
         };
         private readonly List<string> optionsMappingTypes = new()
         {
@@ -143,6 +145,11 @@
             IsProjectChosen = true;
         }
 
+        public void Inject(IConsoleWriter consoleWriter)
+        {
+            this.consoleWriter = consoleWriter;
+        }
+
         public void SetEntities(List<EntityInfo> entities)
         {
             domainEntities.Clear();
@@ -245,6 +252,11 @@
                         x.ParentType == mappingEntityProperty.ParentEntityType 
                         && x.Type.Equals($"ICollection<{mappingEntityProperty.OptionRelationType}>")
                     )?.CompositeName;
+
+                if(string.IsNullOrWhiteSpace(mappingEntityProperty.OptionRelationPropertyComposite))
+                {
+                    consoleWriter.AddMessageLine($"ERROR: unable to find matching property of type ICollection<{mappingEntityProperty.OptionRelationType}> in type {mappingEntityProperty.ParentEntityType} to map {mappingEntityProperty.EntityCompositeName}", "red");
+                }
             }
 
             RaisePropertyChanged(nameof(HasMappingProperties));
@@ -303,11 +315,28 @@
                                     && relationTypeClassNames.All(y => x.Properties.Select(x => x.Type).Contains(y)));
 
                                 if (entityInfo is null)
+                                {
+                                    consoleWriter.AddMessageLine($"ERROR: unable to find relation's entity between types {optionRelationFirstType} and {optionRelationSecondType} to map {mappingEntityProperty.EntityCompositeName}", "red");
                                     continue;
+                                }
 
                                 mappingEntityProperty.OptionRelationType = entityInfo.Name;
-                                mappingEntityProperty.OptionRelationFirstIdProperty = entityInfo.Properties.SingleOrDefault(x => x.Type == optionRelationFirstType)?.Name + "Id";
-                                mappingEntityProperty.OptionRelationSecondIdProperty = entityInfo.Properties.SingleOrDefault(x => x.Type == optionRelationSecondType)?.Name + "Id";
+
+                                var optionRelationFirstIdPropertyName = optionRelationFirstType + "Id";
+                                mappingEntityProperty.OptionRelationFirstIdProperty = entityInfo.Properties.SingleOrDefault(x => x.Type == "int" && x.Name.Equals(optionRelationFirstIdPropertyName))?.Name;
+                                if(string.IsNullOrWhiteSpace(mappingEntityProperty.OptionRelationFirstIdProperty))
+                                {
+                                    consoleWriter.AddMessageLine($"ERROR: unable to find matching relation property {optionRelationFirstIdPropertyName} in the entity {entityInfo.Name} to map {mappingEntityProperty.EntityCompositeName}", "red");
+                                    continue;
+                                }
+
+                                var optionRelationSecondIdPropertyName = optionRelationSecondType + "Id";
+                                mappingEntityProperty.OptionRelationSecondIdProperty = entityInfo.Properties.SingleOrDefault(x => x.Type == "int" && x.Name.Equals(optionRelationSecondIdPropertyName))?.Name;
+                                if (string.IsNullOrWhiteSpace(mappingEntityProperty.OptionRelationSecondIdProperty))
+                                {
+                                    consoleWriter.AddMessageLine($"ERROR: unable to find matching relation property {optionRelationSecondIdPropertyName} in the entity {entityInfo.Name} to map {mappingEntityProperty.EntityCompositeName}", "red");
+                                    continue;
+                                }
                             }
                         }
                     }

@@ -42,6 +42,8 @@
             this.parserService = parserService;
             this.settings = new(settingsService);
             this.fileGeneratorService = fileGeneratorService;
+
+            vm.Inject(consoleWriter);
         }
 
         public void SetCurrentProject(Project project)
