@@ -96,19 +96,19 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Option Mapping ID Property" Width="auto">
+                        <GridViewColumn Header="Option Mapping ID" Width="auto">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
                                         <ComboBox 
                                             ItemsSource="{Binding OptionEntityIdProperties}" 
                                             SelectedValue="{Binding OptionEntityIdProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                            Visibility="{Binding IsOption, Converter={StaticResource BoolToVisConverter}}"></ComboBox>         
+                                            Visibility="{Binding IsOption, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
                                     </Grid>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Option Type ID Property" Width="auto">
+                        <GridViewColumn Header="Option ID" Width="auto">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
@@ -120,7 +120,7 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Option Type Display Property" Width="auto">
+                        <GridViewColumn Header="Option Display" Width="auto">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>

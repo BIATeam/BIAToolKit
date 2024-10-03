@@ -39,7 +39,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
         public string? CompositeKeyName { get; set; }
         public List<PropertyInfo> CompositeKeys { get; } = new List<PropertyInfo>();
         public List<KeyValuePair<string, string>> ClassAnnotations { get; }
-        public string BaseKeyType { get; private set; }
+        public string BaseKeyType { get; set; }
 
         private void ParseAnnotations(List<AttributeArgumentSyntax> annotations)
         {

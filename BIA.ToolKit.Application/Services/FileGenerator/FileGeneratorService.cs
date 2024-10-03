@@ -35,7 +35,7 @@
 
         public async Task GenerateDto(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
         {
-            var model = new MapperModel
+            var model = new DtoModel
             {
                 CompanyName = project.CompanyName,
                 ProjectName = project.Name,
@@ -55,7 +55,11 @@
                     IsRequired = x.IsRequired,
                     OptionDisplayProperty = x.OptionDisplayProperty,
                     OptionIdProperty = x.OptionIdProperty,
-                    OptionEntityIdPropertyComposite = x.OptionEntityIdPropertyComposite
+                    OptionEntityIdPropertyComposite = x.OptionEntityIdPropertyComposite,
+                    OptionRelationType = x.OptionRelationType,
+                    OptionRelationPropertyComposite = x.OptionRelationPropertyComposite,
+                    OptionRelationFirstIdProperty = x.OptionRelationFirstIdProperty,
+                    OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty
                 }).ToList(),
                 EntityNamespace = entityInfo.Namespace,
                 MapperName = entityInfo.Name + "Mapper"

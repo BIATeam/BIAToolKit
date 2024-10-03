@@ -4,6 +4,7 @@
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
+    using LibGit2Sharp;
     using Microsoft.Extensions.FileSystemGlobbing.Internal;
     using System;
     using System.Collections.Generic;
@@ -144,8 +145,10 @@
 
         public void SetEntities(List<EntityInfo> entities)
         {
-            this.domainEntities.Clear();
-            this.domainEntities.AddRange(entities);
+            domainEntities.Clear();
+            domainEntities.AddRange(entities);
+
+            ComputeBaseKeyType(domainEntities);
 
             var entitiesNames = entities
                 .Where(x => !excludedEntityDomains.Any(y => x.Path.Contains(y)))
@@ -158,6 +161,33 @@
             {
                 EntitiesNames.Add(entityName);
             }
+        }
+
+        private static void ComputeBaseKeyType(List<EntityInfo> entities)
+        {
+            foreach(var entity in entities)
+            {
+                if (!string.IsNullOrWhiteSpace(entity.BaseKeyType))
+                    continue;
+
+                var baseEntityInfo = GetBaseEntityInfoWithNonEmptyBaseKeyType(entity, entities);
+                if(baseEntityInfo != null)
+                {
+                    entity.BaseKeyType = baseEntityInfo.BaseKeyType;
+                }
+            }
+        }
+
+        private static EntityInfo GetBaseEntityInfoWithNonEmptyBaseKeyType(EntityInfo entityInfo, List<EntityInfo> entities)
+        {
+            var baseTypeEntityInfo = entities.FirstOrDefault(e => entityInfo.BaseList.Contains(e.Name));
+            if (baseTypeEntityInfo != null)
+            {
+                return string.IsNullOrWhiteSpace(baseTypeEntityInfo.BaseKeyType) ?
+                    GetBaseEntityInfoWithNonEmptyBaseKeyType(baseTypeEntityInfo, entities) :
+                    baseTypeEntityInfo; 
+            }
+            return null;
         }
 
         private static string GetProjectDomainNamespace(Project project)
@@ -181,7 +211,8 @@
                     Name = property.Name,
                     Type = property.Type,
                     CompositeName = property.Name,
-                    IsSelected = true
+                    IsSelected = true,
+                    ParentType = SelectedEntityInfo.Name
                 };
                 FillEntityProperties(propertyViewModel);
                 EntityProperties.Add(propertyViewModel);
@@ -196,7 +227,7 @@
                 return;
             }
 
-            property.Properties.AddRange(propertyEntity.Properties.Select(p => new EntityProperty { Name = p.Name, Type = p.Type, CompositeName = $"{property.CompositeName}.{p.Name}" }));
+            property.Properties.AddRange(propertyEntity.Properties.Select(p => new EntityProperty { Name = p.Name, Type = p.Type, CompositeName = $"{property.CompositeName}.{p.Name}", ParentType = property.Type }));
             property.Properties.ForEach(p => FillEntityProperties(p));
         }
 
@@ -205,6 +236,16 @@
             var mappingEntityProperties = new List<MappingEntityProperty>(MappingEntityProperties);
             AddMappingProperties(EntityProperties, mappingEntityProperties);
             MappingEntityProperties = new(mappingEntityProperties.OrderBy(x => x.EntityCompositeName));
+
+            foreach(var mappingEntityProperty in MappingEntityProperties.Where(x => x.IsOptionCollection))
+            {
+                mappingEntityProperty.OptionRelationPropertyComposite = EntityProperties
+                    .SelectMany(x => x.GetAllPropertiesRecursively())
+                    .SingleOrDefault(x => 
+                        x.ParentType == mappingEntityProperty.ParentEntityType 
+                        && x.Type.Equals($"ICollection<{mappingEntityProperty.OptionRelationType}>")
+                    )?.CompositeName;
+            }
 
             RaisePropertyChanged(nameof(HasMappingProperties));
             RaisePropertyChanged(nameof(IsGenerationEnabled));
@@ -219,6 +260,7 @@
                     var mappingEntityProperty = new MappingEntityProperty
                     {
                         EntityCompositeName = selectedEntityProperty.CompositeName,
+                        ParentEntityType = selectedEntityProperty.ParentType,
                         MappingName = selectedEntityProperty.CompositeName.Replace(".", string.Empty),
                         MappingType = ComputeMappingType(selectedEntityProperty)
                     };
@@ -248,6 +290,24 @@
                                 {
                                     mappingEntityProperty.OptionEntityIdProperty = automaticOptionEntityIdProperty;
                                 }
+                            }
+
+                            if(mappingEntityProperty.IsOptionCollection)
+                            {
+                                var optionRelationFirstType = selectedEntityProperty.ParentType;
+                                var optionRelationSecondType = mappingEntityProperty.OptionType;
+
+                                var relationTypeClassNames = new List<string> { optionRelationFirstType, mappingEntityProperty.OptionType };
+                                var entityInfo = domainEntities.SingleOrDefault(x =>
+                                    string.IsNullOrEmpty(x.BaseKeyType)
+                                    && relationTypeClassNames.All(y => x.Properties.Select(x => x.Type).Contains(y)));
+
+                                if (entityInfo is null)
+                                    continue;
+
+                                mappingEntityProperty.OptionRelationType = entityInfo.Name;
+                                mappingEntityProperty.OptionRelationFirstIdProperty = entityInfo.Properties.SingleOrDefault(x => x.Type == optionRelationFirstType)?.Name + "Id";
+                                mappingEntityProperty.OptionRelationSecondIdProperty = entityInfo.Properties.SingleOrDefault(x => x.Type == optionRelationSecondType)?.Name + "Id";
                             }
                         }
                     }
@@ -307,12 +367,21 @@
         public bool IsSelected { get; set; }
         public string CompositeName { get; set; }
         public List<EntityProperty> Properties { get; set; } = new();
+        public string ParentType { get; set; }
+
+        public List<EntityProperty> GetAllPropertiesRecursively()
+        {
+            var allProperties = new List<EntityProperty> { this };
+            allProperties.AddRange(Properties.SelectMany(x => x.GetAllPropertiesRecursively()));
+            return allProperties;
+        }
     }
 
     public class MappingEntityProperty : ObservableObject
     {
         public string EntityCompositeName { get; set; }
         public string MappingName { get; set; }
+        public string ParentEntityType { get; set; }
         public string MappingType { get; set; }
         public bool IsOption => MappingType.Equals(Constants.BiaClassName.OptionDto);
         public bool IsOptionCollection => MappingType.Equals(Constants.BiaClassName.CollectionOptionDto);
@@ -323,6 +392,7 @@
         public List<string> OptionEntityIdProperties { get; set; } = new();
         public string OptionDisplayProperty { get; set; }
         public string OptionIdProperty { get; set; }
+        public bool IsVisibleOptionPropertiesComboBox => IsOption || IsOptionCollection;
 
         private string optionEntityIdProperty;
         public string OptionEntityIdProperty 
@@ -339,13 +409,41 @@
         }
 
         public string OptionEntityIdPropertyComposite { get; private set; }
-        public bool IsVisibleOptionPropertiesComboBox => IsOption || IsOptionCollection;
 
-        public bool IsValid =>
-            (!IsOption && !IsOptionCollection)
-            || (!string.IsNullOrWhiteSpace(OptionDisplayProperty)
-                && !string.IsNullOrWhiteSpace(OptionIdProperty));
+        public string OptionRelationType { get; set; }
+        public string OptionRelationFirstIdProperty { get; set; }
+        public string OptionRelationSecondIdProperty { get; set; }
+        public string OptionRelationPropertyComposite { get; set; }
+
+        public bool IsValid => ComputeValidity();
 
         private bool IsCompositeName => EntityCompositeName.Contains('.');
+
+        private bool ComputeValidity()
+        {
+            // Common validity
+            var isMappingNameValid = !string.IsNullOrWhiteSpace(MappingName);
+            // Options validity
+            var isOptionIdPropertyValid = !string.IsNullOrWhiteSpace(OptionIdProperty);
+            var isOptionDisplayPropertyValid = !string.IsNullOrWhiteSpace(OptionDisplayProperty);
+
+            if(IsOption)
+            {
+                var isOptionEntityIdPropertyValid = !string.IsNullOrWhiteSpace(OptionEntityIdProperty);
+                return isMappingNameValid && isOptionIdPropertyValid && isOptionDisplayPropertyValid && isOptionEntityIdPropertyValid;
+            }
+
+            if (IsOptionCollection)
+            {
+                var isOptionRelationTypeValid = !string.IsNullOrWhiteSpace(OptionRelationType);
+                var isOptionRelationPropertyValid = !string.IsNullOrWhiteSpace(OptionRelationPropertyComposite);
+                var isOptionRelationFirstIdPropertyValid = !string.IsNullOrWhiteSpace(OptionRelationFirstIdProperty);
+                var isOptionRelationSecondIdPropertyValid = !string.IsNullOrWhiteSpace(OptionRelationSecondIdProperty);
+                return isMappingNameValid && isOptionIdPropertyValid && isOptionDisplayPropertyValid && isOptionRelationTypeValid && isOptionRelationPropertyValid
+                    && isOptionRelationFirstIdPropertyValid && isOptionRelationSecondIdPropertyValid;
+            }
+
+            return isMappingNameValid;
+        }
     }
 }

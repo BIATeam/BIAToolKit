@@ -14,6 +14,10 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.RazorModels
         public string OptionDisplayProperty { get; set; }
         public string OptionIdProperty { get; set; }
         public string OptionEntityIdPropertyComposite { get; set; }
+        public string OptionRelationType { get; set; }
+        public string OptionRelationPropertyComposite { get; set; }
+        public string OptionRelationFirstIdProperty { get; set; }
+        public string OptionRelationSecondIdProperty { get; set; }
         public bool IsOptionCollection { get; set; }
 
         private string biaDtoFieldAttributeProperties;
@@ -33,7 +37,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.RazorModels
                 $"Required = {IsRequired.ToString().ToLower()}"
             };
 
-            if (IsOption)
+            if (IsOption || IsOptionCollection)
             {
                 attributeProperties.Add($"ItemType = \"{OptionType}\"");
             }

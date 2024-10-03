@@ -11,13 +11,13 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainNam
     using System;
     @if (Model.HasCollectionOptions)
     {
-    @:using System.Collections.Generic; 
+    @:using System.Collections.Generic;
     }
     using BIA.Net.Core.Domain.Dto.Base;
     using BIA.Net.Core.Domain.Dto.CustomAttribute;
     @if (Model.HasOptions)
     {
-    @:using BIA.Net.Core.Domain.Dto.Option; 
+    @:using BIA.Net.Core.Domain.Dto.Option;
     }
 
     /// <summary>

@@ -6,6 +6,8 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.RazorModels
 {
     public class DtoModel
     {
+        public string EntityNamespace { get; set; }
+        public string MapperName { get; set; }
         public string CompanyName { get; set; }
         public string ProjectName { get; set; }
         public string DomainName { get; set; }
