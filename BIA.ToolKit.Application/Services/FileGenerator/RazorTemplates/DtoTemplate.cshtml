@@ -19,11 +19,15 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainNam
     {
     @:using BIA.Net.Core.Domain.Dto.Option;
     }
+    @if (Model.IsTeamType)
+    {
+    @:using BIA.Net.Core.Domain.Dto.User;
+    }
 
     /// <summary>
     /// The DTO used to represent @(Model.NameArticle) @(Model.EntityName).
     /// </summary>
-    public class @(Model.DtoName) : BaseDto<@(Model.BaseKeyType)>
+    public class @(Model.DtoName) : @Raw(Model.IsTeamType ? "TeamDto" : $"BaseDto<{Model.BaseKeyType}>")
     {
         @foreach (var property in Model.Properties)
         {

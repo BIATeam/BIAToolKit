@@ -18,5 +18,6 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.RazorModels
         public bool HasCollectionOptions => Properties.Any(p => p.MappingType.Equals(Constants.BiaClassName.CollectionOptionDto));
         public bool HasOptions => HasCollectionOptions || Properties.Any(p => p.MappingType.Equals(Constants.BiaClassName.OptionDto));
         public string BaseKeyType { get; set; }
+        public bool IsTeamType { get; set; }
     }
 }

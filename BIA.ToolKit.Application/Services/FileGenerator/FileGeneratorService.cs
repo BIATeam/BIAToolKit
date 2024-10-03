@@ -62,7 +62,8 @@
                     OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty
                 }).ToList(),
                 EntityNamespace = entityInfo.Namespace,
-                MapperName = entityInfo.Name + "Mapper"
+                MapperName = entityInfo.Name + "Mapper",
+                IsTeamType = entityInfo.BaseType.Contains("Team")
             };
 
             if(string.IsNullOrWhiteSpace(model.BaseKeyType))
@@ -80,7 +81,7 @@
                 model.DomainName, 
                 $"{model.DtoName}.cs");
             await GenerateFile(dtoContent, dtoDestPath);
-            consoleWriter.AddMessageLine($"DTO successfully generated !");
+            consoleWriter.AddMessageLine($"DTO successfully generated !", "green");
 
             consoleWriter.AddMessageLine($"Generating mapper...");
             var mapperContent = await GenerateFromTemplate(TemplateKey_Mapper, model);
@@ -88,7 +89,7 @@
                 Path.GetDirectoryName(entityInfo.Path),
                 $"{model.MapperName}.cs");
             await GenerateFile(mapperContent, mapperDestPath);
-            consoleWriter.AddMessageLine($"Mapper successfully generated !");
+            consoleWriter.AddMessageLine($"Mapper successfully generated !", "green");
         }
 
         private static string ComputeNameArticle(string name)
@@ -119,7 +120,7 @@
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"Fail to generate from template {templateKey} : {ex.Message}", color: "red");
+                consoleWriter.AddMessageLine($"ERROR: Fail to generate from template {templateKey} : {ex.Message}", color: "red");
             }
 
             return content;
@@ -141,7 +142,7 @@
             }
             catch(Exception ex)
             {
-                consoleWriter.AddMessageLine($"Fail to generate file : {ex.Message}", color: "red");
+                consoleWriter.AddMessageLine($"ERROR: Fail to generate file : {ex.Message}", color: "red");
             }
         }
     }

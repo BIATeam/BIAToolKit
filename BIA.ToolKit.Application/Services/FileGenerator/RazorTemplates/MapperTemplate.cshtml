@@ -15,35 +15,68 @@ namespace @(Model.EntityNamespace)
     }
     using System.Linq;
     using System.Linq.Expressions;
-    using BIA.Net.Core.Domain;
+    @if (Model.IsTeamType)
+    {
+    @:using System.Security.Principal;
+    @:using BIA.Net.Core.Common.Extensions;
+    }
+    else
+    {
+    @:using BIA.Net.Core.Domain;
+    }
     using BIA.Net.Core.Domain.Dto.Base;
     @if (Model.HasOptions)
     {
     @:using BIA.Net.Core.Domain.Dto.Option;
     }
     using @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainName);
+    @if (Model.IsTeamType)
+    {
+    @:using @(Model.CompanyName).@(Model.ProjectName).Domain.UserModule.Aggregate;
+    }
 
     /// <summary>
     /// The mapper used for @(Model.EntityName).
     /// </summary>
-    public class @(Model.EntityName)Mapper : BaseMapper<@(Model.DtoName), @(Model.EntityName), @(Model.BaseKeyType)>
+    @{
+        var baseMapperClass = Model.IsTeamType ? "TTeamMapper" : "BaseMapper";
+        var baseKeyType = Model.IsTeamType ? string.Empty : $", {Model.BaseKeyType}";
+    }
+    public class @(Model.EntityName)Mapper : @(baseMapperClass)<@(Model.DtoName), @(Model.EntityName)@(baseKeyType)>
     {
+        @if (Model.IsTeamType)
+        {
+        @:/// <summary>
+        @:/// Initializes a new instance of the <see cref="@(Model.EntityName)Mapper"/> class.
+        @:/// </summary>
+        @:/// <param name="principal">The principal.</param>
+        @:public @(Model.EntityName)Mapper(IPrincipal principal)
+        @:    : base(principal)
+        @:{
+        @:}
+@:
+        }
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToEntity"/>
         public override void DtoToEntity(@(Model.DtoName) dto, @(Model.EntityName) entity)
         {
             entity ??= new @(Model.EntityName)();
 
+            @if (Model.IsTeamType)
+            {
+            @:base.DtoToEntity(dto, entity);
+@:
+            }
             @foreach (var property in Model.Properties)
             {
-                if(!property.IsOption && !property.IsOptionCollection)
+                if (!property.IsOption && !property.IsOptionCollection)
                 {
             @:entity.@(property.EntityCompositeName) = dto.@(property.MappingName);
                 }
-                else if(property.IsOption)
+                else if (property.IsOption)
                 {
             @:entity.@(property.OptionEntityIdPropertyComposite) = dto.@(property.MappingName).Id;
                 }
-                else if(property.IsOptionCollection)
+                else if (property.IsOptionCollection)
                 {
             @:if (dto.@(property.MappingName) != null && dto.@(property.MappingName).Count != 0)
             @:{
@@ -74,21 +107,21 @@ namespace @(Model.EntityNamespace)
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
         public override Expression<Func<@(Model.EntityName), @(Model.DtoName)>> EntityToDto()
         {
-            return entity => new @(Model.DtoName)
+            return @Raw(Model.IsTeamType ? "base.EntityToDto().CombineMapping(" : string.Empty)entity => new @(Model.DtoName)
             {
                 @foreach (var property in Model.Properties)
                 {
-                    if(!property.IsOption && !property.IsOptionCollection)
+                    if (!property.IsOption && !property.IsOptionCollection)
                     {
                 @:@(property.MappingName) = entity.@(property.EntityCompositeName),
                     }
-                    else if(property.IsOption)
+                    else if (property.IsOption)
                     {
                 @:@(property.MappingName) = entity.@(property.EntityCompositeName) != null ?
                 @:  new OptionDto { Id = entity.@(property.EntityCompositeName).@(property.OptionIdProperty), Display = entity.@(property.EntityCompositeName).@(property.OptionDisplayProperty) } :
                 @:  null,
                     }
-                    else if(property.IsOptionCollection)
+                    else if (property.IsOptionCollection)
                     {
                 @:@(property.MappingName) = entity.@(property.EntityCompositeName)
                 @:.Select(x => new OptionDto { Id = x.@(property.OptionIdProperty), Display = x.@(property.OptionDisplayProperty) })
@@ -96,7 +129,7 @@ namespace @(Model.EntityNamespace)
                 @:.ToList(),
                     }
                 }
-            };
+            @Raw(Model.IsTeamType ? "});" : "};")
         }
     }
 }
