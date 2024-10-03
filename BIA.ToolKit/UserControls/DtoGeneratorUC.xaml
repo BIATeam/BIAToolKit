@@ -96,7 +96,19 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Option ID Property" Width="auto">
+                        <GridViewColumn Header="Option Mapping ID Property" Width="auto">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <ComboBox 
+                                            ItemsSource="{Binding OptionEntityIdProperties}" 
+                                            SelectedValue="{Binding OptionEntityIdProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                            Visibility="{Binding IsOption, Converter={StaticResource BoolToVisConverter}}"></ComboBox>         
+                                    </Grid>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Option Type ID Property" Width="auto">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
@@ -108,7 +120,7 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Option Display Property" Width="auto">
+                        <GridViewColumn Header="Option Type Display Property" Width="auto">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>

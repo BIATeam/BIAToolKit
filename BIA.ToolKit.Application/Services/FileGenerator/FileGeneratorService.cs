@@ -55,6 +55,7 @@
                     IsRequired = x.IsRequired,
                     OptionDisplayProperty = x.OptionDisplayProperty,
                     OptionIdProperty = x.OptionIdProperty,
+                    OptionEntityIdPropertyComposite = x.OptionEntityIdPropertyComposite
                 }).ToList(),
                 EntityNamespace = entityInfo.Namespace,
                 MapperName = entityInfo.Name + "Mapper"

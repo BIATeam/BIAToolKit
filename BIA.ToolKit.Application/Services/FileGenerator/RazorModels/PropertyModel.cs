@@ -13,6 +13,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.RazorModels
         public bool IsRequired { get; set; }
         public string OptionDisplayProperty { get; set; }
         public string OptionIdProperty { get; set; }
+        public string OptionEntityIdPropertyComposite { get; set; }
         public bool IsOptionCollection { get; set; }
 
         private string biaDtoFieldAttributeProperties;

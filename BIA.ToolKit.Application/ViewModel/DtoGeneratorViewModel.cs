@@ -18,13 +18,23 @@
     public class DtoGeneratorViewModel : ObservableObject
     {
         private string projectDomainNamespace;
-        private readonly List<EntityInfo> entities;
-        private readonly List<string> OptionsMappingTypes = new()
+        private readonly List<EntityInfo> domainEntities = new();
+        private readonly List<string> excludedEntityDomains = new()
+        {
+            "AuditModule",
+            "NotificationModule",
+            "SiteModule",
+            "TranslationModule",
+            "UserModule",
+            "RepoContract",
+            "ViewModule"
+        };
+        private readonly List<string> optionsMappingTypes = new()
         {
             "icollection",
             "list"
         };
-        private readonly List<string> StandardMappingTypes = new()
+        private readonly List<string> standardMappingTypes = new()
         {
             "bool",
             "byte",
@@ -47,14 +57,6 @@
             "byte[]"
         };
 
-        public DtoGeneratorViewModel()
-        {
-            entities = new();
-            EntitiesNames = new();
-            EntityProperties = new();
-            MappingEntityProperties = new();
-        }
-
         private bool isProjectChosen;
         public bool IsProjectChosen
         {
@@ -66,7 +68,7 @@
             }
         }
 
-        private ObservableCollection<string> entitiesNames;
+        private ObservableCollection<string> entitiesNames = new();
         public ObservableCollection<string> EntitiesNames
         {
             get => entitiesNames;
@@ -86,7 +88,7 @@
                 selectedEntityName = value;
                 RaisePropertyChanged(nameof(SelectedEntityName));
 
-                SelectedEntityInfo = selectedEntityName == null ? null : entities.First(e => e.FullNamespace.EndsWith(selectedEntityName));
+                SelectedEntityInfo = selectedEntityName == null ? null : domainEntities.First(e => e.FullNamespace.EndsWith(selectedEntityName));
                 RaisePropertyChanged(nameof(IsEntitySelected));
 
                 EntityDomain = selectedEntityName?.Split(".").First();
@@ -108,14 +110,14 @@
             }
         }
 
-        private ObservableCollection<EntityProperty> entityProperties;
+        private ObservableCollection<EntityProperty> entityProperties = new();
         public ObservableCollection<EntityProperty> EntityProperties
         {
             get => entityProperties;
             set { entityProperties = value; }
         }
 
-        private ObservableCollection<MappingEntityProperty> mappingEntityProperties;
+        private ObservableCollection<MappingEntityProperty> mappingEntityProperties = new();
         public ObservableCollection<MappingEntityProperty> MappingEntityProperties
         {
             get => mappingEntityProperties;
@@ -142,10 +144,11 @@
 
         public void SetEntities(List<EntityInfo> entities)
         {
-            this.entities.Clear();
-            this.entities.AddRange(entities);
+            this.domainEntities.Clear();
+            this.domainEntities.AddRange(entities);
 
             var entitiesNames = entities
+                .Where(x => !excludedEntityDomains.Any(y => x.Path.Contains(y)))
                 .Select(x => x.FullNamespace.Replace($"{projectDomainNamespace}.", string.Empty))
                 .OrderBy(x => x)
                 .ToList();
@@ -187,7 +190,7 @@
 
         private void FillEntityProperties(EntityProperty property)
         {
-            var propertyEntity = entities.FirstOrDefault(e => e.Name == property.Type);
+            var propertyEntity = domainEntities.FirstOrDefault(e => e.Name == property.Type);
             if (propertyEntity == null)
             {
                 return;
@@ -223,7 +226,7 @@
                     if (mappingEntityProperty.IsOption || mappingEntityProperty.IsOptionCollection)
                     {
                         mappingEntityProperty.OptionType = ExtractOptionType(selectedEntityProperty.Type);
-                        var optionEntity = entities.FirstOrDefault(x => x.Name == mappingEntityProperty.OptionType);
+                        var optionEntity = domainEntities.FirstOrDefault(x => x.Name == mappingEntityProperty.OptionType);
                         if (optionEntity != null)
                         {
                             mappingEntityProperty.OptionDisplayProperties.AddRange(optionEntity.Properties.Select(x => x.Name));
@@ -231,23 +234,39 @@
 
                             mappingEntityProperty.OptionIdProperties.AddRange(optionEntity.Properties.Where(x => x.Type.Equals("int", StringComparison.InvariantCultureIgnoreCase)).Select(x => x.Name));
                             mappingEntityProperty.OptionIdProperty = mappingEntityProperty.OptionIdProperties.FirstOrDefault(x => x.Equals("id", StringComparison.InvariantCultureIgnoreCase));
+
+                            if (mappingEntityProperty.IsOption)
+                            {
+                                mappingEntityProperty.OptionEntityIdProperties.AddRange(
+                                    entityProperties
+                                    .Where(x => x.Type.Equals("int", StringComparison.InvariantCultureIgnoreCase) && !x.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase))
+                                    .Select(x => x.Name));
+
+                                var optionEntityIdPropertyName = $"{mappingEntityProperty.EntityCompositeName.Split(".").Last()}Id";
+                                var automaticOptionEntityIdProperty = mappingEntityProperty.OptionEntityIdProperties.FirstOrDefault(x => x.Equals(optionEntityIdPropertyName));
+                                if (!string.IsNullOrWhiteSpace(automaticOptionEntityIdProperty))
+                                {
+                                    mappingEntityProperty.OptionEntityIdProperty = automaticOptionEntityIdProperty;
+                                }
+                            }
                         }
                     }
 
                     mappingEntityProperties.Add(mappingEntityProperty);
                 }
+
                 AddMappingProperties(selectedEntityProperty.Properties, mappingEntityProperties);
             }
         }
 
         private string ComputeMappingType(EntityProperty entityProperty)
         {
-            if (OptionsMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
+            if (optionsMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return Constants.BiaClassName.CollectionOptionDto;
             }
 
-            if (StandardMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
+            if (standardMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return entityProperty.Type;
             }
@@ -301,13 +320,32 @@
         public bool IsRequired { get; set; }
         public List<string> OptionIdProperties { get; set; } = new();
         public List<string> OptionDisplayProperties { get; set; } = new();
+        public List<string> OptionEntityIdProperties { get; set; } = new();
         public string OptionDisplayProperty { get; set; }
         public string OptionIdProperty { get; set; }
+
+        private string optionEntityIdProperty;
+        public string OptionEntityIdProperty 
+        {
+            get => optionEntityIdProperty;
+            set
+            {
+                optionEntityIdProperty = value;
+                OptionEntityIdPropertyComposite = IsCompositeName ?
+                    string.Join(".", EntityCompositeName.Split('.').SkipLast(1)) + $".{value}" :
+                    value;
+                RaisePropertyChanged(nameof(OptionEntityIdProperty));
+            }
+        }
+
+        public string OptionEntityIdPropertyComposite { get; private set; }
         public bool IsVisibleOptionPropertiesComboBox => IsOption || IsOptionCollection;
 
-        public bool IsValid => 
-            (!IsOption && !IsOptionCollection) 
-            || (!string.IsNullOrWhiteSpace(OptionDisplayProperty) 
+        public bool IsValid =>
+            (!IsOption && !IsOptionCollection)
+            || (!string.IsNullOrWhiteSpace(OptionDisplayProperty)
                 && !string.IsNullOrWhiteSpace(OptionIdProperty));
+
+        private bool IsCompositeName => EntityCompositeName.Contains('.');
     }
 }

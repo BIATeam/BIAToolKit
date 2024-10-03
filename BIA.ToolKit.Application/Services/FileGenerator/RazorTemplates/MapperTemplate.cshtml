@@ -38,6 +38,10 @@ namespace @(Model.EntityNamespace)
                 {
             @:entity.@(property.EntityCompositeName) = dto.@(property.MappingName);
                 }
+                else if(property.IsOption)
+                {
+            @:entity.@(property.OptionEntityIdPropertyComposite) = dto.@(property.MappingName).Id;
+                }
                 else if(property.IsOptionCollection)
                 {
             @:if (dto.@(property.MappingName) != null && dto.@(property.MappingName).Any())

@@ -298,7 +298,7 @@ using Roslyn.Services;*/
             return null;
         }
 
-        public List<EntityInfo> GetDomainEntities(Domain.ModifyProject.Project project, CRUDSettings settings, IEnumerable<string> excludedPropertiesNames = null)
+        public List<EntityInfo> GetDomainEntities(Domain.ModifyProject.Project project, CRUDSettings settings, IEnumerable<string> excludedPropertiesNames = null, IEnumerable<string> filteredEntityBaseTypes = null)
         {
             List<EntityInfo> entities = new();
 
@@ -323,8 +323,11 @@ using Roslyn.Services;*/
                     try
                     {
                         var entityInfo = ParseEntity(file, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
-                        if (!entityInfo.BaseList.Any(x => x.StartsWith("IEntity<") || x.Equals("Team")))
+
+                        if (filteredEntityBaseTypes != null && !entityInfo.BaseList.Any(x => filteredEntityBaseTypes.Any(y => x.StartsWith(y))))
+                        {
                             continue;
+                        }
 
                         if(excludedPropertiesNames != null)
                         {

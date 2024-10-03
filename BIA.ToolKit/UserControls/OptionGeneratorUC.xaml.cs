@@ -407,7 +407,7 @@
             vm.EntityFiles.Clear();
             entityInfoFiles.Clear();
 
-            var entities = service.GetDomainEntities(vm.CurrentProject, settings, new List<string> { "id" });
+            var entities = service.GetDomainEntities(vm.CurrentProject, settings, new List<string> { "id" }, new List<string> { "IEntity<", "Team" });
             foreach (var entity in entities)
             {
                 entityInfoFiles.Add(entity.Path, entity);
