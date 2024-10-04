@@ -66,7 +66,8 @@
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
                         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                        <Setter Property="Focusable" Value="False"/>
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                        <Setter Property="Height" Value="40"/>
                     </Style>
                 </ListView.ItemContainerStyle>
                 <ListView.View>
@@ -96,13 +97,44 @@
                         <GridViewColumn Header="Mapping property">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBox 
-                                        Cursor="IBeam"
-                                        x:Name="MappingPropertyTextBox"
-                                        Padding="2" 
-                                        MinWidth="100" 
-                                        Text="{Binding MappingName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                        TextChanged="MappingPropertyTextBox_TextChanged"></TextBox>
+                                    <StackPanel>
+                                        <TextBox
+                                            Padding="2"
+                                            Height="auto"
+                                            x:Name="MappingPropertyTextBox"
+                                            Text="{Binding MappingName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                            TextChanged="MappingPropertyTextBox_TextChanged">
+                                            <TextBox.Style>
+                                                <Style TargetType="TextBox">
+                                                    <Setter Property="BorderBrush" Value="Black" />
+                                                    <Setter Property="BorderThickness" Value="1" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasMappingNameError }" Value="True">
+                                                            <Setter Property="BorderBrush" Value="Red" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding HasMappingNameError }" Value="False">
+                                                            <Setter Property="BorderBrush" Value="Black" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBox.Style>
+                                        </TextBox>
+                                        <TextBlock Text="{Binding MappingNameError}" Foreground="Red" FontSize="10">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasMappingNameError}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding HasMappingNameError}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>

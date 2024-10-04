@@ -412,6 +412,22 @@
 
         public void ComputePropertiesValidity()
         {
+            const string Error_DuplicateMappingName = "Duplicate property name";
+
+            foreach(var mappingEntityproperty in MappingEntityProperties)
+            {
+                mappingEntityproperty.MappingNameError = null;
+                var duplicateMappingNameProperties = MappingEntityProperties.Where(x => x != mappingEntityproperty && x.MappingName == mappingEntityproperty.MappingName);
+                if (duplicateMappingNameProperties.Any())
+                {
+                    mappingEntityproperty.MappingNameError = Error_DuplicateMappingName;
+                    foreach (var duplicateMappingProperty in duplicateMappingNameProperties)
+                    {
+                        duplicateMappingProperty.MappingNameError = Error_DuplicateMappingName;
+                    }
+                }
+            }
+
             RaisePropertyChanged(nameof(IsGenerationEnabled));
         }
     }
@@ -475,10 +491,23 @@
         public bool IsValid => ComputeValidity();
         private bool IsCompositeName => EntityCompositeName.Contains('.');
 
+        public bool HasMappingNameError => !string.IsNullOrWhiteSpace(MappingNameError);
+        private string mappingNameError;
+        public string MappingNameError
+        {
+            get => mappingNameError;
+            set 
+            { 
+                mappingNameError = value; 
+                RaisePropertyChanged(nameof(MappingNameError));
+                RaisePropertyChanged(nameof(HasMappingNameError));
+            }
+        }
+
         private bool ComputeValidity()
         {
             // Common validity
-            var isMappingNameValid = !string.IsNullOrWhiteSpace(MappingName);
+            var isMappingNameValid = !string.IsNullOrWhiteSpace(MappingName) && !HasMappingNameError;
             // Options validity
             var isOptionIdPropertyValid = !string.IsNullOrWhiteSpace(OptionIdProperty);
             var isOptionDisplayPropertyValid = !string.IsNullOrWhiteSpace(OptionDisplayProperty);
