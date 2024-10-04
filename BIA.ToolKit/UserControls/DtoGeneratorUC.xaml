@@ -51,9 +51,27 @@
         <Grid Grid.Column="2" Margin="5,0" Grid.ColumnSpan="2">
             <Label Content="Mapping:"  Margin="0,115,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
             <ListView Name="PropertiesListView" Margin="20,140,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Height="250" Width="845" ItemsSource="{Binding MappingEntityProperties}" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
+                <ListView.Resources>
+                    <Style TargetType="GridViewColumnHeader">
+                        <Setter Property="Padding" Value="10,2" />
+                        <Setter Property="FontSize" Value="13" />
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="Background" Value="White" />
+                        <Setter Property="Foreground" Value="Black" />
+                        <Setter Property="HorizontalContentAlignment" Value="Center" />
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                        <Setter Property="Width" Value="Auto"/>
+                    </Style>
+                </ListView.Resources>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Focusable" Value="False"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
                 <ListView.View>
                     <GridView>
-                        <GridViewColumn Width="auto">
+                        <GridViewColumn>
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Button
@@ -68,41 +86,41 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Entity property" Width="auto">
+                        <GridViewColumn Header="Entity property">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock HorizontalAlignment="Stretch" FontWeight="Bold" Foreground="Black" Text="{Binding EntityCompositeName}"></TextBlock>
+                                    <TextBlock FontWeight="Bold" Foreground="Black" Text="{Binding EntityCompositeName}"></TextBlock>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Mapping property" Width="auto">
+                        <GridViewColumn Header="Mapping property">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBox 
+                                        Cursor="IBeam"
                                         x:Name="MappingPropertyTextBox"
                                         Padding="2" 
-                                        HorizontalAlignment="Stretch" 
                                         MinWidth="100" 
                                         Text="{Binding MappingName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                         TextChanged="MappingPropertyTextBox_TextChanged"></TextBox>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Required" Width="auto">
+                        <GridViewColumn Header="Required">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <CheckBox IsChecked="{Binding IsRequired, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></CheckBox>
+                                    <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsRequired, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></CheckBox>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Mapping Type" Width="auto">
+                        <GridViewColumn Header="Mapping Type">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock HorizontalAlignment="Stretch" Foreground="Black" Text="{Binding MappingType}"></TextBlock>
+                                    <TextBlock Foreground="Black" Text="{Binding MappingType}"></TextBlock>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Date Type" Width="auto">
+                        <GridViewColumn Header="Date Type">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
@@ -114,7 +132,7 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Option Mapping ID" Width="auto">
+                        <GridViewColumn Header="Option Mapping ID">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
@@ -126,7 +144,7 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Option ID" Width="auto">
+                        <GridViewColumn Header="Option ID">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
@@ -138,7 +156,7 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Option Display" Width="auto">
+                        <GridViewColumn Header="Option Display">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
