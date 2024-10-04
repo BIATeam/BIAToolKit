@@ -89,5 +89,10 @@
         {
             await fileGeneratorService.GenerateDto(project, vm.SelectedEntityInfo, vm.EntityDomain, vm.MappingEntityProperties);
         }
+
+        private void MappingPropertyTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            vm.ComputePropertiesValidity();
+        }
     }
 }

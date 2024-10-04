@@ -78,7 +78,13 @@
                         <GridViewColumn Header="Mapping property" Width="auto">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBox Padding="2" HorizontalAlignment="Stretch" MinWidth="100" Text="{Binding MappingName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></TextBox>
+                                    <TextBox 
+                                        x:Name="MappingPropertyTextBox"
+                                        Padding="2" 
+                                        HorizontalAlignment="Stretch" 
+                                        MinWidth="100" 
+                                        Text="{Binding MappingName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                        TextChanged="MappingPropertyTextBox_TextChanged"></TextBox>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
