@@ -24,15 +24,15 @@
         private readonly List<EntityInfo> domainEntities = new();
         private readonly List<string> excludedEntityDomains = new()
         {
-            //"AuditModule",
-            //"NotificationModule",
-            //"SiteModule",
-            //"TranslationModule",
-            //"UserModule",
-            //"RepoContract",
-            //"ViewModule"
+            "AuditModule",
+            "NotificationModule",
+            "SiteModule",
+            "TranslationModule",
+            "UserModule",
+            "RepoContract",
+            "ViewModule"
         };
-        private readonly List<string> optionsMappingTypes = new()
+        private readonly List<string> optionCollectionsMappingTypes = new()
         {
             "icollection",
             "list"
@@ -58,6 +58,12 @@
             "TimeSpan",
             "TimeOnly",
             "byte[]"
+        };
+        private readonly Dictionary<string, List<string>> biaDtoFieldDateTypesByPropertyType = new()
+        {
+            { "string", new List<string> { "Time" } },
+            { "TimeSpan", new List<string> { "Time" } },
+            { "DateTime", new List<string> { "Datetime", "Date", "Time" } }
         };
 
         private bool isProjectChosen;
@@ -277,6 +283,18 @@
                         MappingType = ComputeMappingType(selectedEntityProperty)
                     };
 
+                    if(biaDtoFieldDateTypesByPropertyType.TryGetValue(mappingEntityProperty.MappingType, out List<string> biaDtoFieldDateTypes))
+                    {
+                        var mappingDateTypes = new List<string>();
+                        if(mappingEntityProperty.MappingType == "string")
+                        {
+                            mappingDateTypes.Add(string.Empty);
+                        }
+                        mappingDateTypes.AddRange(biaDtoFieldDateTypes);
+                        mappingEntityProperty.MappingDateTypes = mappingDateTypes;
+                        mappingEntityProperty.MappingDateType = mappingEntityProperty.MappingDateTypes.FirstOrDefault();
+                    }
+
                     if (mappingEntityProperty.IsOption || mappingEntityProperty.IsOptionCollection)
                     {
                         mappingEntityProperty.OptionType = ExtractOptionType(selectedEntityProperty.Type);
@@ -350,7 +368,7 @@
 
         private string ComputeMappingType(EntityProperty entityProperty)
         {
-            if (optionsMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
+            if (optionCollectionsMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return Constants.BiaClassName.CollectionOptionDto;
             }
@@ -422,7 +440,7 @@
         public string OptionDisplayProperty { get; set; }
         public string OptionIdProperty { get; set; }
         public bool IsVisibleOptionPropertiesComboBox => IsOption || IsOptionCollection;
-
+        public string OptionEntityIdPropertyComposite { get; private set; }
         private string optionEntityIdProperty;
         public string OptionEntityIdProperty 
         {
@@ -436,16 +454,16 @@
                 RaisePropertyChanged(nameof(OptionEntityIdProperty));
             }
         }
-
-        public string OptionEntityIdPropertyComposite { get; private set; }
-
+        
         public string OptionRelationType { get; set; }
         public string OptionRelationFirstIdProperty { get; set; }
         public string OptionRelationSecondIdProperty { get; set; }
         public string OptionRelationPropertyComposite { get; set; }
+        public string MappingDateType { get; set; }
+        public List<string> MappingDateTypes { get; set; } = new();
+        public bool IsVisibleDateTypesComboxBox => MappingDateTypes.Count > 0;
 
         public bool IsValid => ComputeValidity();
-
         private bool IsCompositeName => EntityCompositeName.Contains('.');
 
         private bool ComputeValidity()

@@ -96,6 +96,18 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
+                        <GridViewColumn Header="Date Type" Width="auto">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <ComboBox 
+                                            ItemsSource="{Binding MappingDateTypes}" 
+                                            SelectedValue="{Binding MappingDateType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                            Visibility="{Binding IsVisibleDateTypesComboxBox, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
+                                    </Grid>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
                         <GridViewColumn Header="Option Mapping ID" Width="auto">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>

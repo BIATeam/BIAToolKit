@@ -49,6 +49,7 @@
                     MappingName = x.MappingName,
                     EntityCompositeName = x.EntityCompositeName,
                     MappingType = x.MappingType,
+                    MappingDateType = x.MappingDateType,
                     IsOption = x.IsOption,
                     IsOptionCollection = x.IsOptionCollection,
                     OptionType = x.OptionType,
@@ -59,7 +60,7 @@
                     OptionRelationType = x.OptionRelationType,
                     OptionRelationPropertyComposite = x.OptionRelationPropertyComposite,
                     OptionRelationFirstIdProperty = x.OptionRelationFirstIdProperty,
-                    OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty
+                    OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty,
                 }).ToList(),
                 EntityNamespace = entityInfo.Namespace,
                 MapperName = entityInfo.Name + "Mapper",
