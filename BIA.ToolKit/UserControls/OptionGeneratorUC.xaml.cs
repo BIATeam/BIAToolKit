@@ -9,6 +9,7 @@
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
+    using BIA.ToolKit.Services;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -18,6 +19,7 @@
     using System.Windows.Controls;
     using System.Windows.Input;
     using System.Windows.Markup;
+    using static BIA.ToolKit.Services.UIEventBroker;
 
     /// <summary>
     /// Interaction logic for OptionGenerator.xaml
@@ -33,6 +35,7 @@
         private ZipParserService zipService;
         private GenerateCrudService crudService;
         private CRUDSettings settings;
+        private UIEventBroker uiEventBroker;
 
         private readonly OptionGeneratorViewModel vm;
         private OptionGeneration optionGenerationHistory;
@@ -49,7 +52,7 @@
         public OptionGeneratorUC()
         {
             InitializeComponent();
-            vm = (OptionGeneratorViewModel)base.DataContext;
+            vm = (OptionGeneratorViewModel)DataContext;
             backSettingsList = new();
             frontSettingsList = new();
         }
@@ -58,13 +61,23 @@
         /// Injection of services.
         /// </summary>
         public void Inject(CSharpParserService service, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter)
+            IConsoleWriter consoleWriter, UIEventBroker uiEventBroker)
         {
             this.consoleWriter = consoleWriter;
             this.service = service;
             this.zipService = zipService;
             this.crudService = crudService;
             this.settings = new(settingsService);
+            this.uiEventBroker = uiEventBroker;
+            this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
+        }
+
+        private void UIEventBroker_OnProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem)
+        {
+            if (currentTabItem != TabItemModifyProjectEnum.OptionGenerator)
+                return;
+
+            SetCurrentProject(project);
         }
 
         /// <summary>
@@ -72,6 +85,9 @@
         /// </summary>
         public void SetCurrentProject(Project currentProject)
         {
+            if (currentProject == vm.CurrentProject)
+                return;
+
             vm.CurrentProject = currentProject;
             CurrentProjectChange();
             crudService.CurrentProject = currentProject;
@@ -103,7 +119,7 @@
             if (vm == null) return;
 
             vm.IsEntityParsed = false;
-            vm.EntityDisplayItems = null;
+            vm.EntityDisplayItems.Clear();
             Visibility msgVisibility = Visibility.Hidden;
 
             vm.Domain = vm.EntitySelected;
@@ -242,6 +258,8 @@
             this.frontSettingsList.Clear();
             vm.ZipFeatureTypeList.Clear();
 
+            vm.EntityDisplayItems.Clear();
+            vm.EntityDisplayItemSelected = null;
             vm.Entity = null;
             vm.EntitySelected = null;
             vm.EntityFiles = null;
@@ -404,45 +422,15 @@
         /// </summary>
         private void ListEntityFiles()
         {
-            Dictionary<string, string> entityFiles = new();
+            vm.EntityFiles = null;
+            entityInfoFiles.Clear();
 
-            string entitiesFolder = $"{vm.CurrentProject.CompanyName}.{vm.CurrentProject.Name}.Domain";
-            string path = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, entitiesFolder);
-
-            try
+            var entityFiles = new Dictionary<string, string>();
+            var entities = service.GetDomainEntities(vm.CurrentProject, settings, new List<string> { "id" }, new List<string> { "IEntity<", "Team" });
+            foreach (var entity in entities)
             {
-                var files = new List<string>();
-                if (Directory.Exists(path))
-                {
-                    var subFolders = Directory.GetDirectories(path).Where(x => !excludedEntitiesFolders.Contains(Path.GetFileName(x))).ToList();
-                    foreach(var subFolder in subFolders)
-                    {
-                        var subFolderFiles = Directory.EnumerateFiles(subFolder, "*.cs", SearchOption.AllDirectories);
-                        files.AddRange(subFolderFiles.Where(file => !excludedEntitiesFilesSuffixes.Any(suffix => Path.GetFileNameWithoutExtension(file).EndsWith(suffix))));
-                    }
-                }
-
-                foreach(var file in files.OrderBy(x => Path.GetFileName(x)))
-                {
-                    try
-                    {
-                        var entityInfo = service.ParseEntity(file, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
-                        entityInfo.Properties.RemoveAll(p => p.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase));
-                        if (!entityInfo.BaseList.Any(x => x.StartsWith("IEntity<")))
-                            continue;
-
-                        entityInfoFiles.Add(file, entityInfo);
-                        entityFiles.Add(Path.GetFileNameWithoutExtension(file), file);
-                    }
-                    catch
-                    {
-                        continue;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine(ex.Message, "Red");
+                entityInfoFiles.Add(entity.Path, entity);
+                entityFiles.Add(Path.GetFileNameWithoutExtension(entity.Path), entity.Path);
             }
 
             vm.EntityFiles = entityFiles;
@@ -502,9 +490,7 @@
                 }
 
                 // Fill display item list
-                List<string> displayItems = new();
-                vm.Entity.Properties.ForEach(p => displayItems.Add(p.Name));
-                vm.EntityDisplayItems = displayItems;
+                vm.Entity.Properties.ForEach(p => vm.EntityDisplayItems.Add(p.Name));
 
                 // Set by default previous generation selected value
                 var history = this.optionGenerationHistory?.OptionGenerationHistory?.FirstOrDefault(gh => (vm.EntitySelected == Path.GetFileNameWithoutExtension(gh.Mapping.Entity)));

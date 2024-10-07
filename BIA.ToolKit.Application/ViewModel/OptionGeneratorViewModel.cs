@@ -19,6 +19,8 @@
         public OptionGeneratorViewModel()
         {
             ZipFeatureTypeList = new();
+            EntityFiles = new();
+            EntityDisplayItems = new();
         }
 
         #region CurrentProject
@@ -72,8 +74,8 @@
             }
         }
 
-        private List<string> entityDisplayItems;
-        public List<string> EntityDisplayItems
+        private ObservableCollection<string> entityDisplayItems;
+        public ObservableCollection<string> EntityDisplayItems
         {
             get => entityDisplayItems;
             set

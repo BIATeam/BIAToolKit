@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.UserControls
 {
+    using System.CodeDom;
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
@@ -8,13 +9,16 @@
     using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common.Extensions;
     using BIA.ToolKit.Domain.Model;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.Properties;
+    using BIA.ToolKit.Services;
 
     /// <summary>
     /// Interaction logic for ModifyProjectUC.xaml
@@ -29,6 +33,7 @@
         CSharpParserService cSharpParserService;
         ProjectCreatorService projectCreatorService;
         CRUDSettings crudSettings;
+        UIEventBroker uiEventBroker;
 
         public ModifyProjectUC()
         {
@@ -38,7 +43,8 @@
         }
 
         public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
-            ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService, FeatureSettingService featureSettingService)
+            ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService, FeatureSettingService featureSettingService,
+            FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
         {
             this.settings = settings;
             this.repositoryService = repositoryService;
@@ -48,9 +54,11 @@
             this.projectCreatorService = projectCreatorService;
             MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService);
             MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService);
-            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter);
-            OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter);
+            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker);
+            OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker);
+            DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
             this.crudSettings = new(settingsService);
+            this.uiEventBroker = uiEventBroker;
         }
 
         public void RefreshConfiguration()
@@ -66,12 +74,9 @@
 
         private void ModifyProject_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
+
             ParameterModifyChange();
-            if (_viewModel.ModifyProject.CurrentProject != null)
-            {
-                CRUDGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
-                OptionGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
-            }
             MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject.FrameworkVersion);
             MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder);
             MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder);
@@ -295,6 +300,36 @@
         private void RefreshProjectFolderList_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.RefreshProjetsList();
+        }
+
+        private void TabActions_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            const string TabItem_Migration = "TabMigration";
+            const string TabItem_OptionGenerator = "TabOptionGenerator";
+            const string TabItem_CrudGenerator = "TabCrudGenerator";
+            const string TabItem_DtoGenerator = "TabDtoGenerator";
+
+            if (e.AddedItems.Count == 1 && e.AddedItems[0] is TabItem tabItem)
+            {
+                switch(tabItem.Name)
+                {
+                    case TabItem_Migration:
+                        uiEventBroker.SetCurrentTabItemModifyProject(UIEventBroker.TabItemModifyProjectEnum.Migration);
+                        break;
+                    case TabItem_OptionGenerator:
+                        uiEventBroker.SetCurrentTabItemModifyProject(UIEventBroker.TabItemModifyProjectEnum.OptionGenerator);
+                        uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
+                        break;
+                    case TabItem_CrudGenerator:
+                        uiEventBroker.SetCurrentTabItemModifyProject(UIEventBroker.TabItemModifyProjectEnum.CrudGenerator);
+                        uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
+                        break;
+                    case TabItem_DtoGenerator:
+                        uiEventBroker.SetCurrentTabItemModifyProject(UIEventBroker.TabItemModifyProjectEnum.DtoGenerator);
+                        uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
+                        break;
+                }
+            }
         }
     }
 }

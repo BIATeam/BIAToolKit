@@ -105,6 +105,7 @@
                 {
                     VersionAndOption.UseCompanyFiles = value;
                     RaisePropertyChanged(nameof(UseCompanyFiles));
+                    HasFeature = UseCompanyFiles && VersionAndOption.FeatureSettings.Any();
                 }
             }
         }
@@ -130,7 +131,7 @@
                 if (VersionAndOption.FeatureSettings != value)
                 {
                     VersionAndOption.FeatureSettings = value;
-                    HasFeature = VersionAndOption.FeatureSettings.Any();
+                    HasFeature = UseCompanyFiles && VersionAndOption.FeatureSettings.Any();
                     RaisePropertyChanged(nameof(FeatureSettings));
                 }
             }

@@ -8,21 +8,25 @@
     <ApplicationIcon>Images\Tools.ico</ApplicationIcon>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>KeepSettingsAtUpgrade.snk</AssemblyOriginatorKeyFile>
+	<PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="bg-default.jpg" />
+    <None Remove="Images\cross.png" />
     <None Remove="Images\fileGenerator.jpg" />
     <None Remove="Images\LogoBIA.png" />
     <None Remove="Images\rafraichir-32.png" />
     <None Remove="Images\Tools.ico" />
+    <None Remove="Images\trash.224x256.png" />
+    <None Remove="Images\trash.png" />
     <None Remove="Images\Warning.png" />
     <None Remove="Images\workOnComputer2.jpg" />
     <None Remove="Test4.gif" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.1.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="WpfAnimatedGif" Version="2.0.0" />
@@ -32,6 +36,9 @@
     <Resource Include="Images\bg-default.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Content Include="Images\cross.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\fileGenerator.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

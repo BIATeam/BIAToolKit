@@ -8,6 +8,7 @@
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
+    using BIA.ToolKit.Services;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -16,6 +17,7 @@
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
+    using static BIA.ToolKit.Services.UIEventBroker;
 
     /// <summary>
     /// Interaction logic for DtoGenerator.xaml
@@ -31,6 +33,7 @@
         private ZipParserService zipService;
         private GenerateCrudService crudService;
         private CRUDSettings settings;
+        private UIEventBroker uiEventBroker;
 
         private readonly CRUDGeneratorViewModel vm;
         private CRUDGeneration crudHistory;
@@ -53,13 +56,23 @@
         /// Injection of services.
         /// </summary>
         public void Inject(CSharpParserService service, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter)
+            IConsoleWriter consoleWriter, UIEventBroker uiEventBroker)
         {
             this.consoleWriter = consoleWriter;
             this.service = service;
             this.zipService = zipService;
             this.crudService = crudService;
             this.settings = new(settingsService);
+            this.uiEventBroker = uiEventBroker;
+            this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
+        }
+
+        private void UIEventBroker_OnProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem)
+        {
+            if (currentTabItem != TabItemModifyProjectEnum.CrudGenerator)
+                return;
+
+            SetCurrentProject(project);
         }
 
         /// <summary>
@@ -67,6 +80,9 @@
         /// </summary>
         public void SetCurrentProject(Project currentProject)
         {
+            if (currentProject == vm.CurrentProject)
+                return;
+
             vm.CurrentProject = currentProject;
             CurrentProjectChange();
             crudService.CurrentProject = currentProject;

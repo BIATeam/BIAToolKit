@@ -6,31 +6,31 @@
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
              xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="640" Width="1400">
     <UserControl.DataContext>
         <!-- Declaratively create an instance of our SongViewModel -->
         <!--<local:ModifyProjectViewModel RootProjectsPath="{Binding DataContext.RootProjectsPath, ElementName=mainWindow}" />-->
         <local:ModifyProjectViewModel/>
     </UserControl.DataContext>
-    <Grid Margin="10,10,10,10" x:Name="TabModify">
+    <Grid x:Name="TabModify">
         <Grid.RowDefinitions>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="80"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <TabControl Grid.Row="1" Background="Transparent" >
-            <TabItem Header="Migration" Margin="5,0,-5,0">
-                <Grid Background="Transparent" VerticalAlignment="Top">
+        <TabControl x:Name="TabActions" Grid.Row="1" Background="Transparent" SelectionChanged="TabActions_SelectionChanged">
+            <TabItem x:Name="TabMigration" Header="0 - Migration" Margin="5,0,-5,0">
+                <Grid Background="Transparent" VerticalAlignment="Top" Margin="5">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="0.15*"/>
                     </Grid.ColumnDefinitions>
                     <Grid Background="Transparent" VerticalAlignment="Top">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="170"/>
-                            <RowDefinition Height="*"/>
+                            <RowDefinition/>
+                            <RowDefinition/>
                         </Grid.RowDefinitions>
                         <GroupBox Header="Original" Margin="0,0,0,0" Foreground="White" BorderBrush="White" x:Name="CompanyFileGroup" Visibility="Visible" Grid.Row="0">
-                            <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption" />
+                            <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption"/>
                         </GroupBox>
                         <GroupBox Header="Target" Margin="0,0,0,0" Foreground="White" BorderBrush="White" Visibility="Visible" Grid.Row="1">
                             <uc:VersionAndOptionUserControl x:Name="MigrateTargetVersionAndOption"/>
@@ -63,36 +63,19 @@
                     </Grid>
                 </Grid>
             </TabItem>
-            <TabItem Header="Add CRUD" Margin="3,0,-7,0" >
-                <Grid Background="Transparent">
-                    <uc:CRUDGeneratorUC x:Name="CRUDGenerator" />
-                </Grid>
-            </TabItem>
-            <TabItem Header="Add Option" Margin="3,0,-7,0" >
-                <Grid Background="Transparent">
+            <TabItem x:Name="TabOptionGenerator" Header="1 - Option Generator" Margin="3,0,-7,0" >
+                <Grid Background="Transparent" Margin="5">
                     <uc:OptionGeneratorUC x:Name="OptionGenerator" />
                 </Grid>
             </TabItem>
-            <TabItem Header="Rename project" Margin="5,0,-5,0" Visibility="Hidden">
-                <Grid Background="Transparent"/>
-            </TabItem>
-            <TabItem Header="Add DTO" Margin="3,0,-7,0" Visibility="Hidden">
-                <Grid Background="Transparent">
-                    <!--<Label Content="Entity file" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" />
-                                <TextBox HorizontalAlignment="Left" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="861" x:Name="ModifyProjectAddDTOEntity" Height="21"  Margin="10,31,0,0"/>
-                                <Button Content="..." VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" x:Name="ModifyProjectAddDTOEntityBrowse" Margin="0,31,62,0" Click="ModifyProjectAddDTOEntityBrowse_Click" HorizontalAlignment="Right" Width="35"/>
-                                <Button Content="Load Solution" HorizontalAlignment="Left" Margin="10,71,0,0" x:Name="ModifyProjectAddDTOLoadSolution" VerticalAlignment="Top" Click="ModifyProjectAddDTOLoadSolution_Click"/>-->
-
+            <TabItem x:Name="TabDtoGenerator" Header="2 - DTO Generator" Margin="3,0,-7,0" >
+                <Grid Background="Transparent" Margin="5">
                     <uc:DtoGeneratorUC x:Name="DtoGenerator" />
-
                 </Grid>
             </TabItem>
-            <TabItem Header="Add crud" Margin="3,0,-7,0" Visibility="Hidden">
-                <Grid Background="Transparent">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="7*"/>
-                        <ColumnDefinition Width="50*"/>
-                    </Grid.ColumnDefinitions>
+            <TabItem x:Name="TabCrudGenerator" Header="3 - CRUD Generator" Margin="3,0,-7,0" >
+                <Grid Background="Transparent" Margin="5">
+                    <uc:CRUDGeneratorUC x:Name="CRUDGenerator" />
                 </Grid>
             </TabItem>
         </TabControl>
@@ -100,18 +83,25 @@
         <TextBox HorizontalAlignment="Left" Margin="29,23,0,0" Text="{Binding RootProjectsPath}" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" TextChanged="ModifyProjectRootFolderText_TextChanged" Height="21"/>
         <Button Content="..." HorizontalAlignment="Left" Margin="339,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" x:Name="ModifyProjectRootFolderBrowse" Click="ModifyProjectRootFolderBrowse_Click"/>
         <Label Content="Project Folder" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="384,0,0,0"/>
-        <ComboBox ItemsSource="{Binding Projects}" SelectedValue="{Binding Folder}" HorizontalAlignment="Left" Margin="402,23,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="ModifyProject_SelectionChanged"/>
-        <Button x:Name="RefreshDtoList" Margin="526,22,0,0" Width="24" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshProjectFolderList_Click" ToolTip="Refresh project folder list">
+        <ComboBox ItemsSource="{Binding Projects}" SelectedValue="{Binding Folder}" HorizontalAlignment="Left" Margin="402,23,0,0" VerticalAlignment="Top" Width="150" SelectionChanged="ModifyProject_SelectionChanged"/>
+        <Button x:Name="RefreshDtoList" Margin="556,22,0,0" Width="24" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshProjectFolderList_Click" ToolTip="Refresh project folder list">
             <Image Source="/Images/rafraichir-32.png" />
         </Button>
-        <Label Content="Version detected : " HorizontalAlignment="Left" Margin="575,0,0,0" VerticalAlignment="Top" Foreground="White"/>
-        <Label Content="{Binding FrameworkVersion}" HorizontalAlignment="Left" Margin="710,0,0,0" VerticalAlignment="Top" Foreground="White" Width="84"/>
-        <Label Content="Project name detected : " HorizontalAlignment="Left" Margin="575,15,0,0" VerticalAlignment="Top" Foreground="White"/>
-        <Label Content="{Binding Name}" HorizontalAlignment="Left" Margin="710,15,0,0" VerticalAlignment="Top" Foreground="White"/>
-        <Label Content="Company detected : " HorizontalAlignment="Left" Margin="575,31,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
-        <Label Content="{Binding CompanyName}" HorizontalAlignment="Left" Margin="710,31,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
-        <Label Content="BIA front(s) folder(s) : " HorizontalAlignment="Left" Margin="575,47,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
-        <Label Content="{Binding BIAFronts}" HorizontalAlignment="Left" Margin="710,47,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
+        <Grid HorizontalAlignment="Right">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Label Content="Version detected : " Grid.Column="0" Foreground="White"/>
+            <Label Content="{Binding FrameworkVersion}" Grid.Column="1" Foreground="White" Width="84"/>
+            <Label Content="Project name detected : " Grid.Column="0" Margin="0,15,0,0" VerticalAlignment="Top" Foreground="White"/>
+            <Label Content="{Binding Name}" Grid.Column="1" Margin="0,15,0,0" VerticalAlignment="Top" Foreground="White"/>
+            <Label Content="Company detected : " Grid.Column="0" Margin="0,31,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
+            <Label Content="{Binding CompanyName}" Grid.Column="1" Margin="0,31,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
+            <Label Content="BIA front(s) folder(s) : " Grid.Column="0" Margin="0,47,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
+            <Label Content="{Binding BIAFronts}" Grid.Column="1" Margin="0,47,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
+        </Grid>
+        
     </Grid>
 
 </UserControl>

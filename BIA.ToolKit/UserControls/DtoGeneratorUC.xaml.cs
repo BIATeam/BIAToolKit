@@ -1,111 +1,232 @@
 ﻿namespace BIA.ToolKit.UserControls
 {
+    using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
+    using BIA.ToolKit.Services;
     using System;
-    using System.Collections.Generic;
+    using System.Data.Common;
     using System.IO;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
-    using System.Windows.Data;
-    using System.Windows.Documents;
-    using System.Windows.Input;
-    using System.Windows.Media;
-    using System.Windows.Media.Imaging;
-    using System.Windows.Navigation;
-    using System.Windows.Shapes;
+    using static BIA.ToolKit.Services.UIEventBroker;
 
     /// <summary>
     /// Interaction logic for DtoGenerator.xaml
     /// </summary>
     public partial class DtoGeneratorUC : UserControl
     {
-        DtoGeneratorViewModel _viewModel;
+        private readonly DtoGeneratorViewModel vm;
+
+        private IConsoleWriter consoleWriter;
+        private CSharpParserService parserService;
+        private FileGeneratorService fileGeneratorService;
+        private CRUDSettings settings;
+        private Project project;
+        private UIEventBroker uiEventBroker;
+        private string dtoGenerationHistoryFile;
+        private DtoGenerationHistory generationHistory = new DtoGenerationHistory();
+        private DtoGeneration generation;
 
         public DtoGeneratorUC()
         {
             InitializeComponent();
-            _viewModel = (DtoGeneratorViewModel)base.DataContext;
+            vm = (DtoGeneratorViewModel)DataContext;
         }
 
-        private void LoadProject_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Injection of services.
+        /// </summary>
+        public void Inject(CSharpParserService parserService, SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
+            UIEventBroker uiEventBroker)
         {
+            this.consoleWriter = consoleWriter;
+            this.parserService = parserService;
+            this.settings = new(settingsService);
+            this.fileGeneratorService = fileGeneratorService;
+            this.uiEventBroker = uiEventBroker;
+            this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
 
+            vm.Inject(consoleWriter);
         }
 
-        private void ProjectBrowse_Click(object sender, RoutedEventArgs e)
+        private void UIEventBroker_OnProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem)
         {
+            if (currentTabItem != TabItemModifyProjectEnum.DtoGenerator)
+                return;
 
+            SetCurrentProject(project);
         }
 
-/*
-        private void ModifyProjectAddDTOEntityBrowse_Click(object sender, RoutedEventArgs e)
+        public void SetCurrentProject(Project project)
         {
+            if (project == this.project)
+                return;
 
-            string projectDir = "";
-            string path = ModifyProjectRootFolderText.Text;
-            if (Directory.Exists(path))
+            this.project = project;
+            vm.SetProject(project);
+
+            ListEntities();
+            InitHistoryFile(project);
+        }
+
+        private void ListEntities()
+        {
+            var domainEntities = parserService.GetDomainEntities(project, settings);
+            vm.SetEntities(domainEntities);
+        }
+
+        private void InitHistoryFile(Project project)
+        {
+            dtoGenerationHistoryFile = Path.Combine(project.Folder, Constants.FolderBia, settings.DtoGenerationHistoryFileName);
+            if (File.Exists(dtoGenerationHistoryFile))
             {
-                projectDir = path;
-                path = projectDir + "\\" + ModifyProjectName.Content;
-                if (Directory.Exists(path))
+                generationHistory = CommonTools.DeserializeJsonFile<DtoGenerationHistory>(dtoGenerationHistoryFile);
+            }
+        }
+
+        private void RefreshEntitiesList_Click(object sender, RoutedEventArgs e)
+        {
+            ListEntities();
+        }
+
+        private void SelectProperties_Click(object sender, RoutedEventArgs e)
+        {
+            vm.RefreshMappingProperties();
+            ResetMappingColumnsWidths();
+            vm.ComputePropertiesValidity();
+        }
+
+        private void RemoveAllMappingProperties_Click(object sender, RoutedEventArgs e)
+        {
+            vm.RemoveAllMappingProperties();
+        }
+
+        private void ResetMappingColumnsWidths()
+        {
+            var gridView = PropertiesListView.View as GridView;
+            foreach (var column in gridView.Columns)
+            {
+                column.Width = 0;
+                column.Width = double.NaN;
+            }
+        }
+
+        private async void GenerateButton_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateHistoryFile();
+            await fileGeneratorService.GenerateDto(project, vm.SelectedEntityInfo, vm.EntityDomain, vm.MappingEntityProperties);
+        }
+
+        private void UpdateHistoryFile()
+        {
+            var isNewGeneration = generation is null;
+            generation ??= new DtoGeneration();
+
+            generation.DateTime = DateTime.Now;
+            generation.EntityName = vm.SelectedEntityInfo.Name;
+            generation.EntityNamespace = vm.SelectedEntityInfo.Namespace;
+            generation.Domain = vm.EntityDomain;
+            generation.PropertyMappings.Clear();
+
+            foreach (var property in vm.MappingEntityProperties)
+            {
+                var generationPropertyMapping = new DtoGenerationPropertyMapping
                 {
-                    projectDir = path;
-                    path = projectDir + "\\DotNet";
-                    if (Directory.Exists(path))
-                    {
-                        projectDir = path;
-                        path = projectDir + "\\" + ModifyProjectCompany.Content.ToString() + "." + ModifyProjectName.Content + ".Domain";
-                        if (Directory.Exists(path))
-                        {
-                            projectDir = path;
-                        }
-                    }
-                }
+                    DateType = property.MappingDateType,
+                    EntityPropertyCompositeName = property.EntityCompositeName,
+                    IsRequired = property.IsRequired,
+                    MappingName = property.MappingName,
+                    OptionMappingDisplayProperty = property.OptionDisplayProperty,
+                    OptionMappingEntityIdProperty = property.OptionEntityIdProperty,
+                    OptionMappingIdProperty = property.OptionIdProperty
+                };
+                generation.PropertyMappings.Add(generationPropertyMapping);
             }
-            
-                 if (FileDialog.BrowseFile(ModifyProjectAddDTOEntity, projectDir))
-                 {
-                     cSharpParserService.ParseEntity(ModifyProjectAddDTOEntity.Text);
-                 }
+
+            if (isNewGeneration)
+            {
+                generationHistory.Generations.Add(generation);
+            }
+
+            if (!Directory.Exists(Path.GetDirectoryName(dtoGenerationHistoryFile)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(dtoGenerationHistoryFile));
+            }
+            CommonTools.SerializeToJsonFile(generationHistory, dtoGenerationHistoryFile);
         }
 
-        private void ModifyProjectAddDTOLoadSolution_Click(object sender, RoutedEventArgs e)
+        private void MappingPropertyTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            string projectDir = "";
-            string projectPath = "";
-            string path = ModifyProjectRootFolderText.Text;
-            if (Directory.Exists(path))
+            vm.ComputePropertiesValidity();
+        }
+
+        private void MappingOptionId_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            vm.ComputePropertiesValidity();
+        }
+
+        private void EntitiesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var entity = vm.SelectedEntityInfo;
+            if (entity is null)
+                return;
+
+            LoadFromHistory(entity);
+        }
+
+        private void LoadFromHistory(EntityInfo entity)
+        {
+            generation = generationHistory.Generations.FirstOrDefault(g => g.EntityName.Equals(entity.Name) && g.EntityNamespace.Equals(entity.Namespace));
+            if (generation is null)
             {
-                projectDir = path;
-                path = projectDir + "\\" + ModifyProjectName.Content;
-                if (Directory.Exists(path))
-                {
-                    projectDir = path;
-                    path = projectDir + "\\DotNet";
-                    if (Directory.Exists(path))
-                    {
-                        projectDir = path;
-                        path = projectDir + "\\" + ModifyProjectCompany.Content.ToString() + "." + ModifyProjectName.Content + ".Domain";
-                        if (Directory.Exists(path))
-                        {
-                            projectDir = path;
-                            path = projectDir + "\\" + ModifyProjectCompany.Content.ToString() + "." + ModifyProjectName.Content + ".Domain.csproj";
-                            if (File.Exists(path))
-                            {
-                                projectPath = path;
-                            }
-                        }
-                    }
-                }
+                vm.WasAlreadyGenerated = false;
+                return;
             }
 
-            if (!string.IsNullOrEmpty(projectPath))
+            vm.WasAlreadyGenerated = true;
+            vm.EntityDomain = generation.Domain;
+
+
+            var allEntityProperties = vm.EntityProperties.SelectMany(x => x.GetAllPropertiesRecursively()).ToList();
+            foreach (var property in allEntityProperties)
             {
-                _ = cSharpParserService.ParseSolution(projectPath);
+                property.IsSelected = false;
             }
-        }*/
+            foreach (var property in generation.PropertyMappings)
+            {
+                var entityProperty = allEntityProperties.FirstOrDefault(x => x.CompositeName == property.EntityPropertyCompositeName);
+                if (entityProperty is null)
+                    continue;
+
+                entityProperty.IsSelected = true;
+            }
+
+            vm.RefreshMappingProperties();
+
+            foreach(var property in generation.PropertyMappings)
+            {
+                var mappingProperty = vm.MappingEntityProperties.FirstOrDefault(x => x.EntityCompositeName == property.EntityPropertyCompositeName);
+                if (mappingProperty is null)
+                    continue;
+
+                mappingProperty.MappingName = property.MappingName;
+                mappingProperty.MappingDateType = property.DateType;
+                mappingProperty.IsRequired = property.IsRequired;
+                mappingProperty.OptionIdProperty = property.OptionMappingIdProperty;
+                mappingProperty.OptionDisplayProperty = property.OptionMappingDisplayProperty;
+                mappingProperty.OptionEntityIdProperty = property.OptionMappingEntityIdProperty;
+            }
+
+            vm.ComputePropertiesValidity();
+        }
     }
 }
