@@ -269,6 +269,8 @@
                 }
             }
 
+            ComputePropertiesValidity();
+
             RaisePropertyChanged(nameof(HasMappingProperties));
             RaisePropertyChanged(nameof(IsGenerationEnabled));
         }
@@ -397,6 +399,8 @@
         private void RemoveMappingProperty(MappingEntityProperty mappingEntityProperty)
         {
             MappingEntityProperties.Remove(mappingEntityProperty);
+
+            ComputePropertiesValidity();
 
             RaisePropertyChanged(nameof(HasMappingProperties));
             RaisePropertyChanged(nameof(IsGenerationEnabled));
