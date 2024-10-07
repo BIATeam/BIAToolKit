@@ -7,6 +7,7 @@
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -34,8 +35,8 @@
         private readonly CRUDGeneratorViewModel vm;
         private CRUDGeneration crudHistory;
         private string crudHistoryFileName;
-        private List<CrudGenerationSettings> backSettingsList;
-        private List<CrudGenerationSettings> frontSettingsList;
+        private List<FeatureGenerationSettings> backSettingsList;
+        private List<FeatureGenerationSettings> frontSettingsList;
 
         /// <summary>
         /// Constructor
@@ -189,7 +190,7 @@
                 Domain = vm.ParentDomain
             };
 
-            crudService.CrudNames.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural, vm.FeatureNameSelected, vm.IsWebApiSelected, vm.IsFrontSelected);
+            crudService.CrudNames.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural);
 
             // Generation DotNet + Angular files
             List<string> optionsItems = vm.OptionItems.Any() ? vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
@@ -220,7 +221,7 @@
                 List<CRUDGenerationHistory> historyOptions = crudHistory?.CRUDGenerationHistory?.Where(h => h.OptionItems.Contains(vm.CRUDNameSingular)).ToList();
 
                 // Delete last generation
-                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, historyOptions, vm.FeatureNameSelected);
+                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, vm.FeatureNameSelected, new CrudParent {  Exists = history.HasParent, Domain = history.ParentDomain, Name = history.ParentName, NamePlural = history.ParentNamePlural }, historyOptions);
 
                 // Update history
                 DeleteLastGenerationHistory(history);
@@ -313,10 +314,10 @@
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.BIAFronts, Constants.FolderBia);
             string backSettingsFileName = Path.Combine(dotnetBiaFolderPath, settings.GenerationSettingsFileName);
             string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
-            this.crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.GenerationHistoryFileName);
+            this.crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.CrudGenerationHistoryFileName);
 
             // Handle old path of CRUD history file
-            var oldCrudHistoryFilePath = Path.Combine(vm.CurrentProject.Folder, settings.GenerationHistoryFileName);
+            var oldCrudHistoryFilePath = Path.Combine(vm.CurrentProject.Folder, settings.CrudGenerationHistoryFileName);
             if (File.Exists(oldCrudHistoryFilePath))
             {
                 File.Move(oldCrudHistoryFilePath, this.crudHistoryFileName);
@@ -326,7 +327,7 @@
             // Load BIA settings
             if (File.Exists(backSettingsFileName))
             {
-                backSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<CrudGenerationSettings>>(backSettingsFileName));
+                backSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(backSettingsFileName));
                 if(vm.CurrentProject.FrameworkVersion == "3.9.0")
                 {
                     var crudPlanesFeature = backSettingsList.FirstOrDefault(x => x.Feature == "crud-planes");
@@ -338,7 +339,7 @@
             }
             if (File.Exists(frontSettingsFileName))
             {
-                frontSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<CrudGenerationSettings>>(frontSettingsFileName));
+                frontSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(frontSettingsFileName));
                 if (vm.CurrentProject.FrameworkVersion == "3.9.0")
                 {
                     var featuresToRemove = frontSettingsList.Where(x => x.Feature == "planes-full-code" || x.Feature == "aircraft-maintenance-companies");
@@ -349,6 +350,9 @@
             foreach(var setting in backSettingsList)
             {
                 var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
+                if (featureType == FeatureType.Option)
+                    continue;
+
                 var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent);
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
@@ -356,6 +360,9 @@
             foreach (var setting in frontSettingsList)
             {
                 var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
+                if (featureType == FeatureType.Option)
+                    continue;
+
                 var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent);
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
@@ -504,24 +511,6 @@
                 {
                     if (value < FRAMEWORK_VERSION_MINIMUM)
                         return;
-                }
-            }
-
-            var biaBackFolder = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, Constants.FolderBia);
-            if (Directory.Exists(biaBackFolder))
-            {
-                foreach (var directory in Directory.GetDirectories(biaBackFolder))
-                {
-                    Directory.Delete(directory, true);
-                }
-            }
-
-            var biaFrontFolder = Path.Combine(vm.CurrentProject.Folder, Constants.FolderAngular, Constants.FolderBia);
-            if (Directory.Exists(biaFrontFolder))
-            {
-                foreach (var directory in Directory.GetDirectories(biaFrontFolder))
-                {
-                    Directory.Delete(directory, true);
                 }
             }
 

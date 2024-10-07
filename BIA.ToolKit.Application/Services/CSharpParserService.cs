@@ -69,6 +69,7 @@ using Roslyn.Services;*/
 
             var className = classDeclarationSyntax.Identifier.ToString();
             var baseList = classDeclarationSyntax.BaseList!;
+            var baseListNames = baseList?.Descendants<SimpleBaseTypeSyntax>().Select(x => x.ToString()).ToList();
 
             var genericNameSyntax = baseList?.Descendants<SimpleBaseTypeSyntax>()
                  .First(node => !node.ToFullString().StartsWith("I")) // Not interface
@@ -100,10 +101,10 @@ using Roslyn.Services;*/
                 primaryKey = genericNameSyntax.Descendants<TypeArgumentListSyntax>().Single().Arguments[0].ToString();
             }
 
-            var properties = GetPlaneDtoPropertyList(root.Descendants<PropertyDeclarationSyntax>().ToList(), dtoCustomFieldName);
-            var classAnnotations = GetPlaneDtoClassAnnotationList(classDeclarationSyntax.AttributeLists, dtoCustomClassName);
+            var properties = GetPropertyList(root.Descendants<PropertyDeclarationSyntax>().ToList(), dtoCustomFieldName);
+            var classAnnotations = GetClassAnnotationList(classDeclarationSyntax.AttributeLists, dtoCustomClassName);
 
-            var entityInfo = new EntityInfo(@namespace, className, baseType, primaryKey/*, relativeDirectory*/, classAnnotations);
+            var entityInfo = new EntityInfo(@namespace, className, baseType, primaryKey/*, relativeDirectory*/, classAnnotations, baseListNames);
             entityInfo.Properties.AddRange(properties);
             if (keyNames != null)
             {
@@ -194,7 +195,7 @@ using Roslyn.Services;*/
 
 
 
-        public async Task ParseSolution(string projectPath)
+        public static async Task ParseSolution(string projectPath)
         {
             try
             {
@@ -256,7 +257,7 @@ using Roslyn.Services;*/
                         }*/
         }
 
-        public List<PropertyInfo> GetPlaneDtoPropertyList(List<PropertyDeclarationSyntax> propertyList, string dtoCustomAttributeName)
+        public List<PropertyInfo> GetPropertyList(List<PropertyDeclarationSyntax> propertyList, string dtoCustomAttributeName)
         {
             return propertyList.Select(prop =>
             {
@@ -276,7 +277,7 @@ using Roslyn.Services;*/
             }).ToList();
         }
 
-        public List<AttributeArgumentSyntax> GetPlaneDtoClassAnnotationList(SyntaxList<AttributeListSyntax> attributeLists, string dtoCustomClassName)
+        public static List<AttributeArgumentSyntax> GetClassAnnotationList(SyntaxList<AttributeListSyntax> attributeLists, string dtoCustomClassName)
         {
             //List<KeyValuePair<string, string>> annotationList = new List<KeyValuePair<string, string>>();
             foreach (AttributeListSyntax attributes in attributeLists)

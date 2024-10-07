@@ -10,6 +10,7 @@
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.ExtractBlock;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -148,16 +149,29 @@
             finally
             {
                 CrudParent = null;
+                FeatureParentPrincipal = null;
             }
 
             return true;
         }
 
-        public void DeleteLastGeneration(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, CRUDGenerationHistory generationHistory, List<CRUDGenerationHistory> optionsGenerationHistory, string feature)
+        public void DeleteLastGeneration(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, GenerationHistory generationHistory, string feature, CrudParent crudParent, List<CRUDGenerationHistory> optionsGenerationHistory = null)
         {
-            DeleteCrudOptionsGenerated(zipFeatureTypeList, currentProject, generationHistory, feature);
+            try
+            {
+                CrudParent = crudParent;
+                DeleteFilesGenerated(zipFeatureTypeList, currentProject, generationHistory, feature);
 
-            DeleteCrudOptionsGenerated(zipFeatureTypeList, generationHistory, optionsGenerationHistory, feature);
+                if (optionsGenerationHistory != null)
+                {
+                    DeleteCrudOptionsGenerated(zipFeatureTypeList, generationHistory, optionsGenerationHistory, feature);
+                }
+            }
+            finally
+            {
+                CrudParent = null;
+                FeatureParentPrincipal = null;
+            }
         }
 
         public void DeleteBIAToolkitAnnotations(List<string> folders)
@@ -196,7 +210,7 @@
         {
             try
             {
-                ClassDefinition classDefiniton = ((WebApiFeatureData)featureDataList.FirstOrDefault(x => ((WebApiFeatureData)x).FileType == WebApiFileType.Controller))?.ClassFileDefinition;
+                ClassDefinition classDefiniton = featureDataList.Cast<WebApiFeatureData>().FirstOrDefault(x => x.FileType == WebApiFileType.Controller || x.FileType == WebApiFileType.OptionsController)?.ClassFileDefinition;
                 List<WebApiNamespace> crudNamespaceList = ListCrudNamespaces(this.DotNetFolderGeneration, featureDataList, currentProject, classDefiniton, feature, type, featureParents);
 
                 // Generate files
@@ -248,7 +262,7 @@
                     }
                     else
                     {
-                        GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, dtoRefProperties, displayItem, feature, type, optionItem);
+                        GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, dtoRefProperties, displayItem, feature, type, GenerationType.Front, optionItem);
 
                         // Create file
                         (string src, string dest) = GetAngularFilesPath(crudData, feature, type);
@@ -300,7 +314,7 @@
             // Prepare destination folder
             CommonTools.CheckFolder(new FileInfo(dest).DirectoryName);
 
-            GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, null, displayItem, feature, type);
+            GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, null, displayItem, feature, type, GenerationType.WebApi);
 
             // Read file
             List<string> fileLinesContent = File.ReadAllLines(src).ToList();
@@ -318,7 +332,7 @@
                 }
 
                 // Convert Crud Name (Plane to Xxx and plane to xxx)
-                fileLinesContent[i] = this.CrudNames.ConvertPascalOldToNewCrudName(this.CrudNames.ConvertPascalOldToNewCrudName(fileLinesContent[i], feature, type, false), feature, type, true);
+                fileLinesContent[i] = this.CrudNames.ConvertCamelOldToNewCrudName(this.CrudNames.ConvertPascalOldToNewCrudName(fileLinesContent[i], feature, type), feature, type);
             }
 
             ReplaceContentWithFeatureParentPrincipal(fileLinesContent, GenerationType.WebApi);
@@ -337,7 +351,7 @@
 
             var relativeFilePath = Path.Combine(filePartPath, fileName);
             relativeFilePath = ReplaceFilePathWithFeatureParentPrincipal(relativeFilePath, GenerationType.WebApi);
-            relativeFilePath = this.CrudNames.ConvertPascalOldToNewCrudName(relativeFilePath, feature, type, false);
+            relativeFilePath = this.CrudNames.ConvertPascalOldToNewCrudName(relativeFilePath, feature, type);
             string dest = Path.Combine(this.DotNetFolderGeneration, relativeFilePath);
 
             return (src, dest);
@@ -660,8 +674,8 @@
             List<string> newBlockList = new();
             for (int i = 0; i < blockList.Count; i++)
             {
-                var line = this.CrudNames.ConvertPascalOldToNewCrudName(blockList[i], feature, featureType, false);
-                line = this.CrudNames.ConvertPascalOldToNewCrudName(blockList[i], feature, featureType, true);
+                var line = this.CrudNames.ConvertPascalOldToNewCrudName(blockList[i], feature, featureType);
+                line = this.CrudNames.ConvertCamelOldToNewCrudName(blockList[i], feature, featureType);
                 newBlockList.Add(line);
             }
 
@@ -1386,8 +1400,8 @@
                 }
                 if (!string.IsNullOrEmpty(componentValue))
                 {
-                    var newComponentValue = this.CrudNames.ConvertPascalOldToNewCrudName(componentValue, feature, type, false);
-                    newComponentValue = this.CrudNames.ConvertPascalOldToNewCrudName(newComponentValue, feature, type, true);
+                    var newComponentValue = this.CrudNames.ConvertPascalOldToNewCrudName(componentValue, feature, type);
+                    newComponentValue = this.CrudNames.ConvertCamelOldToNewCrudName(newComponentValue, feature, type);
                     newLine = newLine.Replace(componentValue, newComponentValue);
                 }
 
@@ -1399,7 +1413,7 @@
                 }
                 if (!string.IsNullOrEmpty(pathValue))
                 {
-                    string newPathValue = this.CrudNames.ConvertCamelToKebabCrudName(pathValue, feature, type);
+                    string newPathValue = this.CrudNames.ConvertCamelOldToNewCrudName(pathValue, feature, type);
                     newLine = newLine.Replace(pathValue, newPathValue);
                 }
             }
@@ -1408,7 +1422,7 @@
                 string pathValue = CommonTools.GetMatchRegexValue(regexComponentPath, newLine, 1);
                 if (!string.IsNullOrEmpty(pathValue))
                 {
-                    string newPathValue = this.CrudNames.ConvertCamelToKebabCrudName(pathValue, feature, type);
+                    string newPathValue = this.CrudNames.ConvertCamelOldToNewCrudName(pathValue, feature, type);
                     newLine = newLine.Replace(pathValue, newPathValue);
                 }
             }
@@ -1417,7 +1431,7 @@
                 string compValue = CommonTools.GetMatchRegexValue(regexComponentHtml, newLine, 1);
                 if (!string.IsNullOrEmpty(compValue))
                 {
-                    string newPathValue = this.CrudNames.ConvertCamelToKebabCrudName(compValue, feature, type);
+                    string newPathValue = this.CrudNames.ConvertCamelOldToNewCrudName(compValue, feature, type);
                     newLine = newLine.Replace(compValue, newPathValue);
                 }
             }
@@ -1426,8 +1440,8 @@
             newLine = newLine
                 .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
                 .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
-            newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type, true);
-            newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type, false);
+            newLine = this.CrudNames.ConvertCamelOldToNewCrudName(newLine, feature, type);
+            newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type);
 
             if(FeatureParentPrincipal != null && CrudParent.Exists)
             {
@@ -1513,9 +1527,9 @@
         #endregion
 
         #region Delete Generation
-        public void DeleteCrudOptionsGenerated(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, CRUDGenerationHistory generationHistory, string feature)
+        public void DeleteFilesGenerated(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, GenerationHistory generationHistory, string feature)
         {
-            CrudNames.InitRenameValues(generationHistory.EntityNameSingular, generationHistory.EntityNamePlural, feature);
+            CrudNames.InitRenameValues(generationHistory.EntityNameSingular, generationHistory.EntityNamePlural);
             foreach (Generation generation in generationHistory?.Generation.OrderBy(x => x.FeatureType))
             {
                 GenerationType generationType = CommonTools.GetEnumValue<GenerationType>(generation.GenerationType);
@@ -1528,9 +1542,10 @@
                     continue;
                 }
 
+                FeatureParentPrincipal = zipFeature.Parents.FirstOrDefault(x => x.IsPrincipal);
                 ClassDefinition classDefiniton = null;
                 if (generationType == GenerationType.WebApi)
-                    classDefiniton = ((WebApiFeatureData)zipFeature.FeatureDataList.FirstOrDefault(x => ((WebApiFeatureData)x).FileType == WebApiFileType.Controller))?.ClassFileDefinition;
+                    classDefiniton = zipFeature.FeatureDataList.Cast<WebApiFeatureData>().FirstOrDefault(x => x.FileType == WebApiFileType.Controller || x.FileType == WebApiFileType.OptionsController)?.ClassFileDefinition;
 
                 foreach (FeatureData featureData in zipFeature.FeatureDataList)
                 {
@@ -1589,7 +1604,7 @@
             }
         }
 
-        public void DeleteCrudOptionsGenerated(List<ZipFeatureType> zipFeatureTypeList, CRUDGenerationHistory generationHistory, List<CRUDGenerationHistory> optionsGenerationHistory, string feature)
+        public void DeleteCrudOptionsGenerated(List<ZipFeatureType> zipFeatureTypeList, GenerationHistory generationHistory, List<CRUDGenerationHistory> optionsGenerationHistory, string feature)
         {
             foreach (CRUDGenerationHistory optionGenerationHistory in optionsGenerationHistory)
             {
@@ -1597,7 +1612,7 @@
                 GenerationType generationType = GenerationType.Front;
                 FeatureType featureType = FeatureType.CRUD;
 
-                CrudNames.InitRenameValues(optionGenerationHistory.EntityNameSingular, optionGenerationHistory.EntityNamePlural, feature);
+                CrudNames.InitRenameValues(optionGenerationHistory.EntityNameSingular, optionGenerationHistory.EntityNamePlural);
 
                 ZipFeatureType zipFeature = zipFeatureTypeList.FirstOrDefault(f => f.GenerationType == generationType && f.FeatureType == featureType);
                 if (zipFeature == null)
@@ -1606,6 +1621,7 @@
                     continue;
                 }
 
+                FeatureParentPrincipal = zipFeature.Parents.FirstOrDefault(x => x.IsPrincipal);
                 foreach (FeatureData featureData in zipFeature.FeatureDataList)
                 {
                     if (featureData.IsPartialFile)
@@ -1769,6 +1785,13 @@
                 Constants.FeaturePathAdaptation.NewCrudNamePascalSingular,
                 CrudNames.NewCrudNamePascalSingular);
 
+            if (content.Contains(Constants.FeaturePathAdaptation.DomainName))
+            {
+                content = content.Replace(
+                    Constants.FeaturePathAdaptation.DomainName,
+                    CrudParent.Domain);
+            }
+
             if (CrudParent.Exists)
             {
                 if (content.Contains(Constants.FeaturePathAdaptation.ParentDomainName))
@@ -1813,7 +1836,7 @@
 
         #region Tools
         private GenerationCrudData ExtractGenerationCrudData(FeatureData crudData, List<CrudProperty> crudDtoProperties, List<PropertyInfo> dtoRefProperties,
-            string displayItem, string feature, FeatureType type, List<string> optionItem = null)
+            string displayItem, string feature, FeatureType type, GenerationType generationType, List<string> optionItem = null)
         {
             GenerationCrudData generationData = null;
             if (crudData.ExtractBlocks?.Count > 0)
@@ -1843,7 +1866,16 @@
                         case CRUDDataUpdateType.Display:
                             string extractItem = ((ExtractDisplayBlock)block).ExtractItem;
                             string extractLine = ((ExtractDisplayBlock)block).ExtractLine;
-                            string newDisplayLine = this.CrudNames.ConvertPascalOldToNewCrudName(extractLine, feature, type).Replace(extractItem, CommonTools.ConvertToCamelCase(displayItem));
+                            string newDisplayLine = this.CrudNames.ConvertPascalOldToNewCrudName(extractLine, feature, type);
+                            switch(generationType)
+                            {
+                                case GenerationType.WebApi:
+                                    newDisplayLine = newDisplayLine.Replace(extractItem, displayItem);
+                                    break;
+                                case GenerationType.Front:
+                                    newDisplayLine = newDisplayLine.Replace(extractItem, CommonTools.ConvertToCamelCase(displayItem));
+                                    break;
+                            }
                             generationData.DisplayToUpdate.Add(new KeyValuePair<string, string>(extractLine, newDisplayLine));
                             break;
                         case CRUDDataUpdateType.AncestorTeam:

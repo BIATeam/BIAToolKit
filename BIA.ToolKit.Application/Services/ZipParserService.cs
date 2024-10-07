@@ -90,12 +90,15 @@
                                     ((WebApiFeatureData)featureData).ClassFileDefinition = classFile;
                                     if (fileType == WebApiFileType.Dto)
                                     {
-                                        ((WebApiFeatureData)featureData).PropertiesInfos = service.GetPlaneDtoPropertyList(classFile.PropertyList, dtoCustomAttributeName);
+                                        ((WebApiFeatureData)featureData).PropertiesInfos = service.GetPropertyList(classFile.PropertyList, dtoCustomAttributeName);
                                     }
                                 }
                             }
 
-                            if (fileType != WebApiFileType.Dto || fileType != WebApiFileType.Entity || fileType != WebApiFileType.Mapper)    // Not Dto, Entity or Mapper
+                            if (
+                                fileType != WebApiFileType.Dto ||
+                                fileType != WebApiFileType.Entity ||
+                                fileType != WebApiFileType.Mapper)    // Not Dto, Entity or Mapper
                             {
                                 featureData.ExtractBlocks = AnalyzeFile(filePath, featureData);
                             }
@@ -112,10 +115,7 @@
                 }
 
                 // Populate 'ExtractItem' of Display block
-                if (zipData.GenerationType == GenerationType.Front && zipData.FeatureType == FeatureType.CRUD)
-                {
-                    PopulateExtractItemDisplayBlock(zipData.FeatureDataList);
-                }
+                PopulateExtractItemDisplayBlock(zipData.FeatureDataList);
             }
             else
             {
@@ -279,6 +279,8 @@
                     return WebApiFileType.Dto;
                 else if (fileName.EndsWith("Controller.cs"))
                     return WebApiFileType.Controller;
+                else if (fileName.EndsWith("OptionMapper.cs"))
+                    return WebApiFileType.OptionMapper;
                 else if (fileName.EndsWith("Mapper.cs"))
                     return WebApiFileType.Mapper;
                 else if (fileName.EndsWith("Specification.cs"))
@@ -310,14 +312,24 @@
                 case WebApiFileType.IAppService:
                     pattern = @"^I?(\w+)AppService\.cs$";
                     break;
+                case WebApiFileType.OptionAppService:
+                case WebApiFileType.IOptionAppService:
+                    pattern = @"^I?(\w+)OptionAppService\.cs$";
+                    break;
                 case WebApiFileType.Dto:
                     pattern = @"^(\w+)Dto\.cs$";
                     break;
                 case WebApiFileType.Controller:
                     pattern = @"^((\w+)s|(\w+))Controller\.cs$";
                     break;
+                case WebApiFileType.OptionsController:
+                    pattern = @"^((\w+)s|(\w+))OptionsController\.cs$";
+                    break;
                 case WebApiFileType.Mapper:
                     pattern = @"^(\w+)Mapper\.cs$";
+                    break;
+                case WebApiFileType.OptionMapper:
+                    pattern = @"^(\w+)OptionMapper\.cs$";
                     break;
                 case WebApiFileType.Entity:
                     pattern = @"^(\w+)\.cs$";
@@ -404,11 +416,17 @@
                             break;
                         case CRUDDataUpdateType.Display:
                             List<string> displayLines = blockLines.Where(l => !l.TrimStart().StartsWith("//")).ToList();
-                            if (displayLines?.Count != 1)
+                            if (displayLines.Count < 1 && displayLines.Count > 2)
                             {
                                 consoleWriter.AddMessageLine($"Incorrect Display block format: '{blockLines}'", "Orange");
                             }
-                            extractBlocksList.Add(new ExtractDisplayBlock(type, name, blockLines) { ExtractLine = displayLines[0].TrimStart() });
+                            var extractLine = displayLines[0].Trim();
+                            var extractItem = blockLines[0].Split(' ').Last();
+                            if(extractItem == CRUDDataUpdateType.Display.ToString())
+                            {
+                                extractItem = null;
+                            }
+                            extractBlocksList.Add(new ExtractDisplayBlock(type, name, blockLines) { ExtractLine = extractLine, ExtractItem = extractItem });
                             break;
                         case CRUDDataUpdateType.OptionField:
                             string fieldName = CommonTools.GetMatchRegexValue(regex, blockLines[0], 2);

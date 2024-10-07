@@ -55,11 +55,15 @@
     public enum WebApiFileType
     {
         AppService,
+        OptionAppService,
         Controller,
+        OptionsController,
         Dto,
         Entity,
         IAppService,
+        IOptionAppService,
         Mapper,
+        OptionMapper,
         Partial,
         Specification
     }

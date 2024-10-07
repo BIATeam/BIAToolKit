@@ -49,6 +49,7 @@
             MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService);
             MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService);
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter);
+            OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter);
             this.crudSettings = new(settingsService);
         }
 
@@ -69,6 +70,7 @@
             if (_viewModel.ModifyProject.CurrentProject != null)
             {
                 CRUDGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
+                OptionGenerator.SetCurrentProject(_viewModel.ModifyProject.CurrentProject);
             }
             MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject.FrameworkVersion);
             MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder);
