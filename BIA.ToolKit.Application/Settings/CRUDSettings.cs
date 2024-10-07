@@ -10,6 +10,7 @@
         public string GenerationSettingsFileName { get; private set; }
         public string CrudGenerationHistoryFileName { get; private set; }
         public string OptionGenerationHistoryFileName { get; private set; }
+        public string DtoGenerationHistoryFileName { get; private set; }
 
         public string DtoCustomAttributeFieldName { get; private set; }
 
@@ -35,6 +36,7 @@
             GenerationSettingsFileName = settingsService.ReadSetting("GenerationSettings");
             CrudGenerationHistoryFileName = settingsService.ReadSetting("CrudGenerationHistory");
             OptionGenerationHistoryFileName = settingsService.ReadSetting("OptionGenerationHistory");
+            DtoGenerationHistoryFileName = settingsService.ReadSetting("DtoGenerationHistory");
             DtoCustomAttributeFieldName = settingsService.ReadSetting("DtoCustomAttributeField");
             DtoCustomAttributeClassName = settingsService.ReadSetting("DtoCustomAttributeClass");
             PackageLockFileName = settingsService.ReadSetting("PackageLockFileName");

@@ -8,9 +8,12 @@
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
     using BIA.ToolKit.Services;
+    using System;
     using System.Data.Common;
     using System.IO;
+    using System.Linq;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
@@ -29,6 +32,9 @@
         private CRUDSettings settings;
         private Project project;
         private UIEventBroker uiEventBroker;
+        private string dtoGenerationHistoryFile;
+        private DtoGenerationHistory generationHistory = new DtoGenerationHistory();
+        private DtoGeneration generation;
 
         public DtoGeneratorUC()
         {
@@ -39,7 +45,7 @@
         /// <summary>
         /// Injection of services.
         /// </summary>
-        public void Inject(CSharpParserService parserService,SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
+        public void Inject(CSharpParserService parserService, SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
             UIEventBroker uiEventBroker)
         {
             this.consoleWriter = consoleWriter;
@@ -67,13 +73,24 @@
 
             this.project = project;
             vm.SetProject(project);
+
             ListEntities();
+            InitHistoryFile(project);
         }
 
         private void ListEntities()
         {
             var domainEntities = parserService.GetDomainEntities(project, settings);
             vm.SetEntities(domainEntities);
+        }
+
+        private void InitHistoryFile(Project project)
+        {
+            dtoGenerationHistoryFile = Path.Combine(project.Folder, Constants.FolderBia, settings.DtoGenerationHistoryFileName);
+            if (File.Exists(dtoGenerationHistoryFile))
+            {
+                generationHistory = CommonTools.DeserializeJsonFile<DtoGenerationHistory>(dtoGenerationHistoryFile);
+            }
         }
 
         private void RefreshEntitiesList_Click(object sender, RoutedEventArgs e)
@@ -85,6 +102,7 @@
         {
             vm.RefreshMappingProperties();
             ResetMappingColumnsWidths();
+            vm.ComputePropertiesValidity();
         }
 
         private void RemoveAllMappingProperties_Click(object sender, RoutedEventArgs e)
@@ -104,7 +122,46 @@
 
         private async void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
+            UpdateHistoryFile();
             await fileGeneratorService.GenerateDto(project, vm.SelectedEntityInfo, vm.EntityDomain, vm.MappingEntityProperties);
+        }
+
+        private void UpdateHistoryFile()
+        {
+            var isNewGeneration = generation is null;
+            generation ??= new DtoGeneration();
+
+            generation.DateTime = DateTime.Now;
+            generation.EntityName = vm.SelectedEntityInfo.Name;
+            generation.EntityNamespace = vm.SelectedEntityInfo.Namespace;
+            generation.Domain = vm.EntityDomain;
+            generation.PropertyMappings.Clear();
+
+            foreach (var property in vm.MappingEntityProperties)
+            {
+                var generationPropertyMapping = new DtoGenerationPropertyMapping
+                {
+                    DateType = property.MappingDateType,
+                    EntityPropertyCompositeName = property.EntityCompositeName,
+                    IsRequired = property.IsRequired,
+                    MappingName = property.MappingName,
+                    OptionMappingDisplayProperty = property.OptionDisplayProperty,
+                    OptionMappingEntityIdProperty = property.OptionEntityIdProperty,
+                    OptionMappingIdProperty = property.OptionIdProperty
+                };
+                generation.PropertyMappings.Add(generationPropertyMapping);
+            }
+
+            if (isNewGeneration)
+            {
+                generationHistory.Generations.Add(generation);
+            }
+
+            if (!Directory.Exists(Path.GetDirectoryName(dtoGenerationHistoryFile)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(dtoGenerationHistoryFile));
+            }
+            CommonTools.SerializeToJsonFile(generationHistory, dtoGenerationHistoryFile);
         }
 
         private void MappingPropertyTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -114,6 +171,61 @@
 
         private void MappingOptionId_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            vm.ComputePropertiesValidity();
+        }
+
+        private void EntitiesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var entity = vm.SelectedEntityInfo;
+            if (entity is null)
+                return;
+
+            LoadFromHistory(entity);
+        }
+
+        private void LoadFromHistory(EntityInfo entity)
+        {
+            generation = generationHistory.Generations.FirstOrDefault(g => g.EntityName.Equals(entity.Name) && g.EntityNamespace.Equals(entity.Namespace));
+            if (generation is null)
+            {
+                vm.WasAlreadyGenerated = false;
+                return;
+            }
+
+            vm.WasAlreadyGenerated = true;
+            vm.EntityDomain = generation.Domain;
+
+
+            var allEntityProperties = vm.EntityProperties.SelectMany(x => x.GetAllPropertiesRecursively()).ToList();
+            foreach (var property in allEntityProperties)
+            {
+                property.IsSelected = false;
+            }
+            foreach (var property in generation.PropertyMappings)
+            {
+                var entityProperty = allEntityProperties.FirstOrDefault(x => x.CompositeName == property.EntityPropertyCompositeName);
+                if (entityProperty is null)
+                    continue;
+
+                entityProperty.IsSelected = true;
+            }
+
+            vm.RefreshMappingProperties();
+
+            foreach(var property in generation.PropertyMappings)
+            {
+                var mappingProperty = vm.MappingEntityProperties.FirstOrDefault(x => x.EntityCompositeName == property.EntityPropertyCompositeName);
+                if (mappingProperty is null)
+                    continue;
+
+                mappingProperty.MappingName = property.MappingName;
+                mappingProperty.MappingDateType = property.DateType;
+                mappingProperty.IsRequired = property.IsRequired;
+                mappingProperty.OptionIdProperty = property.OptionMappingIdProperty;
+                mappingProperty.OptionDisplayProperty = property.OptionMappingDisplayProperty;
+                mappingProperty.OptionEntityIdProperty = property.OptionMappingEntityIdProperty;
+            }
+
             vm.ComputePropertiesValidity();
         }
     }

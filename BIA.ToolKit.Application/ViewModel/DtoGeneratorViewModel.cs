@@ -20,7 +20,6 @@
 
     public class DtoGeneratorViewModel : ObservableObject
     {
-        private string projectDomainNamespace;
         private IConsoleWriter consoleWriter;
         private readonly List<EntityInfo> domainEntities = new();
         private readonly List<string> excludedEntityDomains = new()
@@ -149,6 +148,18 @@
             }
         }
 
+        private bool wasAlreadyGenerated;
+        public bool WasAlreadyGenerated
+        {
+            get => wasAlreadyGenerated;
+            set
+            {
+                wasAlreadyGenerated = value;
+                RaisePropertyChanged(nameof(WasAlreadyGenerated));
+            }
+        }
+
+        public string ProjectDomainNamespace { get; private set; }
         public EntityInfo SelectedEntityInfo { get; private set; }
         public bool IsEntitySelected => SelectedEntityInfo != null;
         public bool HasMappingProperties => MappingEntityProperties.Count > 0;
@@ -162,7 +173,7 @@
 
         public void SetProject(Project project)
         {
-            projectDomainNamespace = GetProjectDomainNamespace(project);
+            ProjectDomainNamespace = GetProjectDomainNamespace(project);
             IsProjectChosen = true;
         }
 
@@ -173,6 +184,9 @@
 
         public void SetEntities(List<EntityInfo> entities)
         {
+            WasAlreadyGenerated = false;
+            EntityDomain = null;
+
             domainEntities.Clear();
             domainEntities.AddRange(entities);
 
@@ -180,7 +194,7 @@
 
             var entitiesNames = entities
                 .Where(x => !excludedEntityDomains.Any(y => x.Path.Contains(y)))
-                .Select(x => $"{x.Name} ({x.FullNamespace.Replace($"{projectDomainNamespace}.", string.Empty).Replace($".{x.Name}", string.Empty)})")
+                .Select(x => $"{x.Name} ({x.FullNamespace.Replace($"{ProjectDomainNamespace}.", string.Empty).Replace($".{x.Name}", string.Empty)})")
                 .OrderBy(x => x)
                 .ToList();
 
@@ -280,8 +294,6 @@
                 }
             }
 
-            ComputePropertiesValidity();
-
             RaisePropertyChanged(nameof(HasMappingProperties));
             RaisePropertyChanged(nameof(IsGenerationEnabled));
         }
@@ -349,9 +361,12 @@
                                     string.IsNullOrEmpty(x.BaseKeyType)
                                     && relationTypeClassNames.All(y => x.Properties.Select(x => x.Type).Contains(y)));
 
+                                var entityProperty = EntityProperties.First(x => x.CompositeName == mappingEntityProperty.EntityCompositeName);
+
                                 if (entityInfo is null)
                                 {
                                     consoleWriter.AddMessageLine($"Unable to find relation's entity between types {optionRelationFirstType} and {optionRelationSecondType} to map {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
+                                    entityProperty.IsSelected = false;
                                     continue;
                                 }
 
@@ -362,6 +377,7 @@
                                 if(string.IsNullOrWhiteSpace(mappingEntityProperty.OptionRelationFirstIdProperty))
                                 {
                                     consoleWriter.AddMessageLine($"Unable to find matching relation property {optionRelationFirstIdPropertyName} in the entity {entityInfo.Name} to map {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
+                                    entityProperty.IsSelected = false;
                                     continue;
                                 }
 
@@ -370,6 +386,7 @@
                                 if (string.IsNullOrWhiteSpace(mappingEntityProperty.OptionRelationSecondIdProperty))
                                 {
                                     consoleWriter.AddMessageLine($"Unable to find matching relation property {optionRelationSecondIdPropertyName} in the entity {entityInfo.Name} to map {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
+                                    entityProperty.IsSelected = false;
                                     continue;
                                 }
                             }
@@ -429,19 +446,22 @@
         {
             const string Error_DuplicateMappingName = "Duplicate property name";
 
-            var propertiesToRemove = new List<MappingEntityProperty>();
+            var propertiesToIgnore = new List<MappingEntityProperty>();
             foreach (var property in MappingEntityProperties)
             {
                 var mappingOptionWithSameEntityIdProperty = MappingEntityProperties.FirstOrDefault(x => x.IsOption && x.OptionEntityIdPropertyComposite.Equals(property.EntityCompositeName));
                 if (mappingOptionWithSameEntityIdProperty != null)
                 {
                     consoleWriter.AddMessageLine($"The entity's property {property.EntityCompositeName} is already used as mapping ID property for the OptionDto {mappingOptionWithSameEntityIdProperty.MappingName}, the mapping for this property has been ignored.", "orange");
-                    propertiesToRemove.Add(property);
+                    propertiesToIgnore.Add(property);
                 }
             }
 
-            foreach (var property in propertiesToRemove)
+            foreach (var property in propertiesToIgnore)
             {
+                var entityPropertyToUnselect = EntityProperties.First(x => x.CompositeName == property.EntityCompositeName);
+                entityPropertyToUnselect.IsSelected = false;
+
                 MappingEntityProperties.Remove(property);
             }
 
@@ -463,11 +483,21 @@
         }
     }
 
-    public class EntityProperty
+    public class EntityProperty : ObservableObject
     {
         public string Name { get; set; }
         public string Type { get; set; }
-        public bool IsSelected { get; set; }
+
+        private bool isSelected;
+        public bool IsSelected
+        {
+            get => isSelected;
+            set
+            {
+                isSelected = value;
+                RaisePropertyChanged(nameof(IsSelected));
+            }
+        }
         public string CompositeName { get; set; }
         public List<EntityProperty> Properties { get; set; } = new();
         public string ParentType { get; set; }
@@ -483,20 +513,64 @@
     public class MappingEntityProperty : ObservableObject
     {
         public string EntityCompositeName { get; set; }
-        public string MappingName { get; set; }
+
+        private string mappingName;
+        public string MappingName
+        {
+            get => mappingName;
+            set
+            {
+                mappingName = value;
+                RaisePropertyChanged(nameof(MappingName));
+            }
+        }
+
         public string ParentEntityType { get; set; }
         public string MappingType { get; set; }
         public bool IsOption => MappingType.Equals(Constants.BiaClassName.OptionDto);
         public bool IsOptionCollection => MappingType.Equals(Constants.BiaClassName.CollectionOptionDto);
         public string OptionType { get; set; }
-        public bool IsRequired { get; set; }
+
+        private bool isRequired;
+        public bool IsRequired
+        {
+            get => isRequired;
+            set
+            {
+                isRequired = value;
+                RaisePropertyChanged(nameof(IsRequired));
+            }
+        }
+
         public List<string> OptionIdProperties { get; set; } = new();
         public List<string> OptionDisplayProperties { get; set; } = new();
         public List<string> OptionEntityIdProperties { get; set; } = new();
-        public string OptionDisplayProperty { get; set; }
-        public string OptionIdProperty { get; set; }
+
+        private string optionDisplayProperty;
+        public string OptionDisplayProperty
+        {
+            get => optionDisplayProperty;
+            set
+            {
+                optionDisplayProperty = value;
+                RaisePropertyChanged(nameof(OptionDisplayProperty));
+            }
+        }
+
+        private string optionIdProperty;
+        public string OptionIdProperty
+        {
+            get => optionIdProperty;
+            set
+            {
+                optionIdProperty = value;
+                RaisePropertyChanged(nameof(OptionIdProperty));
+            }
+        }
+
         public bool IsVisibleOptionPropertiesComboBox => IsOption || IsOptionCollection;
         public string OptionEntityIdPropertyComposite { get; private set; }
+
         private string optionEntityIdProperty;
         public string OptionEntityIdProperty 
         {
@@ -515,7 +589,18 @@
         public string OptionRelationFirstIdProperty { get; set; }
         public string OptionRelationSecondIdProperty { get; set; }
         public string OptionRelationPropertyComposite { get; set; }
-        public string MappingDateType { get; set; }
+
+        private string mappingDateType;
+        public string MappingDateType
+        {
+            get => mappingDateType;
+            set
+            {
+                mappingDateType = value;
+                RaisePropertyChanged(nameof(MappingDateType));
+            }
+        }
+
         public List<string> MappingDateTypes { get; set; } = new();
         public bool IsVisibleDateTypesComboxBox => MappingDateTypes.Count > 0;
 
