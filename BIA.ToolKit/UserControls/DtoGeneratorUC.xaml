@@ -169,9 +169,11 @@
                                 <DataTemplate>
                                     <Grid>
                                         <ComboBox 
+                                            x:Name="MappingOptionId"
                                             ItemsSource="{Binding OptionEntityIdProperties}" 
                                             SelectedValue="{Binding OptionEntityIdProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                            Visibility="{Binding IsOption, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
+                                            Visibility="{Binding IsOption, Converter={StaticResource BoolToVisConverter}}"
+                                            SelectionChanged="MappingOptionId_SelectionChanged"></ComboBox>
                                     </Grid>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>

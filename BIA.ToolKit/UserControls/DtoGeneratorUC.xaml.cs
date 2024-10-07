@@ -111,5 +111,10 @@
         {
             vm.ComputePropertiesValidity();
         }
+
+        private void MappingOptionId_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            vm.ComputePropertiesValidity();
+        }
     }
 }

@@ -12,6 +12,7 @@
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Reflection.Metadata;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
@@ -340,7 +341,7 @@
 
                                 if (entityInfo is null)
                                 {
-                                    consoleWriter.AddMessageLine($"ERROR: unable to find relation's entity between types {optionRelationFirstType} and {optionRelationSecondType} to map {mappingEntityProperty.EntityCompositeName}", "red");
+                                    consoleWriter.AddMessageLine($"Unable to find relation's entity between types {optionRelationFirstType} and {optionRelationSecondType} to map {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
                                     continue;
                                 }
 
@@ -350,7 +351,7 @@
                                 mappingEntityProperty.OptionRelationFirstIdProperty = entityInfo.Properties.SingleOrDefault(x => x.Type == "int" && x.Name.Equals(optionRelationFirstIdPropertyName))?.Name;
                                 if(string.IsNullOrWhiteSpace(mappingEntityProperty.OptionRelationFirstIdProperty))
                                 {
-                                    consoleWriter.AddMessageLine($"ERROR: unable to find matching relation property {optionRelationFirstIdPropertyName} in the entity {entityInfo.Name} to map {mappingEntityProperty.EntityCompositeName}", "red");
+                                    consoleWriter.AddMessageLine($"Unable to find matching relation property {optionRelationFirstIdPropertyName} in the entity {entityInfo.Name} to map {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
                                     continue;
                                 }
 
@@ -358,7 +359,7 @@
                                 mappingEntityProperty.OptionRelationSecondIdProperty = entityInfo.Properties.SingleOrDefault(x => x.Type == "int" && x.Name.Equals(optionRelationSecondIdPropertyName))?.Name;
                                 if (string.IsNullOrWhiteSpace(mappingEntityProperty.OptionRelationSecondIdProperty))
                                 {
-                                    consoleWriter.AddMessageLine($"ERROR: unable to find matching relation property {optionRelationSecondIdPropertyName} in the entity {entityInfo.Name} to map {mappingEntityProperty.EntityCompositeName}", "red");
+                                    consoleWriter.AddMessageLine($"Unable to find matching relation property {optionRelationSecondIdPropertyName} in the entity {entityInfo.Name} to map {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
                                     continue;
                                 }
                             }
@@ -418,7 +419,23 @@
         {
             const string Error_DuplicateMappingName = "Duplicate property name";
 
-            foreach(var mappingEntityproperty in MappingEntityProperties)
+            var propertiesToRemove = new List<MappingEntityProperty>();
+            foreach (var property in MappingEntityProperties)
+            {
+                var mappingOptionWithSameEntityIdProperty = MappingEntityProperties.FirstOrDefault(x => x.IsOption && x.OptionEntityIdPropertyComposite.Equals(property.EntityCompositeName));
+                if (mappingOptionWithSameEntityIdProperty != null)
+                {
+                    consoleWriter.AddMessageLine($"The entity's property {property.EntityCompositeName} is already used as mapping ID property for the OptionDto {mappingOptionWithSameEntityIdProperty.MappingName}, the mapping for this property has been ignored.", "orange");
+                    propertiesToRemove.Add(property);
+                }
+            }
+
+            foreach (var property in propertiesToRemove)
+            {
+                MappingEntityProperties.Remove(property);
+            }
+
+            foreach (var mappingEntityproperty in MappingEntityProperties)
             {
                 mappingEntityproperty.MappingNameError = null;
                 var duplicateMappingNameProperties = MappingEntityProperties.Where(x => x != mappingEntityproperty && x.MappingName == mappingEntityproperty.MappingName);

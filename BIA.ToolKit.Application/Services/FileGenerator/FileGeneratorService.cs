@@ -74,15 +74,6 @@
                 model.BaseKeyType = TemplateValue_BaseKeyType;
             }
 
-            foreach(var property in model.Properties)
-            {
-                var option = model.Properties.FirstOrDefault(x => x.IsOption && x.OptionEntityIdPropertyComposite.Equals(property.EntityCompositeName));
-                if(option != null)
-                {
-                    consoleWriter.AddMessageLine($"WARNING: The DTO's property {property.MappingName} is mapped to the entity's property {property.EntityCompositeName} which is already used as ID property for the OptionDto {option.MappingName} and may lead to mapping conflicts.", "orange");
-                }
-            }
-
             consoleWriter.AddMessageLine($"Generating DTO...");
             var dtoContent = await GenerateFromTemplate(TemplateKey_Dto, model);
             var dtoDestPath = Path.Combine(
