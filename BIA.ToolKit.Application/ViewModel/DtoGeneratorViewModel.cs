@@ -62,9 +62,10 @@
         };
         private readonly Dictionary<string, List<string>> biaDtoFieldDateTypesByPropertyType = new()
         {
-            { "string", new List<string> { "Time" } },
-            { "TimeSpan", new List<string> { "Time" } },
-            { "DateTime", new List<string> { "Datetime", "Date", "Time" } }
+            { "TimeSpan", new List<string> { "Datetime", "Date", "Time" } },
+            { "TimeOnly", new List<string> { "Time" } },
+            { "DateTime", new List<string> { "Datetime", "Date", "Time" } },
+            { "DateOnly", new List<string> { "Date" } }
         };
 
         private bool isProjectChosen;
