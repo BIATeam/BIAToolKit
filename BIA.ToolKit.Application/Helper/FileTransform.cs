@@ -20,7 +20,7 @@
         }
 
         /// <summary>
-        /// Copy files for VSIX AdditionnalFiles folder to the root solution folder.
+        /// Order the usings in a csharp file
         /// </summary>
         /// <param name="sourceDir">source folder.</param>
         /// <param name="oldString">old string.</param>
@@ -30,9 +30,22 @@
             string[] filesToOrder = Directory.GetFiles(sourceDir, "*.cs", SearchOption.AllDirectories);
             foreach (string file in filesToOrder)
             {
+                string oldFile = File.ReadAllText(file);
+                string endOfLine = Environment.NewLine;
+                Match endOfLineMatch = Regex.Match(oldFile, @"([\r\n]+)");
+                if (endOfLineMatch.Success)
+                {
+                    endOfLine = endOfLineMatch.Value;
+                }
                 string[] lines = File.ReadAllLines(file);
                 OrderUsingInLines(lines);
-                File.WriteAllLines(file, lines);
+                string newFile = string.Join(endOfLine, lines);
+                Match match = Regex.Match(oldFile, @"([\r\n]+\Z)");
+                if (match.Success)
+                {
+                    newFile += match.Value;
+                }
+                File.WriteAllText(file, newFile);
             }
 
         }
