@@ -52,11 +52,9 @@
                             <TextBox Text="{Binding Settings_CompanyFiles_LocalFolderPath}"  IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Left" Margin="20,0,0,95" TextWrapping="Wrap" Width="385" Height="20" VerticalAlignment="Bottom" />
                             <Button Content="..." IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Right" Margin="0,0,10,95" RenderTransformOrigin="0.429,2.91" Width="35" Click="CompanyFilesLocalFolderBrowse_Click" Height="20" VerticalAlignment="Bottom"/>
                             <Button Content="Synchronize" HorizontalAlignment="Center" Margin="0,0,0,40" RenderTransformOrigin="0.429,2.91" Width="120" Name="CompanyFilesLocalFolderSync" Click="CompanyFilesLocalFolderSync_Click" Height="20" VerticalAlignment="Bottom"/>
-                            <Label Content="V1.5.1" Margin="2" VerticalAlignment="Top" Foreground="#FFF0F0F0" HorizontalAlignment="Right"/>
+                            <Label Content="V1.6.0" Margin="2" VerticalAlignment="Top" Foreground="#FFF0F0F0" HorizontalAlignment="Right"/>
                         </Grid>
                     </Grid>
-
-
                 </Grid>
             </TabItem>
             <TabItem Header="Create project" Selector.Selected="OnTabCreateSelected">

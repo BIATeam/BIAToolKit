@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -128,7 +129,10 @@
                 consoleWriter.AddMessageLine("Start remove BIATemplate only.", "Pink");
                 FileTransform.RemoveTemplateOnly(projectPath, "# Begin BIATemplate only", "# End BIATemplate only", new List<string>() { ".gitignore" });
 
-                FileTransform.OrderUsing(projectPath);
+                if (new Version(versionAndOption.WorkTemplate.Version.Replace("V", "")) >= new Version("3.10.0"))
+                {
+                    FileTransform.OrderUsing(projectPath);
+                }
 
                 bool containsFrontAngular = false;
                 if (angularFronts?.Length > 0)
