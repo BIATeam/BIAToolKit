@@ -99,10 +99,19 @@
                 selectedEntityName = value;
                 RaisePropertyChanged(nameof(SelectedEntityName));
 
-                SelectedEntityInfo = selectedEntityName == null ? null : domainEntities.First(e => e.FullNamespace.EndsWith(selectedEntityName));
-                RaisePropertyChanged(nameof(IsEntitySelected));
+                if (selectedEntityName != null)
+                {
+                    var regexMatches = Regex.Match(selectedEntityName, @"\(([^)]*)\)");
+                    var entityEndNamespace = $"{regexMatches.Groups[1].Value}.{selectedEntityName.Replace(regexMatches.Groups[0].Value, string.Empty).Trim()}";
+                    SelectedEntityInfo = domainEntities.First(e => e.FullNamespace.EndsWith(entityEndNamespace));
+                    EntityDomain = entityEndNamespace.Split(".").First();
+                }
+                else
+                {
+                    SelectedEntityInfo = null;
+                }
 
-                EntityDomain = selectedEntityName?.Split(".").First();
+                RaisePropertyChanged(nameof(IsEntitySelected));
 
                 RefreshEntityPropertiesTreeView();
                 RemoveAllMappingProperties();
@@ -171,7 +180,7 @@
 
             var entitiesNames = entities
                 .Where(x => !excludedEntityDomains.Any(y => x.Path.Contains(y)))
-                .Select(x => x.FullNamespace.Replace($"{projectDomainNamespace}.", string.Empty))
+                .Select(x => $"{x.Name} ({x.FullNamespace.Replace($"{projectDomainNamespace}.", string.Empty).Replace($".{x.Name}", string.Empty)})")
                 .OrderBy(x => x)
                 .ToList();
 
