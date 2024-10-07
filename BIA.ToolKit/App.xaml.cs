@@ -4,6 +4,7 @@
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Helper;
+    using BIA.ToolKit.Services;
     using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.Windows;
@@ -23,6 +24,7 @@
         private void ConfigureServices(ServiceCollection services)
         {
             services.AddSingleton<IConsoleWriter, ConsoleWriter>();
+            services.AddSingleton<UIEventBroker>();
             services.AddSingleton<MainWindow>();
             services.AddSingleton<RepositoryService>();
             services.AddSingleton<GitService>();

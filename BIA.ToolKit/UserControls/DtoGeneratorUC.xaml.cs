@@ -8,11 +8,13 @@
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
+    using BIA.ToolKit.Services;
     using System.Data.Common;
     using System.IO;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
+    using static BIA.ToolKit.Services.UIEventBroker;
 
     /// <summary>
     /// Interaction logic for DtoGenerator.xaml
@@ -26,6 +28,7 @@
         private FileGeneratorService fileGeneratorService;
         private CRUDSettings settings;
         private Project project;
+        private UIEventBroker uiEventBroker;
 
         public DtoGeneratorUC()
         {
@@ -36,18 +39,32 @@
         /// <summary>
         /// Injection of services.
         /// </summary>
-        public void Inject(CSharpParserService parserService,SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService)
+        public void Inject(CSharpParserService parserService,SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
+            UIEventBroker uiEventBroker)
         {
             this.consoleWriter = consoleWriter;
             this.parserService = parserService;
             this.settings = new(settingsService);
             this.fileGeneratorService = fileGeneratorService;
+            this.uiEventBroker = uiEventBroker;
+            this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
 
             vm.Inject(consoleWriter);
         }
 
+        private void UIEventBroker_OnProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem)
+        {
+            if (currentTabItem != TabItemModifyProjectEnum.DtoGenerator)
+                return;
+
+            SetCurrentProject(project);
+        }
+
         public void SetCurrentProject(Project project)
         {
+            if (project == this.project)
+                return;
+
             this.project = project;
             vm.SetProject(project);
             ListEntities();

@@ -21,8 +21,9 @@
         private const string TemplateKey_Mapper = "MapperTemplate.cshtml";
         private const string TemplateKey_Dto = "DtoTemplate.cshtml";
         private const string TemplateValue_BaseKeyType = "{BaseKeyType}";
-        private readonly RazorLightEngine razorLightEngine;
+
         private readonly IConsoleWriter consoleWriter;
+        private readonly RazorLightEngine razorLightEngine;
 
         public FileGeneratorService(IConsoleWriter consoleWriter)
         {
