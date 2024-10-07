@@ -27,7 +27,7 @@
             <Label Name="OptionAlreadyGeneratedLabel" Content="Generation was already done for this Entity"  Margin="20,42,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Yellow" Visibility="Hidden" />
 
             <Label Content="Domain:" Margin="0,55,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-            <TextBox Text="{Binding Domain,UpdateSourceTrigger=PropertyChanged}" Margin="20,80,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Height="21" IsEnabled="{Binding IsEntityParsed}"/>
+            <TextBox Text="{Binding Domain,UpdateSourceTrigger=PropertyChanged}" Margin="20,80,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Padding="2" IsEnabled="{Binding IsEntityParsed}"/>
         </Grid>
 
         <Grid Grid.Column="1" Margin="5,0">

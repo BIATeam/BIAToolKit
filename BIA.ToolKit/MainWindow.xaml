@@ -75,7 +75,7 @@
                     <Label Content="Project name" HorizontalAlignment="Left" Margin="24,51,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
                     <TextBox Text="" HorizontalAlignment="Left" Margin="43,76,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="CreateProjectName" IsEnabled="True" Grid.Column="1"/>
 
-                    <uc:VersionAndOptionUserControl x:Name="CreateVersionAndOption" Margin="10,171,10,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                    <uc:VersionAndOptionUserControl x:Name="CreateVersionAndOption" Margin="10,270,10,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
 
 
 
