@@ -7,7 +7,7 @@
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
 
-    public interface BiaFrameworkFileGenerator_4_0_0
+    public interface IBiaFrameworkFileGenerator
     {
         Version BiaFrameworkVersion { get; }
         string TemplatesNamespace { get; }

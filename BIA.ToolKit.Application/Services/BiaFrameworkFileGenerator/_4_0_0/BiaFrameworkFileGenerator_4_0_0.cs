@@ -13,7 +13,7 @@
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
 
-    public class BiaFrameworkFileGenerator_4_0_1 : BiaFrameworkFileGenerator_4_0_0
+    public class BiaFrameworkFileGenerator_4_0_0 : IBiaFrameworkFileGenerator
     {
         private readonly BiaFrameworkFileGeneratorService fileGeneratorService;
         private readonly IConsoleWriter consoleWriter;
@@ -21,7 +21,7 @@
         public Version BiaFrameworkVersion => new("4.0.0");
         public string TemplatesNamespace => GetType().Namespace + ".Templates";
 
-        public BiaFrameworkFileGenerator_4_0_1(BiaFrameworkFileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter)
+        public BiaFrameworkFileGenerator_4_0_0(BiaFrameworkFileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter)
         {
             this.fileGeneratorService = fileGeneratorService;
             this.consoleWriter = consoleWriter;

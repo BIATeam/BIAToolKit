@@ -15,7 +15,7 @@
         private readonly IConsoleWriter consoleWriter;
         private readonly BiaFrameworkFileGeneratorFactory biaFrameworkFileGeneratorFactory;
         private RazorLightEngine razorLightEngine;
-        private BiaFrameworkFileGenerator_4_0_0 biaFrameworkFileGenerator;
+        private IBiaFrameworkFileGenerator biaFrameworkFileGenerator;
 
         public BiaFrameworkFileGeneratorService(IConsoleWriter consoleWriter)
         {

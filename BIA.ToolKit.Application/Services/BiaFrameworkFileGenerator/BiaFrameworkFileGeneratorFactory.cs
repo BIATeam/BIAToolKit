@@ -8,14 +8,14 @@
 
     internal class BiaFrameworkFileGeneratorFactory
     {
-        private readonly List<BiaFrameworkFileGenerator_4_0_0> biaFrameworkFileGenerators = new();
+        private readonly List<IBiaFrameworkFileGenerator> biaFrameworkFileGenerators = new();
 
         public BiaFrameworkFileGeneratorFactory(BiaFrameworkFileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter)
         {
             biaFrameworkFileGenerators.Add(new BiaFrameworkFileGenerator_4_0_0(fileGeneratorService, consoleWriter));
         }
 
-        public BiaFrameworkFileGenerator_4_0_0 GetBiaFrameworkFileGenerator(Version version)
+        public IBiaFrameworkFileGenerator GetBiaFrameworkFileGenerator(Version version)
         {
             return biaFrameworkFileGenerators.FirstOrDefault(x => x.BiaFrameworkVersion.Equals(version));
         }
