@@ -17,7 +17,7 @@
 
         public IBiaFrameworkFileGenerator GetBiaFrameworkFileGenerator(Version version)
         {
-            return biaFrameworkFileGenerators.FirstOrDefault(x => x.BiaFrameworkVersion.Equals(version));
+            return biaFrameworkFileGenerators.FirstOrDefault(x => x.CompatibleBiaFrameworkVersions.Any(y => y.Equals(version)));
         }
     }
 }

@@ -9,7 +9,7 @@
 
     public interface IBiaFrameworkFileGenerator
     {
-        Version BiaFrameworkVersion { get; }
+        List<Version> CompatibleBiaFrameworkVersions { get; }
         string TemplatesNamespace { get; }
         Task GenerateDto(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties);
     }
