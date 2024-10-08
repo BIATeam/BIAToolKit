@@ -13,13 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Services\FileGenerator\RazorTemplates\DtoTemplate.cshtml" />
-    <None Remove="Services\FileGenerator\RazorTemplates\MapperTemplate.cshtml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Services\FileGenerator\RazorTemplates\DtoTemplate.cshtml" />
-    <EmbeddedResource Include="Services\FileGenerator\RazorTemplates\MapperTemplate.cshtml" />
+    <EmbeddedResource Include="Services\BiaFrameworkFileGenerator\_4_0_0\Templates\DtoTemplate.cshtml" />
+    <EmbeddedResource Include="Services\BiaFrameworkFileGenerator\_4_0_0\Templates\MapperTemplate.cshtml" />
   </ItemGroup>
 
   <ItemGroup>

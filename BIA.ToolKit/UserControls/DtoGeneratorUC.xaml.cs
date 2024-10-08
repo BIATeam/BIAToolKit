@@ -2,7 +2,7 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
@@ -28,7 +28,7 @@
 
         private IConsoleWriter consoleWriter;
         private CSharpParserService parserService;
-        private FileGeneratorService fileGeneratorService;
+        private BiaFrameworkFileGeneratorService fileGeneratorService;
         private CRUDSettings settings;
         private Project project;
         private UIEventBroker uiEventBroker;
@@ -45,7 +45,7 @@
         /// <summary>
         /// Injection of services.
         /// </summary>
-        public void Inject(CSharpParserService parserService, SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
+        public void Inject(CSharpParserService parserService, SettingsService settingsService, IConsoleWriter consoleWriter, BiaFrameworkFileGeneratorService fileGeneratorService,
             UIEventBroker uiEventBroker)
         {
             this.consoleWriter = consoleWriter;
@@ -75,6 +75,19 @@
             vm.SetProject(project);
 
             ListEntities();
+
+            if (!Version.TryParse(project.FrameworkVersion, out Version projectVersion))
+            {
+                consoleWriter.AddMessageLine($"ERROR: invalid project version", "red");
+                return;
+            }
+
+            if (!fileGeneratorService.Init(projectVersion))
+            {
+                consoleWriter.AddMessageLine($"ERROR: incompatible project version", "red");
+                return;
+            }
+
             InitHistoryFile(project);
         }
 
