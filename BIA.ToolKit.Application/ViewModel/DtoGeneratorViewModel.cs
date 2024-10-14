@@ -136,6 +136,8 @@
             set { entityProperties = value; }
         }
 
+        public IEnumerable<EntityProperty> AllEntityPropertiesRecursively => EntityProperties.SelectMany(x => x.GetAllPropertiesRecursively());
+
         private ObservableCollection<MappingEntityProperty> mappingEntityProperties = new();
         public ObservableCollection<MappingEntityProperty> MappingEntityProperties
         {
@@ -281,8 +283,7 @@
 
             foreach(var mappingEntityProperty in MappingEntityProperties.Where(x => x.IsOptionCollection))
             {
-                mappingEntityProperty.OptionRelationPropertyComposite = EntityProperties
-                    .SelectMany(x => x.GetAllPropertiesRecursively())
+                mappingEntityProperty.OptionRelationPropertyComposite = AllEntityPropertiesRecursively
                     .SingleOrDefault(x => 
                         x.ParentType == mappingEntityProperty.ParentEntityType 
                         && x.Type.Equals($"ICollection<{mappingEntityProperty.OptionRelationType}>")
@@ -336,12 +337,21 @@
                             mappingEntityProperty.OptionIdProperties.AddRange(optionEntity.Properties.Where(x => x.Type.Equals("int", StringComparison.InvariantCultureIgnoreCase)).Select(x => x.Name));
                             mappingEntityProperty.OptionIdProperty = mappingEntityProperty.OptionIdProperties.FirstOrDefault(x => x.Equals("id", StringComparison.InvariantCultureIgnoreCase));
 
+                            var entityProperty = AllEntityPropertiesRecursively.First(x => x.CompositeName == mappingEntityProperty.EntityCompositeName);
+
                             if (mappingEntityProperty.IsOption)
                             {
                                 mappingEntityProperty.OptionEntityIdProperties.AddRange(
                                     entityProperties
                                     .Where(x => x.Type.Equals("int", StringComparison.InvariantCultureIgnoreCase) && !x.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase))
                                     .Select(x => x.Name));
+
+                                if(!mappingEntityProperty.OptionEntityIdProperties.Any())
+                                {
+                                    consoleWriter.AddMessageLine($"Unable to find int property related to {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
+                                    entityProperty.IsSelected = false;
+                                    continue;
+                                }
 
                                 var optionEntityIdPropertyName = $"{mappingEntityProperty.EntityCompositeName.Split(".").Last()}Id";
                                 var automaticOptionEntityIdProperty = mappingEntityProperty.OptionEntityIdProperties.FirstOrDefault(x => x.Equals(optionEntityIdPropertyName));
@@ -360,8 +370,6 @@
                                 var entityInfo = domainEntities.SingleOrDefault(x =>
                                     string.IsNullOrEmpty(x.BaseKeyType)
                                     && relationTypeClassNames.All(y => x.Properties.Select(x => x.Type).Contains(y)));
-
-                                var entityProperty = EntityProperties.First(x => x.CompositeName == mappingEntityProperty.EntityCompositeName);
 
                                 if (entityInfo is null)
                                 {

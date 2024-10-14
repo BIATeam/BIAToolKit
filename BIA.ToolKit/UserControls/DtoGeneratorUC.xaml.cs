@@ -2,7 +2,7 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
@@ -28,13 +28,14 @@
 
         private IConsoleWriter consoleWriter;
         private CSharpParserService parserService;
-        private FileGeneratorService fileGeneratorService;
+        private BiaFrameworkFileGeneratorService fileGeneratorService;
         private CRUDSettings settings;
         private Project project;
         private UIEventBroker uiEventBroker;
         private string dtoGenerationHistoryFile;
         private DtoGenerationHistory generationHistory = new DtoGenerationHistory();
         private DtoGeneration generation;
+        private bool processSelectProperties;
 
         public DtoGeneratorUC()
         {
@@ -45,7 +46,7 @@
         /// <summary>
         /// Injection of services.
         /// </summary>
-        public void Inject(CSharpParserService parserService, SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
+        public void Inject(CSharpParserService parserService, SettingsService settingsService, IConsoleWriter consoleWriter, BiaFrameworkFileGeneratorService fileGeneratorService,
             UIEventBroker uiEventBroker)
         {
             this.consoleWriter = consoleWriter;
@@ -75,6 +76,19 @@
             vm.SetProject(project);
 
             ListEntities();
+
+            if (!Version.TryParse(project.FrameworkVersion, out Version projectVersion))
+            {
+                consoleWriter.AddMessageLine($"ERROR: invalid project version", "red");
+                return;
+            }
+
+            if (!fileGeneratorService.Init(projectVersion))
+            {
+                consoleWriter.AddMessageLine($"ERROR: incompatible project version", "red");
+                return;
+            }
+
             InitHistoryFile(project);
         }
 
@@ -100,9 +114,11 @@
 
         private void SelectProperties_Click(object sender, RoutedEventArgs e)
         {
+            processSelectProperties = true;
             vm.RefreshMappingProperties();
             ResetMappingColumnsWidths();
             vm.ComputePropertiesValidity();
+            processSelectProperties = false;
         }
 
         private void RemoveAllMappingProperties_Click(object sender, RoutedEventArgs e)
@@ -171,6 +187,9 @@
 
         private void MappingOptionId_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if(processSelectProperties)
+                return;
+
             vm.ComputePropertiesValidity();
         }
 
@@ -196,7 +215,7 @@
             vm.EntityDomain = generation.Domain;
 
 
-            var allEntityProperties = vm.EntityProperties.SelectMany(x => x.GetAllPropertiesRecursively()).ToList();
+            var allEntityProperties = vm.AllEntityPropertiesRecursively.ToList();
             foreach (var property in allEntityProperties)
             {
                 property.IsSelected = false;

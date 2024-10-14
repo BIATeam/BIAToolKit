@@ -18,8 +18,8 @@
     using BIA.ToolKit.Common;
     using System.Threading.Tasks;
     using BIA.ToolKit.Domain.Settings;
-    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Services;
+    using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
 
 
     /// <summary>
@@ -39,7 +39,7 @@
 
         public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, FeatureSettingService featureSettingService, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
+            IConsoleWriter consoleWriter, FeatureSettingService featureSettingService, BiaFrameworkFileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
         {
             AppSettings.AppFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";

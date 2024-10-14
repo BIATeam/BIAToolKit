@@ -9,7 +9,7 @@
     using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common.Extensions;
@@ -44,7 +44,7 @@
 
         public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService, FeatureSettingService featureSettingService,
-            FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
+            BiaFrameworkFileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
         {
             this.settings = settings;
             this.repositoryService = repositoryService;

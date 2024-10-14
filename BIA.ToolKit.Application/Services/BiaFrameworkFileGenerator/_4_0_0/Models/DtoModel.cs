@@ -2,7 +2,7 @@
 using System.Linq;
 using BIA.ToolKit.Common;
 
-namespace BIA.ToolKit.Application.Services.FileGenerator.RazorModels
+namespace BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Models
 {
     public class DtoModel
     {

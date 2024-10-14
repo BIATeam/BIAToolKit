@@ -1,8 +1,7 @@
-namespace BIA.ToolKit.Application.Services.FileGenerator.RazorModels
+namespace BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Models
 {
     using System;
     using System.Collections.Generic;
-    using System.Text;
 
     public class PropertyModel
     {
