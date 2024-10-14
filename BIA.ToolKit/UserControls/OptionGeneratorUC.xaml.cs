@@ -172,6 +172,7 @@
         {
             var crudParent = new CrudParent
             {
+                Exists = true,
                 Domain = vm.Domain
             };
 

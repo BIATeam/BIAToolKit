@@ -35,6 +35,7 @@
         private string dtoGenerationHistoryFile;
         private DtoGenerationHistory generationHistory = new DtoGenerationHistory();
         private DtoGeneration generation;
+        private bool processSelectProperties;
 
         public DtoGeneratorUC()
         {
@@ -113,9 +114,11 @@
 
         private void SelectProperties_Click(object sender, RoutedEventArgs e)
         {
+            processSelectProperties = true;
             vm.RefreshMappingProperties();
             ResetMappingColumnsWidths();
             vm.ComputePropertiesValidity();
+            processSelectProperties = false;
         }
 
         private void RemoveAllMappingProperties_Click(object sender, RoutedEventArgs e)
@@ -184,6 +187,9 @@
 
         private void MappingOptionId_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if(processSelectProperties)
+                return;
+
             vm.ComputePropertiesValidity();
         }
 
@@ -209,7 +215,7 @@
             vm.EntityDomain = generation.Domain;
 
 
-            var allEntityProperties = vm.EntityProperties.SelectMany(x => x.GetAllPropertiesRecursively()).ToList();
+            var allEntityProperties = vm.AllEntityPropertiesRecursively.ToList();
             foreach (var property in allEntityProperties)
             {
                 property.IsSelected = false;
