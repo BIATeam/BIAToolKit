@@ -9,11 +9,15 @@
     using System.IO.Compression;
     using System.Net.Http;
     using System.Linq;
+    using System;
+    using System.Collections.Generic;
 
     public class RepositoryService
     {
         private IConsoleWriter outPut;
         private GitService gitService;
+        private List<VersionDownload> versionDownloads = new ();
+
         public RepositoryService(IConsoleWriter outPut, GitService gitService)
         {
             this.outPut = outPut;
@@ -81,52 +85,71 @@
                                 else
                                 {
                                     // Already downloaded
-                                    UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip);
+                                    UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip, version);
                                     return Directory.GetDirectories(biaTemplatePathVersionUnzip).FirstOrDefault();
                                 }
                             }
 
                             if (!File.Exists(zipPath))
                             {
-                                outPut.AddMessageLine("Begin downloading " + tag.CanonicalName + ".zip", "Pink");
-                                var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
-                                HttpClientHandler httpClientHandler = new HttpClientHandler
+                                var versionDownload = versionDownloads.Find(x => x.Version == version);
+                                if (versionDownload == null)
                                 {
-                                    DefaultProxyCredentials = CredentialCache.DefaultCredentials,
-                                };
-                                using (var httpClient = new HttpClient(httpClientHandler))
+                                    versionDownload = new VersionDownload { Version = version };
+                                    versionDownloads.Add(versionDownload);
+                                }
+
+                                if (!versionDownload.IsDownloading)
                                 {
-                                    var response = await httpClient.GetAsync(zipUrl);
-                                    using (var fs = new FileStream(
-                                        zipPath,
-                                        FileMode.CreateNew))
+                                    versionDownload.IsDownloading = true;
+
+                                    outPut.AddMessageLine("Begin downloading " + tag.CanonicalName + ".zip", "Pink");
+                                    var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
+                                    HttpClientHandler httpClientHandler = new HttpClientHandler
                                     {
-                                        await response.Content.CopyToAsync(fs);
+                                        DefaultProxyCredentials = CredentialCache.DefaultCredentials,
+                                    };
+                                    using (var httpClient = new HttpClient(httpClientHandler))
+                                    {
+                                        var response = await httpClient.GetAsync(zipUrl);
+                                        using (var fs = new FileStream(
+                                            zipPath,
+                                            FileMode.CreateNew))
+                                        {
+                                            await response.Content.CopyToAsync(fs);
+                                        }
+                                    }
+
+                                    if (!File.Exists(zipPath))
+                                    {
+                                        outPut.AddMessageLine("Cannot download release: " + version, "Red");
+                                        break;
+                                    }
+
+                                    outPut.AddMessageLine($"-> {version} downloaded", "pink");
+
+                                    if (Directory.Exists(biaTemplatePathVersionUnzip))
+                                    {
+                                        Directory.Delete(biaTemplatePathVersionUnzip, true);
+                                    }
+
+                                    UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip, version);
+                                    versionDownload.IsDownloading = false;
+                                }
+                                else
+                                {
+                                    while(versionDownload.IsDownloading)
+                                    {
+                                        await Task.Delay(TimeSpan.FromSeconds(1));
                                     }
                                 }
-                                outPut.AddMessageLine("Downloaded.", "Pink");
                             }
 
-                            if (!File.Exists(zipPath))
+                            var dirContent = Directory.GetDirectories(biaTemplatePathVersionUnzip, "*.*", SearchOption.TopDirectoryOnly);
+                            if (dirContent.Length == 1)
                             {
-                                outPut.AddMessageLine("Cannot download release: " + version, "Red");
+                                return dirContent[0];
                             }
-                            else
-                            {
-                                //Force clean
-                                if (Directory.Exists(biaTemplatePathVersionUnzip))
-                                {
-                                    Directory.Delete(biaTemplatePathVersionUnzip, true);
-                                }
-
-                                UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip);
-                                var dirContent = Directory.GetDirectories(biaTemplatePathVersionUnzip, "*.*", SearchOption.TopDirectoryOnly);
-                                if (dirContent.Length == 1)
-                                {
-                                    return dirContent[0];
-                                }
-                            }
-                            break;
                         }
                     }
                 }
@@ -139,12 +162,14 @@
             }
         }
 
-        private static void UnzipIfNotExist(string zipPath, string biaTemplatePathVersionUnzip)
+        private void UnzipIfNotExist(string zipPath, string biaTemplatePathVersionUnzip, string version)
         {
             if (!Directory.Exists(biaTemplatePathVersionUnzip))
             {
+                outPut.AddMessageLine($"Unzipping {version}", "pink");
                 ZipFile.ExtractToDirectory(zipPath, biaTemplatePathVersionUnzip);
                 FileTransform.FolderUnix2Dos(biaTemplatePathVersionUnzip);
+                outPut.AddMessageLine($"-> {version} unzipped", "pink");
             }
         }
 
@@ -161,6 +186,12 @@
                 return content.Length == 0;
             }
             return false;
+        }
+
+        private class VersionDownload
+        {
+            public string Version { get; set; }
+            public bool IsDownloading { get; set; }
         }
     }
 }
