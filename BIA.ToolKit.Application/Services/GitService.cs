@@ -11,6 +11,8 @@
     using System.Diagnostics;
     using System.IO;
     using BIA.ToolKit.Domain.Settings;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Text.RegularExpressions;
 
     public class GitService
     {
@@ -172,54 +174,91 @@
         {
             outPut.AddMessageLine($"Apply merge on rejected", "Pink");
 
-            MergeRejetedDirectory(param.ProjectPath, param);
+            MergeRejetedDirectory(param.ProjectPath, param, param.ProjectPath);
 
             outPut.AddMessageLine("Apply merge on rejected", actionFinishedAtEnd ? "Green" : "Blue");
         }
 
         // Process all files in the directory passed in, recurse on any directories
         // that are found, and process the files they contain.
-        public void MergeRejetedDirectory(string targetDirectory, MergeParameter param)
+        public void MergeRejetedDirectory(string targetDirectory, MergeParameter param, string projectPath)
         {
             // Process the list of files found in the directory.
             string[] fileEntries = Directory.GetFiles(targetDirectory, "*.rej");
             foreach (string fileName in fileEntries)
-                MergeRejetedFileAsync(fileName, param);
+                MergeRejetedFileAsync(fileName, param, projectPath);
 
             // Recurse into subdirectories of this directory.
             string[] subdirectoryEntries = Directory.GetDirectories(targetDirectory);
             foreach (string subdirectory in subdirectoryEntries)
-                MergeRejetedDirectory(subdirectory, param);
+                MergeRejetedDirectory(subdirectory, param, projectPath);
         }
 
         // Insert logic for processing found files here.
-        public void MergeRejetedFileAsync(string path, MergeParameter param)
+        public void MergeRejetedFileAsync(string path, MergeParameter param, string projectPath)
         {
             outPut.AddMessageLine("Merge file '" + path + "'.", "White");
+
+            var diffInstruction = File.ReadAllLines(path).First();
+            (string originalFileRelativePath, string finalFileRelativePath) = ExtractOriginalAndFinalRelativePathOfDiffInstruction(diffInstruction);
 
             string finalFile = path.Substring(0, path.Length - 4);
             string originalFile = param.ProjectOriginPath + finalFile.Substring(param.ProjectPath.Length);
             string additionnalFile = param.ProjectTargetPath + finalFile.Substring(param.ProjectPath.Length);
 
-            if (File.Exists(finalFile) && File.Exists(originalFile) && File.Exists(additionnalFile))
+            if (!File.Exists(originalFile))
             {
-                int result = RunScript("git", $"merge-file -L Src -L {param.ProjectOriginVersion} -L {param.ProjectTargetVersion} \"{finalFile}\" \"{originalFile}\" \"{additionnalFile}\"").Result;
-                if (result == 0)
-                {
-                    File.Delete(path);
-                }
-                if (result > 0)
-                {
-                    outPut.AddMessageLine(result + " conflict to solve in file '" + path + "'.", "Yellow");
-                    File.Delete(path);
-                }
-                else if (result < 0)
-                {
-                    outPut.AddMessageLine("Error " + result + " durring Merge file '" + path + "'.", "Red");
-                }
+                outPut.AddMessageLine($"Unable to perform merge : original file {originalFile} doesn't exist", "red");
+                return;
+            }
+
+            if (!File.Exists(finalFile))
+            {
+                outPut.AddMessageLine($"Unable to perform merge : final file {finalFile} doesn't exist", "red");
+                return;
+            }
+
+            if (!File.Exists(additionnalFile))
+            {
+                outPut.AddMessageLine($"Unable to perform merge : additionnal file {additionnalFile} doesn't exist", "red");
+                return;
+            }
+
+            int result = RunScript("git", $"merge-file -L Src -L {param.ProjectOriginVersion} -L {param.ProjectTargetVersion} \"{finalFile}\" \"{originalFile}\" \"{additionnalFile}\"").Result;
+            if (result == 0)
+            {
+                File.Delete(path);
+            }
+            if (result > 0)
+            {
+                outPut.AddMessageLine(result + " conflict to solve in file '" + path + "'.", "Yellow");
+                File.Delete(path);
+            }
+            else if (result < 0)
+            {
+                outPut.AddMessageLine("Error " + result + " durring Merge file '" + path + "'.", "Red");
             }
         }
 
+        private (string OriginalRelativePath, string FinalRelativePath) ExtractOriginalAndFinalRelativePathOfDiffInstruction(string diffInstruction)
+        {
+            if (string.IsNullOrEmpty(diffInstruction))
+            {
+                return (string.Empty, string.Empty);
+            }
+
+            string pattern = @"a/(?<Part1>[^\s]+)\s+b/(?<Part2>.+)";
+            var match = Regex.Match(diffInstruction, pattern);
+
+            if (match.Success)
+            {
+                string part1 = match.Groups["Part1"].Value;
+                string part2 = match.Groups["Part2"].Value;
+                return (part1, part2);
+            }
+
+            return (string.Empty, string.Empty);
+        }
 
         /// <summary>
         /// Runs a PowerShell script with parameters and prints the resulting pipeline objects to the console output. 

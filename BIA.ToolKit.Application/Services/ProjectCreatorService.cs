@@ -39,6 +39,9 @@
             string[] angularFronts
             )
         {
+            // Ensure to have namespaces correctly formated
+            projectName = $"{char.ToUpper(projectName[0])}{projectName[1..]}";
+
             List<FeatureSetting> featureSettings = versionAndOption?.FeatureSettings?.ToList();
 
             List<string> localFilesToExcludes = new List<string>();
