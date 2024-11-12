@@ -11,6 +11,7 @@
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
+    using Microsoft.CodeAnalysis.MSBuild;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -204,7 +205,7 @@ using Roslyn.Services;*/
             try
             {
                 MSBuildLocator.RegisterDefaults();
-                var workspace = Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create();
+                var workspace = MSBuildWorkspace.Create();
                 var project = await workspace.OpenProjectAsync(projectPath);
                 var compilation = await project.GetCompilationAsync();
 
@@ -348,6 +349,217 @@ using Roslyn.Services;*/
             }
 
             return entities;
+        }
+
+        public async Task ResolveMissingUsings(string solutionPath)
+        {
+            consoleWriter.AddMessageLine("[Start to resolve missing usings]");
+
+            try
+            {
+                if (!MSBuildLocator.IsRegistered)
+                {
+                    var instances = MSBuildLocator.QueryVisualStudioInstances();
+
+                    if (!instances.Any())
+                    {
+                        consoleWriter.AddMessageLine("Error: MSBuild is not installed on this system.", "red");
+                        return;
+                    }
+
+                    MSBuildLocator.RegisterDefaults();
+                }
+
+                using var workspace = MSBuildWorkspace.Create();
+                if (workspace == null)
+                {
+                    consoleWriter.AddMessageLine("Error: Workspace could not be created.", "red");
+                    return;
+                }
+
+                consoleWriter.AddMessageLine("Opening solution...", "darkgray");
+                var solution = await workspace.OpenSolutionAsync(solutionPath);
+
+                if (solution == null)
+                {
+                    consoleWriter.AddMessageLine($"Error: Solution at path '{solutionPath}' could not be loaded.", "red");
+                    return;
+                }
+
+                consoleWriter.AddMessageLine($"Solution loaded successfully", "lightgreen");
+
+                foreach (var project in solution.Projects)
+                {
+                    try
+                    {
+                        consoleWriter.AddMessageLine($"Analyzing project {project.Name}...", "darkgray");
+
+                        foreach (var document in project.Documents)
+                        {
+                            try
+                            {
+                                if (await document.GetSyntaxRootAsync() is not CompilationUnitSyntax syntaxRoot)
+                                {
+                                    consoleWriter.AddMessageLine($"-> {document.Name} : No compilation unit syntax root found.", "orange");
+                                    continue;
+                                }
+
+                                var compilation = await project.GetCompilationAsync();
+                                if (compilation == null)
+                                {
+                                    consoleWriter.AddMessageLine($"-> {document.Name} : Compilation not available.", "orange");
+                                    continue;
+                                }
+
+                                var documentSyntaxTree = await document.GetSyntaxTreeAsync();
+                                if (documentSyntaxTree == null)
+                                {
+                                    consoleWriter.AddMessageLine($"-> {document.Name} : No syntax tree available.", "orange");
+                                    continue;
+                                }
+
+                                var semanticModel = compilation.GetSemanticModel(documentSyntaxTree);
+                                if (semanticModel == null)
+                                {
+                                    consoleWriter.AddMessageLine($"-> {document.Name} : No semantic model available.", "orange");
+                                    continue;
+                                }
+
+                                var diagnostics = semanticModel.GetDiagnostics()
+                                    .Where(d => d.Id == "CS0246")
+                                    .ToList();
+
+                                if (!diagnostics.Any())
+                                {
+                                    continue;
+                                }
+
+                                var typesWithMissingNamespace = diagnostics
+                                    .Select(d =>
+                                    {
+                                        var message = d.GetMessage();
+                                        if (string.IsNullOrWhiteSpace(message))
+                                        {
+                                            return string.Empty;
+                                        }
+
+                                        return ExtractTypeName(message.Split('\'')[2]);
+                                    })
+                                    .Where(ns => !string.IsNullOrWhiteSpace(ns))
+                                    .Distinct()
+                                    .ToList();
+
+                                var missingNamespaces = typesWithMissingNamespace
+                                    .Select(typeName => ResolveNamespaceForType(typeName, compilation))
+                                    .Where(ns => !string.IsNullOrWhiteSpace(ns))
+                                    .Distinct()
+                                    .ToList();
+
+                                if (!missingNamespaces.Any())
+                                {
+                                    consoleWriter.AddMessageLine($"-> {document.Name} : Unable to resolve usings namespace for types {string.Join(", ", typesWithMissingNamespace)}", "orange");
+                                    continue;
+                                }
+
+                                var usingDirectives = syntaxRoot.DescendantNodes()
+                                    .OfType<UsingDirectiveSyntax>()
+                                    .Where(u => u.Name != null)
+                                    .ToList();
+
+                                var existingNamespaces = usingDirectives
+                                    .Select(u => u.Name!.ToString())
+                                    .ToHashSet();
+
+                                var newUsings = missingNamespaces
+                                    .Where(ns => !existingNamespaces.Contains(ns))
+                                    .Select(ns => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(ns)))
+                                    .ToList();
+
+                                if (!newUsings.Any())
+                                {
+                                    consoleWriter.AddMessageLine($"-> {document.Name} : No new usings to add.", "orange");
+                                    continue;
+                                }
+
+                                var lastUsing = usingDirectives.LastOrDefault();
+                                var updatedRoot = lastUsing != null ?
+                                    syntaxRoot.ReplaceNode(lastUsing, new[] { lastUsing }.Concat(newUsings)) :
+                                    syntaxRoot.AddUsings(newUsings.ToArray());
+
+                                var formattedRoot = Microsoft.CodeAnalysis.Formatting.Formatter.Format(updatedRoot, workspace);
+
+                                File.WriteAllText(document.FilePath!, formattedRoot.ToFullString());
+                                consoleWriter.AddMessageLine($"-> {document.Name} : {missingNamespaces.Count} missing using added", "lightgreen");
+                            }
+                            catch (Exception docEx)
+                            {
+                                consoleWriter.AddMessageLine($"-> {document.Name} : {docEx.Message}\n{docEx.StackTrace}", "red");
+                            }
+                        }
+                    }
+                    catch (Exception projEx)
+                    {
+                        consoleWriter.AddMessageLine($"{projEx.Message}\n{projEx.StackTrace}", "red");
+                    }
+                }
+            }
+            catch (Exception solEx)
+            {
+                consoleWriter.AddMessageLine($"Error opening solution: {solEx.Message}\n{solEx.StackTrace}", "red");
+            }
+            finally
+            {
+                consoleWriter.AddMessageLine("Finish to resolve missing usings");
+            }
+        }
+
+        private static string ExtractTypeName(string typeName) => typeName.Contains('<') ? typeName[..typeName.IndexOf('<')] : typeName;
+
+        private string ResolveNamespaceForType(string typeName, Compilation compilation)
+        {
+            foreach (var reference in compilation.References)
+            {
+                try
+                {
+                    if (compilation.GetAssemblyOrModuleSymbol(reference) is not IAssemblySymbol assemblySymbol)
+                    {
+                        continue;
+                    }
+
+                    if (assemblySymbol.TypeNames.Contains(typeName))
+                    {
+                        foreach (var symbol in assemblySymbol.GlobalNamespace.GetMembers())
+                        {
+                            var matchingType = FindTypeInNamespace(symbol, typeName);
+                            if (matchingType != null)
+                                return matchingType.ContainingNamespace.ToDisplayString();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    consoleWriter.AddMessageLine($"Error resolving namespace for type '{typeName}': {ex.Message}\n{ex.StackTrace}", "red");
+                }
+            }
+
+            return string.Empty;
+        }
+
+        private static INamedTypeSymbol FindTypeInNamespace(INamespaceOrTypeSymbol symbol, string typeName)
+        {
+            if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.Name == typeName)
+                return typeSymbol;
+
+            foreach (var member in symbol.GetMembers())
+            {
+                if (member is INamespaceOrTypeSymbol namespaceOrTypeSymbol)
+                {
+                    var found = FindTypeInNamespace(namespaceOrTypeSymbol, typeName);
+                    if (found != null)
+                        return found;
+                }
+            }
+            return null;
         }
     }
 }

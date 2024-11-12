@@ -92,6 +92,7 @@
             if (generated == 0 && MigrateApplyDiff_Run() == true)
             {
                 MigrateMergeRejected_Run();
+                await ResolveMissingUsings_Run();
             }
         }
 
@@ -336,6 +337,16 @@
                         break;
                 }
             }
+        }
+
+        private async void ResolveMissingUsings_Click(object sender, RoutedEventArgs e)
+        {
+            await ResolveMissingUsings_Run();
+        }
+
+        private async Task ResolveMissingUsings_Run()
+        {
+            await cSharpParserService.ResolveMissingUsings(_viewModel.CurrentProject.SolutionPath);
         }
     }
 }
