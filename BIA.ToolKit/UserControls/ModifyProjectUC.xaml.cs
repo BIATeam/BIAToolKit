@@ -92,7 +92,6 @@
             if (generated == 0 && MigrateApplyDiff_Run() == true)
             {
                 MigrateMergeRejected_Run();
-                await ResolveMissingUsings_Run();
             }
         }
 
