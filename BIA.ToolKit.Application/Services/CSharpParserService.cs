@@ -353,7 +353,7 @@ using Roslyn.Services;*/
 
         public async Task ResolveMissingUsings(string solutionPath)
         {
-            consoleWriter.AddMessageLine("[Start to resolve missing usings]");
+            consoleWriter.AddMessageLine("Start resolve missing usings", "pink");
 
             try
             {
@@ -509,7 +509,7 @@ using Roslyn.Services;*/
             }
             finally
             {
-                consoleWriter.AddMessageLine("Finish to resolve missing usings");
+                consoleWriter.AddMessageLine("End resolve missing usings", "pink");
             }
         }
 
