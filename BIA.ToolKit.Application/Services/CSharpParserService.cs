@@ -16,6 +16,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Management.Automation.Language;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -330,7 +331,7 @@ using Roslyn.Services;*/
                             continue;
                         }
 
-                        if(excludedPropertiesNames != null)
+                        if (excludedPropertiesNames != null)
                         {
                             entityInfo.Properties.RemoveAll(p => excludedPropertiesNames.Any(x => p.Name.Equals(x, StringComparison.InvariantCultureIgnoreCase)));
                         }
@@ -426,7 +427,7 @@ using Roslyn.Services;*/
                                 }
 
                                 var diagnostics = semanticModel.GetDiagnostics()
-                                    .Where(d => d.Id == "CS0246")
+                                    .Where(d => d.Id == "CS0246" || d.Id == "CS0118")
                                     .ToList();
 
                                 if (!diagnostics.Any())
@@ -439,27 +440,45 @@ using Roslyn.Services;*/
                                     {
                                         var message = d.GetMessage();
                                         if (string.IsNullOrWhiteSpace(message))
-                                        {
                                             return string.Empty;
-                                        }
 
-                                        return ExtractTypeName(message.Split('\'')[2]);
+                                        var typeName = d.Id switch
+                                        {
+                                            "CS0118" => message.Split('\'')[1],
+                                            "CS0246" => message.Split('\'')[2],
+                                            _ => string.Empty
+                                        };
+
+                                        if (string.IsNullOrWhiteSpace(typeName))
+                                            return string.Empty;
+
+                                        return ExtractTypeName(typeName);
                                     })
                                     .Where(ns => !string.IsNullOrWhiteSpace(ns))
                                     .Distinct()
                                     .ToList();
 
-                                var missingNamespaces = typesWithMissingNamespace
-                                    .Select(typeName => ResolveNamespaceForType(typeName, compilation))
-                                    .Where(ns => !string.IsNullOrWhiteSpace(ns))
-                                    .Distinct()
-                                    .ToList();
-
-                                if (!missingNamespaces.Any())
+                                var missingNamespaces = new List<string>();
+                                var typesWithMultipleNamespaces = new List<string>();
+                                var typesWithoutNamespaces = new List<string>();
+                                foreach (var type in typesWithMissingNamespace)
                                 {
-                                    consoleWriter.AddMessageLine($"-> {document.Name} : Unable to resolve usings namespace for types {string.Join(", ", typesWithMissingNamespace)}", "orange");
-                                    continue;
+                                    var namespaces = FindNamespaces(type, compilation);
+                                    if (namespaces.Count == 1)
+                                        missingNamespaces.Add(namespaces.First());
+                                    else if (namespaces.Count > 1)
+                                        typesWithMultipleNamespaces.Add(type);
+                                    else
+                                        typesWithoutNamespaces.Add(type);
                                 }
+
+                                if (typesWithMultipleNamespaces.Count != 0)
+                                    consoleWriter.AddMessageLine($"-> {document.Name} : Multiple namespaces candidates to resolve using for types {string.Join(", ", typesWithMultipleNamespaces)}", "orange");
+                                if (typesWithoutNamespaces.Count != 0)
+                                    consoleWriter.AddMessageLine($"-> {document.Name} : Unable to resolve usings namespace for types {string.Join(", ", typesWithoutNamespaces)}", "orange");
+
+                                if (missingNamespaces.Count == 0)
+                                    continue;
 
                                 var usingDirectives = syntaxRoot.DescendantNodes()
                                     .OfType<UsingDirectiveSyntax>()
@@ -515,8 +534,33 @@ using Roslyn.Services;*/
 
         private static string ExtractTypeName(string typeName) => typeName.Contains('<') ? typeName[..typeName.IndexOf('<')] : typeName;
 
-        private string ResolveNamespaceForType(string typeName, Compilation compilation)
+        private List<string> FindNamespaces(string typeName, Compilation compilation)
         {
+            var result = new List<string>();
+
+            try
+            {
+                foreach (var symbol in compilation.GlobalNamespace.GetMembers())
+                {
+                    var matchingType = FindType(symbol, typeName);
+                    if (matchingType != null)
+                        result.Add(matchingType.ContainingNamespace.ToDisplayString());
+                }
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error resolving namespace for type '{typeName}': {ex.Message}\n{ex.StackTrace}", "red");
+            }
+
+            result.AddRange(FindNamespacesInReferences(typeName, compilation));
+
+            return result;
+        }
+
+        private List<string> FindNamespacesInReferences(string typeName, Compilation compilation)
+        {
+            var result = new List<string>();
+
             foreach (var reference in compilation.References)
             {
                 try
@@ -530,35 +574,38 @@ using Roslyn.Services;*/
                     {
                         foreach (var symbol in assemblySymbol.GlobalNamespace.GetMembers())
                         {
-                            var matchingType = FindTypeInNamespace(symbol, typeName);
+                            var matchingType = FindType(symbol, typeName);
                             if (matchingType != null)
-                                return matchingType.ContainingNamespace.ToDisplayString();
+                                result.Add(matchingType.ContainingNamespace.ToDisplayString());
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    consoleWriter.AddMessageLine($"Error resolving namespace for type '{typeName}': {ex.Message}\n{ex.StackTrace}", "red");
+                    consoleWriter.AddMessageLine($"Error resolving namespace in references for type '{typeName}': {ex.Message}\n{ex.StackTrace}", "red");
                 }
             }
 
-            return string.Empty;
+            return result;
         }
 
-        private static INamedTypeSymbol FindTypeInNamespace(INamespaceOrTypeSymbol symbol, string typeName)
+        private static INamedTypeSymbol FindType(INamespaceOrTypeSymbol symbol, string typeName)
         {
             if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.Name == typeName)
                 return typeSymbol;
 
-            foreach (var member in symbol.GetMembers())
+            var memberSymbols = symbol.GetMembers()
+                .Where(m => m is INamespaceOrTypeSymbol)
+                .Cast<INamespaceOrTypeSymbol>()
+                .ToList();
+
+            foreach (var memberSymbol in memberSymbols)
             {
-                if (member is INamespaceOrTypeSymbol namespaceOrTypeSymbol)
-                {
-                    var found = FindTypeInNamespace(namespaceOrTypeSymbol, typeName);
-                    if (found != null)
-                        return found;
-                }
+                var memberTypeSymbol = FindType(memberSymbol, typeName);
+                if (memberTypeSymbol != null)
+                    return memberTypeSymbol;
             }
+
             return null;
         }
     }
