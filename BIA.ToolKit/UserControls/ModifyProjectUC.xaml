@@ -44,7 +44,7 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
                         <CheckBox Content="Overwrite BIA first" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" Grid.Row="0" Height="16" Name="CFOverwriteBIAFirst" Margin="0,0,0,0" IsChecked="{Binding Path=OverwriteBIAFromOriginal, Mode=TwoWay}"/>
-                        <Button Content="Migrate" HorizontalAlignment="Center"  Width="123" x:Name="Migrate"  Height="69" VerticalAlignment="Center" Grid.Row="1" Click="Migrate_Click"/>
+                        <Button Content="Migrate" HorizontalAlignment="Center"  Width="123" x:Name="Migrate"  Height="69" VerticalAlignment="Center" Grid.Row="1" Click="Migrate_Click" IsEnabled="{Binding IsProjectSelected}"/>
                         <Label Content="Or by step :" VerticalAlignment="Top" Foreground="White" Grid.Row="2" HorizontalAlignment="Center"/>
                         <Grid Background="Transparent" Grid.Row="3" VerticalAlignment="Center" >
                             <Grid.RowDefinitions>
@@ -53,12 +53,14 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <Button Content="1 - Generate Only" HorizontalAlignment="Center"  Width="122" x:Name="MigrateGenerateOnly" Height="35" VerticalAlignment="Top" Grid.Row="0" Click="MigrateGenerateOnly_Click"/>
+                            <Button Content="1 - Generate Only" HorizontalAlignment="Center"  Width="122" x:Name="MigrateGenerateOnly" Height="35" VerticalAlignment="Top" Grid.Row="0" Click="MigrateGenerateOnly_Click" IsEnabled="{Binding IsProjectSelected}"/>
                             <Button Content="2 - Open Folder" HorizontalAlignment="Center"  Width="122" x:Name="MigrateOpenFolder" Height="35" VerticalAlignment="Center" Grid.Row="1" Click="MigrateOpenFolder_Click" IsEnabled="False"/>
                             <Button Content="3 - Apply Diff" HorizontalAlignment="Center"  Width="122" x:Name="MigrateApplyDiff"  Height="35" Grid.Row="2" Click="MigrateApplyDiff_Click" VerticalAlignment="Center" IsEnabled="False"/>
                             <Button Content="4 - Merge Rejected" HorizontalAlignment="Center"  Width="122" x:Name="MigrateMergeRejected" Height="35" VerticalAlignment="Bottom" Grid.Row="3" Click="MigrateMergeRejected_Click" IsEnabled="False"/>
-                            <Button Content="5 - Overwrite '\BIA-.*'" HorizontalAlignment="Center"  Width="122" x:Name="MigrateOverwriteBIAFolder" Height="35" VerticalAlignment="Bottom" Grid.Row="4" Click="MigrateOverwriteBIAFolder_Click" IsEnabled="True"/>
+                            <Button Content="5 - Overwrite '\BIA-.*'" HorizontalAlignment="Center"  Width="122" x:Name="MigrateOverwriteBIAFolder" Height="35" VerticalAlignment="Bottom" Grid.Row="4" Click="MigrateOverwriteBIAFolder_Click" IsEnabled="{Binding IsProjectSelected}"/>
+                            <Button Content="6 - Resolve Usings" HorizontalAlignment="Center"  Width="122" x:Name="ResolveUsings" Height="35" VerticalAlignment="Bottom" Grid.Row="5" Click="ResolveUsings_Click" IsEnabled="{Binding IsProjectSelected}"/>
                         </Grid>
                     </Grid>
                 </Grid>

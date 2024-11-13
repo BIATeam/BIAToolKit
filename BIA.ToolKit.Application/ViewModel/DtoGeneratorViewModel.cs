@@ -24,13 +24,13 @@
         private readonly List<EntityInfo> domainEntities = new();
         private readonly List<string> excludedEntityDomains = new()
         {
-            "AuditModule",
-            "NotificationModule",
-            "SiteModule",
-            "TranslationModule",
-            "UserModule",
+            "Audit",
+            "Notification",
+            "Site",
+            "Translation",
+            "User",
             "RepoContract",
-            "ViewModule"
+            "View"
         };
         private readonly List<string> optionCollectionsMappingTypes = new()
         {

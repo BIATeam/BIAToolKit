@@ -259,7 +259,7 @@
         private bool ApplyDiff(bool actionFinishedAtEnd, string projectOriginalFolderName, string projectTargetFolderName)
         {
             // Make the differential
-            string migrateFilePath = AppSettings.TmpFolderPath + $"Migration_{projectOriginalFolderName}-{projectTargetFolderName}.patch";
+            string migrateFilePath = GenerateMigrationPatchFilePath(projectOriginalFolderName, projectTargetFolderName);
             if (!gitService.DiffFolder(false, AppSettings.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath))
             {
                 return false;
@@ -279,8 +279,14 @@
                 ProjectOriginPath = projectOriginPath,
                 ProjectOriginVersion = projectOriginalVersion,
                 ProjectTargetPath = projectTargetPath,
-                ProjectTargetVersion = projectTargetVersion
+                ProjectTargetVersion = projectTargetVersion,
+                MigrationPatchFilePath = GenerateMigrationPatchFilePath(projectOriginalFolderName, projectTargetFolderName)
             }); ;
+        }
+
+        private static string GenerateMigrationPatchFilePath(string projectOriginalFolderName, string projectTargetFolderName)
+        {
+            return AppSettings.TmpFolderPath + $"Migration_{projectOriginalFolderName}-{projectTargetFolderName}.patch";
         }
 
         private void OverwriteBIAFolder(bool actionFinishedAtEnd)
@@ -330,6 +336,16 @@
                         break;
                 }
             }
+        }
+
+        private async void ResolveUsings_Click(object sender, RoutedEventArgs e)
+        {
+            await ResolveUsings_Run();
+        }
+
+        private async Task ResolveUsings_Run()
+        {
+            await cSharpParserService.ResolveUsings(_viewModel.CurrentProject.SolutionPath);
         }
     }
 }
