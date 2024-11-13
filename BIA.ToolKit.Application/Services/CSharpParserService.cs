@@ -17,6 +17,7 @@
     using System.IO;
     using System.Linq;
     using System.Management.Automation.Language;
+    using System.Reflection.Metadata;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -352,9 +353,9 @@ using Roslyn.Services;*/
             return entities;
         }
 
-        public async Task ResolveMissingUsings(string solutionPath)
+        public async Task ResolveUsings(string solutionPath)
         {
-            consoleWriter.AddMessageLine("Start resolve missing usings", "pink");
+            consoleWriter.AddMessageLine("Start resolve usings", "pink");
 
             try
             {
@@ -426,89 +427,13 @@ using Roslyn.Services;*/
                                     continue;
                                 }
 
-                                var diagnostics = semanticModel.GetDiagnostics()
-                                    .Where(d => d.Id == "CS0246" || d.Id == "CS0118")
-                                    .ToList();
-
-                                if (!diagnostics.Any())
-                                {
-                                    continue;
-                                }
-
-                                var typesWithMissingNamespace = diagnostics
-                                    .Select(d =>
-                                    {
-                                        var message = d.GetMessage();
-                                        if (string.IsNullOrWhiteSpace(message))
-                                            return string.Empty;
-
-                                        var typeName = d.Id switch
-                                        {
-                                            "CS0118" => message.Split('\'')[1],
-                                            "CS0246" => message.Split('\'')[2],
-                                            _ => string.Empty
-                                        };
-
-                                        if (string.IsNullOrWhiteSpace(typeName))
-                                            return string.Empty;
-
-                                        return ExtractTypeName(typeName);
-                                    })
-                                    .Where(ns => !string.IsNullOrWhiteSpace(ns))
-                                    .Distinct()
-                                    .ToList();
-
-                                var missingNamespaces = new List<string>();
-                                var typesWithMultipleNamespaces = new List<string>();
-                                var typesWithoutNamespaces = new List<string>();
-                                foreach (var type in typesWithMissingNamespace)
-                                {
-                                    var namespaces = FindNamespaces(type, compilation);
-                                    if (namespaces.Count == 1)
-                                        missingNamespaces.Add(namespaces.First());
-                                    else if (namespaces.Count > 1)
-                                        typesWithMultipleNamespaces.Add(type);
-                                    else
-                                        typesWithoutNamespaces.Add(type);
-                                }
-
-                                if (typesWithMultipleNamespaces.Count != 0)
-                                    consoleWriter.AddMessageLine($"-> {document.Name} : Multiple namespaces candidates to resolve using for types {string.Join(", ", typesWithMultipleNamespaces)}", "orange");
-                                if (typesWithoutNamespaces.Count != 0)
-                                    consoleWriter.AddMessageLine($"-> {document.Name} : Unable to resolve usings namespace for types {string.Join(", ", typesWithoutNamespaces)}", "orange");
-
-                                if (missingNamespaces.Count == 0)
-                                    continue;
-
-                                var usingDirectives = syntaxRoot.DescendantNodes()
-                                    .OfType<UsingDirectiveSyntax>()
-                                    .Where(u => u.Name != null)
-                                    .ToList();
-
-                                var existingNamespaces = usingDirectives
-                                    .Select(u => u.Name!.ToString())
-                                    .ToHashSet();
-
-                                var newUsings = missingNamespaces
-                                    .Where(ns => !existingNamespaces.Contains(ns))
-                                    .Select(ns => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(ns)))
-                                    .ToList();
-
-                                if (!newUsings.Any())
-                                {
-                                    consoleWriter.AddMessageLine($"-> {document.Name} : No new usings to add.", "orange");
-                                    continue;
-                                }
-
-                                var lastUsing = usingDirectives.LastOrDefault();
-                                var updatedRoot = lastUsing != null ?
-                                    syntaxRoot.ReplaceNode(lastUsing, new[] { lastUsing }.Concat(newUsings)) :
-                                    syntaxRoot.AddUsings(newUsings.ToArray());
+                                // Handle missing usings
+                                var updatedRoot = AddMissingUsings(document, syntaxRoot, compilation, semanticModel);
+                                // Handle obsolete usings
+                                updatedRoot = RemoveObsoleteUsings(semanticModel, document.Name, updatedRoot);
 
                                 var formattedRoot = Microsoft.CodeAnalysis.Formatting.Formatter.Format(updatedRoot, workspace);
-
                                 File.WriteAllText(document.FilePath!, formattedRoot.ToFullString());
-                                consoleWriter.AddMessageLine($"-> {document.Name} : {missingNamespaces.Count} missing using added", "lightgreen");
                             }
                             catch (Exception docEx)
                             {
@@ -528,8 +453,134 @@ using Roslyn.Services;*/
             }
             finally
             {
-                consoleWriter.AddMessageLine("End resolve missing usings", "pink");
+                consoleWriter.AddMessageLine("End resolve usings", "pink");
             }
+        }
+
+        private CompilationUnitSyntax AddMissingUsings(Microsoft.CodeAnalysis.Document document, CompilationUnitSyntax syntaxRoot, Compilation compilation, SemanticModel semanticModel)
+        {
+            var missingUsingDiagnostics = semanticModel.GetDiagnostics()
+                                                .Where(d => d.Id == "CS0246" || d.Id == "CS0118")
+                                                .ToList();
+
+            var typesWithMissingNamespace = missingUsingDiagnostics
+                .Select(d =>
+                {
+                    var message = d.GetMessage();
+                    if (string.IsNullOrWhiteSpace(message))
+                        return string.Empty;
+
+                    var typeName = d.Id switch
+                    {
+                        "CS0118" => message.Split('\'')[1],
+                        "CS0246" => message.Split('\'')[2],
+                        _ => string.Empty
+                    };
+
+                    if (string.IsNullOrWhiteSpace(typeName))
+                        return string.Empty;
+
+                    return ExtractTypeName(typeName);
+                })
+                .Where(ns => !string.IsNullOrWhiteSpace(ns))
+                .Distinct()
+                .ToList();
+
+            var missingNamespaces = new List<string>();
+            var typesWithMultipleNamespaces = new List<string>();
+            var typesWithoutNamespaces = new List<string>();
+            foreach (var type in typesWithMissingNamespace)
+            {
+                var namespaces = FindNamespaces(type, compilation);
+                if (namespaces.Count == 1)
+                    missingNamespaces.Add(namespaces.First());
+                else if (namespaces.Count > 1)
+                    typesWithMultipleNamespaces.Add(type);
+                else
+                    typesWithoutNamespaces.Add(type);
+            }
+
+            if (typesWithMultipleNamespaces.Count != 0)
+                consoleWriter.AddMessageLine($"-> {document.Name} : Multiple namespaces candidates to resolve using for types {string.Join(", ", typesWithMultipleNamespaces)}", "orange");
+            if (typesWithoutNamespaces.Count != 0)
+                consoleWriter.AddMessageLine($"-> {document.Name} : Unable to resolve usings namespace for types {string.Join(", ", typesWithoutNamespaces)}", "orange");
+
+            var updatedRoot = syntaxRoot;
+
+            if (missingNamespaces.Count == 0)
+                return updatedRoot;
+
+            var usingDirectives = syntaxRoot.DescendantNodes()
+                .OfType<UsingDirectiveSyntax>()
+                .Where(u => u.Name != null)
+                .ToList();
+
+            var existingNamespaces = usingDirectives
+                .Select(u => u.Name!.ToString())
+                .ToHashSet();
+
+            var newUsings = missingNamespaces
+                .Where(ns => !existingNamespaces.Contains(ns))
+                .Select(ns => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(ns)))
+                .ToList();
+
+            if (newUsings.Count == 0)
+                return updatedRoot;
+
+            var lastUsing = usingDirectives.LastOrDefault();
+            updatedRoot = lastUsing != null ?
+                syntaxRoot.ReplaceNode(lastUsing, new[] { lastUsing }.Concat(newUsings)) :
+                syntaxRoot.AddUsings(newUsings.ToArray());
+
+            consoleWriter.AddMessageLine($"-> {document.Name} : {missingNamespaces.Count} missing using added", "lightgreen");
+
+            return updatedRoot;
+        }
+
+        private CompilationUnitSyntax RemoveObsoleteUsings(SemanticModel semanticModel, string documentName, CompilationUnitSyntax syntaxRoot)
+        {
+            var obsoleteNamespaceDiagnostics = semanticModel.GetDiagnostics()
+                                                .Where(d => d.Id == "CS0234")
+                                                .ToList();
+
+            if (obsoleteNamespaceDiagnostics.Count == 0)
+                return syntaxRoot;
+
+            var usingsRemovedCount = 0;
+            var updatedRoot = syntaxRoot;
+            foreach (var obsoleteNamespaceDiagnostic in obsoleteNamespaceDiagnostics)
+            {
+                var diagnosticSpan = obsoleteNamespaceDiagnostic.Location.SourceSpan;
+                var diagnosticNode = syntaxRoot.FindNode(diagnosticSpan);
+
+                if (diagnosticNode is IdentifierNameSyntax identifierName)
+                {
+                    var usingDirective = identifierName.Ancestors()
+                                                       .OfType<UsingDirectiveSyntax>()
+                                                       .FirstOrDefault();
+
+                    if (usingDirective != null)
+                    {
+                        updatedRoot = updatedRoot.RemoveNode(usingDirective, SyntaxRemoveOptions.KeepDirectives);
+                        usingsRemovedCount++;
+                    }
+                    else
+                    {
+                        consoleWriter.AddMessageLine($"-> {documentName} : No matching using directive found for {identifierName.Identifier.Text}.", "orange");
+                    }
+                }
+                else
+                {
+                    consoleWriter.AddMessageLine($"-> {documentName} : Unexpected node type at {diagnosticSpan}.", "orange");
+                }
+            }
+
+            if (usingsRemovedCount > 0)
+            {
+                consoleWriter.AddMessageLine($"-> {documentName} : {usingsRemovedCount} obsolete using removed", "yellow");
+            }
+
+            return updatedRoot;
         }
 
         private static string ExtractTypeName(string typeName) => typeName.Contains('<') ? typeName[..typeName.IndexOf('<')] : typeName;

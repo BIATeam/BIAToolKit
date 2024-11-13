@@ -338,14 +338,14 @@
             }
         }
 
-        private async void ResolveMissingUsings_Click(object sender, RoutedEventArgs e)
+        private async void ResolveUsings_Click(object sender, RoutedEventArgs e)
         {
-            await ResolveMissingUsings_Run();
+            await ResolveUsings_Run();
         }
 
-        private async Task ResolveMissingUsings_Run()
+        private async Task ResolveUsings_Run()
         {
-            await cSharpParserService.ResolveMissingUsings(_viewModel.CurrentProject.SolutionPath);
+            await cSharpParserService.ResolveUsings(_viewModel.CurrentProject.SolutionPath);
         }
     }
 }
