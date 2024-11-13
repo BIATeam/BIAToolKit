@@ -492,9 +492,9 @@ using Roslyn.Services;*/
             foreach (var type in typesWithMissingNamespace)
             {
                 var namespaces = FindNamespaces(type, compilation);
-                if (namespaces.Count == 1)
+                if (namespaces.Count() == 1)
                     missingNamespaces.Add(namespaces.First());
-                else if (namespaces.Count > 1)
+                else if (namespaces.Count() > 1)
                     typesWithMultipleNamespaces.Add(type);
                 else
                     typesWithoutNamespaces.Add(type);
@@ -585,7 +585,7 @@ using Roslyn.Services;*/
 
         private static string ExtractTypeName(string typeName) => typeName.Contains('<') ? typeName[..typeName.IndexOf('<')] : typeName;
 
-        private List<string> FindNamespaces(string typeName, Compilation compilation)
+        private IEnumerable<string> FindNamespaces(string typeName, Compilation compilation)
         {
             var result = new List<string>();
 
@@ -605,7 +605,7 @@ using Roslyn.Services;*/
 
             result.AddRange(FindNamespacesInReferences(typeName, compilation));
 
-            return result;
+            return result.Distinct();
         }
 
         private List<string> FindNamespacesInReferences(string typeName, Compilation compilation)
