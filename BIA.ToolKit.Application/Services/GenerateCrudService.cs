@@ -1867,6 +1867,7 @@
                             string extractItem = ((ExtractDisplayBlock)block).ExtractItem;
                             string extractLine = ((ExtractDisplayBlock)block).ExtractLine;
                             string newDisplayLine = this.CrudNames.ConvertPascalOldToNewCrudName(extractLine, feature, type);
+                            newDisplayLine = this.CrudNames.ConvertCamelOldToNewCrudName(extractLine, feature, type);
                             switch(generationType)
                             {
                                 case GenerationType.WebApi:
