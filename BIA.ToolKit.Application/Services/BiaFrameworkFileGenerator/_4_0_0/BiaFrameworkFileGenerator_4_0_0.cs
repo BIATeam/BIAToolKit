@@ -91,6 +91,8 @@
             var mapperContent = await fileGeneratorService.GenerateFromTemplate(Common.TemplateKey_Mapper, model);
             var mapperDestPath = Path.Combine(
                 Path.GetDirectoryName(entityInfo.Path),
+                "..",
+                "Mappers",
                 $"{model.MapperName}.cs");
             await fileGeneratorService.GenerateFile(mapperContent, mapperDestPath);
             consoleWriter.AddMessageLine($"Mapper successfully generated !", "green");
