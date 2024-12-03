@@ -365,11 +365,18 @@ using Roslyn.Services;*/
 
                     if (!instances.Any())
                     {
-                        consoleWriter.AddMessageLine("Error: MSBuild is not installed on this system.", "red");
-                        return;
+                        var msbuildPath = @"C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin";
+                        if (!Directory.Exists(msbuildPath))
+                        {
+                            consoleWriter.AddMessageLine("Error: MSBuild is not installed on this system.", "red");
+                            return;
+                        }
+                        MSBuildLocator.RegisterMSBuildPath(msbuildPath);
                     }
-
-                    MSBuildLocator.RegisterDefaults();
+                    else
+                    {
+                        MSBuildLocator.RegisterDefaults();
+                    }
                 }
 
                 using var workspace = MSBuildWorkspace.Create();
