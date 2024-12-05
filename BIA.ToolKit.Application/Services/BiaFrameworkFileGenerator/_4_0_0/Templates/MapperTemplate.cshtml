@@ -6,7 +6,7 @@
 //     Copyright (c) @(Model.CompanyName). All rights reserved.
 // </copyright>
 
-namespace @(Model.EntityNamespace)
+namespace @Model.EntityNamespace.Replace("Entities", "Mappers")
 {
     using System;
     @if (Model.HasCollectionOptions)
@@ -26,10 +26,11 @@ namespace @(Model.EntityNamespace)
     {
     @:using BIA.Net.Core.Domain.Dto.Option;
     }
+    using @Model.EntityNamespace;
     using @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainName);
     @if (Model.IsTeamType)
     {
-    @:using @(Model.CompanyName).@(Model.ProjectName).Domain.User.Entities;
+    @:using @(Model.CompanyName).@(Model.ProjectName).Domain.User.Mappers;
     }
 
     /// <summary>
@@ -51,6 +52,9 @@ namespace @(Model.EntityNamespace)
         @:    : base(principal)
         @:{
         @:}
+@:
+        @:/// <inheritdoc/>
+        @:public override int TeamType => base.TeamType;
 @:
         }
         /// <inheritdoc cref="BaseMapper{TDto, TEntity, TKey}.DtoToEntity(TDto, TEntity)"/>
@@ -125,6 +129,10 @@ namespace @(Model.EntityNamespace)
                 @:.OrderBy(x => x.Display)
                 @:.ToList(),
                     }
+                }
+                @if (Model.IsTeamType)
+                {
+                @:TeamTypeId = this.TeamType,
                 }
             @Raw(Model.IsTeamType ? "});" : "};")
         }
