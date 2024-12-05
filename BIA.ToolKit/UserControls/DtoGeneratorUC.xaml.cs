@@ -72,10 +72,7 @@
             if (project == this.project)
                 return;
 
-            this.project = project;
-            vm.SetProject(project);
-
-            ListEntities();
+            vm.IsProjectChosen = false;
 
             if (!Version.TryParse(project.FrameworkVersion, out Version projectVersion))
             {
@@ -89,6 +86,10 @@
                 return;
             }
 
+            this.project = project;
+            vm.SetProject(project);
+
+            ListEntities();
             InitHistoryFile(project);
         }
 
