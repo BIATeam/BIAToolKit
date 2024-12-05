@@ -71,9 +71,13 @@
                 model.BaseKeyType = Common.TemplateValue_BaseKeyType;
             }
 
-            if(project.FrameworkVersion == "3.10.0" && mappingEntityProperties.Any(x => !string.IsNullOrWhiteSpace(x.MappingDateType)))
+            if(project.FrameworkVersion == "3.10.0")
             {
-                consoleWriter.AddMessageLine($"WARNING: you may have to adapt the mapper in order to match CSV export of date types with the corresponding method.", "orange");
+                if (mappingEntityProperties.Any(x => !string.IsNullOrWhiteSpace(x.MappingDateType)))
+                {
+                    consoleWriter.AddMessageLine($"WARNING: you may have to adapt the mapper in order to match CSV export of date types with the corresponding method.", "orange");
+                }
+                consoleWriter.AddMessageLine("WARNING: you'll have to adapt the namespaces of some usings in the generated Mapper.", "orange");
             }
 
             consoleWriter.AddMessageLine($"Generating DTO...");
