@@ -5,57 +5,70 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
              mc:Ignorable="d" 
-             d:DesignHeight="450" Width="922">
+             d:DesignHeight="430" Width="1400">
     <UserControl.DataContext>
         <local:CRUDGeneratorViewModel />
     </UserControl.DataContext>
 
-    <Grid Margin="0,0,-120,0">
-        <Label Content="Dto file:"  Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-        <ComboBox ItemsSource="{Binding DtoFiles.Keys}" SelectedValue="{Binding DtoSelected}" Margin="40,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="275" SelectionChanged="ModifyDto_SelectionChange" IsEnabled="{Binding IsProjectChosen}"/>
-        <Button IsEnabled="{Binding IsProjectChosen}" Margin="320,24,0,0" Width="24" x:Name="RefreshDtoList" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshDtoList_Click" ToolTip="Refresh list">
-            <Image Source="/Images/rafraichir-32.png" />
-        </Button>
-        <Label Name="CrudAlreadyGeneratedLabel" Content="Generation was already done for this Dto file"  Margin="40,42,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Yellow" Visibility="Hidden" />
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="0.8*"/>
+            <ColumnDefinition Width="0.4*"/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0" Margin="5,0">
+            <Label Content="Dto file:" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
+            <ComboBox ItemsSource="{Binding DtoFiles.Keys}" SelectedValue="{Binding DtoSelected}" Margin="20,25,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" SelectionChanged="ModifyDto_SelectionChange" IsEnabled="{Binding IsProjectChosen}"/>
+            <Button IsEnabled="{Binding IsProjectChosen}" Margin="330,24,0,0" Width="24" x:Name="RefreshDtoList" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshDtoList_Click" ToolTip="Refresh list">
+                <Image Source="/Images/rafraichir-32.png" />
+            </Button>
+            <Label Name="CrudAlreadyGeneratedLabel" Content="Generation was already done for this Dto file"  Margin="20,42,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Yellow" Visibility="Hidden" />
 
-        <Label Content="Generation:" Margin="20,55,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-        <ComboBox ItemsSource="{Binding FeatureNames}" SelectedItem="{Binding FeatureNameSelected}" Margin="40,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsProjectChosen}"/>
-        <CheckBox Margin="350,84,0,0" Content="Has parent" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding HasParent,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsCheckboxParentEnable}"/>
+            <Label Content="Generation:" Margin="0,55,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+            <ComboBox ItemsSource="{Binding FeatureNames}" SelectedItem="{Binding FeatureNameSelected}" Margin="20,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsProjectChosen}"/>
+            <CheckBox Margin="330,84,0,0" Content="Has parent" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding HasParent,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsCheckboxParentEnable}"/>
+            
+            <Label Content="Entity name (singular):" Margin="0,115,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+            <TextBox Text="{Binding CRUDNameSingular,UpdateSourceTrigger=PropertyChanged}" Margin="20,140,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntitySingular_TextChange" Height="21" IsEnabled="{Binding IsProjectChosen}"/>
+            
+            <Label Content="Display item name:"  Margin="0,175,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+            <ComboBox ItemsSource="{Binding DtoDisplayItems}" SelectedValue="{Binding DtoDisplayItemSelected}" Margin="20,199,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsDtoParsed}"/>
+            
+            <Label Content="Parent name (singular):" Margin="0,235,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+            <TextBox Text="{Binding ParentName,UpdateSourceTrigger=PropertyChanged}" Margin="20,260,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Height="21" IsEnabled="{Binding HasParent}"/>
+            
+            <Label Content="Parent domain:" Margin="0,295,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+            <TextBox Text="{Binding ParentDomain,UpdateSourceTrigger=PropertyChanged}" Margin="20,320,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Height="21" IsEnabled="{Binding HasParent}"/>
+        </Grid>
 
-        <Label Content="Generation Type:" Margin="480,55,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-        <CheckBox Margin="590,62,0,0" Content="WebApi" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsWebApiSelected}" IsEnabled="{Binding IsWebApiAvailable}"/>
-        <CheckBox Margin="590,82,0,0" Content="Front" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsFrontSelected}" IsEnabled="{Binding IsFrontAvailable}"/>
+        <Grid Grid.Column="1" Margin="5,0">
+            <Label Content="Generation Type:" Margin="0,55,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+            <CheckBox Margin="120,62,0,0" Content="WebApi" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsWebApiSelected}" IsEnabled="{Binding IsWebApiAvailable}"/>
+            <CheckBox Margin="120,82,0,0" Content="Front" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsFrontSelected}" IsEnabled="{Binding IsFrontAvailable}"/>
 
-        <Label Content="Entity name (singular):" Margin="20,115,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-        <TextBox Text="{Binding CRUDNameSingular,UpdateSourceTrigger=PropertyChanged}" Margin="40,140,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntitySingular_TextChange" Height="21" IsEnabled="{Binding IsProjectChosen}"/>
-        <Label Content="Entity name (plural):" Margin="390,115,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-        <TextBox Text="{Binding CRUDNamePlural,UpdateSourceTrigger=PropertyChanged}" Margin="410,140,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntityPlural_TextChange" Height="21" IsEnabled="{Binding IsProjectChosen}"/>
+            <Label Content="Entity name (plural):" Margin="0,115,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+            <TextBox Text="{Binding CRUDNamePlural,UpdateSourceTrigger=PropertyChanged}" Margin="20,140,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntityPlural_TextChange" Height="21" IsEnabled="{Binding IsProjectChosen}"/>
 
-        <Label Content="Display item name:"  Margin="20,175,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-        <ComboBox ItemsSource="{Binding DtoDisplayItems}" SelectedValue="{Binding DtoDisplayItemSelected}" Margin="40,199,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsDtoParsed}"/>
-        <Label Content="Option item:"  Margin="390,175,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-        <ComboBox ItemsSource="{Binding OptionItems}" Margin="410,199,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsOptionItemEnable}">
-            <ComboBox.ItemTemplate>
-                <DataTemplate >
-                    <CheckBox Content="{Binding OptionName}" IsChecked="{Binding Check}"/>
-                </DataTemplate>
-            </ComboBox.ItemTemplate>
-        </ComboBox>
+            <Label Content="Option item:"  Margin="0,175,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+            <ComboBox ItemsSource="{Binding OptionItems}" Margin="20,199,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsOptionItemEnable}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate >
+                        <CheckBox Content="{Binding OptionName}" IsChecked="{Binding Check}"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
 
-        <Label Content="Parent name (singular):" Margin="20,235,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-        <TextBox Text="{Binding ParentName,UpdateSourceTrigger=PropertyChanged}" Margin="40,260,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Height="21" IsEnabled="{Binding HasParent}"/>
-        <Label Content="Parent name (plural):" Margin="390,235,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-        <TextBox Text="{Binding ParentNamePlural,UpdateSourceTrigger=PropertyChanged}" Margin="410,260,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Height="21" IsEnabled="{Binding HasParent}"/>
-        <Label Content="Parent domain:" Margin="20,295,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-        <TextBox Text="{Binding ParentDomain,UpdateSourceTrigger=PropertyChanged}" Margin="40,320,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Height="21" IsEnabled="{Binding HasParent}"/>
+            <Label Content="Parent name (plural):" Margin="0,235,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+            <TextBox Text="{Binding ParentNamePlural,UpdateSourceTrigger=PropertyChanged}" Margin="20,260,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Height="21" IsEnabled="{Binding HasParent}"/>
+        </Grid>
 
-
-        <!-- Right side -->
-        <Button Content="Generate" IsEnabled="{Binding IsButtonGenerateCrudEnable}" Margin="0,59,135,0" Width="160" x:Name="GenerateCrud" Height="60" HorizontalAlignment="Right" VerticalAlignment="Top" Click="Generate_Click"/>
-
-        <Button Content="Delete previous generation" Margin="0,230,135,0" Width="160" x:Name="DeleteGeneration" Height="40" HorizontalAlignment="Right" VerticalAlignment="Top" Click="DeleteLastGeneration_Click" IsEnabled="{Binding IsDtoGenerated}"/>
-
-        <Label Content="After all generations :" Margin="0,275,150,0" HorizontalAlignment="Right" VerticalAlignment="Top" Foreground="White"/>
-        <Button Content="Delete annotations" Margin="0,300,135,0" Width="160" x:Name="DeleteAnnotations" Height="40" HorizontalAlignment="Right" VerticalAlignment="Top" Click="DeleteBIAToolkitAnnotations_Click" IsEnabled="{Binding IsProjectChosen}"/>
+        <Grid Grid.Column="3">
+            <Button Grid.Column="3" Content="Generate" IsEnabled="{Binding IsButtonGenerateCrudEnable}" Margin="0,30,0,0" Width="160" x:Name="GenerateCrud" Height="60" HorizontalAlignment="Center" VerticalAlignment="Top" Click="Generate_Click"/>
+            <Button Grid.Column="3" Content="Delete previous generation" Margin="0,230,0,0" Width="160" x:Name="DeleteGeneration" Height="40" HorizontalAlignment="Center" VerticalAlignment="Top" Click="DeleteLastGeneration_Click" IsEnabled="{Binding IsDtoGenerated}"/>
+            
+            <Label Grid.Column="3" Content="After all generations :" Margin="0,275,0,0" HorizontalAlignment="Center" VerticalAlignment="Top" Foreground="White"/>
+            <Button Grid.Column="3" Content="Delete annotations" Margin="0,300,0,0" Width="160" x:Name="DeleteAnnotations" Height="40" HorizontalAlignment="Center" VerticalAlignment="Top" Click="DeleteBIAToolkitAnnotations_Click" IsEnabled="{Binding IsProjectChosen}"/>
+        </Grid>
     </Grid>
 </UserControl>

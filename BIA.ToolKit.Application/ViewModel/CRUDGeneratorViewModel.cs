@@ -6,6 +6,7 @@
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -449,7 +450,7 @@
                 return IsDtoParsed && IsZipParsed
                     && !string.IsNullOrWhiteSpace(CRUDNameSingular)
                     && !string.IsNullOrWhiteSpace(CRUDNamePlural)
-                    && !string.IsNullOrWhiteSpace(dtoDisplayItemSelected)
+                    && (!string.IsNullOrWhiteSpace(dtoDisplayItemSelected) || ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option))
                     && (IsWebApiSelected || isFrontSelected) 
                     && !string.IsNullOrEmpty(featureNameSelected)
                     && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural) && !string.IsNullOrEmpty(ParentDomain)));

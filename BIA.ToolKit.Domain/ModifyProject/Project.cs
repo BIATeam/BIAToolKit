@@ -22,5 +22,10 @@
 
         /// The folder of the project.
         public string? BIAFronts { get; set; }
+
+        /// <summary>
+        /// Path to the solution of the project
+        /// </summary>
+        public string? SolutionPath { get; set; }
     }
 }

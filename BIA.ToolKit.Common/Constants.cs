@@ -108,6 +108,13 @@ namespace BIA.ToolKit.Common
             public const string ParentDomainName = "{ParentDomainName}";
             public const string ParentNameKebabPlural = "{ParentNameKebabPlural}";
             public const string ParentNameKebabSingular = "{ParentNameKebabSingular}";
+            public const string DomainName = "{DomainName}";
+        }
+
+        public static class BiaClassName
+        {
+            public const string OptionDto = "OptionDto";
+            public const string CollectionOptionDto = $"ICollection<{OptionDto}>";
         }
     }
 }

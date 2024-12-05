@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Settings
+﻿namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings
 {
     using System;
     using System.Collections.Generic;
@@ -13,37 +13,19 @@
         }
     }
 
-    public class CRUDGenerationHistory
+    public class CRUDGenerationHistory : GenerationHistory
     {
-        public DateTime Date { get; set; }
-        public string EntityNameSingular { get; set; }
-        public string EntityNamePlural { get; set; }
         public string DisplayItem { get; set; }
         public List<string> OptionItems { get; set; }
-        public Mapping Mapping { get; set; }
-        public List<Generation> Generation { get; }
+        public DtoMapping Mapping { get; set; }
         public string Feature { get; set; }
         public bool HasParent { get; set; }
         public string ParentName { get; set; }
         public string ParentNamePlural { get; set; }
         public string ParentDomain { get; set; }
-
-        public CRUDGenerationHistory()
-        {
-            Generation = new();
-        }
     }
 
-    public class Generation
-    {
-        public string GenerationType { get; set; }
-        public string FeatureType { get; set; }
-        public string Folder { get; set; }
-        public string Template { get; set; }
-        public string Type { get; set; }
-    }
-
-    public class Mapping
+    public class DtoMapping
     {
         public string Dto { get; set; }
         public string Type { get; set; }

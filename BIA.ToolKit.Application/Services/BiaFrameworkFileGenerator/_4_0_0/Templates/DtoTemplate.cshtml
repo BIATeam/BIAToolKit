@@ -1,0 +1,45 @@
+﻿@using RazorLight
+@using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Models
+@inherits RazorLight.TemplatePage<DtoModel>
+
+// <copyright file="@(Model.DtoName).cs" company="@(Model.CompanyName)">
+//     Copyright (c) @(Model.CompanyName). All rights reserved.
+// </copyright>
+
+namespace @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainName)
+{
+    using System;
+    @if (Model.HasCollectionOptions)
+    {
+    @:using System.Collections.Generic;
+    }
+    @if (!Model.IsTeamType)
+    {
+    @:using BIA.Net.Core.Domain.Dto.Base;
+    }
+    using BIA.Net.Core.Domain.Dto.CustomAttribute;
+    @if (Model.HasOptions)
+    {
+    @:using BIA.Net.Core.Domain.Dto.Option;
+    }
+    @if (Model.IsTeamType)
+    {
+    @:using BIA.Net.Core.Domain.Dto.User;
+    }
+
+    /// <summary>
+    /// The DTO used to represent @(Model.NameArticle) @(Model.EntityName).
+    /// </summary>
+    public class @(Model.DtoName) : @Raw(Model.IsTeamType ? "TeamDto" : $"BaseDto<{Model.BaseKeyType}>")
+    {
+        @foreach (var property in Model.Properties.Where(p => !p.MappingName.Equals("Id")))
+        {
+        @:/// <summary>
+        @:/// Gets or sets the @(property.MappingName).
+        @:/// </summary>
+        @:[BiaDtoField(@Raw(property.BiaDtoFieldAttributeProperties))]
+        @:public @Raw(property.MappingType) @(property.MappingName) { get; set; }
+@:
+        }
+    }
+}

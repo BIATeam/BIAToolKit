@@ -1,0 +1,152 @@
+@using RazorLight
+@using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Models
+@inherits RazorLight.TemplatePage<DtoModel>
+
+// <copyright file="@(Model.MapperName).cs" company="@(Model.CompanyName)">
+//     Copyright (c) @(Model.CompanyName). All rights reserved.
+// </copyright>
+
+namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).Mappers
+{
+    using System;
+    @if (Model.HasCollectionOptions)
+    {
+    @:using System.Collections.Generic;
+    }
+    using System.Linq;
+    using System.Linq.Expressions;
+    @if (Model.IsTeamType)
+    {
+    @:using System.Security.Principal;
+    @:using BIA.Net.Core.Common.Extensions;
+    }
+    using BIA.Net.Core.Domain;
+    using BIA.Net.Core.Domain.Dto.Base;
+    @if (Model.HasOptions)
+    {
+    @:using BIA.Net.Core.Domain.Dto.Option;
+    }
+    using @Model.EntityNamespace;
+    using @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainName);
+    @if (Model.IsTeamType)
+    {
+    @:using @(Model.CompanyName).@(Model.ProjectName).Domain.User.Mappers;
+    }
+
+    /// <summary>
+    /// The mapper used for @(Model.EntityName).
+    /// </summary>
+    @{
+        var baseMapperClass = Model.IsTeamType ? "TTeamMapper" : "BaseMapper";
+        var baseKeyType = Model.IsTeamType ? string.Empty : $", {Model.BaseKeyType}";
+    }
+    public class @(Model.EntityName)Mapper : @(baseMapperClass)<@(Model.DtoName), @(Model.EntityName)@(baseKeyType)>
+    {
+        @if (Model.IsTeamType)
+        {
+        @:/// <summary>
+        @:/// Initializes a new instance of the <see cref="@(Model.EntityName)Mapper"/> class.
+        @:/// </summary>
+        @:/// <param name="principal">The principal.</param>
+        @:public @(Model.EntityName)Mapper(IPrincipal principal)
+        @:    : base(principal)
+        @:{
+        @:}
+@:
+        @:/// <inheritdoc/>
+        @:public override int TeamType => base.TeamType;
+@:
+        }
+        /// <inheritdoc cref="BaseMapper{TDto, TEntity, TKey}.DtoToEntity(TDto, TEntity)"/>
+        public override void DtoToEntity(@(Model.DtoName) dto, @(Model.EntityName) entity)
+        {
+            entity ??= new @(Model.EntityName)();
+
+            @if (Model.IsTeamType)
+            {
+            @:base.DtoToEntity(dto, entity);
+@:
+            }
+            @foreach (var property in Model.Properties)
+            {
+                if (!property.IsOption && !property.IsOptionCollection)
+                {
+            @:entity.@(property.EntityCompositeName) = dto.@(property.MappingName);
+                }
+                else if (property.IsOption)
+                {
+            @:entity.@(property.OptionEntityIdPropertyComposite) = dto.@(property.MappingName).Id;
+                }
+                else if (property.IsOptionCollection)
+                {
+            @:if (dto.@(property.MappingName) != null && dto.@(property.MappingName).Count != 0)
+            @:{
+            @:    foreach (var optionDto in dto.@(property.MappingName).Where(x => x.DtoState == DtoState.Deleted))
+            @:    {
+            @:        var entityToRemove = entity.@(property.EntityCompositeName).FirstOrDefault(x => x.@(property.OptionIdProperty) == optionDto.Id);
+            @:        if (entityToRemove != null)
+            @:        {
+            @:            entity.@(property.EntityCompositeName).Remove(entityToRemove);
+            @:        }
+            @:    }
+@:
+            @:    entity.@(property.OptionRelationPropertyComposite) = entity.@(property.OptionRelationPropertyComposite) ?? new List<@(property.OptionRelationType)>();
+            @:    foreach (var optionDto in dto.@(property.MappingName).Where(x => x.DtoState == DtoState.Added))
+            @:    {
+            @:        entity.@(property.OptionRelationPropertyComposite).Add(new @(property.OptionRelationType)
+            @:        {
+            @:            @(property.OptionRelationFirstIdProperty) = dto.Id,
+            @:            @(property.OptionRelationSecondIdProperty) = optionDto.Id,
+            @:        });
+            @:    }
+            @:}
+@:
+                }
+            }
+        }
+
+        /// <inheritdoc cref="BaseMapper{TDto, TEntity, TKey}.EntityToDto()"/>
+        public override Expression<Func<@(Model.EntityName), @(Model.DtoName)>> EntityToDto()
+        {
+            return @Raw(Model.IsTeamType ? "base.EntityToDto().CombineMapping(" : string.Empty)entity => new @(Model.DtoName)
+            {
+                @foreach (var property in Model.Properties)
+                {
+                    if (!property.IsOption && !property.IsOptionCollection)
+                    {
+                @:@(property.MappingName) = entity.@(property.EntityCompositeName),
+                    }
+                    else if (property.IsOption)
+                    {
+                @:@(property.MappingName) = entity.@(property.EntityCompositeName) != null ?
+                @:  new OptionDto { Id = entity.@(property.EntityCompositeName).@(property.OptionIdProperty), Display = entity.@(property.EntityCompositeName).@(property.OptionDisplayProperty) } :
+                @:  null,
+                    }
+                    else if (property.IsOptionCollection)
+                    {
+                @:@(property.MappingName) = entity.@(property.EntityCompositeName)
+                @:.Select(x => new OptionDto { Id = x.@(property.OptionIdProperty), Display = x.@(property.OptionDisplayProperty) })
+                @:.OrderBy(x => x.Display)
+                @:.ToList(),
+                    }
+                }
+                @if (Model.IsTeamType)
+                {
+                @:TeamTypeId = this.TeamType,
+                }
+            @Raw(Model.IsTeamType ? "});" : "};")
+        }
+
+        /// <inheritdoc cref="BaseMapper{TDto, TEntity, TKey}.DtoToRecord"/>
+        public override Func<@(Model.DtoName), object[]> DtoToRecord(List<string> headerNames = null)
+        {
+            return x => (new object[]
+            {
+                @foreach (var property in Model.Properties.Where(p => !p.IsOption && !p.IsOptionCollection))
+                {
+                @:@property.GenerateMapperCSV()
+                }
+            });
+        }
+    }
+}

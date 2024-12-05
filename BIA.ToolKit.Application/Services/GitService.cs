@@ -11,6 +11,8 @@
     using System.Diagnostics;
     using System.IO;
     using BIA.ToolKit.Domain.Settings;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Text.RegularExpressions;
 
     public class GitService
     {
@@ -135,7 +137,7 @@
             outPut.AddMessageLine($"Apply diff", "Pink");
             outPut.AddMessageLine($"On project : {projectPath}", "Pink");
             // cd "...\\YourProject" git apply --reject --whitespace=fix "3.2.2-3.3.0.patch" \
-            int result = RunScript("git", $"apply --reject --whitespace=fix {migrateFilePath}", projectPath).Result;
+            int result = RunScript("git", $"apply --reject --unsafe-paths --whitespace=fix {migrateFilePath}", projectPath).Result;
             if (result == 0)
             {
                 outPut.AddMessageLine("Apply diff finished", actionFinishedAtEnd ? "Green" : "Blue");
@@ -166,6 +168,7 @@
             public string ProjectTargetPath { get; set; }
             public string ProjectTargetVersion { get; set; }
             public string ProjectPath { get; set; }
+            public string MigrationPatchFilePath { get; set; }
         }
 
         public void MergeRejeted(bool actionFinishedAtEnd, MergeParameter param)
@@ -193,33 +196,73 @@
         }
 
         // Insert logic for processing found files here.
-        public void MergeRejetedFileAsync(string path, MergeParameter param)
+        public void MergeRejetedFileAsync(string rejectedFilePath, MergeParameter param)
         {
-            outPut.AddMessageLine("Merge file '" + path + "'.", "White");
+            outPut.AddMessageLine("Merge file '" + rejectedFilePath + "'.", "White");
 
-            string finalFile = path.Substring(0, path.Length - 4);
-            string originalFile = param.ProjectOriginPath + finalFile.Substring(param.ProjectPath.Length);
-            string additionnalFile = param.ProjectTargetPath + finalFile.Substring(param.ProjectPath.Length);
+            var rejectedFileDiffInstruction = File.ReadAllLines(rejectedFilePath).First();
+            (string rejectedFileOriginalFileRelativePath, string rejectedFileTargetFileRelativePath) = ExtractOriginalAndFinalRelativePathOfDiffInstruction(rejectedFileDiffInstruction);
 
-            if (File.Exists(finalFile) && File.Exists(originalFile) && File.Exists(additionnalFile))
+            var migrationPatchFileDiffInstruction = File.ReadLines(param.MigrationPatchFilePath).FirstOrDefault(l => l.EndsWith(rejectedFileTargetFileRelativePath));
+            (string migrationPatchFileOriginalFileRelativePath, string migrationPatchFileTargetFileRelativePath) = ExtractOriginalAndFinalRelativePathOfDiffInstruction(migrationPatchFileDiffInstruction);
+
+            string finalProjectFile = rejectedFilePath.Substring(0, rejectedFilePath.Length - 4);
+            string originalProjectFile = Path.Combine(param.ProjectOriginPath, migrationPatchFileOriginalFileRelativePath.Replace("/", "\\"));
+            string targetProjectFile = Path.Combine(param.ProjectTargetPath, migrationPatchFileTargetFileRelativePath.Replace("/", "\\"));
+
+            if (!File.Exists(originalProjectFile))
             {
-                int result = RunScript("git", $"merge-file -L Src -L {param.ProjectOriginVersion} -L {param.ProjectTargetVersion} \"{finalFile}\" \"{originalFile}\" \"{additionnalFile}\"").Result;
-                if (result == 0)
-                {
-                    File.Delete(path);
-                }
-                if (result > 0)
-                {
-                    outPut.AddMessageLine(result + " conflict to solve in file '" + path + "'.", "Yellow");
-                    File.Delete(path);
-                }
-                else if (result < 0)
-                {
-                    outPut.AddMessageLine("Error " + result + " durring Merge file '" + path + "'.", "Red");
-                }
+                outPut.AddMessageLine($"Unable to perform merge : original project's file {originalProjectFile} doesn't exist", "red");
+                return;
+            }
+
+            if (!File.Exists(targetProjectFile))
+            {
+                outPut.AddMessageLine($"Unable to perform merge : target project's file {targetProjectFile} doesn't exist", "red");
+                return;
+            }
+
+            if (!File.Exists(finalProjectFile))
+            {
+                outPut.AddMessageLine($"Unable to perform merge : final project's file {finalProjectFile} doesn't exist", "red");
+                return;
+            }
+
+            int result = RunScript("git", $"merge-file -L Src -L {param.ProjectOriginVersion} -L {param.ProjectTargetVersion} \"{finalProjectFile}\" \"{originalProjectFile}\" \"{targetProjectFile}\"").Result;
+            if (result == 0)
+            {
+                File.Delete(rejectedFilePath);
+            }
+            if (result > 0)
+            {
+                outPut.AddMessageLine(result + " conflict to solve in file '" + rejectedFilePath + "'.", "Yellow");
+                File.Delete(rejectedFilePath);
+            }
+            else if (result < 0)
+            {
+                outPut.AddMessageLine("Error " + result + " durring Merge file '" + rejectedFilePath + "'.", "Red");
             }
         }
 
+        private (string OriginalRelativePath, string TargetRelativePath) ExtractOriginalAndFinalRelativePathOfDiffInstruction(string diffInstruction)
+        {
+            if (string.IsNullOrEmpty(diffInstruction))
+            {
+                return (string.Empty, string.Empty);
+            }
+
+            string pattern = @"a/(?<Part1>[^\s]+)\s+b/(?<Part2>[^\s]+)";
+            var match = Regex.Match(diffInstruction, pattern);
+
+            if (match.Success)
+            {
+                string part1 = match.Groups["Part1"].Value;
+                string part2 = match.Groups["Part2"].Value;
+                return (part1, part2);
+            }
+
+            return (string.Empty, string.Empty);
+        }
 
         /// <summary>
         /// Runs a PowerShell script with parameters and prints the resulting pipeline objects to the console output. 

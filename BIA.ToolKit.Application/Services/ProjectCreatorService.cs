@@ -39,6 +39,9 @@
             string[] angularFronts
             )
         {
+            // Ensure to have namespaces correctly formated
+            projectName = $"{char.ToUpper(projectName[0])}{projectName[1..]}";
+
             List<FeatureSetting> featureSettings = versionAndOption?.FeatureSettings?.ToList();
 
             List<string> localFilesToExcludes = new List<string>();
@@ -129,7 +132,7 @@
                 consoleWriter.AddMessageLine("Start remove BIATemplate only.", "Pink");
                 FileTransform.RemoveTemplateOnly(projectPath, "# Begin BIATemplate only", "# End BIATemplate only", new List<string>() { ".gitignore" });
 
-                if (new Version(versionAndOption.WorkTemplate.Version.Replace("V", "")) >= new Version("3.10.0"))
+                if(Version.TryParse(versionAndOption.WorkTemplate.Version.Replace("V", ""), out Version projectVersion) && projectVersion >= new Version("3.10.0"))
                 {
                     FileTransform.OrderUsing(projectPath);
                 }
