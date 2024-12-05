@@ -35,5 +35,16 @@
             }
             return ShowDialog();
         }
+
+        private void CopyToClipboard_Click(object sender, RoutedEventArgs e)
+        {
+            string text = string.Empty;
+            foreach (ConsoleWriter.Message msg in Messages)
+            {
+                text += msg.message;
+                text += Environment.NewLine;
+            }
+            System.Windows.Forms.Clipboard.SetText(text);
+        }
     }
 }

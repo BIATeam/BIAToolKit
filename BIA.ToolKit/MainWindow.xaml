@@ -7,12 +7,12 @@
         xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
         xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
         mc:Ignorable="d"
-        Title="BIA Toolkit" Height="765" Width="1035" Icon="/Images/Tools.ico" MaxWidth="1035" MaxHeight="765" WindowStartupLocation="CenterScreen">
+        Title="BIA Toolkit" Height="900" Width="1500" Icon="/Images/Tools.ico" MaxWidth="1500" MaxHeight="900" WindowStartupLocation="CenterScreen">
     <Window.DataContext>
         <!-- Declaratively create an instance of our SongViewModel -->
         <local:MainViewModel />
     </Window.DataContext>
-    <Grid Background="#FFE5E5E5" Width="1000" Margin="10,11,10,14">
+    <Grid Background="#FFE5E5E5" Margin="10,11,10,14">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="250"/>
@@ -22,65 +22,74 @@
                 <Grid Margin="10,10,10,10" Background="#FF000000"  x:Name="TabConfig">
 
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="64*"/>
-                        <ColumnDefinition Width="323*"/>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="387*"/>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="2*"/>
                     </Grid.ColumnDefinitions>
-                    <Image gif:ImageBehavior.AnimatedSource="Images/LogoBIA.png" Grid.ColumnSpan="4" Margin="-12,-29,32,-29"/>
-                    <Label Foreground="White" Content="BIA Template repository" HorizontalAlignment="Left"  Margin="11,10,0,0" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" Grid.Column="1"/>
-                    <Label Foreground="White" Content="https://github.com/BIATeam/BIATemplate.git " HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="372"/>
-                    <CheckBox IsChecked="{Binding Settings.BIATemplateRepository.UseLocalFolder}" Foreground="White" Content="Use a local cloned folder:" HorizontalAlignment="Left" Margin="10,86,0,0" VerticalAlignment="Top" Checked="ConfigurationChange" Unchecked="ConfigurationChange" Grid.ColumnSpan="2" />
-                    <TextBox Text="{Binding Settings_BIATemplateRepository_LocalFolderPath}" HorizontalAlignment="Left" Margin="37,109,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" IsEnabled="{Binding Settings.BIATemplateRepository.UseLocalFolder}" TextChanged="ConfigurationChange" Grid.ColumnSpan="2"/>
-                    <Button Content="..." HorizontalAlignment="Left" Margin="283,108,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" Name="BIATemplateLocalFolderBrowse" IsEnabled="{Binding Settings.BIATemplateRepository.UseLocalFolder}" Click="BIATemplateLocalFolderBrowse_Click" Grid.Column="1"/>
-                    <Button Content="Synchronize" HorizontalAlignment="Left" Margin="26,162,0,0" RenderTransformOrigin="0.429,2.91" Width="206" Name="BIATemplateLocalFolderSync" Click="BIATemplateLocalFolderSync_Click" Height="20" VerticalAlignment="Top" Grid.Column="1"/>
-                    <Button Content="Clean Release" HorizontalAlignment="Left" Margin="77,0,0,0" RenderTransformOrigin="0.429,2.91" Width="85" Name="BIATemplateLocalCleanRelease" Click="BIATemplateLocalCleanRelease_Click" Height="20" VerticalAlignment="Center" Grid.Column="1"/>
+                    <Image gif:ImageBehavior.AnimatedSource="Images/LogoBIA.png" Grid.ColumnSpan="4"/>
 
-                    <Button Content="Custom templates repositories settings" Margin="20,0,125,26" Click="CustomRepoTemplate_Click" RenderTransformOrigin="0.429,2.91" Grid.ColumnSpan="2" Height="20" VerticalAlignment="Bottom"/>
+                    <Grid Grid.Column="0" Margin="10,0">
+                        <Label Foreground="White" Content="BIA Template Repository" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="20" FontWeight="Bold"/>
+                        <Label Foreground="White" FontWeight="Bold" Content="https://github.com/BIATeam/BIATemplate.git " HorizontalAlignment="Left" Margin="0,45,0,0" VerticalAlignment="Top"/>
 
-                    <CheckBox IsChecked="{Binding Settings.UseCompanyFiles}" HorizontalAlignment="Left" Margin="83,0,0,189" Checked="ConfigurationChange" Unchecked="ConfigurationChange" Grid.Column="3" Height="15" VerticalAlignment="Bottom"/>
-                    <Label Foreground="White" Content="Use company files" HorizontalAlignment="Center" Margin="0,0,0,178" FontSize="20" FontWeight="Bold" Grid.Column="3" Height="37" VerticalAlignment="Bottom"/>
-                    <Label Foreground="White" Content="Git repository:" HorizontalAlignment="Left" Margin="19,0,0,165" Grid.Column="3" Name="CompanyFilesGit" Height="24" VerticalAlignment="Bottom"/>
-                    <TextBox Text="{Binding Settings.CompanyFiles.UrlRepo}" HorizontalAlignment="Left" Margin="38,0,0,112" TextWrapping="Wrap" Width="345" Grid.Column="3" Name="CompanyFilesGitRepo" Height="48" VerticalAlignment="Bottom"/>
-                    <CheckBox IsChecked="{Binding Settings.CompanyFiles.UseLocalFolder}" Foreground="White" Content="Use a local cloned folder:" HorizontalAlignment="Left" Margin="10,0,0,93" Grid.Column="3" Checked="ConfigurationChange" Unchecked="ConfigurationChange" Height="15" VerticalAlignment="Bottom"/>
-                    <TextBox Text="{Binding Settings_CompanyFiles_LocalFolderPath}"  IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Left" Margin="37,0,0,63" TextWrapping="Wrap" Width="310" Grid.Column="3" Height="18" VerticalAlignment="Bottom"/>
-                    <Button Content="..." IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Left" Margin="347,0,0,62" RenderTransformOrigin="0.429,2.91" Width="35" Grid.Column="3" Click="CompanyFilesLocalFolderBrowse_Click" Height="20" VerticalAlignment="Bottom"/>
-                    <Button Content="Synchronize" HorizontalAlignment="Left" Margin="89,0,0,26" RenderTransformOrigin="0.429,2.91" Width="206" Grid.Column="3" Name="CompanyFilesLocalFolderSync" Click="CompanyFilesLocalFolderSync_Click" Height="20" VerticalAlignment="Bottom"/>
-                    <Label Content="V1.5.1" Grid.Column="3" Margin="0,2,0,0" VerticalAlignment="Top" Foreground="#FFF0F0F0" HorizontalAlignment="Right"/>
+                        <CheckBox IsChecked="{Binding Settings.BIATemplateRepository.UseLocalFolder}" Foreground="White" Content="Use a local cloned folder:" HorizontalAlignment="Left" Margin="10,75,0,0" VerticalAlignment="Top" Checked="ConfigurationChange" Unchecked="ConfigurationChange"/>
+                        <TextBox Text="{Binding Settings_BIATemplateRepository_LocalFolderPath}" HorizontalAlignment="Left" Margin="20,95,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="380" Height="20" IsEnabled="{Binding Settings.BIATemplateRepository.UseLocalFolder}" TextChanged="ConfigurationChange" />
+                        <Button Content="..." HorizontalAlignment="Left" Margin="410,95,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" Name="BIATemplateLocalFolderBrowse" IsEnabled="{Binding Settings.BIATemplateRepository.UseLocalFolder}" Click="BIATemplateLocalFolderBrowse_Click"/>
+
+                        <Button Content="Synchronize" HorizontalAlignment="Center" Margin="10,140,0,0" RenderTransformOrigin="0.429,2.91" Width="120" Name="BIATemplateLocalFolderSync" Click="BIATemplateLocalFolderSync_Click" Height="20" VerticalAlignment="Top"/>
+                        <Button Content="Clean Release" HorizontalAlignment="Center" Margin="10,170,0,0" RenderTransformOrigin="0.429,2.91" Width="85" Name="BIATemplateLocalCleanRelease" Click="BIATemplateLocalCleanRelease_Click" Height="20" VerticalAlignment="top"/>
+
+                        <Button Content="Custom templates repositories settings" Margin="0,0,0,40" Click="CustomRepoTemplate_Click" RenderTransformOrigin="0.429,2.91" Width="250" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Center"/>
+                    </Grid>
+
+                    <Grid Grid.Column="2" Margin="10,0">
+                        <CheckBox IsChecked="{Binding Settings.UseCompanyFiles}" HorizontalAlignment="Center" Margin="0,0,200,189" Checked="ConfigurationChange" Unchecked="ConfigurationChange" Height="15" VerticalAlignment="Bottom"/>
+                        <Label Foreground="White" Content="Use Company Files" HorizontalAlignment="Center" Margin="0,0,0,180" FontSize="20" FontWeight="Bold" Height="37" VerticalAlignment="Bottom"/>
+                        <Grid IsEnabled="{Binding Settings.UseCompanyFiles}">
+                            <Label Foreground="White" Content="Git repository:" HorizontalAlignment="Left" Margin="0,0,0,165" Name="CompanyFilesGit" Height="24" VerticalAlignment="Bottom"/>
+                            <TextBox Text="{Binding Settings.CompanyFiles.UrlRepo}" HorizontalAlignment="Left" Margin="20,0,0,145" TextWrapping="Wrap" Width="430" Name="CompanyFilesGitRepo" Height="20" VerticalAlignment="Bottom"/>
+                            <CheckBox IsChecked="{Binding Settings.CompanyFiles.UseLocalFolder}" Foreground="White" Content="Use a local cloned folder:" HorizontalAlignment="Left" Margin="10,0,0,120" Checked="ConfigurationChange" Unchecked="ConfigurationChange" Height="15" VerticalAlignment="Bottom"/>
+                            <TextBox Text="{Binding Settings_CompanyFiles_LocalFolderPath}"  IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Left" Margin="20,0,0,95" TextWrapping="Wrap" Width="385" Height="20" VerticalAlignment="Bottom" />
+                            <Button Content="..." IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Right" Margin="0,0,10,95" RenderTransformOrigin="0.429,2.91" Width="35" Click="CompanyFilesLocalFolderBrowse_Click" Height="20" VerticalAlignment="Bottom"/>
+                            <Button Content="Synchronize" HorizontalAlignment="Center" Margin="0,0,0,40" RenderTransformOrigin="0.429,2.91" Width="120" Name="CompanyFilesLocalFolderSync" Click="CompanyFilesLocalFolderSync_Click" Height="20" VerticalAlignment="Bottom"/>
+                            <Label Content="V1.7.0" Margin="2" VerticalAlignment="Top" Foreground="#FFF0F0F0" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </Grid>
                 </Grid>
             </TabItem>
             <TabItem Header="Create project" Selector.Selected="OnTabCreateSelected">
                 <Grid Margin="10,10,10,10" x:Name="TabCreate">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="91*"/>
-                        <ColumnDefinition Width="396*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.Background>
                         <ImageBrush ImageSource="/Images/bg-default.jpg"/>
                     </Grid.Background>
                     <Label Content="Projects parent path" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Foreground="White"/>
                     <TextBox Text="{Binding Settings_RootProjectsPath}" HorizontalAlignment="Left" Margin="29,25,0,0"  TextWrapping="Wrap" VerticalAlignment="Top" Width="310" Grid.ColumnSpan="2"/>
-                    <Button Content="..." HorizontalAlignment="Left" Margin="157,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" Click="CreateProjectRootFolderBrowse_Click" Grid.Column="1"/>
-                    <Label Content="Company name" HorizontalAlignment="Left" Margin="224,1,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
-                    <TextBox Text="{Binding Settings.CreateCompanyName}" HorizontalAlignment="Left" Margin="243,26,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" IsEnabled="True" Grid.Column="1"/>
-                    <Label Content="Project name" HorizontalAlignment="Left" Margin="224,51,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
-                    <TextBox Text="" HorizontalAlignment="Left" Margin="243,76,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="CreateProjectName" IsEnabled="True" Grid.Column="1"/>
+                    <Button Content="..." HorizontalAlignment="Left" Margin="350,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" Click="CreateProjectRootFolderBrowse_Click" Grid.Column="0"/>
+                    <Label Content="Company name" HorizontalAlignment="Left" Margin="24,1,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
+                    <TextBox Text="{Binding Settings.CreateCompanyName}" HorizontalAlignment="Left" Margin="43,26,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" IsEnabled="True" Grid.Column="1"/>
+                    <Label Content="Project name" HorizontalAlignment="Left" Margin="24,51,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
+                    <TextBox Text="" HorizontalAlignment="Left" Margin="43,76,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="CreateProjectName" IsEnabled="True" Grid.Column="1"/>
 
-                    <uc:VersionAndOptionUserControl x:Name="CreateVersionAndOption" Margin="10,171,10,0" Height="149" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                    <uc:VersionAndOptionUserControl x:Name="CreateVersionAndOption" Margin="10,270,10,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
 
 
 
-                    <Button Content="Create" HorizontalAlignment="Right" Margin="0,33,30,0" Width="112" Click="Create_Click" Height="48" VerticalAlignment="Top" Grid.Column="1"/>
+                    <Button Content="Create" HorizontalAlignment="Right" Margin="0,33,30,0" Width="112" Click="Create_Click" Height="48" VerticalAlignment="Top" Grid.Column="2"/>
 
 
                 </Grid>
             </TabItem>
-            <TabItem Header="Modify existing project" Selector.Selected="OnTabModifySelected" >
-                <Grid>
+            <TabItem Header="Modify existing project" Selector.Selected="OnTabModifySelected">
+                <Grid Margin="10">
                     <Grid.Background>
                         <ImageBrush ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
                     </Grid.Background>
-                    <uc:ModifyProjectUC x:Name="ModifyProject"/>
+                    <uc:ModifyProjectUC x:Name="ModifyProject" Width="auto" Height="auto"/>
                 </Grid>
             </TabItem>
             <TabItem Header="File Generator">

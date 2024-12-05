@@ -1,15 +1,22 @@
-﻿<UserControl x:Class="BIA.ToolKit.UserControls.VersionAndOptionUserControl"
+﻿<UserControl xmlns:UserControls="clr-namespace:BIA.ToolKit.UserControls"  x:Class="BIA.ToolKit.UserControls.VersionAndOptionUserControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
-             mc:Ignorable="d" d:DesignWidth="800" Height="150">
+             mc:Ignorable="d" d:DesignWidth="800" Height="250">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+    </UserControl.Resources>
     <UserControl.DataContext>
         <!-- Declaratively create an instance of our SongViewModel -->
         <local:VersionAndOptionViewModel />
     </UserControl.DataContext>
-    <Grid Margin="0">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
         <Label Content="Framework version" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Foreground="White"/>
         <ComboBox ItemsSource="{Binding WorkTemplates}" 
                   DisplayMemberPath="Version"
@@ -17,8 +24,8 @@
                   SelectionChanged="FrameworkVersion_SelectionChanged"
                   HorizontalAlignment="Left" Margin="20,25,0,0" VerticalAlignment="Top" Width="120"/>
         <CheckBox IsChecked="{Binding UseCompanyFiles}" Name="UseCompanyFiles" Content="Use Company Files" Foreground="White"  Height="16" VerticalAlignment="Top" Margin="10,58,-10,0" Checked="UseCompanyFile_Checked" Unchecked="UseCompanyFile_Checked" />
-        <GroupBox Header="Company files" Margin="0,0,0,10" Foreground="White" BorderBrush="White" Name="CompanyFileGroup" HorizontalAlignment="Right" Width="642" Visibility="Visible">
-            <Grid Margin="10,10,10,10">
+        <GroupBox Header="Company files" Foreground="White" BorderBrush="White" Name="CompanyFileGroup" HorizontalAlignment="Right" Width="400" Visibility="Visible" Height="auto" VerticalAlignment="Top">
+            <Grid Margin="5">
                 <Label Content="Company file version" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Foreground="White" Name="CompanyFileVersionLabel"/>
                 <ComboBox 
                     ItemsSource="{Binding WorkCompanyFiles}" 
@@ -31,8 +38,7 @@
                 <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding Profile}" 
                           HorizontalAlignment="Left" Margin="20,75,0,0" VerticalAlignment="Top" Width="120"/>
 
-                <Label Content="Options" HorizontalAlignment="Left" Margin="200,0,0,0" VerticalAlignment="Top" Foreground="White" Name="CompanyFileOptionLabel"/>
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="260,0,0,0" Name="CompanyFileOptionViewer">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="150,0,0,0" Name="CompanyFileOptionViewer">
                     <Grid Name="GridOption">
                         <CheckBox Content="Option1" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CFOption_Option1" Margin="0,0,0,0"/>
                         <CheckBox Content="Option2" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CFOption_Option2" Margin="0,25,0,0" />
@@ -46,7 +52,18 @@
                 </ScrollViewer>
             </Grid>
         </GroupBox>
-        <Image Name="Warning" Source="..\Images\Warning.png" HorizontalAlignment="Left" Height="100" Margin="173,20,0,0" VerticalAlignment="Top" Width="100"/>
-        <Label Name="WarningLabel"  Content="You haven't select Company Files in config screen." HorizontalAlignment="Left" Margin="255,20,0,0" VerticalAlignment="Top" Foreground="White" FontSize="24"/>
+        <Image Name="Warning" Source="..\Images\Warning.png" HorizontalAlignment="Left" Height="50" Margin="13,50,0,0" VerticalAlignment="Top" Width="50"/>
+        <Label Name="WarningLabel"  Content="You haven't select Company Files in config screen." HorizontalAlignment="Left" Margin="60,55,0,0" VerticalAlignment="Top" Foreground="White" FontSize="20"/>
+        <GroupBox Grid.Column="1" Header="Feature Settings" Margin="3,0,0,10" Foreground="White" BorderBrush="White" Name="FeatureSettingsGroup" Visibility="{Binding Path=HasFeature, Converter={StaticResource BoolToVisConverter} }" d:Visibility="Visible" Height="auto" VerticalAlignment="Top">
+            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Height="auto">
+                <ItemsControl ItemsSource="{Binding FeatureSettings}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsSelected}" ToolTip="{Binding Description}" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,5" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </GroupBox>
     </Grid>
 </UserControl>

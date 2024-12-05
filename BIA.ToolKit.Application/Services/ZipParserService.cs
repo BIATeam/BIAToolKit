@@ -26,6 +26,9 @@
         // Tags Partial
         public const string MARKER_BEGIN_PARTIAL = $"{MARKER_BEGIN} Partial";
         public const string MARKER_END_PARTIAL = $"{MARKER_END} Partial";
+        // Tags Nested
+        public const string MARKER_BEGIN_NESTED = $"{MARKER_BEGIN} Nested";
+        public const string MARKER_END_NESTED = $"{MARKER_END} Nested";
 
         /// <summary>
         /// Constructor.
@@ -41,6 +44,11 @@
         /// </summary>
         public bool ParseZipFile(ZipFeatureType zipData, string folderName, string dtoCustomAttributeName)
         {
+            if (string.IsNullOrWhiteSpace(zipData.ZipName))
+            {
+                return false;
+            }
+
             string fileName = Path.Combine(zipData.ZipPath, zipData.ZipName);
             if (string.IsNullOrWhiteSpace(fileName))
             {
@@ -49,7 +57,7 @@
             }
 
             // Unzip archive
-            (string workingDirectoryPath, Dictionary<string, string> fileList) = ReadZipAndExtract(fileName, folderName, zipData.FeatureType);
+            (string workingDirectoryPath, Dictionary<string, string> fileList) = ReadZipAndExtract(fileName, folderName, zipData.ZipName);
             if (string.IsNullOrWhiteSpace(workingDirectoryPath))
             {
                 consoleWriter.AddMessageLine($"Zip archive '{fileName}' not found.", "Orange");
@@ -82,12 +90,15 @@
                                     ((WebApiFeatureData)featureData).ClassFileDefinition = classFile;
                                     if (fileType == WebApiFileType.Dto)
                                     {
-                                        ((WebApiFeatureData)featureData).PropertiesInfos = service.GetPlaneDtoPropertyList(classFile.PropertyList, dtoCustomAttributeName);
+                                        ((WebApiFeatureData)featureData).PropertiesInfos = service.GetPropertyList(classFile.PropertyList, dtoCustomAttributeName);
                                     }
                                 }
                             }
 
-                            if (fileType != WebApiFileType.Dto || fileType != WebApiFileType.Entity || fileType != WebApiFileType.Mapper)    // Not Dto, Entity or Mapper
+                            if (
+                                fileType != WebApiFileType.Dto ||
+                                fileType != WebApiFileType.Entity ||
+                                fileType != WebApiFileType.Mapper)    // Not Dto, Entity or Mapper
                             {
                                 featureData.ExtractBlocks = AnalyzeFile(filePath, featureData);
                             }
@@ -104,10 +115,7 @@
                 }
 
                 // Populate 'ExtractItem' of Display block
-                if (zipData.GenerationType == GenerationType.Front && zipData.FeatureType == FeatureType.CRUD)
-                {
-                    PopulateExtractItemDisplayBlock(zipData.FeatureDataList);
-                }
+                PopulateExtractItemDisplayBlock(zipData.FeatureDataList);
             }
             else
             {
@@ -132,7 +140,7 @@
                 return f.ExtractBlocks.Select(b => b.DataUpdateType == CRUDDataUpdateType.Display).FirstOrDefault();
             }).ToList();
 
-            if (featureProperties != null && featureDisplay != null)
+            if (featureProperties.Any() && featureDisplay.Any())
             {
                 ExtractPropertiesBlock propBlock = (ExtractPropertiesBlock)featureProperties.FirstOrDefault().ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.Properties).FirstOrDefault();
 
@@ -151,7 +159,7 @@
         /// Read Zip archive and extract files on temporary working directory.
         /// </summary>
         /// <returns>A tuple with working temporary directory and a dictionnary of files contains (key: file full path on archive, value : file name) in zip archives.</returns>
-        private (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string folderType, FeatureType crudType)
+        private (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string folderType, string zipName)
         {
             string tempDir = null;
             Dictionary<string, string> files = null;
@@ -167,8 +175,8 @@
                 consoleWriter.AddMessageLine($"*** Parse zip file: '{zipPath}' ***", "Green");
 
                 // Create working temporary folder
-                tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType, crudType.ToString());
-                CommonTools.CheckFolder(tempDir, true);
+                tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType, Path.GetFileNameWithoutExtension(zipName));
+                CommonTools.CheckFolder(tempDir);
 
                 // Extract and list files from archive to temprory folder
                 files = new();
@@ -182,7 +190,7 @@
                     }
 
                     CommonTools.CheckFolder(Path.Combine(tempDir, entry.FullName.Replace(entry.Name, "")));
-                    entry.ExtractToFile(Path.Combine(tempDir, entry.FullName));
+                    entry.ExtractToFile(Path.Combine(tempDir, entry.FullName), true);
                     files.Add(entry.FullName, entry.Name);
                 }
             }
@@ -271,8 +279,12 @@
                     return WebApiFileType.Dto;
                 else if (fileName.EndsWith("Controller.cs"))
                     return WebApiFileType.Controller;
+                else if (fileName.EndsWith("OptionMapper.cs"))
+                    return WebApiFileType.OptionMapper;
                 else if (fileName.EndsWith("Mapper.cs"))
                     return WebApiFileType.Mapper;
+                else if (fileName.EndsWith("Specification.cs"))
+                    return WebApiFileType.Specification;
                 else
                     return WebApiFileType.Entity;
             }
@@ -300,17 +312,30 @@
                 case WebApiFileType.IAppService:
                     pattern = @"^I?(\w+)AppService\.cs$";
                     break;
+                case WebApiFileType.OptionAppService:
+                case WebApiFileType.IOptionAppService:
+                    pattern = @"^I?(\w+)OptionAppService\.cs$";
+                    break;
                 case WebApiFileType.Dto:
                     pattern = @"^(\w+)Dto\.cs$";
                     break;
                 case WebApiFileType.Controller:
                     pattern = @"^((\w+)s|(\w+))Controller\.cs$";
                     break;
+                case WebApiFileType.OptionsController:
+                    pattern = @"^((\w+)s|(\w+))OptionsController\.cs$";
+                    break;
                 case WebApiFileType.Mapper:
                     pattern = @"^(\w+)Mapper\.cs$";
                     break;
+                case WebApiFileType.OptionMapper:
+                    pattern = @"^(\w+)OptionMapper\.cs$";
+                    break;
                 case WebApiFileType.Entity:
                     pattern = @"^(\w+)\.cs$";
+                    break;
+                case WebApiFileType.Specification:
+                    pattern = @"^(\w+)Specification\.cs$";
                     break;
                 default:
                     consoleWriter.AddMessageLine($"Get entity name not implemented for type: '{type}' and file '{fileName}'", "Orange");
@@ -391,11 +416,17 @@
                             break;
                         case CRUDDataUpdateType.Display:
                             List<string> displayLines = blockLines.Where(l => !l.TrimStart().StartsWith("//")).ToList();
-                            if (displayLines?.Count != 1)
+                            if (displayLines.Count < 1 && displayLines.Count > 2)
                             {
                                 consoleWriter.AddMessageLine($"Incorrect Display block format: '{blockLines}'", "Orange");
                             }
-                            extractBlocksList.Add(new ExtractDisplayBlock(type, name, blockLines) { ExtractLine = displayLines[0].TrimStart() });
+                            var extractLine = displayLines[0].Trim();
+                            var extractItem = blockLines[0].Split(' ').Last();
+                            if(extractItem == CRUDDataUpdateType.Display.ToString())
+                            {
+                                extractItem = null;
+                            }
+                            extractBlocksList.Add(new ExtractDisplayBlock(type, name, blockLines) { ExtractLine = extractLine, ExtractItem = extractItem });
                             break;
                         case CRUDDataUpdateType.OptionField:
                             string fieldName = CommonTools.GetMatchRegexValue(regex, blockLines[0], 2);
@@ -414,33 +445,44 @@
         /// <summary>
         /// Extract block of lines from partial file.
         /// </summary>
-        private List<ExtractBlock> ExtractPartialFile(List<string> fileLines)
+        private static List<ExtractBlock> ExtractPartialFile(List<string> fileLines)
         {
-            const string regex = @$"(?:{MARKER_BEGIN_PARTIAL})[\s+](\w+)(\s+\d*)?(\s*\w+)";
+            const string regexPartial = @$"(?:{MARKER_BEGIN_PARTIAL})[\s+](\w+)(\s+\d*)?(\s*\w+)";
+            const string regexNested = @$"(?:{MARKER_BEGIN_NESTED})[\s+](\w+)(\s+\d*)?(\s*\w+)";
             List<ExtractBlock> extractBlocksList = new();
-            List<string> lines = new();
-            bool startFound = false;
-            string index = null, name = null, typeName = null;
-
+            ExtractPartialBlock currentExtractPartialBlock = null;
             // Add blocks found between markers
             foreach (string line in fileLines)
             {
                 if (line.Contains(MARKER_BEGIN_PARTIAL, StringComparison.InvariantCulture))
                 {
-                    lines = new();
-                    startFound = true;
-                    typeName = CommonTools.GetMatchRegexValue(regex, line, 1);
-                    index = CommonTools.GetMatchRegexValue(regex, line, 2);
-                    name = CommonTools.GetMatchRegexValue(regex, line, 3);
+                    var typeName = CommonTools.GetMatchRegexValue(regexPartial, line, 1);
+                    var index = CommonTools.GetMatchRegexValue(regexPartial, line, 2);
+                    var name = CommonTools.GetMatchRegexValue(regexPartial, line, 3);
+
+                    currentExtractPartialBlock = new ExtractPartialBlock(CommonTools.GetEnumElement<CRUDDataUpdateType>(typeName), name?.TrimStart(), index?.TrimStart());
                 }
 
-                if (startFound)
-                    lines.Add(line);
-
-                if (startFound && line.Contains(MARKER_END_PARTIAL, StringComparison.InvariantCulture))
+                if (line.Contains(MARKER_BEGIN_NESTED, StringComparison.InvariantCulture))
                 {
-                    startFound = false;
-                    extractBlocksList.Add(new ExtractPartialBlock(CommonTools.GetEnumElement<CRUDDataUpdateType>(typeName), name?.TrimStart(), index?.TrimStart(), lines));
+                    var typeName = CommonTools.GetMatchRegexValue(regexNested, line, 1);
+                    var index = CommonTools.GetMatchRegexValue(regexNested, line, 2);
+                    var name = CommonTools.GetMatchRegexValue(regexNested, line, 3);
+
+                    currentExtractPartialBlock.AddNestedBlock(new ExtractPartialBlock(CommonTools.GetEnumElement<CRUDDataUpdateType>(typeName), name?.TrimStart(), index?.TrimStart()));
+                    currentExtractPartialBlock = currentExtractPartialBlock.GetLastNestedBlock();
+                }
+
+                currentExtractPartialBlock?.AddLine(line);
+
+                if (line.Contains(MARKER_END_NESTED, StringComparison.InvariantCulture))
+                {
+                    currentExtractPartialBlock = currentExtractPartialBlock.ParentBlock;
+                }
+
+                if (line.Contains(MARKER_END_PARTIAL, StringComparison.InvariantCulture))
+                {
+                    extractBlocksList.Add(currentExtractPartialBlock);
                 }
             }
 

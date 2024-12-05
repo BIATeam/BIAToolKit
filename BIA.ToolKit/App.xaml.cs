@@ -2,7 +2,9 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
     using BIA.ToolKit.Helper;
+    using BIA.ToolKit.Services;
     using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.Windows;
@@ -22,6 +24,7 @@
         private void ConfigureServices(ServiceCollection services)
         {
             services.AddSingleton<IConsoleWriter, ConsoleWriter>();
+            services.AddSingleton<UIEventBroker>();
             services.AddSingleton<MainWindow>();
             services.AddSingleton<RepositoryService>();
             services.AddSingleton<GitService>();
@@ -31,6 +34,8 @@
             services.AddSingleton<ZipParserService>();
             services.AddSingleton<GenerateCrudService>();
             services.AddSingleton<SettingsService>();
+            services.AddSingleton<FeatureSettingService>();
+            services.AddSingleton<BiaFrameworkFileGeneratorService>();
         }
         private void OnStartup(object sender, StartupEventArgs e)
         {

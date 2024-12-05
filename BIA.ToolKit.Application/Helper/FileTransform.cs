@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.Application.Helper
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -13,6 +14,68 @@
             ".editorconfig", ".gitignore" , ".prettierrc", ".html" ,".css" ,".scss", ".svg" , ".js", ".ruleset", ".props" };
         static public IList<string> allTextFileNameWithoutExtension = new List<string>() { "browserslist", "Dockerfile" };
 
+        public static void SwapValues(this string[] source, long index1, long index2)
+        {
+            (source[index2], source[index1]) = (source[index1], source[index2]);
+        }
+
+        /// <summary>
+        /// Order the usings in a csharp file
+        /// </summary>
+        /// <param name="sourceDir">source folder.</param>
+        /// <param name="oldString">old string.</param>
+        /// <param name="newString">new string.</param>
+        static public void OrderUsing(string sourceDir)
+        {
+            string[] filesToOrder = Directory.GetFiles(sourceDir, "*.cs", SearchOption.AllDirectories);
+            foreach (string file in filesToOrder)
+            {
+                string oldFile = File.ReadAllText(file);
+                string endOfLine = Environment.NewLine;
+                Match endOfLineMatch = Regex.Match(oldFile, @"([\r\n]+)");
+                if (endOfLineMatch.Success)
+                {
+                    endOfLine = endOfLineMatch.Value;
+                }
+                string[] lines = File.ReadAllLines(file);
+                OrderUsingInLines(lines);
+                string newFile = string.Join(endOfLine, lines);
+                Match match = Regex.Match(oldFile, @"([\r\n]+\Z)");
+                if (match.Success)
+                {
+                    newFile += match.Value;
+                }
+                File.WriteAllText(file, newFile);
+            }
+
+        }
+
+        private static void OrderUsingInLines(string[] lines)
+        {
+            bool orderChanged = false;
+            for (int i = 0; i < lines.Length - 1; i++)
+            {
+                string line = lines[i].Trim();
+                string nextLine = lines[i + 1].Trim();
+                if (!line.StartsWith("using System")
+                    && IsUsingStatement(line)
+                    && IsUsingStatement(nextLine)
+                    && line.Replace("using ", "").CompareTo(nextLine.Replace("using ", "")) > 0)
+                {
+                    orderChanged = true;
+                    lines.SwapValues(i, i + 1);
+                }
+            }
+            if (orderChanged)
+            {
+                OrderUsingInLines(lines);
+            }
+        }
+
+        private static bool IsUsingStatement(string line)
+        {
+            return line.StartsWith("using ") && line.EndsWith(";") && !line.Contains("=");
+        }
 
         /// <summary>
         /// Copy files for VSIX AdditionnalFiles folder to the root solution folder.
@@ -20,7 +83,8 @@
         /// <param name="sourceDir">source folder.</param>
         /// <param name="oldString">old string.</param>
         /// <param name="newString">new string.</param>
-        static public void ReplaceInFileAndFileName(string sourceDir, string oldString, string newString, IList<string> replaceInFileExtenssions)
+        /// <param name="replaceInFileExtensions">types of files to include</param>
+        static public void ReplaceInFileAndFileName(string sourceDir, string oldString, string newString, IList<string> replaceInFileExtensions)
         {
             if (oldString == newString) return;
             foreach (var dir in Directory.GetDirectories(sourceDir))
@@ -44,7 +108,7 @@
                     targetfile = newName;
                 }
                 string extension = Path.GetExtension(targetfile).ToLower();
-                if (replaceInFileExtenssions.Contains(extension))
+                if (replaceInFileExtensions.Contains(extension))
                 {
                     ReplaceInFile(targetfile, oldString, newString);
                 }
@@ -59,7 +123,7 @@
 
             foreach (var directory in Directory.GetDirectories(sourceDir))
             {
-                ReplaceInFileAndFileName(directory, oldString, newString, replaceInFileExtenssions);
+                ReplaceInFileAndFileName(directory, oldString, newString, replaceInFileExtensions);
             }
         }
 
@@ -68,9 +132,10 @@
         /// Copy files for VSIX AdditionnalFiles folder to the root solution folder.
         /// </summary>
         /// <param name="sourceDir">source folder.</param>
-        /// <param name="oldString">old string.</param>
-        /// <param name="newString">new string.</param>
-        static public void RemoveTemplateOnly(string sourceDir, string beginString, string endString, IList<string> replaceInFileExtenssions)
+        /// <param name="beginString">starting string of code to remove.</param>
+        /// <param name="endString">ending string of code to remove.</param>
+        /// <param name="replaceInFileExtensions">types of files to include</param>
+        static public void RemoveTemplateOnly(string sourceDir, string beginString, string endString, IList<string> replaceInFileExtensions)
         {
 
             foreach (var file in Directory.GetFiles(sourceDir))
@@ -78,7 +143,7 @@
                 var name = Path.GetFileName(file);
                 string targetfile = file;
                 string extension = Path.GetExtension(targetfile).ToLower();
-                if (replaceInFileExtenssions.Contains(extension))
+                if (replaceInFileExtensions.Contains(extension))
                 {
                     RemoveTemplateOnlyInFile(targetfile, beginString, endString);
                 }
@@ -86,7 +151,7 @@
 
             foreach (var directory in Directory.GetDirectories(sourceDir))
             {
-                RemoveTemplateOnly(directory, beginString, endString, replaceInFileExtenssions);
+                RemoveTemplateOnly(directory, beginString, endString, replaceInFileExtensions);
             }
         }
 
@@ -220,18 +285,23 @@
             }
         }
 
-        static public void CopyFilesRecursively(string sourcePath, string targetPath, string profile = "", IList<string> filesToExclude = null)
+        static public void CopyFilesRecursively(string sourcePath, string targetPath, string profile = "", IList<string> filesToExclude = null, IList<string> foldersToExcludes = null)
         {
             //Now Create all of the directories
             foreach (string sourceDir in Directory.GetDirectories(sourcePath, "*", SearchOption.TopDirectoryOnly))
             {
                 string sourceDirName = Path.GetFileName(sourceDir);
 
+                if (foldersToExcludes?.Any(f => Regex.Match(sourceDirName, f, RegexOptions.IgnoreCase).Success) == true)
+                {
+                    continue; // skip this folder if its name matches any of the folder names to exclude
+                }
+
                 if (filesToExclude == null || !filesToExclude.Any(s => Regex.Match(sourceDirName, s, RegexOptions.IgnoreCase).Success))
                 {
                     var subTargetPath = sourceDir.Replace(sourcePath, targetPath);
                     Directory.CreateDirectory(sourceDir.Replace(sourcePath, targetPath));
-                    CopyFilesRecursively(sourceDir, subTargetPath, profile, filesToExclude);
+                    CopyFilesRecursively(sourceDir, subTargetPath, profile, filesToExclude, foldersToExcludes);
                 }
             }
 

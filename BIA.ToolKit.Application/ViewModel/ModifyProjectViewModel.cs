@@ -7,6 +7,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Management.Automation;
     using System.Text.RegularExpressions;
 
     public class ModifyProjectViewModel : ObservableObject
@@ -153,6 +154,7 @@
 
                     currentProject.Name = value;
                     currentProject.Folder = RootProjectsPath + "\\" + currentProject.Name;
+                    currentProject.SolutionPath = Directory.GetFiles(currentProject.Folder, $"{currentProject.Name}.sln", SearchOption.AllDirectories).FirstOrDefault();
 
                     NamesAndVersionResolver nvResolver2 = new NamesAndVersionResolver()
                     {
@@ -212,6 +214,7 @@
                     RaisePropertyChanged("CompanyName");
                     RaisePropertyChanged("Name");
                     RaisePropertyChanged("BIAFronts");
+                    RaisePropertyChanged(nameof(IsProjectSelected));
                 }
             }
         }
@@ -221,5 +224,6 @@
             get; set;
         }
 
+        public bool IsProjectSelected => CurrentProject != null; 
     }
 }
