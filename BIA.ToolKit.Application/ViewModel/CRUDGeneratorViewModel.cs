@@ -260,6 +260,10 @@
         {
             get
             {
+                // CRUD feature always disable
+                if (!string.IsNullOrEmpty(FeatureNameSelected) && FeatureNameSelected.Equals("CRUD"))
+                    return false;
+
                 var selectedFeaturesWithParent = ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected && x.Parents.Any(y => y.IsPrincipal));
                 // Let checkbox editable if parent is not needed
                 if (selectedFeaturesWithParent.Any() && selectedFeaturesWithParent.All(x => !x.NeedParent))
