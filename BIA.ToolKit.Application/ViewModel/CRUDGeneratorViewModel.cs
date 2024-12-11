@@ -58,6 +58,7 @@
                 {
                     dtoEntity = value;
                     UpdateParentPreSelection();
+                    UpdateDomainPreSelection();
                 }
             }
         }
@@ -196,6 +197,7 @@
                     IsWebApiSelected = IsWebApiAvailable;
                     IsFrontSelected = IsFrontAvailable;
                     UpdateParentPreSelection();
+                    UpdateDomainPreSelection();
                 }
             }
         }
@@ -258,6 +260,10 @@
         {
             get
             {
+                // CRUD feature always disable
+                if (!string.IsNullOrEmpty(FeatureNameSelected) && FeatureNameSelected.Equals("CRUD"))
+                    return false;
+
                 var selectedFeaturesWithParent = ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected && x.Parents.Any(y => y.IsPrincipal));
                 // Let checkbox editable if parent is not needed
                 if (selectedFeaturesWithParent.Any() && selectedFeaturesWithParent.All(x => !x.NeedParent))
@@ -281,7 +287,7 @@
 
                     if(value == false)
                     {
-                        ParentDomain = null;
+                        Domain = null;
                         ParentName = null;
                         ParentNamePlural = null;
                     }
@@ -289,16 +295,16 @@
             }
         }
 
-        private string parentDomain;
-        public string ParentDomain
+        private string domain;
+        public string Domain
         {
-            get { return parentDomain; }
+            get { return domain; }
             set 
             {
-                if (parentDomain != value)
+                if (domain != value)
                 {
-                    parentDomain = value;
-                    RaisePropertyChanged(nameof(ParentDomain));
+                    domain = value;
+                    RaisePropertyChanged(nameof(Domain));
                     RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
                 }
             }
@@ -347,7 +353,6 @@
                 {
                     var parentName = parentPropertyName.Replace("Id", string.Empty);
                     ParentName = parentName;
-                    ParentDomain = parentName;
                 }
             }
             else
@@ -356,6 +361,22 @@
             }
 
             RaisePropertyChanged(nameof(IsCheckboxParentEnable));
+        }
+
+        private void UpdateDomainPreSelection()
+        {
+            if (DtoEntity == null)
+            {
+                Domain = null;
+                return;
+            }
+
+            var namespaceParts = DtoEntity.Namespace.Split('.').ToList();
+            var domainIndex = namespaceParts.IndexOf("Dto");
+            if(domainIndex != -1)
+            {
+                Domain = namespaceParts[domainIndex + 1];
+            }
         }
 
         #endregion
@@ -450,10 +471,11 @@
                 return IsDtoParsed && IsZipParsed
                     && !string.IsNullOrWhiteSpace(CRUDNameSingular)
                     && !string.IsNullOrWhiteSpace(CRUDNamePlural)
+                    && !string.IsNullOrEmpty(Domain)
                     && (!string.IsNullOrWhiteSpace(dtoDisplayItemSelected) || ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option))
                     && (IsWebApiSelected || isFrontSelected) 
                     && !string.IsNullOrEmpty(featureNameSelected)
-                    && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural) && !string.IsNullOrEmpty(ParentDomain)));
+                    && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural)));
             }
         }
         #endregion

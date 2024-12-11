@@ -139,7 +139,7 @@
                         vm.HasParent = history.HasParent;
                         vm.ParentName = history.ParentName;
                         vm.ParentNamePlural = history.ParentNamePlural;
-                        vm.ParentDomain = history.ParentDomain;
+                        vm.Domain = history.Domain;
                         history.OptionItems?.ForEach(o =>
                         {
                             OptionItem item = vm.OptionItems.FirstOrDefault(x => x.OptionName == o);
@@ -203,7 +203,7 @@
                 Exists = vm.HasParent,
                 Name = vm.ParentName,
                 NamePlural = vm.ParentNamePlural,
-                Domain = vm.ParentDomain
+                Domain = vm.Domain
             };
 
             crudService.CrudNames.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural);
@@ -237,7 +237,7 @@
                 List<CRUDGenerationHistory> historyOptions = crudHistory?.CRUDGenerationHistory?.Where(h => h.OptionItems.Contains(vm.CRUDNameSingular)).ToList();
 
                 // Delete last generation
-                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, vm.FeatureNameSelected, new CrudParent {  Exists = history.HasParent, Domain = history.ParentDomain, Name = history.ParentName, NamePlural = history.ParentNamePlural }, historyOptions);
+                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, vm.FeatureNameSelected, new CrudParent {  Exists = history.HasParent, Domain = history.Domain, Name = history.ParentName, NamePlural = history.ParentNamePlural }, historyOptions);
 
                 // Update history
                 DeleteLastGenerationHistory(history);
@@ -412,7 +412,7 @@
                     HasParent = vm.HasParent,
                     ParentName = vm.ParentName,
                     ParentNamePlural = vm.ParentNamePlural,
-                    ParentDomain = vm.ParentDomain,
+                    Domain = vm.Domain,
 
                     // Create "Mapping" part
                     Mapping = new()
