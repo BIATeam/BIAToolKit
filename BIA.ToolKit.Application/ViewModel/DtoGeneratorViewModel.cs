@@ -415,7 +415,7 @@
                 return Constants.BiaClassName.CollectionOptionDto;
             }
 
-            if (standardMappingTypes.Any(x => entityProperty.Type.Equals(x, StringComparison.InvariantCultureIgnoreCase)))
+            if (standardMappingTypes.Any(x => entityProperty.Type.Replace("?", string.Empty).Equals(x, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return entityProperty.Type;
             }

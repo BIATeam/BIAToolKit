@@ -362,7 +362,10 @@
         private void UpdateDomainPreSelection()
         {
             if (DtoEntity == null)
+            {
+                Domain = null;
                 return;
+            }
 
             var namespaceParts = DtoEntity.Namespace.Split('.').ToList();
             var domainIndex = namespaceParts.IndexOf("Dto");
