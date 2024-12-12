@@ -57,6 +57,22 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
         @:public override int TeamType => base.TeamType;
 @:
         }
+        /// <inheritdoc/>
+        public override ExpressionCollection<@(Model.EntityName)> ExpressionCollection
+        {
+            // It is not necessary to implement this function if you to not use the mapper for filtered list. In BIADemo it is use only for Calc SpreadSheet.
+            get
+            {
+                return new ExpressionCollection<@(Model.EntityName)>
+                {
+                    @foreach (var property in Model.Properties)
+                    {
+                    @:{ HeaderName.@property.MappingName, x => x.@property.EntityCompositeName },
+                    }
+                };
+            }
+        }
+
         /// <inheritdoc cref="BaseMapper{TDto, TEntity, TKey}.DtoToEntity(TDto, TEntity)"/>
         public override void DtoToEntity(@(Model.DtoName) dto, @(Model.EntityName) entity)
         {
@@ -147,6 +163,24 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
                 @:@property.GenerateMapperCSV()
                 }
             });
+        }
+
+        /// <summary>
+        /// Header Names.
+        /// </summary>
+        private struct HeaderName
+        {
+            @foreach(var property in Model.Properties)
+            {
+            @:/// <summary>
+            @:/// Header Name @property.MappingName.
+            @:/// </summary>
+            @:public const string @property.MappingName = "@string.Concat(char.ToLower(property.MappingName[0]), property.MappingName.Substring(1, property.MappingName.Length - 1))";
+                @if(property != Model.Properties.Last())
+                {
+@:
+                }
+            }
         }
     }
 }
