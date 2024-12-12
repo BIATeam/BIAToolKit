@@ -313,7 +313,7 @@
                         MappingType = ComputeMappingType(selectedEntityProperty)
                     };
 
-                    if(biaDtoFieldDateTypesByPropertyType.TryGetValue(mappingEntityProperty.MappingType, out List<string> biaDtoFieldDateTypes))
+                    if(biaDtoFieldDateTypesByPropertyType.TryGetValue(mappingEntityProperty.MappingType.Replace("?", string.Empty), out List<string> biaDtoFieldDateTypes))
                     {
                         var mappingDateTypes = new List<string>();
                         if(mappingEntityProperty.MappingType == "string")
