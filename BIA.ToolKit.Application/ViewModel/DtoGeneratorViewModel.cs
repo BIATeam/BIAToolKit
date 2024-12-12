@@ -343,7 +343,7 @@
                             {
                                 mappingEntityProperty.OptionEntityIdProperties.AddRange(
                                     entityProperties
-                                    .Where(x => x.Type.Equals("int", StringComparison.InvariantCultureIgnoreCase) && !x.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase))
+                                    .Where(x => x.Type.Replace("?", string.Empty).Equals("int", StringComparison.InvariantCultureIgnoreCase) && !x.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase))
                                     .Select(x => x.Name));
 
                                 if(!mappingEntityProperty.OptionEntityIdProperties.Any())
