@@ -22,7 +22,7 @@
         public bool HasParent { get; set; }
         public string ParentName { get; set; }
         public string ParentNamePlural { get; set; }
-        public string ParentDomain { get; set; }
+        public string Domain { get; set; }
     }
 
     public class DtoMapping

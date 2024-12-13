@@ -5,8 +5,6 @@
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
-    using LibGit2Sharp;
-    using Microsoft.Extensions.FileSystemGlobbing.Internal;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -313,7 +311,7 @@
                         MappingType = ComputeMappingType(selectedEntityProperty)
                     };
 
-                    if(biaDtoFieldDateTypesByPropertyType.TryGetValue(mappingEntityProperty.MappingType, out List<string> biaDtoFieldDateTypes))
+                    if(biaDtoFieldDateTypesByPropertyType.TryGetValue(mappingEntityProperty.MappingType.Replace("?", string.Empty), out List<string> biaDtoFieldDateTypes))
                     {
                         var mappingDateTypes = new List<string>();
                         if(mappingEntityProperty.MappingType == "string")
@@ -343,7 +341,7 @@
                             {
                                 mappingEntityProperty.OptionEntityIdProperties.AddRange(
                                     entityProperties
-                                    .Where(x => x.Type.Equals("int", StringComparison.InvariantCultureIgnoreCase) && !x.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase))
+                                    .Where(x => x.Type.Replace("?", string.Empty).Equals("int", StringComparison.InvariantCultureIgnoreCase) && !x.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase))
                                     .Select(x => x.Name));
 
                                 if(!mappingEntityProperty.OptionEntityIdProperties.Any())
@@ -415,7 +413,7 @@
                 return Constants.BiaClassName.CollectionOptionDto;
             }
 
-            if (standardMappingTypes.Any(x => entityProperty.Type.Equals(x, StringComparison.InvariantCultureIgnoreCase)))
+            if (standardMappingTypes.Any(x => entityProperty.Type.Replace("?", string.Empty).Equals(x, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return entityProperty.Type;
             }

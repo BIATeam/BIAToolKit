@@ -36,6 +36,7 @@
             services.AddSingleton<SettingsService>();
             services.AddSingleton<FeatureSettingService>();
             services.AddSingleton<BiaFrameworkFileGeneratorService>();
+            services.AddLogging();
         }
         private void OnStartup(object sender, StartupEventArgs e)
         {

@@ -1,0 +1,56 @@
+﻿@using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Models
+
+@code {
+    [Parameter]
+    public DtoModel Model { get; set; }
+}
+// <copyright file="@(Model.DtoName).cs" company="@(Model.CompanyName)">
+//     Copyright (c) @(Model.CompanyName). All rights reserved.
+// </copyright>
+
+namespace @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainName)
+{
+    using System;
+    @if (Model.HasCollectionOptions)
+    {
+<text>    using System.Collections.Generic;
+</text>
+    }
+    @if (!Model.IsTeamType)
+    {
+<text>    using BIA.Net.Core.Domain.Dto.Base;
+</text>
+    }
+    using BIA.Net.Core.Domain.Dto.CustomAttribute;
+    @if (Model.HasOptions)
+    {
+<text>    using BIA.Net.Core.Domain.Dto.Option;
+</text>
+    }
+    @if (Model.IsTeamType)
+    {
+<text>    using BIA.Net.Core.Domain.Dto.User;
+</text>
+    }
+
+    /// <summary>
+    /// The DTO used to represent @(Model.NameArticle) @(Model.EntityName).
+    /// </summary>
+    public class @(Model.DtoName) : @((MarkupString)(Model.IsTeamType ? "TeamDto" : $"BaseDto<{Model.BaseKeyType}>"))
+    {
+        @{ var properties = Model.Properties.Where(p => !p.MappingName.Equals("Id")).ToList(); }
+        @foreach (var property in properties)
+        {
+<text>        /// <summary>
+        /// Gets or sets the @(property.MappingName).
+        /// </summary>
+        [BiaDtoField(@((MarkupString)property.BiaDtoFieldAttributeProperties))]
+        public @((MarkupString)(property.MappingType)) @(property.MappingName) { get; set; }
+</text>
+            if(property != properties.Last())
+            {
+                @((MarkupString)Environment.NewLine)
+            }
+        }
+    }
+}

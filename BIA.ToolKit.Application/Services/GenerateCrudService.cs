@@ -349,9 +349,8 @@
             string filePartPath = featureData.FilePath.Remove(featureData.FilePath.LastIndexOf(fileName));
             filePartPath = ReplaceCompagnyNameProjetName(filePartPath, currentProject, dtoClassDefiniton);
 
-            var relativeFilePath = Path.Combine(filePartPath, fileName);
+            var relativeFilePath = Path.Combine(filePartPath, this.CrudNames.ConvertPascalOldToNewCrudName(fileName, feature, type));
             relativeFilePath = ReplaceFilePathWithFeatureParentPrincipal(relativeFilePath, GenerationType.WebApi);
-            relativeFilePath = this.CrudNames.ConvertPascalOldToNewCrudName(relativeFilePath, feature, type);
             string dest = Path.Combine(this.DotNetFolderGeneration, relativeFilePath);
 
             return (src, dest);
@@ -1742,7 +1741,8 @@
                     {
                         var currentLine = content[lineIndex];
 
-                        if (!Regex.IsMatch(currentLine, replaceInFile.RegexMatch) || !currentLine.Contains(replaceInFile.Pattern))
+                        if (!Regex.IsMatch(currentLine, replaceInFile.RegexMatch) || 
+                            (!string.IsNullOrWhiteSpace(replaceInFile.Pattern) && !currentLine.Contains(replaceInFile.Pattern)))
                             continue;
 
                         var replaceValue = CrudParent.Exists ?
@@ -1752,7 +1752,8 @@
                         if (replaceValue != null)
                         {
                             replaceValue = ReplaceFeaturePathAdaptationVariables(replaceValue, generationType, featureAdaptPath.RootPath);
-                            currentLine = currentLine.Replace(replaceInFile.Pattern, replaceValue);
+                            var valueToReplace = !string.IsNullOrWhiteSpace(replaceInFile.Pattern) ? replaceInFile.Pattern : Regex.Match(currentLine, replaceInFile.RegexMatch).Groups[1].Value;
+                            currentLine = currentLine.Replace(valueToReplace, replaceValue);
                         }
 
                         if (CrudParent.Exists && replaceInFile.WithParentAddByDeeperLevel != null)

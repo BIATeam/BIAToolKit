@@ -8,33 +8,31 @@
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
-    using RazorLight;
+    using Markdig.Renderers;
+    using Microsoft.AspNetCore.Components;
+    using Microsoft.AspNetCore.Components.Web;
+    using Microsoft.Extensions.Logging;
 
     public class BiaFrameworkFileGeneratorService
     {
         private readonly IConsoleWriter consoleWriter;
+        private readonly IServiceProvider serviceProvider;
+        private readonly ILoggerFactory loggerFactory;
         private readonly BiaFrameworkFileGeneratorFactory biaFrameworkFileGeneratorFactory;
-        private RazorLightEngine razorLightEngine;
         private IBiaFrameworkFileGenerator biaFrameworkFileGenerator;
 
-        public BiaFrameworkFileGeneratorService(IConsoleWriter consoleWriter)
+        public BiaFrameworkFileGeneratorService(IConsoleWriter consoleWriter, IServiceProvider serviceProvider, ILoggerFactory loggerFactory)
         {
             this.consoleWriter = consoleWriter;
+            this.serviceProvider = serviceProvider;
+            this.loggerFactory = loggerFactory;
             biaFrameworkFileGeneratorFactory = new BiaFrameworkFileGeneratorFactory(this, consoleWriter);
         }
 
         public bool Init(Version version)
         {
             biaFrameworkFileGenerator = biaFrameworkFileGeneratorFactory.GetBiaFrameworkFileGenerator(version);
-            if (biaFrameworkFileGenerator is null)
-                return false;
-
-            razorLightEngine = new RazorLightEngineBuilder()
-                .UseEmbeddedResourcesProject(biaFrameworkFileGenerator.GetType().Assembly, biaFrameworkFileGenerator.TemplatesNamespace)
-                .UseMemoryCachingProvider()
-                .Build();
-
-            return true;
+            return biaFrameworkFileGenerator is not null;
         }
 
         public async Task GenerateDto(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
@@ -42,23 +40,23 @@
             await biaFrameworkFileGenerator.GenerateDto(project, entityInfo, domainName, mappingEntityProperties);
         }
 
-        public async Task<string> GenerateFromTemplate(string templateKey, object model)
+        public async Task<string> GenerateFromTemplate(Type templateType, object model)
         {
-            string content = null;
-
-            try
+            using var htmlRenderer = new Microsoft.AspNetCore.Components.Web.HtmlRenderer(serviceProvider, loggerFactory);
+            var html = await htmlRenderer.Dispatcher.InvokeAsync(async () =>
             {
-                content = await razorLightEngine.CompileRenderAsync(templateKey, model);
+                var dictionary = new Dictionary<string, object>
+                {
+                    { "Model", model }
+                };
 
-                //Remove \r\n from generated content to avoid empty first line
-                content = content.Remove(0, 2);
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine($"ERROR: Fail to generate from template {templateKey} : {ex.Message}", "red");
-            }
+                var parameters = ParameterView.FromDictionary(dictionary);
+                var output = await htmlRenderer.RenderComponentAsync(templateType, parameters);
 
-            return content;
+                return output.ToHtmlString();
+            });
+
+            return html;
         }
 
         public async Task GenerateFile(string content, string path)
