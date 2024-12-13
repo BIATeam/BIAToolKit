@@ -134,7 +134,7 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
                 {
                     if (!property.IsOption && !property.IsOptionCollection)
                     {
-                @:@(property.MappingName) = entity.@(property.EntityCompositeName),
+                @((MarkupString)($"                {property.MappingName} = entity.{property.EntityCompositeName},{Environment.NewLine}"))
                     }
                     else if (property.IsOption)
                     {
@@ -164,7 +164,7 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
             {
                 @foreach (var property in Model.Properties.Where(p => !p.IsOption && !p.IsOptionCollection))
                 {
-                @property.GenerateMapperCSV()
+                @((MarkupString)($"                {property.GenerateMapperCSV()}{Environment.NewLine}"))
                 }
             });
         }
