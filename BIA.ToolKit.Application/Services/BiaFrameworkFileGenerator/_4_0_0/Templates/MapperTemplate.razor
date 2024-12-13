@@ -74,12 +74,28 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
                 {
                     @foreach (var property in Model.Properties)
                     {
+                        if(!property.IsOption && !property.IsOptionCollection)
+                        {
 <text>                    { HeaderName.@property.MappingName, x => x.@property.EntityCompositeName },
 </text>
+                        }
+                        if (property.IsOptionCollection)
+                        {
+<text>                    { HeaderName.@property.MappingName, x => x.@(property.EntityCompositeName).Select(y => y.@property.OptionDisplayProperty).OrderBy(y => y) },
+</text>
+                        }
+                        if(property.IsOption)
+                        {
+<text>                    { HeaderName.@property.MappingName, x => x.@property.EntityCompositeName != null ? x.@(property.EntityCompositeName).@property.OptionDisplayProperty : null },
+</text>
+                        }
                     }
                 };
             }
         }
+
+        @* { HeaderName.ConnectingAirports, plane => plane.ConnectingAirports.Select(x => x.Name).OrderBy(x => x) },
+                    { HeaderName.CurrentAirport, plane => plane.CurrentAirport != null ? plane.CurrentAirport.Name : null }, *@
 
         @((MarkupString)("/// <inheritdoc/>"))
         public override void DtoToEntity(@(Model.DtoName) dto, @(Model.EntityName) entity)
