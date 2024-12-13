@@ -24,7 +24,8 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
     @if (Model.IsTeamType)
     {
 <text>    using System.Security.Principal;
-    using BIA.Net.Core.Common.Extensions;</text>
+    using BIA.Net.Core.Common.Extensions;
+</text>
     }
     using BIA.Net.Core.Domain;
     using BIA.Net.Core.Domain.Dto.Base;
@@ -36,7 +37,8 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
     using @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainName);
     @if (Model.IsTeamType)
     {
-<text>    using @(Model.CompanyName).@(Model.ProjectName).Domain.User.Mappers;</text>
+<text>    using @(Model.CompanyName).@(Model.ProjectName).Domain.User.Mappers;
+</text>
     }
 
     /// <summary>
@@ -46,18 +48,19 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
     {
         @if (Model.IsTeamType)
         {
-        @:/// <summary>
-        @:/// Initializes a new instance of the <see cref="@(Model.EntityName)Mapper"/> class.
-        @:/// </summary>
-        @:/// <param name="principal">The principal.</param>
-        @:public @(Model.EntityName)Mapper(IPrincipal principal)
-        @:    : base(principal)
-        @:{
-        @:}
-@:
-        @((MarkupString)("        /// <inheritdoc/>"))
-        @:public override int TeamType => base.TeamType;
-@:
+<text>        /// <summary>
+        @((MarkupString)($"{Environment.NewLine}        /// Initializes a new instance of the <see cref=\"{Model.EntityName}Mapper\"/> class."))
+        /// </summary>
+        @((MarkupString)("/// <param name=\"principal\">The principal.</param>"))
+        public @(Model.EntityName)Mapper(IPrincipal principal)
+            : base(principal)
+        {
+        }
+
+        @((MarkupString)("/// <inheritdoc/>"))
+        public override int TeamType => base.TeamType;
+
+</text>
         }
         @((MarkupString)("        /// <inheritdoc/>"))
         public override ExpressionCollection@((MarkupString)($"<{Model.EntityName}>")) ExpressionCollection
@@ -83,8 +86,8 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
 
             @if (Model.IsTeamType)
             {
-            @:base.DtoToEntity(dto, entity);
-@:
+<text>            base.DtoToEntity(dto, entity);
+</text>
             }
             @foreach (var property in Model.Properties)
             {
@@ -152,7 +155,8 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
                 }
                 @if (Model.IsTeamType)
                 {
-                @:TeamTypeId = this.TeamType,
+<text>                TeamTypeId = this.TeamType,
+</text>
                 }
             @((MarkupString)(Model.IsTeamType ? "            });" : "            };"))
         }
