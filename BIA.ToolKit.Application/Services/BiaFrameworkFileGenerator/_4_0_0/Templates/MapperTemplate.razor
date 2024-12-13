@@ -94,9 +94,6 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
             }
         }
 
-        @* { HeaderName.ConnectingAirports, plane => plane.ConnectingAirports.Select(x => x.Name).OrderBy(x => x) },
-                    { HeaderName.CurrentAirport, plane => plane.CurrentAirport != null ? plane.CurrentAirport.Name : null }, *@
-
         @((MarkupString)("/// <inheritdoc/>"))
         public override void DtoToEntity(@(Model.DtoName) dto, @(Model.EntityName) entity)
         {
