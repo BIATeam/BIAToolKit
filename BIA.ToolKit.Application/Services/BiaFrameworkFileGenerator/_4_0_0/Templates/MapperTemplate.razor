@@ -4,7 +4,10 @@
     [Parameter]
     public DtoModel Model { get; set; }
 }
-
+@{
+    var baseMapperClass = Model.IsTeamType ? "TTeamMapper" : "BaseMapper";
+    var baseKeyType = Model.IsTeamType ? string.Empty : $", {Model.BaseKeyType}";
+}
 // <copyright file="@(Model.MapperName).cs" company="@(Model.CompanyName)">
 //     Copyright (c) @(Model.CompanyName). All rights reserved.
 // </copyright>
@@ -14,35 +17,31 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
     using System;
     @if (Model.HasCollectionOptions)
     {
-    @:using System.Collections.Generic;
+<text>    using System.Collections.Generic;</text>
     }
     using System.Linq;
     using System.Linq.Expressions;
     @if (Model.IsTeamType)
     {
-    @:using System.Security.Principal;
-    @:using BIA.Net.Core.Common.Extensions;
+<text>    using System.Security.Principal;
+    using BIA.Net.Core.Common.Extensions;</text>
     }
     using BIA.Net.Core.Domain;
     using BIA.Net.Core.Domain.Dto.Base;
     @if (Model.HasOptions)
     {
-    @:using BIA.Net.Core.Domain.Dto.Option;
+<text>    using BIA.Net.Core.Domain.Dto.Option;</text>
     }
     using @Model.EntityNamespace;
     using @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainName);
     @if (Model.IsTeamType)
     {
-    @:using @(Model.CompanyName).@(Model.ProjectName).Domain.User.Mappers;
+<text>    using @(Model.CompanyName).@(Model.ProjectName).Domain.User.Mappers;</text>
     }
 
     /// <summary>
     /// The mapper used for @(Model.EntityName).
     /// </summary>
-    @{
-        var baseMapperClass = Model.IsTeamType ? "TTeamMapper" : "BaseMapper";
-        var baseKeyType = Model.IsTeamType ? string.Empty : $", {Model.BaseKeyType}";
-    }
     public class @(Model.EntityName)Mapper : @(baseMapperClass)@((MarkupString)($"<{Model.DtoName}, {Model.EntityName}{baseKeyType}>"))
     {
         @if (Model.IsTeamType)
@@ -56,11 +55,11 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
         @:{
         @:}
 @:
-        @:/// <inheritdoc/>
+        @((MarkupString)("        /// <inheritdoc/>"))
         @:public override int TeamType => base.TeamType;
 @:
         }
-        /// <inheritdoc/>
+        @((MarkupString)("        /// <inheritdoc/>"))
         public override ExpressionCollection@((MarkupString)($"<{Model.EntityName}>")) ExpressionCollection
         {
             // It is not necessary to implement this function if you to not use the mapper for filtered list. In BIADemo it is use only for Calc SpreadSheet.
@@ -70,13 +69,14 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
                 {
                     @foreach (var property in Model.Properties)
                     {
-                    @:{ HeaderName.@property.MappingName, x => x.@property.EntityCompositeName },
+<text>                    { HeaderName.@property.MappingName, x => x.@property.EntityCompositeName },
+</text>
                     }
                 };
             }
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto, TEntity, TKey}.DtoToEntity(TDto, TEntity)"/>
+        @((MarkupString)("/// <inheritdoc/>"))
         public override void DtoToEntity(@(Model.DtoName) dto, @(Model.EntityName) entity)
         {
             entity ??= new @(Model.EntityName)();
@@ -90,7 +90,8 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
             {
                 if (!property.IsOption && !property.IsOptionCollection)
                 {
-            @:entity.@(property.EntityCompositeName) = dto.@(property.MappingName);
+<text>            entity.@(property.EntityCompositeName) = dto.@(property.MappingName);
+</text>
                 }
                 else if (property.IsOption)
                 {
@@ -124,7 +125,7 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
             }
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto, TEntity, TKey}.EntityToDto()"/>
+        @((MarkupString)("/// <inheritdoc/>"))
         public override Expression@((MarkupString)($"<Func<{Model.EntityName}, {Model.DtoName}>>")) EntityToDto()
         {
             return @((MarkupString)(Model.IsTeamType ? "base.EntityToDto().CombineMapping(" : string.Empty))entity => new @(Model.DtoName)
@@ -153,17 +154,17 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
                 {
                 @:TeamTypeId = this.TeamType,
                 }
-            @((MarkupString)(Model.IsTeamType ? "});" : "};"))
+            @((MarkupString)(Model.IsTeamType ? "            });" : "            };"))
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto, TEntity, TKey}.DtoToRecord"/>
+        @((MarkupString)("/// <inheritdoc/>"))
         public override Func@((MarkupString)($"<{Model.DtoName}, object[]>")) DtoToRecord(List@((MarkupString)("<string>")) headerNames = null)
         {
             return x => (new object[]
             {
                 @foreach (var property in Model.Properties.Where(p => !p.IsOption && !p.IsOptionCollection))
                 {
-                @:@property.GenerateMapperCSV()
+                @property.GenerateMapperCSV()
                 }
             });
         }
@@ -175,13 +176,14 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
         {
             @foreach(var property in Model.Properties)
             {
-            @:/// <summary>
-            @:/// Header Name @property.MappingName.
-            @:/// </summary>
-            @:public const string @property.MappingName = "@string.Concat(char.ToLower(property.MappingName[0]), property.MappingName.Substring(1, property.MappingName.Length - 1))";
-                @if(property != Model.Properties.Last())
+<text>            /// <summary>
+            /// Header Name @property.MappingName.
+            /// </summary>
+            public const string @property.MappingName = @((MarkupString)($"\"{string.Concat(char.ToLower(property.MappingName[0]), property.MappingName.Substring(1, property.MappingName.Length - 1))}\""));
+</text>
+                if(property != Model.Properties.Last())
                 {
-@:
+                    @((MarkupString)Environment.NewLine)
                 }
             }
         }
