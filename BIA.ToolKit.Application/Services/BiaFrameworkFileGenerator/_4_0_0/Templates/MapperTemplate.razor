@@ -17,7 +17,8 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
     using System;
     @if (Model.HasCollectionOptions)
     {
-<text>    using System.Collections.Generic;</text>
+<text>    using System.Collections.Generic;
+</text>
     }
     using System.Linq;
     using System.Linq.Expressions;
@@ -31,7 +32,8 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
     using BIA.Net.Core.Domain.Dto.Base;
     @if (Model.HasOptions)
     {
-<text>    using BIA.Net.Core.Domain.Dto.Option;</text>
+<text>    using BIA.Net.Core.Domain.Dto.Option;
+</text>
     }
     using @Model.EntityNamespace;
     using @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainName);
@@ -98,32 +100,34 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
                 }
                 else if (property.IsOption)
                 {
-            @:entity.@(property.OptionEntityIdPropertyComposite) = dto.@(property.MappingName).Id;
+<text>            entity.@(property.OptionEntityIdPropertyComposite) = dto.@(property.MappingName).Id;
+</text>
                 }
                 else if (property.IsOptionCollection)
                 {
-            @:if (dto.@(property.MappingName) != null && dto.@(property.MappingName).Count != 0)
-            @:{
-            @:    foreach (var optionDto in dto.@(property.MappingName).Where(x => x.DtoState == DtoState.Deleted))
-            @:    {
-            @:        var entityToRemove = entity.@(property.EntityCompositeName).FirstOrDefault(x => x.@(property.OptionIdProperty) == optionDto.Id);
-            @:        if (entityToRemove != null)
-            @:        {
-            @:            entity.@(property.EntityCompositeName).Remove(entityToRemove);
-            @:        }
-            @:    }
-@:
-            @:    entity.@(property.OptionRelationPropertyComposite) = entity.@(property.OptionRelationPropertyComposite) ?? new List<@(property.OptionRelationType)>();
-            @:    foreach (var optionDto in dto.@(property.MappingName).Where(x => x.DtoState == DtoState.Added))
-            @:    {
-            @:        entity.@(property.OptionRelationPropertyComposite).Add(new @(property.OptionRelationType)
-            @:        {
-            @:            @(property.OptionRelationFirstIdProperty) = dto.Id,
-            @:            @(property.OptionRelationSecondIdProperty) = optionDto.Id,
-            @:        });
-            @:    }
-            @:}
-@:
+<text>            if (dto.@(property.MappingName) != null && dto.@(property.MappingName).Count != 0)
+            {
+                foreach (var optionDto in dto.@(property.MappingName).Where(x => x.DtoState == DtoState.Deleted))
+                {
+                    var entityToRemove = entity.@(property.EntityCompositeName).FirstOrDefault(x => x.@(property.OptionIdProperty) == optionDto.Id);
+                    if (entityToRemove != null)
+                    {
+                        entity.@(property.EntityCompositeName).Remove(entityToRemove);
+                    }
+                }
+
+                entity.@(property.OptionRelationPropertyComposite) = entity.@(property.OptionRelationPropertyComposite) ?? @((MarkupString)($"new List<{property.OptionRelationType}>()"));
+                foreach (var optionDto in dto.@(property.MappingName).Where(x => x.DtoState == DtoState.Added))
+                {
+                    entity.@(property.OptionRelationPropertyComposite).Add(new @(property.OptionRelationType)
+                    {
+                        @(property.OptionRelationFirstIdProperty) = dto.Id,
+                        @(property.OptionRelationSecondIdProperty) = optionDto.Id,
+                    });
+                }
+            }
+
+</text>
                 }
             }
         }
@@ -141,16 +145,18 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
                     }
                     else if (property.IsOption)
                     {
-                @:@(property.MappingName) = entity.@(property.EntityCompositeName) != null ?
-                @:  new OptionDto { Id = entity.@(property.EntityCompositeName).@(property.OptionIdProperty), Display = entity.@(property.EntityCompositeName).@(property.OptionDisplayProperty) } :
-                @:  null,
+<text>@($"                {property.MappingName} = entity.{property.EntityCompositeName} != null ?")
+                  new OptionDto { Id = entity.@(property.EntityCompositeName).@(property.OptionIdProperty), Display = entity.@(property.EntityCompositeName).@(property.OptionDisplayProperty) } :
+                  null,
+</text>
                     }
                     else if (property.IsOptionCollection)
                     {
-                @:@(property.MappingName) = entity.@(property.EntityCompositeName)
-                @:.Select(x => new OptionDto { Id = x.@(property.OptionIdProperty), Display = x.@(property.OptionDisplayProperty) })
-                @:.OrderBy(x => x.Display)
-                @:.ToList(),
+<text>@($"                {property.MappingName} = entity.{property.EntityCompositeName}")
+                .Select(x => new OptionDto { Id = x.@(property.OptionIdProperty), Display = x.@(property.OptionDisplayProperty) })
+                .OrderBy(x => x.Display)
+                .ToList(),
+</text>
                     }
                 }
                 @if (Model.IsTeamType)
