@@ -4,7 +4,6 @@
     [Parameter]
     public DtoModel Model { get; set; }
 }
-
 // <copyright file="@(Model.DtoName).cs" company="@(Model.CompanyName)">
 //     Copyright (c) @(Model.CompanyName). All rights reserved.
 // </copyright>
@@ -14,20 +13,24 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainNam
     using System;
     @if (Model.HasCollectionOptions)
     {
-    @:using System.Collections.Generic;
+<text>    using System.Collections.Generic;
+</text>
     }
     @if (!Model.IsTeamType)
     {
-    @:using BIA.Net.Core.Domain.Dto.Base;
+<text>    using BIA.Net.Core.Domain.Dto.Base;
+</text>
     }
     using BIA.Net.Core.Domain.Dto.CustomAttribute;
     @if (Model.HasOptions)
     {
-    @:using BIA.Net.Core.Domain.Dto.Option;
+<text>    using BIA.Net.Core.Domain.Dto.Option;
+</text>
     }
     @if (Model.IsTeamType)
     {
-    @:using BIA.Net.Core.Domain.Dto.User;
+<text>    using BIA.Net.Core.Domain.Dto.User;
+</text>
     }
 
     /// <summary>
@@ -38,15 +41,13 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainNam
         @{ var properties = Model.Properties.Where(p => !p.MappingName.Equals("Id")).ToList(); }
         @foreach (var property in properties)
         {
-            @:/// <summary>
-            @:/// Gets or sets the @(property.MappingName).
-            @:/// </summary>
-            @:[BiaDtoField(@((MarkupString)(property.BiaDtoFieldAttributeProperties))]
-            @:public @((MarkupString)(property.MappingType)) @(property.MappingName) { get; set; }
-            @if(property != properties.Last())
-            {
-@:
-            }
+<text>        /// <summary>
+        /// Gets or sets the @(property.MappingName).
+        /// </summary>
+        [BiaDtoField(@((MarkupString)property.BiaDtoFieldAttributeProperties))]
+        public @((MarkupString)(property.MappingType)) @(property.MappingName) { get; set; }
+
+</text>
         }
     }
 }
