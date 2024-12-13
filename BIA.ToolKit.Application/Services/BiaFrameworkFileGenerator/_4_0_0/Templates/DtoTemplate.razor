@@ -46,8 +46,11 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainNam
         /// </summary>
         [BiaDtoField(@((MarkupString)property.BiaDtoFieldAttributeProperties))]
         public @((MarkupString)(property.MappingType)) @(property.MappingName) { get; set; }
-
 </text>
+            if(property != properties.Last())
+            {
+                @((MarkupString)Environment.NewLine)
+            }
         }
     }
 }
