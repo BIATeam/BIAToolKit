@@ -1,6 +1,9 @@
-@using RazorLight
-@using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Models
-@inherits RazorLight.TemplatePage<DtoModel>
+﻿@using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Models
+
+@code {
+    [Parameter]
+    public DtoModel Model { get; set; }
+}
 
 // <copyright file="@(Model.MapperName).cs" company="@(Model.CompanyName)">
 //     Copyright (c) @(Model.CompanyName). All rights reserved.
@@ -40,7 +43,7 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
         var baseMapperClass = Model.IsTeamType ? "TTeamMapper" : "BaseMapper";
         var baseKeyType = Model.IsTeamType ? string.Empty : $", {Model.BaseKeyType}";
     }
-    public class @(Model.EntityName)Mapper : @(baseMapperClass)<@(Model.DtoName), @(Model.EntityName)@(baseKeyType)>
+    public class @(Model.EntityName)Mapper : @(baseMapperClass)@((MarkupString)($"<{Model.DtoName}, {Model.EntityName}{baseKeyType}>"))
     {
         @if (Model.IsTeamType)
         {
@@ -58,12 +61,12 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
 @:
         }
         /// <inheritdoc/>
-        public override ExpressionCollection<@(Model.EntityName)> ExpressionCollection
+        public override ExpressionCollection@((MarkupString)($"<{Model.EntityName}>")) ExpressionCollection
         {
             // It is not necessary to implement this function if you to not use the mapper for filtered list. In BIADemo it is use only for Calc SpreadSheet.
             get
             {
-                return new ExpressionCollection<@(Model.EntityName)>
+                return new ExpressionCollection@((MarkupString)($"<{Model.EntityName}>"))
                 {
                     @foreach (var property in Model.Properties)
                     {
@@ -122,9 +125,9 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
         }
 
         /// <inheritdoc cref="BaseMapper{TDto, TEntity, TKey}.EntityToDto()"/>
-        public override Expression<Func<@(Model.EntityName), @(Model.DtoName)>> EntityToDto()
+        public override Expression@((MarkupString)($"<Func<{Model.EntityName}, {Model.DtoName}>>")) EntityToDto()
         {
-            return @Raw(Model.IsTeamType ? "base.EntityToDto().CombineMapping(" : string.Empty)entity => new @(Model.DtoName)
+            return @((MarkupString)(Model.IsTeamType ? "base.EntityToDto().CombineMapping(" : string.Empty))entity => new @(Model.DtoName)
             {
                 @foreach (var property in Model.Properties)
                 {
@@ -150,11 +153,11 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.@(Model.DomainName).M
                 {
                 @:TeamTypeId = this.TeamType,
                 }
-            @Raw(Model.IsTeamType ? "});" : "};")
+            @((MarkupString)(Model.IsTeamType ? "});" : "};"))
         }
 
         /// <inheritdoc cref="BaseMapper{TDto, TEntity, TKey}.DtoToRecord"/>
-        public override Func<@(Model.DtoName), object[]> DtoToRecord(List<string> headerNames = null)
+        public override Func@((MarkupString)($"<{Model.DtoName}, object[]>")) DtoToRecord(List@((MarkupString)("<string>")) headerNames = null)
         {
             return x => (new object[]
             {

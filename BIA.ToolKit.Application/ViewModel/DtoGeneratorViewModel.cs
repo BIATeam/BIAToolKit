@@ -5,8 +5,6 @@
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
-    using LibGit2Sharp;
-    using Microsoft.Extensions.FileSystemGlobbing.Internal;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;

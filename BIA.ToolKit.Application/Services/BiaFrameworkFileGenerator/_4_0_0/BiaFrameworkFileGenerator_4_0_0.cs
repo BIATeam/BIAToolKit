@@ -8,6 +8,7 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
     using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Models;
+    using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Templates;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
@@ -81,7 +82,7 @@
             }
 
             consoleWriter.AddMessageLine($"Generating DTO...");
-            var dtoContent = await fileGeneratorService.GenerateFromTemplate(Common.TemplateKey_Dto, model);
+            var dtoContent = await fileGeneratorService.GenerateFromTemplate(typeof(DtoTemplate), model);
             var dtoDestPath = Path.Combine(
                 project.Folder,
                 Constants.FolderDotNet,
@@ -92,7 +93,7 @@
             consoleWriter.AddMessageLine($"DTO successfully generated !", "green");
 
             consoleWriter.AddMessageLine($"Generating mapper...");
-            var mapperContent = await fileGeneratorService.GenerateFromTemplate(Common.TemplateKey_Mapper, model);
+            var mapperContent = await fileGeneratorService.GenerateFromTemplate(typeof(MapperTemplate), model);
             var mapperDestPath = Path.Combine(
                 Path.GetDirectoryName(entityInfo.Path),
                 "..",
