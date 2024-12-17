@@ -15,6 +15,7 @@
         public List<string> Partial { get; }
         public List<FeatureParent> Parents { get; set; }
         public bool NeedParent { get; set; }
+        public List<FeatureAdaptPath> AdaptPaths { get; set; } = new();
 
         public FeatureGenerationSettings()
         {

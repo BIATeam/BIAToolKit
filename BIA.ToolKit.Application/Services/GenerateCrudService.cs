@@ -78,7 +78,7 @@
                 if (crudBackFeatureType != null && crudBackFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet files on '{DotNetFolderGeneration}' ***", "Green");
-                    GenerateWebApi(crudBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, crudBackFeatureType.Feature, FeatureType.CRUD, crudDtoEntity, crudBackFeatureType.Parents);
+                    GenerateWebApi(crudBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, crudBackFeatureType.Feature, FeatureType.CRUD, crudDtoEntity, crudBackFeatureType.Parents, crudBackFeatureType.AdaptPaths);
                 }
 
                 // Generate Option DotNet files
@@ -86,7 +86,7 @@
                 if (optionBackFeatureType != null && optionBackFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet Option files on '{DotNetFolderGeneration}' ***", "Green");
-                    GenerateWebApi(optionBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, optionBackFeatureType.Feature, FeatureType.Option, crudDtoEntity, optionBackFeatureType.Parents);
+                    GenerateWebApi(optionBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, optionBackFeatureType.Feature, FeatureType.Option, crudDtoEntity, optionBackFeatureType.Parents, optionBackFeatureType.AdaptPaths);
                 }
 
                 // Generate Team DotNet files
@@ -94,7 +94,7 @@
                 if (teamBackFeatureType != null && teamBackFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet files on '{DotNetFolderGeneration}' ***", "Green");
-                    GenerateWebApi(teamBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, teamBackFeatureType.Feature, FeatureType.Team, crudDtoEntity, teamBackFeatureType.Parents);
+                    GenerateWebApi(teamBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, teamBackFeatureType.Feature, FeatureType.Team, crudDtoEntity, teamBackFeatureType.Parents, teamBackFeatureType.AdaptPaths);
                 }
 
                 // *** Generate Angular files ***
@@ -111,7 +111,7 @@
                     else
                     {
                         WebApiFeatureData dtoRefFeature = (WebApiFeatureData)crudBackFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
-                        GenerateFrontCRUD(crudFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, crudFrontFeatureType.Feature, crudFrontFeatureType.FeatureType, crudFrontFeatureType.Parents);
+                        GenerateFrontCRUD(crudFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, crudFrontFeatureType.Feature, crudFrontFeatureType.FeatureType, crudFrontFeatureType.Parents, crudFrontFeatureType.AdaptPaths);
                     }
                 }
 
@@ -120,7 +120,7 @@
                 if (optionFrontFeatureType != null && optionFrontFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate Angular Option files on '{AngularFolderGeneration}' ***", "Green");
-                    GenerateFrontOption(optionFrontFeatureType.FeatureDataList, crudDtoEntity, optionFrontFeatureType.Feature);
+                    GenerateFrontOption(optionFrontFeatureType.FeatureDataList, crudDtoEntity, optionFrontFeatureType.Feature, optionFrontFeatureType.AdaptPaths);
                 }
 
                 // Generate Team Angular files
@@ -136,7 +136,7 @@
                     else
                     {
                         WebApiFeatureData dtoRefFeature = (WebApiFeatureData)teamBackFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
-                        GenerateFrontCRUD(teamFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, teamFrontFeatureType.Feature, teamFrontFeatureType.FeatureType, teamFrontFeatureType.Parents);
+                        GenerateFrontCRUD(teamFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, teamFrontFeatureType.Feature, teamFrontFeatureType.FeatureType, teamFrontFeatureType.Parents, teamFrontFeatureType.AdaptPaths);
                     }
                 }
 
@@ -206,7 +206,7 @@
 
         #region Feature
         private void GenerateWebApi(List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties, string displayItem,
-            string feature, FeatureType type, EntityInfo crudDtoEntity, List<FeatureParent> featureParents)
+            string feature, FeatureType type, EntityInfo crudDtoEntity, List<FeatureParent> featureParents, List<FeatureAdaptPath> adaptPaths)
         {
             try
             {
@@ -225,16 +225,15 @@
                     }
 
                     // Update files (not partial)
-                    UpdateBackFile(currentProject, crudData, classDefiniton, crudNamespaceList, crudDtoProperties, displayItem, feature, type, crudDtoEntity);
+                    UpdateBackFile(currentProject, crudData, classDefiniton, crudNamespaceList, crudDtoProperties, displayItem, feature, type, crudDtoEntity, adaptPaths);
                 }
 
                 // Update partial files
                 foreach (WebApiFeatureData crudData in featureDataList.Where(ft => ft.IsPartialFile))
                 {
                     // Update with partial value
-                    UpdatePartialFile(this.DotNetFolderGeneration, currentProject, crudData, feature, type, GenerationType.WebApi, classDefiniton);
+                    UpdatePartialFile(this.DotNetFolderGeneration, currentProject, crudData, feature, type, GenerationType.WebApi, adaptPaths, classDefiniton);
                 }
-
             }
             catch (Exception ex)
             {
@@ -243,7 +242,7 @@
         }
 
         private void GenerateFrontCRUD(List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties, EntityInfo crudDtoEntity,
-            List<PropertyInfo> dtoRefProperties, string displayItem, List<string> optionItem, string feature, FeatureType type, List<FeatureParent> featureParents)
+            List<PropertyInfo> dtoRefProperties, string displayItem, List<string> optionItem, string feature, FeatureType type, List<FeatureParent> featureParents, List<FeatureAdaptPath> adaptPaths)
         {
             try
             {
@@ -258,17 +257,17 @@
                     if (crudData.IsPartialFile)
                     {
                         // Update with partial file
-                        UpdatePartialFile(this.AngularFolderGeneration, currentProject, crudData, feature, type, GenerationType.Front);
+                        UpdatePartialFile(this.AngularFolderGeneration, currentProject, crudData, feature, type, GenerationType.Front, adaptPaths);
                     }
                     else
                     {
                         GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, dtoRefProperties, displayItem, feature, type, GenerationType.Front, optionItem);
 
                         // Create file
-                        (string src, string dest) = GetAngularFilesPath(crudData, feature, type);
+                        (string src, string dest) = GetAngularFilesPath(crudData, feature, type, adaptPaths);
 
                         // Replace blocks
-                        GenerateAngularFile(feature, type, src, dest, crudDtoEntity, crudData, generationData, crudDtoProperties, propertyList);
+                        GenerateAngularFile(feature, type, src, dest, crudDtoEntity, crudData, adaptPaths, generationData, crudDtoProperties, propertyList);
                     }
                 }
             }
@@ -278,7 +277,7 @@
             }
         }
 
-        private void GenerateFrontOption(List<FeatureData> featureDataList, EntityInfo crudDtoEntity, string feature)
+        private void GenerateFrontOption(List<FeatureData> featureDataList, EntityInfo crudDtoEntity, string feature, List<FeatureAdaptPath> adaptPaths)
         {
             const FeatureType type = FeatureType.Option;
             try
@@ -286,10 +285,10 @@
                 foreach (FeatureData featureData in featureDataList)
                 {
                     // Create file
-                    (string src, string dest) = GetAngularFilesPath(featureData, feature, type);
+                    (string src, string dest) = GetAngularFilesPath(featureData, feature, type, adaptPaths);
 
                     // replace blocks 
-                    GenerateAngularFile(feature, type, src, dest, crudDtoEntity, featureData);
+                    GenerateAngularFile(feature, type, src, dest, crudDtoEntity, featureData, adaptPaths);
                 }
             }
             catch (Exception ex)
@@ -307,9 +306,9 @@
 
         #region DotNet Files
         private void UpdateBackFile(Project currentProject, WebApiFeatureData crudData, ClassDefinition dtoClassDefiniton, List<WebApiNamespace> crudNamespaceList,
-            List<CrudProperty> crudDtoProperties, string displayItem, string feature, FeatureType type, EntityInfo crudDtoEntity)
+            List<CrudProperty> crudDtoProperties, string displayItem, string feature, FeatureType type, EntityInfo crudDtoEntity, List<FeatureAdaptPath> adaptPaths)
         {
-            (string src, string dest) = GetDotNetFilesPath(currentProject, crudData, dtoClassDefiniton, feature, type);
+            (string src, string dest) = GetDotNetFilesPath(currentProject, crudData, dtoClassDefiniton, feature, type, adaptPaths);
 
             // Prepare destination folder
             CommonTools.CheckFolder(new FileInfo(dest).DirectoryName);
@@ -335,13 +334,14 @@
                 fileLinesContent[i] = this.CrudNames.ConvertCamelOldToNewCrudName(this.CrudNames.ConvertPascalOldToNewCrudName(fileLinesContent[i], feature, type), feature, type);
             }
 
+            ApplyReplaceInFiles(adaptPaths, fileLinesContent, GenerationType.WebApi);
             ReplaceContentWithFeatureParentPrincipal(fileLinesContent, GenerationType.WebApi);
 
             // Generate new file
             CommonTools.GenerateFile(dest, fileLinesContent);
         }
 
-        private (string, string) GetDotNetFilesPath(Project currentProject, WebApiFeatureData featureData, ClassDefinition dtoClassDefiniton, string feature, FeatureType type)
+        private (string, string) GetDotNetFilesPath(Project currentProject, WebApiFeatureData featureData, ClassDefinition dtoClassDefiniton, string feature, FeatureType type, List<FeatureAdaptPath> adaptPaths)
         {
             string src = Path.Combine(featureData.ExtractDirPath, featureData.FilePath);
 
@@ -350,7 +350,12 @@
             filePartPath = ReplaceCompagnyNameProjetName(filePartPath, currentProject, dtoClassDefiniton);
 
             var relativeFilePath = Path.Combine(filePartPath, this.CrudNames.ConvertPascalOldToNewCrudName(fileName, feature, type));
-            relativeFilePath = ReplaceFilePathWithFeatureParentPrincipal(relativeFilePath, GenerationType.WebApi);
+
+            relativeFilePath = ApplyMoveFiles(adaptPaths, relativeFilePath, GenerationType.WebApi);
+            if (FeatureParentPrincipal != null)
+            {
+                relativeFilePath = ReplaceFilePathWithFeatureParentPrincipal(relativeFilePath, GenerationType.WebApi);
+            }
 
             string dest = Path.Combine(this.DotNetFolderGeneration, relativeFilePath);
 
@@ -466,13 +471,18 @@
         #endregion
 
         #region Partial Files
-        private void UpdatePartialFile(string workingFolder, Project currentProject, FeatureData crudData, string feature, FeatureType type, GenerationType generationType, ClassDefinition dtoClassDefiniton = null)
+        private void UpdatePartialFile(string workingFolder, Project currentProject, FeatureData crudData, string feature, FeatureType type, GenerationType generationType, List<FeatureAdaptPath> adaptPaths, ClassDefinition dtoClassDefiniton = null)
         {
             string markerBegin, markerEnd, suffix;
             List<string> contentToAdd;
 
             string partialFilePath = GetPartialFilePath(crudData, dtoClassDefiniton, workingFolder);
-            partialFilePath = ReplaceFilePathWithFeatureParentPrincipal(partialFilePath, generationType);
+            
+            partialFilePath = ApplyMoveFiles(adaptPaths, partialFilePath, generationType);
+            if (FeatureParentPrincipal != null)
+            {
+                partialFilePath = ReplaceFilePathWithFeatureParentPrincipal(partialFilePath, generationType);
+            }
 
             string partialName = this.CrudNames.GetOldFeatureNameSingularPascal(feature, type);
 
@@ -570,7 +580,7 @@
         #endregion
 
         #region Angular Files
-        private void GenerateAngularFile(string feature, FeatureType type, string fileName, string newFileName, EntityInfo crudDtoEntity, FeatureData featureData,
+        private void GenerateAngularFile(string feature, FeatureType type, string fileName, string newFileName, EntityInfo crudDtoEntity, FeatureData featureData, List<FeatureAdaptPath> adaptPaths,
             GenerationCrudData generationData = null, List<CrudProperty> crudDtoProperties = null, List<CRUDPropertyType> propertyList = null)
         {
             if (!File.Exists(fileName))
@@ -589,17 +599,24 @@
             fileLinesContent = UpdateFileContent(fileLinesContent, generationData, fileName, crudDtoEntity, feature, type, crudDtoProperties, propertyList);
             fileLinesContent = UpdateFileLinesContent(fileLinesContent, feature, type);
 
+            ApplyReplaceInFiles(adaptPaths, fileLinesContent, GenerationType.Front);
             ReplaceContentWithFeatureParentPrincipal(fileLinesContent, GenerationType.Front);
 
             // Generate new file
             CommonTools.GenerateFile(newFileName, fileLinesContent);
         }
 
-        private (string, string) GetAngularFilesPath(FeatureData featureData, string feature, FeatureType type)
+        private (string, string) GetAngularFilesPath(FeatureData featureData, string feature, FeatureType type, List<FeatureAdaptPath> adaptPaths)
         {
             string src = Path.Combine(featureData.ExtractDirPath, featureData.FilePath);
 
-            var filePathDest = ReplaceFilePathWithFeatureParentPrincipal(featureData.FilePath, GenerationType.Front);
+            var filePathDest = featureData.FilePath;
+            
+            filePathDest = ApplyMoveFiles(adaptPaths, filePathDest, GenerationType.WebApi);
+            if (FeatureParentPrincipal != null)
+            {
+                filePathDest = ReplaceFilePathWithFeatureParentPrincipal(filePathDest, GenerationType.Front);
+            }
 
             string dest = Path.Combine(this.AngularFolderGeneration, filePathDest);
             dest = dest
@@ -1570,7 +1587,7 @@
                             }
                             else
                             {
-                                (_, dest) = GetDotNetFilesPath(currentProject, webApiFeatureData, webApiFeatureData.ClassFileDefinition, feature, featureType);
+                                (_, dest) = GetDotNetFilesPath(currentProject, webApiFeatureData, webApiFeatureData.ClassFileDefinition, feature, featureType, zipFeature.AdaptPaths);
                             }
                             break;
                         case GenerationType.Front:
@@ -1580,7 +1597,7 @@
                             }
                             else
                             {
-                                (_, dest) = GetAngularFilesPath(featureData, feature, featureType);
+                                (_, dest) = GetAngularFilesPath(featureData, feature, featureType, zipFeature.AdaptPaths);
                             }
                             break;
                         default:
@@ -1632,7 +1649,7 @@
                         continue;
                     }
 
-                    (_, dest) = GetAngularFilesPath(featureData, feature, featureType);
+                    (_, dest) = GetAngularFilesPath(featureData, feature, featureType, zipFeature.AdaptPaths);
                     if (string.IsNullOrWhiteSpace(dest))
                     {
                         // Error !
@@ -1696,7 +1713,7 @@
         }
         #endregion
 
-        #region Replace with FeatureParentPrincipal
+        #region Adapt paths and move files
         private string ReplaceFilePathWithFeatureParentPrincipal(string filePath, GenerationType generationType)
         {
             if (FeatureParentPrincipal == null)
@@ -1737,15 +1754,15 @@
             if (FeatureParentPrincipal == null)
                 return;
 
-            foreach (var featureAdaptPath in FeatureParentPrincipal.AdaptPaths)
+            foreach (var adaptPath in FeatureParentPrincipal.AdaptPaths)
             {
-                foreach (var replaceInFile in featureAdaptPath.ReplaceInFiles)
+                foreach (var replaceInFile in adaptPath.ReplaceInFiles)
                 {
                     for (int lineIndex = 0; lineIndex < content.Count; lineIndex++)
                     {
                         var currentLine = content[lineIndex];
 
-                        if (!Regex.IsMatch(currentLine, replaceInFile.RegexMatch) || 
+                        if (!Regex.IsMatch(currentLine, replaceInFile.RegexMatch) ||
                             (!string.IsNullOrWhiteSpace(replaceInFile.Pattern) && !currentLine.Contains(replaceInFile.Pattern)))
                             continue;
 
@@ -1755,7 +1772,7 @@
 
                         if (replaceValue != null)
                         {
-                            replaceValue = ReplaceFeaturePathAdaptationVariables(replaceValue, generationType, featureAdaptPath.RootPath);
+                            replaceValue = ReplaceFeaturePathAdaptationVariables(replaceValue, generationType, adaptPath.RootPath);
                             var valueToReplace = !string.IsNullOrWhiteSpace(replaceInFile.Pattern) ? replaceInFile.Pattern : Regex.Match(currentLine, replaceInFile.RegexMatch).Groups[1].Value;
                             currentLine = currentLine.Replace(valueToReplace, replaceValue);
                         }
@@ -1764,18 +1781,77 @@
                         {
                             var deepLevelIdentifierMatchesCount = Regex.Matches(
                                 Path.Combine(
-                                    GetParentRelativePathByGenerationType(generationType, featureAdaptPath.RootPath), 
-                                    featureAdaptPath.DeepLevelIdentifier),
-                                featureAdaptPath.DeepLevelIdentifier)
+                                    GetParentRelativePathByGenerationType(generationType, adaptPath.RootPath),
+                                    adaptPath.DeepLevelIdentifier),
+                                adaptPath.DeepLevelIdentifier)
                                 .Count;
 
                             replaceValue = replaceInFile.Pattern;
-                            for (int i = featureAdaptPath.InitialDeepLevel; i < deepLevelIdentifierMatchesCount; i++)
+                            for (int i = adaptPath.InitialDeepLevel; i < deepLevelIdentifierMatchesCount; i++)
                             {
                                 replaceValue += replaceInFile.WithParentAddByDeeperLevel;
                             }
 
                             currentLine = currentLine.Replace(replaceInFile.Pattern, replaceValue);
+                        }
+
+                        content[lineIndex] = currentLine;
+                    }
+                }
+            }
+        }
+
+        private string ApplyMoveFiles(List<FeatureAdaptPath> adaptPaths, string filePath, GenerationType generationType)
+        {
+            var relativeFilePath = generationType switch
+            {
+                GenerationType.WebApi => filePath.Replace($"{this.DotNetFolderGeneration}\\", string.Empty),
+                GenerationType.Front => filePath.Replace($"{this.AngularFolderGeneration}\\", string.Empty),
+                _ => filePath
+            };
+
+            foreach (var featureAdaptPath in adaptPaths)
+            {
+                foreach (var featureMoveFiles in featureAdaptPath.MoveFiles)
+                {
+                    var featureRelativePathFrom = Path.Combine(featureAdaptPath.RootPath, featureMoveFiles.FromRelativePath);
+                    if (!relativeFilePath.StartsWith(featureRelativePathFrom))
+                        continue;
+
+                    var replaceValue = featureMoveFiles.ToRelativePathNoParent;
+
+                    if (replaceValue != null)
+                    {
+                        replaceValue = ReplaceFeaturePathAdaptationVariables(replaceValue, generationType, featureAdaptPath.RootPath);
+                        return filePath.Replace(featureMoveFiles.FromRelativePath, replaceValue);
+                    }
+                }
+            }
+
+            return filePath;
+        }
+
+        private void ApplyReplaceInFiles(List<FeatureAdaptPath> adaptPaths, List<string> content, GenerationType generationType)
+        {
+            foreach (var adaptPath in adaptPaths)
+            {
+                foreach (var replaceInFile in adaptPath.ReplaceInFiles)
+                {
+                    for (int lineIndex = 0; lineIndex < content.Count; lineIndex++)
+                    {
+                        var currentLine = content[lineIndex];
+
+                        if (!Regex.IsMatch(currentLine, replaceInFile.RegexMatch) ||
+                            (!string.IsNullOrWhiteSpace(replaceInFile.Pattern) && !currentLine.Contains(replaceInFile.Pattern)))
+                            continue;
+
+                        var replaceValue = replaceInFile.NoParentValue;
+
+                        if (replaceValue != null)
+                        {
+                            replaceValue = ReplaceFeaturePathAdaptationVariables(replaceValue, generationType, adaptPath.RootPath);
+                            var valueToReplace = !string.IsNullOrWhiteSpace(replaceInFile.Pattern) ? replaceInFile.Pattern : Regex.Match(currentLine, replaceInFile.RegexMatch).Groups[1].Value;
+                            currentLine = currentLine.Replace(valueToReplace, replaceValue);
                         }
 
                         content[lineIndex] = currentLine;

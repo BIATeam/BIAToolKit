@@ -369,7 +369,7 @@
                 if (featureType == FeatureType.Option)
                     continue;
 
-                var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent);
+                var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths);
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
 
@@ -379,7 +379,7 @@
                 if (featureType == FeatureType.Option)
                     continue;
 
-                var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent);
+                var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths);
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
 
