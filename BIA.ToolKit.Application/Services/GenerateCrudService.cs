@@ -697,6 +697,9 @@
 
         private List<string> ReplaceDisplayItem(List<string> fileLinesContent, List<KeyValuePair<string, string>> displayToUpdate)
         {
+            string beginMarker = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Display}";
+            string endMarker = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Display}";
+
             foreach (KeyValuePair<string, string> display in displayToUpdate)
             {
                 int index = fileLinesContent.FindIndex(x => x.Contains(display.Key));
@@ -706,7 +709,7 @@
                 }
             }
 
-            return fileLinesContent;
+            return fileLinesContent.Where(x => !x.Contains(beginMarker) && !x.Contains(endMarker)).ToList();
         }
 
         private List<string> DeleteChildrenBlocks(List<string> fileLinesContent, List<string> childrenName)
