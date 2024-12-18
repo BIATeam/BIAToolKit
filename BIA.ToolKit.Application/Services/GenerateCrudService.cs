@@ -53,6 +53,7 @@
 
         private CrudParent CrudParent { get; set; }
         private FeatureParent FeatureParentPrincipal { get; set; }
+        private string FeatureDomain { get; set; }
 
         /// <summary>
         /// Constructor.
@@ -63,11 +64,12 @@
         }
 
         public bool GenerateFiles(EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList,
-                                        string displayItem, List<string> options, CrudParent crudParent, string featureSelected)
+                                        string displayItem, List<string> options, CrudParent crudParent, string featureSelected, string featureDomain)
         {
             try
             {
-                CrudParent = crudParent;
+                CrudParent = crudParent ?? new CrudParent();
+                FeatureDomain = featureDomain;
 
                 // Get CRUD dto properties
                 List<CrudProperty> crudDtoProperties = GetDtoProperties(crudDtoEntity);
@@ -1870,7 +1872,7 @@
             {
                 content = content.Replace(
                     Constants.FeaturePathAdaptation.DomainName,
-                    CrudParent.Domain);
+                    FeatureDomain);
             }
 
             if (CrudParent.Exists)

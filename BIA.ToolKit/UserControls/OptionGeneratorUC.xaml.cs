@@ -170,17 +170,11 @@
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            var crudParent = new CrudParent
-            {
-                Exists = true,
-                Domain = vm.Domain
-            };
-
             crudService.CrudNames.InitRenameValues(vm.EntitySelected, vm.EntityNamePlural);
 
             // Generation DotNet + Angular files
             var featureName = vm.ZipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Option)?.Feature;
-            vm.IsGenerated = crudService.GenerateFiles(vm.Entity, vm.ZipFeatureTypeList, vm.EntityDisplayItemSelected, null, crudParent, FeatureType.Option.ToString());
+            vm.IsGenerated = crudService.GenerateFiles(vm.Entity, vm.ZipFeatureTypeList, vm.EntityDisplayItemSelected, null, null, FeatureType.Option.ToString(), vm.Domain);
             
             // Generate generation history file
             UpdateOptionGenerationHistory();

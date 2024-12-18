@@ -210,7 +210,7 @@
 
             // Generation DotNet + Angular files
             List<string> optionsItems = vm.OptionItems.Any() ? vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
-            vm.IsDtoGenerated = crudService.GenerateFiles(vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, crudParent, vm.FeatureNameSelected);
+            vm.IsDtoGenerated = crudService.GenerateFiles(vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, crudParent, vm.FeatureNameSelected, vm.Domain);
             
             // Generate generation history file
             UpdateCrudGenerationHistory();
