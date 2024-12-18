@@ -543,9 +543,14 @@
         public List<FeatureAdaptPath> AdaptPaths { get; set; }
 
         /// <summary>
+        /// The feature domain
+        /// </summary>
+        public string Domain { get; set; }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
-        public ZipFeatureType(FeatureType type, GenerationType generation, string zipName, string zipPath, string feature, List<FeatureParent> parents, bool needParent, List<FeatureAdaptPath> adaptPaths)
+        public ZipFeatureType(FeatureType type, GenerationType generation, string zipName, string zipPath, string feature, List<FeatureParent> parents, bool needParent, List<FeatureAdaptPath> adaptPaths, string domain)
         {
             this.FeatureType = type;
             this.GenerationType = generation;
@@ -555,6 +560,7 @@
             this.Parents = parents;
             this.NeedParent = needParent;
             this.AdaptPaths = adaptPaths;
+            this.Domain = domain;
         }
     }
 

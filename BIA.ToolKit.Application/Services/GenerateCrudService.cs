@@ -54,6 +54,7 @@
         private CrudParent CrudParent { get; set; }
         private FeatureParent FeatureParentPrincipal { get; set; }
         private string FeatureDomain { get; set; }
+        private string FeatureTargetDomain { get; set; }
 
         /// <summary>
         /// Constructor.
@@ -69,7 +70,7 @@
             try
             {
                 CrudParent = crudParent ?? new CrudParent();
-                FeatureDomain = featureDomain;
+                FeatureTargetDomain = featureDomain;
 
                 // Get CRUD dto properties
                 List<CrudProperty> crudDtoProperties = GetDtoProperties(crudDtoEntity);
@@ -80,7 +81,7 @@
                 if (crudBackFeatureType != null && crudBackFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet files on '{DotNetFolderGeneration}' ***", "Green");
-                    GenerateWebApi(crudBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, crudBackFeatureType.Feature, FeatureType.CRUD, crudDtoEntity, crudBackFeatureType.Parents, crudBackFeatureType.AdaptPaths);
+                    GenerateWebApi(crudBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, crudBackFeatureType.Feature, FeatureType.CRUD, crudDtoEntity, crudBackFeatureType.Parents, crudBackFeatureType.AdaptPaths, crudBackFeatureType.Domain);
                 }
 
                 // Generate Option DotNet files
@@ -88,7 +89,7 @@
                 if (optionBackFeatureType != null && optionBackFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet Option files on '{DotNetFolderGeneration}' ***", "Green");
-                    GenerateWebApi(optionBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, optionBackFeatureType.Feature, FeatureType.Option, crudDtoEntity, optionBackFeatureType.Parents, optionBackFeatureType.AdaptPaths);
+                    GenerateWebApi(optionBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, optionBackFeatureType.Feature, FeatureType.Option, crudDtoEntity, optionBackFeatureType.Parents, optionBackFeatureType.AdaptPaths, optionBackFeatureType.Domain);
                 }
 
                 // Generate Team DotNet files
@@ -96,7 +97,7 @@
                 if (teamBackFeatureType != null && teamBackFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet files on '{DotNetFolderGeneration}' ***", "Green");
-                    GenerateWebApi(teamBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, teamBackFeatureType.Feature, FeatureType.Team, crudDtoEntity, teamBackFeatureType.Parents, teamBackFeatureType.AdaptPaths);
+                    GenerateWebApi(teamBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, teamBackFeatureType.Feature, FeatureType.Team, crudDtoEntity, teamBackFeatureType.Parents, teamBackFeatureType.AdaptPaths, teamBackFeatureType.Domain);
                 }
 
                 // *** Generate Angular files ***
@@ -208,12 +209,12 @@
 
         #region Feature
         private void GenerateWebApi(List<FeatureData> featureDataList, Project currentProject, List<CrudProperty> crudDtoProperties, string displayItem,
-            string feature, FeatureType type, EntityInfo crudDtoEntity, List<FeatureParent> featureParents, List<FeatureAdaptPath> adaptPaths)
+            string feature, FeatureType type, EntityInfo crudDtoEntity, List<FeatureParent> featureParents, List<FeatureAdaptPath> adaptPaths, string featureDomain)
         {
             try
             {
                 ClassDefinition classDefiniton = featureDataList.Cast<WebApiFeatureData>().FirstOrDefault(x => x.FileType == WebApiFileType.Controller || x.FileType == WebApiFileType.OptionsController)?.ClassFileDefinition;
-                List<WebApiNamespace> crudNamespaceList = ListCrudNamespaces(this.DotNetFolderGeneration, featureDataList, currentProject, classDefiniton, feature, type, featureParents);
+                List<WebApiNamespace> crudNamespaceList = ListCrudNamespaces(this.DotNetFolderGeneration, featureDataList, currentProject, classDefiniton, feature, type, featureParents, featureDomain);
 
                 // Generate files
                 foreach (WebApiFeatureData crudData in featureDataList.Where(ft => !ft.IsPartialFile))
@@ -364,7 +365,7 @@
             return (src, dest);
         }
 
-        private List<WebApiNamespace> ListCrudNamespaces(string destDir, List<FeatureData> featureDataList, Project currentProject, ClassDefinition classDefiniton, string feature, FeatureType type, List<FeatureParent> featureParents)
+        private List<WebApiNamespace> ListCrudNamespaces(string destDir, List<FeatureData> featureDataList, Project currentProject, ClassDefinition classDefiniton, string feature, FeatureType type, List<FeatureParent> featureParents, string featureDomain)
         {
             List<WebApiNamespace> namespaceList = new();
             var oldNamePascalSingular = this.CrudNames.GetOldFeatureNameSingularPascal(feature, type);
@@ -385,9 +386,10 @@
                     crudData.FileType == WebApiFileType.Entity ||
                     crudData.FileType == WebApiFileType.Mapper)
                 {
-                    var occurency = FeatureParentPrincipal != null ? FeatureParentPrincipal.DomainName : this.CrudNames.GetOldFeatureNameSingularPascal(feature, type);
+                    var domainName = FeatureParentPrincipal != null ?  FeatureParentPrincipal.DomainName :
+                        string.IsNullOrWhiteSpace(featureDomain) ? this.CrudNames.GetOldFeatureNameSingularPascal(feature, type) : featureDomain;
                     // Get part of namespace before "plane" occurency
-                    string partPath = GetNamespacePathBeforeOccurency(crudData.Namespace, occurency);
+                    string partPath = GetNamespacePathBeforeOccurency(crudData.Namespace, domainName);
 
                     // Replace company + projet name on part path
                     partPath = ReplaceCompagnyNameProjetName(partPath, currentProject, classDefiniton);
@@ -1872,7 +1874,7 @@
             {
                 content = content.Replace(
                     Constants.FeaturePathAdaptation.DomainName,
-                    FeatureDomain);
+                    FeatureTargetDomain);
             }
 
             if (CrudParent.Exists)
