@@ -386,7 +386,7 @@
                     crudData.FileType == WebApiFileType.Entity ||
                     crudData.FileType == WebApiFileType.Mapper)
                 {
-                    var domainName = FeatureParentPrincipal != null ?  FeatureParentPrincipal.DomainName :
+                    var domainName = FeatureParentPrincipal != null ? FeatureParentPrincipal.DomainName :
                         string.IsNullOrWhiteSpace(featureDomain) ? this.CrudNames.GetOldFeatureNameSingularPascal(feature, type) : featureDomain;
                     // Get part of namespace before "plane" occurency
                     string partPath = GetNamespacePathBeforeOccurency(crudData.Namespace, domainName);
@@ -481,7 +481,7 @@
             List<string> contentToAdd;
 
             string partialFilePath = GetPartialFilePath(crudData, dtoClassDefiniton, workingFolder);
-            
+
             partialFilePath = ApplyMoveFiles(adaptPaths, partialFilePath, generationType);
             if (FeatureParentPrincipal != null)
             {
@@ -615,7 +615,7 @@
             string src = Path.Combine(featureData.ExtractDirPath, featureData.FilePath);
 
             var filePathDest = featureData.FilePath;
-            
+
             filePathDest = ApplyMoveFiles(adaptPaths, filePathDest, GenerationType.WebApi);
             if (FeatureParentPrincipal != null)
             {
@@ -779,67 +779,48 @@
             return fileLinesContent;
         }
 
-        private List<string> ManageAncestorBlocks(List<string> fileLinesContent, List<string> ancestorName, List<KeyValuePair<string, string>> classAnnotations)
+        private List<string> ManageAncestorBlocks(List<string> fileLinesContent, List<string> ancestorNames, List<KeyValuePair<string, string>> classAnnotations)
         {
             string beginMarker = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.AncestorTeam}";
             string endMarker = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.AncestorTeam}";
 
-            if (classAnnotations == null)
+            string ancestorAnnotation = classAnnotations.Where(c => c.Key == CRUDDataUpdateType.AncestorTeam.ToString())?.FirstOrDefault().Value;
+            if (ancestorAnnotation == null)
             {
-                // delete
-                ancestorName?.ForEach(ancestor =>
+                ancestorNames?.ForEach(ancestor =>
                 {
                     fileLinesContent = DeleteBlocks(fileLinesContent, beginMarker, endMarker);
                 });
+                return fileLinesContent;
             }
-            else
+
+            var newFileContent = new List<string>();
+            var isAncestorBlock = false;
+            var ancestor = string.Empty;
+            for (int i = 0; i < fileLinesContent.Count; i++)
             {
-                string ancestorAnnotation = classAnnotations.Where(c => c.Key == CRUDDataUpdateType.AncestorTeam.ToString())?.FirstOrDefault().Value;
-                if (!string.IsNullOrWhiteSpace(ancestorAnnotation))
+                var currentLine = fileLinesContent[i];
+                if (currentLine.Contains(beginMarker))
                 {
-                    // delete
-                    ancestorName?.ForEach(ancestor =>
-                    {
-                        // Keep if parent exist and ancestor name equals feature parent principal name
-                        if (!string.IsNullOrEmpty(ancestor) && CrudParent.Exists && FeatureParentPrincipal?.Name == ancestor)
-                        {
-                            return;
-                        }
-
-                        if (ancestor != null && ancestor != ancestorAnnotation)
-                        {
-                            string markerBegin = $"{beginMarker} {ancestor}";
-                            string markerEnd = $"{endMarker} {ancestor}";
-                            fileLinesContent = DeleteBlocks(fileLinesContent, beginMarker, endMarker);
-                        }
-                    });
+                    ancestor = currentLine.Split(' ').Last();
+                    isAncestorBlock = true;
+                    continue;
                 }
+
+                if (currentLine.Contains(endMarker))
+                {
+                    ancestor = string.Empty;
+                    isAncestorBlock = false;
+                    continue;
+                }
+
+                if (isAncestorBlock)
+                    currentLine = currentLine.Replace(ancestor, ancestorAnnotation);
+
+                newFileContent.Add(currentLine);
             }
 
-            return fileLinesContent;
-        }
-
-        private void UpdateFeatureParentLines(List<string> fileLinesContent)
-        {
-            if (FeatureParentPrincipal != null && CrudParent.Exists)
-            {
-                for (int i = 0; i < fileLinesContent.Count; i++)
-                {
-                    var line = fileLinesContent[i];
-                    if (line.Contains(FeatureParentPrincipal.Name))
-                    {
-                        fileLinesContent[i] = line.Replace(FeatureParentPrincipal.Name, CrudParent.Name);
-                    }
-                    else if (line.Contains(CommonTools.ConvertToCamelCase(FeatureParentPrincipal.Name)))
-                    {
-                        fileLinesContent[i] = line.Replace(CommonTools.ConvertToCamelCase(FeatureParentPrincipal.Name), CommonTools.ConvertToCamelCase(CrudParent.Name));
-                    }
-                    else if (line.Contains(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.Name)))
-                    {
-                        fileLinesContent[i] = line.Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.Name), CommonTools.ConvertPascalToKebabCase(CrudParent.Name));
-                    }
-                }
-            }
+            return newFileContent;
         }
 
         private List<string> ManageOptionsBlocks(List<string> fileLinesContent, List<string> optionsName, List<string> newOptionsName, List<string> optionsFields,
@@ -901,22 +882,22 @@
             var markerEndOptionPattern = $"{ZipParserService.MARKER_END} {crudType}" + " {0}";
 
             var optionBlockNameToDelete = options.Skip(1);
-            foreach(var optionBlockName in optionBlockNameToDelete)
+            foreach (var optionBlockName in optionBlockNameToDelete)
             {
                 fileLinesContent = DeleteBlocks(
-                    fileLinesContent, 
-                    string.Format(markerBeginOptionPattern, optionBlockName), 
+                    fileLinesContent,
+                    string.Format(markerBeginOptionPattern, optionBlockName),
                     string.Format(markerEndOptionPattern, optionBlockName));
             }
 
             var optionBlockNameReference = options.First();
             fileLinesContent = ReplaceOptions(
-                fileLinesContent, 
-                optionBlockNameReference, 
-                newOptionsName, 
-                string.Format(markerBeginOptionPattern, optionBlockNameReference), 
-                string.Format(markerEndOptionPattern, optionBlockNameReference), 
-                crudDtoProperties, 
+                fileLinesContent,
+                optionBlockNameReference,
+                newOptionsName,
+                string.Format(markerBeginOptionPattern, optionBlockNameReference),
+                string.Format(markerEndOptionPattern, optionBlockNameReference),
+                crudDtoProperties,
                 propertyList);
 
             return fileLinesContent;
@@ -1527,7 +1508,7 @@
             newLine = this.CrudNames.ConvertCamelOldToNewCrudName(newLine, feature, type);
             newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type);
 
-            if(FeatureParentPrincipal != null && CrudParent.Exists)
+            if (FeatureParentPrincipal != null && CrudParent.Exists)
             {
                 if (CommonTools.IsMatchRegexValue(startImportRegex, newLine))
                 {
@@ -1811,7 +1792,7 @@
                     if (!relativeFilePath.StartsWith(featureRelativePathFrom))
                         continue;
 
-                    var replaceValue = CrudParent.Exists ? 
+                    var replaceValue = CrudParent.Exists ?
                         featureMoveFiles.ToRelativePathWithParent :
                         featureMoveFiles.ToRelativePathNoParent;
 
@@ -2046,7 +2027,7 @@
                             string extractLine = ((ExtractDisplayBlock)block).ExtractLine;
                             string newDisplayLine = this.CrudNames.ConvertPascalOldToNewCrudName(extractLine, feature, type);
                             newDisplayLine = this.CrudNames.ConvertCamelOldToNewCrudName(extractLine, feature, type);
-                            switch(generationType)
+                            switch (generationType)
                             {
                                 case GenerationType.WebApi:
                                     newDisplayLine = newDisplayLine.Replace(extractItem, displayItem);
