@@ -170,17 +170,11 @@
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            var crudParent = new CrudParent
-            {
-                Exists = true,
-                Domain = vm.Domain
-            };
-
             crudService.CrudNames.InitRenameValues(vm.EntitySelected, vm.EntityNamePlural);
 
             // Generation DotNet + Angular files
             var featureName = vm.ZipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Option)?.Feature;
-            vm.IsGenerated = crudService.GenerateFiles(vm.Entity, vm.ZipFeatureTypeList, vm.EntityDisplayItemSelected, null, crudParent, FeatureType.Option.ToString());
+            vm.IsGenerated = crudService.GenerateFiles(vm.Entity, vm.ZipFeatureTypeList, vm.EntityDisplayItemSelected, null, null, FeatureType.Option.ToString(), vm.Domain);
             
             // Generate generation history file
             UpdateOptionGenerationHistory();
@@ -308,7 +302,7 @@
                     if (featureType != FeatureType.Option)
                         continue;
 
-                    var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent)
+                    var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths, setting.FeatureDomain)
                     {
                         IsChecked = true
                     };
@@ -324,7 +318,7 @@
                     if (featureType != FeatureType.Option)
                         continue;
 
-                    var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent)
+                    var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths, setting.FeatureDomain)
                     {
                         IsChecked = true
                     };
