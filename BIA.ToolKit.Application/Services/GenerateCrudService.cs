@@ -1406,25 +1406,25 @@
         private string UpdateLine(string line, string feature, FeatureType type)
         {
             const string startImportRegex = @"^\s*[\/\*]*\s*import\s*[{(*]";
-            const string regexComponent = @"^\s*[\/\*]*\s*import\s+{([\s\w,]*)}";
-            const string regexComponentAs = @"^\s*[\/\*]*\s*import\s+\*\s+as\s+([\w,]*)\s+from";
-            const string regexPath = @"\s*from\s*\'([\S]*)\';$";
-            const string regexPathThen = @"^\s*[\/\*]*\s*import\s*\('([\w.\/]*)'\)";
+            const string regexImportComponent = @"^\s*[\/\*]*\s*import\s+{([\s\w,]*)}";
+            const string regexImportComponentAs = @"^\s*[\/\*]*\s*import\s+\*\s+as\s+([\w,]*)\s+from";
+            const string regexImportFromPath = @"\s*from\s*\'([\S]*)\';$";
+            const string regexPathThen = @"^\s*[\/\*]*\s*import\s*\('([\w.\/-]*)'\)";
             const string regexComponentPath = @"(?:templateUrl|styleUrls)\s*:\s*(?:\[\s*)?'([^']+)'";
             const string regexComponentHtml = @"<\/?app-([a-z-]+)>?";
             const string regexSelectorPath = @"(?:selector)\s*:\s*(?:\[\s*)?'([^']+)'";
             const string regexRoutePath = @"path:\s*'([^']*)',";
             const string regexRouteBreadcrumb = @"breadcrumb:\s*'([^']*)',";
-            const string regexRouteImportModule = @"'\./features/([^']*)'";
+            const string regexRouteImportFeatureModule = @"'\./features/([^']*)'";
 
             string newLine = line;
             if (CommonTools.IsMatchRegexValue(startImportRegex, newLine))
             {
                 // Update part between "import" and "from"
-                string componentValue = CommonTools.GetMatchRegexValue(regexComponent, newLine, 1);
+                string componentValue = CommonTools.GetMatchRegexValue(regexImportComponent, newLine, 1);
                 if (string.IsNullOrEmpty(componentValue))
                 {
-                    componentValue = CommonTools.GetMatchRegexValue(regexComponentAs, newLine, 1);
+                    componentValue = CommonTools.GetMatchRegexValue(regexImportComponentAs, newLine, 1);
                 }
                 if (!string.IsNullOrEmpty(componentValue))
                 {
@@ -1434,11 +1434,22 @@
                 }
 
                 // Update part after "from"
-                string pathValue = CommonTools.GetMatchRegexValue(regexPath, newLine, 1);
+                string pathValue = CommonTools.GetMatchRegexValue(regexImportFromPath, newLine, 1);
                 if (string.IsNullOrEmpty(pathValue))
                 {
                     pathValue = CommonTools.GetMatchRegexValue(regexPathThen, newLine, 1);
                 }
+                if (!string.IsNullOrEmpty(pathValue))
+                {
+                    string newPathValue = pathValue
+                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
+                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                    newLine = newLine.Replace(pathValue, newPathValue);
+                }
+            }
+            else if (CommonTools.IsMatchRegexValue(regexImportFromPath, newLine))
+            {
+                string pathValue = CommonTools.GetMatchRegexValue(regexImportFromPath, newLine, 1);
                 if (!string.IsNullOrEmpty(pathValue))
                 {
                     string newPathValue = pathValue
@@ -1502,9 +1513,9 @@
                     newLine = newLine.Replace(breadcrumbValue, newBreadcrumbValue);
                 }
             }
-            else if (CommonTools.IsMatchRegexValue(regexRouteImportModule, newLine))
+            else if (CommonTools.IsMatchRegexValue(regexRouteImportFeatureModule, newLine))
             {
-                string importModuleValue = CommonTools.GetMatchRegexValue(regexRouteImportModule, newLine, 1);
+                string importModuleValue = CommonTools.GetMatchRegexValue(regexRouteImportFeatureModule, newLine, 1);
                 if (!string.IsNullOrEmpty(importModuleValue))
                 {
                     string newImportModuleValue = importModuleValue
