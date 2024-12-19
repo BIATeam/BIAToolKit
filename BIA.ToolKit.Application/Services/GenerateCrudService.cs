@@ -321,7 +321,7 @@
             // Read file
             List<string> fileLinesContent = File.ReadAllLines(src).ToList();
 
-            fileLinesContent = UpdateFileContent(fileLinesContent, generationData, src, crudDtoEntity, feature, type);
+            fileLinesContent = UpdateFileContentWithBlocks(fileLinesContent, generationData, src, crudDtoEntity, feature, type);
 
             for (int i = 0; i < fileLinesContent.Count; i++)
             {
@@ -337,8 +337,8 @@
                 fileLinesContent[i] = this.CrudNames.ConvertCamelOldToNewCrudName(this.CrudNames.ConvertPascalOldToNewCrudName(fileLinesContent[i], feature, type), feature, type);
             }
 
-            ApplyReplaceInFiles(adaptPaths, fileLinesContent, GenerationType.WebApi);
-            ReplaceContentWithFeatureParentPrincipal(fileLinesContent, GenerationType.WebApi);
+            ApplyReplaceInFiles(adaptPaths, dest, fileLinesContent, GenerationType.WebApi);
+            ReplaceContentWithFeatureParentPrincipal(fileLinesContent, dest, GenerationType.WebApi);
 
             // Generate new file
             CommonTools.GenerateFile(dest, fileLinesContent);
@@ -540,7 +540,7 @@
                     markerBegin = $"{ZipParserService.MARKER_BEGIN} {suffix}";
                     markerEnd = $"{ZipParserService.MARKER_END} {suffix}";
 
-                    ReplaceContentWithFeatureParentPrincipal(block.BlockLines, generationType);
+                    ReplaceContentWithFeatureParentPrincipal(block.BlockLines, partialFilePath, generationType);
 
                     // Generate content to add
                     block.BlockLines.ForEach(line =>
@@ -600,11 +600,11 @@
             List<string> fileLinesContent = File.ReadAllLines(fileName).ToList();
 
             // Update file content
-            fileLinesContent = UpdateFileContent(fileLinesContent, generationData, fileName, crudDtoEntity, feature, type, crudDtoProperties, propertyList);
+            fileLinesContent = UpdateFileContentWithBlocks(fileLinesContent, generationData, fileName, crudDtoEntity, feature, type, crudDtoProperties, propertyList);
             fileLinesContent = UpdateFileLinesContent(fileLinesContent, feature, type);
 
-            ApplyReplaceInFiles(adaptPaths, fileLinesContent, GenerationType.Front);
-            ReplaceContentWithFeatureParentPrincipal(fileLinesContent, GenerationType.Front);
+            ApplyReplaceInFiles(adaptPaths, newFileName, fileLinesContent, GenerationType.Front);
+            ReplaceContentWithFeatureParentPrincipal(fileLinesContent, newFileName, GenerationType.Front);
 
             // Generate new file
             CommonTools.GenerateFile(newFileName, fileLinesContent);
@@ -630,7 +630,7 @@
             return (src, dest);
         }
 
-        private List<string> UpdateFileContent(List<string> fileLinesContent, GenerationCrudData generationData, string fileName, EntityInfo crudDtoEntity,
+        private List<string> UpdateFileContentWithBlocks(List<string> fileLinesContent, GenerationCrudData generationData, string fileName, EntityInfo crudDtoEntity,
             string feature, FeatureType featureType, List<CrudProperty> crudDtoProperties = null, List<CRUDPropertyType> propertyList = null)
         {
             if (generationData != null)
@@ -1412,6 +1412,10 @@
             const string regexPathThen = @"^\s*[\/\*]*\s*import\s*\('([\w.\/]*)'\)";
             const string regexComponentPath = @"(?:templateUrl|styleUrls)\s*:\s*(?:\[\s*)?'([^']+)'";
             const string regexComponentHtml = @"<\/?app-([a-z-]+)>?";
+            const string regexSelectorPath = @"(?:selector)\s*:\s*(?:\[\s*)?'([^']+)'";
+            const string regexRoutePath = @"path:\s*'([^']*)',";
+            const string regexRouteBreadcrumb = @"breadcrumb:\s*'([^']*)',";
+            const string regexRouteImportModule = @"'\./features/([^']*)'";
 
             string newLine = line;
             if (CommonTools.IsMatchRegexValue(startImportRegex, newLine))
@@ -1437,7 +1441,9 @@
                 }
                 if (!string.IsNullOrEmpty(pathValue))
                 {
-                    string newPathValue = this.CrudNames.ConvertCamelOldToNewCrudName(pathValue, feature, type);
+                    string newPathValue = pathValue
+                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
+                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
                     newLine = newLine.Replace(pathValue, newPathValue);
                 }
             }
@@ -1446,7 +1452,9 @@
                 string pathValue = CommonTools.GetMatchRegexValue(regexComponentPath, newLine, 1);
                 if (!string.IsNullOrEmpty(pathValue))
                 {
-                    string newPathValue = this.CrudNames.ConvertCamelOldToNewCrudName(pathValue, feature, type);
+                    string newPathValue = pathValue
+                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
+                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
                     newLine = newLine.Replace(pathValue, newPathValue);
                 }
             }
@@ -1455,15 +1463,58 @@
                 string compValue = CommonTools.GetMatchRegexValue(regexComponentHtml, newLine, 1);
                 if (!string.IsNullOrEmpty(compValue))
                 {
-                    string newPathValue = this.CrudNames.ConvertCamelOldToNewCrudName(compValue, feature, type);
-                    newLine = newLine.Replace(compValue, newPathValue);
+                    string newCompValue = compValue
+                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
+                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                    newLine = newLine.Replace(compValue, newCompValue);
+                }
+            }
+            else if (CommonTools.IsMatchRegexValue(regexSelectorPath, newLine))
+            {
+                string selectorValue = CommonTools.GetMatchRegexValue(regexSelectorPath, newLine, 1);
+                if (!string.IsNullOrEmpty(selectorValue))
+                {
+                    string newSelectorValue = selectorValue
+                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
+                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                    newLine = newLine.Replace(selectorValue, newSelectorValue);
+                }
+            }
+            else if (CommonTools.IsMatchRegexValue(regexRoutePath, newLine))
+            {
+                string pathValue = CommonTools.GetMatchRegexValue(regexRoutePath, newLine, 1);
+                if (!string.IsNullOrEmpty(pathValue))
+                {
+                    string newPathValue = pathValue
+                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
+                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                    newLine = newLine.Replace(pathValue, newPathValue);
+                }
+            }
+            else if (CommonTools.IsMatchRegexValue(regexRouteBreadcrumb, newLine))
+            {
+                string breadcrumbValue = CommonTools.GetMatchRegexValue(regexRouteBreadcrumb, newLine, 1);
+                if (!string.IsNullOrEmpty(breadcrumbValue))
+                {
+                    string newBreadcrumbValue = breadcrumbValue
+                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
+                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                    newLine = newLine.Replace(breadcrumbValue, newBreadcrumbValue);
+                }
+            }
+            else if (CommonTools.IsMatchRegexValue(regexRouteImportModule, newLine))
+            {
+                string importModuleValue = CommonTools.GetMatchRegexValue(regexRouteImportModule, newLine, 1);
+                if (!string.IsNullOrEmpty(importModuleValue))
+                {
+                    string newImportModuleValue = importModuleValue
+                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
+                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                    newLine = newLine.Replace(importModuleValue, newImportModuleValue);
                 }
             }
 
             //TODO : harsh way to replace content, find more specific replacement rules
-            newLine = newLine
-                .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
-                .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
             newLine = this.CrudNames.ConvertCamelOldToNewCrudName(newLine, feature, type);
             newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type);
 
@@ -1753,13 +1804,23 @@
             return filePath;
         }
 
-        private void ReplaceContentWithFeatureParentPrincipal(List<string> content, GenerationType generationType)
+        private void ReplaceContentWithFeatureParentPrincipal(List<string> content, string filePath, GenerationType generationType)
         {
             if (FeatureParentPrincipal == null)
                 return;
 
+            var relativeFilePath = generationType switch
+            {
+                GenerationType.WebApi => filePath.Replace($"{this.DotNetFolderGeneration}\\", string.Empty),
+                GenerationType.Front => filePath.Replace($"{this.AngularFolderGeneration}\\", string.Empty),
+                _ => filePath
+            };
+
             foreach (var adaptPath in FeatureParentPrincipal.AdaptPaths)
             {
+                if (!relativeFilePath.StartsWith(adaptPath.RootPath))
+                    continue;
+
                 foreach (var replaceInFile in adaptPath.ReplaceInFiles)
                 {
                     for (int lineIndex = 0; lineIndex < content.Count; lineIndex++)
@@ -1835,10 +1896,20 @@
             return filePath;
         }
 
-        private void ApplyReplaceInFiles(List<FeatureAdaptPath> adaptPaths, List<string> content, GenerationType generationType)
+        private void ApplyReplaceInFiles(List<FeatureAdaptPath> adaptPaths, string filePath, List<string> content, GenerationType generationType)
         {
+            var relativeFilePath = generationType switch
+            {
+                GenerationType.WebApi => filePath.Replace($"{this.DotNetFolderGeneration}\\", string.Empty),
+                GenerationType.Front => filePath.Replace($"{this.AngularFolderGeneration}\\", string.Empty),
+                _ => filePath
+            };
+
             foreach (var adaptPath in adaptPaths)
             {
+                if (!relativeFilePath.StartsWith(adaptPath.RootPath))
+                    continue;
+
                 foreach (var replaceInFile in adaptPath.ReplaceInFiles)
                 {
                     for (int lineIndex = 0; lineIndex < content.Count; lineIndex++)
