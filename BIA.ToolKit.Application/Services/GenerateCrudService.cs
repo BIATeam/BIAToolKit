@@ -669,14 +669,12 @@
                 if (generationData.ParentBlocks?.Count > 0)
                 {
                     fileLinesContent = UpdateParentBlocks(fileName, fileLinesContent, generationData.ParentBlocks, generationData.IsParentToAdd);
-                    UpdateFeatureParentLines(fileLinesContent);
                 }
 
                 // Remove Ancestor
                 if (generationData.IsAncestorFound)
                 {
                     fileLinesContent = ManageAncestorBlocks(fileLinesContent, generationData.AncestorName, crudDtoEntity.ClassAnnotations);
-                    UpdateFeatureParentLines(fileLinesContent);
                 }
             }
 
@@ -1531,9 +1529,22 @@
 
             if(FeatureParentPrincipal != null && CrudParent.Exists)
             {
-                newLine = newLine
-                    .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.NamePlural), CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural))
-                    .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.Name), CommonTools.ConvertPascalToKebabCase(CrudParent.Name));
+                if (CommonTools.IsMatchRegexValue(startImportRegex, newLine))
+                {
+                    // Update part after "from"
+                    string pathValue = CommonTools.GetMatchRegexValue(regexImportFromPath, newLine, 1);
+                    if (string.IsNullOrEmpty(pathValue))
+                    {
+                        pathValue = CommonTools.GetMatchRegexValue(regexPathThen, newLine, 1);
+                    }
+                    if (!string.IsNullOrEmpty(pathValue))
+                    {
+                        string newPathValue = pathValue
+                            .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.NamePlural), CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural))
+                            .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.Name), CommonTools.ConvertPascalToKebabCase(CrudParent.Name));
+                        newLine = newLine.Replace(pathValue, newPathValue);
+                    }
+                }
 
                 newLine = newLine
                     .Replace(CommonTools.ConvertToCamelCase(FeatureParentPrincipal.NamePlural), CommonTools.ConvertToCamelCase(CrudParent.NamePlural))
