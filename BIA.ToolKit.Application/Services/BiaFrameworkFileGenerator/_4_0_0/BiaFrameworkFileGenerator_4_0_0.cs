@@ -21,10 +21,8 @@
 
         public List<Version> CompatibleBiaFrameworkVersions => new()
         {
-            new("3.10.0"),
             new("4.0.0")
         };
-        public string TemplatesNamespace => GetType().Namespace + ".Templates";
 
         public BiaFrameworkFileGenerator_4_0_0(BiaFrameworkFileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter)
         {
@@ -70,15 +68,6 @@
             {
                 consoleWriter.AddMessageLine($"WARNING: Unable to retrieve entity's base key type, you'll must replace the template '{Common.TemplateValue_BaseKeyType}' by corresponding type value inside the DTO and mapper after generation.", "orange");
                 model.BaseKeyType = Common.TemplateValue_BaseKeyType;
-            }
-
-            if(project.FrameworkVersion == "3.10.0")
-            {
-                if (mappingEntityProperties.Any(x => !string.IsNullOrWhiteSpace(x.MappingDateType)))
-                {
-                    consoleWriter.AddMessageLine($"WARNING: you may have to adapt the mapper in order to match CSV export of date types with the corresponding method.", "orange");
-                }
-                consoleWriter.AddMessageLine("WARNING: you'll have to adapt the namespaces of some usings in the generated Mapper.", "orange");
             }
 
             consoleWriter.AddMessageLine($"Generating DTO...");
