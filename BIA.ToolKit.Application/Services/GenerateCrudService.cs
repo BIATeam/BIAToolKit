@@ -362,6 +362,11 @@
 
             string dest = Path.Combine(this.DotNetFolderGeneration, relativeFilePath);
 
+            // Workaround for BIAFramework < 4.0.0
+            dest = dest
+                .Replace(this.CrudNames.GetOldFeatureNamePluralPascal(feature, type), this.CrudNames.NewCrudNamePascalPlural)
+                .Replace(this.CrudNames.GetOldFeatureNameSingularPascal(feature, type), this.CrudNames.NewCrudNamePascalSingular);
+
             return (src, dest);
         }
 
@@ -1524,6 +1529,17 @@
                             .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.NamePlural), CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural))
                             .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.Name), CommonTools.ConvertPascalToKebabCase(CrudParent.Name));
                         newLine = newLine.Replace(pathValue, newPathValue);
+                    }
+                }
+                else if (CommonTools.IsMatchRegexValue(regexRouteImportFeatureModule, newLine))
+                {
+                    string importModuleValue = CommonTools.GetMatchRegexValue(regexRouteImportFeatureModule, newLine, 1);
+                    if (!string.IsNullOrEmpty(importModuleValue))
+                    {
+                        string newImportModuleValue = importModuleValue
+                            .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.NamePlural), CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural))
+                            .Replace(CommonTools.ConvertPascalToKebabCase(FeatureParentPrincipal.Name), CommonTools.ConvertPascalToKebabCase(CrudParent.Name));
+                        newLine = newLine.Replace(importModuleValue, newImportModuleValue);
                     }
                 }
 
