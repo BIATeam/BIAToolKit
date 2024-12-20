@@ -132,23 +132,26 @@
         /// <param name="featureDataList"></param>
         private static void PopulateNullExtractItemDisplayBlock(List<FeatureData> featureDataList)
         {
-            foreach(var featureData in featureDataList.Where(fd => fd.ExtractBlocks != null))
-            {
-                var propertiesBlocks = featureData.ExtractBlocks
-                    .Where(eb => eb.DataUpdateType == CRUDDataUpdateType.Properties)
-                    .Cast<ExtractPropertiesBlock>()
-                    .ToList();
+            var featureProperties = featureDataList
+                .Where(x => x.ExtractBlocks != null)
+                .SelectMany(x => x.ExtractBlocks)
+                .Where(x => x.DataUpdateType == CRUDDataUpdateType.Properties)
+                .Cast<ExtractPropertiesBlock>()
+                .SelectMany(x => x.PropertiesList)
+                .ToList();
 
+            foreach (var featureData in featureDataList.Where(fd => fd.ExtractBlocks != null))
+            {
                 var displayBlocks = featureData.ExtractBlocks
                     .Where(eb => eb.DataUpdateType == CRUDDataUpdateType.Display)
                     .Cast<ExtractDisplayBlock>()
                     .ToList();
 
-                if (propertiesBlocks.Count != 0 && displayBlocks.Count != 0)
+                if (featureProperties.Count != 0 && displayBlocks.Count != 0)
                 {
                     foreach(var displayBlock in displayBlocks.Where(db => db.ExtractItem == null))
                     {
-                        displayBlock.ExtractItem = propertiesBlocks.FirstOrDefault().Name;
+                        displayBlock.ExtractItem = featureProperties.FirstOrDefault().Name;
                     }
                 }
             }
