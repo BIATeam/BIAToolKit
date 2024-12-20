@@ -277,7 +277,7 @@
         public bool HasParent
         {
             get { return hasParent; }
-            set 
+            set
             {
                 if (hasParent != value)
                 {
@@ -285,7 +285,7 @@
                     RaisePropertyChanged(nameof(HasParent));
                     RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
 
-                    if(value == false)
+                    if (value == false)
                     {
                         Domain = null;
                         ParentName = null;
@@ -299,7 +299,7 @@
         public string Domain
         {
             get { return domain; }
-            set 
+            set
             {
                 if (domain != value)
                 {
@@ -349,7 +349,7 @@
                 HasParent = selectedFeaturesWithParent.Any(x => x.NeedParent) || propertiesWithParent.Any();
 
                 var parentPropertyName = propertiesWithParent.FirstOrDefault(x => x.Name.EndsWith("Id"))?.Name;
-                if(!string.IsNullOrEmpty(parentPropertyName))
+                if (!string.IsNullOrEmpty(parentPropertyName))
                 {
                     var parentName = parentPropertyName.Replace("Id", string.Empty);
                     ParentName = parentName;
@@ -373,7 +373,7 @@
 
             var namespaceParts = DtoEntity.Namespace.Split('.').ToList();
             var domainIndex = namespaceParts.IndexOf("Dto");
-            if(domainIndex != -1)
+            if (domainIndex != -1)
             {
                 Domain = namespaceParts[domainIndex + 1];
             }
@@ -405,8 +405,8 @@
                 {
                     isWebApiSelected = value;
                     RaisePropertyChanged(nameof(IsWebApiSelected));
-                    UpdateFeatureSelection();
                 }
+                UpdateFeatureSelection();
             }
         }
 
@@ -420,8 +420,8 @@
                 {
                     isFrontSelected = value;
                     RaisePropertyChanged(nameof(IsFrontSelected));
-                    UpdateFeatureSelection();
                 }
+                UpdateFeatureSelection();
             }
         }
 
@@ -473,7 +473,7 @@
                     && !string.IsNullOrWhiteSpace(CRUDNamePlural)
                     && !string.IsNullOrEmpty(Domain)
                     && (!string.IsNullOrWhiteSpace(dtoDisplayItemSelected) || ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option))
-                    && (IsWebApiSelected || isFrontSelected) 
+                    && (IsWebApiSelected || isFrontSelected)
                     && !string.IsNullOrEmpty(featureNameSelected)
                     && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural)));
             }
@@ -538,9 +538,19 @@
         public bool NeedParent { get; set; }
 
         /// <summary>
+        /// The adapt paths to apply
+        /// </summary>
+        public List<FeatureAdaptPath> AdaptPaths { get; set; }
+
+        /// <summary>
+        /// The feature domain
+        /// </summary>
+        public string Domain { get; set; }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
-        public ZipFeatureType(FeatureType type, GenerationType generation, string zipName, string zipPath, string feature, List<FeatureParent> parents, bool needParent)
+        public ZipFeatureType(FeatureType type, GenerationType generation, string zipName, string zipPath, string feature, List<FeatureParent> parents, bool needParent, List<FeatureAdaptPath> adaptPaths, string domain)
         {
             this.FeatureType = type;
             this.GenerationType = generation;
@@ -549,6 +559,8 @@
             this.Feature = feature;
             this.Parents = parents;
             this.NeedParent = needParent;
+            this.AdaptPaths = adaptPaths;
+            this.Domain = domain;
         }
     }
 

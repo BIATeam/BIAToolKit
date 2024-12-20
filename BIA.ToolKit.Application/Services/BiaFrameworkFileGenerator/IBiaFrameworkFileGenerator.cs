@@ -10,7 +10,6 @@
     public interface IBiaFrameworkFileGenerator
     {
         List<Version> CompatibleBiaFrameworkVersions { get; }
-        string TemplatesNamespace { get; }
         Task GenerateDto(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties);
     }
 }

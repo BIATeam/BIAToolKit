@@ -115,7 +115,7 @@
                 }
 
                 // Populate 'ExtractItem' of Display block
-                PopulateExtractItemDisplayBlock(zipData.FeatureDataList);
+                PopulateNullExtractItemDisplayBlock(zipData.FeatureDataList);
             }
             else
             {
@@ -126,30 +126,32 @@
             return true;
         }
 
-        private void PopulateExtractItemDisplayBlock(List<FeatureData> featureDataList)
+        /// <summary>
+        /// Assign to null extract item display elements of display blocks the first property name of properties blocks if exists
+        /// </summary>
+        /// <param name="featureDataList"></param>
+        private static void PopulateNullExtractItemDisplayBlock(List<FeatureData> featureDataList)
         {
-            List<FeatureData> featureProperties = featureDataList.Where(f =>
-            {
-                if (f.ExtractBlocks == null) return false;
-                return f.ExtractBlocks.Select(b => b.DataUpdateType == CRUDDataUpdateType.Properties).FirstOrDefault();
-            }).ToList();
+            var featureProperties = featureDataList
+                .Where(x => x.ExtractBlocks != null)
+                .SelectMany(x => x.ExtractBlocks)
+                .Where(x => x.DataUpdateType == CRUDDataUpdateType.Properties)
+                .Cast<ExtractPropertiesBlock>()
+                .SelectMany(x => x.PropertiesList)
+                .ToList();
 
-            List<FeatureData> featureDisplay = featureDataList.Where(f =>
+            foreach (var featureData in featureDataList.Where(fd => fd.ExtractBlocks != null))
             {
-                if (f.ExtractBlocks == null) return false;
-                return f.ExtractBlocks.Select(b => b.DataUpdateType == CRUDDataUpdateType.Display).FirstOrDefault();
-            }).ToList();
+                var displayBlocks = featureData.ExtractBlocks
+                    .Where(eb => eb.DataUpdateType == CRUDDataUpdateType.Display)
+                    .Cast<ExtractDisplayBlock>()
+                    .ToList();
 
-            if (featureProperties.Any() && featureDisplay.Any())
-            {
-                ExtractPropertiesBlock propBlock = (ExtractPropertiesBlock)featureProperties.FirstOrDefault().ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.Properties).FirstOrDefault();
-
-                // Populate 'ExtractItem' of Display block
-                foreach (FeatureData display in featureDisplay)
+                if (featureProperties.Count != 0 && displayBlocks.Count != 0)
                 {
-                    foreach (ExtractDisplayBlock displayBlock in display.ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.Display))
+                    foreach(var displayBlock in displayBlocks.Where(db => db.ExtractItem == null))
                     {
-                        displayBlock.ExtractItem = propBlock.PropertiesList.FirstOrDefault().Name;
+                        displayBlock.ExtractItem = featureProperties.FirstOrDefault().Name;
                     }
                 }
             }
