@@ -20,16 +20,6 @@
     {
         private IConsoleWriter consoleWriter;
         private readonly List<EntityInfo> domainEntities = new();
-        private readonly List<string> excludedEntityDomains = new()
-        {
-            //"Audit",
-            //"Notification",
-            //"Site",
-            //"Translation",
-            //"User",
-            //"RepoContract",
-            //"View"
-        };
         private readonly List<string> optionCollectionsMappingTypes = new()
         {
             "icollection",
@@ -59,10 +49,8 @@
         };
         private readonly Dictionary<string, List<string>> biaDtoFieldDateTypesByPropertyType = new()
         {
-            { "TimeSpan", new List<string> { "Datetime", "Date", "Time" } },
-            { "TimeOnly", new List<string> { "Time" } },
+            { "TimeSpan", new List<string> { "Time" } },
             { "DateTime", new List<string> { "Datetime", "Date", "Time" } },
-            { "DateOnly", new List<string> { "Date" } }
         };
 
         private bool isProjectChosen;
@@ -193,7 +181,6 @@
             ComputeBaseKeyType(domainEntities);
 
             var entitiesNames = entities
-                .Where(x => !excludedEntityDomains.Any(y => x.Path.Contains(y)))
                 .Select(x => $"{x.Name} ({x.FullNamespace.Replace($"{ProjectDomainNamespace}.", string.Empty).Replace($".{x.Name}", string.Empty)})")
                 .OrderBy(x => x)
                 .ToList();
