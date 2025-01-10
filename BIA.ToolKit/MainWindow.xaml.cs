@@ -301,13 +301,8 @@
                 return;
             }
 
-            await CreateProject(true, _viewModel.Settings.CreateCompanyName, CreateProjectName.Text, projectPath, CreateVersionAndOption, new string[] { "Angular" });
+            await this.projectCreatorService.Create(true, _viewModel.Settings.CreateCompanyName, CreateProjectName.Text, projectPath, CreateVersionAndOption.vm.VersionAndOption, new List<string> { Constants.FolderAngular });
             Enable(true);
-        }
-
-        private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
-        {
-            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
         }
 
         private void btnFileGenerator_OpenFolder_Click(object sender, RoutedEventArgs e)

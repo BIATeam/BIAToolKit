@@ -36,7 +36,7 @@
             string projectName,
             string projectPath,
             VersionAndOption versionAndOption,
-            string[] angularFronts
+            List<string> angularFronts
             )
         {
             // Ensure to have namespaces correctly formated
@@ -138,7 +138,7 @@
                 }
 
                 bool containsFrontAngular = false;
-                if (angularFronts?.Length > 0)
+                if (angularFronts.Count > 0)
                 {
                     foreach (var angularFront in angularFronts)
                     {

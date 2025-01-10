@@ -33,23 +33,12 @@
         private const string IS_REQUIRED_PROPERTY = "isRequired:";
 
         private readonly IConsoleWriter consoleWriter;
-        private string DotNetFolderGeneration;
-        private string AngularFolderGeneration;
 
         public CrudNames CrudNames { get; set; }
+        public Project CurrentProject { get; set; }
 
-        private Project currentProject;
-        public Project CurrentProject
-        {
-            get => currentProject;
-            set
-            {
-                currentProject = value;
-                string generationFolder = GetGenerationFolder(currentProject);
-                this.DotNetFolderGeneration = Path.Combine(generationFolder, Constants.FolderDotNet);
-                this.AngularFolderGeneration = Path.Combine(generationFolder, CurrentProject.BIAFronts);
-            }
-        }
+        private string DotNetFolderGeneration => Path.Combine(CurrentProject.Folder, Constants.FolderDotNet);
+        private string AngularFolderGeneration => Path.Combine(CurrentProject.Folder, CurrentProject.SelectedBIAFront);
 
         private CrudParent CrudParent { get; set; }
         private FeatureParent FeatureParentPrincipal { get; set; }
@@ -81,7 +70,7 @@
                 if (crudBackFeatureType != null && crudBackFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet files on '{DotNetFolderGeneration}' ***", "Green");
-                    GenerateWebApi(crudBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, crudBackFeatureType.Feature, FeatureType.CRUD, crudDtoEntity, crudBackFeatureType.Parents, crudBackFeatureType.AdaptPaths, crudBackFeatureType.Domain);
+                    GenerateWebApi(crudBackFeatureType.FeatureDataList, CurrentProject, crudDtoProperties, displayItem, crudBackFeatureType.Feature, FeatureType.CRUD, crudDtoEntity, crudBackFeatureType.Parents, crudBackFeatureType.AdaptPaths, crudBackFeatureType.Domain);
                 }
 
                 // Generate Option DotNet files
@@ -89,7 +78,7 @@
                 if (optionBackFeatureType != null && optionBackFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet Option files on '{DotNetFolderGeneration}' ***", "Green");
-                    GenerateWebApi(optionBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, optionBackFeatureType.Feature, FeatureType.Option, crudDtoEntity, optionBackFeatureType.Parents, optionBackFeatureType.AdaptPaths, optionBackFeatureType.Domain);
+                    GenerateWebApi(optionBackFeatureType.FeatureDataList, CurrentProject, crudDtoProperties, displayItem, optionBackFeatureType.Feature, FeatureType.Option, crudDtoEntity, optionBackFeatureType.Parents, optionBackFeatureType.AdaptPaths, optionBackFeatureType.Domain);
                 }
 
                 // Generate Team DotNet files
@@ -97,7 +86,7 @@
                 if (teamBackFeatureType != null && teamBackFeatureType.IsChecked)
                 {
                     consoleWriter.AddMessageLine($"*** Generate DotNet files on '{DotNetFolderGeneration}' ***", "Green");
-                    GenerateWebApi(teamBackFeatureType.FeatureDataList, currentProject, crudDtoProperties, displayItem, teamBackFeatureType.Feature, FeatureType.Team, crudDtoEntity, teamBackFeatureType.Parents, teamBackFeatureType.AdaptPaths, teamBackFeatureType.Domain);
+                    GenerateWebApi(teamBackFeatureType.FeatureDataList, CurrentProject, crudDtoProperties, displayItem, teamBackFeatureType.Feature, FeatureType.Team, crudDtoEntity, teamBackFeatureType.Parents, teamBackFeatureType.AdaptPaths, teamBackFeatureType.Domain);
                 }
 
                 // *** Generate Angular files ***
@@ -114,7 +103,7 @@
                     else
                     {
                         WebApiFeatureData dtoRefFeature = (WebApiFeatureData)crudBackFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
-                        GenerateFrontCRUD(crudFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, crudFrontFeatureType.Feature, crudFrontFeatureType.FeatureType, crudFrontFeatureType.Parents, crudFrontFeatureType.AdaptPaths);
+                        GenerateFrontCRUD(crudFrontFeatureType.FeatureDataList, CurrentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, crudFrontFeatureType.Feature, crudFrontFeatureType.FeatureType, crudFrontFeatureType.Parents, crudFrontFeatureType.AdaptPaths);
                     }
                 }
 
@@ -139,7 +128,7 @@
                     else
                     {
                         WebApiFeatureData dtoRefFeature = (WebApiFeatureData)teamBackFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
-                        GenerateFrontCRUD(teamFrontFeatureType.FeatureDataList, currentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, teamFrontFeatureType.Feature, teamFrontFeatureType.FeatureType, teamFrontFeatureType.Parents, teamFrontFeatureType.AdaptPaths);
+                        GenerateFrontCRUD(teamFrontFeatureType.FeatureDataList, CurrentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, teamFrontFeatureType.Feature, teamFrontFeatureType.FeatureType, teamFrontFeatureType.Parents, teamFrontFeatureType.AdaptPaths);
                     }
                 }
 
@@ -569,7 +558,7 @@
             string fileName = featureData.FilePath.Replace(Constants.PartialFileSuffix, "");
             if (classDefiniton != null)
             {
-                fileName = ReplaceCompagnyNameProjetName(fileName, currentProject, classDefiniton);
+                fileName = ReplaceCompagnyNameProjetName(fileName, CurrentProject, classDefiniton);
             }
 
             return Path.Combine(workingFolder, fileName);
@@ -2098,16 +2087,6 @@
                 properties.Add(new CrudProperty(p.Name, p.Type, p.Annotations));
             });
             return properties;
-        }
-
-        private string GetGenerationFolder(Project currentProject, bool generateInCurrentProject = true)
-        {
-            string generatedFolder = currentProject.Folder;
-
-            if (!generateInCurrentProject)
-                generatedFolder = Path.Combine(generatedFolder, Constants.FolderCrudGeneration);
-
-            return generatedFolder;
         }
 
         private List<string> InsertContentBetweenMarkers(List<string> fileContent, List<string> contentToAdd, string markerBegin, string markerEnd)
