@@ -31,6 +31,6 @@
         /// <summary>
         /// The selected BIA front folder.
         /// </summary>
-        public string? BIAFront {  get; set; }
+        public string? SelectedBIAFront {  get; set; }
     }
 }

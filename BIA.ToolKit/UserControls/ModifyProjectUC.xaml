@@ -107,7 +107,7 @@
             <Label Content="Company detected : " Grid.Column="0" Grid.Row="2"  VerticalAlignment="Top" Foreground="White" Padding="5,0,0,0"/>
             <Label Content="{Binding CompanyName}" Grid.Column="1" Grid.Row="2" VerticalAlignment="Top" Foreground="White" Padding="5,0,0,0"/>
             <Label Content="BIA front folders : " Grid.Column="0" Grid.Row="3" VerticalAlignment="Top" Foreground="White" Padding="5,0,0,0"/>
-            <ComboBox ItemsSource="{Binding BIAFronts}" SelectedValue="{Binding BIAFront, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.Row="3" Grid.Column="1" Width="150" IsEnabled="{Binding IsProjectSelected}" Margin="5,0" Padding="5,2,0,2"/>
+            <ComboBox x:Name="BIAFrontFolders" ItemsSource="{Binding BIAFronts}" SelectedValue="{Binding SelectedBIAFront, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.Row="3" Grid.Column="1" Width="150" IsEnabled="{Binding IsProjectSelected}" Margin="5,0" Padding="5,2,0,2" SelectionChanged="BIAFrontFolders_SelectionChanged"/>
         </Grid>
         
     </Grid>

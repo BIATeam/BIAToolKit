@@ -65,6 +65,15 @@
             this.settings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
+            this.uiEventBroker.OnBIAFrontFolderChanged += UiEventBroker_OnBIAFrontFolderChanged;
+        }
+
+        private void UiEventBroker_OnBIAFrontFolderChanged()
+        {
+            if (vm is null || vm.CurrentProject is null || !vm.IsDtoParsed)
+                return;
+
+            ParseFrontDomains();
         }
 
         private void UIEventBroker_OnProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem)
@@ -269,7 +278,7 @@
                 {
                     List<string> folders = new() {
                         Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet),
-                        Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.BIAFront, "src",  "app")
+                        Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.SelectedBIAFront, "src",  "app")
                     };
 
                     crudService.DeleteBIAToolkitAnnotations(folders);
@@ -325,9 +334,12 @@
 
         private void InitFormProject()
         {
+            if (string.IsNullOrWhiteSpace(vm.CurrentProject.SelectedBIAFront))
+                throw new Exception("unable to find any BIA front folder for this project");
+
             // Get files/folders name
             string dotnetBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, Constants.FolderBia);
-            string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.BIAFront, Constants.FolderBia);
+            string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.SelectedBIAFront, Constants.FolderBia);
             string backSettingsFileName = Path.Combine(dotnetBiaFolderPath, settings.GenerationSettingsFileName);
             string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
             this.crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.CrudGenerationHistoryFileName);
@@ -441,7 +453,7 @@
                         else if (feature.GenerationType == GenerationType.Front)
                         {
                             crudGeneration.Type = ANGULAR_TYPE;
-                            crudGeneration.Folder = vm.CurrentProject.BIAFront;
+                            crudGeneration.Folder = vm.CurrentProject.SelectedBIAFront;
                         }
                         history.Generation.Add(crudGeneration);
                     }
@@ -592,7 +604,7 @@
             List<string> foldersName = new();
 
             // List Options folders
-            string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.BIAFront, domainsPath);
+            string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.SelectedBIAFront, domainsPath);
             List<string> folders = Directory.GetDirectories(folderPath, $"*{suffix}", SearchOption.AllDirectories).ToList();
             folders.ForEach(f => foldersName.Add(new DirectoryInfo(f).Name.Replace(suffix, "")));
 
@@ -608,7 +620,7 @@
         {
             try
             {
-                string folderName = (zipData.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.CurrentProject.BIAFront;
+                string folderName = (zipData.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.CurrentProject.SelectedBIAFront;
                 string biaFolder = Path.Combine(vm.CurrentProject.Folder, folderName, Constants.FolderBia);
                 if (!new DirectoryInfo(biaFolder).Exists)
                 {

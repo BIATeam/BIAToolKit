@@ -206,15 +206,14 @@
             }
         }
 
-        private string _BIAFront;
-        public string BIAFront
+        private string _selectedBIAFront;
+        public string SelectedBIAFront
         {
-            get => _BIAFront;
+            get => _selectedBIAFront;
             set
             {
-                _BIAFront = value;
-                RaisePropertyChanged(nameof(BIAFront));
-                CurrentProject.BIAFront = value;
+                _selectedBIAFront = value;
+                RaisePropertyChanged(nameof(SelectedBIAFront));
             }
         }
 
@@ -231,7 +230,7 @@
                     RaisePropertyChanged(nameof(Name));
                     RaisePropertyChanged(nameof(IsProjectSelected));
                     BIAFronts = new List<string>(ModifyProject.CurrentProject.BIAFronts);
-                    BIAFront = BIAFronts.FirstOrDefault();
+                    SelectedBIAFront = BIAFronts.FirstOrDefault();
                 }
             }
         }
