@@ -229,7 +229,7 @@
                     RaisePropertyChanged(nameof(CompanyName));
                     RaisePropertyChanged(nameof(Name));
                     RaisePropertyChanged(nameof(IsProjectSelected));
-                    BIAFronts = new List<string>(ModifyProject.CurrentProject.BIAFronts);
+                    BIAFronts = value is null ? [] : new List<string>(ModifyProject.CurrentProject.BIAFronts);
                     SelectedBIAFront = BIAFronts.FirstOrDefault();
                 }
             }

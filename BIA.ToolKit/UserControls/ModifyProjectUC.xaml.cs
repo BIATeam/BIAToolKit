@@ -78,7 +78,7 @@
             uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
 
             ParameterModifyChange();
-            MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject.FrameworkVersion);
+            MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
             MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder);
             MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder);
         }
