@@ -47,7 +47,7 @@
                 currentProject = value;
                 string generationFolder = GetGenerationFolder(currentProject);
                 this.DotNetFolderGeneration = Path.Combine(generationFolder, Constants.FolderDotNet);
-                this.AngularFolderGeneration = Path.Combine(generationFolder, CurrentProject.BIAFronts);
+                this.AngularFolderGeneration = Path.Combine(generationFolder, CurrentProject.BIAFront);
             }
         }
 

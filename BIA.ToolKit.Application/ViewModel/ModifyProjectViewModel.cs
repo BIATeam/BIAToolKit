@@ -5,6 +5,8 @@
     using BIA.ToolKit.Domain.ModifyProject;
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Management.Automation;
@@ -30,7 +32,7 @@
                 if (ModifyProject.Projects != value)
                 {
                     ModifyProject.Projects = value;
-                    RaisePropertyChanged("Projects");
+                    RaisePropertyChanged(nameof(Projects));
                 }
             }
         }
@@ -64,7 +66,7 @@
 
             RefreshProjetsList();
 
-            RaisePropertyChanged("RootProjectsPath");
+            RaisePropertyChanged(nameof(RootProjectsPath));
         }
 
         public string RootProjectsPath
@@ -121,17 +123,13 @@
                 {
                     Regex reg2 = new Regex(currentProject.Folder.Replace("\\", "\\\\") + FrontFileRegExpPath, RegexOptions.IgnoreCase);
                     List<string> filesFront = Directory.GetFiles(currentProject.Folder, FrontFileNameSearchPattern, SearchOption.AllDirectories)?.Where(path => reg2.IsMatch(path)).ToList();
-                    currentProject.BIAFronts = "";
+                    currentProject.BIAFronts.Clear();
                     if (filesFront != null)
                     {
                         foreach (var fileFront in filesFront)
                         {
                             var match = reg2.Match(fileFront);
-                            if (currentProject.BIAFronts != "")
-                            {
-                                currentProject.BIAFronts += ", ";
-                            }
-                            currentProject.BIAFronts += match.Groups[1].Value;
+                            currentProject.BIAFronts.Add(match.Groups[1].Value);
                         }
                     }
                 }
@@ -197,9 +195,27 @@
             get { return String.IsNullOrEmpty(ModifyProject.CurrentProject?.Name) ? "???" : ModifyProject.CurrentProject.Name; }
         }
 
-        public string BIAFronts
+        private List<string> _BIAFronts;
+        public List<string> BIAFronts
         {
-            get { return String.IsNullOrEmpty(ModifyProject.CurrentProject?.BIAFronts) ? "???" : ModifyProject.CurrentProject.BIAFronts; }
+            get => _BIAFronts;
+            set
+            {
+                _BIAFronts = value;
+                RaisePropertyChanged(nameof(BIAFronts));
+            }
+        }
+
+        private string _BIAFront;
+        public string BIAFront
+        {
+            get => _BIAFront;
+            set
+            {
+                _BIAFront = value;
+                RaisePropertyChanged(nameof(BIAFront));
+                CurrentProject.BIAFront = value;
+            }
         }
 
         public Project CurrentProject
@@ -210,11 +226,12 @@
                 if (ModifyProject.CurrentProject != value)
                 {
                     ModifyProject.CurrentProject = value;
-                    RaisePropertyChanged("FrameworkVersion");
-                    RaisePropertyChanged("CompanyName");
-                    RaisePropertyChanged("Name");
-                    RaisePropertyChanged("BIAFronts");
+                    RaisePropertyChanged(nameof(FrameworkVersion));
+                    RaisePropertyChanged(nameof(CompanyName));
+                    RaisePropertyChanged(nameof(Name));
                     RaisePropertyChanged(nameof(IsProjectSelected));
+                    BIAFronts = new List<string>(ModifyProject.CurrentProject.BIAFronts);
+                    BIAFront = BIAFronts.FirstOrDefault();
                 }
             }
         }

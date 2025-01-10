@@ -20,12 +20,17 @@
         /// The Bia framework version of the project.
         public string? CompanyName { get; set; }
 
-        /// The folder of the project.
-        public string? BIAFronts { get; set; }
+        /// The BIA front folders of the project.
+        public List<string> BIAFronts { get; set; } = new List<string>();
 
         /// <summary>
         /// Path to the solution of the project
         /// </summary>
         public string? SolutionPath { get; set; }
+
+        /// <summary>
+        /// The selected BIA front folder.
+        /// </summary>
+        public string? BIAFront {  get; set; }
     }
 }
