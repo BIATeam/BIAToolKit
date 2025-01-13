@@ -73,6 +73,10 @@
                 return;
 
             vm.IsProjectChosen = false;
+            vm.Clear();
+            
+            if (project is null)
+                return;
 
             if (!Version.TryParse(project.FrameworkVersion, out Version projectVersion))
             {

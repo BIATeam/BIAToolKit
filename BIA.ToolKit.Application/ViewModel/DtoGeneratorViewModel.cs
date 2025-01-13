@@ -474,6 +474,12 @@
 
             RaisePropertyChanged(nameof(IsGenerationEnabled));
         }
+
+        public void Clear()
+        {
+            EntitiesNames.Clear();
+            EntityDomain = null;
+        }
     }
 
     public class EntityProperty : ObservableObject

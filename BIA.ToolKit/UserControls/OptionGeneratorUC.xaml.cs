@@ -101,6 +101,9 @@
         {
             ClearAll();
 
+            if (vm.CurrentProject == null)
+                return;
+
             // Set form enabled
             vm.IsProjectChosen = true;
 

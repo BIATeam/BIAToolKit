@@ -105,6 +105,9 @@
         {
             ClearAll();
 
+            if (vm.CurrentProject is null)
+                return;
+
             // Set form enabled
             vm.IsProjectChosen = true;
 
@@ -125,6 +128,9 @@
             vm.IsDtoParsed = false;
             vm.DtoDisplayItems = null;
             Visibility msgVisibility = Visibility.Hidden;
+
+            if (vm.CurrentProject is null)
+                return;
 
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
             ParseFrontDomains();
