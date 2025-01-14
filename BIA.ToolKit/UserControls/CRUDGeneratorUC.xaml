@@ -47,6 +47,9 @@
             <CheckBox Margin="120,62,0,0" Content="WebApi" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsWebApiSelected}" IsEnabled="{Binding IsWebApiAvailable}"/>
             <CheckBox Margin="120,82,0,0" Content="Front" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsFrontSelected}" IsEnabled="{Binding IsFrontAvailable}"/>
 
+            <Label Content="BIA Front:" Margin="0,115,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+            <ComboBox x:Name="BiaFront" ItemsSource="{Binding BiaFronts}" SelectedValue="{Binding BiaFront}" Margin="20,140,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" IsEnabled="{Binding IsFrontSelected}" SelectionChanged="BiaFront_SelectionChanged"/>
+
             <Label Content="Entity name (plural):" Margin="0,175,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
             <TextBox Text="{Binding CRUDNamePlural,UpdateSourceTrigger=PropertyChanged}" Margin="20,200,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" TextChanged="ModifyEntityPlural_TextChange" Height="21" IsEnabled="{Binding IsDtoParsed}"/>
 

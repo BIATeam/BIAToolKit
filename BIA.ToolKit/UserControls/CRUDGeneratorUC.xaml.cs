@@ -13,6 +13,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Windows;
     using System.Windows.Controls;
@@ -65,7 +66,6 @@
             this.settings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
-            this.uiEventBroker.OnBIAFrontFolderChanged += UiEventBroker_OnBIAFrontFolderChanged;
         }
 
         private void UiEventBroker_OnBIAFrontFolderChanged()
@@ -92,6 +92,7 @@
             if (currentProject == vm.CurrentProject)
                 return;
 
+            ClearAll();
             vm.CurrentProject = currentProject;
             CurrentProjectChange();
             crudService.CurrentProject = currentProject;
@@ -103,10 +104,14 @@
         /// </summary>
         private void CurrentProjectChange()
         {
-            ClearAll();
-
             if (vm.CurrentProject is null)
                 return;
+
+            if (vm.CurrentProject.BIAFronts.Count == 0)
+            {
+                consoleWriter.AddMessageLine("Unable to find any BIA front folder for this project", "red");
+                return;
+            }
 
             // Set form enabled
             vm.IsProjectChosen = true;
@@ -133,10 +138,13 @@
                 return;
 
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
-            ParseFrontDomains();
-
             var isBackSelected = vm.IsWebApiAvailable;
             var isFrontSelected = vm.IsFrontAvailable;
+
+            if(isFrontSelected && !string.IsNullOrWhiteSpace(vm.BiaFront))
+            {
+                ParseFrontDomains();
+            }
 
             if (this.crudHistory != null)
             {
@@ -155,6 +163,7 @@
                         vm.ParentName = history.ParentName;
                         vm.ParentNamePlural = history.ParentNamePlural;
                         vm.Domain = history.Domain;
+                        vm.BiaFront = history.BiaFront;
                         history.OptionItems?.ForEach(o =>
                         {
                             OptionItem item = vm.OptionItems.FirstOrDefault(x => x.OptionName == o);
@@ -225,7 +234,7 @@
 
             // Generation DotNet + Angular files
             List<string> optionsItems = vm.OptionItems.Any() ? vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
-            vm.IsDtoGenerated = crudService.GenerateFiles(vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, crudParent, vm.FeatureNameSelected, vm.Domain);
+            vm.IsDtoGenerated = crudService.GenerateFiles(vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, crudParent, vm.FeatureNameSelected, vm.Domain, vm.BiaFront);
             
             // Generate generation history file
             UpdateCrudGenerationHistory();
@@ -284,7 +293,7 @@
                 {
                     List<string> folders = new() {
                         Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet),
-                        Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.SelectedBIAFront, "src",  "app")
+                        Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, "src",  "app")
                     };
 
                     crudService.DeleteBIAToolkitAnnotations(folders);
@@ -315,17 +324,18 @@
             vm.IsWebApiSelected = false;
             vm.IsFrontSelected = false;
             vm.FeatureNameSelected = null;
+            vm.BiaFronts.Clear();
+            vm.BiaFront = null;
 
             this.crudHistory = null;
         }
 
-        private void InitProject()
+        private void InitProject(string biaFront = null)
         {
             Mouse.OverrideCursor = Cursors.Wait;
             try
             {
-                InitFormProject();
-                ParseZips();
+                SetGenerationSettings(biaFront);
                 crudService.CrudNames = new(backSettingsList, frontSettingsList);
             }
             catch (Exception ex)
@@ -338,16 +348,11 @@
             }
         }
 
-        private void InitFormProject()
+        private void SetGenerationSettings(string biaFront = null)
         {
-            if (string.IsNullOrWhiteSpace(vm.CurrentProject.SelectedBIAFront))
-                throw new Exception("unable to find any BIA front folder for this project");
-
             // Get files/folders name
             string dotnetBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, Constants.FolderBia);
-            string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.SelectedBIAFront, Constants.FolderBia);
             string backSettingsFileName = Path.Combine(dotnetBiaFolderPath, settings.GenerationSettingsFileName);
-            string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
             this.crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.CrudGenerationHistoryFileName);
 
             // Handle old path of CRUD history file
@@ -356,7 +361,6 @@
             {
                 File.Move(oldCrudHistoryFilePath, this.crudHistoryFileName);
             }
-
 
             // Load BIA settings
             if (File.Exists(backSettingsFileName))
@@ -371,15 +375,6 @@
                     }
                 }
             }
-            if (File.Exists(frontSettingsFileName))
-            {
-                frontSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(frontSettingsFileName));
-                if (vm.CurrentProject.FrameworkVersion == "3.9.0")
-                {
-                    var featuresToRemove = frontSettingsList.Where(x => x.Feature == "planes-full-code" || x.Feature == "aircraft-maintenance-companies");
-                    frontSettingsList = frontSettingsList.Except(featuresToRemove).ToList();
-                }
-            }
 
             foreach(var setting in backSettingsList)
             {
@@ -389,6 +384,35 @@
 
                 var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths, setting.FeatureDomain);
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
+            }
+
+            ParseZips(vm.ZipFeatureTypeList);
+
+            foreach (var featureName in vm.ZipFeatureTypeList.Select(x => x.Feature).Distinct())
+            {
+                vm.FeatureNames.Add(featureName);
+            }
+
+            // Load generation history
+            this.crudHistory = CommonTools.DeserializeJsonFile<CRUDGeneration>(this.crudHistoryFileName);
+        }
+
+        private void SetFrontGenerationSettings(string biaFront)
+        {
+            this.frontSettingsList.Clear();
+            vm.ZipFeatureTypeList.RemoveAll(x => x.GenerationType == GenerationType.Front);
+
+            string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
+            string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
+
+            if (File.Exists(frontSettingsFileName))
+            {
+                frontSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(frontSettingsFileName));
+                if (vm.CurrentProject.FrameworkVersion == "3.9.0")
+                {
+                    var featuresToRemove = frontSettingsList.Where(x => x.Feature == "planes-full-code" || x.Feature == "aircraft-maintenance-companies");
+                    frontSettingsList = frontSettingsList.Except(featuresToRemove).ToList();
+                }
             }
 
             foreach (var setting in frontSettingsList)
@@ -401,13 +425,7 @@
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
 
-            foreach (var featureName in vm.ZipFeatureTypeList.Select(x => x.Feature).Distinct())
-            {
-                vm.FeatureNames.Add(featureName);
-            }
-
-            // Load generation history
-            this.crudHistory = CommonTools.DeserializeJsonFile<CRUDGeneration>(this.crudHistoryFileName);
+            ParseZips(vm.ZipFeatureTypeList.Where(x => x.GenerationType == GenerationType.Front));
         }
 
         /// <summary>
@@ -431,6 +449,7 @@
                     ParentName = vm.ParentName,
                     ParentNamePlural = vm.ParentNamePlural,
                     Domain = vm.Domain,
+                    BiaFront = vm.BiaFront,
 
                     // Create "Mapping" part
                     Mapping = new()
@@ -459,7 +478,7 @@
                         else if (feature.GenerationType == GenerationType.Front)
                         {
                             crudGeneration.Type = ANGULAR_TYPE;
-                            crudGeneration.Folder = vm.CurrentProject.SelectedBIAFront;
+                            crudGeneration.Folder = vm.BiaFront;
                         }
                         history.Generation.Add(crudGeneration);
                     }
@@ -533,7 +552,7 @@
         /// <summary>
         /// Parse all zips.
         /// </summary>
-        private void ParseZips()
+        private void ParseZips(IEnumerable<ZipFeatureType> zipFeatures)
         {
             vm.IsZipParsed = false;
 
@@ -549,7 +568,7 @@
             }
 
             bool parsed = false;
-            foreach(var zipFeatureType in vm.ZipFeatureTypeList)
+            foreach(var zipFeatureType in zipFeatures)
             {
                 parsed |= ParseZipFile(zipFeatureType);
             }
@@ -610,7 +629,7 @@
             List<string> foldersName = new();
 
             // List Options folders
-            string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.SelectedBIAFront, domainsPath);
+            string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, domainsPath);    
             List<string> folders = Directory.GetDirectories(folderPath, $"*{suffix}", SearchOption.AllDirectories).ToList();
             folders.ForEach(f => foldersName.Add(new DirectoryInfo(f).Name.Replace(suffix, "")));
 
@@ -626,7 +645,7 @@
         {
             try
             {
-                string folderName = (zipData.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.CurrentProject.SelectedBIAFront;
+                string folderName = (zipData.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.BiaFront;
                 string biaFolder = Path.Combine(vm.CurrentProject.Folder, folderName, Constants.FolderBia);
                 if (!new DirectoryInfo(biaFolder).Exists)
                 {
@@ -668,5 +687,13 @@
             return vm.DtoFiles[vm.DtoSelected].Replace(dotNetPath, "").TrimStart(Path.DirectorySeparatorChar);
         }
         #endregion
+
+        private void BiaFront_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.AddedItems.Count > 0)
+            {
+                SetFrontGenerationSettings(e.AddedItems[0] as string);
+            }
+        }
     }
 }

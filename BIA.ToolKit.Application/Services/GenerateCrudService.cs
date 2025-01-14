@@ -38,7 +38,7 @@
         public Project CurrentProject { get; set; }
 
         private string DotNetFolderGeneration => Path.Combine(CurrentProject.Folder, Constants.FolderDotNet);
-        private string AngularFolderGeneration => Path.Combine(CurrentProject.Folder, CurrentProject.SelectedBIAFront);
+        private string AngularFolderGeneration;
 
         private CrudParent CrudParent { get; set; }
         private FeatureParent FeatureParentPrincipal { get; set; }
@@ -54,12 +54,13 @@
         }
 
         public bool GenerateFiles(EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList,
-                                        string displayItem, List<string> options, CrudParent crudParent, string featureSelected, string featureDomain)
+                                        string displayItem, List<string> options, CrudParent crudParent, string featureSelected, string featureDomain, string biaFront = null)
         {
             try
             {
                 CrudParent = crudParent ?? new CrudParent();
                 FeatureTargetDomain = featureDomain;
+                AngularFolderGeneration = Path.Combine(CurrentProject.Folder, biaFront);
 
                 // Get CRUD dto properties
                 List<CrudProperty> crudDtoProperties = GetDtoProperties(crudDtoEntity);
