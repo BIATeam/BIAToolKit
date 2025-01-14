@@ -104,7 +104,10 @@
                 return;
 
             if (vm.CurrentProject.BIAFronts.Count == 0)
-                throw new Exception("unable to find any BIA front folder for this project");
+            {
+                consoleWriter.AddMessageLine("Unable to find any BIA front folder for this project", "red");
+                return;
+            }
 
             // Set form enabled
             vm.IsProjectChosen = true;
@@ -180,7 +183,7 @@
 
             // Generation DotNet + Angular files
             var featureName = vm.ZipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Option)?.Feature;
-            vm.IsGenerated = crudService.GenerateFiles(vm.Entity, vm.ZipFeatureTypeList, vm.EntityDisplayItemSelected, null, null, FeatureType.Option.ToString(), vm.Domain);
+            vm.IsGenerated = crudService.GenerateFiles(vm.Entity, vm.ZipFeatureTypeList, vm.EntityDisplayItemSelected, null, null, FeatureType.Option.ToString(), vm.Domain, vm.BiaFront);
             
             // Generate generation history file
             UpdateOptionGenerationHistory();

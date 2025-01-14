@@ -417,6 +417,7 @@
                     RaisePropertyChanged(nameof(IsWebApiSelected));
                 }
                 UpdateFeatureSelection();
+                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
 
@@ -436,6 +437,7 @@
                     }
                 }
                 UpdateFeatureSelection();
+                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
 
@@ -509,7 +511,7 @@
                     && !string.IsNullOrWhiteSpace(CRUDNamePlural)
                     && !string.IsNullOrEmpty(Domain)
                     && (!string.IsNullOrWhiteSpace(dtoDisplayItemSelected) || ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option))
-                    && (IsWebApiSelected || isFrontSelected)
+                    && ((IsWebApiSelected && !IsFrontSelected) || (IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)) || (!IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)))
                     && !string.IsNullOrEmpty(featureNameSelected)
                     && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural)));
             }

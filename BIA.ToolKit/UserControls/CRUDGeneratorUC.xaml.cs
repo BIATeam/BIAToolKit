@@ -108,7 +108,10 @@
                 return;
 
             if (vm.CurrentProject.BIAFronts.Count == 0)
-                throw new Exception("unable to find any BIA front folder for this project");
+            {
+                consoleWriter.AddMessageLine("Unable to find any BIA front folder for this project", "red");
+                return;
+            }
 
             // Set form enabled
             vm.IsProjectChosen = true;
@@ -138,7 +141,7 @@
             var isBackSelected = vm.IsWebApiAvailable;
             var isFrontSelected = vm.IsFrontAvailable;
 
-            if(isFrontSelected)
+            if(isFrontSelected && !string.IsNullOrWhiteSpace(vm.BiaFront))
             {
                 ParseFrontDomains();
             }
@@ -689,9 +692,6 @@
         {
             if (e.AddedItems.Count > 0)
             {
-                frontSettingsList.Clear();
-                vm.ZipFeatureTypeList.Clear();
-
                 SetFrontGenerationSettings(e.AddedItems[0] as string);
             }
         }

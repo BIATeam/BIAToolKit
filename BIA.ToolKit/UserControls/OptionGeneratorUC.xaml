@@ -27,7 +27,7 @@
             <Button IsEnabled="{Binding IsProjectChosen}" Margin="330,79,0,0" Width="24" x:Name="RefreshDtoList" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshEntitiesList_Click" ToolTip="Refresh list">
                 <Image Source="/Images/rafraichir-32.png" />
             </Button>
-            <Label Name="OptionAlreadyGeneratedLabel" Content="Generation was already done for this Entity"  Margin="20,42,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Yellow" Visibility="Hidden" />
+            <Label Name="OptionAlreadyGeneratedLabel" Content="Generation was already done for this Entity"  Margin="20,97,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Yellow" Visibility="Hidden" />
 
             <Label Content="Domain:" Margin="0,110,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
             <TextBox Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="20,135,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Padding="2" IsEnabled="{Binding IsEntityParsed}"/>
