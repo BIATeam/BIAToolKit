@@ -31,6 +31,15 @@
             set
             {
                 currentProject = value;
+                BiaFronts.Clear();
+                if(currentProject != null)
+                {
+                    foreach(var biaFront in currentProject.BIAFronts)
+                    {
+                        BiaFronts.Add(biaFront);
+                    }
+                    BiaFront = BiaFronts.FirstOrDefault();
+                }
             }
         }
 
@@ -42,6 +51,28 @@
             {
                 isProjectChosen = value;
                 RaisePropertyChanged(nameof(IsProjectChosen));
+            }
+        }
+
+        private string _biaFront;
+        public string BiaFront
+        {
+            get => _biaFront;
+            set
+            {
+                _biaFront = value;
+                RaisePropertyChanged(nameof(BiaFront));
+            }
+        }
+
+        private ObservableCollection<string> _biaFronts = new();
+        public ObservableCollection<string> BiaFronts
+        {
+            get => _biaFronts;
+            set
+            {
+                _biaFronts = value;
+                RaisePropertyChanged(nameof(BiaFronts));
             }
         }
         #endregion

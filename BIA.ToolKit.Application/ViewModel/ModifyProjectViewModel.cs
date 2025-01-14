@@ -195,27 +195,9 @@
             get { return String.IsNullOrEmpty(ModifyProject.CurrentProject?.Name) ? "???" : ModifyProject.CurrentProject.Name; }
         }
 
-        private List<string> _BIAFronts;
-        public List<string> BIAFronts
-        {
-            get => _BIAFronts;
-            set
-            {
-                _BIAFronts = value;
-                RaisePropertyChanged(nameof(BIAFronts));
-            }
-        }
-
-        private string _selectedBIAFront;
-        public string SelectedBIAFront
-        {
-            get => _selectedBIAFront;
-            set
-            {
-                _selectedBIAFront = value;
-                RaisePropertyChanged(nameof(SelectedBIAFront));
-            }
-        }
+        public string BIAFronts => ModifyProject.CurrentProject?.BIAFronts != null && ModifyProject.CurrentProject?.BIAFronts.Count > 0 ? 
+            string.Join(", ", ModifyProject.CurrentProject.BIAFronts) : 
+            "???";
 
         public Project CurrentProject
         {
@@ -229,8 +211,7 @@
                     RaisePropertyChanged(nameof(CompanyName));
                     RaisePropertyChanged(nameof(Name));
                     RaisePropertyChanged(nameof(IsProjectSelected));
-                    BIAFronts = value is null ? [] : new List<string>(ModifyProject.CurrentProject.BIAFronts);
-                    SelectedBIAFront = BIAFronts.FirstOrDefault();
+                    RaisePropertyChanged(nameof(BIAFronts));
                 }
             }
         }

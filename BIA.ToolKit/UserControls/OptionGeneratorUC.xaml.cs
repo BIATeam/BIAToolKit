@@ -88,6 +88,7 @@
             if (currentProject == vm.CurrentProject)
                 return;
 
+            ClearAll();
             vm.CurrentProject = currentProject;
             CurrentProjectChange();
             crudService.CurrentProject = currentProject;
@@ -99,10 +100,11 @@
         /// </summary>
         private void CurrentProjectChange()
         {
-            ClearAll();
-
             if (vm.CurrentProject == null)
                 return;
+
+            if (vm.CurrentProject.BIAFronts.Count == 0)
+                throw new Exception("unable to find any BIA front folder for this project");
 
             // Set form enabled
             vm.IsProjectChosen = true;
@@ -141,6 +143,7 @@
                         vm.EntitySelected = history.EntityNameSingular;
                         vm.EntityNamePlural = history.EntityNamePlural;
                         vm.Domain = history.Domain;
+                        vm.BiaFront = history.BiaFront;
                         msgVisibility = Visibility.Visible;
                     }
                 }
@@ -233,7 +236,7 @@
                 {
                     List<string> folders = new() {
                         Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet),
-                        Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.SelectedBIAFront, "src",  "app")
+                        Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, "src",  "app")
                     };
 
                     crudService.DeleteBIAToolkitAnnotations(folders);
@@ -263,16 +266,18 @@
             vm.EntityFiles = null;
             vm.EntityNamePlural = null;
             vm.Domain = null;
+            vm.BiaFronts.Clear();
+            vm.BiaFront = null;
 
             this.optionGenerationHistory = null;
         }
 
-        private void InitProject()
+        private void InitProject(string biaFront = null)
         {
             Mouse.OverrideCursor = Cursors.Wait;
             try
             {
-                InitFormProject();
+                SetGenerationSettings(biaFront);
                 ParseZips();
                 crudService.CrudNames = new(backSettingsList, frontSettingsList);
             }
@@ -286,13 +291,11 @@
             }
         }
 
-        private void InitFormProject()
+        private void SetGenerationSettings(string biaFront = null)
         {
             // Get files/folders name
             string dotnetBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, Constants.FolderBia);
-            string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, vm.CurrentProject.SelectedBIAFront, Constants.FolderBia);
             string backSettingsFileName = Path.Combine(dotnetBiaFolderPath, settings.GenerationSettingsFileName);
-            string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
             this.optionHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.OptionGenerationHistoryFileName);
 
             // Load BIA settings
@@ -312,6 +315,21 @@
                     vm.ZipFeatureTypeList.Add(zipFeatureType);
                 }
             }
+
+            // Load generation history
+            this.optionGenerationHistory = CommonTools.DeserializeJsonFile<OptionGeneration>(this.optionHistoryFileName);
+
+            if(!string.IsNullOrWhiteSpace(biaFront))
+            {
+                SetFrontGenerationSettings(biaFront);
+            }
+        }
+
+        private void SetFrontGenerationSettings(string biaFront)
+        {
+            string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
+            string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
+
             if (File.Exists(frontSettingsFileName))
             {
                 frontSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(frontSettingsFileName));
@@ -329,9 +347,6 @@
                     vm.ZipFeatureTypeList.Add(zipFeatureType);
                 }
             }
-
-            // Load generation history
-            this.optionGenerationHistory = CommonTools.DeserializeJsonFile<OptionGeneration>(this.optionHistoryFileName);
         }
 
         /// <summary>
@@ -350,6 +365,7 @@
                     EntityNamePlural = vm.EntityNamePlural,
                     DisplayItem = vm.EntityDisplayItemSelected,
                     Domain = vm.Domain,
+                    BiaFront = vm.BiaFront,
 
                     // Create "Mapping" part
                     Mapping = new()
@@ -378,7 +394,7 @@
                         else if (feature.GenerationType == GenerationType.Front)
                         {
                             crudGeneration.Type = ANGULAR_TYPE;
-                            crudGeneration.Folder = vm.CurrentProject.SelectedBIAFront;
+                            crudGeneration.Folder = vm.BiaFront;
                         }
                         history.Generation.Add(crudGeneration);
                     }
@@ -510,7 +526,7 @@
         {
             try
             {
-                string folderName = (zipData.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.CurrentProject.SelectedBIAFront;
+                string folderName = (zipData.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.BiaFront;
                 string biaFolder = Path.Combine(vm.CurrentProject.Folder, folderName, Constants.FolderBia);
                 if (!new DirectoryInfo(biaFolder).Exists)
                 {
@@ -538,5 +554,17 @@
             return vm.EntityFiles[vm.EntitySelected].Replace(dotNetPath, "").TrimStart(Path.DirectorySeparatorChar);
         }
         #endregion
+
+        private void BIAFront_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.AddedItems.Count > 0)
+            {
+                this.backSettingsList.Clear();
+                this.frontSettingsList.Clear();
+                vm.ZipFeatureTypeList.Clear();
+
+                InitProject(e.AddedItems[0] as string);
+            }
+        }
     }
 }

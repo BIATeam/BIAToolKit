@@ -27,10 +27,5 @@
         /// Path to the solution of the project
         /// </summary>
         public string? SolutionPath { get; set; }
-
-        /// <summary>
-        /// The selected BIA front folder.
-        /// </summary>
-        public string? SelectedBIAFront {  get; set; }
     }
 }

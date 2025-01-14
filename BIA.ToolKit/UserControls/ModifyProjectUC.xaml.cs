@@ -190,10 +190,13 @@
             MigrateMergeRejected.IsEnabled = false;
 
             // delete PACKAGE_LOCK_FILE
-            string path = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, _viewModel.ModifyProject.CurrentProject.SelectedBIAFront, crudSettings.PackageLockFileName);
-            if (new FileInfo(path).Exists)
+            foreach (var biaFront in _viewModel.ModifyProject.CurrentProject.BIAFronts)
             {
-                File.Delete(path);
+                string path = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, biaFront, crudSettings.PackageLockFileName);
+                if (new FileInfo(path).Exists)
+                {
+                    File.Delete(path);
+                }
             }
 
             Enable(true);
@@ -227,14 +230,14 @@
                 FileTransform.ForceDeleteDirectory(projectOriginPath);
             }
 
-            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, _viewModel.BIAFronts);
+            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, _viewModel.CurrentProject.BIAFronts);
 
             // Create project at target version.
             if (Directory.Exists(projectTargetPath))
             {
                 FileTransform.ForceDeleteDirectory(projectTargetPath);
             }
-            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, _viewModel.BIAFronts);
+            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, _viewModel.CurrentProject.BIAFronts);
 
             consoleWriter.AddMessageLine("Generate projects finished.", actionFinishedAtEnd ? "Green" : "Blue");
         }
@@ -340,15 +343,6 @@
         private async Task ResolveUsings_Run()
         {
             await cSharpParserService.ResolveUsings(_viewModel.CurrentProject.SolutionPath);
-        }
-
-        private void BIAFrontFolders_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (e.AddedItems.Count == 0)
-                return;
-
-            _viewModel.CurrentProject.SelectedBIAFront = e.AddedItems[0] as string;
-            uiEventBroker.NotifyBIAFrontFolderChanged();
         }
     }
 }

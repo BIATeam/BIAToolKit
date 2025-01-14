@@ -19,19 +19,11 @@ namespace BIA.ToolKit.Services
 
         public delegate void ProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem);
         public event ProjectChanged OnProjectChanged;
-
-        public delegate void BIAFrontFolderChanged();
-        public event BIAFrontFolderChanged OnBIAFrontFolderChanged;
         public TabItemModifyProjectEnum CurrentTabItemModifyProject { get; private set; }
 
         public void NotifyProjectChanged(Project project)
         {
             OnProjectChanged?.Invoke(project, CurrentTabItemModifyProject);
-        }
-
-        public void NotifyBIAFrontFolderChanged()
-        {
-            OnBIAFrontFolderChanged?.Invoke();
         }
 
         public void SetCurrentTabItemModifyProject(TabItemModifyProjectEnum tabItem)
