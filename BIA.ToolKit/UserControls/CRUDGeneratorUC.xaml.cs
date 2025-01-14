@@ -333,7 +333,6 @@
             try
             {
                 SetGenerationSettings(biaFront);
-                ParseZips();
                 crudService.CrudNames = new(backSettingsList, frontSettingsList);
             }
             catch (Exception ex)
@@ -384,10 +383,7 @@
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
 
-            if(!string.IsNullOrWhiteSpace(biaFront))
-            {
-                SetFrontGenerationSettings(biaFront);
-            }
+            ParseZips(vm.ZipFeatureTypeList);
 
             foreach (var featureName in vm.ZipFeatureTypeList.Select(x => x.Feature).Distinct())
             {
@@ -400,6 +396,9 @@
 
         private void SetFrontGenerationSettings(string biaFront)
         {
+            this.frontSettingsList.Clear();
+            vm.ZipFeatureTypeList.RemoveAll(x => x.GenerationType == GenerationType.Front);
+
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
             string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
 
@@ -422,6 +421,8 @@
                 var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths, setting.FeatureDomain);
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
+
+            ParseZips(vm.ZipFeatureTypeList.Where(x => x.GenerationType == GenerationType.Front));
         }
 
         /// <summary>
@@ -548,7 +549,7 @@
         /// <summary>
         /// Parse all zips.
         /// </summary>
-        private void ParseZips()
+        private void ParseZips(IEnumerable<ZipFeatureType> zipFeatures)
         {
             vm.IsZipParsed = false;
 
@@ -564,7 +565,7 @@
             }
 
             bool parsed = false;
-            foreach(var zipFeatureType in vm.ZipFeatureTypeList)
+            foreach(var zipFeatureType in zipFeatures)
             {
                 parsed |= ParseZipFile(zipFeatureType);
             }
@@ -688,13 +689,10 @@
         {
             if (e.AddedItems.Count > 0)
             {
-                backSettingsList.Clear();
                 frontSettingsList.Clear();
-                vm.OptionItems.Clear();
                 vm.ZipFeatureTypeList.Clear();
-                vm.FeatureNames.Clear();
 
-                InitProject(e.AddedItems[0] as string);
+                SetFrontGenerationSettings(e.AddedItems[0] as string);
             }
         }
     }
