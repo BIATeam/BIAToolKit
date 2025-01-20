@@ -65,20 +65,26 @@
                     </Grid>
                 </Grid>
             </TabItem>
-            <TabItem x:Name="TabOptionGenerator" Header="1 - Option Generator" Margin="3,0,-7,0" >
-                <Grid Background="Transparent" Margin="5">
-                    <uc:OptionGeneratorUC x:Name="OptionGenerator" />
-                </Grid>
+            <TabItem x:Name="TabOptionGenerator" Header="1 - Option Generator" Margin="3,0,-7,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
+                    <Grid Background="Transparent" Margin="5">
+                        <uc:OptionGeneratorUC x:Name="OptionGenerator" />
+                    </Grid>
+                </ScrollViewer>
             </TabItem>
             <TabItem x:Name="TabDtoGenerator" Header="2 - DTO Generator" Margin="3,0,-7,0" >
-                <Grid Background="Transparent" Margin="5">
-                    <uc:DtoGeneratorUC x:Name="DtoGenerator" />
-                </Grid>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
+                    <Grid Background="Transparent" Margin="5">
+                        <uc:DtoGeneratorUC x:Name="DtoGenerator" />
+                    </Grid>
+                </ScrollViewer>
             </TabItem>
             <TabItem x:Name="TabCrudGenerator" Header="3 - CRUD Generator" Margin="3,0,-7,0" >
-                <Grid Background="Transparent" Margin="5">
-                    <uc:CRUDGeneratorUC x:Name="CRUDGenerator" />
-                </Grid>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
+                    <Grid Background="Transparent" Margin="5">
+                        <uc:CRUDGeneratorUC x:Name="CRUDGenerator" />
+                    </Grid>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
         <Label Content="Projects parent path" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Foreground="White"/>
