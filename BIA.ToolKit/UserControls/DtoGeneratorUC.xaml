@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
              mc:Ignorable="d" 
-             d:DesignHeight="400" d:DesignWidth="1000">
+             d:DesignHeight="1080" d:DesignWidth="1920">
     <UserControl.DataContext>
         <local:DtoGeneratorViewModel />
     </UserControl.DataContext>
@@ -14,7 +14,7 @@
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="0.4*"/>
+            <RowDefinition Height="110"/>
             <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
         

@@ -29,30 +29,40 @@
                     <Image gif:ImageBehavior.AnimatedSource="Images/LogoBIA.png" Grid.ColumnSpan="4"/>
 
                     <Grid Grid.Column="0" Margin="10,0">
-                        <Label Foreground="White" Content="BIA Template Repository" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="20" FontWeight="Bold"/>
-                        <Label Foreground="White" FontWeight="Bold" Content="https://github.com/BIATeam/BIATemplate.git " HorizontalAlignment="Left" Margin="0,45,0,0" VerticalAlignment="Top"/>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="0.13*"/>
+                        </Grid.ColumnDefinitions>
 
-                        <CheckBox IsChecked="{Binding Settings.BIATemplateRepository.UseLocalFolder}" Foreground="White" Content="Use a local cloned folder:" HorizontalAlignment="Left" Margin="10,75,0,0" VerticalAlignment="Top" Checked="ConfigurationChange" Unchecked="ConfigurationChange"/>
-                        <TextBox Text="{Binding Settings_BIATemplateRepository_LocalFolderPath}" HorizontalAlignment="Left" Margin="20,95,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="380" Height="20" IsEnabled="{Binding Settings.BIATemplateRepository.UseLocalFolder}" TextChanged="ConfigurationChange" />
-                        <Button Content="..." HorizontalAlignment="Left" Margin="410,95,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" Name="BIATemplateLocalFolderBrowse" IsEnabled="{Binding Settings.BIATemplateRepository.UseLocalFolder}" Click="BIATemplateLocalFolderBrowse_Click"/>
+                        <Label Grid.ColumnSpan="2" Foreground="White" Content="BIA Template Repository" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="20" FontWeight="Bold"/>
+                        <Label Grid.ColumnSpan="2" Foreground="White" FontWeight="Bold" Content="https://github.com/BIATeam/BIATemplate.git " HorizontalAlignment="Left" Margin="0,45,0,0" VerticalAlignment="Top"/>
 
-                        <Button Content="Synchronize" HorizontalAlignment="Center" Margin="10,140,0,0" RenderTransformOrigin="0.429,2.91" Width="120" Name="BIATemplateLocalFolderSync" Click="BIATemplateLocalFolderSync_Click" Height="20" VerticalAlignment="Top"/>
-                        <Button Content="Clean Release" HorizontalAlignment="Center" Margin="10,170,0,0" RenderTransformOrigin="0.429,2.91" Width="85" Name="BIATemplateLocalCleanRelease" Click="BIATemplateLocalCleanRelease_Click" Height="20" VerticalAlignment="top"/>
+                        <CheckBox Grid.ColumnSpan="2" IsChecked="{Binding Settings.BIATemplateRepository.UseLocalFolder}" Foreground="White" Content="Use a local cloned folder:" HorizontalAlignment="Left" Margin="10,75,0,0" VerticalAlignment="Top" Checked="ConfigurationChange" Unchecked="ConfigurationChange"/>
+                        <TextBox Text="{Binding Settings_BIATemplateRepository_LocalFolderPath}" HorizontalAlignment="Stretch" Margin="20,95,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="20" IsEnabled="{Binding Settings.BIATemplateRepository.UseLocalFolder}" TextChanged="ConfigurationChange" />
+                        <Button Grid.Column="1" Content="..." HorizontalAlignment="Stretch" Margin="5,95,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Name="BIATemplateLocalFolderBrowse" IsEnabled="{Binding Settings.BIATemplateRepository.UseLocalFolder}" Click="BIATemplateLocalFolderBrowse_Click"/>
 
-                        <Button Content="Custom templates repositories settings" Margin="0,0,0,40" Click="CustomRepoTemplate_Click" RenderTransformOrigin="0.429,2.91" Width="250" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Center"/>
+                        <Button Grid.ColumnSpan="2" Content="Synchronize" HorizontalAlignment="Center" Margin="10,140,0,0" RenderTransformOrigin="0.429,2.91" Width="120" Name="BIATemplateLocalFolderSync" Click="BIATemplateLocalFolderSync_Click" Height="20" VerticalAlignment="Top"/>
+                        <Button Grid.ColumnSpan="2" Content="Clean Release" HorizontalAlignment="Center" Margin="10,170,0,0" RenderTransformOrigin="0.429,2.91" Width="85" Name="BIATemplateLocalCleanRelease" Click="BIATemplateLocalCleanRelease_Click" Height="20" VerticalAlignment="top"/>
+
+                        <Button Grid.ColumnSpan="2" Content="Custom templates repositories settings" Margin="0,0,0,40" Click="CustomRepoTemplate_Click" RenderTransformOrigin="0.429,2.91" Width="250" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Center"/>
                     </Grid>
 
                     <Grid Grid.Column="2" Margin="10,0">
                         <CheckBox IsChecked="{Binding Settings.UseCompanyFiles}" HorizontalAlignment="Center" Margin="0,0,200,189" Checked="ConfigurationChange" Unchecked="ConfigurationChange" Height="15" VerticalAlignment="Bottom"/>
                         <Label Foreground="White" Content="Use Company Files" HorizontalAlignment="Center" Margin="0,0,0,180" FontSize="20" FontWeight="Bold" Height="37" VerticalAlignment="Bottom"/>
                         <Grid IsEnabled="{Binding Settings.UseCompanyFiles}">
-                            <Label Foreground="White" Content="Git repository:" HorizontalAlignment="Left" Margin="0,0,0,165" Name="CompanyFilesGit" Height="24" VerticalAlignment="Bottom"/>
-                            <TextBox Text="{Binding Settings.CompanyFiles.UrlRepo}" HorizontalAlignment="Left" Margin="20,0,0,145" TextWrapping="Wrap" Width="430" Name="CompanyFilesGitRepo" Height="20" VerticalAlignment="Bottom"/>
-                            <CheckBox IsChecked="{Binding Settings.CompanyFiles.UseLocalFolder}" Foreground="White" Content="Use a local cloned folder:" HorizontalAlignment="Left" Margin="10,0,0,120" Checked="ConfigurationChange" Unchecked="ConfigurationChange" Height="15" VerticalAlignment="Bottom"/>
-                            <TextBox Text="{Binding Settings_CompanyFiles_LocalFolderPath}"  IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Left" Margin="20,0,0,95" TextWrapping="Wrap" Width="385" Height="20" VerticalAlignment="Bottom" />
-                            <Button Content="..." IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Right" Margin="0,0,10,95" RenderTransformOrigin="0.429,2.91" Width="35" Click="CompanyFilesLocalFolderBrowse_Click" Height="20" VerticalAlignment="Bottom"/>
-                            <Button Content="Synchronize" HorizontalAlignment="Center" Margin="0,0,0,40" RenderTransformOrigin="0.429,2.91" Width="120" Name="CompanyFilesLocalFolderSync" Click="CompanyFilesLocalFolderSync_Click" Height="20" VerticalAlignment="Bottom"/>
-                            <Label Content="V1.7.3" Margin="2" VerticalAlignment="Top" Foreground="#FFF0F0F0" HorizontalAlignment="Right"/>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="0.13*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Label Grid.ColumnSpan="2" Foreground="White" Content="Git repository:" HorizontalAlignment="Left" Margin="0,0,0,165" Name="CompanyFilesGit" Height="24" VerticalAlignment="Bottom"/>
+                            <TextBox Grid.ColumnSpan="2" Text="{Binding Settings.CompanyFiles.UrlRepo}" HorizontalAlignment="Stretch" Margin="20,0,0,145" TextWrapping="Wrap" Name="CompanyFilesGitRepo" Height="20" VerticalAlignment="Bottom"/>
+                            <CheckBox Grid.ColumnSpan="2" IsChecked="{Binding Settings.CompanyFiles.UseLocalFolder}" Foreground="White" Content="Use a local cloned folder:" HorizontalAlignment="Left" Margin="10,0,0,120" Checked="ConfigurationChange" Unchecked="ConfigurationChange" Height="15" VerticalAlignment="Bottom"/>
+                            <TextBox Text="{Binding Settings_CompanyFiles_LocalFolderPath}"  IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Stretch" Margin="20,0,0,95" TextWrapping="Wrap" Height="20" VerticalAlignment="Bottom" />
+                            <Button Grid.Column="1" Content="..." IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Stretch" Margin="5,0,0,95" RenderTransformOrigin="0.429,2.91" Click="CompanyFilesLocalFolderBrowse_Click" Height="20" VerticalAlignment="Bottom"/>
+                            <Button Grid.ColumnSpan="2" Content="Synchronize" HorizontalAlignment="Center" Margin="0,0,0,40" RenderTransformOrigin="0.429,2.91" Width="120" Name="CompanyFilesLocalFolderSync" Click="CompanyFilesLocalFolderSync_Click" Height="20" VerticalAlignment="Bottom"/>
+                            <Label Grid.ColumnSpan="2" Content="V1.7.3" Margin="2" VerticalAlignment="Top" Foreground="#FFF0F0F0" HorizontalAlignment="Right"/>
                         </Grid>
                     </Grid>
                 </Grid>
@@ -68,8 +78,8 @@
                         <ImageBrush ImageSource="/Images/bg-default.jpg"/>
                     </Grid.Background>
                     <Label Content="Projects parent path" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Foreground="White"/>
-                    <TextBox Text="{Binding Settings_RootProjectsPath}" HorizontalAlignment="Left" Margin="29,25,0,0"  TextWrapping="Wrap" VerticalAlignment="Top" Width="310" Grid.ColumnSpan="2"/>
-                    <Button Content="..." HorizontalAlignment="Left" Margin="350,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" Click="CreateProjectRootFolderBrowse_Click" Grid.Column="0"/>
+                    <TextBox Text="{Binding Settings_RootProjectsPath}" HorizontalAlignment="Left" Margin="29,25,0,0"  TextWrapping="Wrap" VerticalAlignment="Top" Width="300" Grid.ColumnSpan="2"/>
+                    <Button Content="..." HorizontalAlignment="Left" Margin="340,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" Click="CreateProjectRootFolderBrowse_Click" Grid.Column="0"/>
                     <Label Content="Company name" HorizontalAlignment="Left" Margin="24,1,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
                     <TextBox Text="{Binding Settings.CreateCompanyName}" HorizontalAlignment="Left" Margin="43,26,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" IsEnabled="True" Grid.Column="1"/>
                     <Label Content="Project name" HorizontalAlignment="Left" Margin="24,51,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
