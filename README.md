@@ -10,7 +10,7 @@
 8. Set the installer location where the installer package will be distributed to users, choose automatic update strategy, then Create
 9. Wait for package creation, then Close
 10. Open the created package folder
-11. Identify the SignTool.exe to use https://learn.microsoft.com/en-us/windows/msix/package/sign-app-package-using-signtool#prerequisites
+11. Identify the SignTool.exe to use (matching .wapproj settings for TargetPlatformVersion and AppxBundlePlatforms) : https://learn.microsoft.com/en-us/windows/msix/package/sign-app-package-using-signtool#prerequisites
 12. Run the following command to sign the MSIX installer of your new version with your trusted certificate : 
 [SIGNTOOL-PATH] sign /fd SHA256 /n [TRUSTED-CERTIFICATE-NAME] [MSIX-PATH]
 13. Copy the content of the package folder to the installer location
