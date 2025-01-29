@@ -14,3 +14,6 @@
 12. Run the following command to sign the MSIX installer of your new version with your trusted certificate : 
 [SIGNTOOL-PATH] sign /fd SHA256 /n [TRUSTED-CERTIFICATE-NAME] [MSIX-PATH]
 13. Copy the content of the package folder to the installer location
+
+*** WARNING ***
+Do not commit modifications for Package.appxmanifest and Bia.ToolKit.Package.wapproj that contains sensitive information
