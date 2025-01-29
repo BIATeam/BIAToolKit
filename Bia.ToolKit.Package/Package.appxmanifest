@@ -8,8 +8,8 @@
 
   <Identity
     Name="1a45f20c-f784-4114-a1f2-c823774fe9ec"
-    Publisher="CN=UP03109057"
-    Version="0.0.1.0" />
+	Publisher="CN=Undefined"
+    Version="1.7.3.0" />
 
   <Properties>
     <DisplayName>BIA.ToolKit</DisplayName>
