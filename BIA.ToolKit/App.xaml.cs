@@ -15,12 +15,14 @@
     public partial class App : System.Windows.Application
     {
         private ServiceProvider serviceProvider;
+        
         public App()
         {
             ServiceCollection services = new ServiceCollection();
             ConfigureServices(services);
             serviceProvider = services.BuildServiceProvider();
         }
+
         private void ConfigureServices(ServiceCollection services)
         {
             services.AddSingleton<IConsoleWriter, ConsoleWriter>();
@@ -42,6 +44,8 @@
         {
             var mainWindow = serviceProvider.GetService<MainWindow>();
             mainWindow.Show();
+
+            CSharpParserService.RegisterMSBuild(serviceProvider.GetRequiredService<IConsoleWriter>());
         }
     }
 }

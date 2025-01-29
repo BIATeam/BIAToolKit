@@ -353,32 +353,37 @@ using Roslyn.Services;*/
             return entities;
         }
 
+        public static void RegisterMSBuild(IConsoleWriter consoleWriter)
+        {
+            consoleWriter.AddMessageLine("Registering MSBuild", "blue");
+
+            if (!MSBuildLocator.IsRegistered)
+            {
+                var instances = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).ToList();
+
+                if (instances.Count == 0)
+                {
+                    var msbuildPath = @"C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin";
+                    if (!Directory.Exists(msbuildPath))
+                    {
+                        consoleWriter.AddMessageLine("Error: MSBuild is not installed on this system.", "red");
+                        return;
+                    }
+                    MSBuildLocator.RegisterMSBuildPath(msbuildPath);
+                }
+                else
+                {
+                    MSBuildLocator.RegisterInstance(instances.First());
+                }
+            }
+        }
+
         public async Task ResolveUsings(string solutionPath)
         {
             consoleWriter.AddMessageLine("Start resolve usings", "pink");
 
             try
             {
-                if (!MSBuildLocator.IsRegistered)
-                {
-                    var instances = MSBuildLocator.QueryVisualStudioInstances();
-
-                    if (!instances.Any())
-                    {
-                        var msbuildPath = @"C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin";
-                        if (!Directory.Exists(msbuildPath))
-                        {
-                            consoleWriter.AddMessageLine("Error: MSBuild is not installed on this system.", "red");
-                            return;
-                        }
-                        MSBuildLocator.RegisterMSBuildPath(msbuildPath);
-                    }
-                    else
-                    {
-                        MSBuildLocator.RegisterDefaults();
-                    }
-                }
-
                 using var workspace = MSBuildWorkspace.Create();
                 if (workspace == null)
                 {
