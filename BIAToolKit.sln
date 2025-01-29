@@ -23,7 +23,7 @@ Project("{C7167F0D-BC9F-4E6E-AFE1-012C56B48DB5}") = "Bia.ToolKit.Package", "Bia.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "99 - Package", "99 - Package", "{9291DBB4-991F-4905-821E-F05946885CA5}"
 	ProjectSection(SolutionItems) = preProject
-		README.md = README.md
+		PACKAGE-README.md = PACKAGE-README.md
 	EndProjectSection
 EndProject
 Global
