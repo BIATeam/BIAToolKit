@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.UserControls
 {
     using System.CodeDom;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
@@ -77,7 +78,7 @@
             uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
 
             ParameterModifyChange();
-            MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject.FrameworkVersion);
+            MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
             MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder);
             MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder);
         }
@@ -189,10 +190,13 @@
             MigrateMergeRejected.IsEnabled = false;
 
             // delete PACKAGE_LOCK_FILE
-            string path = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, _viewModel.ModifyProject.CurrentProject.BIAFronts, crudSettings.PackageLockFileName);
-            if (new FileInfo(path).Exists)
+            foreach (var biaFront in _viewModel.ModifyProject.CurrentProject.BIAFronts)
             {
-                File.Delete(path);
+                string path = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, biaFront, crudSettings.PackageLockFileName);
+                if (new FileInfo(path).Exists)
+                {
+                    File.Delete(path);
+                }
             }
 
             Enable(true);
@@ -226,27 +230,20 @@
                 FileTransform.ForceDeleteDirectory(projectOriginPath);
             }
 
-            string[] fronts = new string[0];
-            if (_viewModel.BIAFronts != "???" && !string.IsNullOrEmpty(_viewModel.BIAFronts))
-            {
-                fronts = _viewModel.BIAFronts.Split(", ");
-            }
-
-
-            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, fronts);
+            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, _viewModel.CurrentProject.BIAFronts);
 
             // Create project at target version.
             if (Directory.Exists(projectTargetPath))
             {
                 FileTransform.ForceDeleteDirectory(projectTargetPath);
             }
-            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, fronts);
+            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, _viewModel.CurrentProject.BIAFronts);
 
             consoleWriter.AddMessageLine("Generate projects finished.", actionFinishedAtEnd ? "Green" : "Blue");
         }
 
         //TODO mutualiser avec celle de MainWindows
-        private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, string[] fronts)
+        private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, List<string> fronts)
         {
             await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
         }

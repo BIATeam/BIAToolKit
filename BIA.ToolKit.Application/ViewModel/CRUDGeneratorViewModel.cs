@@ -32,6 +32,16 @@
             set
             {
                 currentProject = value;
+
+                BiaFronts.Clear();
+                if(currentProject != null)
+                {
+                    foreach(var biaFront in currentProject.BIAFronts)
+                    {
+                        BiaFronts.Add(biaFront);
+                    }
+                    BiaFront = BiaFronts.FirstOrDefault();
+                }
             }
         }
 
@@ -136,7 +146,7 @@
             }
         }
 
-        private ObservableCollection<OptionItem> optionItems;
+        private ObservableCollection<OptionItem> optionItems = new ObservableCollection<OptionItem>();
         public ObservableCollection<OptionItem> OptionItems
         {
             get => optionItems;
@@ -407,6 +417,7 @@
                     RaisePropertyChanged(nameof(IsWebApiSelected));
                 }
                 UpdateFeatureSelection();
+                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
 
@@ -420,8 +431,35 @@
                 {
                     isFrontSelected = value;
                     RaisePropertyChanged(nameof(IsFrontSelected));
+                    if(value == false)
+                    {
+                        BiaFront = null;
+                    }
                 }
                 UpdateFeatureSelection();
+                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+            }
+        }
+
+        private string _biaFront;
+        public string BiaFront
+        {
+            get => _biaFront;
+            set
+            {
+                _biaFront = value;
+                RaisePropertyChanged(nameof(BiaFront));
+            }
+        }
+
+        private ObservableCollection<string> _biaFronts = new();
+        public ObservableCollection<string> BiaFronts
+        {
+            get => _biaFronts;
+            set
+            {
+                _biaFronts = value;
+                RaisePropertyChanged(nameof(BiaFronts));
             }
         }
 
@@ -473,7 +511,7 @@
                     && !string.IsNullOrWhiteSpace(CRUDNamePlural)
                     && !string.IsNullOrEmpty(Domain)
                     && (!string.IsNullOrWhiteSpace(dtoDisplayItemSelected) || ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option))
-                    && (IsWebApiSelected || isFrontSelected)
+                    && ((IsWebApiSelected && !IsFrontSelected) || (IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)) || (!IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)))
                     && !string.IsNullOrEmpty(featureNameSelected)
                     && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural)));
             }

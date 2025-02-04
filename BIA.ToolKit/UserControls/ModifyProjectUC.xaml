@@ -14,7 +14,7 @@
     </UserControl.DataContext>
     <Grid x:Name="TabModify">
         <Grid.RowDefinitions>
-            <RowDefinition Height="80"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <TabControl x:Name="TabActions" Grid.Row="1" Background="Transparent" SelectionChanged="TabActions_SelectionChanged">
@@ -65,20 +65,26 @@
                     </Grid>
                 </Grid>
             </TabItem>
-            <TabItem x:Name="TabOptionGenerator" Header="1 - Option Generator" Margin="3,0,-7,0" >
-                <Grid Background="Transparent" Margin="5">
-                    <uc:OptionGeneratorUC x:Name="OptionGenerator" />
-                </Grid>
+            <TabItem x:Name="TabOptionGenerator" Header="1 - Option Generator" Margin="3,0,-7,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
+                    <Grid Background="Transparent" Margin="5">
+                        <uc:OptionGeneratorUC x:Name="OptionGenerator" />
+                    </Grid>
+                </ScrollViewer>
             </TabItem>
             <TabItem x:Name="TabDtoGenerator" Header="2 - DTO Generator" Margin="3,0,-7,0" >
-                <Grid Background="Transparent" Margin="5">
-                    <uc:DtoGeneratorUC x:Name="DtoGenerator" />
-                </Grid>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
+                    <Grid Background="Transparent" Margin="5">
+                        <uc:DtoGeneratorUC x:Name="DtoGenerator" />
+                    </Grid>
+                </ScrollViewer>
             </TabItem>
             <TabItem x:Name="TabCrudGenerator" Header="3 - CRUD Generator" Margin="3,0,-7,0" >
-                <Grid Background="Transparent" Margin="5">
-                    <uc:CRUDGeneratorUC x:Name="CRUDGenerator" />
-                </Grid>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
+                    <Grid Background="Transparent" Margin="5">
+                        <uc:CRUDGeneratorUC x:Name="CRUDGenerator" />
+                    </Grid>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
         <Label Content="Projects parent path" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Foreground="White"/>
@@ -89,19 +95,25 @@
         <Button x:Name="RefreshDtoList" Margin="556,22,0,0" Width="24" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshProjectFolderList_Click" ToolTip="Refresh project folder list">
             <Image Source="/Images/rafraichir-32.png" />
         </Button>
-        <Grid HorizontalAlignment="Right">
+        <Grid HorizontalAlignment="Right" Margin="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Label Content="Version detected : " Grid.Column="0" Foreground="White"/>
-            <Label Content="{Binding FrameworkVersion}" Grid.Column="1" Foreground="White" Width="84"/>
-            <Label Content="Project name detected : " Grid.Column="0" Margin="0,15,0,0" VerticalAlignment="Top" Foreground="White"/>
-            <Label Content="{Binding Name}" Grid.Column="1" Margin="0,15,0,0" VerticalAlignment="Top" Foreground="White"/>
-            <Label Content="Company detected : " Grid.Column="0" Margin="0,31,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
-            <Label Content="{Binding CompanyName}" Grid.Column="1" Margin="0,31,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
-            <Label Content="BIA front(s) folder(s) : " Grid.Column="0" Margin="0,47,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
-            <Label Content="{Binding BIAFronts}" Grid.Column="1" Margin="0,47,0,0" VerticalAlignment="Top" Foreground="White" Grid.RowSpan="2"/>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="20"/>
+            </Grid.RowDefinitions>
+            <Label Content="Version detected : " Grid.Row="0" Grid.Column="0" Foreground="White" Padding="5,0,0,0"/>
+            <Label Content="{Binding FrameworkVersion}" Grid.Row="0" Grid.Column="1" Foreground="White" Padding="5,0,0,0"/>
+            <Label Content="Project name detected : " Grid.Row="1"  Grid.Column="0" VerticalAlignment="Top" Foreground="White" Padding="5,0,0,0"/>
+            <Label Content="{Binding Name}" Grid.Column="1" Grid.Row="1" VerticalAlignment="Top" Foreground="White" Padding="5,0,0,0"/>
+            <Label Content="Company detected : " Grid.Column="0" Grid.Row="2"  VerticalAlignment="Top" Foreground="White" Padding="5,0,0,0"/>
+            <Label Content="{Binding CompanyName}" Grid.Column="1" Grid.Row="2" VerticalAlignment="Top" Foreground="White" Padding="5,0,0,0"/>
+            <Label Content="BIA front folders : " Grid.Column="0" Grid.Row="3" VerticalAlignment="Top" Foreground="White" Padding="5,0,0,0"/>
+            <Label Content="{Binding BIAFronts}" Grid.Column="1" Grid.Row="3" VerticalAlignment="Top" Foreground="White" Padding="5,0,0,0"/>        
         </Grid>
         
     </Grid>
