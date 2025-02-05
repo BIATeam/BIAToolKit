@@ -7,7 +7,9 @@
     using BIA.ToolKit.Services;
     using Microsoft.Extensions.DependencyInjection;
     using System;
+    using System.Configuration;
     using System.Windows;
+    using System.Windows.Input;
 
     /// <summary>
     /// Interaction logic for App.xaml
@@ -38,14 +40,22 @@
             services.AddSingleton<SettingsService>();
             services.AddSingleton<FeatureSettingService>();
             services.AddSingleton<BiaFrameworkFileGeneratorService>();
+            services.AddSingleton<UpdateService>();
             services.AddLogging();
         }
-        private void OnStartup(object sender, StartupEventArgs e)
+        private async void OnStartup(object sender, StartupEventArgs e)
         {
             var mainWindow = serviceProvider.GetService<MainWindow>();
             mainWindow.Show();
 
             CSharpParserService.RegisterMSBuild(serviceProvider.GetRequiredService<IConsoleWriter>());
+
+            var autoUpdateSetting = ConfigurationManager.AppSettings["AutoUpdate"];
+            if (bool.TryParse(autoUpdateSetting, out bool autoUpdate) && autoUpdate)
+            {
+                var updateService = serviceProvider.GetService<UpdateService>();
+                await updateService.CheckForUpdatesAsync();
+            }
         }
     }
 }
