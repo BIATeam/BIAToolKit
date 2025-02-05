@@ -8,7 +8,7 @@
     {
         private const string BiaToolkitApplicationName = "BIA.ToolKit.exe";
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             if (args.Length != 2)
             {
@@ -32,7 +32,6 @@
                 throw new Exception($"{appPath} is not a valid installation path of BiaToolKit");
             }
 
-
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("[START BIATOOLKIT UPGRADE]");
 
@@ -48,6 +47,8 @@
 
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("[END BIATOOLKIT UPGRADE]");
+
+            await Task.Delay(2000);
         }
 
         static void CloseRunningApp()

@@ -35,14 +35,13 @@
         {
             try
             {
-                string latestVersion = await GetLatestVersionAsync();
-                string currentVersion = GetCurrentVersion();
+                var updateVersion = await GetLatestVersionAsync();
 
-                if (latestVersion != currentVersion)
+                if (updateVersion > Assembly.GetExecutingAssembly().GetName().Version)
                 {
                     MessageBoxResult result = MessageBox.Show(
-                        $"Une nouvelle version ({latestVersion}) est disponible.\nVoulez-vous l'installer maintenant ?",
-                        "Mise à jour disponible",
+                        $"A new version ({updateVersion}) is available.\nInstall now ?",
+                        "Update available",
                         MessageBoxButton.YesNo, MessageBoxImage.Information);
 
                     if (result == MessageBoxResult.Yes)
@@ -53,22 +52,21 @@
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erreur de mise à jour : {ex.Message}", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Update failure : {ex.Message}", "Update failure", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private async Task<string> GetLatestVersionAsync()
+        private async Task<Version> GetLatestVersionAsync()
         {
             string versionFilePath = Path.Combine(updateServer, updateVersionFileName);
             if (!File.Exists(versionFilePath))
-                throw new FileNotFoundException("Fichier de version introuvable.");
+                throw new FileNotFoundException($"Unable to find verison file {updateVersionFileName} in {updateServer}.");
 
-            return await File.ReadAllTextAsync(versionFilePath);
-        }
+            var versionFileContent = await File.ReadAllTextAsync(versionFilePath);
+            if (!Version.TryParse(versionFileContent, out Version version))
+                throw new Exception($"Version file content is not a valid version.");
 
-        private string GetCurrentVersion()
-        {
-            return Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
+            return version;
         }
 
         private async Task DownloadUpdateAsync()
@@ -79,13 +77,12 @@
             var updaterSource = Path.Combine(updateServer, updaterName);
             var updaterTarget = Path.Combine(applicationPath, updaterName);
             if (!File.Exists(updaterSource))
-                throw new FileNotFoundException("Le programme de mise à jour est manquant.");
+                throw new FileNotFoundException($"Unable to find {updaterName} in {updateServer}.");
 
             var updateArchiveSource = Path.Combine(updateServer, updateArchiveName);
             var updateArchiveTarget = Path.Combine(tempPath, updateArchiveName);
-
             if (!File.Exists(updateArchiveSource))
-                throw new FileNotFoundException("Fichier de mise à jour introuvable.");
+                throw new FileNotFoundException($"Unable to find {updateArchiveName} in {updateServer}.");
 
             await Task.Run(() =>
             {
