@@ -93,11 +93,7 @@
                 File.Copy(updateArchiveSource, updateArchiveTarget, true);
             });
 
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = updaterTarget,
-                Arguments = $"\"{applicationPath}\" \"{updateArchiveTarget}\"",
-            });
+            Process.Start(updaterTarget, [$"\"{AppDomain.CurrentDomain.BaseDirectory}\"", $"\"{updateArchiveTarget}\""]);
         }
     }
 }

@@ -10,14 +10,15 @@
 
         static void Main(string[] args)
         {
-            if (args.Length < 2)
+            Console.WriteLine($"Paramètres : {string.Join(", ", args)}");
+
+            if (args.Length < 3)
             {
-                Console.WriteLine("Paramètres incorrects.");
-                return;
+                throw new Exception($"Paramètres incorrects.");
             }
 
-            string appPath = args[0];
-            string zipPath = args[1];
+            string appPath = args[0].Replace("\"", string.Empty);
+            string zipPath = args[1].Replace("\"", string.Empty);
 
             Console.WriteLine("Fermeture de l'application...");
             CloseRunningApp();
@@ -27,8 +28,6 @@
 
             Console.WriteLine("Redémarrage de l'application...");
             RestartApp(appPath);
-
-            Console.ReadLine();
         }
 
         static void CloseRunningApp()
@@ -42,6 +41,7 @@
 
         static void InstallUpdate(string appPath, string zipPath)
         {
+            Console.WriteLine($"AppPath={appPath}");
             foreach (var directory in Directory.GetDirectories(appPath, "*", SearchOption.AllDirectories).ToList())
             {
                 try
@@ -58,7 +58,7 @@
                 .Where(file => !Path.GetFileNameWithoutExtension(file).Equals(Assembly.GetExecutingAssembly().GetName().Name))
                 .ToList();
 
-            foreach(var file in applicationRootFiles)
+            foreach (var file in applicationRootFiles)
             {
                 try
                 {
