@@ -19,11 +19,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03 - Domain", "03 - Domain"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BIA.ToolKit.Domain", "BIA.ToolKit.Domain\BIA.ToolKit.Domain.csproj", "{9748E10E-15E5-4912-8D42-D751305BC82D}"
 EndProject
-Project("{C7167F0D-BC9F-4E6E-AFE1-012C56B48DB5}") = "Bia.ToolKit.Package", "Bia.ToolKit.Package\Bia.ToolKit.Package.wapproj", "{EE1B7E91-D3A1-4C1C-AF00-4D4143B08F9A}"
+Project("{C7167F0D-BC9F-4E6E-AFE1-012C56B48DB5}") = "Bia.ToolKit.MSIX", "Bia.ToolKit.MSIX\Bia.ToolKit.MSIX.wapproj", "{EE1B7E91-D3A1-4C1C-AF00-4D4143B08F9A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "99 - Package", "99 - Package", "{9291DBB4-991F-4905-821E-F05946885CA5}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "99 - MSIX", "99 - MSIX", "{9291DBB4-991F-4905-821E-F05946885CA5}"
 	ProjectSection(SolutionItems) = preProject
-		PACKAGE-README.md = PACKAGE-README.md
+		MSIX-README.md = MSIX-README.md
 	EndProjectSection
 EndProject
 Global
