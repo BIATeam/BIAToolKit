@@ -355,26 +355,43 @@ using Roslyn.Services;*/
 
         public static void RegisterMSBuild(IConsoleWriter consoleWriter)
         {
-            consoleWriter.AddMessageLine("Registering MSBuild", "blue");
-
-            if (!MSBuildLocator.IsRegistered)
+            try
             {
-                var instances = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).ToList();
+                if (MSBuildLocator.IsRegistered)
+                    return;
 
-                if (instances.Count == 0)
-                {
-                    var msbuildPath = @"C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin";
-                    if (!Directory.Exists(msbuildPath))
-                    {
-                        consoleWriter.AddMessageLine("Error: MSBuild is not installed on this system.", "red");
-                        return;
-                    }
-                    MSBuildLocator.RegisterMSBuildPath(msbuildPath);
-                }
-                else
+                var instances = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).ToList();
+                if (instances.Count > 0)
                 {
                     MSBuildLocator.RegisterInstance(instances.First());
+                    return;
                 }
+
+                var msBuildDirectories = new List<DirectoryInfo>();
+
+                var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                var vsDirectory = new DirectoryInfo(Path.Combine(programFiles, "Microsoft Visual Studio"));
+                if (vsDirectory.Exists)
+                {
+                    msBuildDirectories.AddRange(vsDirectory.GetDirectories("MSBuild", SearchOption.AllDirectories));
+                }
+
+                var msbuildPath = msBuildDirectories
+                    .SelectMany(msBuildDir => msBuildDir.GetFiles("MSBuild.exe", SearchOption.AllDirectories))
+                    .OrderByDescending(msBuild => msBuild.LastWriteTimeUtc)
+                    .FirstOrDefault()?.FullName;
+
+                if (string.IsNullOrWhiteSpace(msbuildPath))
+                {
+                    consoleWriter.AddMessageLine("Error: MSBuild is not installed on this system.", "red");
+                    return;
+                }
+
+                MSBuildLocator.RegisterMSBuildPath(Path.GetDirectoryName(msbuildPath));
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error: Failed to register MSBuild : {ex.Message}", "red");
             }
         }
 
