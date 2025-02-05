@@ -11,9 +11,7 @@
 		<PreserveCompilationContext>true</PreserveCompilationContext>
 		<SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
 		<Platforms>AnyCPU;x64</Platforms>
-		<Version>1.7.3</Version>
-		<FileVersion>1.7.3.0</FileVersion>
-		<AssemblyVersion>1.7.3.0</AssemblyVersion>
+		<Version>1.7.3.0</Version>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -27,7 +27,7 @@
                 throw new ArgumentException("Second argument must be a valid file path.");
             }
 
-            if(!Directory.GetFiles(appPath).Any(file => Path.GetFileNameWithoutExtension(file) == BiaToolkitApplicationName))
+            if(!Directory.GetFiles(appPath).Any(file => Path.GetFileName(file).Equals(BiaToolkitApplicationName)))
             {
                 throw new Exception($"{appPath} is not a valid installation path of BiaToolKit");
             }
