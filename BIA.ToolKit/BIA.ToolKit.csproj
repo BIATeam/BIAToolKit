@@ -66,7 +66,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\BIA.ToolKit.Application\BIA.ToolKit.Application.csproj" />
-		<ProjectReference Include="..\BIA.ToolKit.Updater\BIA.ToolKit.Updater.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

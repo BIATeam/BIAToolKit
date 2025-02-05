@@ -27,6 +27,8 @@
 
             Console.WriteLine("Redémarrage de l'application...");
             RestartApp(appPath);
+
+            Console.ReadLine();
         }
 
         static void CloseRunningApp()
@@ -40,17 +42,36 @@
 
         static void InstallUpdate(string appPath, string zipPath)
         {
-            var applicationFiles = Directory.GetFiles(appPath)
-                .Where(file => !Path.GetFileNameWithoutExtension(file).Equals(Assembly.GetExecutingAssembly().FullName))
+            foreach (var directory in Directory.GetDirectories(appPath, "*", SearchOption.AllDirectories).ToList())
+            {
+                try
+                {
+                    if (Directory.Exists(directory))
+                    {
+                        Directory.Delete(directory, true);
+                    }
+                }
+                finally { }
+            }
+
+            var applicationRootFiles = Directory.GetFiles(appPath)
+                .Where(file => !Path.GetFileNameWithoutExtension(file).Equals(Assembly.GetExecutingAssembly().GetName().Name))
                 .ToList();
 
-            foreach(var applicationFile in applicationFiles)
+            foreach(var file in applicationRootFiles)
             {
-                File.Delete(applicationFile);
+                try
+                {
+                    if (File.Exists(file))
+                    {
+                        File.Delete(file);
+                    }
+                }
+                finally { }
             }
 
             ZipFile.ExtractToDirectory(zipPath, appPath, true);
-            Directory.Delete(Path.GetDirectoryName(zipPath)!, true);
+            File.Delete(zipPath);
         }
 
         static void RestartApp(string appPath)

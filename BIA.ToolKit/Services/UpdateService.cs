@@ -17,9 +17,8 @@
         private readonly string updateVersionFileName;
         private readonly string updateArchiveName;
         private readonly string updaterName;
-        private readonly string currentPath;
+        private readonly string applicationPath;
         private readonly string tempPath;
-        private readonly string updatePath;
 
         public UpdateService()
         {
@@ -28,9 +27,8 @@
             updateArchiveName = ConfigurationManager.AppSettings["UpdateArchiveName"];
             updaterName = ConfigurationManager.AppSettings["UpdaterName"];
 
-            currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            applicationPath = AppDomain.CurrentDomain.BaseDirectory;
             tempPath = Path.GetTempPath();
-            updatePath = Path.Combine(tempPath, updateArchiveName);
         }
 
         public async Task CheckForUpdatesAsync()
@@ -50,7 +48,6 @@
                     if (result == MessageBoxResult.Yes)
                     {
                         await DownloadUpdateAsync();
-                        LaunchUpdater();
                     }
                 }
             }
@@ -79,27 +76,28 @@
             if (!Directory.Exists(tempPath))
                 Directory.CreateDirectory(tempPath);
 
-            string sourceFile = Path.Combine(updateServer, updateArchiveName);
-            if (!File.Exists(sourceFile))
+            var updaterSource = Path.Combine(updateServer, updaterName);
+            var updaterTarget = Path.Combine(applicationPath, updaterName);
+            if (!File.Exists(updaterSource))
+                throw new FileNotFoundException("Le programme de mise à jour est manquant.");
+
+            var updateArchiveSource = Path.Combine(updateServer, updateArchiveName);
+            var updateArchiveTarget = Path.Combine(tempPath, updateArchiveName);
+
+            if (!File.Exists(updateArchiveSource))
                 throw new FileNotFoundException("Fichier de mise à jour introuvable.");
 
-            await Task.Run(() => File.Copy(sourceFile, updatePath, true));
-        }
-
-        private void LaunchUpdater()
-        {
-            string updaterPath = Path.Combine(currentPath, updaterName);
-            if (!File.Exists(updaterPath))
-                throw new FileNotFoundException("Le programme de mise à jour est manquant.");
+            await Task.Run(() =>
+            {
+                File.Copy(updaterSource, updaterTarget, true);
+                File.Copy(updateArchiveSource, updateArchiveTarget, true);
+            });
 
             Process.Start(new ProcessStartInfo
             {
-                FileName = updaterPath,
-                Arguments = $"\"{currentPath}\" \"{updatePath}\"",
-                UseShellExecute = true
+                FileName = updaterTarget,
+                Arguments = $"\"{applicationPath}\" \"{updateArchiveTarget}\"",
             });
-
-            Application.Current.Shutdown();
         }
     }
 }
