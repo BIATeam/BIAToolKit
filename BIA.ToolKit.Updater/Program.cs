@@ -10,24 +10,44 @@
 
         static void Main(string[] args)
         {
-            Console.WriteLine($"Paramètres : {string.Join(", ", args)}");
-
-            if (args.Length < 3)
+            if (args.Length != 2)
             {
-                throw new Exception($"Paramètres incorrects.");
+                throw new ArgumentException($"Use : Bia.ToolKit.Updater.exe [biaToolKit_directory_path] [Update_archive_path]");
             }
 
             string appPath = args[0].Replace("\"", string.Empty);
-            string zipPath = args[1].Replace("\"", string.Empty);
+            if(!Directory.Exists(appPath))
+            {
+                throw new ArgumentException("First argument must be a valid directory path.");
+            }
 
-            Console.WriteLine("Fermeture de l'application...");
+            string zipPath = args[1].Replace("\"", string.Empty);
+            if (!File.Exists(zipPath))
+            {
+                throw new ArgumentException("Second argument must be a valid file path.");
+            }
+
+            if(!Directory.GetFiles(appPath).Any(file => Path.GetFileNameWithoutExtension(file) == BiaToolkitApplicationName))
+            {
+                throw new Exception($"{appPath} is not a valid installation path of BiaToolKit");
+            }
+
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("[START BIATOOLKIT UPGRADE]");
+
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Closing BIA.ToolKit instances...");
             CloseRunningApp();
 
-            Console.WriteLine("Installation de la mise à jour...");
+            Console.WriteLine("Installing update...");
             InstallUpdate(appPath, zipPath);
 
-            Console.WriteLine("Redémarrage de l'application...");
+            Console.WriteLine("Launching BIA.ToolKit...");
             RestartApp(appPath);
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("[END BIATOOLKIT UPGRADE]");
         }
 
         static void CloseRunningApp()
@@ -41,7 +61,6 @@
 
         static void InstallUpdate(string appPath, string zipPath)
         {
-            Console.WriteLine($"AppPath={appPath}");
             foreach (var directory in Directory.GetDirectories(appPath, "*", SearchOption.AllDirectories).ToList())
             {
                 try

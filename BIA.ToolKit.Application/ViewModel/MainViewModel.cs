@@ -1,19 +1,24 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
+    using System;
+    using System.Reflection;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.Settings;
 
     public class MainViewModel : ObservableObject
     {
+        private readonly Version applicationVersion;
+
         public BIATKSettings Settings { get; set; }
         public VersionAndOptionViewModel VersionAndOptionViewModel { get; set; }
 
-        public MainViewModel()
+        public MainViewModel(Version applicationVersion)
         {
             Settings = new BIATKSettings();
             // Because the RootProjects is in 2 VM (create and modify)
             SynchronizeSettings.AddCallBack("RootProjectsPath", DelegateSetRootProjectsPath);
+            this.applicationVersion = applicationVersion;
         }
 
         public void DelegateSetRootProjectsPath(string value)
@@ -60,5 +65,6 @@
             }
         }
 
+        public string ApplicationVersion => $"V{applicationVersion}";
     }
 }

@@ -8,10 +8,7 @@
         xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
         mc:Ignorable="d"
         Title="BIA Toolkit" Height="900" Width="1200" Icon="/Images/Tools.ico" WindowStartupLocation="CenterScreen" MinHeight="900" MinWidth="1200">
-    <Window.DataContext>
-        <!-- Declaratively create an instance of our SongViewModel -->
-        <local:MainViewModel />
-    </Window.DataContext>
+    
     <Grid Background="#FFE5E5E5" Margin="10,11,10,14">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -62,7 +59,7 @@
                             <TextBox Text="{Binding Settings_CompanyFiles_LocalFolderPath}"  IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Stretch" Margin="20,0,0,95" TextWrapping="Wrap" Height="20" VerticalAlignment="Bottom" />
                             <Button Grid.Column="1" Content="..." IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Stretch" Margin="5,0,0,95" RenderTransformOrigin="0.429,2.91" Click="CompanyFilesLocalFolderBrowse_Click" Height="20" VerticalAlignment="Bottom"/>
                             <Button Grid.ColumnSpan="2" Content="Synchronize" HorizontalAlignment="Center" Margin="0,0,0,40" RenderTransformOrigin="0.429,2.91" Width="120" Name="CompanyFilesLocalFolderSync" Click="CompanyFilesLocalFolderSync_Click" Height="20" VerticalAlignment="Bottom"/>
-                            <Label Grid.ColumnSpan="2" Content="V1.7.3" Margin="2" VerticalAlignment="Top" Foreground="#FFF0F0F0" HorizontalAlignment="Right"/>
+                            <Label Grid.ColumnSpan="2" Content="{Binding ApplicationVersion}" Margin="2" VerticalAlignment="Top" Foreground="#FFF0F0F0" HorizontalAlignment="Right"/>
                         </Grid>
                     </Grid>
                 </Grid>

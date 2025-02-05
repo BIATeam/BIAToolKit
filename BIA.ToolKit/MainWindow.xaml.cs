@@ -20,6 +20,7 @@
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Services;
     using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
+    using System.Reflection;
 
 
     /// <summary>
@@ -27,7 +28,7 @@
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainViewModel _viewModel = new MainViewModel();
+        public MainViewModel _viewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version);
 
         RepositoryService repositoryService;
         GitService gitService;
@@ -43,6 +44,8 @@
         {
             AppSettings.AppFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
+
+            DataContext = _viewModel;
 
             this.repositoryService = repositoryService;
             this.gitService = gitService;
