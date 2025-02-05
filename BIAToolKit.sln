@@ -27,6 +27,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "99 - MSIX", "99 - MSIX", "{
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "90 - Package", "90 - Package", "{4F91B1F2-8169-4020-A298-60F14C26D443}"
+	ProjectSection(SolutionItems) = preProject
+		Publish.ps1 = Publish.ps1
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BIA.ToolKit.Updater", "BIA.ToolKit.Updater\BIA.ToolKit.Updater.csproj", "{3934B718-A2E2-4701-AB45-AC32613E5B4B}"
 EndProject
