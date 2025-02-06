@@ -90,6 +90,9 @@
                 File.Copy(updateArchiveSource, updateArchiveTarget, true);
             });
 
+            Properties.Settings.Default.UpgradeRequired = true;
+            Properties.Settings.Default.Save();
+
             Process.Start(updaterTarget, [$"\"{AppDomain.CurrentDomain.BaseDirectory}\"", $"\"{updateArchiveTarget}\""]);
         }
     }

@@ -45,6 +45,13 @@
         }
         private async void OnStartup(object sender, StartupEventArgs e)
         {
+            if (ToolKit.Properties.Settings.Default.UpgradeRequired)
+            {
+                ToolKit.Properties.Settings.Default.Upgrade();
+                ToolKit.Properties.Settings.Default.UpgradeRequired = false;
+                ToolKit.Properties.Settings.Default.Save();
+            }
+
             var mainWindow = serviceProvider.GetService<MainWindow>();
             mainWindow.Show();
 
@@ -56,6 +63,7 @@
                 var updateService = serviceProvider.GetService<UpdateService>();
                 await updateService.CheckForUpdatesAsync();
             }
+
         }
     }
 }
