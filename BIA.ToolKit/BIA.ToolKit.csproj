@@ -25,6 +25,7 @@
 		<None Remove="Images\trash.png" />
 		<None Remove="Images\Warning.png" />
 		<None Remove="Images\workOnComputer2.jpg" />
+		<None Remove="package.json" />
 		<None Remove="Test4.gif" />
 	</ItemGroup>
 
@@ -56,6 +57,9 @@
 		</Content>
 		<Content Include="Images\Warning.png">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="package.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 		<Resource Include="Images\workOnComputer2.jpg">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>

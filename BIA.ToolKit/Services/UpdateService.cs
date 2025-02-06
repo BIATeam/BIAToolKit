@@ -8,25 +8,22 @@
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using System.Windows;
+    using Newtonsoft.Json;
 
     internal class UpdateService
     {
-        private readonly string updateServer;
-        private readonly string updateVersionFileName;
-        private readonly string updateArchiveName;
         private readonly string updaterName;
         private readonly string applicationPath;
         private readonly string tempPath;
 
+        private PackageConfig packageConfig;
+
         public UpdateService()
         {
-            updateServer = ConfigurationManager.AppSettings["UpdateServer"];
-            updateVersionFileName = ConfigurationManager.AppSettings["UpdateVersionFileName"];
-            updateArchiveName = ConfigurationManager.AppSettings["UpdateArchiveName"];
             updaterName = ConfigurationManager.AppSettings["UpdaterName"];
-
             applicationPath = AppDomain.CurrentDomain.BaseDirectory;
             tempPath = Path.GetTempPath();
         }
@@ -35,8 +32,9 @@
         {
             try
             {
-                var updateVersion = await GetLatestVersionAsync();
+                ParsePackageFile();
 
+                var updateVersion = await GetLatestVersionAsync();
                 if (updateVersion > Assembly.GetExecutingAssembly().GetName().Version)
                 {
                     MessageBoxResult result = MessageBox.Show(
@@ -56,11 +54,31 @@
             }
         }
 
+        private void ParsePackageFile()
+        {
+            string packageJsonPath = Path.Combine(applicationPath, "package.json");
+
+            if (!File.Exists(packageJsonPath))
+            {
+                throw new FileNotFoundException("package.json not found.");
+            }
+
+            string jsonContent = File.ReadAllText(packageJsonPath);
+            packageConfig = JsonConvert.DeserializeObject<PackageConfig>(jsonContent);
+
+            if (packageConfig == null || string.IsNullOrEmpty(packageConfig.DistributionServer)
+                || string.IsNullOrEmpty(packageConfig.PackageVersionFileName)
+                || string.IsNullOrEmpty(packageConfig.PackageArchiveName))
+            {
+                throw new InvalidOperationException("Missing required values in package.json.");
+            }
+        }
+
         private async Task<Version> GetLatestVersionAsync()
         {
-            string versionFilePath = Path.Combine(updateServer, updateVersionFileName);
+            string versionFilePath = Path.Combine(packageConfig.DistributionServer, packageConfig.PackageVersionFileName);
             if (!File.Exists(versionFilePath))
-                throw new FileNotFoundException($"Unable to find verison file {updateVersionFileName} in {updateServer}.");
+                throw new FileNotFoundException($"Unable to find verison file {packageConfig.PackageVersionFileName} in {packageConfig.DistributionServer}.");
 
             var versionFileContent = await File.ReadAllTextAsync(versionFilePath);
             if (!Version.TryParse(versionFileContent, out Version version))
@@ -74,15 +92,15 @@
             if (!Directory.Exists(tempPath))
                 Directory.CreateDirectory(tempPath);
 
-            var updaterSource = Path.Combine(updateServer, updaterName);
+            var updaterSource = Path.Combine(packageConfig.DistributionServer, updaterName);
             var updaterTarget = Path.Combine(applicationPath, updaterName);
             if (!File.Exists(updaterSource))
-                throw new FileNotFoundException($"Unable to find {updaterName} in {updateServer}.");
+                throw new FileNotFoundException($"Unable to find {updaterName} in {packageConfig.DistributionServer}.");
 
-            var updateArchiveSource = Path.Combine(updateServer, updateArchiveName);
-            var updateArchiveTarget = Path.Combine(tempPath, updateArchiveName);
+            var updateArchiveSource = Path.Combine(packageConfig.DistributionServer, packageConfig.PackageArchiveName);
+            var updateArchiveTarget = Path.Combine(tempPath, packageConfig.PackageArchiveName);
             if (!File.Exists(updateArchiveSource))
-                throw new FileNotFoundException($"Unable to find {updateArchiveName} in {updateServer}.");
+                throw new FileNotFoundException($"Unable to find {packageConfig.PackageArchiveName} in {packageConfig.DistributionServer}.");
 
             await Task.Run(() =>
             {
@@ -91,6 +109,13 @@
             });
 
             Process.Start(updaterTarget, [$"\"{AppDomain.CurrentDomain.BaseDirectory}\"", $"\"{updateArchiveTarget}\""]);
+        }
+
+        private class PackageConfig
+        {
+            public string DistributionServer { get; set; }
+            public string PackageVersionFileName { get; set; }
+            public string PackageArchiveName { get; set; }
         }
     }
 }

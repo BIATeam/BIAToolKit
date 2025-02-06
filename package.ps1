@@ -1,8 +1,23 @@
-$distributionServer = "C:\temp\BiaToolKitServer"
 $biaToolKitProjectPath = ".\BIA.ToolKit"
 $updaterProjectPath = ".\BIA.ToolKit.Updater"
-$updateArchiveName = "BIAToolKit.zip"
-$versionFile = "version.txt"
+
+$packageJsonPath = "./package.json"
+
+if (-not (Test-Path $packageJsonPath)) {
+    Write-Host "Error: package.json not found." -ForegroundColor Red
+    exit 1
+}
+
+$packageJson = Get-Content $packageJsonPath | ConvertFrom-Json
+
+if (-not $packageJson.distributionServer -or -not $packageJson.packageArchiveName -or -not $packageJson.packageVersionFileName) {
+    Write-Host "Error: Missing required values in package.json." -ForegroundColor Red
+    exit 1
+}
+
+$distributionServer = $packageJson.distributionServer
+$updateArchiveName = $packageJson.packageArchiveName
+$versionFile = $packageJson.packageVersionFileName
 
 $csprojPath = Get-ChildItem -Path $biaToolKitProjectPath -Filter "*.csproj" | Select-Object -First 1 | ForEach-Object { $_.FullName }
 
