@@ -22,7 +22,13 @@ if (-not $biaToolKitVersion) {
 Write-Host "Publishing BIAToolKit (version $biaToolKitVersion)" -ForegroundColor Green
 
 Write-Host "Publishing BIAToolKit..." -ForegroundColor Yellow
-dotnet publish $biaToolKitProjectPath -c Release -r win-x64 --self-contained false -o "$biaToolKitProjectPath\publish"
+$publishResult = dotnet publish $biaToolKitProjectPath -c Release -r win-x64 --self-contained false -o "$biaToolKitProjectPath\publish" 2>&1
+$errors = $publishResult | Where-Object { $_ -match "error" }
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "BIAToolKit publish failed." -ForegroundColor Red
+    if ($errors) { Write-Host $errors -ForegroundColor Red }
+    exit 1
+}
 
 Write-Host "Creating update archive..." -ForegroundColor Yellow
 Compress-Archive -Path "$biaToolKitProjectPath\publish\*" -DestinationPath "$biaToolKitProjectPath\$updateArchiveName" -Force
@@ -32,18 +38,24 @@ Copy-Item "$biaToolKitProjectPath\$updateArchiveName" "$distributionServer\$upda
 Remove-Item "$biaToolKitProjectPath\$updateArchiveName" -Force
 
 Write-Host "Publishing updater..." -ForegroundColor Yellow
-dotnet publish $updaterProjectPath -c Release -r win-x64 -p:PublishSingleFile=true --self-contained false -o "$updaterProjectPath\publish"
+$publishResult = dotnet publish $updaterProjectPath -c Release -r win-x64 -p:PublishSingleFile=true --self-contained false -o "$updaterProjectPath\publish" 2>&1
+$errors = $publishResult | Where-Object { $_ -match "error" }
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Updater publish failed." -ForegroundColor Red
+    if ($errors) { Write-Host $errors -ForegroundColor Red }
+    exit 1
+}
 
 Write-Host "Copying updater to server..." -ForegroundColor Yellow
 $updaterExe = Get-ChildItem "$updaterProjectPath\publish" -Filter "*.exe" | Select-Object -First 1
 if ($updaterExe) {
-    Copy-Item "$updaterProjectPath\publish\$updaterExe" "$distributionServer\$updateExe" -Force
+    Copy-Item "$updaterProjectPath\publish\$($updaterExe.Name)" "$distributionServer\$($updaterExe.Name)" -Force
 } else {
-    Write-Host "Unable to find .exe in $updateAppPath\publish." -ForegroundColor Red
+    Write-Host "Unable to find .exe in $updaterProjectPath\publish." -ForegroundColor Red
     exit 1
 }
 
 Write-Host "Updating version.txt..." -ForegroundColor Yellow
 Set-Content -Path "$distributionServer\$versionFile" -Value $biaToolKitVersion
 
-Write-Host "Published successfully !" -ForegroundColor Green
+Write-Host "Published successfully!" -ForegroundColor Green
