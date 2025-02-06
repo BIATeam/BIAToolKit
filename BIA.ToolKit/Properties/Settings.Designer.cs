@@ -158,12 +158,12 @@ namespace BIA.ToolKit.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool UpgradeRequired {
+        public bool ApplicationUpdated {
             get {
-                return ((bool)(this["UpgradeRequired"]));
+                return ((bool)(this["ApplicationUpdated"]));
             }
             set {
-                this["UpgradeRequired"] = value;
+                this["ApplicationUpdated"] = value;
             }
         }
     }

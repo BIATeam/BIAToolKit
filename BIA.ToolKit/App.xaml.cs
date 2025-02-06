@@ -8,6 +8,8 @@
     using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.Configuration;
+    using System.IO;
+    using System.Linq;
     using System.Windows;
     using System.Windows.Input;
 
@@ -17,7 +19,7 @@
     public partial class App : System.Windows.Application
     {
         private ServiceProvider serviceProvider;
-        
+
         public App()
         {
             ServiceCollection services = new ServiceCollection();
@@ -45,10 +47,13 @@
         }
         private async void OnStartup(object sender, StartupEventArgs e)
         {
-            if (ToolKit.Properties.Settings.Default.UpgradeRequired)
+            if (ToolKit.Properties.Settings.Default.ApplicationUpdated)
             {
+                MigratePreviousUserData();
+
                 ToolKit.Properties.Settings.Default.Upgrade();
-                ToolKit.Properties.Settings.Default.UpgradeRequired = false;
+
+                ToolKit.Properties.Settings.Default.ApplicationUpdated = false;
                 ToolKit.Properties.Settings.Default.Save();
             }
 
@@ -63,7 +68,42 @@
                 var updateService = serviceProvider.GetService<UpdateService>();
                 await updateService.CheckForUpdatesAsync();
             }
+        }
 
+        private static void MigratePreviousUserData()
+        {
+            var currentAppDataPath = System.Windows.Forms.Application.LocalUserAppDataPath;
+            var appDataDirectories = new DirectoryInfo(Path.GetDirectoryName(currentAppDataPath))
+                .GetDirectories()
+                .OrderByDescending(d => d.CreationTime)
+                .ToList();
+
+            if (appDataDirectories.Count < 2)
+                return;
+
+            var previousVersionAppDataPath = appDataDirectories[1].FullName;
+            var previousVersionAppDataFiles = Directory.GetFiles(previousVersionAppDataPath, "*", SearchOption.AllDirectories).ToList();
+            foreach (string sourceFile in previousVersionAppDataFiles)
+            {
+                try
+                {
+                    var destinationFile = sourceFile.Replace(previousVersionAppDataPath, currentAppDataPath);
+                    if (!Directory.Exists(Path.GetDirectoryName(destinationFile)))
+                        Directory.CreateDirectory(Path.GetDirectoryName(destinationFile));
+
+                    File.Copy(sourceFile, destinationFile, false);
+                }
+                finally { }
+            }
+
+            for (int i = 1; i < appDataDirectories.Count; i++)
+            {
+                try
+                {
+                    Directory.Delete(appDataDirectories[i].FullName, true);
+                }
+                finally { }
+            }
         }
     }
 }
