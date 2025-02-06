@@ -5,9 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:gif="http://wpfanimatedgif.codeplex.com"
         xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
-        xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
+        xmlns:uc="clr-namespace:BIA.ToolKit.UserControls" d:DataContext="{d:DesignInstance Type=local:MainViewModel}"
         mc:Ignorable="d"
         Title="BIA Toolkit" Height="900" Width="1200" Icon="/Images/Tools.ico" WindowStartupLocation="CenterScreen" MinHeight="900" MinWidth="1200">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+    </Window.Resources>
     
     <Grid Background="#FFE5E5E5" Margin="10,11,10,14">
         <Grid.RowDefinitions>
@@ -47,6 +51,12 @@
                     <Grid Grid.Column="2" Margin="10,0">
                         <CheckBox IsChecked="{Binding Settings.UseCompanyFiles}" HorizontalAlignment="Center" Margin="0,0,200,189" Checked="ConfigurationChange" Unchecked="ConfigurationChange" Height="15" VerticalAlignment="Bottom"/>
                         <Label Foreground="White" Content="Use Company Files" HorizontalAlignment="Center" Margin="0,0,0,180" FontSize="20" FontWeight="Bold" Height="37" VerticalAlignment="Bottom"/>
+                        <StackPanel Grid.ColumnSpan="2" Margin="2" VerticalAlignment="Top" HorizontalAlignment="Right" Orientation="Horizontal">
+                            <Button x:Name="UpdateButton" ToolTip="New version available !" Height="25" Background="Transparent" Foreground="Transparent" BorderThickness="0" Cursor="Hand" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisConverter}}" Click="UpdateButton_Click">
+                                <Image Source="/Images/update.png" />
+                            </Button>
+                            <Label Grid.ColumnSpan="2" Content="{Binding ApplicationVersion}" Margin="2" VerticalAlignment="Top" Foreground="#FFF0F0F0" HorizontalAlignment="Right" d:Content="V0.0.0.0"/>
+                        </StackPanel>
                         <Grid IsEnabled="{Binding Settings.UseCompanyFiles}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="1*"/>
@@ -59,7 +69,6 @@
                             <TextBox Text="{Binding Settings_CompanyFiles_LocalFolderPath}"  IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Stretch" Margin="20,0,0,95" TextWrapping="Wrap" Height="20" VerticalAlignment="Bottom" />
                             <Button Grid.Column="1" Content="..." IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Stretch" Margin="5,0,0,95" RenderTransformOrigin="0.429,2.91" Click="CompanyFilesLocalFolderBrowse_Click" Height="20" VerticalAlignment="Bottom"/>
                             <Button Grid.ColumnSpan="2" Content="Synchronize" HorizontalAlignment="Center" Margin="0,0,0,40" RenderTransformOrigin="0.429,2.91" Width="120" Name="CompanyFilesLocalFolderSync" Click="CompanyFilesLocalFolderSync_Click" Height="20" VerticalAlignment="Bottom"/>
-                            <Label Grid.ColumnSpan="2" Content="{Binding ApplicationVersion}" Margin="2" VerticalAlignment="Top" Foreground="#FFF0F0F0" HorizontalAlignment="Right"/>
                         </Grid>
                     </Grid>
                 </Grid>

@@ -13,22 +13,25 @@
     using System.Windows;
     using Newtonsoft.Json;
 
-    internal class UpdateService
+    public class UpdateService
     {
-        private readonly string updaterName;
+        private const string UpdaterName = "BIA.ToolKit.Updater.exe";
+
         private readonly string applicationPath;
         private readonly string tempPath;
+        private readonly UIEventBroker eventBroker;
 
         private PackageConfig packageConfig;
+        private Version NewVersion;
 
-        public UpdateService()
+        public UpdateService(UIEventBroker eventBroker)
         {
-            updaterName = ConfigurationManager.AppSettings["UpdaterName"];
             applicationPath = AppDomain.CurrentDomain.BaseDirectory;
             tempPath = Path.GetTempPath();
+            this.eventBroker = eventBroker;
         }
 
-        public async Task CheckForUpdatesAsync()
+        public async Task CheckForUpdatesAsync(bool autoUpdate)
         {
             try
             {
@@ -37,20 +40,31 @@
                 var updateVersion = await GetLatestVersionAsync();
                 if (updateVersion > Assembly.GetExecutingAssembly().GetName().Version)
                 {
-                    MessageBoxResult result = MessageBox.Show(
-                        $"A new version ({updateVersion}) is available.\nInstall now ?",
-                        "Update available",
-                        MessageBoxButton.YesNo, MessageBoxImage.Information);
+                    NewVersion = updateVersion;
+                    eventBroker.NotifyNewVersionAvailable();
 
-                    if (result == MessageBoxResult.Yes)
+                    if (autoUpdate && !Debugger.IsAttached)
                     {
-                        await DownloadUpdateAsync();
+                        await InitUpdate();
                     }
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Update failure : {ex.Message}", "Update failure", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        public async Task InitUpdate()
+        {
+            var result = MessageBox.Show(
+                                    $"A new version ({NewVersion}) is available.\nInstall now ?",
+                                    "Update available",
+                                    MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                await DownloadUpdateAsync();
             }
         }
 
@@ -92,10 +106,10 @@
             if (!Directory.Exists(tempPath))
                 Directory.CreateDirectory(tempPath);
 
-            var updaterSource = Path.Combine(packageConfig.DistributionServer, updaterName);
-            var updaterTarget = Path.Combine(applicationPath, updaterName);
+            var updaterSource = Path.Combine(packageConfig.DistributionServer, UpdaterName);
+            var updaterTarget = Path.Combine(applicationPath, UpdaterName);
             if (!File.Exists(updaterSource))
-                throw new FileNotFoundException($"Unable to find {updaterName} in {packageConfig.DistributionServer}.");
+                throw new FileNotFoundException($"Unable to find {UpdaterName} in {packageConfig.DistributionServer}.");
 
             var updateArchiveSource = Path.Combine(packageConfig.DistributionServer, packageConfig.PackageArchiveName);
             var updateArchiveTarget = Path.Combine(tempPath, packageConfig.PackageArchiveName);

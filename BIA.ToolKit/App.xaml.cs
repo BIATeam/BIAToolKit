@@ -63,10 +63,10 @@
             CSharpParserService.RegisterMSBuild(serviceProvider.GetRequiredService<IConsoleWriter>());
 
             var autoUpdateSetting = ConfigurationManager.AppSettings["AutoUpdate"];
-            if (bool.TryParse(autoUpdateSetting, out bool autoUpdate) && autoUpdate)
+            if (bool.TryParse(autoUpdateSetting, out bool autoUpdate))
             {
                 var updateService = serviceProvider.GetService<UpdateService>();
-                await updateService.CheckForUpdatesAsync();
+                await updateService.CheckForUpdatesAsync(autoUpdate);
             }
         }
 

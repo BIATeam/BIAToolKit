@@ -33,6 +33,7 @@
         RepositoryService repositoryService;
         GitService gitService;
         ProjectCreatorService projectCreatorService;
+        private readonly UpdateService updateService;
         GenerateFilesService generateFilesService;
         ConsoleWriter consoleWriter;
         bool isCreateTabInitialized = false;
@@ -40,7 +41,7 @@
 
         public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, FeatureSettingService featureSettingService, BiaFrameworkFileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
+            IConsoleWriter consoleWriter, FeatureSettingService featureSettingService, BiaFrameworkFileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService)
         {
             AppSettings.AppFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
@@ -48,6 +49,7 @@
             this.repositoryService = repositoryService;
             this.gitService = gitService;
             this.projectCreatorService = projectCreatorService;
+            this.updateService = updateService;
             this.generateFilesService = genFilesService;
 
             InitializeComponent();
@@ -89,8 +91,14 @@
 
             txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
 
-            base.DataContext = _viewModel;
+            DataContext = _viewModel;
 
+            uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
+        }
+
+        private void UiEventBroker_OnNewVersionAvailable()
+        {
+            _viewModel.UpdateAvailable = true;
         }
 
         public bool RefreshConfiguration()
@@ -389,5 +397,12 @@
             System.Windows.Forms.Application.DoEvents();
         }
 
+        private async void UpdateButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!Debugger.IsAttached)
+            {
+                await updateService.InitUpdate();
+            }
+        }
     }
 }

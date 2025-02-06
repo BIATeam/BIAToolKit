@@ -23,6 +23,7 @@
 		<None Remove="Images\Tools.ico" />
 		<None Remove="Images\trash.224x256.png" />
 		<None Remove="Images\trash.png" />
+		<None Remove="Images\update.png" />
 		<None Remove="Images\Warning.png" />
 		<None Remove="Images\workOnComputer2.jpg" />
 		<None Remove="package.json" />
@@ -54,6 +55,9 @@
 		</Content>
 		<Content Include="Images\Tools.ico">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Images\update.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Include="Images\Warning.png">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>

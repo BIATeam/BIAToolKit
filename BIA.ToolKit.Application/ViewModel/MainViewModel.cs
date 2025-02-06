@@ -34,7 +34,7 @@
                 if (Settings.RootProjectsPath != value)
                 {
                     Settings.RootProjectsPath = value;
-                    RaisePropertyChanged("Settings_RootProjectsPath");
+                    RaisePropertyChanged(nameof(Settings_RootProjectsPath));
                 }
             }
         }
@@ -47,7 +47,7 @@
                 if (Settings.BIATemplateRepository.LocalFolderPath != value)
                 {
                     Settings.BIATemplateRepository.LocalFolderPath = value;
-                    RaisePropertyChanged("Settings_BIATemplateRepository_LocalFolderPath");
+                    RaisePropertyChanged(nameof(Settings_BIATemplateRepository_LocalFolderPath));
                 }
             }
         }
@@ -60,11 +60,22 @@
                 if (Settings.CompanyFiles.LocalFolderPath != value)
                 {
                     Settings.CompanyFiles.LocalFolderPath = value;
-                    RaisePropertyChanged("Settings_CompanyFiles_LocalFolderPath");
+                    RaisePropertyChanged(nameof(Settings_CompanyFiles_LocalFolderPath));
                 }
             }
         }
 
         public string ApplicationVersion => $"V{applicationVersion}";
+
+        private bool _updateAvailable;
+        public bool UpdateAvailable
+        {
+            get => _updateAvailable;
+            set
+            {
+                _updateAvailable = value;
+                RaisePropertyChanged(nameof(UpdateAvailable));
+            }
+        }
     }
 }
