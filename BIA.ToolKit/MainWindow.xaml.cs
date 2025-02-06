@@ -45,8 +45,6 @@
             AppSettings.AppFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
 
-            DataContext = _viewModel;
-
             this.repositoryService = repositoryService;
             this.gitService = gitService;
             this.projectCreatorService = projectCreatorService;
