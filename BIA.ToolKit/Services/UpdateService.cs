@@ -11,6 +11,7 @@
     using System.Text.Json;
     using System.Threading.Tasks;
     using System.Windows;
+    using BIA.ToolKit.Package;
     using Newtonsoft.Json;
 
     public class UpdateService
@@ -35,7 +36,7 @@
         {
             try
             {
-                ParsePackageFile();
+                packageConfig = Helper.GetPackageConfig(applicationPath);
 
                 var updateVersion = await GetLatestVersionAsync();
                 if (updateVersion > Assembly.GetExecutingAssembly().GetName().Version)
@@ -65,26 +66,6 @@
             if (result == MessageBoxResult.Yes)
             {
                 await DownloadUpdateAsync();
-            }
-        }
-
-        private void ParsePackageFile()
-        {
-            string packageJsonPath = Path.Combine(applicationPath, "package.json");
-
-            if (!File.Exists(packageJsonPath))
-            {
-                throw new FileNotFoundException("package.json not found.");
-            }
-
-            string jsonContent = File.ReadAllText(packageJsonPath);
-            packageConfig = JsonConvert.DeserializeObject<PackageConfig>(jsonContent);
-
-            if (packageConfig == null || string.IsNullOrEmpty(packageConfig.DistributionServer)
-                || string.IsNullOrEmpty(packageConfig.PackageVersionFileName)
-                || string.IsNullOrEmpty(packageConfig.PackageArchiveName))
-            {
-                throw new InvalidOperationException("Missing required values in package.json.");
             }
         }
 
@@ -123,13 +104,6 @@
             });
 
             Process.Start(updaterTarget, [$"\"{AppDomain.CurrentDomain.BaseDirectory}\"", $"\"{updateArchiveTarget}\""]);
-        }
-
-        private class PackageConfig
-        {
-            public string DistributionServer { get; set; }
-            public string PackageVersionFileName { get; set; }
-            public string PackageArchiveName { get; set; }
         }
     }
 }

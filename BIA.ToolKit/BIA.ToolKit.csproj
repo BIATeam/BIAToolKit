@@ -71,6 +71,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\BIA.ToolKit.Application\BIA.ToolKit.Application.csproj" />
+		<ProjectReference Include="..\BIA.ToolKit.Package\BIA.ToolKit.Package.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
