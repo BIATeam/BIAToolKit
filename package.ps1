@@ -1,5 +1,6 @@
 $biaToolKitProjectPath = ".\BIA.ToolKit"
 $updaterProjectPath = ".\BIA.ToolKit.Updater"
+$installScriptName = "install.ps1"
 
 $packageJsonPath = "./package.json"
 
@@ -69,6 +70,9 @@ if ($updaterExe) {
     Write-Host "Unable to find .exe in $updaterProjectPath\publish." -ForegroundColor Red
     exit 1
 }
+
+Write-Host "Copying installer.ps1..." -ForegroundColor Yellow
+Copy-Item "$installScriptName" "$distributionServer\$installScriptName" -Force
 
 Write-Host "Updating version.txt..." -ForegroundColor Yellow
 Set-Content -Path "$distributionServer\$versionFile" -Value $biaToolKitVersion
