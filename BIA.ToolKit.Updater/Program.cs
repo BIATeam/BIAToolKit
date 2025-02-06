@@ -48,7 +48,7 @@
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("[END BIATOOLKIT UPGRADE]");
 
-            await Task.Delay(2000);
+            await Task.Delay(1000);
         }
 
         static void CloseRunningApp()
