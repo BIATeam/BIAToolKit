@@ -58,14 +58,21 @@
 
         public async Task InitUpdate()
         {
-            var result = MessageBox.Show(
+            try
+            {
+                var result = MessageBox.Show(
                                     $"A new version ({NewVersion}) is available.\nInstall now ?",
                                     "Update available",
                                     MessageBoxButton.YesNo, MessageBoxImage.Information);
 
-            if (result == MessageBoxResult.Yes)
+                if (result == MessageBoxResult.Yes)
+                {
+                    await DownloadUpdateAsync();
+                }
+            }
+            catch (Exception ex)
             {
-                await DownloadUpdateAsync();
+                MessageBox.Show($"Update failure : {ex.Message}", "Update failure", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
