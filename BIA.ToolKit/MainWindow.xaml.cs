@@ -43,7 +43,7 @@
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
             IConsoleWriter consoleWriter, FeatureSettingService featureSettingService, BiaFrameworkFileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService)
         {
-            AppSettings.AppFolderPath = System.Windows.Forms.Application.LocalUserAppDataPath;
+            AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
 
             this.repositoryService = repositoryService;

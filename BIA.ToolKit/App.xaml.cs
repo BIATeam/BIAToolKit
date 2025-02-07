@@ -49,8 +49,6 @@
         {
             if (ToolKit.Properties.Settings.Default.ApplicationUpdated)
             {
-                MigratePreviousUserData();
-
                 ToolKit.Properties.Settings.Default.Upgrade();
 
                 ToolKit.Properties.Settings.Default.ApplicationUpdated = false;
@@ -67,42 +65,6 @@
             {
                 var updateService = serviceProvider.GetService<UpdateService>();
                 await updateService.CheckForUpdatesAsync(autoUpdate);
-            }
-        }
-
-        private static void MigratePreviousUserData()
-        {
-            var currentAppDataPath = System.Windows.Forms.Application.LocalUserAppDataPath;
-            var appDataDirectories = new DirectoryInfo(Path.GetDirectoryName(currentAppDataPath))
-                .GetDirectories()
-                .OrderByDescending(d => d.CreationTime)
-                .ToList();
-
-            if (appDataDirectories.Count < 2)
-                return;
-
-            var previousVersionAppDataPath = appDataDirectories[1].FullName;
-            var previousVersionAppDataFiles = Directory.GetFiles(previousVersionAppDataPath, "*", SearchOption.AllDirectories).ToList();
-            foreach (string sourceFile in previousVersionAppDataFiles)
-            {
-                try
-                {
-                    var destinationFile = sourceFile.Replace(previousVersionAppDataPath, currentAppDataPath);
-                    if (!Directory.Exists(Path.GetDirectoryName(destinationFile)))
-                        Directory.CreateDirectory(Path.GetDirectoryName(destinationFile));
-
-                    File.Copy(sourceFile, destinationFile, false);
-                }
-                finally { }
-            }
-
-            for (int i = 1; i < appDataDirectories.Count; i++)
-            {
-                try
-                {
-                    Directory.Delete(appDataDirectories[i].FullName, true);
-                }
-                finally { }
             }
         }
     }
