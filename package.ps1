@@ -1,6 +1,5 @@
 $biaToolKitProjectPath = ".\BIA.ToolKit"
 $updaterProjectPath = ".\BIA.ToolKit.Updater"
-$installScriptName = "install.ps1"
 
 $packageJsonPath = "./package.json"
 
