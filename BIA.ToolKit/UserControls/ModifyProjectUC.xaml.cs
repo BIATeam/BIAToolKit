@@ -342,7 +342,11 @@
 
         private async Task ResolveUsings_Run()
         {
-            await cSharpParserService.ResolveUsings(_viewModel.CurrentProject.SolutionPath);
+            var result = MessageBox.Show("Make sure all Nuget packages have been restored in your solution before running the automatic resolve of usings statement.", "Resolve usings", MessageBoxButton.OKCancel, MessageBoxImage.Information);
+            if (result == MessageBoxResult.OK)
+            {
+                await cSharpParserService.ResolveUsings(_viewModel.CurrentProject.SolutionPath);
+            }
         }
     }
 }
