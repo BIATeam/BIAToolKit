@@ -11,7 +11,9 @@
     using System.Text.Json;
     using System.Threading.Tasks;
     using System.Windows;
+    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Package;
+    using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
 
     public class UpdateService
@@ -21,15 +23,16 @@
         private readonly string applicationPath;
         private readonly string tempPath;
         private readonly UIEventBroker eventBroker;
-
+        private readonly IConsoleWriter consoleWriter;
         private PackageConfig packageConfig;
         private Version NewVersion;
 
-        public UpdateService(UIEventBroker eventBroker)
+        public UpdateService(UIEventBroker eventBroker, IConsoleWriter consoleWriter)
         {
             applicationPath = AppDomain.CurrentDomain.BaseDirectory;
             tempPath = Path.GetTempPath();
             this.eventBroker = eventBroker;
+            this.consoleWriter = consoleWriter;
         }
 
         public async Task CheckForUpdatesAsync(bool autoUpdate)
@@ -49,6 +52,10 @@
                         await InitUpdate();
                     }
                 }
+            }
+            catch (CheckVersionFileException ex)
+            {
+                consoleWriter.AddMessageLine($"UPDATE WARNING: {ex.Message}", "orange");
             }
             catch (Exception ex)
             {
@@ -80,11 +87,11 @@
         {
             string versionFilePath = Path.Combine(packageConfig.DistributionServer, packageConfig.PackageVersionFileName);
             if (!File.Exists(versionFilePath))
-                throw new FileNotFoundException($"Unable to find verison file {packageConfig.PackageVersionFileName} in {packageConfig.DistributionServer}.");
+                throw new CheckVersionFileException($"Unable to find version file {packageConfig.PackageVersionFileName} in {packageConfig.DistributionServer}.");
 
             var versionFileContent = await File.ReadAllTextAsync(versionFilePath);
             if (!Version.TryParse(versionFileContent, out Version version))
-                throw new Exception($"Version file content is not a valid version.");
+                throw new CheckVersionFileException($"Version file content is not a valid version.");
 
             return version;
         }
@@ -111,6 +118,10 @@
             });
 
             Process.Start(updaterTarget, [$"\"{AppDomain.CurrentDomain.BaseDirectory}\"", $"\"{updateArchiveTarget}\""]);
+        }
+
+        private class CheckVersionFileException(string message) : Exception(message)
+        {
         }
     }
 }
