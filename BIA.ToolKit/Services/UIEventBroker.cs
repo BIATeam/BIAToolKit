@@ -18,7 +18,11 @@ namespace BIA.ToolKit.Services
         }
 
         public delegate void ProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem);
+        public delegate void NewVersionAvailable();
+
         public event ProjectChanged OnProjectChanged;
+        public event NewVersionAvailable OnNewVersionAvailable;
+
         public TabItemModifyProjectEnum CurrentTabItemModifyProject { get; private set; }
 
         public void NotifyProjectChanged(Project project)
@@ -29,6 +33,11 @@ namespace BIA.ToolKit.Services
         public void SetCurrentTabItemModifyProject(TabItemModifyProjectEnum tabItem)
         {
             CurrentTabItemModifyProject = tabItem;
+        }
+
+        public void NotifyNewVersionAvailable()
+        {
+            OnNewVersionAvailable?.Invoke();
         }
     }
 }
