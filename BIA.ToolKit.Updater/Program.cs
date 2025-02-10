@@ -71,7 +71,7 @@
                         Directory.Delete(directory, true);
                     }
                 }
-                finally { }
+                catch { }
             }
 
             var applicationRootFiles = Directory.GetFiles(appPath)
@@ -87,7 +87,7 @@
                         File.Delete(file);
                     }
                 }
-                finally { }
+                catch { }
             }
 
             ZipFile.ExtractToDirectory(zipPath, appPath, true);

@@ -194,8 +194,12 @@
                 BIATemplateLocalFolderSync.IsEnabled = false;
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
 
+                if(!_viewModel.Settings.BIATemplateRepository.UseLocalFolder)
+                {
+                    repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
+                }
+
                 await this.gitService.Synchronize(_viewModel.Settings.BIATemplateRepository);
-                this.repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
 
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
                 BIATemplateLocalFolderSync.IsEnabled = true;
@@ -215,7 +219,6 @@
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
 
                 await this.gitService.Synchronize(_viewModel.Settings.CompanyFiles);
-                this.repositoryService.CleanVersionFolder(_viewModel.Settings.CompanyFiles);
 
                 Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
                 CompanyFilesLocalFolderSync.IsEnabled = true;
