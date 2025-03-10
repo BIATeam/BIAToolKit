@@ -24,7 +24,7 @@
 
         public async Task Synchronize(Domain.Settings.RepositorySettings repository)
         {
-            if (!repository.UseLocalFolder && !Directory.Exists(repository.RootFolderPath))
+            if (!Directory.Exists(repository.RootFolderPath))
             {
                 await this.Clone(repository.Name, repository.UrlRepo, repository.RootFolderPath);
             }

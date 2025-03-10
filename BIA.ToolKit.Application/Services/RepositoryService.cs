@@ -49,10 +49,16 @@
         {
             if (repository.Versioning == VersioningType.Release)
             {
-                var releasePath = Path.Combine(AppSettings.AppFolderPath, repository.Name);
-                if (Directory.Exists(releasePath))
+                if (Directory.Exists(repository.RootFolderPath))
                 {
-                    Directory.Delete(releasePath, true);
+                    var dirInfo = new DirectoryInfo(repository.RootFolderPath);
+
+                    foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                    {
+                        file.Attributes = FileAttributes.Normal;
+                    }
+
+                    Directory.Delete(repository.RootFolderPath, true);
                 }
                 outPut.AddMessageLine("Release Cleaned.", "Pink");
             }
@@ -60,105 +66,94 @@
 
         public async Task<string> PrepareVersionFolder(RepositorySettings repository, string version)
         {
-            if (repository.Versioning == VersioningType.Folder)
+            try
             {
-                return repository.RootFolderPath + "\\" + version;
-            }
-            else if (repository.Versioning == VersioningType.Release)
-            {
-                using (var repo = new Repository(repository.RootFolderPath))
+                if (repository.Versioning == VersioningType.Folder)
                 {
-                    foreach (var tag in repo.Tags)
+                    return repository.RootFolderPath + "\\" + version;
+                }
+                else if (repository.Versioning == VersioningType.Release)
+                {
+                    using (var repo = new Repository(repository.RootFolderPath))
                     {
-                        if (tag.FriendlyName == version)
+                        foreach (var tag in repo.Tags)
                         {
-                            var zipPath = AppSettings.AppFolderPath + "\\" + repository.Name + "\\" + tag.FriendlyName + ".zip";
-                            string biaTemplatePathVersionUnzip = AppSettings.AppFolderPath + "\\" + repository.Name + "\\" + tag.FriendlyName;
-                            Directory.CreateDirectory(AppSettings.AppFolderPath + "\\" + repository.Name + "\\");
-
-                            if (File.Exists(zipPath))
+                            if (tag.FriendlyName == version)
                             {
-                                if (IsTextFileEmpty(zipPath))
-                                {
-                                    File.Delete(zipPath);
-                                }
-                                else
-                                {
-                                    // Already downloaded
-                                    UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip, version);
-                                    return Directory.GetDirectories(biaTemplatePathVersionUnzip).FirstOrDefault();
-                                }
-                            }
+                                var zipPath = AppSettings.AppFolderPath + "\\" + repository.Name + "\\" + tag.FriendlyName + ".zip";
+                                string biaTemplatePathVersionUnzip = AppSettings.AppFolderPath + "\\" + repository.Name + "\\" + tag.FriendlyName;
+                                Directory.CreateDirectory(AppSettings.AppFolderPath + "\\" + repository.Name + "\\");
 
-                            if (!File.Exists(zipPath))
-                            {
-                                var versionDownload = versionDownloads.Find(x => x.Version == version);
-                                if (versionDownload == null)
+                                if (!Directory.Exists(biaTemplatePathVersionUnzip))
                                 {
-                                    versionDownload = new VersionDownload { Version = version };
-                                    versionDownloads.Add(versionDownload);
-                                }
-
-                                if (!versionDownload.IsDownloading)
-                                {
-                                    versionDownload.IsDownloading = true;
-
-                                    outPut.AddMessageLine("Begin downloading " + tag.CanonicalName + ".zip", "Pink");
-                                    var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
-                                    HttpClientHandler httpClientHandler = new HttpClientHandler
+                                    var versionDownload = versionDownloads.Find(x => x.Version == version);
+                                    if (versionDownload == null)
                                     {
-                                        DefaultProxyCredentials = CredentialCache.DefaultCredentials,
-                                    };
-                                    using (var httpClient = new HttpClient(httpClientHandler))
+                                        versionDownload = new VersionDownload { Version = version };
+                                        versionDownloads.Add(versionDownload);
+                                    }
+
+                                    if (!versionDownload.IsDownloading)
                                     {
-                                        var response = await httpClient.GetAsync(zipUrl);
-                                        using (var fs = new FileStream(
-                                            zipPath,
-                                            FileMode.CreateNew))
+                                        versionDownload.IsDownloading = true;
+
+                                        outPut.AddMessageLine("Begin downloading " + tag.CanonicalName + ".zip", "Pink");
+                                        var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
+                                        HttpClientHandler httpClientHandler = new HttpClientHandler
                                         {
-                                            await response.Content.CopyToAsync(fs);
+                                            DefaultProxyCredentials = CredentialCache.DefaultCredentials,
+                                        };
+                                        using (var httpClient = new HttpClient(httpClientHandler))
+                                        {
+                                            var response = await httpClient.GetAsync(zipUrl);
+                                            using (var fs = new FileStream(
+                                                zipPath,
+                                                FileMode.CreateNew))
+                                            {
+                                                await response.Content.CopyToAsync(fs);
+                                            }
+                                        }
+
+                                        if (!File.Exists(zipPath))
+                                        {
+                                            outPut.AddMessageLine("Cannot download release: " + version, "Red");
+                                            break;
+                                        }
+
+                                        outPut.AddMessageLine($"-> {version} downloaded", "pink");
+
+                                        UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip, version);
+                                        versionDownload.IsDownloading = false;
+                                    }
+                                    else
+                                    {
+                                        while (versionDownload.IsDownloading)
+                                        {
+                                            await Task.Delay(TimeSpan.FromSeconds(1));
                                         }
                                     }
-
-                                    if (!File.Exists(zipPath))
-                                    {
-                                        outPut.AddMessageLine("Cannot download release: " + version, "Red");
-                                        break;
-                                    }
-
-                                    outPut.AddMessageLine($"-> {version} downloaded", "pink");
-
-                                    if (Directory.Exists(biaTemplatePathVersionUnzip))
-                                    {
-                                        Directory.Delete(biaTemplatePathVersionUnzip, true);
-                                    }
-
-                                    UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip, version);
-                                    versionDownload.IsDownloading = false;
                                 }
-                                else
+
+                                var dirContent = Directory.GetDirectories(biaTemplatePathVersionUnzip, "*.*", SearchOption.TopDirectoryOnly);
+                                if (dirContent.Length == 1)
                                 {
-                                    while(versionDownload.IsDownloading)
-                                    {
-                                        await Task.Delay(TimeSpan.FromSeconds(1));
-                                    }
+                                    return dirContent[0];
                                 }
-                            }
-
-                            var dirContent = Directory.GetDirectories(biaTemplatePathVersionUnzip, "*.*", SearchOption.TopDirectoryOnly);
-                            if (dirContent.Length == 1)
-                            {
-                                return dirContent[0];
                             }
                         }
                     }
+                    return string.Empty;
                 }
-                return "";
+                else
+                {
+                    this.gitService.CheckoutTag(repository, version);
+                    return repository.RootFolderPath;
+                }
             }
-            else
+            catch(Exception ex)
             {
-                this.gitService.CheckoutTag(repository, version);
-                return repository.RootFolderPath;
+                outPut.AddMessageLine($"Error: {ex.Message}", "red");
+                return string.Empty;
             }
         }
 
@@ -169,6 +164,7 @@
                 outPut.AddMessageLine($"Unzipping {version}", "pink");
                 ZipFile.ExtractToDirectory(zipPath, biaTemplatePathVersionUnzip);
                 FileTransform.FolderUnix2Dos(biaTemplatePathVersionUnzip);
+                File.Delete(zipPath);
                 outPut.AddMessageLine($"-> {version} unzipped", "pink");
             }
         }

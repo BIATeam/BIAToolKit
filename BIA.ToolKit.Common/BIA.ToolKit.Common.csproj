@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\BIA.ToolKit\KeepSettingsAtUpgrade.snk</AssemblyOriginatorKeyFile>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

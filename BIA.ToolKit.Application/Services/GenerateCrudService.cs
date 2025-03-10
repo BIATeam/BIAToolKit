@@ -160,7 +160,7 @@
                     DeleteCrudOptionsGenerated(zipFeatureTypeList, generationHistory, optionsGenerationHistory, feature);
                 }
             }
-            finally
+            catch
             {
                 CrudParent = null;
                 FeatureParentPrincipal = null;

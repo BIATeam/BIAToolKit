@@ -1,19 +1,24 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
+    using System;
+    using System.Reflection;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.Settings;
 
     public class MainViewModel : ObservableObject
     {
+        private readonly Version applicationVersion;
+
         public BIATKSettings Settings { get; set; }
         public VersionAndOptionViewModel VersionAndOptionViewModel { get; set; }
 
-        public MainViewModel()
+        public MainViewModel(Version applicationVersion)
         {
             Settings = new BIATKSettings();
             // Because the RootProjects is in 2 VM (create and modify)
             SynchronizeSettings.AddCallBack("RootProjectsPath", DelegateSetRootProjectsPath);
+            this.applicationVersion = applicationVersion;
         }
 
         public void DelegateSetRootProjectsPath(string value)
@@ -29,7 +34,7 @@
                 if (Settings.RootProjectsPath != value)
                 {
                     Settings.RootProjectsPath = value;
-                    RaisePropertyChanged("Settings_RootProjectsPath");
+                    RaisePropertyChanged(nameof(Settings_RootProjectsPath));
                 }
             }
         }
@@ -42,7 +47,7 @@
                 if (Settings.BIATemplateRepository.LocalFolderPath != value)
                 {
                     Settings.BIATemplateRepository.LocalFolderPath = value;
-                    RaisePropertyChanged("Settings_BIATemplateRepository_LocalFolderPath");
+                    RaisePropertyChanged(nameof(Settings_BIATemplateRepository_LocalFolderPath));
                 }
             }
         }
@@ -55,10 +60,22 @@
                 if (Settings.CompanyFiles.LocalFolderPath != value)
                 {
                     Settings.CompanyFiles.LocalFolderPath = value;
-                    RaisePropertyChanged("Settings_CompanyFiles_LocalFolderPath");
+                    RaisePropertyChanged(nameof(Settings_CompanyFiles_LocalFolderPath));
                 }
             }
         }
 
+        public string ApplicationVersion => $"V{applicationVersion}";
+
+        private bool _updateAvailable;
+        public bool UpdateAvailable
+        {
+            get => _updateAvailable;
+            set
+            {
+                _updateAvailable = value;
+                RaisePropertyChanged(nameof(UpdateAvailable));
+            }
+        }
     }
 }

@@ -90,8 +90,11 @@
         {
             if (vm.RepositorySettings != null)
             {
+                if (!vm.RepositorySettings.UseLocalFolder)
+                {
+                    this.repositoryService.CleanVersionFolder(vm.RepositorySettings);
+                }
                 _ = gitService.Synchronize(vm.RepositorySettings);
-                this.repositoryService.CleanVersionFolder(vm.RepositorySettings);
             }
         }
     }
