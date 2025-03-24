@@ -99,20 +99,19 @@ jobs:
 
     - name: Zip files
       run: 7z a ${{ env.Bia_ToolKit_Directory }}\\release\\BIAToolKit.zip ${{ env.Bia_ToolKit_Directory }}\publish
-    - name: version
+    - id: gen_version
       run: |
           $version=(Get-Item .\BIA.ToolKit\\publish\\BIA.ToolKit.exe).VersionInfo.FileVersion
           $version
           echo "version::$version" >> $GITHUB_OUTPUT
-      id: version
     - name: release
       uses: actions/create-release@v1
       id: create_release
       with:
         draft: false
         prerelease: false
-        release_name: Version ${{ steps.version.outputs.version }}
-        tag_name: V${{ steps.version.outputs.version }}
+        release_name: Version ${{ steps.gen_version.outputs.version }}
+        tag_name: V${{ steps.gen_version.outputs.version }}
         body_path: CHANGELOG.md
       env:
         GITHUB_TOKEN: ${{ github.token }}
