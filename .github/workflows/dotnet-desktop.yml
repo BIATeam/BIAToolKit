@@ -100,8 +100,7 @@ jobs:
     - name: Zip files
       run: 7z a ${{ env.Bia_ToolKit_Directory }}\\release\\BIAToolKit.zip ${{ env.Bia_ToolKit_Directory }}\publish
     - name: version
-      echo "::set-output name=version::${{ env.Bia_ToolKit_Directory }}\\publish\\BIA.ToolKit.exe"
-    #  run: echo "::set-output name=version::$(${{ env.Bia_ToolKit_Directory }}\\publish\\BIA.ToolKit.exe --version)"
+      run: echo "version::$(${{ env.Bia_ToolKit_Directory }}\\publish\\BIA.ToolKit.exe --version)" >> $GITHUB_OUTPUT
       id: version
     - name: release
       uses: actions/create-release@v1
