@@ -102,6 +102,7 @@ jobs:
     - name: version
       run: |
           $version=(Get-Item .\BIA.ToolKit\\publish\\BIA.ToolKit.exe).VersionInfo.FileVersion
+          $version
           echo "version::$version" >> $GITHUB_OUTPUT
       id: version
     - name: release
