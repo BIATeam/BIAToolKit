@@ -53,21 +53,23 @@ namespace BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Mode
 
         public string GenerateMapperCSV()
         {
-            if (MappingType == "bool")
+            string nonNullMappingType = MappingType.Replace("?", string.Empty);
+
+            if (nonNullMappingType == "bool")
             {
                 return $"CSVBool(x.{MappingName}),";
             }
 
-            if(
-                MappingType == "int" 
-                || MappingType == "double"
-                || MappingType == "decimal"
-                || MappingType == "float"
-                || MappingType == "uint"
-                || MappingType == "long"
-                || MappingType == "ulong"
-                || MappingType == "short"
-                || MappingType == "ushort"
+            if (
+                nonNullMappingType == "int" 
+                || nonNullMappingType == "double"
+                || nonNullMappingType == "decimal"
+                || nonNullMappingType == "float"
+                || nonNullMappingType == "uint"
+                || nonNullMappingType == "long"
+                || nonNullMappingType == "ulong"
+                || nonNullMappingType == "short"
+                || nonNullMappingType == "ushort"
                 )
             {
                 return $"CSVNumber(x.{MappingName}),";
@@ -84,7 +86,7 @@ namespace BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Mode
                 };
             }
 
-            if(MappingType == "string")
+            if(nonNullMappingType == "string")
             {
                 return $"CSVString(x.{MappingName}),";
             }

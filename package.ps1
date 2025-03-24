@@ -94,13 +94,13 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Creating update archive..." -ForegroundColor Yellow
 Compress-Archive -Path "$biaToolKitProjectPath\publish\*" -DestinationPath "$biaToolKitProjectPath\$updateArchiveName" -Force
 
-# Copy biatoolkit update archive to distribion server and backup
+# Copy biatoolkit update archive to distribution server and backup
 Write-Host "Copying update archive to server..." -ForegroundColor Yellow
 Copy-Item "$biaToolKitProjectPath\$updateArchiveName" "$distributionServer\$updateArchiveName" -Force
 Copy-Item "$biaToolKitProjectPath\$updateArchiveName" "$distributionServerBackupBiaToolKitFolder\$($biaToolKitVersion)_$updateArchiveName" -Force
 Remove-Item "$biaToolKitProjectPath\$updateArchiveName" -Force
 
-# Copy updater to distribion server and backup
+# Copy updater to distribution server and backup
 Write-Host "Copying updater to server..." -ForegroundColor Yellow
 $updaterExe = Get-ChildItem "$updaterProjectPath\publish" -Filter "*.exe" | Select-Object -First 1
 if (-not $updaterExe) {

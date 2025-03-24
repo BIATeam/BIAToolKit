@@ -62,7 +62,7 @@
                 }).ToList(),
                 EntityNamespace = entityInfo.Namespace,
                 MapperName = entityInfo.Name + "Mapper",
-                IsTeamType = entityInfo.BaseType.Contains("Team")
+                IsTeamType = entityInfo.BaseType?.Contains("Team") ?? false
             };
 
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
