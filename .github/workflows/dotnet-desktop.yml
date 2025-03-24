@@ -58,6 +58,7 @@ jobs:
     env:
       Solution_Name: BIAToolKit.sln                         # Replace with your solution name, i.e. MyWpfApp.sln.
       Bia_ToolKit_Directory: .\BIA.ToolKit
+      Bia_ToolKit_Updater_Directory: .\BIA.ToolKit.Updater
 
     steps:
     - name: "Example output creation"
@@ -93,7 +94,7 @@ jobs:
       env:
         Configuration: ${{ matrix.configuration }}
 
-    # Create the app package by building and packaging the Windows Application Packaging project
+    # Build and zip the BiaToolKit
     - name: Publish Bia ToolKit
       run: dotnet publish $env:Bia_ToolKit_Directory -c Release -r win-x64 --self-contained false -o "$env:Bia_ToolKit_Directory\publish"
       env:
@@ -103,6 +104,19 @@ jobs:
         Configuration: ${{ matrix.configuration }}
     - name: Zip files
       run: 7z a ${{ env.Bia_ToolKit_Directory }}\\release\\BIAToolKit.zip ${{ env.Bia_ToolKit_Directory }}\publish
+    
+    #Build and zip the BiaToolKit Updater
+    - name: Publish Bia ToolKit
+      run: dotnet publish $env:Bia_ToolKit_Updater_Directory -c Release -r win-x64 --self-contained false -o "$env:Bia_ToolKit_Updater_Directory\publish"
+      env:
+        Appx_Bundle: Always
+        Appx_Bundle_Platforms: x86|x64
+        Appx_Package_Build_Mode: StoreUpload
+        Configuration: ${{ matrix.configuration }}
+    - name: Zip files
+      run: 7z a ${{ env.Bia_ToolKit_Updater_Directory }}\\release\\BIAToolKitUpdater.zip ${{ env.Bia_ToolKit_Updater_Directory }}\publish
+
+    #Version
     - name: Version creation
       id: gen_version
       run: |
@@ -124,7 +138,7 @@ jobs:
         body_path: CHANGELOG.md
       env:
         GITHUB_TOKEN: ${{ github.token }}
-    - name: Upload zip in release
+    - name: Upload BIAToolKit.zip in release
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ github.token }}
@@ -132,4 +146,13 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ${{ env.Bia_ToolKit_Directory }}\\release\\BIAToolKit.zip
         asset_name: BIAToolKit.zip
+        asset_content_type: application/zip
+    - name: Upload BIAToolKitUpdater.zip in release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ env.Bia_ToolKit_Updater_Directory }}\\release\\BIAToolKitUpdater.zip
+        asset_name: BIAToolKitUpdater.zip
         asset_content_type: application/zip
