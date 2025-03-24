@@ -65,11 +65,11 @@ jobs:
       run: |
         $my_var="Hello World"
         echo "Output [$my_var]"
-        echo "my_var=$my_var" >> $GITHUB_OUTPUT
+        echo "my_var=$my_var" >> $ENV:GITHUB_OUTPUT
       shell: pwsh
     - name: "Example output call between steps"
       run: |
-            echo "Output [${{steps.my_step.outputs.my_var}}]" 
+            echo "Output [${{ env.my_var }}]" 
       shell: pwsh
     - name: Checkout
       uses: actions/checkout@v4
@@ -107,7 +107,7 @@ jobs:
       run: |
           $version=(Get-Item .\BIA.ToolKit\\publish\\BIA.ToolKit.exe).VersionInfo.FileVersion
           $version
-          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "version=$version" >> $ENV:GITHUB_OUTPUT
       shell: pwsh
 
 
@@ -118,8 +118,8 @@ jobs:
       with:
         draft: false
         prerelease: false
-        release_name: Version ${{ steps.gen_version.outputs.version }}
-        tag_name: V${{ steps.gen_version.outputs.version }}
+        release_name: Version ${{ env.version }}
+        tag_name: V${{ env.version }}
         body_path: CHANGELOG.md
       env:
         GITHUB_TOKEN: ${{ github.token }}
