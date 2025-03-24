@@ -66,6 +66,7 @@ jobs:
         $my_var="Hello World"
         echo "Output [$my_var]"
         echo "my_var=$my_var" >> $GITHUB_OUTPUT
+      shell: bash
     - name: "Example output call between steps"
       run: |
             echo "Output [${{steps.my_step.outputs.my_var}}]" 
@@ -106,6 +107,7 @@ jobs:
           $version=(Get-Item .\BIA.ToolKit\\publish\\BIA.ToolKit.exe).VersionInfo.FileVersion
           $version
           echo "version=$version" >> $GITHUB_OUTPUT
+      shell: bash
 
 
     #Create the release and push the zips
