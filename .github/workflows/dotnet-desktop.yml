@@ -60,17 +60,6 @@ jobs:
       Bia_ToolKit_Directory: .\BIA.ToolKit
 
     steps:
-    - name: "Example output creation"
-      id: "my_step"
-      run: |
-        my_var="Hello World"
-        echo "Output [$my_var]"
-        echo "my_var=$my_var" >> $GITHUB_OUTPUT
-
-    - name: "Example output call between steps"
-      run: |
-            echo "Output [${{steps.my_step.outputs.my_var}}]" 
-
     - name: Checkout
       uses: actions/checkout@v4
       with:
@@ -110,12 +99,13 @@ jobs:
 
     - name: Zip files
       run: 7z a ${{ env.Bia_ToolKit_Directory }}\\release\\BIAToolKit.zip ${{ env.Bia_ToolKit_Directory }}\publish
-    - id: gen_version
+    - name: Version creation
+      id: gen_version
       run: |
           $version=(Get-Item .\BIA.ToolKit\\publish\\BIA.ToolKit.exe).VersionInfo.FileVersion
           $version
           echo "version=$version" >> $GITHUB_OUTPUT
-    - name: release
+    - name: Create release
       uses: actions/create-release@v1
       id: create_release
       with:
@@ -126,7 +116,7 @@ jobs:
         body_path: CHANGELOG.md
       env:
         GITHUB_TOKEN: ${{ github.token }}
-    - name: upload windows artifact
+    - name: Upload zip in release
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ github.token }}
