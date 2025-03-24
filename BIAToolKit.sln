@@ -28,7 +28,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "99 - MSIX", "99 - MSIX", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "90 - Package", "90 - Package", "{4F91B1F2-8169-4020-A298-60F14C26D443}"
 	ProjectSection(SolutionItems) = preProject
-		package.json = package.json
 		package.ps1 = package.ps1
 	EndProjectSection
 EndProject
