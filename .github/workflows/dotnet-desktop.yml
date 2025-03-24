@@ -98,14 +98,7 @@ jobs:
     #     path: ${{ env.Bia_ToolKit_Directory }}\\publish
 
     - name: Zip files
-      shell: pwsh
-        run: |
-          if ($env:RUNNER_OS -eq "Windows") {
-            7z a ${{ env.Bia_ToolKit_Directory }}\\release\\BIAToolKit.zip ${{ env.Bia_ToolKit_Directory }}\publish
-          }
-          else {
-            zip -r ${{ env.Bia_ToolKit_Directory }}\\release\\BIAToolKit.zip ${{ env.Bia_ToolKit_Directory }}\publish
-          }
+      run: 7z a ${{ env.Bia_ToolKit_Directory }}\\release\\BIAToolKit.zip ${{ env.Bia_ToolKit_Directory }}\publish
     - name: version
       run: echo "::set-output name=version::$(${{ env.Bia_ToolKit_Directory }}\\publish\\BIA.ToolKit.exe --version)"
       id: version
