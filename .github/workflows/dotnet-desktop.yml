@@ -60,6 +60,17 @@ jobs:
       Bia_ToolKit_Directory: .\BIA.ToolKit
 
     steps:
+    - name: "Example output creation"
+      id: "my_step"
+      run: |
+        my_var="Hello World"
+        echo "Output [$my_var]"
+        echo "my_var=$my_var" >> $GITHUB_OUTPUT
+
+    - name: "Example output call between steps"
+      run: |
+            echo "Output [${{steps.my_step.outputs.my_var}}]" 
+
     - name: Checkout
       uses: actions/checkout@v4
       with:
@@ -103,7 +114,7 @@ jobs:
       run: |
           $version=(Get-Item .\BIA.ToolKit\\publish\\BIA.ToolKit.exe).VersionInfo.FileVersion
           $version
-          echo "version::$version" >> $GITHUB_OUTPUT
+          echo "version=$version" >> $GITHUB_OUTPUT
     - name: release
       uses: actions/create-release@v1
       id: create_release
