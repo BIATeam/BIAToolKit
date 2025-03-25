@@ -5,7 +5,10 @@
     using System.Configuration;
     using System.Diagnostics;
     using System.IO;
+    using System.IO.Compression;
     using System.Linq;
+    using System.Net;
+    using System.Net.Http;
     using System.Reflection;
     using System.Text;
     using System.Text.Json;
@@ -15,6 +18,7 @@
     using BIA.ToolKit.Package;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
+    using Octokit;
 
     public class UpdateService
     {
@@ -26,11 +30,12 @@
         private readonly IConsoleWriter consoleWriter;
         private PackageConfig packageConfig;
         private Version NewVersion;
+        Release LastRelease;
 
         public UpdateService(UIEventBroker eventBroker, IConsoleWriter consoleWriter)
         {
             applicationPath = AppDomain.CurrentDomain.BaseDirectory;
-            tempPath = Path.GetTempPath();
+            tempPath = Path.GetTempPath() + "\\BIAToolkit";
             this.eventBroker = eventBroker;
             this.consoleWriter = consoleWriter;
         }
@@ -39,18 +44,38 @@
         {
             try
             {
-                packageConfig = Helper.GetPackageConfig(applicationPath);
+                var github = new GitHubClient(new ProductHeaderValue("BIAToolKit"));
+                string owner = "BIATeam";
+                string repoName = "BIAToolKit";
 
-                var updateVersion = await GetLatestVersionAsync();
-                if (updateVersion > Assembly.GetExecutingAssembly().GetName().Version)
+                var releases = await github.Repository.Release.GetAll(owner, repoName);
+                if (releases.Count > 0)
                 {
-                    NewVersion = updateVersion;
-                    eventBroker.NotifyNewVersionAvailable();
-
-                    if (autoUpdate && !Debugger.IsAttached)
+                    foreach(Release release in releases)
                     {
-                        await InitUpdate();
+                        var lastRelease = releases[0];
+                        Console.WriteLine($"Last release tag found: {lastRelease.TagName}");
+                        if (lastRelease.TagName.StartsWith("V"))
+                        {
+                            Version.TryParse(lastRelease.TagName.Substring(1), out Version updateVersion);
+                            if (updateVersion > Assembly.GetExecutingAssembly().GetName().Version)
+                            {
+                                NewVersion = updateVersion;
+                                LastRelease = lastRelease;
+                                eventBroker.NotifyNewVersionAvailable();
+
+                                if (autoUpdate && !Debugger.IsAttached)
+                                {
+                                    await InitUpdate();
+                                }
+                            }
+                            break;
+                        }
                     }
+                }
+                else
+                {
+                    Console.WriteLine("No release found.");
                 }
             }
             catch (CheckVersionFileException ex)
@@ -83,41 +108,77 @@
             }
         }
 
-        private async Task<Version> GetLatestVersionAsync()
-        {
-            string versionFilePath = Path.Combine(packageConfig.DistributionServer, packageConfig.PackageVersionFileName);
-            if (!File.Exists(versionFilePath))
-                throw new CheckVersionFileException($"Unable to find version file {packageConfig.PackageVersionFileName} in {packageConfig.DistributionServer}.");
-
-            var versionFileContent = await File.ReadAllTextAsync(versionFilePath);
-            if (!Version.TryParse(versionFileContent, out Version version))
-                throw new CheckVersionFileException($"Version file content is not a valid version.");
-
-            return version;
-        }
-
         private async Task DownloadUpdateAsync()
         {
+
             if (!Directory.Exists(tempPath))
                 Directory.CreateDirectory(tempPath);
 
-            var updaterSource = Path.Combine(packageConfig.DistributionServer, UpdaterName);
-            var updaterTarget = Path.Combine(applicationPath, UpdaterName);
+            var updaterSourceDir = Path.Combine(tempPath, "BIAToolKitUpdater");
+            var updaterSource = Path.Combine(updaterSourceDir, UpdaterName);
+            var updaterZipName = "BIAToolKitUpdater.zip";
+            var updaterFilePath = Path.Combine(tempPath, updaterZipName);
+
+            await DownloadFromRelease(updaterSourceDir, updaterZipName, updaterFilePath);
             if (!File.Exists(updaterSource))
                 throw new FileNotFoundException($"Unable to find {UpdaterName} in {packageConfig.DistributionServer}.");
 
-            var updateArchiveSource = Path.Combine(packageConfig.DistributionServer, packageConfig.PackageArchiveName);
+            var toolkitSourceDir = Path.Combine(tempPath, "BIAToolKit");
+            var toolkitZipName = "BIAToolKit.zip";
+            var toolkitFilePath = Path.Combine(tempPath, toolkitZipName);
+            await DownloadFromRelease(toolkitSourceDir, toolkitZipName, toolkitFilePath);
+
+            if (!File.Exists(toolkitFilePath))
+                throw new FileNotFoundException($"Unable to find {toolkitZipName} in release.");
+
+            var updaterTarget = Path.Combine(applicationPath, UpdaterName);
             var updateArchiveTarget = Path.Combine(tempPath, packageConfig.PackageArchiveName);
-            if (!File.Exists(updateArchiveSource))
-                throw new FileNotFoundException($"Unable to find {packageConfig.PackageArchiveName} in {packageConfig.DistributionServer}.");
 
             await Task.Run(() =>
             {
                 File.Copy(updaterSource, updaterTarget, true);
-                File.Copy(updateArchiveSource, updateArchiveTarget, true);
             });
 
-            Process.Start(updaterTarget, [$"\"{AppDomain.CurrentDomain.BaseDirectory}\"", $"\"{updateArchiveTarget}\""]);
+            Process.Start(updaterTarget, [$"\"{AppDomain.CurrentDomain.BaseDirectory}\"", $"\"{toolkitFilePath}\""]);
+        }
+
+        private async Task DownloadFromRelease(string updaterSourceDir, string updaterZipName,string updaterFilePath)
+        {
+            var asset = LastRelease.Assets.FirstOrDefault(a => a.Name == updaterZipName);
+            if (asset != null)
+            {
+                HttpClientHandler httpClientHandler = new HttpClientHandler
+                {
+                    DefaultProxyCredentials = CredentialCache.DefaultCredentials,
+                };
+                using (var httpClient = new HttpClient(httpClientHandler))
+                {
+                    var response = await httpClient.GetAsync(asset.BrowserDownloadUrl);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        if (File.Exists(updaterFilePath))
+                        {
+                            File.Delete(updaterFilePath);
+                        }
+
+                        using (var fileStream = new FileStream(updaterFilePath, System.IO.FileMode.Create, FileAccess.Write))
+                        {
+                            await response.Content.CopyToAsync(fileStream);
+                        }
+                        Console.WriteLine($"File downloaded at : {updaterFilePath}");
+
+                        if (Directory.Exists(updaterSourceDir))
+                        {
+                            Directory.Delete(updaterSourceDir,true);
+                        }
+                        ZipFile.ExtractToDirectory(updaterFilePath, updaterSourceDir);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Fail to download updater.");
+                    }
+                }
+            }
         }
 
         private class CheckVersionFileException(string message) : Exception(message)
