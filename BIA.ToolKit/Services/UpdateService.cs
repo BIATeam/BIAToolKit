@@ -127,7 +127,8 @@
 
             await Task.Run(() =>
             {
-                File.Copy(updaterSource, updaterTarget, true);
+                foreach (var file in Directory.GetFiles(updaterSourceDir))
+                    File.Copy(file, Path.Combine(applicationPath, Path.GetFileName(file)),true);
             });
 
             Process.Start(updaterTarget, [$"\"{AppDomain.CurrentDomain.BaseDirectory}\"", $"\"{toolkitFilePath}\""]);
