@@ -160,7 +160,7 @@
         /// <summary>
         /// Read Zip archive and extract files on temporary working directory.
         /// </summary>
-        /// <returns>A tuple with working temporary directory and a dictionnary of files contains (key: file full path on archive, value : file name) in zip archives.</returns>
+        /// <returns>A tuple with working temporary directory and a dictionary of files contains (key: file full path on archive, value : file name) in zip archives.</returns>
         private (string, Dictionary<string, string>) ReadZipAndExtract(string zipPath, string folderType, string zipName)
         {
             string tempDir = null;
@@ -180,7 +180,7 @@
                 tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType, Path.GetFileNameWithoutExtension(zipName));
                 CommonTools.CheckFolder(tempDir);
 
-                // Extract and list files from archive to temprory folder
+                // Extract and list files from archive to temporary folder
                 files = new();
                 using ZipArchive archive = ZipFile.OpenRead(zipPath);
                 foreach (ZipArchiveEntry entry in archive.Entries)
