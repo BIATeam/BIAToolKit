@@ -103,7 +103,7 @@ jobs:
         Appx_Package_Build_Mode: StoreUpload
         Configuration: ${{ matrix.configuration }}
     - name: Zip files
-      run: 7z a ${{ env.Bia_ToolKit_Directory }}\\release\\BIAToolKit.zip ${{ env.Bia_ToolKit_Directory }}\publish
+      run: 7z a ${{ env.Bia_ToolKit_Directory }}\\release\\BIAToolKit.zip ${{ env.Bia_ToolKit_Directory }}\publish\*
     
     #Build and zip the BiaToolKit Updater
     - name: Publish Bia ToolKit
@@ -114,7 +114,7 @@ jobs:
         Appx_Package_Build_Mode: StoreUpload
         Configuration: ${{ matrix.configuration }}
     - name: Zip files
-      run: 7z a ${{ env.Bia_ToolKit_Updater_Directory }}\\release\\BIAToolKitUpdater.zip ${{ env.Bia_ToolKit_Updater_Directory }}\publish
+      run: 7z a ${{ env.Bia_ToolKit_Updater_Directory }}\\release\\BIAToolKitUpdater.zip ${{ env.Bia_ToolKit_Updater_Directory }}\publish\*
 
     #Version
     - name: Version creation
