@@ -1,8 +1,6 @@
 ﻿namespace BIA.ToolKit.Services
 {
     using System;
-    using System.Collections.Generic;
-    using System.Configuration;
     using System.Diagnostics;
     using System.IO;
     using System.IO.Compression;
@@ -10,14 +8,9 @@
     using System.Net;
     using System.Net.Http;
     using System.Reflection;
-    using System.Text;
-    using System.Text.Json;
     using System.Threading.Tasks;
     using System.Windows;
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Package;
-    using Microsoft.Extensions.Logging;
-    using Newtonsoft.Json;
     using Octokit;
 
     public class UpdateService
@@ -28,7 +21,6 @@
         private readonly string tempPath;
         private readonly UIEventBroker eventBroker;
         private readonly IConsoleWriter consoleWriter;
-        private PackageConfig packageConfig;
         private Version NewVersion;
         Release LastRelease;
 
@@ -121,7 +113,7 @@
 
             await DownloadFromRelease(updaterSourceDir, updaterZipName, updaterFilePath);
             if (!File.Exists(updaterSource))
-                throw new FileNotFoundException($"Unable to find {UpdaterName} in {packageConfig.DistributionServer}.");
+                throw new FileNotFoundException($"Unable to find {updaterZipName} in last release.");
 
             var toolkitSourceDir = Path.Combine(tempPath, "BIAToolKit");
             var toolkitZipName = "BIAToolKit.zip";
@@ -129,10 +121,9 @@
             await DownloadFromRelease(toolkitSourceDir, toolkitZipName, toolkitFilePath);
 
             if (!File.Exists(toolkitFilePath))
-                throw new FileNotFoundException($"Unable to find {toolkitZipName} in release.");
+                throw new FileNotFoundException($"Unable to find {toolkitZipName} in last release.");
 
             var updaterTarget = Path.Combine(applicationPath, UpdaterName);
-            var updateArchiveTarget = Path.Combine(tempPath, packageConfig.PackageArchiveName);
 
             await Task.Run(() =>
             {
@@ -142,9 +133,10 @@
             Process.Start(updaterTarget, [$"\"{AppDomain.CurrentDomain.BaseDirectory}\"", $"\"{toolkitFilePath}\""]);
         }
 
-        private async Task DownloadFromRelease(string updaterSourceDir, string updaterZipName,string updaterFilePath)
+        private async Task DownloadFromRelease(string sourceDir, string zipName,string filePath)
         {
-            var asset = LastRelease.Assets.FirstOrDefault(a => a.Name == updaterZipName);
+            consoleWriter.AddMessageLine($"Start download from release: {zipName}", "Pink");
+            var asset = LastRelease.Assets.FirstOrDefault(a => a.Name == zipName);
             if (asset != null)
             {
                 HttpClientHandler httpClientHandler = new HttpClientHandler
@@ -156,26 +148,28 @@
                     var response = await httpClient.GetAsync(asset.BrowserDownloadUrl);
                     if (response.IsSuccessStatusCode)
                     {
-                        if (File.Exists(updaterFilePath))
+                        if (File.Exists(filePath))
                         {
-                            File.Delete(updaterFilePath);
+                            File.Delete(filePath);
                         }
 
-                        using (var fileStream = new FileStream(updaterFilePath, System.IO.FileMode.Create, FileAccess.Write))
+                        using (var fileStream = new FileStream(filePath, System.IO.FileMode.Create, FileAccess.Write))
                         {
                             await response.Content.CopyToAsync(fileStream);
                         }
-                        Console.WriteLine($"File downloaded at : {updaterFilePath}");
+                        consoleWriter.AddMessageLine($"File downloaded: {zipName}", "Green");
 
-                        if (Directory.Exists(updaterSourceDir))
+                        if (Directory.Exists(sourceDir))
                         {
-                            Directory.Delete(updaterSourceDir,true);
+                            Directory.Delete(sourceDir,true);
                         }
-                        ZipFile.ExtractToDirectory(updaterFilePath, updaterSourceDir);
+                        ZipFile.ExtractToDirectory(filePath, sourceDir);
+
+                        consoleWriter.AddMessageLine($"File extarcted: {zipName}", "Green");
                     }
                     else
                     {
-                        Console.WriteLine("Fail to download updater.");
+                        consoleWriter.AddMessageLine("Fail to download updater.", "Red");
                     }
                 }
             }
