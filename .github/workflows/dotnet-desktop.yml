@@ -102,18 +102,18 @@ jobs:
         Appx_Bundle_Platforms: x86|x64
         Appx_Package_Build_Mode: StoreUpload
         Configuration: ${{ matrix.configuration }}
-    - name: Zip files
+    - name: Zip files Bia ToolKit
       run: 7z a ${{ env.Bia_ToolKit_Directory }}\\release\\BIAToolKit.zip ${{ env.Bia_ToolKit_Directory }}\publish\*
     
     #Build and zip the BiaToolKit Updater
-    - name: Publish Bia ToolKit
+    - name: Publish Bia ToolKit Updater
       run: dotnet publish $env:Bia_ToolKit_Updater_Directory -c Release -r win-x64 --self-contained false -o "$env:Bia_ToolKit_Updater_Directory\publish"
       env:
         Appx_Bundle: Always
         Appx_Bundle_Platforms: x86|x64
         Appx_Package_Build_Mode: StoreUpload
         Configuration: ${{ matrix.configuration }}
-    - name: Zip files
+    - name: Zip files Bia ToolKit Updater
       run: 7z a ${{ env.Bia_ToolKit_Updater_Directory }}\\release\\BIAToolKitUpdater.zip ${{ env.Bia_ToolKit_Updater_Directory }}\publish\*
 
     #Version
