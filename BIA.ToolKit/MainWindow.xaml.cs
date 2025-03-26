@@ -18,7 +18,6 @@
     using BIA.ToolKit.Common;
     using System.Threading.Tasks;
     using BIA.ToolKit.Domain.Settings;
-    using BIA.ToolKit.Services;
     using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
     using System.Reflection;
 
@@ -404,7 +403,22 @@
         {
             if (!Debugger.IsAttached)
             {
-                await updateService.InitUpdate();
+                try
+                {
+                    var result = MessageBox.Show(
+                                        $"A new version ({updateService.NewVersion}) is available.\nInstall now ?",
+                                        "Update available",
+                                        MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        await updateService.DownloadUpdateAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Update failure : {ex.Message}", "Update failure", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
     }

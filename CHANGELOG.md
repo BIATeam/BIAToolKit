@@ -1,4 +1,3 @@
-
-# ChangeLog
-## V1.8.1 (2025-03-12)
-Compatibility with V4.0.2
+# What's Changed
+## V1.8.2 (2025-03-25)
+Auto update from github.com

@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Services
+﻿namespace BIA.ToolKit.Application.Services
 {
     using System;
     using System.Diagnostics;
@@ -21,7 +21,11 @@
         private readonly string tempPath;
         private readonly UIEventBroker eventBroker;
         private readonly IConsoleWriter consoleWriter;
-        private Version NewVersion;
+        private Version currentVersion;
+        public Version NewVersion
+        {
+            get; private set;
+        }
         Release LastRelease;
 
         public UpdateService(UIEventBroker eventBroker, IConsoleWriter consoleWriter)
@@ -32,7 +36,12 @@
             this.consoleWriter = consoleWriter;
         }
 
-        public async Task CheckForUpdatesAsync(bool autoUpdate)
+        public void SetAppVersion(Version version)
+        {
+            this.currentVersion = version;
+        }
+
+        public async Task<Boolean> CheckForUpdatesAsync(bool autoUpdate)
         {
             try
             {
@@ -50,7 +59,7 @@
                         if (lastRelease.TagName.StartsWith("V"))
                         {
                             Version.TryParse(lastRelease.TagName.Substring(1), out Version updateVersion);
-                            if (updateVersion > Assembly.GetExecutingAssembly().GetName().Version)
+                            if (updateVersion > this.currentVersion)
                             {
                                 NewVersion = updateVersion;
                                 LastRelease = lastRelease;
@@ -58,7 +67,7 @@
 
                                 if (autoUpdate && !Debugger.IsAttached)
                                 {
-                                    await InitUpdate();
+                                    return true;
                                 }
                             }
                             break;
@@ -76,31 +85,12 @@
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Update failure : {ex.Message}", "Update failure", MessageBoxButton.OK, MessageBoxImage.Error);
+                consoleWriter.AddMessageLine($"Update failure : {ex.Message}", "Red");
             }
+            return false;
         }
 
-        public async Task InitUpdate()
-        {
-            try
-            {
-                var result = MessageBox.Show(
-                                    $"A new version ({NewVersion}) is available.\nInstall now ?",
-                                    "Update available",
-                                    MessageBoxButton.YesNo, MessageBoxImage.Information);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    await DownloadUpdateAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Update failure : {ex.Message}", "Update failure", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private async Task DownloadUpdateAsync()
+        public async Task DownloadUpdateAsync()
         {
 
             if (!Directory.Exists(tempPath))

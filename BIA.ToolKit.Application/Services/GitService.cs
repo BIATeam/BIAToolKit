@@ -54,7 +54,7 @@
             //var cloneResult = Repository.Clone(url, localPath);
             outPut.AddMessageLine("Clone " + repoName + " local folder...", "Pink");
 
-            if (RunScript("git", $"clone \"" + url + "\" \"" + localPath + "\"").Result == 0)
+            if (await RunScript("git", $"clone \"" + url + "\" \"" + localPath + "\"") == 0)
             {
                 outPut.AddMessageLine("Clone BIADemo local folder finished", "Green");
             }

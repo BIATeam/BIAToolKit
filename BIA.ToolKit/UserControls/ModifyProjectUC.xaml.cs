@@ -1,6 +1,5 @@
 ﻿namespace BIA.ToolKit.UserControls
 {
-    using System.CodeDom;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
@@ -13,13 +12,9 @@
     using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
-    using BIA.ToolKit.Common.Extensions;
-    using BIA.ToolKit.Domain.Model;
-    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.Properties;
-    using BIA.ToolKit.Services;
 
     /// <summary>
     /// Interaction logic for ModifyProjectUC.xaml
