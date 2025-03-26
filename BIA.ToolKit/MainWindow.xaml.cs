@@ -406,7 +406,7 @@
                 try
                 {
                     var result = MessageBox.Show(
-                                        $"A new version ({updateService.NewVersion}) is available.\nInstall now ?",
+                                        $"A new version ({updateService.NewVersion}) of BIAToolKit is available.\nInstall now?",
                                         "Update available",
                                         MessageBoxButton.YesNo, MessageBoxImage.Information);
 

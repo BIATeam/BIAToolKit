@@ -55,12 +55,12 @@
                     foreach(Release release in releases)
                     {
                         var lastRelease = releases[0];
-                        Console.WriteLine($"Last release tag found: {lastRelease.TagName}");
                         if (lastRelease.TagName.StartsWith("V"))
                         {
-                            Version.TryParse(lastRelease.TagName.Substring(1), out Version updateVersion);
+                             Version.TryParse(lastRelease.TagName.Substring(1), out Version updateVersion);
                             if (updateVersion > this.currentVersion)
                             {
+                                consoleWriter.AddMessageLine($"A new version of BIAToolKit is available: {lastRelease.TagName}", "Yellow");
                                 NewVersion = updateVersion;
                                 LastRelease = lastRelease;
                                 eventBroker.NotifyNewVersionAvailable();
@@ -69,23 +69,23 @@
                                 {
                                     return true;
                                 }
+                                else
+                                {
+                                    return false;
+                                }
                             }
-                            break;
                         }
                     }
                 }
                 else
                 {
-                    Console.WriteLine("No release found.");
+                    consoleWriter.AddMessageLine($"No release found on GitHub.", "Red");
                 }
-            }
-            catch (CheckVersionFileException ex)
-            {
-                consoleWriter.AddMessageLine($"UPDATE WARNING: {ex.Message}", "orange");
+                consoleWriter.AddMessageLine($"You have the last version of BIAToolKit.", "Yellow");
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"Update failure : {ex.Message}", "Red");
+                consoleWriter.AddMessageLine($"Check For Updates failure : {ex.Message}", "Red");
             }
             return false;
         }
@@ -164,10 +164,6 @@
                     }
                 }
             }
-        }
-
-        private class CheckVersionFileException(string message) : Exception(message)
-        {
         }
     }
 }
