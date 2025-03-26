@@ -8,17 +8,15 @@
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
-    using BIA.ToolKit.Services;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
-    using static BIA.ToolKit.Services.UIEventBroker;
+    using static BIA.ToolKit.Application.Services.UIEventBroker;
 
     /// <summary>
     /// Interaction logic for DtoGenerator.xaml

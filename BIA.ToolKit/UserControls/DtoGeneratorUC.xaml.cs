@@ -9,7 +9,6 @@
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
-    using BIA.ToolKit.Services;
     using System;
     using System.Data.Common;
     using System.IO;
@@ -17,7 +16,7 @@
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
-    using static BIA.ToolKit.Services.UIEventBroker;
+    using static BIA.ToolKit.Application.Services.UIEventBroker;
 
     /// <summary>
     /// Interaction logic for DtoGenerator.xaml

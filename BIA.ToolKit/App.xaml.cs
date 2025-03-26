@@ -4,12 +4,12 @@
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
     using BIA.ToolKit.Helper;
-    using BIA.ToolKit.Services;
     using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.Configuration;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Windows;
     using System.Windows.Input;
 
@@ -64,7 +64,19 @@
             if (bool.TryParse(autoUpdateSetting, out bool autoUpdate))
             {
                 var updateService = serviceProvider.GetService<UpdateService>();
-                await updateService.CheckForUpdatesAsync(autoUpdate);
+                updateService.SetAppVersion(Assembly.GetExecutingAssembly().GetName().Version);
+                if (await updateService.CheckForUpdatesAsync(autoUpdate))
+                {
+                    var result = MessageBox.Show(
+                        $"A new version ({updateService.NewVersion}) is available.\nInstall now ?",
+                        "Update available",
+                        MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        await updateService.DownloadUpdateAsync();
+                    }
+                }
             }
         }
     }

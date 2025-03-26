@@ -65,7 +65,7 @@
             }
         }
 
-        public string ApplicationVersion => $"V{applicationVersion}";
+        public string ApplicationVersion => $"V{applicationVersion.Major}.{applicationVersion.Minor}.{applicationVersion.Build}";
 
         private bool _updateAvailable;
         public bool UpdateAvailable

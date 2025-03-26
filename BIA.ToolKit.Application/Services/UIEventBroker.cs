@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BIA.ToolKit.Domain.ModifyProject;
 
-namespace BIA.ToolKit.Services
+namespace BIA.ToolKit.Application.Services
 {
     public class UIEventBroker
     {
