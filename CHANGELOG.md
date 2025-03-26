@@ -1,3 +1,3 @@
 # What's Changed
-## V1.8.2 (2025-03-25)
-Auto update from github.com
+## V1.8.4 (2025-03-26)
+Update possible in Program Files
