@@ -113,13 +113,13 @@
             if (!File.Exists(toolkitFilePath))
                 throw new FileNotFoundException($"Unable to find {toolkitZipName} in last release.");
 
-            var updaterTarget = Path.Combine(applicationPath, UpdaterName);
+            var updaterTarget = Path.Combine(updaterSourceDir, UpdaterName);
 
-            await Task.Run(() =>
+            /*await Task.Run(() =>
             {
                 foreach (var file in Directory.GetFiles(updaterSourceDir))
                     File.Copy(file, Path.Combine(applicationPath, Path.GetFileName(file)),true);
-            });
+            });*/
 
             Process.Start(updaterTarget, [$"\"{AppDomain.CurrentDomain.BaseDirectory}\"", $"\"{toolkitFilePath}\""]);
         }
