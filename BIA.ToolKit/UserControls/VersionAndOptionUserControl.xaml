@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
+             xmlns:gif="http://wpfanimatedgif.codeplex.com"
              mc:Ignorable="d" d:DesignWidth="800" Height="250">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
@@ -14,17 +15,19 @@
     </UserControl.DataContext>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*"/>
-            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
-        <Label Content="Framework version" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <Label Content="Framework version" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Foreground="White" Height="26" Width="110"/>
         <ComboBox ItemsSource="{Binding WorkTemplates}" 
                   DisplayMemberPath="Version"
                   SelectedItem="{Binding WorkTemplate}"
                   SelectionChanged="FrameworkVersion_SelectionChanged"
-                  HorizontalAlignment="Left" Margin="20,25,0,0" VerticalAlignment="Top" Width="120"/>
+                  HorizontalAlignment="Left" Margin="20,25,0,0" VerticalAlignment="Top" Width="120" Height="22"/>
 
-        <GroupBox Header="Feature Settings" Margin="175,0,228,0" Foreground="White" BorderBrush="White" Name="FeatureSettingsGroup"  d:Visibility="Visible" Visibility ="{Binding Path=AreFeatureVisible, Converter={StaticResource BoolToVisConverter} }" MaxHeight="175" VerticalAlignment="Top">
+        <Image gif:ImageBehavior.AnimatedSource="..\Images\spinner_light.gif" Height="197" Margin="184,0,419,0" VerticalAlignment="Top" d:Visibility="Visible" Visibility ="{Binding Path=AreFeatureLoading, Converter={StaticResource BoolToVisConverter} }"/>
+
+        <GroupBox Header="Feature Settings" Margin="175,0,419,0" Foreground="White" BorderBrush="White" Name="FeatureSettingsGroup"  d:Visibility="Visible" Visibility ="{Binding Path=AreFeatureVisible, Converter={StaticResource BoolToVisConverter} }" MaxHeight="175" VerticalAlignment="Top">
             <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="auto">
                 <ItemsControl ItemsSource="{Binding FeatureSettings}">
                     <ItemsControl.ItemTemplate>
@@ -36,7 +39,7 @@
             </ScrollViewer>
         </GroupBox>
 
-        <GroupBox Header="Company files" Foreground="White" BorderBrush="White" Name="CompanyFileGroup" HorizontalAlignment="Right" Width="400" Visibility="Visible" MaxHeight="175" VerticalAlignment="Top" Grid.ColumnSpan="2" Margin="0,0,0,0">
+        <GroupBox Header="Company files" Foreground="White" BorderBrush="White" Name="CompanyFileGroup" HorizontalAlignment="Right" Width="400" Visibility="Visible" MaxHeight="175" VerticalAlignment="Top" Margin="0,0,0,0" Height="175">
             <Grid Margin="5">
                 <CheckBox IsChecked="{Binding UseCompanyFiles}" Name="UseCompanyFiles" Content="Use Company Files" Foreground="White"  Height="16" VerticalAlignment="Top" Margin="0,1,-210,0" Checked="UseCompanyFile_Checked" Unchecked="UseCompanyFile_Checked" Grid.ColumnSpan="2" />
                 <Image Visibility="{Binding NotUseCompanyFiles, Converter={StaticResource BoolToVisConverter}}" Name="Warning" Source="..\Images\Warning.png" HorizontalAlignment="Left" Height="50" Margin="0,25,0,0" VerticalAlignment="Top" Width="50"/>

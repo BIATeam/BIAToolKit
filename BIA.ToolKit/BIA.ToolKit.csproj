@@ -20,6 +20,7 @@
 		<None Remove="Images\fileGenerator.jpg" />
 		<None Remove="Images\LogoBIA.png" />
 		<None Remove="Images\rafraichir-32.png" />
+		<None Remove="Images\spinner_light.gif" />
 		<None Remove="Images\Tools.ico" />
 		<None Remove="Images\trash.224x256.png" />
 		<None Remove="Images\trash.png" />
@@ -33,7 +34,7 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
 		<PackageReference Include="Microsoft.PowerShell.SDK" Version="7.1.3" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="WpfAnimatedGif" Version="2.0.0" />
+		<PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -51,6 +52,9 @@
 		</Content>
 		<Content Include="Images\rafraichir-32.png">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Images\spinner_light.gif">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Include="Images\Tools.ico">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>

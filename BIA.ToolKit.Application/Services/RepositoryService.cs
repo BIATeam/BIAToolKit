@@ -100,6 +100,10 @@
                                         {
                                             outPut.AddMessageLine("Begin downloading " + tag.CanonicalName + ".zip", "Pink");
                                             var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
+                                            if (File.Exists(zipPath))
+                                            {
+                                                File.Delete(zipPath);
+                                            }
                                             HttpClientHandler httpClientHandler = new HttpClientHandler
                                             {
                                                 DefaultProxyCredentials = CredentialCache.DefaultCredentials,

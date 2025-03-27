@@ -169,6 +169,7 @@
                     areFeatureInitialized = value;
                     RaisePropertyChanged(nameof(AreFeatureInitialized));
                     RaisePropertyChanged(nameof(AreFeatureVisible));
+                    RaisePropertyChanged(nameof(AreFeatureLoading));
                 }
             }
         }
@@ -176,6 +177,11 @@
         public bool AreFeatureVisible
         {
             get { return hasFeature && areFeatureInitialized; }
+        }
+
+        public bool AreFeatureLoading
+        {
+            get { return !areFeatureInitialized; }
         }
     }
 }
