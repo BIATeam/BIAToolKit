@@ -96,33 +96,40 @@
                                     if (!versionDownload.IsDownloading)
                                     {
                                         versionDownload.IsDownloading = true;
-
-                                        outPut.AddMessageLine("Begin downloading " + tag.CanonicalName + ".zip", "Pink");
-                                        var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
-                                        HttpClientHandler httpClientHandler = new HttpClientHandler
+                                        try
                                         {
-                                            DefaultProxyCredentials = CredentialCache.DefaultCredentials,
-                                        };
-                                        using (var httpClient = new HttpClient(httpClientHandler))
-                                        {
-                                            var response = await httpClient.GetAsync(zipUrl);
-                                            using (var fs = new FileStream(
-                                                zipPath,
-                                                FileMode.CreateNew))
+                                            outPut.AddMessageLine("Begin downloading " + tag.CanonicalName + ".zip", "Pink");
+                                            var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
+                                            HttpClientHandler httpClientHandler = new HttpClientHandler
                                             {
-                                                await response.Content.CopyToAsync(fs);
+                                                DefaultProxyCredentials = CredentialCache.DefaultCredentials,
+                                            };
+                                            using (var httpClient = new HttpClient(httpClientHandler))
+                                            {
+                                                var response = await httpClient.GetAsync(zipUrl);
+                                                using (var fs = new FileStream(
+                                                    zipPath,
+                                                    FileMode.CreateNew))
+                                                {
+                                                    await response.Content.CopyToAsync(fs);
+                                                }
                                             }
-                                        }
 
-                                        if (!File.Exists(zipPath))
+                                            if (!File.Exists(zipPath))
+                                            {
+                                                outPut.AddMessageLine("Cannot download release: " + version, "Red");
+                                                break;
+                                            }
+
+                                            outPut.AddMessageLine($"-> {version} downloaded", "pink");
+
+                                            UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip, version);
+                                        }
+                                        catch(Exception e)
                                         {
                                             outPut.AddMessageLine("Cannot download release: " + version, "Red");
-                                            break;
                                         }
 
-                                        outPut.AddMessageLine($"-> {version} downloaded", "pink");
-
-                                        UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip, version);
                                         versionDownload.IsDownloading = false;
                                     }
                                     else

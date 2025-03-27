@@ -12,6 +12,7 @@
         public VersionAndOption VersionAndOption { get; set; }
 
         private bool hasFeature = false;
+        private bool areFeatureInitialized = false;
 
         public VersionAndOptionViewModel()
         {
@@ -39,6 +40,7 @@
                 if (VersionAndOption.WorkTemplate != value)
                 {
                     VersionAndOption.WorkTemplate = value;
+                    AreFeatureInitialized = false;
                     RaisePropertyChanged(nameof(WorkTemplate));
                 }
             }
@@ -105,9 +107,14 @@
                 {
                     VersionAndOption.UseCompanyFiles = value;
                     RaisePropertyChanged(nameof(UseCompanyFiles));
-                    HasFeature = UseCompanyFiles && VersionAndOption.FeatureSettings.Any();
+                    RaisePropertyChanged(nameof(NotUseCompanyFiles));
                 }
             }
+        }
+
+        public bool NotUseCompanyFiles
+        {
+            get { return !(VersionAndOption.UseCompanyFiles); }
         }
 
         public IList<CFOption> Options
@@ -131,7 +138,8 @@
                 if (VersionAndOption.FeatureSettings != value)
                 {
                     VersionAndOption.FeatureSettings = value;
-                    HasFeature = UseCompanyFiles && VersionAndOption.FeatureSettings.Any();
+                    HasFeature = VersionAndOption.FeatureSettings.Any();
+                    AreFeatureInitialized = true;
                     RaisePropertyChanged(nameof(FeatureSettings));
                 }
             }
@@ -146,8 +154,28 @@
                 {
                     hasFeature = value;
                     RaisePropertyChanged(nameof(HasFeature));
+                    RaisePropertyChanged(nameof(AreFeatureVisible));
                 }
             }
+        }
+
+        public bool AreFeatureInitialized
+        {
+            get { return areFeatureInitialized; }
+            set
+            {
+                if (areFeatureInitialized != value)
+                {
+                    areFeatureInitialized = value;
+                    RaisePropertyChanged(nameof(AreFeatureInitialized));
+                    RaisePropertyChanged(nameof(AreFeatureVisible));
+                }
+            }
+        }
+
+        public bool AreFeatureVisible
+        {
+            get { return hasFeature && areFeatureInitialized; }
         }
     }
 }
