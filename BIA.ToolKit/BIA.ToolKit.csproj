@@ -6,6 +6,7 @@
 		<UseWPF>true</UseWPF>
     <SelfContained>false</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 		<UseWindowsForms>true</UseWindowsForms>
 		<ApplicationIcon>Images\Tools.ico</ApplicationIcon>
 		<SignAssembly>true</SignAssembly>
