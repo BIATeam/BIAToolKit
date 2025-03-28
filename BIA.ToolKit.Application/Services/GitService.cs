@@ -3,7 +3,6 @@
     using BIA.ToolKit.Application.Helper;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using System.Management.Automation;
     using System;
     using LibGit2Sharp;
     using System.Linq;
