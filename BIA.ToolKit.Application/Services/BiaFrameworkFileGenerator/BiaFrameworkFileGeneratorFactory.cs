@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0;
 
@@ -17,7 +18,7 @@
 
         public IBiaFrameworkFileGenerator GetBiaFrameworkFileGenerator(Version version)
         {
-            return biaFrameworkFileGenerators.FirstOrDefault(x => x.CompatibleBiaFrameworkVersions.Any(y => y.Equals(version)));
+            return biaFrameworkFileGenerators.FirstOrDefault(x => x.CompatibleBiaFrameworkVersions.Any(y => y.Matches(version)));
         }
     }
 }
