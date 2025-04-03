@@ -31,6 +31,7 @@
         Navigation,
         Permission,
         Rights,
+        RightsForOption,
         Routing,
         TeamTypeId,
         TeamTypeModelBuilder,
