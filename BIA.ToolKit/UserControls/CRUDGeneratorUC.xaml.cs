@@ -136,13 +136,8 @@
                 return;
 
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
-            var isBackSelected = vm.IsWebApiAvailable;
-            var isFrontSelected = vm.IsFrontAvailable;
-
-            if(isFrontSelected && !string.IsNullOrWhiteSpace(vm.BiaFront))
-            {
-                ParseFrontDomains();
-            }
+            var isBackSelected = vm.IsWebApiSelected;
+            var isFrontSelected = vm.IsFrontSelected;
 
             if (this.crudHistory != null)
             {
@@ -691,6 +686,7 @@
             if (e.AddedItems.Count > 0)
             {
                 SetFrontGenerationSettings(e.AddedItems[0] as string);
+                ParseFrontDomains();
             }
         }
     }
