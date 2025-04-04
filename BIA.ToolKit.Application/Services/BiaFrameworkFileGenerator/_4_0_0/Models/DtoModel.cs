@@ -6,6 +6,16 @@ namespace BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Mode
 {
     public class DtoModel
     {
+        private readonly List<string> excludedPropertiesToGenerate = new()
+        {
+            "Id",
+            "IsFixed"
+        };
+        /// <summary>
+        /// Properties already included into BaseDto class
+        /// </summary>
+        public List<string> ExcludedPropertiesToGenerate { get => excludedPropertiesToGenerate; }
+
         public string EntityNamespace { get; set; }
         public string MapperName { get; set; }
         public string CompanyName { get; set; }
