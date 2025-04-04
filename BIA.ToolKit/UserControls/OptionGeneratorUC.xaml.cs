@@ -443,7 +443,11 @@
             entityInfoFiles.Clear();
 
             var entityFiles = new Dictionary<string, string>();
-            var entities = service.GetDomainEntities(vm.CurrentProject, settings, new List<string> { "id" }, new List<string> { "IEntity<", "Team" });
+            var baseTypes = new List<string>(CommonTools.BaseEntityInterfaces)
+            {
+                "Team"
+            };
+            var entities = service.GetDomainEntities(vm.CurrentProject, settings, new List<string> { "id" }, baseTypes);
             foreach (var entity in entities)
             {
                 entityInfoFiles.Add(entity.Path, entity);

@@ -11,6 +11,8 @@
 
     public static class CommonTools
     {
+        public static List<string> BaseEntityInterfaces = new() { "IEntity<", "IEntityFixable<", "IEntityArchivable<" };
+        
         /// <summary>
         /// Add a data to a dictionnary.
         /// </summary>
@@ -287,6 +289,16 @@
         public static T GetEnumValue<T>(string value)
         {
             return (T)Enum.Parse(typeof(T), value);
+        }
+
+        public static string GetBaseKeyType(List<string> baseList)
+        {
+            var iEntityBase = baseList.FirstOrDefault(x => BaseEntityInterfaces.Any(y => x.StartsWith(y)));
+            if (iEntityBase == null)
+                return null;
+
+            var regex = new Regex(@"<\s*(\w+)\s*>");
+            return regex.Match(iEntityBase).Groups[1].Value;
         }
     }
 }

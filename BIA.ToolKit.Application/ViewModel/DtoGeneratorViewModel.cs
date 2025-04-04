@@ -243,21 +243,30 @@
                     IsSelected = true,
                     ParentType = SelectedEntityInfo.Name
                 };
-                FillEntityProperties(propertyViewModel);
+                FillEntityProperties(propertyViewModel, SelectedEntityInfo.Name);
                 EntityProperties.Add(propertyViewModel);
             }
         }
 
-        private void FillEntityProperties(EntityProperty property)
+        private void FillEntityProperties(EntityProperty property, string rootPropertyType)
         {
-            var propertyEntity = domainEntities.FirstOrDefault(e => e.Name == property.Type);
-            if (propertyEntity == null)
+            var propertyInfo = domainEntities.FirstOrDefault(e => e.Name == property.Type);
+            if (propertyInfo == null)
             {
                 return;
             }
 
-            property.Properties.AddRange(propertyEntity.Properties.Select(p => new EntityProperty { Name = p.Name, Type = p.Type, CompositeName = $"{property.CompositeName}.{p.Name}", ParentType = property.Type }));
-            property.Properties.ForEach(p => FillEntityProperties(p));
+            var childProperties = propertyInfo.Properties
+                .Where(p => p.Type != property.ParentType && p.Type != rootPropertyType)
+                .Select(p => new EntityProperty 
+                { 
+                    Name = p.Name, 
+                    Type = p.Type, 
+                    CompositeName = $"{property.CompositeName}.{p.Name}", 
+                    ParentType = property.Type 
+                });
+            property.Properties.AddRange(childProperties);
+            property.Properties.ForEach(p => FillEntityProperties(p, rootPropertyType));
         }
 
         public void RefreshMappingProperties()
