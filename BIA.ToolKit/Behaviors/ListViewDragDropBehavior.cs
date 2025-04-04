@@ -29,7 +29,6 @@
         protected override void OnAttached()
         {
             AssociatedObject.PreviewMouseLeftButtonDown += OnPreviewMouseLeftButtonDown;
-            AssociatedObject.MouseMove += OnMouseMove;
             AssociatedObject.Drop += OnDrop;
             AssociatedObject.AllowDrop = true;
         }
@@ -37,7 +36,6 @@
         protected override void OnDetaching()
         {
             AssociatedObject.PreviewMouseLeftButtonDown -= OnPreviewMouseLeftButtonDown;
-            AssociatedObject.MouseMove -= OnMouseMove;
             AssociatedObject.Drop -= OnDrop;
         }
 
@@ -71,25 +69,6 @@
             _dragStartPoint = e.GetPosition(null);
         }
 
-        private void OnMouseMove(object sender, MouseEventArgs e)
-        {
-            if (e.LeftButton != MouseButtonState.Pressed)
-                return;
-
-            var diff = _dragStartPoint - e.GetPosition(null);
-            if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
-                Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
-            {
-                var item = FindAncestor<ListViewItem>((DependencyObject)e.OriginalSource);
-                if (item != null)
-                {
-                    var data = AssociatedObject.ItemContainerGenerator.ItemFromContainer(item);
-                    if (data != null)
-                        DragDrop.DoDragDrop(item, data, DragDropEffects.Move);
-                }
-            }
-        }
-
         private void OnDrop(object sender, DragEventArgs e)
         {
             var listView = AssociatedObject;
@@ -116,14 +95,6 @@
             {
                 command.Execute(args);
             }
-        }
-
-        private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
-        {
-            while (current != null && !(current is T))
-                current = VisualTreeHelper.GetParent(current);
-
-            return current as T;
         }
     }
 }
