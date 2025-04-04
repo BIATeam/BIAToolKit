@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application" 
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
              xmlns:behaviors="clr-namespace:BIA.ToolKit.Behaviors"
+             xmlns:helpers="clr-namespace:BIA.ToolKit.Helper"
              mc:Ignorable="d" 
              d:DesignHeight="1080" d:DesignWidth="1920">
     <UserControl.DataContext>
@@ -85,6 +86,11 @@
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                     <Setter Property="VerticalContentAlignment" Value="Center" />
                     <Setter Property="Height" Value="40"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=(helpers:DragDropHelper.IsDropTarget)}" Value="True">
+                            <Setter Property="Background" Value="#FFE0E0E0"/>
+                        </DataTrigger>
+                    </Style.Triggers>
                 </Style>
             </ListView.ItemContainerStyle>
             <ListView.View>

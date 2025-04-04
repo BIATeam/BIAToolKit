@@ -7,11 +7,13 @@
     using System;
     using System.Windows.Media;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Helper;
 
     public class ListViewDragDropBehavior : Behavior<ListView>
     {
         private Point _dragStartPoint;
         private object _draggedItem;
+        private ListViewItem _lastTarget;
 
         public static readonly DependencyProperty MoveCommandProperty =
             DependencyProperty.Register(
@@ -30,6 +32,7 @@
         {
             AssociatedObject.PreviewMouseLeftButtonDown += OnPreviewMouseLeftButtonDown;
             AssociatedObject.Drop += OnDrop;
+            AssociatedObject.DragOver += OnDragOver;
             AssociatedObject.AllowDrop = true;
         }
 
@@ -37,6 +40,7 @@
         {
             AssociatedObject.PreviewMouseLeftButtonDown -= OnPreviewMouseLeftButtonDown;
             AssociatedObject.Drop -= OnDrop;
+            AssociatedObject.DragOver -= OnDragOver;
         }
 
         public void HandleDragStart(object sender, MouseButtonEventArgs e)
@@ -95,6 +99,39 @@
             {
                 command.Execute(args);
             }
+
+            if (_lastTarget != null)
+            {
+                DragDropHelper.SetIsDropTarget(_lastTarget, false);
+                _lastTarget = null;
+            }
+        }
+
+        private void OnDragOver(object sender, DragEventArgs e)
+        {
+            var listView = AssociatedObject;
+            var pos = e.GetPosition(listView);
+            var hitTestResult = VisualTreeHelper.HitTest(listView, pos);
+            var itemContainer = FindAncestor<ListViewItem>(hitTestResult.VisualHit);
+
+            if (_lastTarget != null && _lastTarget != itemContainer)
+            {
+                DragDropHelper.SetIsDropTarget(_lastTarget, false);
+            }
+
+            if (itemContainer != null)
+            {
+                DragDropHelper.SetIsDropTarget(itemContainer, true);
+                _lastTarget = itemContainer;
+            }
+        }
+
+        private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
+        {
+            while (current != null && !(current is T))
+                current = VisualTreeHelper.GetParent(current);
+
+            return current as T;
         }
     }
 }
