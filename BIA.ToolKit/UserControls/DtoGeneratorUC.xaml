@@ -19,7 +19,7 @@
             <RowDefinition Height="110"/>
             <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
-        
+
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.5*"/>
             <ColumnDefinition Width="0.1*"/>
@@ -31,7 +31,7 @@
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="0.1*"/>
             </Grid.ColumnDefinitions>
-            
+
             <Label Grid.Column="0" Content="Entity:" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
             <ComboBox Grid.Column="0" x:Name="EntitiesComboBox" ItemsSource="{Binding EntitiesNames}" SelectedValue="{Binding SelectedEntityName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="20,25,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Top" IsEnabled="{Binding IsProjectChosen}" SelectionChanged="EntitiesComboBox_SelectionChanged" MinWidth="250"/>
             <Label Grid.Column="0" Content="Generation was already done for this Entity" Margin="20,42,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Yellow" Visibility="{Binding WasAlreadyGenerated, Converter={StaticResource BoolToVisConverter}}" />
@@ -101,6 +101,16 @@
                         CommandParameter="{Binding}">
                                     <Image Source="/Images/cross.png" RenderOptions.BitmapScalingMode="Fant" />
                                 </Button>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="25">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Image Source="/Images/drag_icon.png" RenderOptions.BitmapScalingMode="Fant"
+                                       Cursor="SizeNS"
+                        PreviewMouseLeftButtonDown="DragHandle_PreviewMouseLeftButtonDown"
+                        MouseMove="DragHandle_MouseMove" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>

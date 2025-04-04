@@ -10,6 +10,9 @@
 
     public class ListViewDragDropBehavior : Behavior<ListView>
     {
+        private Point _dragStartPoint;
+        private object _draggedItem;
+
         public static readonly DependencyProperty MoveCommandProperty =
             DependencyProperty.Register(
                 nameof(MoveCommand),
@@ -22,8 +25,6 @@
             get => (ICommand)GetValue(MoveCommandProperty);
             set => SetValue(MoveCommandProperty, value);
         }
-
-        private Point _dragStartPoint;
 
         protected override void OnAttached()
         {
@@ -38,6 +39,31 @@
             AssociatedObject.PreviewMouseLeftButtonDown -= OnPreviewMouseLeftButtonDown;
             AssociatedObject.MouseMove -= OnMouseMove;
             AssociatedObject.Drop -= OnDrop;
+        }
+
+        public void HandleDragStart(object sender, MouseButtonEventArgs e)
+        {
+            _dragStartPoint = e.GetPosition(null);
+            if (sender is FrameworkElement fe)
+            {
+                _draggedItem = fe.DataContext;
+            }
+        }
+
+        public void HandleDragMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton != MouseButtonState.Pressed || _draggedItem == null)
+                return;
+
+            Point pos = e.GetPosition(null);
+            Vector diff = _dragStartPoint - pos;
+
+            if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+            {
+                DragDrop.DoDragDrop((DependencyObject)sender, _draggedItem, DragDropEffects.Move);
+                _draggedItem = null;
+            }
         }
 
         private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)

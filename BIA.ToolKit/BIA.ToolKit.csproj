@@ -20,6 +20,7 @@
 	<ItemGroup>
 		<None Remove="bg-default.jpg" />
 		<None Remove="Images\cross.png" />
+		<None Remove="Images\drag_icon.png" />
 		<None Remove="Images\fileGenerator.jpg" />
 		<None Remove="Images\LogoBIA.png" />
 		<None Remove="Images\rafraichir-32.png" />
@@ -47,6 +48,9 @@
 		</Resource>
 		<Content Include="Images\cross.png">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Images\drag_icon.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Include="Images\fileGenerator.jpg">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
