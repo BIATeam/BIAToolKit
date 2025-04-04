@@ -136,8 +136,8 @@
                 return;
 
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
-            var isBackSelected = vm.IsWebApiSelected;
-            var isFrontSelected = vm.IsFrontSelected;
+            var isBackSelected = false;
+            var isFrontSelected = false;
 
             if (this.crudHistory != null)
             {
