@@ -17,7 +17,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
             BaseType = baseType;
             PrimaryKey = primaryKey;
             BaseList = baseList ?? new List<string>();
-            CommonTools.GetBaseKey(BaseList);
+            BaseKeyType = CommonTools.GetBaseKeyType(BaseList);
             if (arguments != null && arguments.Count > 0)
             {
                 ClassAnnotations = new();

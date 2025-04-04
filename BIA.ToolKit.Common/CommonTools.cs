@@ -11,7 +11,7 @@
 
     public static class CommonTools
     {
-        public static List<string> BaseEntitiyInterfaces = new() { "IEntity<", "Team", "IEntityFixable<", "IEntityArchivable<" };
+        public static List<string> BaseEntityInterfaces = new() { "IEntity<", "IEntityFixable<", "IEntityArchivable<" };
         
         /// <summary>
         /// Add a data to a dictionnary.
@@ -291,10 +291,10 @@
             return (T)Enum.Parse(typeof(T), value);
         }
 
-        public static string GetBaseKey(List<string> baseList)
+        public static string GetBaseKeyType(List<string> baseList)
         {
-            var iEntityBase = baseList.FirstOrDefault(x => BaseEntitiyInterfaces.Any(y => x.StartsWith(y)));
-            //if (iEntityBase == null)
+            var iEntityBase = baseList.FirstOrDefault(x => BaseEntityInterfaces.Any(y => x.StartsWith(y)));
+            if (iEntityBase == null)
                 return null;
 
             var regex = new Regex(@"<\s*(\w+)\s*>");

@@ -443,7 +443,7 @@
             entityInfoFiles.Clear();
 
             var entityFiles = new Dictionary<string, string>();
-            var baseTypes = new List<string>(CommonTools.BaseEntitiyInterfaces)
+            var baseTypes = new List<string>(CommonTools.BaseEntityInterfaces)
             {
                 "Team"
             };
