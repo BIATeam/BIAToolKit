@@ -19,10 +19,9 @@
         private readonly BiaFrameworkFileGeneratorService fileGeneratorService;
         private readonly IConsoleWriter consoleWriter;
 
-        public List<Version> CompatibleBiaFrameworkVersions => new()
+        public List<BiaFrameworkVersion> CompatibleBiaFrameworkVersions => new()
         {
-            new("4.0.0"),
-            new("4.0.2")
+            new("4.*"),
         };
 
         public BiaFrameworkFileGenerator_4_0_0(BiaFrameworkFileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter)
