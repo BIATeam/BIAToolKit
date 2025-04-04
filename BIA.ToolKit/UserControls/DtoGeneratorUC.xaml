@@ -110,11 +110,12 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Width="25">
+                    <GridViewColumn>
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <Image Source="/Images/drag_icon.png" RenderOptions.BitmapScalingMode="Fant"
                                        Cursor="SizeNS"
+                                       Width="15"
                         PreviewMouseLeftButtonDown="DragHandle_PreviewMouseLeftButtonDown"
                         MouseMove="DragHandle_MouseMove" />
                             </DataTemplate>

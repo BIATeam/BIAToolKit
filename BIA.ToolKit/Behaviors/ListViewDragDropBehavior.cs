@@ -33,6 +33,7 @@
             AssociatedObject.PreviewMouseLeftButtonDown += OnPreviewMouseLeftButtonDown;
             AssociatedObject.Drop += OnDrop;
             AssociatedObject.DragOver += OnDragOver;
+            AssociatedObject.RequestBringIntoView += OnRequestBringIntoView;
             AssociatedObject.AllowDrop = true;
         }
 
@@ -41,6 +42,7 @@
             AssociatedObject.PreviewMouseLeftButtonDown -= OnPreviewMouseLeftButtonDown;
             AssociatedObject.Drop -= OnDrop;
             AssociatedObject.DragOver -= OnDragOver;
+            AssociatedObject.RequestBringIntoView -= OnRequestBringIntoView;
         }
 
         public void HandleDragStart(object sender, MouseButtonEventArgs e)
@@ -124,6 +126,11 @@
                 DragDropHelper.SetIsDropTarget(itemContainer, true);
                 _lastTarget = itemContainer;
             }
+        }
+
+        private void OnRequestBringIntoView(object sender, RequestBringIntoViewEventArgs e)
+        {
+            e.Handled = true;
         }
 
         private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
