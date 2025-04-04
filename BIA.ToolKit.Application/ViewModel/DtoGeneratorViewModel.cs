@@ -157,7 +157,8 @@
             && !string.IsNullOrWhiteSpace(EntityDomain)
             && MappingEntityProperties.Count == MappingEntityProperties.DistinctBy(x => x.MappingName).Count();
 
-        public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>((mappingEntityProperty) => RemoveMappingProperty(mappingEntityProperty));
+        public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>(RemoveMappingProperty);
+        public ICommand MoveMappedPropertyCommand => new RelayCommand<MoveItemArgs>(x => MoveMappedProperty(x.OldIndex, x.NewIndex));
 
         public void SetProject(Project project)
         {
@@ -488,6 +489,14 @@
         {
             EntitiesNames.Clear();
             EntityDomain = null;
+        }
+
+        private void MoveMappedProperty(int oldIndex, int newIndex)
+        {
+            if (oldIndex == newIndex || oldIndex < 0 || newIndex < 0 || oldIndex >= MappingEntityProperties.Count || newIndex >= MappingEntityProperties.Count)
+                return;
+
+            MappingEntityProperties.Move(oldIndex, newIndex);
         }
     }
 
