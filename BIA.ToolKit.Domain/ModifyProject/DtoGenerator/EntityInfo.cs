@@ -8,6 +8,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
 
     public class EntityInfo
     {
+        
         public EntityInfo(string path, string @namespace, string name, string? baseType, string? primaryKey, List<AttributeArgumentSyntax>? arguments, List<string>? baseList)
         {
             Path = path;
@@ -16,7 +17,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
             BaseType = baseType;
             PrimaryKey = primaryKey;
             BaseList = baseList ?? new List<string>();
-            ParseBaseKey(BaseList);
+            CommonTools.GetBaseKey(BaseList);
             if (arguments != null && arguments.Count > 0)
             {
                 ClassAnnotations = new();
@@ -53,16 +54,6 @@ namespace BIA.ToolKit.Domain.DtoGenerator
                     ClassAnnotations.Add(new KeyValuePair<string, string>(key, value));
                 }
             }
-        }
-
-        private void ParseBaseKey(List<string> baseList)
-        {
-            var iEntityBase = baseList.FirstOrDefault(x => x.StartsWith("IEntity<"));
-            if (iEntityBase == null)
-                return;
-
-            var regex = new Regex(@"<\s*(\w+)\s*>");
-            BaseKeyType = regex.Match(iEntityBase).Groups[1].Value;
         }
     }
 }
