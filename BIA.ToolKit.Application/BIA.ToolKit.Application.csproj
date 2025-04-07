@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BIA.ToolKit.Application.TemplateGenerator\BIA.ToolKit.Application.TemplateGenerator.csproj" />
     <ProjectReference Include="..\BIA.ToolKit.Common\BIA.ToolKit.Common.csproj" />
     <ProjectReference Include="..\BIA.ToolKit.Domain\BIA.ToolKit.Domain.csproj" />
   </ItemGroup>

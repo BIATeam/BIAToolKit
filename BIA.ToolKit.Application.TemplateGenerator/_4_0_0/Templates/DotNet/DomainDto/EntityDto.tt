@@ -1,0 +1,51 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models.DotNet.DomainDto" #>
+<#@ import namespace="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Mocks.DotNet.DomainDto" #>
+<#@ output extension=".cs" #>
+<#@ parameter type="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models.DotNet.DomainDto.EntityDto" name="Model" #>
+<# var ModelInstance = Model ?? new EntityDtoMock(); #>
+// <copyright file="<#= ModelInstance.DtoName #>.cs" company="<#= ModelInstance.CompanyName #>">
+//     Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>
+{
+    using System;
+<# if(ModelInstance.HasCollectionOptions) { #>
+    using System.Collections.Generic;
+<# } #>
+<# if(!ModelInstance.IsTeamType) { #>
+    using BIA.Net.Core.Domain.Dto.Base;
+<# } #>
+    using BIA.Net.Core.Domain.Dto.CustomAttribute;
+<# if(ModelInstance.HasOptions) { #>
+    using BIA.Net.Core.Domain.Dto.Option;
+<# } #>
+<# if(ModelInstance.IsTeamType) { #>
+    using BIA.Net.Core.Domain.Dto.User;
+<# } #>
+
+    /// <summary>g
+    /// The DTO used to represent <#= ModelInstance.NameArticle #> <#= ModelInstance.EntityName #>.
+    /// </summary>
+    public class <#= ModelInstance.DtoName #> : <#= ModelInstance.IsTeamType ? "TeamDto" : $"BaseDto<{ModelInstance.BaseKeyType}>" #>
+    {
+<# var index = 0;  #>
+<# foreach(var prop in ModelInstance.FilteredProperties) { #>
+        /// <summary>
+        /// Gets or sets the <#= prop.MappingName #>.
+        /// </summary>
+        [BiaDtoField(<#= prop.BiaDtoFieldAttributeProperties #>)]
+        public <#= prop.MappingType #> <#= prop.MappingName #> { get; set; }
+<# index++;  #>
+<# if(index != ModelInstance.FilteredProperties.Count()) {#>
+
+<# }#>
+<# } #>
+    }
+}
