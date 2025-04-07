@@ -14,6 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Services\BiaFrameworkFileGenerator\_4_0_0\Templates\EntityDto.scriban" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="LibGit2Sharp" Version="0.31.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.14" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.7.8" />
@@ -21,11 +25,17 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.13.0" />
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.5.0" />
     <PackageReference Include="Octokit" Version="14.0.0" />
+    <PackageReference Include="Scriban" Version="6.1.0" />
+    <PackageReference Include="System.CodeDom" Version="9.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BIA.ToolKit.Common\BIA.ToolKit.Common.csproj" />
     <ProjectReference Include="..\BIA.ToolKit.Domain\BIA.ToolKit.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
 </Project>

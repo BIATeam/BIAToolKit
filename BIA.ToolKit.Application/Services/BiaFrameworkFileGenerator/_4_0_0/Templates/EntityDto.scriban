@@ -1,0 +1,36 @@
+﻿// <copyright file="{{ DtoName }}.cs" company="{{ CompanyName }}">
+//     Copyright (c) {{ CompanyName }}. All rights reserved.
+// </copyright>
+
+namespace {{ CompanyName }}.{{ ProjectName }}.Domain.Dto.{{ DomainName }}
+{
+    using System;
+    {{~ if HasCollectionOptions ~}}
+    using System.Collections.Generic;
+    {{~ end ~}}
+    {{~ if !IsTeamType ~}}
+    using BIA.Net.Core.Domain.Dto.Base;
+    {{~ end ~}}
+    using BIA.Net.Core.Domain.Dto.CustomAttribute;
+    {{~ if HasOptions ~}}
+    using BIA.Net.Core.Domain.Dto.Option;
+    {{~ end ~}}
+    {{~ if IsTeamType ~}}
+    using BIA.Net.Core.Domain.Dto.User;
+    {{~ end ~}}
+
+    /// <summary>
+    /// The DTO used to represent {{ NameArticle }} {{ EntityName }}.
+    /// </summary>
+    public class {{ DtoName }} : {{ if IsTeamType }}TeamDto{{ else }}BaseDto<{{ BaseKeyType }}>{{ end }}
+    {
+    {{~ for prop in FilteredProperties ~}}
+        /// <summary>
+        /// Gets or sets the {{ prop.MappingName }}.
+        /// </summary>
+        [BiaDtoField({{ prop.BiaDtoFieldAttributeProperties }})]
+        public {{ prop.MappingType }} {{ prop.MappingName }} { get; set; }
+
+    {{~ end ~}}
+    }
+}
