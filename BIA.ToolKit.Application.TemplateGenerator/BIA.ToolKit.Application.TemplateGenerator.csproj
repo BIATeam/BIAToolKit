@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="_4_0_0\Mocks\DotNet\DomainDto\EntityDtoTeamMock.cs" />
     <Compile Include="_4_0_0\Mocks\DotNet\DomainDto\EntityDtoMock.cs" />
     <Compile Include="_4_0_0\Models\DotNet\DomainDto\EntityDto.cs" />
     <None Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapper.cs">
