@@ -30,7 +30,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
     using BIA.Net.Core.Domain.Dto.User;
 <# } #>
 
-    /// <summary>g
+    /// <summary>
     /// The DTO used to represent <#= ModelInstance.NameArticle #> <#= ModelInstance.EntityName #>.
     /// </summary>
     public class <#= ModelInstance.DtoName #> : <#= ModelInstance.IsTeamType ? "TeamDto" : $"BaseDto<{ModelInstance.BaseKeyType}>" #>

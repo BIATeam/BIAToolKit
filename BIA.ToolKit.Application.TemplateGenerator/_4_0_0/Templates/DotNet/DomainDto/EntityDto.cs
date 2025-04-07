@@ -9,7 +9,7 @@ namespace Company.Project.Domain.Dto.Domain
     using BIA.Net.Core.Domain.Dto.CustomAttribute;
     using BIA.Net.Core.Domain.Dto.Option;
 
-    /// <summary>g
+    /// <summary>
     /// The DTO used to represent an Entity.
     /// </summary>
     public class EntityDto : BaseDto<int>

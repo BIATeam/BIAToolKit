@@ -74,6 +74,8 @@
             return template.Render(model, member => member.Name);
         }
 
+
+
         public async Task GenerateFile(string content, string path)
         {
             try
