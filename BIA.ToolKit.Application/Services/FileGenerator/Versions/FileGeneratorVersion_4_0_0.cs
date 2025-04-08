@@ -65,7 +65,6 @@
                 entityModel.BaseKeyType = Common.TemplateValue_BaseKeyType;
             }
 
-            consoleWriter.AddMessageLine($"Generating DTO...");
             var dtoDestPath = Path.Combine(
                 project.Folder,
                 Constants.FolderDotNet,
@@ -73,16 +72,13 @@
                 entityModel.DomainName,
                 $"{entityModel.DtoName}.cs");
             await fileGeneratorService.GenerateFromTemplateWithT4(@$"{TemplateFolderPath}\DotNet\DomainDto\EntityDtoTemplate.tt", entityModel, dtoDestPath);
-            consoleWriter.AddMessageLine($"DTO successfully generated !", "green");
 
-            consoleWriter.AddMessageLine($"Generating mapper...");
             var mapperDestPath = Path.Combine(
                 Path.GetDirectoryName(entityInfo.Path),
                 "..",
                 "Mappers",
                 $"{entityModel.MapperName}.cs");
             await fileGeneratorService.GenerateFromTemplateWithT4(@$"{TemplateFolderPath}\DotNet\Domain\Mappers\EntityMapper.tt", entityModel, mapperDestPath);
-            consoleWriter.AddMessageLine($"Mapper successfully generated !", "green");
         }
     }
 }

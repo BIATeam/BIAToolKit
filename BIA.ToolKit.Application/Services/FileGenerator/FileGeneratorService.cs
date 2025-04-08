@@ -40,29 +40,43 @@
         {
             try
             {
+                consoleWriter.AddMessageLine($" === GENERATE DTO ===", color: "lightblue");
                 await biaFrameworkFileGenerator.GenerateDto(project, entityInfo, domainName, mappingEntityProperties);
+                consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"ERROR: Fail to generate DTO : {ex}", color: "red");
+                consoleWriter.AddMessageLine($"Fail to generate DTO : {ex}", color: "red");
             }
         }
 
         public async Task GenerateFromTemplateWithT4(string templatePath, object model, string outputPath)
         {
-            var tempTemplatePath = Path.GetTempFileName();
-            var templateContent = await File.ReadAllTextAsync(templatePath);
-            templateContent = templateContent.Replace("<#@ assembly name=\"$(TargetPath)\" #>", "<#@ #>");
-            await File.WriteAllTextAsync(tempTemplatePath, templateContent);
-
-            templateGenerator.ClearSession();
-            var templateGeneratorSession = templateGenerator.GetOrCreateSession();
-            templateGeneratorSession.Add("Model", model);
-            var success = await templateGenerator.ProcessTemplateAsync(tempTemplatePath, outputPath);
-            File.Delete(tempTemplatePath);
-            if (!success)
+            try
             {
-                throw new Exception(JsonConvert.SerializeObject(templateGenerator.Errors));
+                consoleWriter.AddMessageLine($"Generating file {Path.GetFileName(outputPath)} ...");
+                consoleWriter.AddMessageLine($"Using template file {templatePath}", color: "darkgray");
+
+                var tempTemplatePath = Path.GetTempFileName();
+                var templateContent = await File.ReadAllTextAsync(templatePath);
+                templateContent = templateContent.Replace("<#@ assembly name=\"$(TargetPath)\" #>", "<#@ #>");
+                await File.WriteAllTextAsync(tempTemplatePath, templateContent);
+
+                templateGenerator.ClearSession();
+                var templateGeneratorSession = templateGenerator.GetOrCreateSession();
+                templateGeneratorSession.Add("Model", model);
+                var success = await templateGenerator.ProcessTemplateAsync(tempTemplatePath, outputPath);
+                File.Delete(tempTemplatePath);
+                if (!success)
+                {
+                    throw new Exception(JsonConvert.SerializeObject(templateGenerator.Errors));
+                }
+
+                consoleWriter.AddMessageLine($"Success !", "lightgreen");
+            }
+            catch(Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Fail to generate : {ex}", color: "red");
             }
         }
     }
