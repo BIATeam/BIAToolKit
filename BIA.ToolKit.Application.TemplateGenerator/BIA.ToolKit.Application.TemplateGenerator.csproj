@@ -41,30 +41,32 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TemplateGeneratorManifest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="_4_0_0\Mocks\DotNet\DomainDto\EntityDtoTeamMock.cs" />
     <Compile Include="_4_0_0\Mocks\DotNet\DomainDto\EntityDtoMock.cs" />
     <Compile Include="_4_0_0\Models\DotNet\DomainDto\EntityDtoModel.cs" />
-    <Compile Include="_4_0_0\Partials\EntityDtoTemplate.cs" />
-    <Compile Include="_4_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.cs">
+    <None Include="_4_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>EntityDtoTemplate.tt</DependentUpon>
-    </Compile>
-    <Compile Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapper.cs">
+    </None>
+    <None Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapper.cs">
       <DependentUpon>EntityMapper.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-    </Compile>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="_4_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityDtoTemplate.cs</LastGenOutput>
     </Content>
     <Content Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapper.tt">
-      <Generator>TextTemplatingFilePreProcessor</Generator>
+      <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityMapper.cs</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>

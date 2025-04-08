@@ -10,7 +10,6 @@
     using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Models;
     using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Templates;
     using BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models.DotNet.DomainDto;
-    using BIA.ToolKit.Application.TemplateGenerator._4_0_0.Templates.DotNet.DomainDto;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
@@ -105,14 +104,13 @@
             }
 
             consoleWriter.AddMessageLine($"Generating DTO...");
-            var dtoContent = new EntityDtoTemplate(dtoModel).TransformText();
             var dtoDestPath = Path.Combine(
                 project.Folder,
                 Constants.FolderDotNet,
                 string.Join(".", project.CompanyName, project.Name, "Domain", "Dto"),
                 dtoModel.DomainName,
                 $"{dtoModel.DtoName}.cs");
-            await fileGeneratorService.GenerateFile(dtoContent, dtoDestPath);
+            await fileGeneratorService.GenerateFromTemplateWithT4(@"_4_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.tt", dtoModel, dtoDestPath);
             consoleWriter.AddMessageLine($"DTO successfully generated !", "green");
 
             consoleWriter.AddMessageLine($"Generating mapper...");
