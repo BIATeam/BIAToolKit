@@ -10,9 +10,9 @@
     {
         private readonly List<IFileGeneratorVersion> biaFrameworkFileGenerators = new();
 
-        public FileGeneratorVersionFactory(FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter)
+        public FileGeneratorVersionFactory(IConsoleWriter consoleWriter)
         {
-            biaFrameworkFileGenerators.Add(new FileGeneratorVersion_4_0_0(fileGeneratorService, consoleWriter));
+            biaFrameworkFileGenerators.Add(new FileGeneratorVersion_4_0_0(consoleWriter));
         }
 
         public IFileGeneratorVersion GetBiaFrameworkFileGenerator(Version version)

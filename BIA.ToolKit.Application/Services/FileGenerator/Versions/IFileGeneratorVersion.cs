@@ -11,6 +11,6 @@
     internal interface IFileGeneratorVersion
     {
         List<BiaFrameworkVersion> CompatibleBiaFrameworkVersions { get; }
-        Task GenerateDto(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties);
+        object GetDtoTemplateModel(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties);
     }
 }

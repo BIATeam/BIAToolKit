@@ -5,11 +5,11 @@
       "name": "DTO",
       "dotNetTemplates": [
         {
-          "inputPath": "Domain\\Mappers\\EntityMapper.tt",
+          "inputPath": "Domain\\Mappers\\EntityMapperTemplate.tt",
           "outputPath": "{Project}.Domain\\{Domain}\\Mappers\\{Entity}Mapper.cs"
         },
         {
-          "inputPath": "DomainDto\\EntityDtoMapper.tt",
+          "inputPath": "DomainDto\\EntityDtoTemplate.tt",
           "outputPath": "{Project}.Domain.Dto\\{Domain}\\{Entity}Dto.cs"
         }
       ]

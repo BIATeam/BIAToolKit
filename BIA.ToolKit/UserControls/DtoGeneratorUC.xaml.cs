@@ -80,13 +80,7 @@
             if (project is null)
                 return;
 
-            if (!Version.TryParse(project.FrameworkVersion, out Version projectVersion))
-            {
-                consoleWriter.AddMessageLine($"ERROR: invalid project version", "red");
-                return;
-            }
-
-            if (!fileGeneratorService.Init(projectVersion))
+            if (!fileGeneratorService.Init(project))
             {
                 consoleWriter.AddMessageLine($"ERROR: incompatible project version", "red");
                 return;
@@ -146,7 +140,7 @@
         private async void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
             UpdateHistoryFile();
-            await fileGeneratorService.GenerateDto(project, vm.SelectedEntityInfo, vm.EntityDomain, vm.MappingEntityProperties);
+            await fileGeneratorService.GenerateDto(vm.SelectedEntityInfo, vm.EntityDomain, vm.MappingEntityProperties);
         }
 
         private void UpdateHistoryFile()
