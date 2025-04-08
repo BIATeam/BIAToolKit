@@ -46,13 +46,16 @@
     <Compile Include="_4_0_0\Mocks\EntityTeamMock.cs" />
     <Compile Include="_4_0_0\Mocks\EntityMock.cs" />
     <Compile Include="_4_0_0\Models\EntityModel.cs" />
+    <None Include="_4_0_0\biatoolkit.templates.manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="_4_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>EntityDtoTemplate.tt</DependentUpon>
     </None>
-    <None Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapper.cs">
-      <DependentUpon>EntityMapper.tt</DependentUpon>
+    <None Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.cs">
+      <DependentUpon>EntityMapperTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
@@ -63,9 +66,9 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityDtoTemplate.cs</LastGenOutput>
     </Content>
-    <Content Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapper.tt">
+    <Content Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityMapper.cs</LastGenOutput>
+      <LastGenOutput>EntityMapperTemplate.cs</LastGenOutput>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

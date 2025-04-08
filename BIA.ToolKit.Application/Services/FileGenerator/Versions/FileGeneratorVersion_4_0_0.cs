@@ -78,7 +78,7 @@
                 "..",
                 "Mappers",
                 $"{entityModel.MapperName}.cs");
-            await fileGeneratorService.GenerateFromTemplateWithT4(@$"{TemplateFolderPath}\DotNet\Domain\Mappers\EntityMapper.tt", entityModel, mapperDestPath);
+            await fileGeneratorService.GenerateFromTemplateWithT4(@$"{TemplateFolderPath}\DotNet\Domain\Mappers\EntityMapperTemplate.tt", entityModel, mapperDestPath);
         }
     }
 }
