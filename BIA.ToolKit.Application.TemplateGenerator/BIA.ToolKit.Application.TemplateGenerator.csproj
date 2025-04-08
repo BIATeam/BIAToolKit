@@ -43,9 +43,9 @@
   <ItemGroup>
     <Compile Include="TemplateGeneratorManifest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="_4_0_0\Mocks\DotNet\DomainDto\EntityDtoTeamMock.cs" />
-    <Compile Include="_4_0_0\Mocks\DotNet\DomainDto\EntityDtoMock.cs" />
-    <Compile Include="_4_0_0\Models\DotNet\DomainDto\EntityDtoModel.cs" />
+    <Compile Include="_4_0_0\Mocks\EntityTeamMock.cs" />
+    <Compile Include="_4_0_0\Mocks\EntityMock.cs" />
+    <Compile Include="_4_0_0\Models\EntityModel.cs" />
     <None Include="_4_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

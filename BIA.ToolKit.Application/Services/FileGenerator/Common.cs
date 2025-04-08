@@ -1,9 +1,7 @@
-﻿namespace BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator
+﻿namespace BIA.ToolKit.Application.Services.FileGenerator
 {
     public static class Common
     {
-        public const string TemplateKey_Mapper = "MapperTemplate.cshtml";
-        public const string TemplateKey_Dto = "DtoTemplate.cshtml";
         public const string TemplateValue_BaseKeyType = "{BaseKeyType}";
 
         public static string ComputeNameArticle(string name)

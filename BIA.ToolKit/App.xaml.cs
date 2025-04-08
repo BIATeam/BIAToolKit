@@ -2,7 +2,7 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Helper;
     using Microsoft.Extensions.DependencyInjection;
     using System;
@@ -41,7 +41,7 @@
             services.AddSingleton<GenerateCrudService>();
             services.AddSingleton<SettingsService>();
             services.AddSingleton<FeatureSettingService>();
-            services.AddSingleton<BiaFrameworkFileGeneratorService>();
+            services.AddSingleton<FileGeneratorService>();
             services.AddSingleton<UpdateService>();
             services.AddLogging();
         }

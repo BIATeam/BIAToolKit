@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator
+﻿namespace BIA.ToolKit.Application.Services.FileGenerator.Versions
 {
     using System;
     using System.Collections.Generic;
@@ -8,7 +8,7 @@
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
 
-    public interface IBiaFrameworkFileGenerator
+    internal interface IFileGeneratorVersion
     {
         List<BiaFrameworkVersion> CompatibleBiaFrameworkVersions { get; }
         Task GenerateDto(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties);

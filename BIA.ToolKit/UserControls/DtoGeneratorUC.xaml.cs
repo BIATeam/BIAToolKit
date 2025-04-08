@@ -2,7 +2,7 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Behaviors;
@@ -30,7 +30,7 @@
 
         private IConsoleWriter consoleWriter;
         private CSharpParserService parserService;
-        private BiaFrameworkFileGeneratorService fileGeneratorService;
+        private FileGeneratorService fileGeneratorService;
         private CRUDSettings settings;
         private Project project;
         private UIEventBroker uiEventBroker;
@@ -48,7 +48,7 @@
         /// <summary>
         /// Injection of services.
         /// </summary>
-        public void Inject(CSharpParserService parserService, SettingsService settingsService, IConsoleWriter consoleWriter, BiaFrameworkFileGeneratorService fileGeneratorService,
+        public void Inject(CSharpParserService parserService, SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
             UIEventBroker uiEventBroker)
         {
             this.consoleWriter = consoleWriter;

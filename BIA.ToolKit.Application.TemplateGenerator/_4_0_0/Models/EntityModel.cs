@@ -1,7 +1,39 @@
-namespace BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Models
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models
 {
-    using System;
-    using System.Collections.Generic;
+    public class EntityModel
+    {
+        public const string OptionDto = "OptionDto";
+        public const string CollectionOptionDto = "ICollection<" + OptionDto + ">";
+
+        private readonly List<string> excludedPropertiesToGenerate = new List<string>
+        {
+            "Id",
+            "IsFixed"
+        };
+        /// <summary>
+        /// Properties already included into BaseDto class
+        /// </summary>
+        public List<string> ExcludedPropertiesToGenerate { get => excludedPropertiesToGenerate; }
+
+        public string EntityNamespace { get; set; }
+        public string MapperName { get; set; }
+        public string CompanyName { get; set; }
+        public string ProjectName { get; set; }
+        public string DomainName { get; set; }
+        public string EntityName { get; set; }
+        public string NameArticle { get; set; }
+        public string DtoName { get; set; }
+        public List<PropertyModel> Properties { get; set; } = new List<PropertyModel>();
+        public IEnumerable<PropertyModel> FilteredProperties => Properties.Where(p => !ExcludedPropertiesToGenerate.Contains(p.MappingName));
+        public bool HasCollectionOptions => Properties.Any(p => p.MappingType.Equals(CollectionOptionDto));
+        public bool HasOptions => HasCollectionOptions || Properties.Any(p => p.MappingType.Equals(OptionDto));
+        public string BaseKeyType { get; set; }
+        public bool IsTeamType { get; set; }
+    }
 
     public class PropertyModel
     {
@@ -26,7 +58,7 @@ namespace BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Mode
         {
             get
             {
-                biaDtoFieldAttributeProperties ??= GenerateBiaDtoFieldAttributeProperties();
+                biaDtoFieldAttributeProperties = biaDtoFieldAttributeProperties ?? GenerateBiaDtoFieldAttributeProperties();
                 return biaDtoFieldAttributeProperties;
             }
         }
@@ -61,7 +93,7 @@ namespace BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Mode
             }
 
             if (
-                nonNullMappingType == "int" 
+                nonNullMappingType == "int"
                 || nonNullMappingType == "double"
                 || nonNullMappingType == "decimal"
                 || nonNullMappingType == "float"
@@ -77,16 +109,20 @@ namespace BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Mode
 
             if (!string.IsNullOrWhiteSpace(MappingDateType))
             {
-                return MappingDateType switch
+                switch(MappingDateType)
                 {
-                    "Datetime" => $"CSVDateTime(x.{MappingName}),",
-                    "Date" => $"CSVDate(x.{MappingName}),",
-                    "Time" => $"CSVTime(x.{MappingName}),",
-                    _ => throw new InvalidOperationException($"Unable to get CSV method for mapping date type {MappingDateType}")
-                };
+                    case "Datetime":
+                        return $"CSVDateTime(x.{MappingName}),";
+                    case "Date":
+                        return $"CSVDate(x.{MappingName}),";
+                    case "Time":
+                        return $"CSVTime(x.{MappingName}),";
+                    default:
+                        throw new InvalidOperationException($"Unable to get CSV method for mapping date type {MappingDateType}");
+                }
             }
 
-            if(nonNullMappingType == "string")
+            if (nonNullMappingType == "string")
             {
                 return $"CSVString(x.{MappingName}),";
             }

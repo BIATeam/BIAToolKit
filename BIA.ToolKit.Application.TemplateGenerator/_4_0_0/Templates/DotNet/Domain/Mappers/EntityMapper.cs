@@ -7,17 +7,31 @@ namespace Company.Project.Domain.Domain.Mappers
     using System;
     using System.Linq;
     using System.Linq.Expressions;
+    using System.Security.Principal;
+    using BIA.Net.Core.Common.Extensions;
     using BIA.Net.Core.Domain;
     using BIA.Net.Core.Domain.Dto.Base;
     using BIA.Net.Core.Domain.Dto.Option;
     using Company.Project.Domain;
     using Company.Project.Domain.Dto.Domain;
+    using Company.Project.Domain.User.Mappers;
 
     /// <summary>
     /// The mapper used for Entity.
     /// </summary>
-    public class EntityMapper : BaseMapper<EntityDto, Entity, int>
+    public class EntityMapper : TTeamMapper<EntityDto, Entity>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EntityMapper"/> class.
+        /// </summary>
+        /// <param name="principal">The principal.</param>
+        public EntityMapper(IPrincipal principal)
+            : base(principal)
+        {
+        }
+
+        /// <inheritdoc/>
+        public override int TeamType => base.TeamType;
         /// <inheritdoc/>
         public override ExpressionCollection<Entity> ExpressionCollection
         {
@@ -39,6 +53,7 @@ namespace Company.Project.Domain.Domain.Mappers
         {
             entity ??= new Entity();
 
+            base.DtoToEntity(dto, entity);
             entity.Id = dto.Id;
             entity.Name = dto.Name;
             entity.OptionId = dto.Option.Id;
@@ -47,14 +62,15 @@ namespace Company.Project.Domain.Domain.Mappers
         /// <inheritdoc/>
         public override Expression<Func<Entity, EntityDto>> EntityToDto()
         {
-            return entity => new EntityDto
+            return base.EntityToDto().CombineMapping(entity => new EntityDto
             {
                 Id = entity.Id,
                 Name = entity.Name,
                 Option = entity.Option != null ? 
                   new OptionDto { Id = entity.Option.Id, Display = entity.Option.Name } :
                   null,
-            ;
+                TeamTypeId = this.TeamType,
+            });
         }
 
         /// <inheritdoc/>
@@ -76,10 +92,12 @@ namespace Company.Project.Domain.Domain.Mappers
             /// Header Name Id.
             /// </summary>
             public const string Id = "id";
+
             /// <summary>
             /// Header Name Name.
             /// </summary>
             public const string Name = "name";
+
             /// <summary>
             /// Header Name Option.
             /// </summary>

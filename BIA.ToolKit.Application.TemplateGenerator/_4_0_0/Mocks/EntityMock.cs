@@ -1,15 +1,15 @@
-﻿namespace BIA.ToolKit.Application.TemplateGenerator._4_0_0.Mocks.DotNet.DomainDto
+﻿namespace BIA.ToolKit.Application.TemplateGenerator._4_0_0.Mocks
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models.DotNet.DomainDto;
+    using BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models;
 
-    public class EntityDtoMock : EntityDtoModel
+    public class EntityMock : EntityModel
     {
-        public EntityDtoMock()
+        public EntityMock()
         {
             CompanyName = "Company";
             ProjectName = "Project";

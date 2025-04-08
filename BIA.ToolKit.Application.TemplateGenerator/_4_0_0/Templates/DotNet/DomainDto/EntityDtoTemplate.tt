@@ -4,11 +4,11 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ import namespace="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models.DotNet.DomainDto" #>
-<#@ import namespace="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Mocks.DotNet.DomainDto" #>
+<#@ import namespace="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Mocks" #>
 <#@ output extension=".cs" #>
-<#@ parameter type="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models.DotNet.DomainDto.EntityDtoModel" name="Model" #>
-<# var ModelInstance = Model ?? new EntityDtoMock(); #>
+<#@ parameter type="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models.EntityModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityMock(); #>
 // <copyright file="<#= ModelInstance.DtoName #>.cs" company="<#= ModelInstance.CompanyName #>">
 //     Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
