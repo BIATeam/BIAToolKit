@@ -6,7 +6,7 @@
     using System.Reflection;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Models;
+    using BIA.ToolKit.Application.TemplateGenerator._4_0_0.Templates.DotNet.DomainDto;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -73,8 +73,6 @@
             var template = LoadTemplateFromEmbeddedResource(model);
             return template.Render(model, member => member.Name);
         }
-
-
 
         public async Task GenerateFile(string content, string path)
         {

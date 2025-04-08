@@ -7,7 +7,7 @@
 <#@ import namespace="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models.DotNet.DomainDto" #>
 <#@ import namespace="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Mocks.DotNet.DomainDto" #>
 <#@ output extension=".cs" #>
-<#@ parameter type="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models.DotNet.DomainDto.EntityDto" name="Model" #>
+<#@ parameter type="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models.DotNet.DomainDto.EntityDtoModel" name="Model" #>
 <# 
 var ModelInstance = Model ?? new EntityDtoMock(); 
 var baseMapperClass = ModelInstance.IsTeamType ? "TTeamMapper" : "BaseMapper";

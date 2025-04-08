@@ -9,6 +9,8 @@
     using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
     using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Models;
     using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator._4_0_0.Templates;
+    using BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models.DotNet.DomainDto;
+    using BIA.ToolKit.Application.TemplateGenerator._4_0_0.Templates.DotNet.DomainDto;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
@@ -32,7 +34,7 @@
 
         public async Task GenerateDto(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
         {
-            var dtoModel = new EntityDto
+            var dtoModel = new EntityDtoModel
             {
                 CompanyName = project.CompanyName,
                 ProjectName = project.Name,
@@ -41,7 +43,7 @@
                 DtoName = entityInfo.Name + "Dto",
                 EntityName = entityInfo.Name,
                 BaseKeyType = entityInfo.BaseKeyType,
-                Properties = mappingEntityProperties.Select(x => new PropertyModel()
+                Properties = mappingEntityProperties.Select(x => new TemplateGenerator._4_0_0.Models.DotNet.DomainDto.PropertyModel()
                 {
                     MappingName = x.MappingName,
                     EntityCompositeName = x.EntityCompositeName,
@@ -73,7 +75,7 @@
                 DtoName = entityInfo.Name + "Dto",
                 EntityName = entityInfo.Name,
                 BaseKeyType = entityInfo.BaseKeyType,
-                Properties = mappingEntityProperties.Select(x => new PropertyModel()
+                Properties = mappingEntityProperties.Select(x => new Models.PropertyModel()
                 {
                     MappingName = x.MappingName,
                     EntityCompositeName = x.EntityCompositeName,
@@ -103,7 +105,7 @@
             }
 
             consoleWriter.AddMessageLine($"Generating DTO...");
-            var dtoContent = BiaFrameworkFileGeneratorService.GenerateFromTemplateWithScriban(dtoModel);
+            var dtoContent = new EntityDtoTemplate(dtoModel).TransformText();
             var dtoDestPath = Path.Combine(
                 project.Folder,
                 Constants.FolderDotNet,

@@ -7,7 +7,7 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models.DotNet.DomainDto;
 
-    public class EntityDtoMock : EntityDto
+    public class EntityDtoMock : EntityDtoModel
     {
         public EntityDtoMock()
         {

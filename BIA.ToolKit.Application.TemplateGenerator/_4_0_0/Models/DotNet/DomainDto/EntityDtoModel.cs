@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models.DotNet.DomainDto
 {
-    public class EntityDto
+    public class EntityDtoModel
     {
         public const string OptionDto = "OptionDto";
         public const string CollectionOptionDto = "ICollection<" + OptionDto + ">";
