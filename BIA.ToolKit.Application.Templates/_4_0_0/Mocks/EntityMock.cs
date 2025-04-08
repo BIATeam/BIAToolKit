@@ -1,11 +1,11 @@
-﻿namespace BIA.ToolKit.Application.TemplateGenerator._4_0_0.Mocks
+﻿namespace BIA.ToolKit.Application.Templates._4_0_0.Mocks
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models;
+    using BIA.ToolKit.Application.Templates._4_0_0.Models;
 
     public class EntityMock : EntityModel
     {

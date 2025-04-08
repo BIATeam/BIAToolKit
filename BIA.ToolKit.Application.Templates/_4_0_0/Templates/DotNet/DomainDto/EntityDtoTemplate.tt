@@ -4,10 +4,10 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ import namespace="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models" #>
-<#@ import namespace="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Mocks" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._4_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._4_0_0.Mocks" #>
 <#@ output extension=".cs" #>
-<#@ parameter type="BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models.EntityModel" name="Model" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._4_0_0.Models.EntityModel" name="Model" #>
 <# var ModelInstance = Model ?? new EntityMock(); #>
 // <copyright file="<#= ModelInstance.DtoName #>.cs" company="<#= ModelInstance.CompanyName #>">
 //     Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.

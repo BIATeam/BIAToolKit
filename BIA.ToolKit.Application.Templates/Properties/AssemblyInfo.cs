@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("BIA.ToolKit.Application.TemplateGenerator")]
+[assembly: AssemblyTitle("BIA.ToolKit.Application.Templates")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Safran")]
-[assembly: AssemblyProduct("BIA.ToolKit.Application.TemplateGenerator")]
+[assembly: AssemblyProduct("BIA.ToolKit.Application.Templates")]
 [assembly: AssemblyCopyright("Copyright © Safran 2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

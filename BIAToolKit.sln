@@ -26,7 +26,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "90 - Package", "90 - Packag
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BIA.ToolKit.Updater", "BIA.ToolKit.Updater\BIA.ToolKit.Updater.csproj", "{3934B718-A2E2-4701-AB45-AC32613E5B4B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BIA.ToolKit.Application.TemplateGenerator", "BIA.ToolKit.Application.TemplateGenerator\BIA.ToolKit.Application.TemplateGenerator.csproj", "{03EA3958-5144-43DB-82C4-471E803D5ADB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BIA.ToolKit.Application.Templates", "BIA.ToolKit.Application.Templates\BIA.ToolKit.Application.Templates.csproj", "{03EA3958-5144-43DB-82C4-471E803D5ADB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

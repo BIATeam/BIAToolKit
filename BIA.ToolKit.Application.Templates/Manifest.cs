@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.TemplateGenerator
+﻿namespace BIA.ToolKit.Application.Templates
 {
     using System;
     using System.Collections.Generic;
@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public class TemplateGeneratorManifest
+    public class Manifest
     {
     }
 }

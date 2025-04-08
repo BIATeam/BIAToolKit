@@ -7,7 +7,7 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator;
-    using BIA.ToolKit.Application.TemplateGenerator._4_0_0.Models;
+    using BIA.ToolKit.Application.Templates._4_0_0.Models;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;

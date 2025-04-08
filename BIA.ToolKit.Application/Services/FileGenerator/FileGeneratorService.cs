@@ -7,7 +7,7 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator.Versions;
-    using BIA.ToolKit.Application.TemplateGenerator;
+    using BIA.ToolKit.Application.Templates;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -27,7 +27,7 @@
             this.consoleWriter = consoleWriter;
             biaFrameworkFileGeneratorFactory = new FileGeneratorVersionFactory(this, consoleWriter);
             templateGenerator = new TemplateGenerator();
-            templateGenerator.Refs.Add(typeof(TemplateGeneratorManifest).Assembly.Location);
+            templateGenerator.Refs.Add(typeof(Manifest).Assembly.Location);
         }
 
         public bool Init(Version version)
