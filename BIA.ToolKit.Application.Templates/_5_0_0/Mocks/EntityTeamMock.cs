@@ -6,7 +6,11 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public class EntityTeamMock : _4_0_0.Mocks.EntityTeamMock
+    public class EntityTeamMock : EntityMock
     {
+        public EntityTeamMock() : base()
+        {
+            IsTeamType = true;
+        }
     }
 }

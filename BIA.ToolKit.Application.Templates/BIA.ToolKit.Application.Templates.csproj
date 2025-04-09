@@ -46,6 +46,11 @@
     <Compile Include="_5_0_0\Mocks\EntityMock.cs" />
     <Compile Include="_5_0_0\Mocks\EntityTeamMock.cs" />
     <Compile Include="_5_0_0\Models\EntityModel.cs" />
+    <None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityOptionsController.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityOptionsController.tt</DependentUpon>
+    </None>
     <None Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.cs">
       <DependentUpon>EntityMapperTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -95,6 +100,11 @@
     <Content Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityMapperTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityOptionsController.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionsController.cs</LastGenOutput>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
