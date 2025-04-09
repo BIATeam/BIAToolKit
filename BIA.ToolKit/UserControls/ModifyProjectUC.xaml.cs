@@ -12,6 +12,7 @@
     using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.Properties;
@@ -30,6 +31,7 @@
         ProjectCreatorService projectCreatorService;
         CRUDSettings crudSettings;
         UIEventBroker uiEventBroker;
+        SettingsService settingsService;
 
         public ModifyProjectUC()
         {
@@ -55,6 +57,7 @@
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
             this.crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
+            this.settingsService = settingsService;
         }
 
         public void RefreshConfiguration()
@@ -194,10 +197,26 @@
                 }
             }
 
+            string rootBiaFolder = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name,  Constants.FolderBia);
+            if (!Directory.Exists(rootBiaFolder))
+            {
+                Directory.CreateDirectory(rootBiaFolder);
+            }
+
             var fileToSuppress = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, FeatureSettingService.fileName);
             if (File.Exists(fileToSuppress))
             {
                 File.Delete(fileToSuppress);
+            }
+
+            var fileToCheck = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
+            if (!File.Exists(fileToCheck))
+            {
+                string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
+                MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
+                var fileToCopy = Path.Combine(projectTargetPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
+
+                File.Copy(fileToCopy, fileToCheck);
             }
 
             Enable(true);
