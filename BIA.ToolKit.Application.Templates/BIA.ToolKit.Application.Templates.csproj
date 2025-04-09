@@ -48,29 +48,30 @@
     <Compile Include="_5_0_0\Mocks\EntityTeamMock.cs" />
     <Compile Include="_5_0_0\Models\EntityModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyModel.cs" />
+    <None Include="_5_0_0\Templates\DotNet\Application\IEntityOptionAppService.cs">
+      <DependentUpon>IEntityOptionAppService.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_5_0_0\Templates\DotNet\Application\EntityOptionAppService.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>EntityOptionAppService.tt</DependentUpon>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityOptionsController.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>EntityOptionsController.tt</DependentUpon>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.cs">
       <DependentUpon>EntityMapperTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="_5_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.cs">
       <DependentUpon>EntityDtoTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <Compile Include="_4_0_0\Mocks\EntityTeamMock.cs" />
     <Compile Include="_4_0_0\Mocks\EntityMock.cs" />
@@ -85,16 +86,19 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>EntityDtoTemplate.tt</DependentUpon>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.cs">
       <DependentUpon>EntityMapperTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="_5_0_0\Templates\DotNet\Application\IEntityOptionAppService.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>IEntityOptionAppService.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="_5_0_0\Templates\DotNet\Application\EntityOptionAppService.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityOptionAppService.cs</LastGenOutput>

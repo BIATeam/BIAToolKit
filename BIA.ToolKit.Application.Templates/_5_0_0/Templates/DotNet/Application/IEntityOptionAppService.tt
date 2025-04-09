@@ -1,0 +1,27 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".cs" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityMock(); #>
+// <copyright file="I<#= ModelInstance.EntityName #>OptionAppService.cs" company="<#= ModelInstance.CompanyName #>">
+//     Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.DomainName #>
+{
+    using BIA.Net.Core.Application.Services;
+    using BIA.Net.Core.Domain.Dto.Option;
+
+    /// <summary>
+    /// The interface defining the application service for <#= ModelInstance.EntityName.ToLower() #> option.
+    /// </summary>
+    public interface I<#= ModelInstance.EntityName #>OptionAppService : IOptionAppServiceBase<OptionDto, int>
+    {
+    }
+}
