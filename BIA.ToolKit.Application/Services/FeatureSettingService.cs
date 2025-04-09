@@ -11,21 +11,7 @@
     /// </summary>
     public class FeatureSettingService
     {
-        private const string fileName = ".bia\\BiaToolKit_FeatureSetting.json";
-
-        /// <summary>
-        /// Saves the specified feature setting.
-        /// </summary>
-        /// <param name="featureSetting">The feature setting.</param>
-        /// <param name="projectPath">The project path.</param>
-        public void Save(List<FeatureSetting> featureSettings, string projectPath)
-        {
-            if (featureSettings?.Any() == true)
-            {
-                string jsonFile = Path.Combine(projectPath, fileName);
-                CommonTools.SerializeToJsonFile(featureSettings, jsonFile);
-            }
-        }
+        public const string fileName = ".bia\\BiaToolKit_FeatureSetting.json";
 
         /// <summary>
         /// Gets the specified project path.

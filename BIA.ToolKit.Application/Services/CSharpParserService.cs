@@ -77,7 +77,7 @@ using Roslyn.Services;*/
             var baseListNames = baseList?.Descendants<SimpleBaseTypeSyntax>().Select(x => x.ToString()).ToList();
 
             var genericNameSyntax = baseList?.Descendants<SimpleBaseTypeSyntax>()
-                 .First(node => !node.ToFullString().StartsWith("I")) // Not interface
+                 .FirstOrDefault(node => !node.ToFullString().StartsWith("I"))? // Not interface
                  .Descendants<GenericNameSyntax>()
                  .FirstOrDefault();
 
@@ -87,16 +87,10 @@ using Roslyn.Services;*/
             if (genericNameSyntax == null)
             {
                 // No generic parameter -> Entity with Composite Keys
-                baseType = baseList?.Descendants<SimpleBaseTypeSyntax>().Single(node => !node.ToFullString().StartsWith("I")).Type.ToString();
+                baseType = baseList?.Descendants<SimpleBaseTypeSyntax>()
+                    .SingleOrDefault(node => !node.ToFullString().StartsWith("I"))?
+                    .Type?.ToString();
                 primaryKey = null;
-
-                // Get composite keys
-                /*var getKeysMethod = root.Descendants<MethodDeclarationSyntax>().Single(m => m.Identifier.ToString() == "GetKeys");
-                keyNames = getKeysMethod
-                    .Descendants<InitializerExpressionSyntax>()
-                    .First()
-                    .Descendants<IdentifierNameSyntax>()
-                    .Select(id => id.Identifier.ToString());*/
                 keyNames = new List<string>() { "Id" };
             }
             else

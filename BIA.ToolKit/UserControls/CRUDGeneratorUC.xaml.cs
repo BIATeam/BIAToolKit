@@ -139,11 +139,6 @@
             var isBackSelected = vm.IsWebApiAvailable;
             var isFrontSelected = vm.IsFrontAvailable;
 
-            if(isFrontSelected && !string.IsNullOrWhiteSpace(vm.BiaFront))
-            {
-                ParseFrontDomains();
-            }
-
             if (this.crudHistory != null)
             {
                 string dtoName = GetDtoSelectedPath();
@@ -691,6 +686,7 @@
             if (e.AddedItems.Count > 0)
             {
                 SetFrontGenerationSettings(e.AddedItems[0] as string);
+                ParseFrontDomains();
             }
         }
     }

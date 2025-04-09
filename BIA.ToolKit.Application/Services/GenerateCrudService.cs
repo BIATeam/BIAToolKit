@@ -1388,6 +1388,7 @@
             const string regexComponentHtml = @"<\/?app-([a-z-]+)>?";
             const string regexSelectorPath = @"(?:selector)\s*:\s*(?:\[\s*)?'([^']+)'";
             const string regexRoutePath = @"path:\s*'([^']*)',";
+            const string regexNavigationPath = @"path:\s*\['([^']*)'\],";
             const string regexRouteBreadcrumb = @"breadcrumb:\s*'([^']*)',";
             const string regexRouteImportFeatureModule = @"'\./features/([^']*)'";
 
@@ -1468,6 +1469,17 @@
             else if (CommonTools.IsMatchRegexValue(regexRoutePath, newLine))
             {
                 string pathValue = CommonTools.GetMatchRegexValue(regexRoutePath, newLine, 1);
+                if (!string.IsNullOrEmpty(pathValue))
+                {
+                    string newPathValue = pathValue
+                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
+                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                    newLine = newLine.Replace(pathValue, newPathValue);
+                }
+            }
+            else if (CommonTools.IsMatchRegexValue(regexNavigationPath, newLine))
+            {
+                string pathValue = CommonTools.GetMatchRegexValue(regexNavigationPath, newLine, 1);
                 if (!string.IsNullOrEmpty(pathValue))
                 {
                     string newPathValue = pathValue

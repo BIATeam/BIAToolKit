@@ -157,7 +157,8 @@
             && !string.IsNullOrWhiteSpace(EntityDomain)
             && MappingEntityProperties.Count == MappingEntityProperties.DistinctBy(x => x.MappingName).Count();
 
-        public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>((mappingEntityProperty) => RemoveMappingProperty(mappingEntityProperty));
+        public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>(RemoveMappingProperty);
+        public ICommand MoveMappedPropertyCommand => new RelayCommand<MoveItemArgs>(x => MoveMappedProperty(x.OldIndex, x.NewIndex));
 
         public void SetProject(Project project)
         {
@@ -243,21 +244,30 @@
                     IsSelected = true,
                     ParentType = SelectedEntityInfo.Name
                 };
-                FillEntityProperties(propertyViewModel);
+                FillEntityProperties(propertyViewModel, SelectedEntityInfo.Name);
                 EntityProperties.Add(propertyViewModel);
             }
         }
 
-        private void FillEntityProperties(EntityProperty property)
+        private void FillEntityProperties(EntityProperty property, string rootPropertyType)
         {
-            var propertyEntity = domainEntities.FirstOrDefault(e => e.Name == property.Type);
-            if (propertyEntity == null)
+            var propertyInfo = domainEntities.FirstOrDefault(e => e.Name == property.Type);
+            if (propertyInfo == null)
             {
                 return;
             }
 
-            property.Properties.AddRange(propertyEntity.Properties.Select(p => new EntityProperty { Name = p.Name, Type = p.Type, CompositeName = $"{property.CompositeName}.{p.Name}", ParentType = property.Type }));
-            property.Properties.ForEach(p => FillEntityProperties(p));
+            var childProperties = propertyInfo.Properties
+                .Where(p => p.Type != property.ParentType && p.Type != rootPropertyType)
+                .Select(p => new EntityProperty 
+                { 
+                    Name = p.Name, 
+                    Type = p.Type, 
+                    CompositeName = $"{property.CompositeName}.{p.Name}", 
+                    ParentType = property.Type 
+                });
+            property.Properties.AddRange(childProperties);
+            property.Properties.ForEach(p => FillEntityProperties(p, rootPropertyType));
         }
 
         public void RefreshMappingProperties()
@@ -479,6 +489,14 @@
         {
             EntitiesNames.Clear();
             EntityDomain = null;
+        }
+
+        private void MoveMappedProperty(int oldIndex, int newIndex)
+        {
+            if (oldIndex == newIndex || oldIndex < 0 || newIndex < 0 || oldIndex >= MappingEntityProperties.Count || newIndex >= MappingEntityProperties.Count)
+                return;
+
+            MappingEntityProperties.Move(oldIndex, newIndex);
         }
     }
 

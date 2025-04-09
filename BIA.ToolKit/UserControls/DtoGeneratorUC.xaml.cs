@@ -5,10 +5,12 @@
     using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Behaviors;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
+    using Microsoft.Xaml.Behaviors;
     using System;
     using System.Data.Common;
     using System.IO;
@@ -16,6 +18,7 @@
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
+    using System.Windows.Input;
     using static BIA.ToolKit.Application.Services.UIEventBroker;
 
     /// <summary>
@@ -250,6 +253,25 @@
             }
 
             vm.ComputePropertiesValidity();
+        }
+
+        private void DragHandle_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var behavior = GetDragDropBehavior();
+            behavior?.HandleDragStart(sender, e);
+        }
+
+        private void DragHandle_MouseMove(object sender, MouseEventArgs e)
+        {
+            var behavior = GetDragDropBehavior();
+            behavior?.HandleDragMove(sender, e);
+        }
+
+        private ListViewDragDropBehavior GetDragDropBehavior()
+        {
+            return Interaction.GetBehaviors(PropertiesListView)
+                              .OfType<ListViewDragDropBehavior>()
+                              .FirstOrDefault();
         }
     }
 }

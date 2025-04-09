@@ -1,15 +1,23 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
+    using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.Work;
+    using Humanizer;
+    using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.IO;
     using System.Linq;
+    using System.Text.Json;
 
     public class VersionAndOptionViewModel : ObservableObject
     {
         public VersionAndOption VersionAndOption { get; set; }
+        public RepositoryService repositoryService;
+        IConsoleWriter consoleWriter;
 
         private bool hasFeature = false;
         private bool areFeatureInitialized = false;
@@ -17,6 +25,12 @@
         public VersionAndOptionViewModel()
         {
             VersionAndOption = new VersionAndOption();
+        }
+
+        public void Inject(RepositoryService repositoryService, IConsoleWriter consoleWriter)
+        {
+            this.repositoryService = repositoryService;
+            this.consoleWriter = consoleWriter;
         }
 
         public ObservableCollection<WorkRepository> WorkTemplates
@@ -41,6 +55,13 @@
                 {
                     VersionAndOption.WorkTemplate = value;
                     AreFeatureInitialized = false;
+                    foreach (var workCompanyFile in WorkCompanyFiles)
+                    {
+                        if (WorkTemplate?.Version == workCompanyFile.Version)
+                        {
+                            WorkCompanyFile = workCompanyFile;
+                        }
+                    }
                     RaisePropertyChanged(nameof(WorkTemplate));
                 }
             }
@@ -93,6 +114,40 @@
                 if (VersionAndOption.WorkCompanyFile != value)
                 {
                     VersionAndOption.WorkCompanyFile = value;
+                    
+                    if (WorkCompanyFile != null)
+                    {
+                        WorkCompanyFile.VersionFolderPath = repositoryService.PrepareVersionFolder(WorkCompanyFile.RepositorySettings, WorkCompanyFile.Version).Result;
+                        string fileName = WorkCompanyFile.VersionFolderPath + "\\biaCompanyFiles.json";
+
+                        try
+                        {
+                            string jsonString = File.ReadAllText(fileName);
+
+                            CFSettings cfSetting = JsonSerializer.Deserialize<CFSettings>(jsonString);
+
+                            var listProfiles = new List<string>();
+                            foreach (string profile in cfSetting.Profiles)
+                            {
+                                listProfiles.Add(profile);
+                                Profile = profile;
+                            }
+                            Profiles = new ObservableCollection<string>(listProfiles);
+
+                            var options = new List<CFOption>();
+                            foreach (CFOption option in cfSetting.Options)
+                            {
+                                option.IsChecked = (!(option?.Default == 0));
+                                options.Add(option);
+                            }
+                            Options = new ObservableCollection<CFOption>(options);
+
+                        }
+                        catch (Exception ex)
+                        {
+                            consoleWriter.AddMessageLine(ex.Message, "Red");
+                        }
+                    }
                     RaisePropertyChanged(nameof(WorkCompanyFile));
                 }
             }
@@ -117,7 +172,7 @@
             get { return !(VersionAndOption.UseCompanyFiles); }
         }
 
-        public IList<CFOption> Options
+        public ObservableCollection<CFOption> Options
         {
             get { return VersionAndOption.Options; }
             set
@@ -125,9 +180,20 @@
                 if (VersionAndOption.Options != value)
                 {
                     VersionAndOption.Options = value;
-                    RaisePropertyChanged(nameof(UseCompanyFiles));
+                    RaisePropertyChanged(nameof(Options));
                 }
             }
+        }
+
+        public void CheckOptions (List<string> checkedOptions)
+        {
+            var options = new List<CFOption>();
+            foreach (CFOption option in Options)
+            {
+                option.IsChecked = (checkedOptions?.Any(o => string.Equals(o, option.Key)) == true);
+                options.Add(option);
+            }
+            Options = new ObservableCollection<CFOption>(options);
         }
 
         public ObservableCollection<FeatureSetting> FeatureSettings
@@ -143,6 +209,27 @@
                     RaisePropertyChanged(nameof(FeatureSettings));
                 }
             }
+        }
+
+        public void CheckFeature(List<string> tags, List<string> folders)
+        {
+            var features = new List<FeatureSetting>();
+            foreach (FeatureSetting feature in FeatureSettings)
+            {
+                if ((feature.Tags != null && feature.Tags.Any(t1 => tags.Any(t2 => string.Equals(t1,t2))))
+                    ||
+                    (feature.FoldersToExcludes != null && feature.FoldersToExcludes.Any(f1 => folders.Any(f2 => string.Equals(f1, f2))))
+                    )
+                {
+                    feature.IsSelected = true;
+                }
+                else
+                {
+                    feature.IsSelected = false;
+                }
+                features.Add(feature);
+            }
+            FeatureSettings = new ObservableCollection<FeatureSetting>(features);
         }
 
         public bool HasFeature

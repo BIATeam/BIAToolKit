@@ -38,7 +38,7 @@ namespace @(Model.CompanyName).@(Model.ProjectName).Domain.Dto.@(Model.DomainNam
     /// </summary>
     public class @(Model.DtoName) : @((MarkupString)(Model.IsTeamType ? "TeamDto" : $"BaseDto<{Model.BaseKeyType}>"))
     {
-        @{ var properties = Model.Properties.Where(p => !p.MappingName.Equals("Id")).ToList(); }
+        @{ var properties = Model.Properties.Where(p => !Model.ExcludedPropertiesToGenerate.Contains(p.MappingName)).ToList(); }
         @foreach (var property in properties)
         {
 <text>        /// <summary>
