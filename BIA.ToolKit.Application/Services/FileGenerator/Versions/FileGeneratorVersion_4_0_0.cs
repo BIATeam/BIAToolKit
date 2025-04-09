@@ -20,14 +20,14 @@
             new("4.*"),
         ];
 
-        protected virtual EntityModel CreateEntityModel()
+        protected virtual EntityDtoModel CreateDtoEntityModel()
         {
-            return new EntityModel();
+            return new EntityDtoModel();
         }
 
         public object GetDtoTemplateModel(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
         {
-            var model = CreateEntityModel();
+            var model = CreateDtoEntityModel();
 
             model.CompanyName = project.CompanyName;
             model.ProjectName = project.Name;

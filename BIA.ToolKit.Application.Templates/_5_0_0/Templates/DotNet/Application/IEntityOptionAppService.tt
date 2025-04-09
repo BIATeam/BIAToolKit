@@ -7,8 +7,8 @@
 <#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
 <#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
 <#@ output extension=".cs" #>
-<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityModel" name="Model" #>
-<# var ModelInstance = Model ?? new EntityMock(); #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityOptionModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityOptionMock(); #>
 // <copyright file="I<#= ModelInstance.EntityName #>OptionAppService.cs" company="<#= ModelInstance.CompanyName #>">
 //     Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>

@@ -1,26 +1,26 @@
-﻿// <copyright file="PlaneOptionAppService.cs" company="TheBIADevCompany">
+﻿// <copyright file="CountryOptionAppService.cs" company="TheBIADevCompany">
 //     Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 
-namespace TheBIADevCompany.BIADemo.Application.Fleet
+namespace TheBIADevCompany.BIADemo.Application.AircraftMaintenanceCompany
 {
     using BIA.Net.Core.Application.Services;
     using BIA.Net.Core.Domain.Dto.Option;
     using BIA.Net.Core.Domain.RepoContract;
     using BIA.Net.Core.Domain.Service;
-    using TheBIADevCompany.BIADemo.Domain.Fleet.Entities;
-    using TheBIADevCompany.BIADemo.Fleet.Mappers;
+    using TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Entities;
+    using TheBIADevCompany.BIADemo.AircraftMaintenanceCompany.Mappers;
 
     /// <summary>
-    /// The application service used for plane option.
+    /// The application service used for country option.
     /// </summary>
-    public class PlaneOptionAppService : OptionAppServiceBase<OptionDto, Plane, int, PlaneOptionMapper>, IPlaneOptionAppService
+    public class CountryOptionAppService : OptionAppServiceBase<OptionDto, Country, int, CountryOptionMapper>, ICountryOptionAppService
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="PlaneOptionAppService"/> class.
+        /// Initializes a new instance of the <see cref="CountryOptionAppService"/> class.
         /// </summary>
         /// <param name="repository">The repository.</param>
-        public PlaneOptionAppService(ITGenericRepository<Plane, int> repository)
+        public CountryOptionAppService(ITGenericRepository<Country, int> repository)
             : base(repository)
         {
         }

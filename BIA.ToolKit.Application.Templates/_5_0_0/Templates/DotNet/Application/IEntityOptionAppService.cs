@@ -1,16 +1,16 @@
-﻿// <copyright file="IPlaneOptionAppService.cs" company="TheBIADevCompany">
+﻿// <copyright file="ICountryOptionAppService.cs" company="TheBIADevCompany">
 //     Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 
-namespace TheBIADevCompany.BIADemo.Application.Fleet
+namespace TheBIADevCompany.BIADemo.Application.AircraftMaintenanceCompany
 {
     using BIA.Net.Core.Application.Services;
     using BIA.Net.Core.Domain.Dto.Option;
 
     /// <summary>
-    /// The interface defining the application service for plane option.
+    /// The interface defining the application service for country option.
     /// </summary>
-    public interface IPlaneOptionAppService : IOptionAppServiceBase<OptionDto, int>
+    public interface ICountryOptionAppService : IOptionAppServiceBase<OptionDto, int>
     {
     }
 }

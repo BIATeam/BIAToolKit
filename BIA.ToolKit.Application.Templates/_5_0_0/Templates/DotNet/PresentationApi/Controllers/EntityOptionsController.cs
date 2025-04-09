@@ -1,49 +1,49 @@
-﻿// <copyright file="PlaneOptionsController.cs" company="TheBIADevCompany">
+﻿// <copyright file="CountryOptionsController.cs" company="TheBIADevCompany">
 //     Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 
-namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Fleet
+namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.AircraftMaintenanceCompany
 {
     using System.Threading.Tasks;
     using BIA.Net.Presentation.Api.Controllers.Base;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
-    using TheBIADevCompany.BIADemo.Application.Fleet;
+    using TheBIADevCompany.BIADemo.Application.AircraftMaintenanceCompany;
     using TheBIADevCompany.BIADemo.Crosscutting.Common;
 
     /// <summary>
-    /// The API controller used to manage plane options.
+    /// The API controller used to manage country options.
     /// </summary>
-    public class PlaneOptionsController : BiaControllerBase
+    public class CountryOptionsController : BiaControllerBase
     {
         /// <summary>
-        /// The plane application service.
+        /// The country application service.
         /// </summary>
-        private readonly IPlaneOptionAppService planeOptionService;
+        private readonly ICountryOptionAppService countryOptionService;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PlaneOptionsController"/> class.
+        /// Initializes a new instance of the <see cref="CountryOptionsController"/> class.
         /// </summary>
-        /// <param name="planeOptionService">The plane application service.</param>
-        public PlaneOptionsController(IPlaneOptionAppService planeOptionService)
+        /// <param name="countryOptionService">The country application service.</param>
+        public CountryOptionsController(ICountryOptionAppService countryOptionService)
         {
-            this.planeOptionService = planeOptionService;
+            this.countryOptionService = countryOptionService;
         }
 
         /// <summary>
         /// Gets all option that I can see.
         /// </summary>
-        /// /// <returns>The list of planes.</returns>
+        /// /// <returns>The list of countries.</returns>
         [HttpGet("allOptions")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Roles = Rights.PlaneOptions.Options)]
+        [Authorize(Roles = Rights.CountryOptions.Options)]
         public async Task<IActionResult> GetAllOptions()
         {
-            var results = await this.planeOptionService.GetAllOptionsAsync();
+            var results = await this.countryOptionService.GetAllOptionsAsync();
             return this.Ok(results);
         }
     }

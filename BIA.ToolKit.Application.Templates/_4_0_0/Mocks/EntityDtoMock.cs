@@ -7,9 +7,9 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Templates._4_0_0.Models;
 
-    public class EntityMock : EntityModel
+    public class EntityDtoMock : EntityDtoModel
     {
-        public EntityMock()
+        public EntityDtoMock()
         {
             CompanyName = "TheBIADevCompany";
             ProjectName = "BIADemo";

@@ -18,14 +18,14 @@
             new("5.*"),
         ];
 
-        protected override Templates._4_0_0.Models.EntityModel CreateEntityModel()
+        protected override Templates._4_0_0.Models.EntityDtoModel CreateDtoEntityModel()
         {
-            return new Templates._5_0_0.Models.EntityModel();
+            return new Templates._5_0_0.Models.EntityDtoModel();
         }
 
         public new object GetDtoTemplateModel(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
         {
-            var model = base.GetDtoTemplateModel(project, entityInfo, domainName, mappingEntityProperties) as Templates._5_0_0.Models.EntityModel;
+            var model = base.GetDtoTemplateModel(project, entityInfo, domainName, mappingEntityProperties) as Templates._5_0_0.Models.EntityDtoModel;
             // Map additionnal properties of your model 
             return model;
         }

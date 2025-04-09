@@ -43,10 +43,14 @@
   <ItemGroup>
     <Compile Include="Manifest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="_4_0_0\Mocks\EntityDtoMock.cs" />
+    <Compile Include="_4_0_0\Models\EntityDtoModel.cs" />
     <Compile Include="_4_0_0\Models\PropertyModel.cs" />
-    <Compile Include="_5_0_0\Mocks\EntityMock.cs" />
-    <Compile Include="_5_0_0\Mocks\EntityTeamMock.cs" />
+    <Compile Include="_5_0_0\Mocks\EntityDtoOptionMock.cs" />
+    <Compile Include="_5_0_0\Mocks\EntityDtoMock.cs" />
     <Compile Include="_5_0_0\Models\EntityModel.cs" />
+    <Compile Include="_5_0_0\Models\EntityDtoModel.cs" />
+    <Compile Include="_5_0_0\Models\EntityOptionModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyModel.cs" />
     <None Include="_5_0_0\Templates\DotNet\Application\IEntityOptionAppService.cs">
       <DependentUpon>IEntityOptionAppService.tt</DependentUpon>
@@ -73,8 +77,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <Compile Include="_4_0_0\Mocks\EntityTeamMock.cs" />
-    <Compile Include="_4_0_0\Mocks\EntityMock.cs" />
     <Compile Include="_4_0_0\Models\EntityModel.cs" />
     <None Include="_5_0_0\manifest.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

@@ -7,9 +7,9 @@
 <#@ import namespace="BIA.ToolKit.Application.Templates._4_0_0.Models" #>
 <#@ import namespace="BIA.ToolKit.Application.Templates._4_0_0.Mocks" #>
 <#@ output extension=".cs" #>
-<#@ parameter type="BIA.ToolKit.Application.Templates._4_0_0.Models.EntityModel" name="Model" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._4_0_0.Models.EntityDtoModel" name="Model" #>
 <# 
-var ModelInstance = Model ?? new EntityTeamMock(); 
+var ModelInstance = Model ?? new EntityDtoMock(); 
 var baseMapperClass = ModelInstance.IsTeamType ? "TTeamMapper" : "BaseMapper";
 var baseKeyType = ModelInstance.IsTeamType ? string.Empty : $", {ModelInstance.BaseKeyType}";
 #>

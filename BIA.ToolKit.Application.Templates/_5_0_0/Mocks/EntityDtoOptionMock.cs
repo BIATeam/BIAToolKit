@@ -7,17 +7,16 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Templates._5_0_0.Models;
 
-    public class EntityMock : EntityModel
+    public class EntityOptionMock : EntityOptionModel
     {
-        public EntityMock()
+        public EntityOptionMock()
         {
             CompanyName = "TheBIADevCompany";
             ProjectName = "BIADemo";
             EntityNameArticle = "a";
-            DomainName = "Fleet";
-            EntityName = "Plane";
-            EntityNamePlural = "Planes";
-            BaseKeyType = "int";
+            DomainName = "AircraftMaintenanceCompany";
+            EntityName = "Country";
+            EntityNamePlural = "Countries";
             Properties = new List<_4_0_0.Models.PropertyModel>()
             {
                 new PropertyModel

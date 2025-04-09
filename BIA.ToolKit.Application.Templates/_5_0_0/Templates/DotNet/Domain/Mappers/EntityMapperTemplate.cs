@@ -7,31 +7,17 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
     using System;
     using System.Linq;
     using System.Linq.Expressions;
-    using System.Security.Principal;
-    using BIA.Net.Core.Common.Extensions;
     using BIA.Net.Core.Domain;
     using BIA.Net.Core.Domain.Dto.Base;
     using BIA.Net.Core.Domain.Dto.Option;
     using TheBIADevCompany.BIADemo.Domain.Fleet.Entities;
     using TheBIADevCompany.BIADemo.Domain.Dto.Fleet;
-    using TheBIADevCompany.BIADemo.Domain.User.Mappers;
 
     /// <summary>
     /// The mapper used for Plane.
     /// </summary>
-    public class PlaneMapper : TTeamMapper<PlaneDto, Plane>
+    public class PlaneMapper : BaseMapper<PlaneDto, Plane, int>
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PlaneMapper"/> class.
-        /// </summary>
-        /// <param name="principal">The principal.</param>
-        public PlaneMapper(IPrincipal principal)
-            : base(principal)
-        {
-        }
-
-        /// <inheritdoc/>
-        public override int TeamType => base.TeamType;
         /// <inheritdoc/>
         public override ExpressionCollection<Plane> ExpressionCollection
         {
@@ -53,7 +39,6 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
         {
             entity ??= new Plane();
 
-            base.DtoToEntity(dto, entity);
             entity.Id = dto.Id;
             entity.Name = dto.Name;
             entity.OptionId = dto.Option.Id;
@@ -62,15 +47,14 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
         /// <inheritdoc/>
         public override Expression<Func<Plane, PlaneDto>> EntityToDto()
         {
-            return base.EntityToDto().CombineMapping(entity => new PlaneDto
+            return entity => new PlaneDto
             {
                 Id = entity.Id,
                 Name = entity.Name,
                 Option = entity.Option != null ? 
                   new OptionDto { Id = entity.Option.Id, Display = entity.Option.Name } :
                   null,
-                TeamTypeId = this.TeamType,
-            });
+            };
         }
 
         /// <inheritdoc/>
