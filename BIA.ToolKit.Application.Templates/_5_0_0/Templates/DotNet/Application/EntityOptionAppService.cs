@@ -1,4 +1,4 @@
-﻿// <copyright file="CountryOptionAppService.cs" company="TheBIADevCompany">
+﻿// <copyright file="MyCountryOptionAppService.cs" company="TheBIADevCompany">
 //     Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 
@@ -12,15 +12,15 @@ namespace TheBIADevCompany.BIADemo.Application.AircraftMaintenanceCompany
     using TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Mappers;
 
     /// <summary>
-    /// The application service used for country option.
+    /// The application service used for MyCountry option.
     /// </summary>
-    public class CountryOptionAppService : OptionAppServiceBase<OptionDto, Country, int, CountryOptionMapper>, ICountryOptionAppService
+    public class MyCountryOptionAppService : OptionAppServiceBase<OptionDto, MyCountry, int, MyCountryOptionMapper>, IMyCountryOptionAppService
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CountryOptionAppService"/> class.
+        /// Initializes a new instance of the <see cref="MyCountryOptionAppService"/> class.
         /// </summary>
         /// <param name="repository">The repository.</param>
-        public CountryOptionAppService(ITGenericRepository<Country, int> repository)
+        public MyCountryOptionAppService(ITGenericRepository<MyCountry, int> repository)
             : base(repository)
         {
         }

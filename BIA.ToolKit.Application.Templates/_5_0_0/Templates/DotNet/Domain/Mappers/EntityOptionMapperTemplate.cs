@@ -1,4 +1,4 @@
-﻿// <copyright file="CountryOptionMapper.cs" company="TheBIADevCompany">
+﻿// <copyright file="MyCountryOptionMapper.cs" company="TheBIADevCompany">
 //     Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 
@@ -11,12 +11,12 @@ namespace TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Mappers
     using TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Entities;
 
     /// <summary>
-    /// The mapper used for country option.
+    /// The mapper used for MyCountry option.
     /// </summary>
-    public class CountryOptionMapper : BaseMapper<OptionDto, Country, int>
+    public class MyCountryOptionMapper : BaseMapper<OptionDto, MyCountry, int>
     {
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
-        public override Expression<Func<Country, OptionDto>> EntityToDto()
+        public override Expression<Func<MyCountry, OptionDto>> EntityToDto()
         {
             return entity => new OptionDto
             {

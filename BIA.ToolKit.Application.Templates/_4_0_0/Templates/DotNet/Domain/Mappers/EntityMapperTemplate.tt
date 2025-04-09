@@ -4,6 +4,7 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
 <#@ import namespace="BIA.ToolKit.Application.Templates._4_0_0.Models" #>
 <#@ import namespace="BIA.ToolKit.Application.Templates._4_0_0.Mocks" #>
 <#@ output extension=".cs" #>
@@ -167,7 +168,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
             /// <summary>
             /// Header Name <#= property.MappingName #>.
             /// </summary>
-            public const string <#= property.MappingName #> = "<#= string.Concat(char.ToLower(property.MappingName[0]), property.MappingName.Substring(1)) #>";
+            public const string <#= property.MappingName #> = "<#= property.MappingName.ToCamelCase() #>";
 <# index++;  #>
 <# if(index != ModelInstance.Properties.Count()) {#>
 

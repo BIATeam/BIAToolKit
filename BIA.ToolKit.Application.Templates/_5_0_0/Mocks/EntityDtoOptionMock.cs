@@ -15,9 +15,9 @@
             ProjectName = "BIADemo";
             EntityNameArticle = "a";
             DomainName = "AircraftMaintenanceCompany";
-            EntityName = "Country";
+            EntityName = "MyCountry";
             BaseKeyType = "int";
-            EntityNamePlural = "Countries";
+            EntityNamePlural = "MyCountries";
             OptionDisplayName = "Name";
             Properties = new List<_4_0_0.Models.PropertyModel>()
             {

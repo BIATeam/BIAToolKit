@@ -4,6 +4,7 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
 <#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
 <#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
 <#@ output extension=".cs" #>
@@ -24,28 +25,28 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common;
 
     /// <summary>
-    /// The API controller used to manage <#= ModelInstance.EntityName.ToLower() #> options.
+    /// The API controller used to manage <#= ModelInstance.EntityName #> options.
     /// </summary>
     public class <#= ModelInstance.EntityName #>OptionsController : BiaControllerBase
     {
         /// <summary>
-        /// The <#= ModelInstance.EntityName.ToLower() #> application service.
+        /// The <#= ModelInstance.EntityName #> application service.
         /// </summary>
-        private readonly I<#= ModelInstance.EntityName #>OptionAppService <#= ModelInstance.EntityName.ToLower() #>OptionService;
+        private readonly I<#= ModelInstance.EntityName #>OptionAppService <#= ModelInstance.EntityName.ToCamelCase() #>OptionService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>OptionsController"/> class.
         /// </summary>
-        /// <param name="<#= ModelInstance.EntityName.ToLower() #>OptionService">The <#= ModelInstance.EntityName.ToLower() #> application service.</param>
-        public <#= ModelInstance.EntityName #>OptionsController(I<#= ModelInstance.EntityName #>OptionAppService <#= ModelInstance.EntityName.ToLower() #>OptionService)
+        /// <param name="<#= ModelInstance.EntityName.ToCamelCase() #>OptionService">The <#= ModelInstance.EntityName.ToCamelCase() #> application service.</param>
+        public <#= ModelInstance.EntityName #>OptionsController(I<#= ModelInstance.EntityName #>OptionAppService <#= ModelInstance.EntityName.ToCamelCase() #>OptionService)
         {
-            this.<#= ModelInstance.EntityName.ToLower() #>OptionService = <#= ModelInstance.EntityName.ToLower() #>OptionService;
+            this.<#= ModelInstance.EntityName.ToCamelCase() #>OptionService = <#= ModelInstance.EntityName.ToCamelCase() #>OptionService;
         }
 
         /// <summary>
         /// Gets all option that I can see.
         /// </summary>
-        /// /// <returns>The list of <#= ModelInstance.EntityNamePlural.ToLower() #>.</returns>
+        /// /// <returns>The list of <#= ModelInstance.EntityNamePlural #>.</returns>
         [HttpGet("allOptions")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -54,7 +55,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
         [Authorize(Roles = Rights.<#= ModelInstance.EntityName #>Options.Options)]
         public async Task<IActionResult> GetAllOptions()
         {
-            var results = await this.<#= ModelInstance.EntityName.ToLower() #>OptionService.GetAllOptionsAsync();
+            var results = await this.<#= ModelInstance.EntityName.ToCamelCase() #>OptionService.GetAllOptionsAsync();
             return this.Ok(results);
         }
     }

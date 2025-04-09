@@ -4,6 +4,7 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
 <#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
 <#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
 <#@ output extension=".cs" #>
@@ -23,7 +24,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers;
 
     /// <summary>
-    /// The application service used for <#= ModelInstance.EntityName.ToLower() #> option.
+    /// The application service used for <#= ModelInstance.EntityName #> option.
     /// </summary>
     public class <#= ModelInstance.EntityName #>OptionAppService : OptionAppServiceBase<OptionDto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, <#= ModelInstance.EntityName #>OptionMapper>, I<#= ModelInstance.EntityName #>OptionAppService
     {
