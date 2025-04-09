@@ -114,6 +114,15 @@
             IsInit = true;
         }
 
+        /// <summary>
+        /// Check if current project is compatible for generation with current file generator service.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsProjectCompatible()
+        {
+            return Version.TryParse(currentProject.FrameworkVersion, out Version projectVersion) && projectVersion >= new Version(5, 0);
+        }
+
         public async Task GenerateDto(EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
         {
             try
@@ -136,6 +145,40 @@
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"DTO generation failed : {ex}", color: "red");
+            }
+        }
+
+        public async Task GenerateOption()
+        {
+            try
+            {
+                consoleWriter.AddMessageLine($" === GENERATE Option ===", color: "lightblue");
+
+                if (!IsInit)
+                    throw new Exception("file generator has not been initialiazed");
+
+                consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Option generation failed : {ex}", color: "red");
+            }
+        }
+
+        public async Task GenerateCRUD()
+        {
+            try
+            {
+                consoleWriter.AddMessageLine($" === GENERATE CRUD ===", color: "lightblue");
+
+                if (!IsInit)
+                    throw new Exception("file generator has not been initialiazed");
+
+                consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"CRUD generation failed : {ex}", color: "red");
             }
         }
 

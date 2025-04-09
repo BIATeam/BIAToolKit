@@ -2,6 +2,7 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
@@ -14,6 +15,7 @@
     using System.IO;
     using System.Linq;
     using System.Text;
+    using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
@@ -35,6 +37,7 @@
         private GenerateCrudService crudService;
         private CRUDSettings settings;
         private UIEventBroker uiEventBroker;
+        private FileGeneratorService fileGeneratorService;
 
         private readonly OptionGeneratorViewModel vm;
         private OptionGeneration optionGenerationHistory;
@@ -60,7 +63,7 @@
         /// Injection of services.
         /// </summary>
         public void Inject(CSharpParserService service, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, UIEventBroker uiEventBroker)
+            IConsoleWriter consoleWriter, UIEventBroker uiEventBroker, FileGeneratorService fileGeneratorService)
         {
             this.consoleWriter = consoleWriter;
             this.service = service;
@@ -69,6 +72,7 @@
             this.settings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
+            this.fileGeneratorService = fileGeneratorService;
         }
 
         private void UIEventBroker_OnProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem)
@@ -176,8 +180,14 @@
         /// <summary>
         /// Action linked with "Generate" button.
         /// </summary>
-        private void Generate_Click(object sender, RoutedEventArgs e)
+        private async void Generate_Click(object sender, RoutedEventArgs e)
         {
+            if (fileGeneratorService.IsProjectCompatible())
+            {
+                await fileGeneratorService.GenerateOption();
+                return;
+            }
+
             crudService.CrudNames.InitRenameValues(vm.EntitySelected, vm.EntityNamePlural);
 
             // Generation DotNet + Angular files
