@@ -13,6 +13,7 @@
         public FileGeneratorVersionFactory(IConsoleWriter consoleWriter)
         {
             fileGeneratorsVersion.Add(new FileGeneratorVersion_4_0_0(consoleWriter));
+            fileGeneratorsVersion.Add(new FileGeneratorVersion_5_0_0(consoleWriter));
         }
 
         public IFileGeneratorVersion GetFileGeneratorVersion(Version version)
