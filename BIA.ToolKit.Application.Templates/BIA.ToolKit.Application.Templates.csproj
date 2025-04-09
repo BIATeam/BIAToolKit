@@ -48,6 +48,12 @@
     <Compile Include="_5_0_0\Mocks\EntityTeamMock.cs" />
     <Compile Include="_5_0_0\Models\EntityModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyModel.cs" />
+    <None Include="_5_0_0\Templates\DotNet\Application\EntityOptionAppService.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityOptionAppService.tt</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityOptionsController.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -84,6 +90,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="_5_0_0\Templates\DotNet\Application\EntityOptionAppService.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionAppService.cs</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="_5_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityDtoTemplate.cs</LastGenOutput>
