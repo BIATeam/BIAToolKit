@@ -194,6 +194,12 @@
                 }
             }
 
+            var fileToSuppress = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, FeatureSettingService.fileName);
+            if (File.Exists(fileToSuppress))
+            {
+                File.Delete(fileToSuppress);
+            }
+
             Enable(true);
         }
 
