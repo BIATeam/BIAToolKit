@@ -55,6 +55,7 @@
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
             this.crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
+            _viewModel.Inject(fileGeneratorService, uiEventBroker);
         }
 
         public void RefreshConfiguration()

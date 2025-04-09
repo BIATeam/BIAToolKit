@@ -45,50 +45,68 @@
 
         private void EventBroker_OnProjectChanged(Project project, UIEventBroker.TabItemModifyProjectEnum currentTabItem)
         {
-            if (project != null)
+            if(project is null)
+            {
+                isInit = false;
+                return;
+            }
+
+            if (project != currentProject)
+            {
                 Init(project);
+            }
         }
 
         public void Init(Project project)
         {
             isInit = false;
 
+            // Parse version of project
             if (!Version.TryParse(project.FrameworkVersion, out Version projectVersion))
             {
-                consoleWriter.AddMessageLine($"File generator init failed : invalid project version", "red");
+                consoleWriter.AddMessageLine($"File generator : invalid project version", "red");
                 return;
             }
 
+            // Stop init for projects under version 4.0.0
+            if(projectVersion < new Version(4, 0))
+            {
+                return;
+            }
+
+            // Get compatible file generator version
             currentProject = project;
-            fileGenerator = fileGeneratorFactory.GetBiaFrameworkFileGenerator(projectVersion);
+            fileGenerator = fileGeneratorFactory.GetFileGeneratorVersion(projectVersion);
             if (fileGenerator is null)
             {
-                consoleWriter.AddMessageLine($"File generator init failed : incompatible project version", "red");
+                consoleWriter.AddMessageLine($"File generator : incompatible project version {projectVersion}", "red");
                 return;
             }
 
+            // Parse file generator version number (_X_Y_Z)
             var regex = new Regex(@"^[^_]+(.+)$");
             var match = regex.Match(fileGenerator.GetType().Name);
             if (!match.Success)
             {
-                consoleWriter.AddMessageLine($"File generator init failed : invalid file generator version", "red");
+                consoleWriter.AddMessageLine($"File generator : invalid file generator version", "red");
                 return;
             }
-
             var fileGeneratorVersion = match.Groups[1].Value;
-            var manifestVersion = fileGeneratorVersion.Replace("_", ".")[1..fileGeneratorVersion.Length];
-            currentManifest = manifests.FirstOrDefault(m => m.Version.ToString() == manifestVersion);
 
-            if (currentManifest is null)
-            {
-                consoleWriter.AddMessageLine($"File generator init failed : no manifest for version {manifestVersion}", "red");
-                return;
-            }
-
+            // Search templates path based on file generator version (_X_Y_Z)
             templatesPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), fileGeneratorVersion, "Templates");
             if (!Directory.Exists(templatesPath))
             {
-                consoleWriter.AddMessageLine($"File generator init failed : no templates found for version {fileGeneratorVersion}", "red");
+                consoleWriter.AddMessageLine($"File generator : no templates found for version {fileGeneratorVersion}", "red");
+                return;
+            }
+
+            // Search template manifest based on file generator version transofmred (_X_Y_Z -> X.Y.Z)
+            var manifestVersion = fileGeneratorVersion.Replace("_", ".")[1..fileGeneratorVersion.Length];
+            currentManifest = manifests.FirstOrDefault(m => m.Version.ToString() == manifestVersion);
+            if (currentManifest is null)
+            {
+                consoleWriter.AddMessageLine($"File generator : no manifest for version {manifestVersion}", "red");
                 return;
             }
 
@@ -100,11 +118,14 @@
             try
             {
                 consoleWriter.AddMessageLine($" === GENERATE DTO ===", color: "lightblue");
+
                 var templateModel = fileGenerator.GetDtoTemplateModel(currentProject, entityInfo, domainName, mappingEntityProperties);
                 var dtoFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "DTO")
                     ?? throw new KeyNotFoundException($"no DTO feature for template manifest {currentManifest.Version}");
+
                 currentDomain = domainName;
                 currentEntity = entityInfo.Name;
+
                 await GenerateTemplatesFromManifestFeature(dtoFeature, templateModel);
                 consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
             }
@@ -145,17 +166,22 @@
         {
             try
             {
-                consoleWriter.AddMessageLine($"Generating file {Path.GetFileName(outputPath)} ...");
-                consoleWriter.AddMessageLine($"Using template file {templatePath}", color: "darkgray");
+                var relativeOutputPath = outputPath.Replace(currentProject.Folder, string.Empty);
+                consoleWriter.AddMessageLine($"Generating file {relativeOutputPath} ...");
+                var relativeTemplatePath = templatePath.Replace(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), string.Empty);
+                consoleWriter.AddMessageLine($"Using template file {relativeTemplatePath}", color: "darkgray");
 
                 var tempTemplatePath = Path.GetTempFileName();
                 var templateContent = await File.ReadAllTextAsync(templatePath);
+                // Replace the load of assembly based on $(TargetPath) from template content to avoid generation errors
                 templateContent = templateContent.Replace("<#@ assembly name=\"$(TargetPath)\" #>", "<#@ #>");
                 await File.WriteAllTextAsync(tempTemplatePath, templateContent);
 
+                // Inject Model parameter for template generation
                 templateGenerator.ClearSession();
                 var templateGeneratorSession = templateGenerator.GetOrCreateSession();
                 templateGeneratorSession.Add("Model", model);
+
                 var success = await templateGenerator.ProcessTemplateAsync(tempTemplatePath, outputPath);
                 File.Delete(tempTemplatePath);
                 if (!success)

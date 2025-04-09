@@ -8,16 +8,16 @@
 
     internal class FileGeneratorVersionFactory
     {
-        private readonly List<IFileGeneratorVersion> biaFrameworkFileGenerators = new();
+        private readonly List<IFileGeneratorVersion> fileGeneratorsVersion = [];
 
         public FileGeneratorVersionFactory(IConsoleWriter consoleWriter)
         {
-            biaFrameworkFileGenerators.Add(new FileGeneratorVersion_4_0_0(consoleWriter));
+            fileGeneratorsVersion.Add(new FileGeneratorVersion_4_0_0(consoleWriter));
         }
 
-        public IFileGeneratorVersion GetBiaFrameworkFileGenerator(Version version)
+        public IFileGeneratorVersion GetFileGeneratorVersion(Version version)
         {
-            return biaFrameworkFileGenerators.FirstOrDefault(x => x.CompatibleBiaFrameworkVersions.Any(y => y.Matches(version)));
+            return fileGeneratorsVersion.FirstOrDefault(x => x.CompatibleBiaFrameworkVersions.Any(y => y.Matches(version)));
         }
     }
 }
