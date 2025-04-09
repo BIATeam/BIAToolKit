@@ -216,9 +216,9 @@
             var features = new List<FeatureSetting>();
             foreach (FeatureSetting feature in FeatureSettings)
             {
-                if ((feature.Tags != null && feature.Tags.Any(t1 => tags.Any(t2 => string.Equals(t1,t2))))
+                if ((feature.Tags != null && tags != null && feature.Tags.Any(t1 => tags.Any(t2 => string.Equals(t1,t2))))
                     ||
-                    (feature.FoldersToExcludes != null && feature.FoldersToExcludes.Any(f1 => folders.Any(f2 => string.Equals(f1, f2))))
+                    (feature.FoldersToExcludes != null && folders != null && feature.FoldersToExcludes.Any(f1 => folders.Any(f2 => string.Equals(f1, f2))))
                     )
                 {
                     feature.IsSelected = true;
