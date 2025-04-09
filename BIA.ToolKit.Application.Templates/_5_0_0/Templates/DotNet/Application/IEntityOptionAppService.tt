@@ -21,7 +21,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     /// <summary>
     /// The interface defining the application service for <#= ModelInstance.EntityName.ToLower() #> option.
     /// </summary>
-    public interface I<#= ModelInstance.EntityName #>OptionAppService : IOptionAppServiceBase<OptionDto, int>
+    public interface I<#= ModelInstance.EntityName #>OptionAppService : IOptionAppServiceBase<OptionDto, <#= ModelInstance.BaseKeyType #>>
     {
     }
 }

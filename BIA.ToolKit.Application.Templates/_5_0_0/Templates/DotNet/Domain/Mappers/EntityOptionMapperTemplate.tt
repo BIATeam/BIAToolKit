@@ -1,0 +1,41 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".cs" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityOptionModel" name="Model" #>
+<# 
+var ModelInstance = Model ?? new EntityOptionMock();
+#>
+// <copyright file="<#= ModelInstance.EntityName #>OptionMapper.cs" company="<#= ModelInstance.CompanyName #>">
+//     Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers
+{
+    using System;
+    using System.Linq.Expressions;
+    using BIA.Net.Core.Domain;
+    using BIA.Net.Core.Domain.Dto.Option;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
+
+    /// <summary>
+    /// The mapper used for <#= ModelInstance.EntityName.ToLower() #> option.
+    /// </summary>
+    public class <#= ModelInstance.EntityName #>OptionMapper : BaseMapper<OptionDto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>>
+    {
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
+        public override Expression<Func<<#= ModelInstance.EntityName #>, OptionDto>> EntityToDto()
+        {
+            return entity => new OptionDto
+            {
+                Id = entity.Id,
+                Display = entity.<#= ModelInstance.OptionDisplayName #>,
+            };
+        }
+    }
+}

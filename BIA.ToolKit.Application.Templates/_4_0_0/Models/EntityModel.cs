@@ -13,5 +13,6 @@ namespace BIA.ToolKit.Application.Templates._4_0_0.Models
         public string EntityNameArticle { get; set; }
         public List<PropertyModel> Properties { get; set; } = new List<PropertyModel>();
         public bool IsTeamType { get; set; }
+        public string BaseKeyType { get; set; }
     }
 }

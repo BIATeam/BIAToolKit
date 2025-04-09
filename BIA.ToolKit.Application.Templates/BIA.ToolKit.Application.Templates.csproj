@@ -52,6 +52,11 @@
     <Compile Include="_5_0_0\Models\EntityDtoModel.cs" />
     <Compile Include="_5_0_0\Models\EntityOptionModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyModel.cs" />
+    <None Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityOptionMapperTemplate.cs">
+      <DependentUpon>EntityOptionMapperTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_5_0_0\Templates\DotNet\Application\IEntityOptionAppService.cs">
       <DependentUpon>IEntityOptionAppService.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -109,6 +114,11 @@
     <Content Include="_5_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityDtoTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityOptionMapperTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionMapperTemplate.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.tt">

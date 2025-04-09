@@ -25,7 +25,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     /// <summary>
     /// The application service used for <#= ModelInstance.EntityName.ToLower() #> option.
     /// </summary>
-    public class <#= ModelInstance.EntityName #>OptionAppService : OptionAppServiceBase<OptionDto, <#= ModelInstance.EntityName #>, int, <#= ModelInstance.EntityName #>OptionMapper>, I<#= ModelInstance.EntityName #>OptionAppService
+    public class <#= ModelInstance.EntityName #>OptionAppService : OptionAppServiceBase<OptionDto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, <#= ModelInstance.EntityName #>OptionMapper>, I<#= ModelInstance.EntityName #>OptionAppService
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>OptionAppService"/> class.

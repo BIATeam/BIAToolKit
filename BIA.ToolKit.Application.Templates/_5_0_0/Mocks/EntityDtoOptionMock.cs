@@ -16,7 +16,9 @@
             EntityNameArticle = "a";
             DomainName = "AircraftMaintenanceCompany";
             EntityName = "Country";
+            BaseKeyType = "int";
             EntityNamePlural = "Countries";
+            OptionDisplayName = "Name";
             Properties = new List<_4_0_0.Models.PropertyModel>()
             {
                 new PropertyModel

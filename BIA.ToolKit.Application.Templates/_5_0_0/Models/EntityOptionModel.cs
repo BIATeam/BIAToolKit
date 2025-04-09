@@ -8,5 +8,6 @@
 
     public class EntityOptionModel : EntityModel
     {
+        public string OptionDisplayName { get; set; }
     }
 }
