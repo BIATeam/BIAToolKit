@@ -53,7 +53,7 @@
 
             InitializeComponent();
 
-            CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, featureSettingService);
+            CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, featureSettingService, settingsService);
             ModifyProject.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, cSharpParserService,
                 projectCreatorService, zipParserService, crudService, settingsService, featureSettingService, fileGeneratorService, uiEventBroker);
 
@@ -312,7 +312,16 @@
                 return;
             }
 
-            await this.projectCreatorService.Create(true, _viewModel.Settings.CreateCompanyName, CreateProjectName.Text, projectPath, CreateVersionAndOption.vm.VersionAndOption, new List<string> { Constants.FolderAngular });
+            await this.projectCreatorService.Create(
+                true, 
+                projectPath, 
+                new Domain.Model.ProjectParameters 
+                { 
+                    CompanyName= _viewModel.Settings.CreateCompanyName, 
+                    ProjectName = CreateProjectName.Text,
+                    VersionAndOption = CreateVersionAndOption.vm.VersionAndOption,
+                    AngularFronts = new List<string> { Constants.FolderAngular } 
+                });
             Enable(true);
         }
 

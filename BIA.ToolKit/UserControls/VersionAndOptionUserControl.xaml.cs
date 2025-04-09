@@ -11,11 +11,14 @@
     using System.Windows.Controls;
     using System.Windows.Media;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Mapper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Domain.Work;
+    using Windows.UI.Input;
 
     /// <summary>
     /// Interaction logic for VersionAndOptionView.xaml
@@ -27,6 +30,7 @@
         RepositoryService repositoryService;
         IConsoleWriter consoleWriter;
         FeatureSettingService featureSettingService;
+        private SettingsService settingsService;
         private string currentProjectPath;
 
         public VersionAndOptionViewModel vm;
@@ -37,13 +41,16 @@
             vm = (VersionAndOptionViewModel)base.DataContext;
         }
 
-        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, FeatureSettingService featureSettingService)
+        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, FeatureSettingService featureSettingService,
+                    SettingsService settingsService)
         {
             this.settings = settings;
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
             this.repositoryService = repositoryService;
             this.featureSettingService = featureSettingService;
+            this.settingsService = settingsService;
+            vm.Inject(repositoryService, consoleWriter);
         }
 
         public void SelectVersion(string version)
@@ -51,10 +58,25 @@
             vm.WorkTemplate = vm.WorkTemplates.FirstOrDefault(workTemplate => workTemplate.Version == $"V{version}");
         }
 
-        public void SetCurrentProjectPath(string path)
+        public void SetCurrentProjectPath(string path, bool mapCompanyFileVersion)
         {
             this.currentProjectPath = path;
             this.LoadfeatureSetting();
+
+            this.LoadVersionAndOption(mapCompanyFileVersion);
+        }
+
+        private void LoadVersionAndOption(bool mapCompanyFileVersion)
+        {
+            if (!string.IsNullOrWhiteSpace(this.currentProjectPath))
+            {
+                string projectGenerationFile = Path.Combine(this.currentProjectPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
+                if (File.Exists(projectGenerationFile))
+                {
+                    VersionAndOptionDto versionAndOptionDto = CommonTools.DeserializeJsonFile<VersionAndOptionDto>(projectGenerationFile);
+                    VersionAndOptionMapper.DtoToModel(versionAndOptionDto, vm, mapCompanyFileVersion);
+                }
+            }
         }
 
         private void LoadfeatureSetting()
@@ -189,86 +211,10 @@
 
         private async void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            vm.UseCompanyFiles = vm.WorkTemplate?.RepositorySettings?.Name == "BIATemplate";
-
-            foreach (var WorkCompanyFile in vm.WorkCompanyFiles)
-            {
-                if (vm.WorkTemplate?.Version == WorkCompanyFile.Version)
-                {
-                    vm.WorkCompanyFile = WorkCompanyFile;
-                }
-            }
-
+            //vm.UseCompanyFiles = vm.WorkTemplate?.RepositorySettings?.Name == "BIATemplate";
             await this.FillVersionFolderPathAsync();
             this.LoadfeatureSetting();
-        }
-
-        private void CompanyFileVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            var listProfiles = new List<string>();
-
-            GridOption.Children.Clear();
-
-            if (vm.WorkCompanyFile != null)
-            {
-                vm.WorkCompanyFile.VersionFolderPath = repositoryService.PrepareVersionFolder(vm.WorkCompanyFile.RepositorySettings, vm.WorkCompanyFile.Version).Result;
-                string fileName = vm.WorkCompanyFile.VersionFolderPath + "\\biaCompanyFiles.json";
-
-                try
-                {
-                    string jsonString = File.ReadAllText(fileName);
-
-                    CFSettings cfSetting = JsonSerializer.Deserialize<CFSettings>(jsonString);
-
-                    foreach (string profile in cfSetting.Profiles)
-                    {
-                        listProfiles.Add(profile);
-                        vm.Profile = profile;
-                    }
-                    vm.Profiles = new ObservableCollection<string>(listProfiles);
-
-                    int top = 0;
-                    vm.Options = new List<CFOption>();
-                    foreach (CFOption option in cfSetting.Options)
-                    {
-                        option.IsChecked = (!(option?.Default == 0));
-                        vm.Options.Add(option);
-
-                        CheckBox checkbox = new CheckBox();
-                        checkbox.Content = option.Name;
-                        checkbox.IsChecked = option.IsChecked;
-                        checkbox.Foreground = Brushes.White;
-                        checkbox.Height = 16;
-                        checkbox.Name = "CFOption_" + option.Key;
-                        checkbox.Margin = new Thickness(0, top, 0, 0);
-                        checkbox.Checked += CompanyFileOption_Checked;
-                        checkbox.Unchecked += CompanyFileOption_Checked;
-                        top += 25;
-                        checkbox.VerticalAlignment = VerticalAlignment.Top;
-                        GridOption.Children.Add(checkbox);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    consoleWriter.AddMessageLine(ex.Message, "Red");
-                }
-            }
-
-        }
-
-        private void CompanyFileOption_Checked(object sender, RoutedEventArgs e)
-        {
-            if (sender is CheckBox)
-            {
-                CheckBox chx = (CheckBox)sender;
-                foreach (CFOption option in vm.Options)
-                {
-                    if ("CFOption_" + option.Key == chx.Name)
-                    {
-                        option.IsChecked = chx.IsChecked == true;
-                    }
-                }
-            }
+            this.LoadVersionAndOption(false);
         }
     }
 }
