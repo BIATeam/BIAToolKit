@@ -58,7 +58,7 @@
             this.uiEventBroker = uiEventBroker;
             this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
 
-            vm.Inject(consoleWriter);
+            vm.Inject(fileGeneratorService, consoleWriter);
         }
 
         private void UIEventBroker_OnProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem)
@@ -79,12 +79,6 @@
             
             if (project is null)
                 return;
-
-            if (!fileGeneratorService.Init(project))
-            {
-                consoleWriter.AddMessageLine($"ERROR: incompatible project version", "red");
-                return;
-            }
 
             this.project = project;
             vm.SetProject(project);

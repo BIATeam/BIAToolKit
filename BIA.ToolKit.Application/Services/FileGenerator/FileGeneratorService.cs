@@ -11,6 +11,7 @@
     using BIA.ToolKit.Application.Services.FileGenerator.Versions;
     using BIA.ToolKit.Application.Templates;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using Microsoft.Extensions.Logging;
@@ -27,68 +28,71 @@
         private readonly List<Manifest> manifests = [];
         private Project currentProject;
         private Manifest currentManifest;
-        private string currentTemplatePath;
+        private string templatesPath;
         private string currentDomain;
         private string currentEntity;
+        public bool isInit { get; private set; }
 
-        public FileGeneratorService(IConsoleWriter consoleWriter)
+        public FileGeneratorService(UIEventBroker eventBroker, IConsoleWriter consoleWriter)
         {
+            eventBroker.OnProjectChanged += EventBroker_OnProjectChanged;
             this.consoleWriter = consoleWriter;
             fileGeneratorFactory = new FileGeneratorVersionFactory(consoleWriter);
             templateGenerator = new TemplateGenerator();
             templateGenerator.Refs.Add(typeof(Manifest).Assembly.Location);
-            LoadManifests();
+            LoadTemplatesManifests();
         }
 
-        public bool Init(Project project)
+        private void EventBroker_OnProjectChanged(Project project, UIEventBroker.TabItemModifyProjectEnum currentTabItem)
         {
+            if (project != null)
+                Init(project);
+        }
+
+        public void Init(Project project)
+        {
+            isInit = false;
+
             if (!Version.TryParse(project.FrameworkVersion, out Version projectVersion))
             {
-                consoleWriter.AddMessageLine($"ERROR: invalid project version", "red");
-                return false;
+                consoleWriter.AddMessageLine($"File generator init failed : invalid project version", "red");
+                return;
             }
 
             currentProject = project;
             fileGenerator = fileGeneratorFactory.GetBiaFrameworkFileGenerator(projectVersion);
-            if (fileGenerator is null) 
-                return false;
+            if (fileGenerator is null)
+            {
+                consoleWriter.AddMessageLine($"File generator init failed : incompatible project version", "red");
+                return;
+            }
 
             var regex = new Regex(@"^[^_]+(.+)$");
             var match = regex.Match(fileGenerator.GetType().Name);
             if (!match.Success)
             {
-                consoleWriter.AddMessageLine($"ERROR: invalid file generator version", "red");
-                return false;
+                consoleWriter.AddMessageLine($"File generator init failed : invalid file generator version", "red");
+                return;
             }
 
             var fileGeneratorVersion = match.Groups[1].Value;
             var manifestVersion = fileGeneratorVersion.Replace("_", ".")[1..fileGeneratorVersion.Length];
-            var currentProjectManifestJson = Path.Combine(currentProject.Folder, ".bia", "biatoolkit.templates.manifest.json");
-            if (!File.Exists(currentProjectManifestJson))
-            {
-                currentManifest = manifests.FirstOrDefault(m => m.Version.ToString() == manifestVersion);
-                if (currentManifest != null) 
-                    File.WriteAllText(currentProjectManifestJson, JsonConvert.SerializeObject(currentManifest));
-            }
-            else
-            {
-                currentManifest = JsonConvert.DeserializeObject<Manifest>(File.ReadAllText(currentProjectManifestJson));
-            }
+            currentManifest = manifests.FirstOrDefault(m => m.Version.ToString() == manifestVersion);
 
             if (currentManifest is null)
             {
-                consoleWriter.AddMessageLine($"ERROR: no manifest for version {manifestVersion}", "red");
-                return false;
+                consoleWriter.AddMessageLine($"File generator init failed : no manifest for version {manifestVersion}", "red");
+                return;
             }
 
-            currentTemplatePath = Path.Combine(currentProject.Folder, ".bia", "Templates");
-            if(!Directory.Exists(currentTemplatePath))
+            templatesPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), fileGeneratorVersion, "Templates");
+            if (!Directory.Exists(templatesPath))
             {
-                var templatesPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), fileGeneratorVersion, "Templates");
-                FileSystem.CopyDirectory(templatesPath, currentTemplatePath);
+                consoleWriter.AddMessageLine($"File generator init failed : no templates found for version {fileGeneratorVersion}", "red");
+                return;
             }
 
-            return true;
+            isInit = true;
         }
 
         public async Task GenerateDto(EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
@@ -98,7 +102,7 @@
                 consoleWriter.AddMessageLine($" === GENERATE DTO ===", color: "lightblue");
                 var templateModel = fileGenerator.GetDtoTemplateModel(currentProject, entityInfo, domainName, mappingEntityProperties);
                 var dtoFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "DTO")
-                    ?? throw new KeyNotFoundException($"No DTO feature for template manifest {currentManifest.Version}");
+                    ?? throw new KeyNotFoundException($"no DTO feature for template manifest {currentManifest.Version}");
                 currentDomain = domainName;
                 currentEntity = entityInfo.Name;
                 await GenerateTemplatesFromManifestFeature(dtoFeature, templateModel);
@@ -106,13 +110,13 @@
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"Fail to generate DTO : {ex}", color: "red");
+                consoleWriter.AddMessageLine($"DTO generation failed : {ex}", color: "red");
             }
         }
 
-        private void LoadManifests()
+        private void LoadTemplatesManifests()
         {
-            var manifestsFiles = Directory.EnumerateFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "*manifest.json", System.IO.SearchOption.AllDirectories).ToList();
+            var manifestsFiles = Directory.EnumerateFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "manifest.json", System.IO.SearchOption.AllDirectories).ToList();
             manifestsFiles.ForEach(m => manifests.Add(JsonConvert.DeserializeObject<Manifest>(File.ReadAllText(m))));
         }
 
@@ -123,9 +127,9 @@
 
         private async Task GenerateDotNetTemplates(IEnumerable<Manifest.Feature.Template> templates, object model)
         {
-            foreach(var template in templates)
+            foreach (var template in templates)
             {
-                var templatePath = Path.Combine(currentTemplatePath, "DotNet", template.InputPath);
+                var templatePath = Path.Combine(templatesPath, Constants.FolderDotNet, template.InputPath);
                 await GenerateFromTemplate(templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, currentProject, currentDomain, currentEntity));
             }
         }
@@ -133,7 +137,7 @@
         private static string GetDotNetTemplateOutputPath(string templateOutputPath, Project project, string domainName, string entityName)
         {
             var projectName = $"{project.CompanyName}.{project.Name}";
-            var dotNetProjectPath = Path.Combine(project.Folder, "DotNet");
+            var dotNetProjectPath = Path.Combine(project.Folder, Constants.FolderDotNet);
             return Path.Combine(dotNetProjectPath, templateOutputPath.Replace("{Project}", projectName).Replace("{Domain}", domainName).Replace("{Entity}", entityName));
         }
 
@@ -161,9 +165,9 @@
 
                 consoleWriter.AddMessageLine($"Success !", "lightgreen");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"Fail to generate : {ex}", color: "red");
+                consoleWriter.AddMessageLine($"Generate from template failed : {ex}", color: "red");
             }
         }
     }

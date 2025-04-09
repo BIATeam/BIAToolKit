@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
@@ -18,6 +19,7 @@
 
     public class DtoGeneratorViewModel : ObservableObject
     {
+        private FileGeneratorService fileGeneratorService;
         private IConsoleWriter consoleWriter;
         private readonly List<EntityInfo> domainEntities = new();
         private readonly List<string> optionCollectionsMappingTypes = new()
@@ -61,8 +63,11 @@
             {
                 isProjectChosen = value;
                 RaisePropertyChanged(nameof(IsProjectChosen));
+                RaisePropertyChanged(nameof(IsFileGeneratorInit));
             }
         }
+
+        public bool IsFileGeneratorInit => this.fileGeneratorService?.isInit == true;
 
         private ObservableCollection<string> entitiesNames = new();
         public ObservableCollection<string> EntitiesNames
@@ -166,8 +171,9 @@
             IsProjectChosen = true;
         }
 
-        public void Inject(IConsoleWriter consoleWriter)
+        public void Inject(FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter)
         {
+            this.fileGeneratorService = fileGeneratorService;
             this.consoleWriter = consoleWriter;
         }
 

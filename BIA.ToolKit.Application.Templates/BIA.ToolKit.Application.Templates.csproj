@@ -46,7 +46,7 @@
     <Compile Include="_4_0_0\Mocks\EntityTeamMock.cs" />
     <Compile Include="_4_0_0\Mocks\EntityMock.cs" />
     <Compile Include="_4_0_0\Models\EntityModel.cs" />
-    <None Include="_4_0_0\biatoolkit.templates.manifest.json">
+    <None Include="_4_0_0\manifest.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="_4_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.cs">
