@@ -15,38 +15,10 @@
             ProjectName = "BIADemo";
             EntityNameArticle = "a";
             DomainName = "AircraftMaintenanceCompany";
-            EntityName = "MyCountry";
+            EntityName = "Country";
             BaseKeyType = "int";
-            EntityNamePlural = "MyCountries";
+            EntityNamePlural = "Countries";
             OptionDisplayName = "Name";
-            Properties = new List<_4_0_0.Models.PropertyModel>()
-            {
-                new PropertyModel
-                {
-                    EntityCompositeName = "Id",
-                    MappingType = "int",
-                    MappingName = "Id",
-                    IsRequired = true
-                },
-                new PropertyModel
-                {
-                    EntityCompositeName = "Name",
-                    MappingType = "string",
-                    MappingName = "Name",
-                    IsRequired = true,
-                },
-                new PropertyModel
-                {
-                    EntityCompositeName = "Option",
-                    MappingType = "OptionDto",
-                    MappingName = "Option",
-                    IsOption = true,
-                    OptionType = "Option",
-                    OptionDisplayProperty = "Name",
-                    OptionIdProperty = "Id",
-                    OptionEntityIdPropertyComposite = "OptionId"
-                }
-            };
         }
     }
 }
