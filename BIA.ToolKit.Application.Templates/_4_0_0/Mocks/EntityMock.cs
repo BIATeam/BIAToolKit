@@ -11,15 +11,12 @@
     {
         public EntityMock()
         {
-            CompanyName = "Company";
-            ProjectName = "Project";
-            NameArticle = "an";
-            DomainName = "Domain";
-            DtoName = "Entity" + "Dto";
-            EntityName = "Entity";
+            CompanyName = "MyCompany";
+            ProjectName = "MyProject";
+            EntityNameArticle = "an";
+            DomainName = "MyDomain";
+            EntityName = "MyEntity";
             BaseKeyType = "int";
-            EntityNamespace = "Company.Project.Domain";
-            MapperName = "EntityMapper";
             IsTeamType = false;
             Properties = new List<PropertyModel>()
             {

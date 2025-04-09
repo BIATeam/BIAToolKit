@@ -13,7 +13,7 @@ var ModelInstance = Model ?? new EntityTeamMock();
 var baseMapperClass = ModelInstance.IsTeamType ? "TTeamMapper" : "BaseMapper";
 var baseKeyType = ModelInstance.IsTeamType ? string.Empty : $", {ModelInstance.BaseKeyType}";
 #>
-// <copyright file="<#= ModelInstance.MapperName #>.cs" company="<#= ModelInstance.CompanyName #>">
+// <copyright file="<#= ModelInstance.EntityName #>Mapper.cs" company="<#= ModelInstance.CompanyName #>">
 //     Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
 
@@ -34,7 +34,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <# if (ModelInstance.HasOptions) { #>
     using BIA.Net.Core.Domain.Dto.Option;
 <# } #>
-    using <#= ModelInstance.EntityNamespace #>;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
 <# if (ModelInstance.IsTeamType) { #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.User.Mappers;
@@ -43,7 +43,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
     /// <summary>
     /// The mapper used for <#= ModelInstance.EntityName #>.
     /// </summary>
-    public class <#= ModelInstance.EntityName #>Mapper : <#= baseMapperClass #><<#= ModelInstance.DtoName #>, <#= ModelInstance.EntityName #><#= baseKeyType #>>
+    public class <#= ModelInstance.EntityName #>Mapper : <#= baseMapperClass #><<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #><#= baseKeyType #>>
     {
 <# if (ModelInstance.IsTeamType) { #>
         /// <summary>
@@ -83,7 +83,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         }
 
         /// <inheritdoc/>
-        public override void DtoToEntity(<#= ModelInstance.DtoName #> dto, <#= ModelInstance.EntityName #> entity)
+        public override void DtoToEntity(<#= ModelInstance.EntityName #>Dto dto, <#= ModelInstance.EntityName #> entity)
         {
             entity ??= new <#= ModelInstance.EntityName #>();
 
@@ -122,9 +122,9 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         }
 
         /// <inheritdoc/>
-        public override Expression<Func<<#= ModelInstance.EntityName #>, <#= ModelInstance.DtoName #>>> EntityToDto()
+        public override Expression<Func<<#= ModelInstance.EntityName #>, <#= ModelInstance.EntityName #>Dto>> EntityToDto()
         {
-            return <#= ModelInstance.IsTeamType ? "base.EntityToDto().CombineMapping(" : "" #>entity => new <#= ModelInstance.DtoName #>
+            return <#= ModelInstance.IsTeamType ? "base.EntityToDto().CombineMapping(" : "" #>entity => new <#= ModelInstance.EntityName #>Dto
             {
 <# foreach (var property in ModelInstance.Properties) {
        if (!property.IsOption && !property.IsOptionCollection) { #>
@@ -147,7 +147,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         }
 
         /// <inheritdoc/>
-        public override Func<<#= ModelInstance.DtoName #>, object[]> DtoToRecord(List<string> headerNames = null)
+        public override Func<<#= ModelInstance.EntityName #>Dto, object[]> DtoToRecord(List<string> headerNames = null)
         {
             return x => (new object[]
             {

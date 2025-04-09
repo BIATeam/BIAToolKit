@@ -1,8 +1,8 @@
-﻿// <copyright file="EntityDto.cs" company="Company">
-//     Copyright (c) Company. All rights reserved.
+﻿// <copyright file="MyEntityDto.cs" company="MyCompany">
+//     Copyright (c) MyCompany. All rights reserved.
 // </copyright>
 
-namespace Company.Project.Domain.Dto.Domain
+namespace MyCompany.MyProject.Domain.Dto.MyDomain
 {
     using System;
     using BIA.Net.Core.Domain.Dto.Base;
@@ -10,9 +10,9 @@ namespace Company.Project.Domain.Dto.Domain
     using BIA.Net.Core.Domain.Dto.Option;
 
     /// <summary>
-    /// The DTO used to represent an Entity.
+    /// The DTO used to represent an MyEntity.
     /// </summary>
-    public class EntityDto : BaseDto<int>
+    public class MyEntityDto : BaseDto<int>
     {
         /// <summary>
         /// Gets or sets the Name.

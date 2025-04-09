@@ -52,22 +52,25 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>EntityOptionAppService.tt</DependentUpon>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityOptionsController.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>EntityOptionsController.tt</DependentUpon>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.cs">
       <DependentUpon>EntityMapperTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="_5_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.cs">
       <DependentUpon>EntityDtoTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <Compile Include="_4_0_0\Mocks\EntityTeamMock.cs" />
     <Compile Include="_4_0_0\Mocks\EntityMock.cs" />
@@ -82,43 +85,45 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>EntityDtoTemplate.tt</DependentUpon>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.cs">
       <DependentUpon>EntityMapperTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="_5_0_0\Templates\DotNet\Application\EntityOptionAppService.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityOptionAppService.cs</LastGenOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="_5_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityDtoTemplate.cs</LastGenOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityMapperTemplate.cs</LastGenOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="_4_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.tt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityDtoTemplate.cs</LastGenOutput>
     </Content>
     <Content Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityMapperTemplate.cs</LastGenOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityOptionsController.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityOptionsController.cs</LastGenOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>

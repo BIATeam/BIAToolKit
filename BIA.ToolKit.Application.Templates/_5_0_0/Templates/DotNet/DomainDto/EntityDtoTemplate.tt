@@ -9,7 +9,7 @@
 <#@ output extension=".cs" #>
 <#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityModel" name="Model" #>
 <# var ModelInstance = Model ?? new EntityMock(); #>
-// <copyright file="<#= ModelInstance.DtoName #>.cs" company="<#= ModelInstance.CompanyName #>">
+// <copyright file="<#= ModelInstance.EntityName #>Dto.cs" company="<#= ModelInstance.CompanyName #>">
 //     Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
 
@@ -31,19 +31,19 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <# } #>
 
     /// <summary>
-    /// The DTO used to represent <#= ModelInstance.NameArticle #> <#= ModelInstance.EntityName #>.
+    /// The DTO used to represent <#= ModelInstance.EntityNameArticle #> <#= ModelInstance.EntityName #>.
     /// </summary>
-    public class <#= ModelInstance.DtoName #> : <#= ModelInstance.IsTeamType ? "TeamDto" : $"BaseDto<{ModelInstance.BaseKeyType}>" #>
+    public class <#= ModelInstance.EntityName #>Dto : <#= ModelInstance.IsTeamType ? "TeamDto" : $"BaseDto<{ModelInstance.BaseKeyType}>" #>
     {
 <# var index = 0;  #>
-<# foreach(var prop in ModelInstance.FilteredProperties) { #>
+<# foreach(var prop in ModelInstance.DtoPropertiesToGenerate) { #>
         /// <summary>
         /// Gets or sets the <#= prop.MappingName #>.
         /// </summary>
         [BiaDtoField(<#= prop.BiaDtoFieldAttributeProperties #>)]
         public <#= prop.MappingType #> <#= prop.MappingName #> { get; set; }
 <# index++;  #>
-<# if(index != ModelInstance.FilteredProperties.Count()) {#>
+<# if(index != ModelInstance.DtoPropertiesToGenerate.Count()) {#>
 
 <# }#>
 <# } #>

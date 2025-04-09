@@ -1,8 +1,8 @@
-﻿// <copyright file="EntityMapper.cs" company="Company">
-//     Copyright (c) Company. All rights reserved.
+﻿// <copyright file="MyEntityMapper.cs" company="MyCompany">
+//     Copyright (c) MyCompany. All rights reserved.
 // </copyright>
 
-namespace Company.Project.Domain.Domain.Mappers
+namespace MyCompany.MyProject.Domain.MyDomain.Mappers
 {
     using System;
     using System.Linq;
@@ -12,20 +12,20 @@ namespace Company.Project.Domain.Domain.Mappers
     using BIA.Net.Core.Domain;
     using BIA.Net.Core.Domain.Dto.Base;
     using BIA.Net.Core.Domain.Dto.Option;
-    using Company.Project.Domain;
-    using Company.Project.Domain.Dto.Domain;
-    using Company.Project.Domain.User.Mappers;
+    using MyCompany.MyProject.Domain.MyDomain.Entities;
+    using MyCompany.MyProject.Domain.Dto.MyDomain;
+    using MyCompany.MyProject.Domain.User.Mappers;
 
     /// <summary>
-    /// The mapper used for Entity.
+    /// The mapper used for MyEntity.
     /// </summary>
-    public class EntityMapper : TTeamMapper<EntityDto, Entity>
+    public class MyEntityMapper : TTeamMapper<MyEntityDto, MyEntity>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="EntityMapper"/> class.
+        /// Initializes a new instance of the <see cref="MyEntityMapper"/> class.
         /// </summary>
         /// <param name="principal">The principal.</param>
-        public EntityMapper(IPrincipal principal)
+        public MyEntityMapper(IPrincipal principal)
             : base(principal)
         {
         }
@@ -33,13 +33,13 @@ namespace Company.Project.Domain.Domain.Mappers
         /// <inheritdoc/>
         public override int TeamType => base.TeamType;
         /// <inheritdoc/>
-        public override ExpressionCollection<Entity> ExpressionCollection
+        public override ExpressionCollection<MyEntity> ExpressionCollection
         {
             // It is not necessary to implement this function if you do not use the mapper for filtered list.
             // In BIADemo it is used only for Calc SpreadSheet.
             get
             {
-                return new ExpressionCollection<Entity>
+                return new ExpressionCollection<MyEntity>
                 {
                     { HeaderName.Id, x => x.Id },
                     { HeaderName.Name, x => x.Name },
@@ -49,9 +49,9 @@ namespace Company.Project.Domain.Domain.Mappers
         }
 
         /// <inheritdoc/>
-        public override void DtoToEntity(EntityDto dto, Entity entity)
+        public override void DtoToEntity(MyEntityDto dto, MyEntity entity)
         {
-            entity ??= new Entity();
+            entity ??= new MyEntity();
 
             base.DtoToEntity(dto, entity);
             entity.Id = dto.Id;
@@ -60,9 +60,9 @@ namespace Company.Project.Domain.Domain.Mappers
         }
 
         /// <inheritdoc/>
-        public override Expression<Func<Entity, EntityDto>> EntityToDto()
+        public override Expression<Func<MyEntity, MyEntityDto>> EntityToDto()
         {
-            return base.EntityToDto().CombineMapping(entity => new EntityDto
+            return base.EntityToDto().CombineMapping(entity => new MyEntityDto
             {
                 Id = entity.Id,
                 Name = entity.Name,
@@ -74,7 +74,7 @@ namespace Company.Project.Domain.Domain.Mappers
         }
 
         /// <inheritdoc/>
-        public override Func<EntityDto, object[]> DtoToRecord(List<string> headerNames = null)
+        public override Func<MyEntityDto, object[]> DtoToRecord(List<string> headerNames = null)
         {
             return x => (new object[]
             {

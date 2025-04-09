@@ -31,9 +31,8 @@
 
             model.CompanyName = project.CompanyName;
             model.ProjectName = project.Name;
-            model.NameArticle = Common.ComputeNameArticle(entityInfo.Name);
+            model.EntityNameArticle = Common.ComputeNameArticle(entityInfo.Name);
             model.DomainName = domainName;
-            model.DtoName = entityInfo.Name + "Dto";
             model.EntityName = entityInfo.Name;
             model.BaseKeyType = entityInfo.BaseKeyType;
             model.Properties = mappingEntityProperties.Select(x => new PropertyModel()
@@ -54,8 +53,6 @@
                 OptionRelationFirstIdProperty = x.OptionRelationFirstIdProperty,
                 OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty,
             }).ToList();
-            model.EntityNamespace = entityInfo.Namespace;
-            model.MapperName = entityInfo.Name + "Mapper";
             model.IsTeamType = entityInfo.BaseType?.Contains("Team") ?? false;
 
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))

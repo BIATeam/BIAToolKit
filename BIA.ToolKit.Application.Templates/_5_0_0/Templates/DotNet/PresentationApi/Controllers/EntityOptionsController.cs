@@ -1,49 +1,49 @@
-﻿// <copyright file="EntityOptionsController.cs" company="Company">
-//     Copyright (c) Company. All rights reserved.
+﻿// <copyright file="MyEntityOptionsController.cs" company="MyCompany">
+//     Copyright (c) MyCompany. All rights reserved.
 // </copyright>
 
-namespace Company.Project.Presentation.Api.Controllers.Domain
+namespace MyCompany.MyProject.Presentation.Api.Controllers.MyDomain
 {
     using System.Threading.Tasks;
     using BIA.Net.Presentation.Api.Controllers.Base;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
-    using Company.Project.Application.Domain;
-    using Company.Project.Crosscutting.Common;
+    using MyCompany.MyProject.Application.MyDomain;
+    using MyCompany.MyProject.Crosscutting.Common;
 
     /// <summary>
-    /// The API controller used to manage entity options.
+    /// The API controller used to manage myentity options.
     /// </summary>
-    public class EntityOptionsController : BiaControllerBase
+    public class MyEntityOptionsController : BiaControllerBase
     {
         /// <summary>
-        /// The entity application service.
+        /// The myentity application service.
         /// </summary>
-        private readonly IEntityOptionAppService entityOptionService;
+        private readonly IMyEntityOptionAppService myentityOptionService;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EntityOptionsController"/> class.
+        /// Initializes a new instance of the <see cref="MyEntityOptionsController"/> class.
         /// </summary>
-        /// <param name="entityOptionService">The entity application service.</param>
-        public EntityOptionsController(IEntityOptionAppService entityOptionService)
+        /// <param name="myentityOptionService">The myentity application service.</param>
+        public MyEntityOptionsController(IMyEntityOptionAppService myentityOptionService)
         {
-            this.entityOptionService = entityOptionService;
+            this.myentityOptionService = myentityOptionService;
         }
 
         /// <summary>
         /// Gets all option that I can see.
         /// </summary>
-        /// /// <returns>The list of entities.</returns>
+        /// /// <returns>The list of myentities.</returns>
         [HttpGet("allOptions")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Roles = Rights.EntityOptions.Options)]
+        [Authorize(Roles = Rights.MyEntityOptions.Options)]
         public async Task<IActionResult> GetAllOptions()
         {
-            var results = await this.entityOptionService.GetAllOptionsAsync();
+            var results = await this.myentityOptionService.GetAllOptionsAsync();
             return this.Ok(results);
         }
     }
