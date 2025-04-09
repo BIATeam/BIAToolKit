@@ -1,8 +1,8 @@
-﻿// <copyright file="MyEntityMapper.cs" company="MyCompany">
-//     Copyright (c) MyCompany. All rights reserved.
+﻿// <copyright file="PlaneMapper.cs" company="TheBIADevCompany">
+//     Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 
-namespace MyCompany.MyProject.Domain.MyDomain.Mappers
+namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
 {
     using System;
     using System.Linq;
@@ -12,20 +12,20 @@ namespace MyCompany.MyProject.Domain.MyDomain.Mappers
     using BIA.Net.Core.Domain;
     using BIA.Net.Core.Domain.Dto.Base;
     using BIA.Net.Core.Domain.Dto.Option;
-    using MyCompany.MyProject.Domain.MyDomain.Entities;
-    using MyCompany.MyProject.Domain.Dto.MyDomain;
-    using MyCompany.MyProject.Domain.User.Mappers;
+    using TheBIADevCompany.BIADemo.Domain.Fleet.Entities;
+    using TheBIADevCompany.BIADemo.Domain.Dto.Fleet;
+    using TheBIADevCompany.BIADemo.Domain.User.Mappers;
 
     /// <summary>
-    /// The mapper used for MyEntity.
+    /// The mapper used for Plane.
     /// </summary>
-    public class MyEntityMapper : TTeamMapper<MyEntityDto, MyEntity>
+    public class PlaneMapper : TTeamMapper<PlaneDto, Plane>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MyEntityMapper"/> class.
+        /// Initializes a new instance of the <see cref="PlaneMapper"/> class.
         /// </summary>
         /// <param name="principal">The principal.</param>
-        public MyEntityMapper(IPrincipal principal)
+        public PlaneMapper(IPrincipal principal)
             : base(principal)
         {
         }
@@ -33,13 +33,13 @@ namespace MyCompany.MyProject.Domain.MyDomain.Mappers
         /// <inheritdoc/>
         public override int TeamType => base.TeamType;
         /// <inheritdoc/>
-        public override ExpressionCollection<MyEntity> ExpressionCollection
+        public override ExpressionCollection<Plane> ExpressionCollection
         {
             // It is not necessary to implement this function if you do not use the mapper for filtered list.
             // In BIADemo it is used only for Calc SpreadSheet.
             get
             {
-                return new ExpressionCollection<MyEntity>
+                return new ExpressionCollection<Plane>
                 {
                     { HeaderName.Id, x => x.Id },
                     { HeaderName.Name, x => x.Name },
@@ -49,9 +49,9 @@ namespace MyCompany.MyProject.Domain.MyDomain.Mappers
         }
 
         /// <inheritdoc/>
-        public override void DtoToEntity(MyEntityDto dto, MyEntity entity)
+        public override void DtoToEntity(PlaneDto dto, Plane entity)
         {
-            entity ??= new MyEntity();
+            entity ??= new Plane();
 
             base.DtoToEntity(dto, entity);
             entity.Id = dto.Id;
@@ -60,9 +60,9 @@ namespace MyCompany.MyProject.Domain.MyDomain.Mappers
         }
 
         /// <inheritdoc/>
-        public override Expression<Func<MyEntity, MyEntityDto>> EntityToDto()
+        public override Expression<Func<Plane, PlaneDto>> EntityToDto()
         {
-            return base.EntityToDto().CombineMapping(entity => new MyEntityDto
+            return base.EntityToDto().CombineMapping(entity => new PlaneDto
             {
                 Id = entity.Id,
                 Name = entity.Name,
@@ -74,7 +74,7 @@ namespace MyCompany.MyProject.Domain.MyDomain.Mappers
         }
 
         /// <inheritdoc/>
-        public override Func<MyEntityDto, object[]> DtoToRecord(List<string> headerNames = null)
+        public override Func<PlaneDto, object[]> DtoToRecord(List<string> headerNames = null)
         {
             return x => (new object[]
             {

@@ -1,8 +1,8 @@
-﻿// <copyright file="MyEntityDto.cs" company="MyCompany">
-//     Copyright (c) MyCompany. All rights reserved.
+﻿// <copyright file="PlaneDto.cs" company="TheBIADevCompany">
+//     Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 
-namespace MyCompany.MyProject.Domain.Dto.MyDomain
+namespace TheBIADevCompany.BIADemo.Domain.Dto.Fleet
 {
     using System;
     using BIA.Net.Core.Domain.Dto.Base;
@@ -10,9 +10,9 @@ namespace MyCompany.MyProject.Domain.Dto.MyDomain
     using BIA.Net.Core.Domain.Dto.Option;
 
     /// <summary>
-    /// The DTO used to represent an MyEntity.
+    /// The DTO used to represent a Plane.
     /// </summary>
-    public class MyEntityDto : BaseDto<int>
+    public class PlaneDto : BaseDto<int>
     {
         /// <summary>
         /// Gets or sets the Name.

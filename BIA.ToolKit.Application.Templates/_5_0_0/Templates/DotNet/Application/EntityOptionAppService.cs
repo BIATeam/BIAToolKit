@@ -1,26 +1,26 @@
-﻿// <copyright file="MyEntityOptionAppService.cs" company="MyCompany">
-//     Copyright (c) MyCompany. All rights reserved.
+﻿// <copyright file="PlaneOptionAppService.cs" company="TheBIADevCompany">
+//     Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 
-namespace MyCompany.MyProject.Application.MyDomain
+namespace TheBIADevCompany.BIADemo.Application.Fleet
 {
     using BIA.Net.Core.Application.Services;
     using BIA.Net.Core.Domain.Dto.Option;
     using BIA.Net.Core.Domain.RepoContract;
     using BIA.Net.Core.Domain.Service;
-    using MyCompany.MyProject.Domain.MyDomain.Entities;
-    using MyCompany.MyProject.MyDomain.Mappers;
+    using TheBIADevCompany.BIADemo.Domain.Fleet.Entities;
+    using TheBIADevCompany.BIADemo.Fleet.Mappers;
 
     /// <summary>
-    /// The application service used for myentity option.
+    /// The application service used for plane option.
     /// </summary>
-    public class MyEntityOptionAppService : OptionAppServiceBase<OptionDto, MyEntity, int, MyEntityOptionMapper>, IMyEntityOptionAppService
+    public class PlaneOptionAppService : OptionAppServiceBase<OptionDto, Plane, int, PlaneOptionMapper>, IPlaneOptionAppService
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MyEntityOptionAppService"/> class.
+        /// Initializes a new instance of the <see cref="PlaneOptionAppService"/> class.
         /// </summary>
         /// <param name="repository">The repository.</param>
-        public MyEntityOptionAppService(ITGenericRepository<MyEntity, int> repository)
+        public PlaneOptionAppService(ITGenericRepository<Plane, int> repository)
             : base(repository)
         {
         }

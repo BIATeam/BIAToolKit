@@ -11,14 +11,13 @@
     {
         public EntityMock()
         {
-            CompanyName = "MyCompany";
-            ProjectName = "MyProject";
-            EntityNameArticle = "an";
-            DomainName = "MyDomain";
-            EntityName = "MyEntity";
-            EntityNamePlural = "MyEntities";
+            CompanyName = "TheBIADevCompany";
+            ProjectName = "BIADemo";
+            EntityNameArticle = "a";
+            DomainName = "Fleet";
+            EntityName = "Plane";
+            EntityNamePlural = "Planes";
             BaseKeyType = "int";
-            IsTeamType = false;
             Properties = new List<_4_0_0.Models.PropertyModel>()
             {
                 new PropertyModel
