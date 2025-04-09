@@ -6,8 +6,6 @@
     using System.Linq;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Services.FileGenerator;
-    using BIA.ToolKit.Application.Templates._4_0_0.Models;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
@@ -19,5 +17,17 @@
         [
             new("5.*"),
         ];
+
+        protected override Templates._4_0_0.Models.EntityModel CreateEntityModel()
+        {
+            return new Templates._5_0_0.Models.EntityModel();
+        }
+
+        public new object GetDtoTemplateModel(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
+        {
+            var model = base.GetDtoTemplateModel(project, entityInfo, domainName, mappingEntityProperties) as Templates._5_0_0.Models.EntityModel;
+            // Map additionnal properties of your model 
+            return model;
+        }
     }
 }

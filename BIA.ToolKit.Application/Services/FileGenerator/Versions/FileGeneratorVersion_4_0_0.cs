@@ -20,39 +20,43 @@
             new("4.*"),
         ];
 
+        protected virtual EntityModel CreateEntityModel()
+        {
+            return new EntityModel();
+        }
+
         public object GetDtoTemplateModel(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
         {
-            var model = new EntityModel
+            var model = CreateEntityModel();
+
+            model.CompanyName = project.CompanyName;
+            model.ProjectName = project.Name;
+            model.NameArticle = Common.ComputeNameArticle(entityInfo.Name);
+            model.DomainName = domainName;
+            model.DtoName = entityInfo.Name + "Dto";
+            model.EntityName = entityInfo.Name;
+            model.BaseKeyType = entityInfo.BaseKeyType;
+            model.Properties = mappingEntityProperties.Select(x => new PropertyModel()
             {
-                CompanyName = project.CompanyName,
-                ProjectName = project.Name,
-                NameArticle = Common.ComputeNameArticle(entityInfo.Name),
-                DomainName = domainName,
-                DtoName = entityInfo.Name + "Dto",
-                EntityName = entityInfo.Name,
-                BaseKeyType = entityInfo.BaseKeyType,
-                Properties = mappingEntityProperties.Select(x => new PropertyModel()
-                {
-                    MappingName = x.MappingName,
-                    EntityCompositeName = x.EntityCompositeName,
-                    MappingType = x.MappingType,
-                    MappingDateType = x.MappingDateType,
-                    IsOption = x.IsOption,
-                    IsOptionCollection = x.IsOptionCollection,
-                    OptionType = x.OptionType,
-                    IsRequired = x.IsRequired,
-                    OptionDisplayProperty = x.OptionDisplayProperty,
-                    OptionIdProperty = x.OptionIdProperty,
-                    OptionEntityIdPropertyComposite = x.OptionEntityIdPropertyComposite,
-                    OptionRelationType = x.OptionRelationType,
-                    OptionRelationPropertyComposite = x.OptionRelationPropertyComposite,
-                    OptionRelationFirstIdProperty = x.OptionRelationFirstIdProperty,
-                    OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty,
-                }).ToList(),
-                EntityNamespace = entityInfo.Namespace,
-                MapperName = entityInfo.Name + "Mapper",
-                IsTeamType = entityInfo.BaseType?.Contains("Team") ?? false
-            };
+                MappingName = x.MappingName,
+                EntityCompositeName = x.EntityCompositeName,
+                MappingType = x.MappingType,
+                MappingDateType = x.MappingDateType,
+                IsOption = x.IsOption,
+                IsOptionCollection = x.IsOptionCollection,
+                OptionType = x.OptionType,
+                IsRequired = x.IsRequired,
+                OptionDisplayProperty = x.OptionDisplayProperty,
+                OptionIdProperty = x.OptionIdProperty,
+                OptionEntityIdPropertyComposite = x.OptionEntityIdPropertyComposite,
+                OptionRelationType = x.OptionRelationType,
+                OptionRelationPropertyComposite = x.OptionRelationPropertyComposite,
+                OptionRelationFirstIdProperty = x.OptionRelationFirstIdProperty,
+                OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty,
+            }).ToList();
+            model.EntityNamespace = entityInfo.Namespace;
+            model.MapperName = entityInfo.Name + "Mapper";
+            model.IsTeamType = entityInfo.BaseType?.Contains("Team") ?? false;
 
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {
