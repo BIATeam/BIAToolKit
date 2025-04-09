@@ -31,7 +31,8 @@
         private string templatesPath;
         private string currentDomain;
         private string currentEntity;
-        public bool isInit { get; private set; }
+
+        public bool IsInit { get; private set; }
 
         public FileGeneratorService(UIEventBroker eventBroker, IConsoleWriter consoleWriter)
         {
@@ -47,7 +48,7 @@
         {
             if(project is null)
             {
-                isInit = false;
+                IsInit = false;
                 return;
             }
 
@@ -59,7 +60,7 @@
 
         public void Init(Project project)
         {
-            isInit = false;
+            IsInit = false;
 
             // Parse version of project
             if (!Version.TryParse(project.FrameworkVersion, out Version projectVersion))
@@ -110,7 +111,7 @@
                 return;
             }
 
-            isInit = true;
+            IsInit = true;
         }
 
         public async Task GenerateDto(EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
@@ -118,6 +119,9 @@
             try
             {
                 consoleWriter.AddMessageLine($" === GENERATE DTO ===", color: "lightblue");
+
+                if (!IsInit)
+                    throw new Exception("file generator has not been initialiazed");
 
                 var templateModel = fileGenerator.GetDtoTemplateModel(currentProject, entityInfo, domainName, mappingEntityProperties);
                 var dtoFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "DTO")

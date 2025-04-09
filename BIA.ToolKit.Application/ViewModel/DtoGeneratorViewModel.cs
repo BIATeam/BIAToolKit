@@ -67,7 +67,7 @@
             }
         }
 
-        public bool IsFileGeneratorInit => this.fileGeneratorService?.isInit == true;
+        public bool IsFileGeneratorInit => this.fileGeneratorService?.IsInit == true;
 
         private ObservableCollection<string> entitiesNames = new();
         public ObservableCollection<string> EntitiesNames

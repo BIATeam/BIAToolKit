@@ -37,7 +37,7 @@
         //public IProductRepository Repository { get; set; }
         public ModifyProject ModifyProject { get; set; }
 
-        public bool IsFileGeneratorServiceInit => fileGeneratorService?.isInit == true;
+        public bool IsFileGeneratorServiceInit => fileGeneratorService?.IsInit == true;
 
         public List<string> Projects
         {
