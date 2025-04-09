@@ -108,7 +108,7 @@
                     Environment.Exit(0);
                 }
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("The installation failled.");

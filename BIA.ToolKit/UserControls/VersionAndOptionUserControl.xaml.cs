@@ -216,5 +216,10 @@
             this.LoadfeatureSetting();
             this.LoadVersionAndOption(false);
         }
+
+        private async void CFVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            this.LoadVersionAndOption(false);
+        }
     }
 }
