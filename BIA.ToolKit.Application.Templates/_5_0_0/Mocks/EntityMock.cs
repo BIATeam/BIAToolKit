@@ -22,7 +22,7 @@
             EntityNamespace = "Company.Project.Domain";
             MapperName = "EntityMapper";
             IsTeamType = false;
-            Properties = new List<PropertyModel>()
+            Properties = new List<_4_0_0.Models.PropertyModel>()
             {
                 new PropertyModel
                 {

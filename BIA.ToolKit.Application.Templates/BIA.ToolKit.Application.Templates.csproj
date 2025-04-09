@@ -7,8 +7,8 @@
     <ProjectGuid>{03EA3958-5144-43DB-82C4-471E803D5ADB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BIA.ToolKit.Application.TemplateGenerator</RootNamespace>
-    <AssemblyName>BIA.ToolKit.Application.TemplateGenerator</AssemblyName>
+    <RootNamespace>BIA.ToolKit.Application.Templates</RootNamespace>
+    <AssemblyName>BIA.ToolKit.Application.Templates</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -43,9 +43,11 @@
   <ItemGroup>
     <Compile Include="Manifest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="_4_0_0\Models\PropertyModel.cs" />
     <Compile Include="_5_0_0\Mocks\EntityMock.cs" />
     <Compile Include="_5_0_0\Mocks\EntityTeamMock.cs" />
     <Compile Include="_5_0_0\Models\EntityModel.cs" />
+    <Compile Include="_5_0_0\Models\PropertyModel.cs" />
     <None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityOptionsController.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
