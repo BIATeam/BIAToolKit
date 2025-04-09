@@ -12,5 +12,6 @@
     {
         List<BiaFrameworkVersion> CompatibleBiaFrameworkVersions { get; }
         object GetDtoTemplateModel(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties);
+        object GetOptionTemplateModel(EntityInfo entityInfo, string domaineName, string displayName);
     }
 }

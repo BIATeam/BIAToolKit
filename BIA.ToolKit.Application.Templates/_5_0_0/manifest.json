@@ -13,6 +13,27 @@
           "outputPath": "{Project}.Domain.Dto\\{Domain}\\{Entity}Dto.cs"
         }
       ]
+    },
+    {
+      "name": "Option",
+      "dotNetTemplates": [
+        {
+          "inputPath": "PresentationApi\\Controllers\\EntityOptionsController.tt",
+          "outputPath": "{Project}.Presentation.Api\\Controllers\\{Domain}\\{Entity}OptionsController.cs"
+        },
+        {
+          "inputPath": "Application\\EntityOptionAppService.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\{Entity}OptionAppService.cs"
+        },
+        {
+          "inputPath": "Application\\IEntityOptionAppService.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\I{Entity}OptionAppService.cs"
+        },
+        {
+          "inputPath": "Domain\\Mappers\\EntityOptionMapperTemplate.tt",
+          "outputPath": "{Project}.Domain\\{Domain}\\Mappers\\{Entity}OptionMapper.cs"
+        }
+      ]
     }
   ]
 }

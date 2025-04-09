@@ -184,7 +184,7 @@
         {
             if (fileGeneratorService.IsProjectCompatible())
             {
-                await fileGeneratorService.GenerateOption();
+                await fileGeneratorService.GenerateOption(vm.Entity, vm.Domain, vm.EntityDisplayItemSelected);
                 return;
             }
 

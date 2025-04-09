@@ -148,14 +148,23 @@
             }
         }
 
-        public async Task GenerateOption()
+        public async Task GenerateOption(EntityInfo entityInfo, string domainName, string displayName)
         {
             try
             {
-                consoleWriter.AddMessageLine($" === GENERATE Option ===", color: "lightblue");
+                consoleWriter.AddMessageLine($" === GENERATE OPTION ===", color: "lightblue");
 
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
+
+                var templateModel = fileGenerator.GetOptionTemplateModel(entityInfo, domainName, displayName);
+                var optionFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "Option")
+                    ?? throw new KeyNotFoundException($"no Option feature for template manifest {currentManifest.Version}");
+
+                currentDomain = domainName;
+                currentEntity = entityInfo.Name;
+
+                await GenerateTemplatesFromManifestFeature(optionFeature, templateModel);
 
                 consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
             }
@@ -228,6 +237,11 @@
                 templateGenerator.ClearSession();
                 var templateGeneratorSession = templateGenerator.GetOrCreateSession();
                 templateGeneratorSession.Add("Model", model);
+
+                if (!Directory.Exists(Path.GetDirectoryName(outputPath)))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
+                }
 
                 var success = await templateGenerator.ProcessTemplateAsync(tempTemplatePath, outputPath);
                 File.Delete(tempTemplatePath);

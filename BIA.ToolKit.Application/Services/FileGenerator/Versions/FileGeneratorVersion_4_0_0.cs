@@ -63,5 +63,10 @@
 
             return model;
         }
+
+        public object GetOptionTemplateModel(EntityInfo entityInfo, string domaineName, string displayName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -9,7 +9,7 @@ namespace TheBIADevCompany.BIADemo.Application.AircraftMaintenanceCompany
     using BIA.Net.Core.Domain.RepoContract;
     using BIA.Net.Core.Domain.Service;
     using TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Entities;
-    using TheBIADevCompany.BIADemo.AircraftMaintenanceCompany.Mappers;
+    using TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Mappers;
 
     /// <summary>
     /// The application service used for country option.

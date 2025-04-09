@@ -20,7 +20,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     using BIA.Net.Core.Domain.RepoContract;
     using BIA.Net.Core.Domain.Service;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.<#= ModelInstance.DomainName #>.Mappers;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers;
 
     /// <summary>
     /// The application service used for <#= ModelInstance.EntityName.ToLower() #> option.

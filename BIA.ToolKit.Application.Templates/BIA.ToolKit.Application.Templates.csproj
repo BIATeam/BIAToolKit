@@ -84,10 +84,10 @@
     </None>
     <Compile Include="_4_0_0\Models\EntityModel.cs" />
     <None Include="_5_0_0\manifest.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="_4_0_0\manifest.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="_4_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.cs">
       <AutoGen>True</AutoGen>
