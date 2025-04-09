@@ -11,6 +11,12 @@
         {
             // Company Files
             vm.UseCompanyFiles = dto.UseCompanyFiles;
+
+
+            // Feature
+            vm.CheckFeature(dto.Tags, dto.Folders);
+
+            // Company Files
             if (mapCompanyFileVersion)
             {
                 vm.WorkCompanyFile = vm.WorkCompanyFiles?.FirstOrDefault(w => w.Version == dto.CompanyFileVersion);
@@ -27,6 +33,10 @@
         public static void ModelToDto(VersionAndOption model, VersionAndOptionDto dto)
         {
             dto.FrameworkVersion = model.WorkTemplate?.Version;
+
+            // Feature
+            dto.Tags = model.FeatureSettings.Where(f => f.IsSelected && f.Tags?.Any() == true).SelectMany(f => f.Tags).Distinct().ToList();
+            dto.Folders = model.FeatureSettings.Where(f => f.IsSelected && f.FoldersToExcludes?.Any() == true).SelectMany(f => f.FoldersToExcludes).Distinct().ToList();
 
             // Company Files
             dto.UseCompanyFiles = model.UseCompanyFiles;

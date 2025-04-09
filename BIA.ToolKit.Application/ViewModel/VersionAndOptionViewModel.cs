@@ -211,6 +211,27 @@
             }
         }
 
+        public void CheckFeature(List<string> tags, List<string> folders)
+        {
+            var features = new List<FeatureSetting>();
+            foreach (FeatureSetting feature in FeatureSettings)
+            {
+                if ((feature.Tags != null && feature.Tags.Any(t1 => tags.Any(t2 => string.Equals(t1,t2))))
+                    ||
+                    (feature.FoldersToExcludes != null && feature.FoldersToExcludes.Any(f1 => folders.Any(f2 => string.Equals(f1, f2))))
+                    )
+                {
+                    feature.IsSelected = true;
+                }
+                else
+                {
+                    feature.IsSelected = false;
+                }
+                features.Add(feature);
+            }
+            FeatureSettings = new ObservableCollection<FeatureSetting>(features);
+        }
+
         public bool HasFeature
         {
             get { return hasFeature; }

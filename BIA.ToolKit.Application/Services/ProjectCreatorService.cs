@@ -82,7 +82,7 @@
                 consoleWriter.AddMessageLine("Start copy template files.", "Pink");
                 FileTransform.CopyFilesRecursively(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath, projectPath, "", localFilesToExcludes, foldersToExcludes);
 
-                IList<string> filesToRemove = new List<string>() { "^new-angular-project\\.ps1$" };
+                IList<string> filesToRemove = new List<string>() { "^new-angular-project\\.ps1$", "BiaToolKit_FeatureSetting\\.json" };
 
                 if (projectParameters.VersionAndOption.UseCompanyFiles)
                 {
@@ -164,9 +164,14 @@
                     }
                 }
 
-                this.featureSettingService.Save(featureSettings, projectPath);
-                
-                string projectGenerationFile = Path.Combine(projectPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
+
+                string rootBiaFolder = Path.Combine(projectPath, Constants.FolderBia);
+                if (!Directory.Exists(rootBiaFolder))
+                {
+                    Directory.CreateDirectory(rootBiaFolder);
+                }
+
+                string projectGenerationFile = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
                 VersionAndOptionDto versionAndOptionDto = new VersionAndOptionDto();
                 VersionAndOptionMapper.ModelToDto(projectParameters.VersionAndOption, versionAndOptionDto);
                 CommonTools.SerializeToJsonFile(versionAndOptionDto, projectGenerationFile);
