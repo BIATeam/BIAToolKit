@@ -43,9 +43,25 @@
   <ItemGroup>
     <Compile Include="Manifest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="_5_0_0\Mocks\EntityMock.cs" />
+    <Compile Include="_5_0_0\Mocks\EntityTeamMock.cs" />
+    <Compile Include="_5_0_0\Models\EntityModel.cs" />
+    <None Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.cs">
+      <DependentUpon>EntityMapperTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.cs">
+      <DependentUpon>EntityDtoTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <Compile Include="_4_0_0\Mocks\EntityTeamMock.cs" />
     <Compile Include="_4_0_0\Mocks\EntityMock.cs" />
     <Compile Include="_4_0_0\Models\EntityModel.cs" />
+    <None Include="_5_0_0\manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="_4_0_0\manifest.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -61,6 +77,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="_5_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityDtoTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityMapperTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="_4_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.tt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Generator>TextTemplatingFileGenerator</Generator>
