@@ -15,12 +15,12 @@ var ModelInstance = Model ?? new EntityOptionMock();
         // BIAToolKit - Begin Partial RightsForOption <#= ModelInstance.EntityName #>
 
         /// <summary>
-        /// The <#= ModelInstance.EntityName.ToCamelCase() #> options rights.
+        /// The <#= ModelInstance.EntityName #> options rights.
         /// </summary>
         public static class <#= ModelInstance.EntityName #>Options
         {
             /// <summary>
-            /// The right to access to the list of <#= ModelInstance.EntityNamePlural.ToCamelCase() #> (options only).
+            /// The right to access to the list of <#= ModelInstance.EntityNamePlural #> (options only).
             /// </summary>
             public const string Options = "<#= ModelInstance.EntityName #>_Options";
         }

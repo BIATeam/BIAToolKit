@@ -31,12 +31,12 @@
 
         public new object GetDtoTemplateModel(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
         {
-            var model = base.GetDtoTemplateModel(project, entityInfo, domainName, mappingEntityProperties) as Templates._5_0_0.Models.EntityDtoModel;
+            var model = base.GetDtoTemplateModel(project, entityInfo, domainName, mappingEntityProperties) as EntityDtoModel;
             // Map additionnal properties of your model 
             return model;
         }
 
-        public new object GetOptionTemplateModel(EntityInfo entityInfo, string domainName, string displayName)
+        public new object GetOptionTemplateModel(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayName)
         {
             var model = CreateDtoOptionModel();
 
@@ -44,7 +44,7 @@
             model.ProjectName = entityInfo.ProjectName;
             model.EntityNameArticle = Common.ComputeNameArticle(entityInfo.Name);
             model.EntityName = entityInfo.Name;
-            model.EntityNamePlural = entityInfo.NamePluralized;
+            model.EntityNamePlural = entityNamePlural;
             model.BaseKeyType = entityInfo.BaseKeyType;
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {

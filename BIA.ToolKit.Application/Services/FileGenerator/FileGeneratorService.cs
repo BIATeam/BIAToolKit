@@ -35,7 +35,7 @@
         private Manifest currentManifest;
         private string templatesPath;
         private string currentDomain;
-        private string currentEntity;
+        private string currentEntityName;
 
         public bool IsInit { get; private set; }
 
@@ -142,7 +142,7 @@
                     ?? throw new KeyNotFoundException($"no DTO feature for template manifest {currentManifest.Version}");
 
                 currentDomain = domainName;
-                currentEntity = entityInfo.Name;
+                currentEntityName = entityInfo.Name;
 
                 await GenerateTemplatesFromManifestFeature(dtoFeature, templateModel);
                 consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
@@ -153,7 +153,7 @@
             }
         }
 
-        public async Task GenerateOption(EntityInfo entityInfo, string domainName, string displayName)
+        public async Task GenerateOption(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayName)
         {
             try
             {
@@ -162,12 +162,12 @@
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
 
-                var templateModel = fileGenerator.GetOptionTemplateModel(entityInfo, domainName, displayName);
+                var templateModel = fileGenerator.GetOptionTemplateModel(entityInfo, entityNamePlural, domainName, displayName);
                 var optionFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "Option")
                     ?? throw new KeyNotFoundException($"no Option feature for template manifest {currentManifest.Version}");
 
                 currentDomain = domainName;
-                currentEntity = entityInfo.Name;
+                currentEntityName = entityInfo.Name;
 
                 await GenerateTemplatesFromManifestFeature(optionFeature, templateModel);
 
@@ -212,7 +212,7 @@
             foreach (var template in templates)
             {
                 var templatePath = Path.Combine(templatesPath, Constants.FolderDotNet, template.InputPath);
-                await GenerateFromTemplate(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, currentProject, currentDomain, currentEntity));
+                await GenerateFromTemplate(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, currentProject, currentDomain, currentEntityName));
             }
         }
 
@@ -279,8 +279,8 @@
                         throw new Exception($"Unable to find insertion markup {template.PartialInsertionMarkup} into {relativeOutputPath}");
                     }
 
-                    var biaToolKitMarkupPartialBeginPattern = string.Format(BiaToolKitMarkupPartialBeginPattern, template.PartialInsertionMarkup, currentEntity);
-                    var biaToolKitMarkupPartialEndPattern = string.Format(BiaToolKitMarkupPartialEndPattern, template.PartialInsertionMarkup, currentEntity);
+                    var biaToolKitMarkupPartialBeginPattern = string.Format(BiaToolKitMarkupPartialBeginPattern, template.PartialInsertionMarkup, currentEntityName);
+                    var biaToolKitMarkupPartialEndPattern = string.Format(BiaToolKitMarkupPartialEndPattern, template.PartialInsertionMarkup, currentEntityName);
                     // Partial content already exists
                     if (outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialBeginPattern)) && outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialEndPattern)))
                     {
