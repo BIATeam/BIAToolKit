@@ -127,6 +127,11 @@
       <LastGenOutput>EntityOptionsEffectsTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionReducerTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionReducerTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionStateTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityOptionStateTemplate.ts</LastGenOutput>
@@ -199,6 +204,11 @@
     </TypeScriptCompile>
     <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsEffectsTemplate.ts">
       <DependentUpon>EntityOptionsEffectsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionReducerTemplate.ts">
+      <DependentUpon>EntityOptionReducerTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </TypeScriptCompile>

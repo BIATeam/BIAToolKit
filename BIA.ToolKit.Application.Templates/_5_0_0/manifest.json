@@ -32,6 +32,10 @@
         {
           "inputPath": "src\\app\\domains\\store\\EntityOptionsEffectsTemplate.tt",
           "outputPath": "src\\app\\domains\\{Entity}-option\\store\\{Entity}-options.effects.ts"
+        },
+        {
+          "inputPath": "src\\app\\domains\\store\\EntityOptionsReducerTemplate.tt",
+          "outputPath": "src\\app\\domains\\{Entity}-option\\store\\{Entity}-options.reducer.ts"
         }
       ],
       "dotNetTemplates": [

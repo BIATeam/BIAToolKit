@@ -1,0 +1,38 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".ts" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityOptionModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityOptionMock(); #>
+import { EntityState, createEntityAdapter } from '@ngrx/entity';
+import { createReducer, on } from '@ngrx/store';
+import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
+import { Domain<#= ModelInstance.EntityName #>OptionsActions } from './<#= ModelInstance.EntityName.ToKebabCase() #>-options-actions';
+
+// This adapter will allow is to manipulate <#= ModelInstance.EntityNamePlural.ToCamelCase() #> (mostly CRUD operations)
+export const <#= ModelInstance.EntityName.ToCamelCase() #>OptionsAdapter = createEntityAdapter<OptionDto>({
+  selectId: (<#= ModelInstance.EntityName.ToCamelCase() #>: OptionDto) => <#= ModelInstance.EntityName.ToCamelCase() #>.id,
+  sortComparer: false,
+});
+
+export type State = EntityState<OptionDto>;
+
+export const INIT_STATE: State = <#= ModelInstance.EntityName.ToCamelCase() #>OptionsAdapter.getInitialState({
+  // additional props default values here
+});
+
+export const <#= ModelInstance.EntityName.ToCamelCase() #>OptionReducers = createReducer<State>(
+  INIT_STATE,
+  on(Domain<#= ModelInstance.EntityName #>OptionsActions.loadAllSuccess, (state, { <#= ModelInstance.EntityNamePlural.ToCamelCase() #> }) =>
+    <#= ModelInstance.EntityName.ToCamelCase() #>OptionsAdapter.setAll(<#= ModelInstance.EntityNamePlural.ToCamelCase() #>, state)
+  )
+);
+
+export const get<#= ModelInstance.EntityName #>OptionById = (id: number) => (state: State) =>
+  state.entities[id];
