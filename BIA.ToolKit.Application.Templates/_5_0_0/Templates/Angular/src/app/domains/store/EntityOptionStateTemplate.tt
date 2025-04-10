@@ -1,0 +1,58 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".ts" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityOptionModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityOptionMock(); #>
+import {
+  Action,
+  combineReducers,
+  createFeatureSelector,
+  createSelector,
+} from '@ngrx/store';
+import { storeKey } from '../<#= ModelInstance.EntityName.ToKebabCase() #>-option.constants';
+import * as from<#= ModelInstance.EntityName #>Options from './<#= ModelInstance.EntityName.ToKebabCase() #>-options-reducer';
+
+export interface <#= ModelInstance.EntityName #>OptionsState {
+  <#= ModelInstance.EntityName.ToCamelCase() #>Options: from<#= ModelInstance.EntityName #>Options.State;
+}
+
+/** Provide reducers with AoT-compilation compliance */
+export function reducers(
+  state: <#= ModelInstance.EntityName #>OptionsState | undefined,
+  action: Action
+) {
+  return combineReducers({
+    <#= ModelInstance.EntityName.ToCamelCase() #>Options: from<#= ModelInstance.EntityName #>Options.<#= ModelInstance.EntityName.ToCamelCase() #>OptionReducers,
+  })(state, action);
+}
+
+/**
+ * The createFeatureSelector function selects a piece of state from the root of the state object.
+ * This is used for selecting feature states that are loaded eagerly or lazily.
+ */
+
+export const get<#= ModelInstance.EntityNamePlural #>State =
+  createFeatureSelector<<#= ModelInstance.EntityName #>OptionsState>(storeKey);
+
+export const get<#= ModelInstance.EntityName #>OptionsEntitiesState = createSelector(
+  get<#= ModelInstance.EntityNamePlural #>State,
+  state => state.<#= ModelInstance.EntityName.ToCamelCase() #>Options
+);
+
+export const { selectAll: getAll<#= ModelInstance.EntityName #>Options } =
+  from<#= ModelInstance.EntityName #>Options.<#= ModelInstance.EntityName.ToCamelCase() #>OptionsAdapter.getSelectors(
+    get<#= ModelInstance.EntityName #>OptionsEntitiesState
+  );
+
+export const get<#= ModelInstance.EntityName #>OptionById = (id: number) =>
+  createSelector(
+    get<#= ModelInstance.EntityName #>OptionsEntitiesState,
+    from<#= ModelInstance.EntityName #>Options.get<#= ModelInstance.EntityName #>OptionById(id)
+  );
