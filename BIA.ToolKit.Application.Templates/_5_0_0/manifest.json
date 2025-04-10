@@ -28,6 +28,10 @@
         {
           "inputPath": "src\\app\\domains\\store\\EntityOptionsActionsTemplate.tt",
           "outputPath": "src\\app\\domains\\{Entity}-option\\store\\{Entity}-options.actions.ts"
+        },
+        {
+          "inputPath": "src\\app\\domains\\store\\EntityOptionsEffectsTemplate.tt",
+          "outputPath": "src\\app\\domains\\{Entity}-option\\store\\{Entity}-options.effects.ts"
         }
       ],
       "dotNetTemplates": [
