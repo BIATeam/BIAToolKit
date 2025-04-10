@@ -32,6 +32,12 @@
         {
           "inputPath": "Domain\\Mappers\\EntityOptionMapperTemplate.tt",
           "outputPath": "{Project}.Domain\\{Domain}\\Mappers\\{Entity}OptionMapper.cs"
+        },
+        {
+          "inputPath": "CrosscuttingCommon\\PartialOptionRightsTemplate.tt",
+          "outputPath": "{Project}.Crosscutting.Common\\Rights.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "RightsForOption"
         }
       ]
     }

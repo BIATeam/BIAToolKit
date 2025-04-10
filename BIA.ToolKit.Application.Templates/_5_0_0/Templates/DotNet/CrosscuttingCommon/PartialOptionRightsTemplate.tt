@@ -1,0 +1,28 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".cs" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityOptionModel" name="Model" #>
+<# 
+var ModelInstance = Model ?? new EntityOptionMock();
+#>
+        // BIAToolKit - Begin Partial RightsForOption <#= ModelInstance.EntityName #>
+
+        /// <summary>
+        /// The <#= ModelInstance.EntityName.ToCamelCase() #> options rights.
+        /// </summary>
+        public static class <#= ModelInstance.EntityName #>Options
+        {
+            /// <summary>
+            /// The right to access to the list of <#= ModelInstance.EntityNamePlural.ToCamelCase() #> (options only).
+            /// </summary>
+            public const string Options = "<#= ModelInstance.EntityName #>_Options";
+        }
+
+        // BIAToolKit - End Partial RightsForOption <#= ModelInstance.EntityName #>

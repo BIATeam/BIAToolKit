@@ -21,6 +21,11 @@
 
     public class FileGeneratorService
     {
+        const string BiaToolKitMarkupBeginPattern = "// BIAToolKit - Begin {0}";
+        const string BiaToolKitMarkupEndPattern = "// BIAToolKit - End {0}";
+        const string BiaToolKitMarkupPartialBeginPattern = "// BIAToolKit - Begin Partial {0} {1}";
+        const string BiaToolKitMarkupPartialEndPattern = "// BIAToolKit - End Partial {0} {1}";
+
         private readonly FileGeneratorVersionFactory fileGeneratorFactory;
         private IFileGeneratorVersion fileGenerator;
         private readonly TemplateGenerator templateGenerator;
@@ -207,7 +212,7 @@
             foreach (var template in templates)
             {
                 var templatePath = Path.Combine(templatesPath, Constants.FolderDotNet, template.InputPath);
-                await GenerateFromTemplate(templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, currentProject, currentDomain, currentEntity));
+                await GenerateFromTemplate(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, currentProject, currentDomain, currentEntity));
             }
         }
 
@@ -218,7 +223,7 @@
             return Path.Combine(dotNetProjectPath, templateOutputPath.Replace("{Project}", projectName).Replace("{Domain}", domainName).Replace("{Entity}", entityName));
         }
 
-        private async Task GenerateFromTemplate(string templatePath, object model, string outputPath)
+        private async Task GenerateFromTemplate(Manifest.Feature.Template template, string templatePath, object model, string outputPath)
         {
             try
             {
@@ -227,27 +232,70 @@
                 var relativeTemplatePath = templatePath.Replace(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), string.Empty);
                 consoleWriter.AddMessageLine($"Using template file {relativeTemplatePath}", color: "darkgray");
 
-                var tempTemplatePath = Path.GetTempFileName();
+                var generationTemplatePath = Path.GetTempFileName();
                 var templateContent = await File.ReadAllTextAsync(templatePath);
                 // Replace the load of assembly based on $(TargetPath) from template content to avoid generation errors
                 templateContent = templateContent.Replace("<#@ assembly name=\"$(TargetPath)\" #>", "<#@ #>");
-                await File.WriteAllTextAsync(tempTemplatePath, templateContent);
+                await File.WriteAllTextAsync(generationTemplatePath, templateContent);
 
                 // Inject Model parameter for template generation
                 templateGenerator.ClearSession();
                 var templateGeneratorSession = templateGenerator.GetOrCreateSession();
                 templateGeneratorSession.Add("Model", model);
 
-                if (!Directory.Exists(Path.GetDirectoryName(outputPath)))
+                if (!template.IsPartial)
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
-                }
+                    if (!Directory.Exists(Path.GetDirectoryName(outputPath)))
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
+                    }
 
-                var success = await templateGenerator.ProcessTemplateAsync(tempTemplatePath, outputPath);
-                File.Delete(tempTemplatePath);
-                if (!success)
+                    var success = await templateGenerator.ProcessTemplateAsync(generationTemplatePath, outputPath);
+                    File.Delete(generationTemplatePath);
+                    if (!success)
+                    {
+                        throw new Exception(JsonConvert.SerializeObject(templateGenerator.Errors));
+                    }
+                }
+                else
                 {
-                    throw new Exception(JsonConvert.SerializeObject(templateGenerator.Errors));
+                    // Generate partial content from template into temp file
+                    var generatedTemplatePath = Path.Combine(Path.GetTempPath(), Path.GetFileName(outputPath));
+                    var success = await templateGenerator.ProcessTemplateAsync(generationTemplatePath, generatedTemplatePath);
+                    File.Delete(generationTemplatePath);
+                    if (!success)
+                    {
+                        throw new Exception(JsonConvert.SerializeObject(templateGenerator.Errors));
+                    }
+
+                    var generatedTemplateContent = (await File.ReadAllLinesAsync(generatedTemplatePath)).ToList();
+                    File.Delete(generatedTemplatePath);
+
+                    var outputContent = (await File.ReadAllLinesAsync(outputPath)).ToList();
+                    var biaToolKitMarkupBegin = string.Format(BiaToolKitMarkupBeginPattern, template.PartialInsertionMarkup);
+                    var biaToolKitMarkupEnd = string.Format(BiaToolKitMarkupEndPattern, template.PartialInsertionMarkup);
+                    if(!outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupBegin)) || !outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupEnd)))
+                    {
+                        throw new Exception($"Unable to find insertion markup {template.PartialInsertionMarkup} into {relativeOutputPath}");
+                    }
+
+                    var biaToolKitMarkupPartialBeginPattern = string.Format(BiaToolKitMarkupPartialBeginPattern, template.PartialInsertionMarkup, currentEntity);
+                    var biaToolKitMarkupPartialEndPattern = string.Format(BiaToolKitMarkupPartialEndPattern, template.PartialInsertionMarkup, currentEntity);
+                    // Partial content already exists
+                    if (outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialBeginPattern)) && outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialEndPattern)))
+                    {
+                        var indexBegin = outputContent.FindIndex(line => line.Trim().Equals(biaToolKitMarkupPartialBeginPattern));
+                        var indexEnd = outputContent.FindIndex(line => line.Trim().Equals(biaToolKitMarkupPartialEndPattern));
+                        // Replace previous generated content by new one
+                        outputContent.RemoveRange(indexBegin, indexEnd - indexBegin + 1);
+                        outputContent.InsertRange(indexBegin, generatedTemplateContent);
+                    }
+                    else
+                    {
+                        var indexBegin = outputContent.FindIndex(line => line.Contains(biaToolKitMarkupEnd));
+                        outputContent.InsertRange(indexBegin, generatedTemplateContent);
+                    }
+                    await File.WriteAllLinesAsync(outputPath, outputContent);
                 }
 
                 consoleWriter.AddMessageLine($"Success !", "lightgreen");

@@ -14,6 +14,8 @@
             {
                 public string InputPath { get; set; }
                 public string OutputPath { get; set; }
+                public bool IsPartial { get; set; }
+                public string PartialInsertionMarkup { get; set; }
             }
 
             public string Name { get; set; }
