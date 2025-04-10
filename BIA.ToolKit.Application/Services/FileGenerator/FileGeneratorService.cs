@@ -204,7 +204,8 @@
 
         private async Task GenerateTemplatesFromManifestFeature(Manifest.Feature manifestFeature, object model)
         {
-            await GenerateDotNetTemplates(manifestFeature.DotNetTemplates, model);
+            await GenerateAngularTemplates(manifestFeature.AngularTemplates, model);
+            //await GenerateDotNetTemplates(manifestFeature.DotNetTemplates, model);
         }
 
         private async Task GenerateDotNetTemplates(IEnumerable<Manifest.Feature.Template> templates, object model)
@@ -221,6 +222,21 @@
             var projectName = $"{project.CompanyName}.{project.Name}";
             var dotNetProjectPath = Path.Combine(project.Folder, Constants.FolderDotNet);
             return Path.Combine(dotNetProjectPath, templateOutputPath.Replace("{Project}", projectName).Replace("{Domain}", domainName).Replace("{Entity}", entityName));
+        }
+
+        private async Task GenerateAngularTemplates(IEnumerable<Manifest.Feature.Template> templates, object model)
+        {
+            foreach (var template in templates)
+            {
+                var templatePath = Path.Combine(templatesPath, Constants.FolderAngular, template.InputPath);
+                await GenerateFromTemplate(template, templatePath, model, GetAngularTemplateOutputPath(template.OutputPath, currentProject, currentEntityName));
+            }
+        }
+
+        private static string GetAngularTemplateOutputPath(string templateOutputPath, Project project, string entityName)
+        {
+            var angularProjectPath = Path.Combine(project.Folder, Constants.FolderAngular);
+            return Path.Combine(angularProjectPath, templateOutputPath.Replace("{Entity}", entityName.ToKebabCase()));
         }
 
         private async Task GenerateFromTemplate(Manifest.Feature.Template template, string templatePath, object model, string outputPath)

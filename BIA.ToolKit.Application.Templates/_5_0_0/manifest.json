@@ -16,6 +16,12 @@
     },
     {
       "name": "Option",
+      "angularTemplates": [
+        {
+          "inputPath": "src\\app\\domains\\services\\EntityOptionDasServiceTemplate.tt",
+          "outputPath": "src\\app\\domains\\{Entity}-option\\services\\{Entity}-option-das.service.ts"
+        }
+      ],
       "dotNetTemplates": [
         {
           "inputPath": "PresentationApi\\Controllers\\EntityOptionsController.tt",
