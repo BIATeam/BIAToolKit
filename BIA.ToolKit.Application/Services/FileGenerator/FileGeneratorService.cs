@@ -36,6 +36,7 @@
         private string templatesPath;
         private string currentDomain;
         private string currentEntityName;
+        private string currentAngularFront;
 
         public bool IsInit { get; private set; }
 
@@ -153,7 +154,7 @@
             }
         }
 
-        public async Task GenerateOption(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayName)
+        public async Task GenerateOption(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayName, string angularFront)
         {
             try
             {
@@ -168,6 +169,7 @@
 
                 currentDomain = domainName;
                 currentEntityName = entityInfo.Name;
+                currentAngularFront = angularFront;
 
                 await GenerateTemplatesFromManifestFeature(optionFeature, templateModel);
 
@@ -205,7 +207,7 @@
         private async Task GenerateTemplatesFromManifestFeature(Manifest.Feature manifestFeature, object model)
         {
             await GenerateAngularTemplates(manifestFeature.AngularTemplates, model);
-            //await GenerateDotNetTemplates(manifestFeature.DotNetTemplates, model);
+            await GenerateDotNetTemplates(manifestFeature.DotNetTemplates, model);
         }
 
         private async Task GenerateDotNetTemplates(IEnumerable<Manifest.Feature.Template> templates, object model)
@@ -228,7 +230,7 @@
         {
             foreach (var template in templates)
             {
-                var templatePath = Path.Combine(templatesPath, Constants.FolderAngular, template.InputPath);
+                var templatePath = Path.Combine(templatesPath, currentAngularFront, template.InputPath);
                 await GenerateFromTemplate(template, templatePath, model, GetAngularTemplateOutputPath(template.OutputPath, currentProject, currentEntityName));
             }
         }
