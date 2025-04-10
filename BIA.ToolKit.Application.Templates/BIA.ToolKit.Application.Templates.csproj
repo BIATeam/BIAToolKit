@@ -105,6 +105,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
+    <None Include="_5_0_0\Templates\DotNet\PresentationApi\PartialOptionBianetconfigTemplate.json">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PartialOptionBianetconfigTemplate.tt</DependentUpon>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="_5_0_0\Templates\DotNet\Application\IEntityOptionAppService.tt">
@@ -151,6 +156,11 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityOptionsController.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\PresentationApi\PartialOptionBianetconfigTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>PartialOptionBianetconfigTemplate.json</LastGenOutput>
     </Content>
   </ItemGroup>
   <ItemGroup>

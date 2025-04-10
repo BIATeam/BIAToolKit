@@ -38,6 +38,12 @@
           "outputPath": "{Project}.Crosscutting.Common\\Rights.cs",
           "isPartial": true,
           "partialInsertionMarkup": "RightsForOption"
+        },
+        {
+          "inputPath": "PresentationApi\\PartialOptionBianetconfigTemplate.tt",
+          "outputPath": "{Project}.Presentation.Api\\bianetconfig.json",
+          "isPartial": true,
+          "partialInsertionMarkup": "ConfigForOption"
         }
       ]
     }

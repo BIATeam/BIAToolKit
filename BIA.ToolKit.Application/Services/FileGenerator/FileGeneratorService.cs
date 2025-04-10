@@ -228,7 +228,7 @@
             try
             {
                 var relativeOutputPath = outputPath.Replace(currentProject.Folder, string.Empty);
-                consoleWriter.AddMessageLine($"Generating file {relativeOutputPath} ...");
+                consoleWriter.AddMessageLine($"Generating {(template.IsPartial ? "partial content into" : "file")} {relativeOutputPath} ...");
                 var relativeTemplatePath = templatePath.Replace(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), string.Empty);
                 consoleWriter.AddMessageLine($"Using template file {relativeTemplatePath}", color: "darkgray");
 
