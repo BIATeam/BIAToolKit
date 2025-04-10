@@ -13,8 +13,6 @@
             Profiles = new ObservableCollection<string>();
             FeatureSettings = new ObservableCollection<FeatureSetting>();
             Options = new ObservableCollection<CFOption>();
-
-            SelectedOptions = new List<string>();
         }
         public bool? Test { get; set; }
 
@@ -34,9 +32,5 @@
         public WorkRepository? WorkCompanyFile { get; set; }
         // Profile selected
         public string? Profile { get; set; }
-
-        // Option selected
-        public List<string> SelectedOptions { get; set; }
-
     }
 }

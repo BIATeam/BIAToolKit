@@ -89,7 +89,7 @@
                     IList<string> filesToExclude = new List<string>() { "^biaCompanyFiles\\.json$" };
                     foreach (CFOption option in projectParameters.VersionAndOption.Options)
                     {
-                        if (projectParameters.VersionAndOption.SelectedOptions.Any(o =>  string.Equals(o,option.Key)))
+                        if (option.IsChecked)
                         {
                             if (option.FilesToRemove != null)
                             {
