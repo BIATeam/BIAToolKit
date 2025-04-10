@@ -27,15 +27,23 @@
         },
         {
           "inputPath": "src\\app\\domains\\store\\EntityOptionsActionsTemplate.tt",
-          "outputPath": "src\\app\\domains\\{Entity}-option\\store\\{Entity}-options.actions.ts"
+          "outputPath": "src\\app\\domains\\{Entity}-option\\store\\{Entity}-options-actions.ts"
         },
         {
           "inputPath": "src\\app\\domains\\store\\EntityOptionsEffectsTemplate.tt",
-          "outputPath": "src\\app\\domains\\{Entity}-option\\store\\{Entity}-options.effects.ts"
+          "outputPath": "src\\app\\domains\\{Entity}-option\\store\\{Entity}-options-effects.ts"
         },
         {
           "inputPath": "src\\app\\domains\\store\\EntityOptionsReducerTemplate.tt",
-          "outputPath": "src\\app\\domains\\{Entity}-option\\store\\{Entity}-options.reducer.ts"
+          "outputPath": "src\\app\\domains\\{Entity}-option\\store\\{Entity}-options-reducer.ts"
+        },
+        {
+          "inputPath": "src\\app\\domains\\EntityOptionConstantsTemplate.tt",
+          "outputPath": "src\\app\\domains\\{Entity}-option\\{Entity}-option.constants.ts"
+        },
+        {
+          "inputPath": "src\\app\\domains\\EntityOptionModuleTemplate.tt",
+          "outputPath": "src\\app\\domains\\{Entity}-option\\{Entity}-option.module.ts"
         }
       ],
       "dotNetTemplates": [

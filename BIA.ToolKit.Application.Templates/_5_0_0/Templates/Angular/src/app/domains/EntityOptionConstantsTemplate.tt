@@ -10,20 +10,5 @@
 <#@ output extension=".ts" #>
 <#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityOptionModel" name="Model" #>
 <# var ModelInstance = Model ?? new EntityOptionMock(); #>
-import { createAction, props } from '@ngrx/store';
-import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
-import { storeKey } from '../<#= ModelInstance.EntityName.ToKebabCase() #>-option.constants';
-
-export namespace Domain<#= ModelInstance.EntityName #>OptionsActions {
-  export const loadAll = createAction('[' + storeKey + '] Load all');
-
-  export const loadAllSuccess = createAction(
-    '[' + storeKey + '] Load all success',
-    props<{ <#= ModelInstance.EntityNamePlural.ToCamelCase() #>: OptionDto[] }>()
-  );
-
-  export const failure = createAction(
-    '[' + storeKey + '] Failure',
-    props<{ error: any }>()
-  );
-}
+// IMPORTANT: this key should be unique in all the application. Use the path of the feature.
+export const storeKey = 'domain-<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-options';

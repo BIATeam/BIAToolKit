@@ -112,6 +112,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionModuleTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionModuleTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionConstantsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="_5_0_0\Templates\Angular\src\app\domains\services\EntityOptionDasServiceTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -127,9 +137,9 @@
       <LastGenOutput>EntityOptionsEffectsTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionReducerTemplate.tt">
+    <Content Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsReducerTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityOptionReducerTemplate.ts</LastGenOutput>
+      <LastGenOutput>EntityOptionsReducerTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionStateTemplate.tt">
@@ -192,6 +202,16 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionModuleTemplate.ts">
+      <DependentUpon>EntityOptionModuleTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.ts">
+      <DependentUpon>EntityOptionConstantsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\domains\services\EntityOptionDasServiceTemplate.ts">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -207,8 +227,8 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionReducerTemplate.ts">
-      <DependentUpon>EntityOptionReducerTemplate.tt</DependentUpon>
+    <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsReducerTemplate.ts">
+      <DependentUpon>EntityOptionsReducerTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </TypeScriptCompile>

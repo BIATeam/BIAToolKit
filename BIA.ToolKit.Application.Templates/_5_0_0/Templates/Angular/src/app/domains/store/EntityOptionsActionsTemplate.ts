@@ -1,6 +1,6 @@
 ﻿import { createAction, props } from '@ngrx/store';
 import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
-import { storeKey } from '../my-country-option.contants';
+import { storeKey } from '../my-country-option.constants';
 
 export namespace DomainMyCountryOptionsActions {
   export const loadAll = createAction('[' + storeKey + '] Load all');
