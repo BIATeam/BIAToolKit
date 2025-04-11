@@ -73,14 +73,14 @@
 
         public void Dispose()
         {
-            //if (Directory.Exists(testProjectPath))
-            //{
-            //    Directory.Delete(testProjectPath, true);
-            //}
-            //if (Directory.Exists(referenceProjectPath))
-            //{
-            //    Directory.Delete(referenceProjectPath, true);
-            //}
+            if (Directory.Exists(testProjectPath))
+            {
+                Directory.Delete(testProjectPath, true);
+            }
+            if (Directory.Exists(referenceProjectPath))
+            {
+                Directory.Delete(referenceProjectPath, true);
+            }
         }
 
         public (string referencePath, string generatedPath) GetDotNetFilesPath(string templateOutputPath, string domainName, string entityName)

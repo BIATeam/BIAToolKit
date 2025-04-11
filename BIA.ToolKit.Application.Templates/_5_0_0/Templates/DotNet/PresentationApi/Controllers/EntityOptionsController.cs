@@ -1,5 +1,5 @@
 ﻿// <copyright file="MyCountryOptionsController.cs" company="TheBIADevCompany">
-//     Copyright (c) TheBIADevCompany. All rights reserved.
+// Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 
 namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.AircraftMaintenanceCompany

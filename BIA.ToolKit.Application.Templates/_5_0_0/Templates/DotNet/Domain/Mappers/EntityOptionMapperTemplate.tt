@@ -13,7 +13,7 @@
 var ModelInstance = Model ?? new EntityOptionMock();
 #>
 // <copyright file="<#= ModelInstance.EntityName #>OptionMapper.cs" company="<#= ModelInstance.CompanyName #>">
-//     Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers

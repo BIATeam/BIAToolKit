@@ -11,7 +11,7 @@
 <#@ parameter type="BIA.ToolKit.Application.Templates._4_0_0.Models.EntityDtoModel" name="Model" #>
 <# var ModelInstance = Model ?? new EntityDtoMock(); #>
 // <copyright file="<#= ModelInstance.EntityName #>Dto.cs" company="<#= ModelInstance.CompanyName #>">
-//     Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>

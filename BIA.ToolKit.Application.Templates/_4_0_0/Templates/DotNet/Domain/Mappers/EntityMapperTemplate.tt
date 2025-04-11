@@ -15,7 +15,7 @@ var baseMapperClass = ModelInstance.IsTeamType ? "TTeamMapper" : "BaseMapper";
 var baseKeyType = ModelInstance.IsTeamType ? string.Empty : $", {ModelInstance.BaseKeyType}";
 #>
 // <copyright file="<#= ModelInstance.EntityName #>Mapper.cs" company="<#= ModelInstance.CompanyName #>">
-//     Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers

@@ -24,7 +24,7 @@
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Plane.Entities",
-                name: "Part",
+                name: "PlaneType",
                 baseType: "VersionedTable",
                 primaryKey: null,
                 arguments: null,
@@ -42,21 +42,17 @@
                 },
                 new()
                 {
-                    EntityCompositeName = "SN",
+                    EntityCompositeName = "Title",
                     MappingType = "string",
-                    MappingName = "SN",
+                    MappingName = "Title",
+                    IsRequired = true,
                 },
                 new()
                 {
                     EntityCompositeName = "Family",
-                    MappingType = "string",
+                    MappingType = "DateTime?",
                     MappingName = "Family",
-                },
-                new()
-                {
-                    EntityCompositeName = "Price",
-                    MappingType = "decimal",
-                    MappingName = "Price",
+                    MappingDateType = "datetime"
                 },
             };
 
@@ -66,14 +62,14 @@
             {
                 var (referencePath, generatedPath) = fixture.GetDotNetFilesPath(dotNetTemplate.OutputPath, domainName, entityInfo.Name);
                 Assert.True(File.Exists(generatedPath));
-                Assert.Equal(File.ReadAllText(referencePath), File.ReadAllText(generatedPath));
+                CustomAssert.FilesEquals(referencePath, generatedPath);
             }
 
             foreach (var angularTemplate in fixture.FileGeneratorService.CurrentFeature.AngularTemplates)
             {
                 var (referencePath, generatedPath) = fixture.GetAngularFilesPath(angularTemplate.OutputPath, entityInfo.Name);
                 Assert.True(File.Exists(generatedPath));
-                Assert.Equal(File.ReadAllText(referencePath), File.ReadAllText(generatedPath));
+                CustomAssert.FilesEquals(referencePath, generatedPath);
             }
         }
     }

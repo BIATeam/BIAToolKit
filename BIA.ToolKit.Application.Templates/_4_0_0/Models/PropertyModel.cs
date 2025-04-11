@@ -82,11 +82,11 @@
             {
                 switch (MappingDateType)
                 {
-                    case "Datetime":
+                    case "datetime":
                         return $"CSVDateTime(x.{MappingName}),";
-                    case "Date":
+                    case "date":
                         return $"CSVDate(x.{MappingName}),";
-                    case "Time":
+                    case "time":
                         return $"CSVTime(x.{MappingName}),";
                     default:
                         throw new InvalidOperationException($"Unable to get CSV method for mapping date type {MappingDateType}");

@@ -11,7 +11,7 @@
 <#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityOptionModel" name="Model" #>
 <# var ModelInstance = Model ?? new EntityOptionMock(); #>
 // <copyright file="<#= ModelInstance.EntityName #>OptionsController.cs" company="<#= ModelInstance.CompanyName #>">
-//     Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Presentation.Api.Controllers.<#= ModelInstance.DomainName #>
