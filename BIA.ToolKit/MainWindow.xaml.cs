@@ -93,6 +93,7 @@
             DataContext = _viewModel;
 
             uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
+            uiEventBroker.OnProjectChanged += fileGeneratorService.EventBroker_OnProjectChanged;
         }
 
         private void UiEventBroker_OnNewVersionAvailable()

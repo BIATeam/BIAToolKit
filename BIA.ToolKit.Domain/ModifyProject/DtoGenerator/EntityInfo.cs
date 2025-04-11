@@ -8,7 +8,6 @@ namespace BIA.ToolKit.Domain.DtoGenerator
 
     public class EntityInfo
     {
-        
         public EntityInfo(string path, string @namespace, string name, string? baseType, string? primaryKey, List<AttributeArgumentSyntax>? arguments, List<string>? baseList)
         {
             Path = path;

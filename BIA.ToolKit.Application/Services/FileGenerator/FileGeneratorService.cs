@@ -37,12 +37,12 @@
         private string currentDomain;
         private string currentEntityName;
         private string currentAngularFront;
+        public Manifest.Feature CurrentFeature { get; private set; }
 
         public bool IsInit { get; private set; }
 
-        public FileGeneratorService(UIEventBroker eventBroker, IConsoleWriter consoleWriter)
+        public FileGeneratorService(IConsoleWriter consoleWriter)
         {
-            eventBroker.OnProjectChanged += EventBroker_OnProjectChanged;
             this.consoleWriter = consoleWriter;
             fileGeneratorFactory = new FileGeneratorVersionFactory(consoleWriter);
             templateGenerator = new TemplateGenerator();
@@ -50,7 +50,7 @@
             LoadTemplatesManifests();
         }
 
-        private void EventBroker_OnProjectChanged(Project project, UIEventBroker.TabItemModifyProjectEnum currentTabItem)
+        public void EventBroker_OnProjectChanged(Project project, UIEventBroker.TabItemModifyProjectEnum currentTabItem)
         {
             if(project is null)
             {
@@ -144,6 +144,7 @@
 
                 currentDomain = domainName;
                 currentEntityName = entityInfo.Name;
+                CurrentFeature = dtoFeature;
 
                 await GenerateTemplatesFromManifestFeature(dtoFeature, templateModel);
                 consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
@@ -170,6 +171,7 @@
                 currentDomain = domainName;
                 currentEntityName = entityInfo.Name;
                 currentAngularFront = angularFront;
+                CurrentFeature = optionFeature;
 
                 await GenerateTemplatesFromManifestFeature(optionFeature, templateModel);
 
@@ -219,7 +221,7 @@
             }
         }
 
-        private static string GetDotNetTemplateOutputPath(string templateOutputPath, Project project, string domainName, string entityName)
+        public static string GetDotNetTemplateOutputPath(string templateOutputPath, Project project, string domainName, string entityName)
         {
             var projectName = $"{project.CompanyName}.{project.Name}";
             var dotNetProjectPath = Path.Combine(project.Folder, Constants.FolderDotNet);
@@ -235,7 +237,7 @@
             }
         }
 
-        private static string GetAngularTemplateOutputPath(string templateOutputPath, Project project, string entityName)
+        public static string GetAngularTemplateOutputPath(string templateOutputPath, Project project, string entityName)
         {
             var angularProjectPath = Path.Combine(project.Folder, Constants.FolderAngular);
             return Path.Combine(angularProjectPath, templateOutputPath.Replace("{Entity}", entityName.ToKebabCase()));
