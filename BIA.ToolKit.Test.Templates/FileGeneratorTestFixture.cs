@@ -15,7 +15,7 @@
     {
         internal class ConsoleWriterTest : IConsoleWriter
         {
-            public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
+            public void AddMessageLine(string message, string? color = null, bool refreshimediate = true)
             {
                 Debug.WriteLine(message);
             }

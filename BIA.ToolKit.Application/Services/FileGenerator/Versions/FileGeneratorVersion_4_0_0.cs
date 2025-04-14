@@ -15,6 +15,8 @@
 
     internal class FileGeneratorVersion_4_0_0(IConsoleWriter consoleWriter) : IFileGeneratorVersion
     {
+        protected readonly IConsoleWriter consoleWriter = consoleWriter;
+
         public List<BiaFrameworkVersion> CompatibleBiaFrameworkVersions =>
         [
             new("4.*"),
