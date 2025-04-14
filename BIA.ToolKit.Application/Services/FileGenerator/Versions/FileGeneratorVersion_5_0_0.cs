@@ -70,9 +70,9 @@
             model.CompanyName = entityInfo.CompanyName;
             model.ProjectName = entityInfo.ProjectName;
             model.EntityNameArticle = Common.ComputeNameArticle(entityInfo.Name);
-            model.EntityName = entityInfo.Name;
+            model.EntityName = entityInfo.Name.Replace("dto", string.Empty, StringComparison.InvariantCultureIgnoreCase);
             model.EntityNamePlural = entityNamePlural;
-            model.BaseKeyType = entityInfo.BaseKeyType;
+            model.BaseKeyType = entityInfo.BaseKeyType ?? entityInfo.PrimaryKey;
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {
                 consoleWriter.AddMessageLine($"WARNING: Unable to retrieve entity's base key type, you'll must replace the template '{Common.TemplateValue_BaseKeyType}' by corresponding type value after generation.", "orange");

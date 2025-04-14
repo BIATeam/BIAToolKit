@@ -32,7 +32,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
         /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>OptionAppService"/> class.
         /// </summary>
         /// <param name="repository">The repository.</param>
-        public <#= ModelInstance.EntityName #>OptionAppService(ITGenericRepository<<#= ModelInstance.EntityName #>, int> repository)
+        public <#= ModelInstance.EntityName #>OptionAppService(ITGenericRepository<<#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>> repository)
             : base(repository)
         {
         }

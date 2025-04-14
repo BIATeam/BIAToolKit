@@ -14,7 +14,7 @@
 // Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
 
-namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.EntityName #>
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.DomainName #>
 {
     using System.Security.Principal;
     using System.Threading.Tasks;
@@ -27,15 +27,15 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     using BIA.Net.Core.Domain.Service;
     using BIA.Net.Core.Domain.Specification;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common.Enum;
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.EntityName #>;
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.EntityName #>.Entities;
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.EntityName #>.Mappers;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.RepoContract;
 
     /// <summary>
     /// The application service used for <#= ModelInstance.EntityName.ToCamelCase() #>.
     /// </summary>
-    public class <#= ModelInstance.EntityName #>AppService : CrudAppServiceBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>, int, PagingFilterFormatDto, <#= ModelInstance.EntityName #>Mapper>, I<#= ModelInstance.EntityName #>AppService
+    public class <#= ModelInstance.EntityName #>AppService : CrudAppServiceBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto, <#= ModelInstance.EntityName #>Mapper>, I<#= ModelInstance.EntityName #>AppService
     {
 <#  if(ModelInstance.HasAncestorTeam) { #>
         /// <summary>
@@ -50,7 +50,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
         /// <param name="repository">The repository.</param>
         /// <param name="principal">The claims principal.</param>
         public <#= ModelInstance.EntityName #>AppService(
-            ITGenericRepository<<#= ModelInstance.EntityName #>, int> repository,
+            ITGenericRepository<<#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>> repository,
             IPrincipal principal)
             : base(repository)
         {

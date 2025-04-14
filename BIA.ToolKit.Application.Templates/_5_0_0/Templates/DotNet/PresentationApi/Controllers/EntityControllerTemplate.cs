@@ -2,7 +2,7 @@
 // Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 #define UseHubForClientInPlane
-namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Plane
+namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Fleet
 {
     using System;
     using System.Collections.Generic;
@@ -18,9 +18,9 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Plane
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
-    using TheBIADevCompany.BIADemo.Application.Plane;
+    using TheBIADevCompany.BIADemo.Application.Fleet;
     using TheBIADevCompany.BIADemo.Crosscutting.Common;
-    using TheBIADevCompany.BIADemo.Domain.Dto.Plane;
+    using TheBIADevCompany.BIADemo.Domain.Dto.Fleet;
 
     /// <summary>
     /// The API controller used to manage Planes.

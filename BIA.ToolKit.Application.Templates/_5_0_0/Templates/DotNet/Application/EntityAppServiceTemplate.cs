@@ -2,7 +2,7 @@
 // Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 
-namespace TheBIADevCompany.BIADemo.Application.Plane
+namespace TheBIADevCompany.BIADemo.Application.Fleet
 {
     using System.Security.Principal;
     using System.Threading.Tasks;
@@ -15,9 +15,9 @@ namespace TheBIADevCompany.BIADemo.Application.Plane
     using BIA.Net.Core.Domain.Service;
     using BIA.Net.Core.Domain.Specification;
     using TheBIADevCompany.BIADemo.Crosscutting.Common.Enum;
-    using TheBIADevCompany.BIADemo.Domain.Dto.Plane;
-    using TheBIADevCompany.BIADemo.Domain.Plane.Entities;
-    using TheBIADevCompany.BIADemo.Domain.Plane.Mappers;
+    using TheBIADevCompany.BIADemo.Domain.Dto.Fleet;
+    using TheBIADevCompany.BIADemo.Domain.Fleet.Entities;
+    using TheBIADevCompany.BIADemo.Domain.Fleet.Mappers;
     using TheBIADevCompany.BIADemo.Domain.RepoContract;
 
     /// <summary>
