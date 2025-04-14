@@ -27,7 +27,7 @@
         "Names": [ "Plane_Member_Create", "Plane_Member_Read", "Plane_Member_Update", "Plane_Member_Delete", "Plane_Member_Save" ],
         "Roles": [
           "Admin",
-          "Team_Leader",
+          "Site_TeamLeader",
           "Plane_Admin"
         ]
       },
@@ -35,7 +35,7 @@
         "Names": [ "Plane_View_Add_TeamView", "Plane_View_Update_TeamView", "Plane_View_Set_Default_TeamView", "Plane_View_Assign_To_Team" ],
         "Roles": [
           "Admin",
-          "Team_Leader",
+          "Site_TeamLeader",
           "Plane_Admin"
         ]
       },

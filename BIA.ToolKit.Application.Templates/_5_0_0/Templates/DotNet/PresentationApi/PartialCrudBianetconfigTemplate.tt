@@ -58,7 +58,7 @@
         "Roles": [
           "Admin",
 <#  if(ModelInstance.HasParent) { #>
-          "Team_Leader",
+          "<#= ModelInstance.ParentName #>_TeamLeader",
 <#  } #>
           "<#= ModelInstance.EntityName #>_Admin"
         ]
@@ -68,7 +68,7 @@
         "Roles": [
           "Admin",
 <#  if(ModelInstance.HasParent) { #>
-          "Team_Leader",
+          "<#= ModelInstance.ParentName #>_TeamLeader",
 <#  } #>
           "<#= ModelInstance.EntityName #>_Admin"
         ]

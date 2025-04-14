@@ -61,6 +61,31 @@
     <Compile Include="_5_0_0\Models\EntityDtoModel.cs" />
     <Compile Include="_5_0_0\Models\EntityOptionModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyModel.cs" />
+    <None Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_RoleModelBuilder.cs">
+      <DependentUpon>PartialCrudUserModelBuilderTemplate_RoleModelBuilder.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.cs">
+      <DependentUpon>PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.cs">
+      <DependentUpon>PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudRoleIdTemplate.cs">
+      <DependentUpon>PartialCrudRoleIdTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudTeamTypeIdTemplate.cs">
+      <DependentUpon>PartialCrudTeamTypeIdTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\PartialCrudRightsTemplate.cs">
       <DependentUpon>PartialCrudRightsTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -205,6 +230,16 @@
       <LastGenOutput>EntityOptionAppServiceTemplate.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudRoleIdTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudRoleIdTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudTeamTypeIdTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudTeamTypeIdTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\PartialCrudRightsTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PartialCrudRightsTemplate.cs</LastGenOutput>
@@ -243,6 +278,21 @@
     <Content Include="_5_0_0\Templates\DotNet\Domain\Specifications\EntitySpecificationTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntitySpecificationTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_RoleModelBuilder.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudUserModelBuilderTemplate_RoleModelBuilder.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityControllerTemplate.tt">

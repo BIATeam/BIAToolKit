@@ -107,6 +107,36 @@
           "outputPath": "{Project}.Presentation.Api\\bianetconfig.json",
           "isPartial": true,
           "partialInsertionMarkup": "Config"
+        },
+        {
+          "inputPath": "CrosscuttingCommon\\Enum\\PartialCrudRoleIdTemplate.tt",
+          "outputPath": "{Project}.Crosscutting.Common\\Enum\\RoleId.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "RoleId"
+        },
+        {
+          "inputPath": "CrosscuttingCommon\\Enum\\PartialCrudTeamTypeIdTemplate.tt",
+          "outputPath": "{Project}.Crosscutting.Common\\Enum\\TeamTypeId.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamTypeId"
+        },
+        {
+          "inputPath": "InfrastructureData\\ModelBuilders\\PartialCrudUserModelBuilderTemplate_RoleModelBuilder.tt",
+          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\UserModelBuilder.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "RoleModelBuilder"
+        },
+        {
+          "inputPath": "InfrastructureData\\ModelBuilders\\PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.tt",
+          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\UserModelBuilder.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamTypeModelBuilder"
+        },
+        {
+          "inputPath": "InfrastructureData\\ModelBuilders\\PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.tt",
+          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\UserModelBuilder.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamTypeRoleModelBuilder"
         }
       ]
     }

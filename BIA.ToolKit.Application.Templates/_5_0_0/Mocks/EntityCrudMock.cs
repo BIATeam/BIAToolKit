@@ -23,7 +23,7 @@
             AncestorTeamName = "Site";
             DisplayItemName = "Name";
             OptionItems = new List<string> { "Engine", "Airport", "PlaneType" };
-            HasParent = false;
+            HasParent = true;
             ParentName = "Site";
             ParentNamePlural = "Sites";
         }
