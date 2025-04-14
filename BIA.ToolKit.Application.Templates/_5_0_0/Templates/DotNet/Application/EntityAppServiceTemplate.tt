@@ -1,0 +1,85 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".cs" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityCrudMock(); #>
+// <copyright file="<#= ModelInstance.EntityName #>AppService.cs" company="TheBIADevCompany">
+// Copyright (c) TheBIADevCompany. All rights reserved.
+// </copyright>
+
+namespace TheBIADevCompany.BIADemo.Application.<#= ModelInstance.EntityName #>
+{
+    using System.Security.Principal;
+    using System.Threading.Tasks;
+    using BIA.Net.Core.Application.Services;
+    using BIA.Net.Core.Common.Exceptions;
+    using BIA.Net.Core.Domain.Authentication;
+    using BIA.Net.Core.Domain.Dto.Base;
+    using BIA.Net.Core.Domain.Dto.User;
+    using BIA.Net.Core.Domain.RepoContract;
+    using BIA.Net.Core.Domain.Service;
+    using BIA.Net.Core.Domain.Specification;
+    using TheBIADevCompany.BIADemo.Crosscutting.Common.Enum;
+    using TheBIADevCompany.BIADemo.Domain.Dto.<#= ModelInstance.EntityName #>;
+    using TheBIADevCompany.BIADemo.Domain.<#= ModelInstance.EntityName #>.Entities;
+    using TheBIADevCompany.BIADemo.Domain.<#= ModelInstance.EntityName #>.Mappers;
+    using TheBIADevCompany.BIADemo.Domain.RepoContract;
+
+    /// <summary>
+    /// The application service used for <#= ModelInstance.EntityName.ToCamelCase() #>.
+    /// </summary>
+    public class <#= ModelInstance.EntityName #>AppService : CrudAppServiceBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>, int, PagingFilterFormatDto, <#= ModelInstance.EntityName #>Mapper>, I<#= ModelInstance.EntityName #>AppService
+    {
+<#  if(ModelInstance.HasAncestorTeam) { #>
+        /// <summary>
+        /// The current AncestorTeamId.
+        /// </summary>
+        private readonly int currentAncestorTeamId;
+<#  } #>
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>AppService"/> class.
+        /// </summary>
+        /// <param name="repository">The repository.</param>
+        /// <param name="principal">The claims principal.</param>
+        public <#= ModelInstance.EntityName #>AppService(
+            ITGenericRepository<<#= ModelInstance.EntityName #>, int> repository,
+            IPrincipal principal)
+            : base(repository)
+        {
+<#  if(ModelInstance.HasAncestorTeam) {  #>
+            var userData = (principal as BiaClaimsPrincipal).GetUserData<UserDataDto>();
+            this.currentAncestorTeamId = userData != null ? userData.GetCurrentTeamId((int)TeamTypeId.<#= ModelInstance.AncestorTeamName #>) : 0;
+
+            // For child : set the TeamId of the Ancestor that contain a team Parent
+            this.FiltersContext.Add(AccessMode.Read, new DirectSpecification<<#= ModelInstance.EntityName #>>(x => x.<#= ModelInstance.AncestorTeamName #>Id == this.currentAncestorTeamId));
+<#  } #>
+
+<#  if(ModelInstance.IsTeam) {  #>
+            this.FiltersContext.Add(
+                AccessMode.Read,
+                TeamAppService.ReadSpecification<<#= ModelInstance.EntityName #>>(TeamTypeId.<#= ModelInstance.EntityName #>, principal));
+
+            this.FiltersContext.Add(
+                AccessMode.Update,
+                TeamAppService.UpdateSpecification<<#= ModelInstance.EntityName #>>(TeamTypeId.<#= ModelInstance.EntityName #>, principal));
+<#  } #>
+        }
+
+<#  if(ModelInstance.HasAncestorTeam) {  #>
+        /// <inheritdoc/>
+        public override Task<<#= ModelInstance.EntityName #>Dto> AddAsync(<#= ModelInstance.EntityName #>Dto dto, string mapperMode = null)
+        {
+            dto.<#= ModelInstance.AncestorTeamName #>Id = this.currentAncestorTeamId;
+            return base.AddAsync(dto, mapperMode);
+        }
+<#  } #>
+    }
+}

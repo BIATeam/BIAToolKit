@@ -81,7 +81,8 @@
 
             model.DomainName = domainName;
             model.DisplayItemName = displayItemName;
-
+            model.HasAncestorTeam = entityInfo.HasAncestorTeam;
+            model.AncestorTeamName = entityInfo.AncestorTeamName;
             model.IsTeam = isTeam;
             model.HasParent = hasParent;
             model.ParentName = parentName;

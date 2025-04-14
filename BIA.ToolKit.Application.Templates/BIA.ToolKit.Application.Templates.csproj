@@ -47,14 +47,24 @@
     <Compile Include="_4_0_0\Mocks\EntityDtoMock.cs" />
     <Compile Include="_4_0_0\Models\EntityDtoModel.cs" />
     <Compile Include="_4_0_0\Models\PropertyModel.cs" />
-    <Compile Include="_5_0_0\Mocks\EntityDtoCrudMock.cs" />
-    <Compile Include="_5_0_0\Mocks\EntityDtoOptionMock.cs" />
+    <Compile Include="_5_0_0\Mocks\EntityCrudMock.cs" />
+    <Compile Include="_5_0_0\Mocks\EntityOptionMock.cs" />
     <Compile Include="_5_0_0\Mocks\EntityDtoMock.cs" />
     <Compile Include="_5_0_0\Models\EntityCrudModel.cs" />
     <Compile Include="_5_0_0\Models\EntityModel.cs" />
     <Compile Include="_5_0_0\Models\EntityDtoModel.cs" />
     <Compile Include="_5_0_0\Models\EntityOptionModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyModel.cs" />
+    <None Include="_5_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.cs">
+      <DependentUpon>EntityAppServiceTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Application\IEntityAppServiceTemplate.cs">
+      <DependentUpon>IEntityAppServiceTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityControllerTemplate.cs">
       <DependentUpon>EntityControllerTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -70,15 +80,15 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <None Include="_5_0_0\Templates\DotNet\Application\IEntityOptionAppService.cs">
-      <DependentUpon>IEntityOptionAppService.tt</DependentUpon>
+    <None Include="_5_0_0\Templates\DotNet\Application\IEntityOptionAppServiceTemplate.cs">
+      <DependentUpon>IEntityOptionAppServiceTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <None Include="_5_0_0\Templates\DotNet\Application\EntityOptionAppService.cs">
+    <None Include="_5_0_0\Templates\DotNet\Application\EntityOptionAppServiceTemplate.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>EntityOptionAppService.tt</DependentUpon>
+      <DependentUpon>EntityOptionAppServiceTemplate.tt</DependentUpon>
     </None>
     <None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityOptionsControllerTemplate.cs">
       <AutoGen>True</AutoGen>
@@ -154,14 +164,24 @@
       <LastGenOutput>EntityOptionStateTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="_5_0_0\Templates\DotNet\Application\IEntityOptionAppService.tt">
+    <Content Include="_5_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>IEntityOptionAppService.cs</LastGenOutput>
+      <LastGenOutput>EntityAppServiceTemplate.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="_5_0_0\Templates\DotNet\Application\EntityOptionAppService.tt">
+    <Content Include="_5_0_0\Templates\DotNet\Application\IEntityAppServiceTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityOptionAppService.cs</LastGenOutput>
+      <LastGenOutput>IEntityAppServiceTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Application\IEntityOptionAppServiceTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>IEntityOptionAppServiceTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Application\EntityOptionAppServiceTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionAppServiceTemplate.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\PartialOptionRightsTemplate.tt">

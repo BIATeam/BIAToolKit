@@ -52,11 +52,11 @@
           "outputPath": "{Project}.Presentation.Api\\Controllers\\{Domain}\\{Entity}OptionsController.cs"
         },
         {
-          "inputPath": "Application\\EntityOptionAppService.tt",
+          "inputPath": "Application\\EntityOptionAppServiceTemplate.tt",
           "outputPath": "{Project}.Application\\{Domain}\\{Entity}OptionAppService.cs"
         },
         {
-          "inputPath": "Application\\IEntityOptionAppService.tt",
+          "inputPath": "Application\\IEntityOptionAppServiceTemplate.tt",
           "outputPath": "{Project}.Application\\{Domain}\\I{Entity}OptionAppService.cs"
         },
         {
@@ -83,6 +83,14 @@
         {
           "inputPath": "PresentationApi\\Controllers\\EntityControllerTemplate.tt",
           "outputPath": "{Project}.Presentation.Api\\Controllers\\{Domain}\\{EntityPlural}Controller.cs"
+        },
+        {
+          "inputPath": "Application\\EntityAppServiceTemplate.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\{Entity}AppService.cs"
+        },
+        {
+          "inputPath": "Application\\IEntityAppServiceTemplate.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\I{Entity}AppService.cs"
         }
       ]
     }

@@ -9,6 +9,8 @@
     public class EntityCrudModel : EntityModel
     {
         public bool IsTeam { get; set; }
+        public bool HasAncestorTeam { get; set; }
+        public string AncestorTeamName { get; set; }
         public string DisplayItemName { get; set; }
         public List<string> OptionItems { get; set; }
         public bool HasParent { get; set; }

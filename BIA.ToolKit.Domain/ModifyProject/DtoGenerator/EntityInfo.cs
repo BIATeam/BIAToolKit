@@ -3,6 +3,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
 {
     using System.Text.RegularExpressions;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using Humanizer;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -38,8 +39,10 @@ namespace BIA.ToolKit.Domain.DtoGenerator
         public List<PropertyInfo> Properties { get; } = new List<PropertyInfo>();
         public string? CompositeKeyName { get; set; }
         public List<PropertyInfo> CompositeKeys { get; } = new List<PropertyInfo>();
-        public List<KeyValuePair<string, string>> ClassAnnotations { get; }
+        public List<KeyValuePair<string, string>> ClassAnnotations { get; } = new();
         public string BaseKeyType { get; set; }
+        public string AncestorTeamName => ClassAnnotations.FirstOrDefault(c => c.Key == CRUDDataUpdateType.AncestorTeam.ToString()).Value;
+        public bool HasAncestorTeam => !string.IsNullOrWhiteSpace(AncestorTeamName);
 
         private void ParseAnnotations(List<AttributeArgumentSyntax> annotations)
         {

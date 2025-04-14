@@ -18,7 +18,9 @@
             EntityName = "Plane";
             BaseKeyType = "int";
             EntityNamePlural = "Planes";
-            IsTeam = false;
+            IsTeam = true;
+            HasAncestorTeam = true;
+            AncestorTeamName = "Site";
             DisplayItemName = "Name";
             OptionItems = new List<string> { "Engine", "Airport", "PlaneType" };
             HasParent = true;
