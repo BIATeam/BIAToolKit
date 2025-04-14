@@ -91,6 +91,12 @@
         {
           "inputPath": "Application\\IEntityAppServiceTemplate.tt",
           "outputPath": "{Project}.Application\\{Domain}\\I{Entity}AppService.cs"
+        },
+        {
+          "inputPath": "PresentationApi\\PartialCrudBianetconfigTemplate.tt",
+          "outputPath": "{Project}.Presentation.Api\\bianetconfig.json",
+          "isPartial": true,
+          "partialInsertionMarkup": "Config"
         }
       ]
     }

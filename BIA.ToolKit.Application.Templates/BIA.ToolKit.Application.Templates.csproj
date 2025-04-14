@@ -122,6 +122,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
+    <None Include="_5_0_0\Templates\DotNet\PresentationApi\PartialCrudBianetconfigTemplate.json">
+      <DependentUpon>PartialCrudBianetconfigTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_5_0_0\Templates\DotNet\PresentationApi\PartialOptionBianetconfigTemplate.json">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -222,6 +227,11 @@
     <Content Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityOptionsControllerTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityOptionsControllerTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\PresentationApi\PartialCrudBianetconfigTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudBianetconfigTemplate.json</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="_5_0_0\Templates\DotNet\PresentationApi\PartialOptionBianetconfigTemplate.tt">
