@@ -1,0 +1,53 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".cs" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
+<# 
+var ModelInstance = Model ?? new EntityCrudMock();
+#>
+        // BIAToolKit - Begin Partial Rights <#= ModelInstance.EntityName #>
+
+        /// <summary>
+        /// The <#= ModelInstance.EntityNamePlural #> rights.
+        /// </summary>
+        public static class <#= ModelInstance.EntityNamePlural #>
+        {
+            /// <summary>
+            /// The right to access to the list of <#= ModelInstance.EntityNamePlural #>.
+            /// </summary>
+            public const string ListAccess = "<#= ModelInstance.EntityName #>_List_Access";
+
+            /// <summary>
+            /// The right to create <#= ModelInstance.EntityNamePlural #>.
+            /// </summary>
+            public const string Create = "<#= ModelInstance.EntityName #>_Create";
+
+            /// <summary>
+            /// The right to read <#= ModelInstance.EntityNamePlural #>.
+            /// </summary>
+            public const string Read = "<#= ModelInstance.EntityName #>_Read";
+
+            /// <summary>
+            /// The right to update <#= ModelInstance.EntityNamePlural #>.
+            /// </summary>
+            public const string Update = "<#= ModelInstance.EntityName #>_Update";
+
+            /// <summary>
+            /// The right to delete <#= ModelInstance.EntityNamePlural #>.
+            /// </summary>
+            public const string Delete = "<#= ModelInstance.EntityName #>_Delete";
+
+            /// <summary>
+            /// The right to save <#= ModelInstance.EntityNamePlural #>.
+            /// </summary>
+            public const string Save = "<#= ModelInstance.EntityName #>_Save";
+        }
+
+        // BIAToolKit - End Partial Rights <#= ModelInstance.EntityName #>

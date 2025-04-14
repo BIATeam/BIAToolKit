@@ -55,6 +55,11 @@
     <Compile Include="_5_0_0\Models\EntityDtoModel.cs" />
     <Compile Include="_5_0_0\Models\EntityOptionModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyModel.cs" />
+    <None Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\PartialCrudRightsTemplate.cs">
+      <DependentUpon>PartialCrudRightsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_5_0_0\Templates\DotNet\Domain\Specifications\EntitySpecificationTemplate.cs">
       <DependentUpon>EntitySpecificationTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -192,6 +197,11 @@
     <Content Include="_5_0_0\Templates\DotNet\Application\EntityOptionAppServiceTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityOptionAppServiceTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\PartialCrudRightsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudRightsTemplate.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\PartialOptionRightsTemplate.tt">

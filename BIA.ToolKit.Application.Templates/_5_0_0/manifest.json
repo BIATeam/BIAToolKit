@@ -97,6 +97,12 @@
           "outputPath": "{Project}.Domain\\{Domain}\\Specifications\\{Entity}Specification.cs"
         },
         {
+          "inputPath": "CrosscuttingCommon\\PartialCrudRightsTemplate.tt",
+          "outputPath": "{Project}.Crosscutting.Common\\Rights.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "Rights"
+        },
+        {
           "inputPath": "PresentationApi\\PartialCrudBianetconfigTemplate.tt",
           "outputPath": "{Project}.Presentation.Api\\bianetconfig.json",
           "isPartial": true,
