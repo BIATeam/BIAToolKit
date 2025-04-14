@@ -19,7 +19,7 @@
         }
 
         [Fact]
-        public async Task GenerateDTO_Part()
+        public async Task GenerateDTO_PlaneType()
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
@@ -60,7 +60,7 @@
 
             foreach(var dotNetTemplate in fixture.FileGeneratorService.CurrentFeature.DotNetTemplates)
             {
-                var (referencePath, generatedPath) = fixture.GetDotNetFilesPath(dotNetTemplate.OutputPath, domainName, entityInfo.Name);
+                var (referencePath, generatedPath) = fixture.GetDotNetFilesPath(dotNetTemplate.OutputPath, domainName, entityInfo.Name, string.Empty);
                 Assert.True(File.Exists(generatedPath));
                 CustomAssert.FilesEquals(referencePath, generatedPath);
             }

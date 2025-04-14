@@ -83,9 +83,9 @@
             }
         }
 
-        public (string referencePath, string generatedPath) GetDotNetFilesPath(string templateOutputPath, string domainName, string entityName)
+        public (string referencePath, string generatedPath) GetDotNetFilesPath(string templateOutputPath, string domainName, string entityName, string entityNamePlural)
         {
-            return (FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, referenceProject, domainName, entityName), FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, testProject, domainName, entityName));
+            return (FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, referenceProject, domainName, entityName, entityNamePlural), FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, testProject, domainName, entityName, entityNamePlural));
         }
 
         public (string referencePath, string generatedPath) GetAngularFilesPath(string templateOutputPath, string entityName)

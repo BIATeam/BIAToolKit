@@ -24,9 +24,14 @@
             return new EntityDtoModel();
         }
 
-        protected virtual EntityOptionModel CreateDtoOptionModel()
+        protected virtual EntityOptionModel CreateOptionModel()
         {
             return new EntityOptionModel();
+        }
+
+        protected virtual EntityCrudModel CreateCrudModel()
+        {
+            return new EntityCrudModel();
         }
 
         public new object GetDtoTemplateModel(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
@@ -38,7 +43,7 @@
 
         public new object GetOptionTemplateModel(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayName)
         {
-            var model = CreateDtoOptionModel();
+            var model = CreateOptionModel();
 
             model.CompanyName = entityInfo.CompanyName;
             model.ProjectName = entityInfo.ProjectName;
@@ -48,12 +53,40 @@
             model.BaseKeyType = entityInfo.BaseKeyType;
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {
-                consoleWriter.AddMessageLine($"WARNING: Unable to retrieve entity's base key type, you'll must replace the template '{Common.TemplateValue_BaseKeyType}' by corresponding type value inside the DTO and mapper after generation.", "orange");
+                consoleWriter.AddMessageLine($"WARNING: Unable to retrieve entity's base key type, you'll must replace the template '{Common.TemplateValue_BaseKeyType}' by corresponding type value after generation.", "orange");
                 model.BaseKeyType = Common.TemplateValue_BaseKeyType;
             }
 
             model.DomainName = domainName;
             model.OptionDisplayName = displayName;
+
+            return model;
+        }
+
+        public new object GetCrudTemplateModel(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayItemName, bool isTeam = false, List<string> optionItems = null, bool hasParent = false, string parentName = null, string parentNamePlural = null)
+        {
+            var model = CreateCrudModel();
+
+            model.CompanyName = entityInfo.CompanyName;
+            model.ProjectName = entityInfo.ProjectName;
+            model.EntityNameArticle = Common.ComputeNameArticle(entityInfo.Name);
+            model.EntityName = entityInfo.Name;
+            model.EntityNamePlural = entityNamePlural;
+            model.BaseKeyType = entityInfo.BaseKeyType;
+            if (string.IsNullOrWhiteSpace(model.BaseKeyType))
+            {
+                consoleWriter.AddMessageLine($"WARNING: Unable to retrieve entity's base key type, you'll must replace the template '{Common.TemplateValue_BaseKeyType}' by corresponding type value after generation.", "orange");
+                model.BaseKeyType = Common.TemplateValue_BaseKeyType;
+            }
+
+            model.DomainName = domainName;
+            model.DisplayItemName = displayItemName;
+
+            model.IsTeam = isTeam;
+            model.HasParent = hasParent;
+            model.ParentName = parentName;
+            model.ParentNamePlural = parentNamePlural;
+            model.OptionItems = optionItems ?? [];
 
             return model;
         }

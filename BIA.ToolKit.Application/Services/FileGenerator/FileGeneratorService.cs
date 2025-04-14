@@ -36,6 +36,7 @@
         private string templatesPath;
         private string currentDomain;
         private string currentEntityName;
+        private string currentEntityNamePlural;
         private string currentAngularFront;
         public Manifest.Feature CurrentFeature { get; private set; }
 
@@ -144,6 +145,7 @@
 
                 currentDomain = domainName;
                 currentEntityName = entityInfo.Name;
+                currentEntityNamePlural = string.Empty;
                 CurrentFeature = dtoFeature;
 
                 await GenerateTemplatesFromManifestFeature(dtoFeature, templateModel);
@@ -170,6 +172,7 @@
 
                 currentDomain = domainName;
                 currentEntityName = entityInfo.Name;
+                currentEntityNamePlural = entityNamePlural;
                 currentAngularFront = angularFront;
                 CurrentFeature = optionFeature;
 
@@ -183,7 +186,7 @@
             }
         }
 
-        public async Task GenerateCRUD()
+        public async Task GenerateCRUD(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayItemName, string angularFront, bool isTeam = false, List<string> optionItems = null, bool hasParent = false, string parentName = null, string parentNamePlural = null)
         {
             try
             {
@@ -191,6 +194,18 @@
 
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
+
+                var templateModel = fileGenerator.GetCrudTemplateModel(entityInfo, entityNamePlural, domainName, displayItemName, isTeam, optionItems, hasParent, parentName, parentNamePlural);
+                var optionFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "CRUD")
+                    ?? throw new KeyNotFoundException($"no CRUD feature for template manifest {currentManifest.Version}");
+
+                currentDomain = domainName;
+                currentEntityName = entityInfo.Name;
+                currentEntityNamePlural = entityNamePlural;
+                currentAngularFront = angularFront;
+                CurrentFeature = optionFeature;
+
+                await GenerateTemplatesFromManifestFeature(optionFeature, templateModel);
 
                 consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
             }
@@ -217,15 +232,15 @@
             foreach (var template in templates)
             {
                 var templatePath = Path.Combine(templatesPath, Constants.FolderDotNet, template.InputPath);
-                await GenerateFromTemplate(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, currentProject, currentDomain, currentEntityName));
+                await GenerateFromTemplate(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, currentProject, currentDomain, currentEntityName, currentEntityNamePlural));
             }
         }
 
-        public static string GetDotNetTemplateOutputPath(string templateOutputPath, Project project, string domainName, string entityName)
+        public static string GetDotNetTemplateOutputPath(string templateOutputPath, Project project, string domainName, string entityName, string entityNamePlural)
         {
             var projectName = $"{project.CompanyName}.{project.Name}";
             var dotNetProjectPath = Path.Combine(project.Folder, Constants.FolderDotNet);
-            return Path.Combine(dotNetProjectPath, templateOutputPath.Replace("{Project}", projectName).Replace("{Domain}", domainName).Replace("{Entity}", entityName));
+            return Path.Combine(dotNetProjectPath, templateOutputPath.Replace("{Project}", projectName).Replace("{Domain}", domainName).Replace("{Entity}", entityName).Replace("{EntityPlural}", entityNamePlural));
         }
 
         private async Task GenerateAngularTemplates(IEnumerable<Manifest.Feature.Template> templates, object model)

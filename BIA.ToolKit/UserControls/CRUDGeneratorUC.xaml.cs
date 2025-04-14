@@ -222,7 +222,18 @@
         {
             if (fileGeneratorService.IsProjectCompatible())
             {
-                await fileGeneratorService.GenerateCRUD();
+                await fileGeneratorService.GenerateCRUD(
+                    vm.DtoEntity, 
+                    vm.CRUDNamePlural, 
+                    vm.Domain, 
+                    vm.DtoDisplayItemSelected, 
+                    vm.BiaFront, 
+                    vm.FeatureNameSelected == "Team", 
+                    vm.OptionItems.Where(x => x.Check).Select(x => x.OptionName).ToList(), 
+                    vm.HasParent, 
+                    vm.ParentName, 
+                    vm.ParentNamePlural);
+
                 return;
             }
 

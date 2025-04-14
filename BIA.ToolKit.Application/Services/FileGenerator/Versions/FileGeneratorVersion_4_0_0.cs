@@ -57,14 +57,19 @@
 
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {
-                consoleWriter.AddMessageLine($"WARNING: Unable to retrieve entity's base key type, you'll must replace the template '{Common.TemplateValue_BaseKeyType}' by corresponding type value inside the DTO and mapper after generation.", "orange");
+                consoleWriter.AddMessageLine($"WARNING: Unable to retrieve entity's base key type, you'll must replace the template '{Common.TemplateValue_BaseKeyType}' by corresponding type value after generation.", "orange");
                 model.BaseKeyType = Common.TemplateValue_BaseKeyType;
             }
 
             return model;
         }
 
-        public object GetOptionTemplateModel(EntityInfo entityInfo, string entityNamePlural, string domaineName, string displayName)
+        public object GetOptionTemplateModel(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object GetCrudTemplateModel(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayItemName, bool isTeam = false, List<string> optionItems = null, bool hasParent = false, string parentName = null, string parentNamePlural = null)
         {
             throw new NotImplementedException();
         }

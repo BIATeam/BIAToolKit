@@ -1,0 +1,323 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".cs" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityCrudMock(); #>
+// <copyright file="<#= ModelInstance.EntityNamePlural #>Controller.cs" company="TheBIADevCompany">
+// Copyright (c) TheBIADevCompany. All rights reserved.
+// </copyright>
+#define UseHubForClientIn<#= ModelInstance.EntityName #>
+namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.<#= ModelInstance.EntityName #>
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+#if UseHubForClientInEngine
+    using BIA.Net.Core.Application.Services;
+#endif
+    using BIA.Net.Core.Common;
+    using BIA.Net.Core.Common.Exceptions;
+    using BIA.Net.Core.Domain.Dto.Base;
+    using BIA.Net.Presentation.Api.Controllers.Base;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using TheBIADevCompany.BIADemo.Application.<#= ModelInstance.EntityName #>;
+    using TheBIADevCompany.BIADemo.Crosscutting.Common;
+    using TheBIADevCompany.BIADemo.Domain.Dto.<#= ModelInstance.EntityName #>;
+
+    /// <summary>
+    /// The API controller used to manage <#= ModelInstance.EntityNamePlural #>.
+    /// </summary>
+#if !UseHubForClientIn<#= ModelInstance.EntityName #>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S1481:Unused local variables should be removed", Justification = "UseHubForClientIn<#= ModelInstance.EntityName #> not set")]
+#endif
+    public class <#= ModelInstance.EntityNamePlural #>Controller : BiaControllerBase
+    {
+        /// <summary>
+        /// The <#= ModelInstance.EntityName.ToCamelCase() #> application service.
+        /// </summary>
+        private readonly I<#= ModelInstance.EntityName #>AppService <#= ModelInstance.EntityName.ToCamelCase() #>Service;
+
+#if UseHubForClientIn<#= ModelInstance.EntityName #>
+        private readonly IClientForHubService clientForHubService;
+#endif
+
+#if UseHubForClientIn<#= ModelInstance.EntityName #>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityNamePlural #>Controller" /> class.
+        /// </summary>
+        /// <param name="<#= ModelInstance.EntityName.ToCamelCase() #>Service">The <#= ModelInstance.EntityName.ToCamelCase() #> application service.</param>
+        /// <param name="clientForHubService">The hub for client.</param>
+        public <#= ModelInstance.EntityNamePlural #>Controller(
+            I<#= ModelInstance.EntityName #>AppService <#= ModelInstance.EntityName.ToCamelCase() #>Service,
+            IClientForHubService clientForHubService)
+#else
+        /// <summary>
+        /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityNamePlural #>Controller" /> class.
+        /// </summary>
+        /// <param name="<#= ModelInstance.EntityName.ToCamelCase() #>Service">The <#= ModelInstance.EntityName.ToCamelCase() #> application service.</param>
+        public <#= ModelInstance.EntityNamePlural #>Controller(
+            I<#= ModelInstance.EntityName #>AppService <#= ModelInstance.EntityName.ToCamelCase() #>Service)
+#endif
+        {
+#if UseHubForClientIn<#= ModelInstance.EntityName #>
+            this.clientForHubService = clientForHubService;
+#endif
+            this.<#= ModelInstance.EntityName.ToCamelCase() #>Service = <#= ModelInstance.EntityName.ToCamelCase() #>Service;
+        }
+
+        /// <summary>
+        /// Get all <#= ModelInstance.EntityNamePlural.ToCamelCase() #> with filters.
+        /// </summary>
+        /// <param name="filters">The filters.</param>
+        /// <returns>The list of <#= ModelInstance.EntityNamePlural.ToCamelCase() #>.</returns>
+        [HttpPost("all")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = Rights.<#= ModelInstance.EntityNamePlural #>.ListAccess)]
+        public async Task<IActionResult> GetAll([FromBody] PagingFilterFormatDto filters)
+        {
+            var (results, total) = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.GetRangeAsync(filters);
+            this.HttpContext.Response.Headers.Append(BiaConstants.HttpHeaders.TotalCount, total.ToString());
+            return this.Ok(results);
+        }
+
+        /// <summary>
+        /// Get a <#= ModelInstance.EntityName.ToCamelCase() #> by its identifier.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns>The <#= ModelInstance.EntityName.ToCamelCase() #>.</returns>
+        [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = Rights.<#= ModelInstance.EntityNamePlural #>.Read)]
+        public async Task<IActionResult> Get(int id)
+        {
+            if (id == 0)
+            {
+                return this.BadRequest();
+            }
+
+            try
+            {
+                var dto = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.GetAsync(id);
+                return this.Ok(dto);
+            }
+            catch (ElementNotFoundException)
+            {
+                return this.NotFound();
+            }
+        }
+
+        /// <summary>
+        /// Add a <#= ModelInstance.EntityName.ToCamelCase() #>.
+        /// </summary>
+        /// <param name="dto">The <#= ModelInstance.EntityName.ToCamelCase() #> DTO.</param>
+        /// <returns>The result of the creation.</returns>
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = Rights.<#= ModelInstance.EntityNamePlural #>.Create)]
+        public async Task<IActionResult> Add([FromBody] <#= ModelInstance.EntityName #>Dto dto)
+        {
+            try
+            {
+                var createdDto = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.AddAsync(dto);
+<#  if(ModelInstance.HasParent) { #>
+#if UseHubForClientIn<#= ModelInstance.EntityName #>
+                _ = this.clientForHubService.SendTargetedMessage(createdDto.<#= ModelInstance.ParentName #>Id.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+#endif
+<#  } #>
+                return this.CreatedAtAction("Get", new { id = createdDto.Id }, createdDto);
+            }
+            catch (ArgumentNullException)
+            {
+                return this.ValidationProblem();
+            }
+        }
+
+        /// <summary>
+        /// Update a <#= ModelInstance.EntityName.ToCamelCase() #>.
+        /// </summary>
+        /// <param name="id">The <#= ModelInstance.EntityName.ToCamelCase() #> identifier.</param>
+        /// <param name="dto">The <#= ModelInstance.EntityName.ToCamelCase() #> DTO.</param>
+        /// <returns>The result of the update.</returns>
+        [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = Rights.<#= ModelInstance.EntityNamePlural #>.Update)]
+        public async Task<IActionResult> Update(int id, [FromBody] <#= ModelInstance.EntityName #>Dto dto)
+        {
+            if (id == 0 || dto == null || dto.Id != id)
+            {
+                return this.BadRequest();
+            }
+
+            try
+            {
+                var updatedDto = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.UpdateAsync(dto);
+<#  if(ModelInstance.HasParent) { #>
+#if UseHubForClientIn<#= ModelInstance.EntityName #>
+                _ = this.clientForHubService.SendTargetedMessage(updatedDto.<#= ModelInstance.ParentName #>Id.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+#endif
+<#  } #>
+                return this.Ok(updatedDto);
+            }
+            catch (ArgumentNullException)
+            {
+                return this.ValidationProblem();
+            }
+            catch (ElementNotFoundException)
+            {
+                return this.NotFound();
+            }
+            catch (OutdateException)
+            {
+                return this.Conflict();
+            }
+        }
+
+        /// <summary>
+        /// Remove a <#= ModelInstance.EntityName.ToCamelCase() #>.
+        /// </summary>
+        /// <param name="id">The <#= ModelInstance.EntityName.ToCamelCase() #> identifier.</param>
+        /// <returns>The result of the remove.</returns>
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = Rights.<#= ModelInstance.EntityNamePlural #>.Delete)]
+        public async Task<IActionResult> Remove(int id)
+        {
+            if (id == 0)
+            {
+                return this.BadRequest();
+            }
+
+            try
+            {
+                var deletedDto = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.RemoveAsync(id);
+<#  if(ModelInstance.HasParent) { #>
+#if UseHubForClientIn<#= ModelInstance.EntityName #>
+                _ = this.clientForHubService.SendTargetedMessage(deletedDto.<#= ModelInstance.ParentName #>Id.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+#endif
+<#  } #>
+                return this.Ok();
+            }
+            catch (ElementNotFoundException)
+            {
+                return this.NotFound();
+            }
+        }
+
+        /// <summary>
+        /// Removes the specified <#= ModelInstance.EntityName.ToCamelCase() #> ids.
+        /// </summary>
+        /// <param name="ids">The <#= ModelInstance.EntityName.ToCamelCase() #> ids.</param>
+        /// <returns>The result of the remove.</returns>
+        [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = Rights.<#= ModelInstance.EntityNamePlural #>.Delete)]
+        public async Task<IActionResult> Remove([FromQuery] List<int> ids)
+        {
+            if (ids?.Any() != true)
+            {
+                return this.BadRequest();
+            }
+
+            try
+            {
+                var deletedDtos = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.RemoveAsync(ids);
+<#  if(ModelInstance.HasParent) { #>
+#if UseHubForClientIn<#= ModelInstance.EntityName #>
+                deletedDtos.Select(m => m.<#= ModelInstance.ParentName #>Id).Distinct().ToList().ForEach(parentId =>
+                {
+                    _ = this.clientForHubService.SendTargetedMessage(parentId.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+                });
+#endif
+<#  } #>
+                return this.Ok();
+            }
+            catch (ElementNotFoundException)
+            {
+                return this.NotFound();
+            }
+        }
+
+        /// <summary>
+        /// Save all <#= ModelInstance.EntityNamePlural.ToCamelCase() #> according to their state (added, updated or removed).
+        /// </summary>
+        /// <param name="dtos">The list of <#= ModelInstance.EntityNamePlural.ToCamelCase() #>.</param>
+        /// <returns>The status code.</returns>
+        [HttpPost("save")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = Rights.<#= ModelInstance.EntityNamePlural #>.Save)]
+        public async Task<IActionResult> Save(IEnumerable<<#= ModelInstance.EntityName #>Dto> dtos)
+        {
+            var dtoList = dtos.ToList();
+            if (!dtoList.Any())
+            {
+                return this.BadRequest();
+            }
+
+            try
+            {
+                var savedDtos = await this.<<#= ModelInstance.EntityName.ToCamelCase() #>Service.SaveAsync(dtoList);
+<#  if(ModelInstance.HasParent) { #>
+#if UseHubForClientIn<#= ModelInstance.EntityName #>
+                savedDtos.Select(m => m.<#= ModelInstance.ParentName #>Id).Distinct().ToList().ForEach(parentId =>
+                {
+                    _ = this.clientForHubService.SendTargetedMessage(parentId.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+                });
+#endif
+<#  } #>
+                return this.Ok();
+            }
+            catch (ArgumentNullException)
+            {
+                return this.ValidationProblem();
+            }
+            catch (ElementNotFoundException)
+            {
+                return this.NotFound();
+            }
+        }
+
+        /// <summary>
+        /// Generates a csv file according to the filters.
+        /// </summary>
+        /// <param name="filters">filters ( <see cref="PagingFilterFormatDto"/>).</param>
+        /// <returns>a csv file.</returns>
+        [HttpPost("csv")]
+        [Authorize(Roles = Rights.<#= ModelInstance.EntityNamePlural #>.ListAccess)]
+        public virtual async Task<IActionResult> GetFile([FromBody] PagingFilterFormatDto filters)
+        {
+            byte[] buffer = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.GetCsvAsync(filters);
+            return this.File(buffer, BiaConstants.Csv.ContentType + ";charset=utf-8", $"<#= ModelInstance.EntityNamePlural #>{BiaConstants.Csv.Extension}");
+        }
+    }
+}

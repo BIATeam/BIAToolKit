@@ -48,7 +48,7 @@
       ],
       "dotNetTemplates": [
         {
-          "inputPath": "PresentationApi\\Controllers\\EntityOptionsController.tt",
+          "inputPath": "PresentationApi\\Controllers\\EntityOptionsControllerTemplate.tt",
           "outputPath": "{Project}.Presentation.Api\\Controllers\\{Domain}\\{Entity}OptionsController.cs"
         },
         {
@@ -74,6 +74,15 @@
           "outputPath": "{Project}.Presentation.Api\\bianetconfig.json",
           "isPartial": true,
           "partialInsertionMarkup": "ConfigForOption"
+        }
+      ]
+    },
+    {
+      "name": "CRUD",
+      "dotNetTemplates": [
+        {
+          "inputPath": "PresentationApi\\Controllers\\EntityControllerTemplate.tt",
+          "outputPath": "{Project}.Presentation.Api\\Controllers\\{Domain}\\{EntityPlural}Controller.cs"
         }
       ]
     }
