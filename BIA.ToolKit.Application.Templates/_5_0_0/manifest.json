@@ -137,6 +137,36 @@
           "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\UserModelBuilder.cs",
           "isPartial": true,
           "partialInsertionMarkup": "TeamTypeRoleModelBuilder"
+        },
+        {
+          "inputPath": "Domain\\Mappers\\PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.tt",
+          "outputPath": "{Project}.Domain\\User\\Mappers\\TeamMapper.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamMapperParentTeamId"
+        },
+        {
+          "inputPath": "Domain\\Mappers\\PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.tt",
+          "outputPath": "{Project}.Domain\\User\\Mappers\\TeamMapper.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamMapperParentTeamTitle"
+        },
+        {
+          "inputPath": "Domain\\Mappers\\PartialCrudTeamMapperTemplate_TeamMapperUsing.tt",
+          "outputPath": "{Project}.Domain\\User\\Mappers\\TeamMapper.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamMapperUsing"
+        },
+        {
+          "inputPath": "Domain\\PartialCrudTeamConfigTemplate.tt",
+          "outputPath": "{Project}.Domain\\User\\TeamConfig.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamConfig"
+        },
+        {
+          "inputPath": "PresentationApi\\Controllers\\PartialCrudAuthControllerTemplate.tt",
+          "outputPath": "{Project}.Presentation.Api\\Controllers\\User\\AuthController.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "AuthController"
         }
       ]
     }

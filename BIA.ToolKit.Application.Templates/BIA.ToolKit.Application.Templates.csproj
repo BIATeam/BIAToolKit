@@ -61,6 +61,31 @@
     <Compile Include="_5_0_0\Models\EntityDtoModel.cs" />
     <Compile Include="_5_0_0\Models\EntityOptionModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyModel.cs" />
+    <None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\PartialCrudAuthControllerTemplate.cs">
+      <DependentUpon>PartialCrudAuthControllerTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.cs">
+      <DependentUpon>PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.cs">
+      <DependentUpon>PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperUsing.cs">
+      <DependentUpon>PartialCrudTeamMapperTemplate_TeamMapperUsing.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate.cs">
+      <DependentUpon>PartialCrudTeamConfigTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_RoleModelBuilder.cs">
       <DependentUpon>PartialCrudUserModelBuilderTemplate_RoleModelBuilder.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -275,6 +300,26 @@
       <LastGenOutput>EntityMapperTemplate.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperUsing.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudTeamMapperTemplate_TeamMapperUsing.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudTeamConfigTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="_5_0_0\Templates\DotNet\Domain\Specifications\EntitySpecificationTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntitySpecificationTemplate.cs</LastGenOutput>
@@ -303,6 +348,11 @@
     <Content Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityOptionsControllerTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityOptionsControllerTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\PartialCrudAuthControllerTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudAuthControllerTemplate.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="_5_0_0\Templates\DotNet\PresentationApi\PartialCrudBianetconfigTemplate.tt">
