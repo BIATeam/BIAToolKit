@@ -20,7 +20,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.<#= ModelInstanc
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-#if UseHubForClientInEngine
+#if UseHubForClientIn<#= ModelInstance.EntityName #>
     using BIA.Net.Core.Application.Services;
 #endif
     using BIA.Net.Core.Common;
@@ -286,7 +286,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.<#= ModelInstanc
 
             try
             {
-                var savedDtos = await this.<<#= ModelInstance.EntityName.ToCamelCase() #>Service.SaveAsync(dtoList);
+                var savedDtos = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.SaveAsync(dtoList);
 <#  if(ModelInstance.HasParent) { #>
 #if UseHubForClientIn<#= ModelInstance.EntityName #>
                 savedDtos.Select(m => m.<#= ModelInstance.ParentName #>Id).Distinct().ToList().ForEach(parentId =>

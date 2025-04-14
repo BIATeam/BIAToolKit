@@ -21,9 +21,9 @@
             IsTeam = false;
             DisplayItemName = "Name";
             OptionItems = new List<string> { "Engine", "Airport", "PlaneType" };
-            HasParent = false;
-            ParentName = string.Empty;
-            ParentNamePlural = string.Empty;
+            HasParent = true;
+            ParentName = "Site";
+            ParentNamePlural = "Sites";
         }
     }
 }

@@ -8,7 +8,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Plane
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-#if UseHubForClientInEngine
+#if UseHubForClientInPlane
     using BIA.Net.Core.Application.Services;
 #endif
     using BIA.Net.Core.Common;
@@ -124,6 +124,9 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Plane
             try
             {
                 var createdDto = await this.planeService.AddAsync(dto);
+#if UseHubForClientInPlane
+                _ = this.clientForHubService.SendTargetedMessage(createdDto.SiteId.ToString(), "planes", "refresh-planes");
+#endif
                 return this.CreatedAtAction("Get", new { id = createdDto.Id }, createdDto);
             }
             catch (ArgumentNullException)
@@ -155,6 +158,9 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Plane
             try
             {
                 var updatedDto = await this.planeService.UpdateAsync(dto);
+#if UseHubForClientInPlane
+                _ = this.clientForHubService.SendTargetedMessage(updatedDto.SiteId.ToString(), "planes", "refresh-planes");
+#endif
                 return this.Ok(updatedDto);
             }
             catch (ArgumentNullException)
@@ -192,6 +198,9 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Plane
             try
             {
                 var deletedDto = await this.planeService.RemoveAsync(id);
+#if UseHubForClientInPlane
+                _ = this.clientForHubService.SendTargetedMessage(deletedDto.SiteId.ToString(), "planes", "refresh-planes");
+#endif
                 return this.Ok();
             }
             catch (ElementNotFoundException)
@@ -221,6 +230,12 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Plane
             try
             {
                 var deletedDtos = await this.planeService.RemoveAsync(ids);
+#if UseHubForClientInPlane
+                deletedDtos.Select(m => m.SiteId).Distinct().ToList().ForEach(parentId =>
+                {
+                    _ = this.clientForHubService.SendTargetedMessage(parentId.ToString(), "planes", "refresh-planes");
+                });
+#endif
                 return this.Ok();
             }
             catch (ElementNotFoundException)
@@ -251,7 +266,13 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Plane
 
             try
             {
-                var savedDtos = await this.<planeService.SaveAsync(dtoList);
+                var savedDtos = await this.planeService.SaveAsync(dtoList);
+#if UseHubForClientInPlane
+                savedDtos.Select(m => m.SiteId).Distinct().ToList().ForEach(parentId =>
+                {
+                    _ = this.clientForHubService.SendTargetedMessage(parentId.ToString(), "planes", "refresh-planes");
+                });
+#endif
                 return this.Ok();
             }
             catch (ArgumentNullException)
