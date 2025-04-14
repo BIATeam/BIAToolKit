@@ -200,7 +200,7 @@
                     ?? throw new KeyNotFoundException($"no CRUD feature for template manifest {currentManifest.Version}");
 
                 currentDomain = domainName;
-                currentEntityName = entityInfo.Name;
+                currentEntityName = entityInfo.Name.Replace("dto", string.Empty, StringComparison.InvariantCultureIgnoreCase);
                 currentEntityNamePlural = entityNamePlural;
                 currentAngularFront = angularFront;
                 CurrentFeature = optionFeature;
