@@ -73,6 +73,26 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
 <#  } #>
         }
 
+<#  if(ModelInstance.HasParent) { #>
+        /// <inheritdoc/>
+#pragma warning disable S1006 // Method overrides should not change parameter defaults
+        public override Task<(IEnumerable<<#= ModelInstance.EntityName #>Dto> Results, int Total)> GetRangeAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
+#pragma warning restore S1006 // Method overrides should not change parameter defaults
+        {
+            specification ??= <#= ModelInstance.EntityName #>Specification.SearchGetAll(filters);
+            return base.GetRangeAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
+        }
+
+        /// <inheritdoc/>
+#pragma warning disable S1006 // Method overrides should not change parameter defaults
+        public override Task<byte[]> GetCsvAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
+#pragma warning restore S1006 // Method overrides should not change parameter defaults
+        {
+            specification ??= <#= ModelInstance.EntityName #>Specification.SearchGetAll(filters);
+            return base.GetCsvAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
+        }
+<#  } #>
+
 <#  if(ModelInstance.HasAncestorTeam) {  #>
         /// <inheritdoc/>
         public override Task<<#= ModelInstance.EntityName #>Dto> AddAsync(<#= ModelInstance.EntityName #>Dto dto, string mapperMode = null)

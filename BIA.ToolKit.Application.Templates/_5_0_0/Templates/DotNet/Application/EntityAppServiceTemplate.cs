@@ -56,6 +56,24 @@ namespace TheBIADevCompany.BIADemo.Application.Plane
         }
 
         /// <inheritdoc/>
+#pragma warning disable S1006 // Method overrides should not change parameter defaults
+        public override Task<(IEnumerable<PlaneDto> Results, int Total)> GetRangeAsync(PagingFilterFormatDto filters = null, int id = default, Specification<Plane> specification = null, Expression<Func<Plane, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
+#pragma warning restore S1006 // Method overrides should not change parameter defaults
+        {
+            specification ??= PlaneSpecification.SearchGetAll(filters);
+            return base.GetRangeAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
+        }
+
+        /// <inheritdoc/>
+#pragma warning disable S1006 // Method overrides should not change parameter defaults
+        public override Task<byte[]> GetCsvAsync(PagingFilterFormatDto filters = null, int id = default, Specification<Plane> specification = null, Expression<Func<Plane, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
+#pragma warning restore S1006 // Method overrides should not change parameter defaults
+        {
+            specification ??= PlaneSpecification.SearchGetAll(filters);
+            return base.GetCsvAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
+        }
+
+        /// <inheritdoc/>
         public override Task<PlaneDto> AddAsync(PlaneDto dto, string mapperMode = null)
         {
             dto.SiteId = this.currentAncestorTeamId;
