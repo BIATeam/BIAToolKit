@@ -56,7 +56,7 @@
                 },
             };
 
-            await fixture.FileGeneratorService.GenerateDto(entityInfo, domainName, mappingProperties);
+            await fixture.FileGeneratorService.GenerateDtoAsync(entityInfo, domainName, mappingProperties);
 
             foreach(var dotNetTemplate in fixture.FileGeneratorService.CurrentFeature.DotNetTemplates)
             {

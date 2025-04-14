@@ -55,6 +55,11 @@
     <Compile Include="_5_0_0\Models\EntityDtoModel.cs" />
     <Compile Include="_5_0_0\Models\EntityOptionModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyModel.cs" />
+    <None Include="_5_0_0\Templates\DotNet\Domain\Specifications\EntitySpecificationTemplate.cs">
+      <DependentUpon>EntitySpecificationTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_5_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.cs">
       <DependentUpon>EntityAppServiceTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -217,6 +222,11 @@
     <Content Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityMapperTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Domain\Specifications\EntitySpecificationTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntitySpecificationTemplate.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityControllerTemplate.tt">

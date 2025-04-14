@@ -93,6 +93,10 @@
           "outputPath": "{Project}.Application\\{Domain}\\I{Entity}AppService.cs"
         },
         {
+          "inputPath": "Domain\\Specifications\\EntitySpecificationTemplate.tt",
+          "outputPath": "{Project}.Domain\\{Domain}\\Specifications\\{Entity}Specification.cs"
+        },
+        {
           "inputPath": "PresentationApi\\PartialCrudBianetconfigTemplate.tt",
           "outputPath": "{Project}.Presentation.Api\\bianetconfig.json",
           "isPartial": true,

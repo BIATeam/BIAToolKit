@@ -130,7 +130,7 @@
             return Version.TryParse(currentProject.FrameworkVersion, out Version projectVersion) && projectVersion >= new Version(5, 0);
         }
 
-        public async Task GenerateDto(EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
+        public async Task GenerateDtoAsync(EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
         {
             try
             {
@@ -148,7 +148,7 @@
                 currentEntityNamePlural = string.Empty;
                 CurrentFeature = dtoFeature;
 
-                await GenerateTemplatesFromManifestFeature(dtoFeature, templateModel);
+                await GenerateTemplatesFromManifestFeatureAsync(dtoFeature, templateModel);
                 consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
             }
             catch (Exception ex)
@@ -157,7 +157,7 @@
             }
         }
 
-        public async Task GenerateOption(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayName, string angularFront)
+        public async Task GenerateOptionAsync(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayName, string angularFront)
         {
             try
             {
@@ -176,7 +176,7 @@
                 currentAngularFront = angularFront;
                 CurrentFeature = optionFeature;
 
-                await GenerateTemplatesFromManifestFeature(optionFeature, templateModel);
+                await GenerateTemplatesFromManifestFeatureAsync(optionFeature, templateModel);
 
                 consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
             }
@@ -186,7 +186,7 @@
             }
         }
 
-        public async Task GenerateCRUD(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayItemName, string angularFront, bool isTeam = false, List<string> optionItems = null, bool hasParent = false, string parentName = null, string parentNamePlural = null)
+        public async Task GenerateCRUDAsync(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayItemName, string angularFront, bool isTeam = false, List<string> optionItems = null, bool hasParent = false, string parentName = null, string parentNamePlural = null)
         {
             try
             {
@@ -205,7 +205,7 @@
                 currentAngularFront = angularFront;
                 CurrentFeature = optionFeature;
 
-                await GenerateTemplatesFromManifestFeature(optionFeature, templateModel);
+                await GenerateTemplatesFromManifestFeatureAsync(optionFeature, templateModel);
 
                 consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
             }
@@ -221,18 +221,18 @@
             manifestsFiles.ForEach(m => manifests.Add(JsonConvert.DeserializeObject<Manifest>(File.ReadAllText(m))));
         }
 
-        private async Task GenerateTemplatesFromManifestFeature(Manifest.Feature manifestFeature, object model)
+        private async Task GenerateTemplatesFromManifestFeatureAsync(Manifest.Feature manifestFeature, object model)
         {
             await GenerateAngularTemplates(manifestFeature.AngularTemplates, model);
-            await GenerateDotNetTemplates(manifestFeature.DotNetTemplates, model);
+            await GenerateDotNetTemplatesAsync(manifestFeature.DotNetTemplates, model);
         }
 
-        private async Task GenerateDotNetTemplates(IEnumerable<Manifest.Feature.Template> templates, object model)
+        private async Task GenerateDotNetTemplatesAsync(IEnumerable<Manifest.Feature.Template> templates, object model)
         {
             foreach (var template in templates)
             {
                 var templatePath = Path.Combine(templatesPath, Constants.FolderDotNet, template.InputPath);
-                await GenerateFromTemplate(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, currentProject, currentDomain, currentEntityName, currentEntityNamePlural));
+                await GenerateFromTemplateAsync(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, currentProject, currentDomain, currentEntityName, currentEntityNamePlural));
             }
         }
 
@@ -248,7 +248,7 @@
             foreach (var template in templates)
             {
                 var templatePath = Path.Combine(templatesPath, currentAngularFront, template.InputPath);
-                await GenerateFromTemplate(template, templatePath, model, GetAngularTemplateOutputPath(template.OutputPath, currentProject, currentEntityName));
+                await GenerateFromTemplateAsync(template, templatePath, model, GetAngularTemplateOutputPath(template.OutputPath, currentProject, currentEntityName));
             }
         }
 
@@ -258,7 +258,7 @@
             return Path.Combine(angularProjectPath, templateOutputPath.Replace("{Entity}", entityName.ToKebabCase()));
         }
 
-        private async Task GenerateFromTemplate(Manifest.Feature.Template template, string templatePath, object model, string outputPath)
+        private async Task GenerateFromTemplateAsync(Manifest.Feature.Template template, string templatePath, object model, string outputPath)
         {
             try
             {
@@ -278,59 +278,31 @@
                 var templateGeneratorSession = templateGenerator.GetOrCreateSession();
                 templateGeneratorSession.Add("Model", model);
 
-                if (!template.IsPartial)
+                // Generate content from template into temp file
+                var generatedTemplatePath = Path.Combine(Path.GetTempPath(), Path.GetFileName(outputPath));
+                var success = await templateGenerator.ProcessTemplateAsync(generationTemplatePath, generatedTemplatePath);
+                File.Delete(generationTemplatePath);
+                if (!success)
                 {
-                    if (!Directory.Exists(Path.GetDirectoryName(outputPath)))
-                    {
-                        Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
-                    }
+                    throw new Exception(JsonConvert.SerializeObject(templateGenerator.Errors));
+                }
 
-                    var success = await templateGenerator.ProcessTemplateAsync(generationTemplatePath, outputPath);
-                    File.Delete(generationTemplatePath);
-                    if (!success)
-                    {
-                        throw new Exception(JsonConvert.SerializeObject(templateGenerator.Errors));
-                    }
+                // Check if generated content has any line
+                var generatedTemplateContent = (await File.ReadAllLinesAsync(generatedTemplatePath)).ToList();
+                File.Delete(generatedTemplatePath);
+                if (generatedTemplateContent.Count == 0)
+                {
+                    consoleWriter.AddMessageLine("Ignored : generated content is empty", "orange");
+                    return;
+                }
+
+                if (template.IsPartial)
+                {
+                    await WritePartialContentAsync(template, outputPath, relativeOutputPath, generatedTemplateContent);
                 }
                 else
                 {
-                    // Generate partial content from template into temp file
-                    var generatedTemplatePath = Path.Combine(Path.GetTempPath(), Path.GetFileName(outputPath));
-                    var success = await templateGenerator.ProcessTemplateAsync(generationTemplatePath, generatedTemplatePath);
-                    File.Delete(generationTemplatePath);
-                    if (!success)
-                    {
-                        throw new Exception(JsonConvert.SerializeObject(templateGenerator.Errors));
-                    }
-
-                    var generatedTemplateContent = (await File.ReadAllLinesAsync(generatedTemplatePath)).ToList();
-                    File.Delete(generatedTemplatePath);
-
-                    var outputContent = (await File.ReadAllLinesAsync(outputPath)).ToList();
-                    var biaToolKitMarkupBegin = string.Format(BiaToolKitMarkupBeginPattern, template.PartialInsertionMarkup);
-                    var biaToolKitMarkupEnd = string.Format(BiaToolKitMarkupEndPattern, template.PartialInsertionMarkup);
-                    if(!outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupBegin)) || !outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupEnd)))
-                    {
-                        throw new Exception($"Unable to find insertion markup {template.PartialInsertionMarkup} into {relativeOutputPath}");
-                    }
-
-                    var biaToolKitMarkupPartialBeginPattern = string.Format(BiaToolKitMarkupPartialBeginPattern, template.PartialInsertionMarkup, currentEntityName);
-                    var biaToolKitMarkupPartialEndPattern = string.Format(BiaToolKitMarkupPartialEndPattern, template.PartialInsertionMarkup, currentEntityName);
-                    // Partial content already exists
-                    if (outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialBeginPattern)) && outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialEndPattern)))
-                    {
-                        var indexBegin = outputContent.FindIndex(line => line.Trim().Equals(biaToolKitMarkupPartialBeginPattern));
-                        var indexEnd = outputContent.FindIndex(line => line.Trim().Equals(biaToolKitMarkupPartialEndPattern));
-                        // Replace previous generated content by new one
-                        outputContent.RemoveRange(indexBegin, indexEnd - indexBegin + 1);
-                        outputContent.InsertRange(indexBegin, generatedTemplateContent);
-                    }
-                    else
-                    {
-                        var indexBegin = outputContent.FindIndex(line => line.Contains(biaToolKitMarkupEnd));
-                        outputContent.InsertRange(indexBegin, generatedTemplateContent);
-                    }
-                    await File.WriteAllLinesAsync(outputPath, outputContent);
+                    await File.WriteAllLinesAsync(outputPath, generatedTemplateContent);
                 }
 
                 consoleWriter.AddMessageLine($"Success !", "lightgreen");
@@ -339,6 +311,35 @@
             {
                 consoleWriter.AddMessageLine($"Generate from template failed : {ex}", color: "red");
             }
+        }
+
+        private async Task WritePartialContentAsync(Manifest.Feature.Template template, string outputPath, string relativeOutputPath, List<string> generatedTemplateContent)
+        {
+            var outputContent = (await File.ReadAllLinesAsync(outputPath)).ToList();
+            var biaToolKitMarkupBegin = string.Format(BiaToolKitMarkupBeginPattern, template.PartialInsertionMarkup);
+            var biaToolKitMarkupEnd = string.Format(BiaToolKitMarkupEndPattern, template.PartialInsertionMarkup);
+            if (!outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupBegin)) || !outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupEnd)))
+            {
+                throw new Exception($"Unable to find insertion markup {template.PartialInsertionMarkup} into {relativeOutputPath}");
+            }
+
+            var biaToolKitMarkupPartialBeginPattern = string.Format(BiaToolKitMarkupPartialBeginPattern, template.PartialInsertionMarkup, currentEntityName);
+            var biaToolKitMarkupPartialEndPattern = string.Format(BiaToolKitMarkupPartialEndPattern, template.PartialInsertionMarkup, currentEntityName);
+            // Partial content already exists
+            if (outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialBeginPattern)) && outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialEndPattern)))
+            {
+                var indexBegin = outputContent.FindIndex(line => line.Trim().Equals(biaToolKitMarkupPartialBeginPattern));
+                var indexEnd = outputContent.FindIndex(line => line.Trim().Equals(biaToolKitMarkupPartialEndPattern));
+                // Replace previous generated content by new one
+                outputContent.RemoveRange(indexBegin, indexEnd - indexBegin + 1);
+                outputContent.InsertRange(indexBegin, generatedTemplateContent);
+            }
+            else
+            {
+                var indexBegin = outputContent.FindIndex(line => line.Contains(biaToolKitMarkupEnd));
+                outputContent.InsertRange(indexBegin, generatedTemplateContent);
+            }
+            await File.WriteAllLinesAsync(outputPath, outputContent);
         }
     }
 }

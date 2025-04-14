@@ -222,7 +222,7 @@
         {
             if (fileGeneratorService.IsProjectCompatible())
             {
-                await fileGeneratorService.GenerateCRUD(
+                await fileGeneratorService.GenerateCRUDAsync(
                     vm.DtoEntity, 
                     vm.CRUDNamePlural, 
                     vm.Domain, 

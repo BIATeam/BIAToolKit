@@ -134,7 +134,7 @@
         private async void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
             UpdateHistoryFile();
-            await fileGeneratorService.GenerateDto(vm.SelectedEntityInfo, vm.EntityDomain, vm.MappingEntityProperties);
+            await fileGeneratorService.GenerateDtoAsync(vm.SelectedEntityInfo, vm.EntityDomain, vm.MappingEntityProperties);
         }
 
         private void UpdateHistoryFile()
