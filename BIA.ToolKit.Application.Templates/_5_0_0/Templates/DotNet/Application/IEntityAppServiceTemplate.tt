@@ -10,16 +10,16 @@
 <#@ output extension=".cs" #>
 <#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
 <# var ModelInstance = Model ?? new EntityCrudMock(); #>
-// <copyright file="I<#= ModelInstance.EntityName #>AppService.cs" company="TheBIADevCompany">
-// Copyright (c) TheBIADevCompany. All rights reserved.
+// <copyright file="I<#= ModelInstance.EntityName #>AppService.cs" company="<#= ModelInstance.CompanyName #>">
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
 
-namespace TheBIADevCompany.BIADemo.Application.<#= ModelInstance.EntityName #>
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.EntityName #>
 {
     using BIA.Net.Core.Application.Services;
     using BIA.Net.Core.Domain.Dto.Base;
-    using TheBIADevCompany.BIADemo.Domain.Dto.<#= ModelInstance.EntityName #>;
-    using TheBIADevCompany.BIADemo.Domain.<#= ModelInstance.EntityName #>.Entities;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.EntityName #>;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.EntityName #>.Entities;
 
     /// <summary>
     /// The interface defining the application service for <#= ModelInstance.EntityName.ToCamelCase() #>.

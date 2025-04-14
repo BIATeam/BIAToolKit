@@ -10,11 +10,11 @@
 <#@ output extension=".cs" #>
 <#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
 <# var ModelInstance = Model ?? new EntityCrudMock(); #>
-// <copyright file="<#= ModelInstance.EntityName #>AppService.cs" company="TheBIADevCompany">
-// Copyright (c) TheBIADevCompany. All rights reserved.
+// <copyright file="<#= ModelInstance.EntityName #>AppService.cs" company="<#= ModelInstance.CompanyName #>">
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
 
-namespace TheBIADevCompany.BIADemo.Application.<#= ModelInstance.EntityName #>
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.EntityName #>
 {
     using System.Security.Principal;
     using System.Threading.Tasks;
@@ -26,11 +26,11 @@ namespace TheBIADevCompany.BIADemo.Application.<#= ModelInstance.EntityName #>
     using BIA.Net.Core.Domain.RepoContract;
     using BIA.Net.Core.Domain.Service;
     using BIA.Net.Core.Domain.Specification;
-    using TheBIADevCompany.BIADemo.Crosscutting.Common.Enum;
-    using TheBIADevCompany.BIADemo.Domain.Dto.<#= ModelInstance.EntityName #>;
-    using TheBIADevCompany.BIADemo.Domain.<#= ModelInstance.EntityName #>.Entities;
-    using TheBIADevCompany.BIADemo.Domain.<#= ModelInstance.EntityName #>.Mappers;
-    using TheBIADevCompany.BIADemo.Domain.RepoContract;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common.Enum;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.EntityName #>;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.EntityName #>.Entities;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.EntityName #>.Mappers;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.RepoContract;
 
     /// <summary>
     /// The application service used for <#= ModelInstance.EntityName.ToCamelCase() #>.
