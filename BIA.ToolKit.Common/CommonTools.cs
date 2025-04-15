@@ -295,7 +295,7 @@
         {
             var iEntityBase = baseList.FirstOrDefault(x => BaseEntityInterfaces.Any(y => x.StartsWith(y)));
             if (iEntityBase == null)
-                return baseList.Contains("Team") ? "int" : null;
+                return baseList.Contains("Team") || baseList.Contains("TeamDto") ? "int" : null;
 
             var regex = new Regex(@"<\s*(\w+)\s*>");
             return regex.Match(iEntityBase).Groups[1].Value;
