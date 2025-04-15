@@ -302,6 +302,7 @@
                 }
                 else
                 {
+                    Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
                     await File.WriteAllLinesAsync(outputPath, generatedTemplateContent);
                 }
 
@@ -339,6 +340,7 @@
                 var indexBegin = outputContent.FindIndex(line => line.Contains(biaToolKitMarkupEnd));
                 outputContent.InsertRange(indexBegin, generatedTemplateContent);
             }
+            Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
             await File.WriteAllLinesAsync(outputPath, outputContent);
         }
     }

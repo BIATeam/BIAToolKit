@@ -58,6 +58,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 
         /// <inheritdoc/>
         public override int TeamType => base.TeamType;
+
 <# } #>
         /// <inheritdoc/>
         public override ExpressionCollection<<#= ModelInstance.EntityName #>> ExpressionCollection

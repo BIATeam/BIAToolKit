@@ -13,7 +13,7 @@
 // <copyright file="<#= ModelInstance.EntityNamePlural #>Controller.cs" company="<#= ModelInstance.CompanyName #>">
 // Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
-#define UseHubForClientIn<#= ModelInstance.EntityName #>
+// #define UseHubForClientIn<#= ModelInstance.EntityName #>
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Presentation.Api.Controllers.<#= ModelInstance.DomainName #>
 {
     using System;

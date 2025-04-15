@@ -4,6 +4,7 @@
 
 namespace TheBIADevCompany.BIADemo.Application.Fleet
 {
+    using System.Linq.Expressions;
     using System.Security.Principal;
     using System.Threading.Tasks;
     using BIA.Net.Core.Application.Services;
@@ -14,10 +15,12 @@ namespace TheBIADevCompany.BIADemo.Application.Fleet
     using BIA.Net.Core.Domain.RepoContract;
     using BIA.Net.Core.Domain.Service;
     using BIA.Net.Core.Domain.Specification;
+    using TheBIADevCompany.BIADemo.Application.User;
     using TheBIADevCompany.BIADemo.Crosscutting.Common.Enum;
     using TheBIADevCompany.BIADemo.Domain.Dto.Fleet;
     using TheBIADevCompany.BIADemo.Domain.Fleet.Entities;
     using TheBIADevCompany.BIADemo.Domain.Fleet.Mappers;
+    using TheBIADevCompany.BIADemo.Domain.Fleet.Specifications;
     using TheBIADevCompany.BIADemo.Domain.RepoContract;
 
     /// <summary>
@@ -40,12 +43,6 @@ namespace TheBIADevCompany.BIADemo.Application.Fleet
             IPrincipal principal)
             : base(repository)
         {
-            var userData = (principal as BiaClaimsPrincipal).GetUserData<UserDataDto>();
-            this.currentAncestorTeamId = userData != null ? userData.GetCurrentTeamId((int)TeamTypeId.Site) : 0;
-
-            // For child : set the TeamId of the Ancestor that contain a team Parent
-            this.FiltersContext.Add(AccessMode.Read, new DirectSpecification<Plane>(x => x.SiteId == this.currentAncestorTeamId));
-
             this.FiltersContext.Add(
                 AccessMode.Read,
                 TeamAppService.ReadSpecification<Plane>(TeamTypeId.Plane, principal));
@@ -53,6 +50,12 @@ namespace TheBIADevCompany.BIADemo.Application.Fleet
             this.FiltersContext.Add(
                 AccessMode.Update,
                 TeamAppService.UpdateSpecification<Plane>(TeamTypeId.Plane, principal));
+
+            var userData = (principal as BiaClaimsPrincipal).GetUserData<UserDataDto>();
+            this.currentAncestorTeamId = userData != null ? userData.GetCurrentTeamId((int)TeamTypeId.Site) : 0;
+
+            // For child : set the TeamId of the Ancestor that contain a team Parent
+            this.FiltersContext.Add(AccessMode.Read, new DirectSpecification<Plane>(x => x.SiteId == this.currentAncestorTeamId));
         }
 
         /// <inheritdoc/>

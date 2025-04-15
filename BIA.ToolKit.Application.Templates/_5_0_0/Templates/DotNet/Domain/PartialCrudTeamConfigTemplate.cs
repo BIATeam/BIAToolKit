@@ -9,7 +9,7 @@
                     new BiaTeamParentConfig<Team>
                     {
                         TeamTypeId = (int)TeamTypeId.Site,
-                        GetParent = team => (team as Plane).Site,
+                        GetParent = team => (team as Fleet.Entities.Plane).Site,
                     },
                 }
                 .ToImmutable(),

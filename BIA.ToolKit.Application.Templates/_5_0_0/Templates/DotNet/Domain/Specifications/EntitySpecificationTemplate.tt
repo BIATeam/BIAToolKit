@@ -15,11 +15,11 @@
 // Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
 
-namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Specifications.<#= ModelInstance.DomainName #>
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Specifications
 {
     using BIA.Net.Core.Domain.Dto.Base;
     using BIA.Net.Core.Domain.Specification;
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.ParentName #>.Entities;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
 
     /// <summary>
     /// The specifications of the member entity.

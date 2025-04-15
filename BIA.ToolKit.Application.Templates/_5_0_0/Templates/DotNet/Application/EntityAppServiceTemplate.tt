@@ -16,6 +16,9 @@
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.DomainName #>
 {
+<#  if(ModelInstance.HasParent) { #>
+    using System.Linq.Expressions;
+<#  } #>
     using System.Security.Principal;
     using System.Threading.Tasks;
     using BIA.Net.Core.Application.Services;
@@ -26,10 +29,16 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     using BIA.Net.Core.Domain.RepoContract;
     using BIA.Net.Core.Domain.Service;
     using BIA.Net.Core.Domain.Specification;
+<#  if(ModelInstance.IsTeam) {  #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.User;
+<#  } #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common.Enum;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers;
+<#  if(ModelInstance.HasParent) { #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Specifications;
+<#  } #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.RepoContract;
 
     /// <summary>
@@ -42,26 +51,25 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
         /// The current AncestorTeamId.
         /// </summary>
         private readonly int currentAncestorTeamId;
-<#  } #>
 
+<#  } #>
         /// <summary>
         /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>AppService"/> class.
         /// </summary>
         /// <param name="repository">The repository.</param>
+<#  if(ModelInstance.IsTeam) {  #>
         /// <param name="principal">The claims principal.</param>
         public <#= ModelInstance.EntityName #>AppService(
             ITGenericRepository<<#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>> repository,
             IPrincipal principal)
             : base(repository)
         {
-<#  if(ModelInstance.HasAncestorTeam) {  #>
-            var userData = (principal as BiaClaimsPrincipal).GetUserData<UserDataDto>();
-            this.currentAncestorTeamId = userData != null ? userData.GetCurrentTeamId((int)TeamTypeId.<#= ModelInstance.AncestorTeamName #>) : 0;
-
-            // For child : set the TeamId of the Ancestor that contain a team Parent
-            this.FiltersContext.Add(AccessMode.Read, new DirectSpecification<<#= ModelInstance.EntityName #>>(x => x.<#= ModelInstance.AncestorTeamName #>Id == this.currentAncestorTeamId));
+<#  } else { #>
+        public <#= ModelInstance.EntityName #>AppService(
+            ITGenericRepository<<#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>> repository)
+            : base(repository)
+        {
 <#  } #>
-
 <#  if(ModelInstance.IsTeam) {  #>
             this.FiltersContext.Add(
                 AccessMode.Read,
@@ -71,9 +79,17 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
                 AccessMode.Update,
                 TeamAppService.UpdateSpecification<<#= ModelInstance.EntityName #>>(TeamTypeId.<#= ModelInstance.EntityName #>, principal));
 <#  } #>
-        }
+<#  if(ModelInstance.HasAncestorTeam) {  #>
 
+            var userData = (principal as BiaClaimsPrincipal).GetUserData<UserDataDto>();
+            this.currentAncestorTeamId = userData != null ? userData.GetCurrentTeamId((int)TeamTypeId.<#= ModelInstance.AncestorTeamName #>) : 0;
+
+            // For child : set the TeamId of the Ancestor that contain a team Parent
+            this.FiltersContext.Add(AccessMode.Read, new DirectSpecification<<#= ModelInstance.EntityName #>>(x => x.<#= ModelInstance.AncestorTeamName #>Id == this.currentAncestorTeamId));
+<#  } #>
+        }
 <#  if(ModelInstance.HasParent) { #>
+
         /// <inheritdoc/>
 #pragma warning disable S1006 // Method overrides should not change parameter defaults
         public override Task<(IEnumerable<<#= ModelInstance.EntityName #>Dto> Results, int Total)> GetRangeAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
@@ -92,8 +108,8 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
             return base.GetCsvAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
         }
 <#  } #>
-
 <#  if(ModelInstance.HasAncestorTeam) {  #>
+
         /// <inheritdoc/>
         public override Task<<#= ModelInstance.EntityName #>Dto> AddAsync(<#= ModelInstance.EntityName #>Dto dto, string mapperMode = null)
         {

@@ -14,7 +14,7 @@ var ModelInstance = Model ?? new EntityCrudMock();
 if(ModelInstance.IsTeam && ModelInstance.HasParent) {
 #>
                 // BIAToolKit - Begin Partial TeamMapperParentTeamTitle <#= ModelInstance.EntityName #>
-                <#= ModelInstance.EntityName #> <#= ModelInstance.EntityName.ToCamelCase() #> => team.TeamTypeId == (int)TeamTypeId.<#= ModelInstance.EntityName #> ? <#= ModelInstance.EntityName.ToCamelCase() #>.<#= ModelInstance.ParentName #>.Title : 0,
+                <#= ModelInstance.EntityName #> <#= ModelInstance.EntityName.ToCamelCase() #> => team.TeamTypeId == (int)TeamTypeId.<#= ModelInstance.EntityName #> ? <#= ModelInstance.EntityName.ToCamelCase() #>.<#= ModelInstance.ParentName #>.Title : string.Empty,
 
                 // BIAToolKit - End Partial TeamMapperParentTeamTitle <#= ModelInstance.EntityName #>
 <# }  #>
