@@ -57,7 +57,7 @@
                 OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty,
                 IsParent = x.IsParent,
             }).ToList();
-            model.IsTeamType = entityInfo.BaseType?.Contains("Team") ?? false;
+            model.IsTeamType = entityInfo.IsTeam;
 
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {

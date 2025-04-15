@@ -20,6 +20,7 @@
     using System.Windows.Controls;
     using System.Windows.Input;
     using System.Windows.Markup;
+    using Windows.Data.Xml.Dom;
     using static BIA.ToolKit.Application.Services.UIEventBroker;
 
     /// <summary>
@@ -133,7 +134,7 @@
             vm.EntityDisplayItems.Clear();
             Visibility msgVisibility = Visibility.Hidden;
 
-            vm.Domain = vm.EntitySelected;
+            vm.Domain = null;
             vm.EntityNamePlural = null;
 
             if (this.optionGenerationHistory != null)
@@ -185,6 +186,7 @@
             if (fileGeneratorService.IsProjectCompatible())
             {
                 await fileGeneratorService.GenerateOptionAsync(vm.Entity, vm.EntityNamePlural, vm.Domain, vm.EntityDisplayItemSelected, vm.BiaFront);
+                UpdateOptionGenerationHistory();
                 return;
             }
 
@@ -309,6 +311,12 @@
             string backSettingsFileName = Path.Combine(dotnetBiaFolderPath, settings.GenerationSettingsFileName);
             this.optionHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.OptionGenerationHistoryFileName);
 
+            if (fileGeneratorService.IsInit)
+            {
+                vm.IsZipParsed = true;
+                return;
+            }
+
             // Load BIA settings
             if (File.Exists(backSettingsFileName))
             {
@@ -340,6 +348,11 @@
 
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
             string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
+
+            if(fileGeneratorService.IsInit)
+            {
+                return;
+            }
 
             if (File.Exists(frontSettingsFileName))
             {
@@ -514,6 +527,13 @@
 
                 // Check parsed Entity entity file
                 vm.Entity = entityInfo;
+                var namespaceParts = entityInfo.Namespace.Split('.').ToList();
+                var domainIndex = namespaceParts.IndexOf("Domain");
+                if (domainIndex != -1)
+                {
+                    vm.Domain = namespaceParts[domainIndex + 1];
+                }
+                vm.EntityNamePlural = entityInfo.NamePluralized;
                 if (!vm.Entity.Properties.Any())
                 {
                     consoleWriter.AddMessageLine("No properties found on entity file.", "Orange");
