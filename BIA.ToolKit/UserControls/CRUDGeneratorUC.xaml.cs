@@ -228,12 +228,13 @@
                     vm.Domain, 
                     vm.DtoDisplayItemSelected, 
                     vm.BiaFront, 
-                    vm.FeatureNameSelected == "Team", 
+                    vm.DtoEntity.IsTeam, 
                     vm.OptionItems.Where(x => x.Check).Select(x => x.OptionName).ToList(), 
                     vm.HasParent, 
                     vm.ParentName, 
                     vm.ParentNamePlural);
 
+                UpdateCrudGenerationHistory();
                 return;
             }
 
@@ -377,6 +378,15 @@
                 File.Move(oldCrudHistoryFilePath, this.crudHistoryFileName);
             }
 
+            if(fileGeneratorService.IsInit)
+            {
+                vm.UseFileGenerator = true;
+                vm.IsZipParsed = true;
+                vm.FeatureNames.Add("CRUD");
+                vm.FeatureNameSelected = "CRUD";
+                return;
+            }
+
             // Load BIA settings
             if (File.Exists(backSettingsFileName))
             {
@@ -419,6 +429,11 @@
 
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
             string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
+
+            if(fileGeneratorService.IsInit)
+            {
+                return;
+            }
 
             if (File.Exists(frontSettingsFileName))
             {

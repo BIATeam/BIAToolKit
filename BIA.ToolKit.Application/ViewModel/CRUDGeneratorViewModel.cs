@@ -7,6 +7,7 @@
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
+    using Humanizer;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -55,6 +56,8 @@
                 RaisePropertyChanged(nameof(IsProjectChosen));
             }
         }
+
+        public bool UseFileGenerator { get; set; }
         #endregion
 
         #region Dto
@@ -246,6 +249,7 @@
                 {
                     entityNameSingular = value;
                     RaisePropertyChanged(nameof(CRUDNameSingular));
+                    CRUDNamePlural = value.Pluralize();
                 }
             }
         }
@@ -270,6 +274,11 @@
         {
             get
             {
+                if(UseFileGenerator)
+                {
+                    return true;
+                }
+
                 // CRUD feature always disable
                 if (!string.IsNullOrEmpty(FeatureNameSelected) && FeatureNameSelected.Equals("CRUD"))
                     return false;
@@ -297,9 +306,12 @@
 
                     if (value == false)
                     {
-                        Domain = null;
                         ParentName = null;
                         ParentNamePlural = null;
+                    }
+                    else
+                    {
+                        UpdateParentPreSelection();
                     }
                 }
             }
@@ -331,6 +343,7 @@
                     parentName = value;
                     RaisePropertyChanged(nameof(ParentName));
                     RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                    ParentNamePlural = value.Pluralize();
                 }
             }
         }
@@ -353,7 +366,7 @@
         private void UpdateParentPreSelection()
         {
             var selectedFeaturesWithParent = ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected && x.Parents.Any(y => y.IsPrincipal));
-            if (selectedFeaturesWithParent.Any() && DtoEntity != null)
+            if ((UseFileGenerator || selectedFeaturesWithParent.Any()) && DtoEntity != null)
             {
                 var propertiesWithParent = DtoEntity.Properties.Where(x => x.Annotations != null && x.Annotations.Any(y => y.Key == "IsParent"));
                 HasParent = selectedFeaturesWithParent.Any(x => x.NeedParent) || propertiesWithParent.Any();
@@ -449,6 +462,7 @@
             {
                 _biaFront = value;
                 RaisePropertyChanged(nameof(BiaFront));
+                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
 
@@ -463,8 +477,8 @@
             }
         }
 
-        public bool IsWebApiAvailable => !string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.WebApi);
-        public bool IsFrontAvailable => !string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.Front);
+        public bool IsWebApiAvailable => UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.WebApi));
+        public bool IsFrontAvailable => UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.Front));
         #endregion
 
         #region ZipFile
@@ -498,7 +512,7 @@
         {
             get
             {
-                return isDtoParsed && !string.IsNullOrEmpty(featureNameSelected) && !ZipFeatureTypeList.Any(x => x.Feature == featureNameSelected && x.FeatureType == FeatureType.Option);
+                return isDtoParsed && UseFileGenerator || (!string.IsNullOrEmpty(featureNameSelected) && !ZipFeatureTypeList.Any(x => x.Feature == featureNameSelected && x.FeatureType == FeatureType.Option));
             }
         }
 

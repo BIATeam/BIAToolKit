@@ -15,10 +15,10 @@
             ProjectName = "BIADemo";
             EntityNameArticle = "a";
             DomainName = "Fleet";
-            EntityName = "Engine";
+            EntityName = "Plane";
             BaseKeyType = "int";
-            EntityNamePlural = "Engines";
-            IsTeam = true;
+            EntityNamePlural = "Planes";
+            IsTeam = false;
             HasAncestorTeam = true;
             AncestorTeamName = "Site";
             DisplayItemName = "Name";
