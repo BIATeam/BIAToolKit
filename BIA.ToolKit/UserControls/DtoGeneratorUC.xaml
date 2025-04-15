@@ -44,7 +44,7 @@
             <TextBox Grid.Column="0" Text="{Binding EntityDomain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Padding="2" Margin="20,80,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Top" IsEnabled="{Binding IsEntitySelected}" MinWidth="250"/>
 
             <Label Grid.Column="0" Content="Ancestor Team:"  Margin="0,110,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-            <TextBox Grid.Column="0" Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Padding="2" Margin="20,135,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Top" IsEnabled="{Binding IsAncestorTeamInputEnabled}" MinWidth="250"/>
+            <TextBox Grid.Column="0" Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Padding="2" Margin="20,135,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Top" MinWidth="250"/>
         </Grid>
 
         <Label Grid.Row="1" Grid.Column="0" Content="Properties:"  Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>

@@ -133,8 +133,6 @@
             }
         }
 
-        public bool IsAncestorTeamInputEnabled => SelectedEntityInfo?.IsTeam == true;
-
         private ObservableCollection<EntityProperty> entityProperties = new();
         public ObservableCollection<EntityProperty> EntityProperties
         {
@@ -296,7 +294,7 @@
         {
             var mappingEntityProperties = new List<MappingEntityProperty>(MappingEntityProperties);
             AddMappingProperties(EntityProperties, mappingEntityProperties);
-            MappingEntityProperties = new(mappingEntityProperties.OrderBy(x => x.EntityCompositeName));
+            MappingEntityProperties = new(mappingEntityProperties);
 
             foreach(var mappingEntityProperty in MappingEntityProperties.Where(x => x.IsOptionCollection))
             {
@@ -481,25 +479,6 @@
         {
             const string Error_DuplicateMappingName = "Duplicate property name";
 
-            var propertiesToIgnore = new List<MappingEntityProperty>();
-            foreach (var property in MappingEntityProperties)
-            {
-                var mappingOptionWithSameEntityIdProperty = MappingEntityProperties.FirstOrDefault(x => x.IsOption && x.OptionEntityIdPropertyComposite.Equals(property.EntityCompositeName));
-                if (mappingOptionWithSameEntityIdProperty != null)
-                {
-                    consoleWriter.AddMessageLine($"The entity's property {property.EntityCompositeName} is already used as mapping ID property for the OptionDto {mappingOptionWithSameEntityIdProperty.MappingName}, the mapping for this property has been ignored.", "orange");
-                    propertiesToIgnore.Add(property);
-                }
-            }
-
-            foreach (var property in propertiesToIgnore)
-            {
-                var entityPropertyToUnselect = EntityProperties.First(x => x.CompositeName == property.EntityCompositeName);
-                entityPropertyToUnselect.IsSelected = false;
-
-                MappingEntityProperties.Remove(property);
-            }
-
             foreach (var mappingEntityproperty in MappingEntityProperties)
             {
                 mappingEntityproperty.MappingNameError = null;
@@ -521,6 +500,7 @@
         {
             EntitiesNames.Clear();
             EntityDomain = null;
+            AncestorTeam = null;
         }
 
         private void MoveMappedProperty(int oldIndex, int newIndex)
