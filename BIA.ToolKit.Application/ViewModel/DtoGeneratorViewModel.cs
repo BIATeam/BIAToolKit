@@ -102,7 +102,6 @@
                 }
 
                 RaisePropertyChanged(nameof(IsEntitySelected));
-                RaisePropertyChanged(nameof(IsAncestorTeamInputEnabled));
 
                 RefreshEntityPropertiesTreeView();
                 RemoveAllMappingProperties();

@@ -15,17 +15,17 @@
             ProjectName = "BIADemo";
             EntityNameArticle = "a";
             DomainName = "Fleet";
-            EntityName = "Plane";
+            EntityName = "Engine";
             BaseKeyType = "int";
-            EntityNamePlural = "Planes";
+            EntityNamePlural = "Engines";
             IsTeam = true;
             HasAncestorTeam = true;
             AncestorTeamName = "Site";
             DisplayItemName = "Name";
             OptionItems = new List<string> { "Engine", "Airport", "PlaneType" };
-            HasParent = true;
-            ParentName = "Site";
-            ParentNamePlural = "Sites";
+            HasParent = false;
+            ParentName = "Plane";
+            ParentNamePlural = "Planes";
         }
     }
 }
