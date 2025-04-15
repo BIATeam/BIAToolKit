@@ -23,6 +23,7 @@
         public string OptionRelationFirstIdProperty { get; set; }
         public string OptionRelationSecondIdProperty { get; set; }
         public bool IsOptionCollection { get; set; }
+        public bool IsParent { get; set; }
 
         private string biaDtoFieldAttributeProperties;
         public string BiaDtoFieldAttributeProperties
@@ -40,6 +41,11 @@
             {
                 $"Required = {IsRequired.ToString().ToLower()}"
             };
+
+            if(IsParent)
+            {
+                attributeProperties.Add($"IsParent = true");
+            }
 
             if (IsOption || IsOptionCollection)
             {

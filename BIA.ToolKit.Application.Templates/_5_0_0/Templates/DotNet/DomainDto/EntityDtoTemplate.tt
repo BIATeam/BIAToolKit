@@ -34,6 +34,9 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
     /// <summary>
     /// The DTO used to represent <#= ModelInstance.EntityNameArticle #> <#= ModelInstance.EntityName #>.
     /// </summary>
+<#  if(ModelInstance.HasAncestorTeam) { #>
+    [BiaDtoClass(AncestorTeam = "<#= ModelInstance.AncestorTeam #>")]
+<#  } #>
     public class <#= ModelInstance.EntityName #>Dto : <#= ModelInstance.IsTeamType ? "TeamDto" : $"BaseDto<{ModelInstance.BaseKeyType}>" #>
     {
 <# var index = 0;  #>

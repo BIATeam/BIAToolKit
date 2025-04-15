@@ -102,6 +102,7 @@
                 }
 
                 RaisePropertyChanged(nameof(IsEntitySelected));
+                RaisePropertyChanged(nameof(IsAncestorTeamInputEnabled));
 
                 RefreshEntityPropertiesTreeView();
                 RemoveAllMappingProperties();
@@ -119,6 +120,20 @@
                 RaisePropertyChanged(nameof(IsGenerationEnabled));
             }
         }
+
+        private string ancestorTeam;
+
+        public string AncestorTeam
+        {
+            get => ancestorTeam;
+            set 
+            { 
+                ancestorTeam = value; 
+                RaisePropertyChanged(nameof(AncestorTeam));
+            }
+        }
+
+        public bool IsAncestorTeamInputEnabled => SelectedEntityInfo?.IsTeam == true;
 
         private ObservableCollection<EntityProperty> entityProperties = new();
         public ObservableCollection<EntityProperty> EntityProperties
@@ -164,6 +179,7 @@
 
         public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>(RemoveMappingProperty);
         public ICommand MoveMappedPropertyCommand => new RelayCommand<MoveItemArgs>(x => MoveMappedProperty(x.OldIndex, x.NewIndex));
+        public ICommand SetMappedPropertyIsParentCommand => new RelayCommand<MappingEntityProperty>(SetMappedPropertyIsParent);
 
         public void SetProject(Project project)
         {
@@ -443,6 +459,16 @@
             RaisePropertyChanged(nameof(IsGenerationEnabled));
         }
 
+        private void SetMappedPropertyIsParent(MappingEntityProperty mappingEntityProperty)
+        {
+            var newValue = mappingEntityProperty.IsParent;
+            foreach (var item in MappingEntityProperties)
+            {
+                item.IsParent = false;
+            }
+            mappingEntityProperty.IsParent = newValue;
+        }
+
         public void RemoveAllMappingProperties()
         {
             MappingEntityProperties.Clear();
@@ -642,6 +668,23 @@
                 RaisePropertyChanged(nameof(HasMappingNameError));
             }
         }
+
+        private bool isParent;
+        public bool IsParent
+        {
+            get => isParent;
+            set 
+            { 
+                isParent = value; 
+                RaisePropertyChanged(nameof(IsParent));
+            }
+        }
+        public bool IsVisibleIsParentCheckbox => 
+            MappingType == "int" 
+            && EntityCompositeName.EndsWith("Id") 
+            && !EntityCompositeName.Equals("Id")
+            ;
+
 
         private bool ComputeValidity()
         {

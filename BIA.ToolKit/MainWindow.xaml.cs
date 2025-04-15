@@ -51,6 +51,8 @@
             this.updateService = updateService;
             this.generateFilesService = genFilesService;
 
+            uiEventBroker.OnProjectChanged += fileGeneratorService.EventBroker_OnProjectChanged;
+
             InitializeComponent();
 
             CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, featureSettingService);
@@ -93,7 +95,6 @@
             DataContext = _viewModel;
 
             uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
-            uiEventBroker.OnProjectChanged += fileGeneratorService.EventBroker_OnProjectChanged;
         }
 
         private void UiEventBroker_OnNewVersionAvailable()

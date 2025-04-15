@@ -41,6 +41,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
         public List<PropertyInfo> CompositeKeys { get; } = new List<PropertyInfo>();
         public List<KeyValuePair<string, string>> ClassAnnotations { get; } = new();
         public string BaseKeyType { get; set; }
+        public bool IsTeam => BaseList.Contains("Team") || BaseList.Contains("TeamDto");
         public string AncestorTeamName => ClassAnnotations.FirstOrDefault(c => c.Key == CRUDDataUpdateType.AncestorTeam.ToString()).Value;
         public bool HasAncestorTeam => !string.IsNullOrWhiteSpace(AncestorTeamName);
 

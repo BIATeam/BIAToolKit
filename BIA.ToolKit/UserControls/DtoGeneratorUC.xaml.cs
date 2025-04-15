@@ -134,7 +134,7 @@
         private async void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
             UpdateHistoryFile();
-            await fileGeneratorService.GenerateDtoAsync(vm.SelectedEntityInfo, vm.EntityDomain, vm.MappingEntityProperties);
+            await fileGeneratorService.GenerateDtoAsync(vm.SelectedEntityInfo, vm.EntityDomain, vm.MappingEntityProperties, vm.AncestorTeam);
         }
 
         private void UpdateHistoryFile()
@@ -146,6 +146,7 @@
             generation.EntityName = vm.SelectedEntityInfo.Name;
             generation.EntityNamespace = vm.SelectedEntityInfo.Namespace;
             generation.Domain = vm.EntityDomain;
+            generation.AncestorTeam = vm.AncestorTeam;
             generation.PropertyMappings.Clear();
 
             foreach (var property in vm.MappingEntityProperties)
@@ -158,7 +159,8 @@
                     MappingName = property.MappingName,
                     OptionMappingDisplayProperty = property.OptionDisplayProperty,
                     OptionMappingEntityIdProperty = property.OptionEntityIdProperty,
-                    OptionMappingIdProperty = property.OptionIdProperty
+                    OptionMappingIdProperty = property.OptionIdProperty,
+                    IsParent = property.IsParent
                 };
                 generation.PropertyMappings.Add(generationPropertyMapping);
             }
@@ -208,7 +210,7 @@
 
             vm.WasAlreadyGenerated = true;
             vm.EntityDomain = generation.Domain;
-
+            vm.AncestorTeam = generation.AncestorTeam;
 
             var allEntityProperties = vm.AllEntityPropertiesRecursively.ToList();
             foreach (var property in allEntityProperties)
@@ -238,6 +240,7 @@
                 mappingProperty.OptionIdProperty = property.OptionMappingIdProperty;
                 mappingProperty.OptionDisplayProperty = property.OptionMappingDisplayProperty;
                 mappingProperty.OptionEntityIdProperty = property.OptionMappingEntityIdProperty;
+                mappingProperty.IsParent = property.IsParent;
             }
 
             vm.ComputePropertiesValidity();

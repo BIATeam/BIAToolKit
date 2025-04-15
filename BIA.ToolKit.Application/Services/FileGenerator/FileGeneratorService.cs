@@ -130,7 +130,7 @@
             return Version.TryParse(currentProject.FrameworkVersion, out Version projectVersion) && projectVersion >= new Version(5, 0);
         }
 
-        public async Task GenerateDtoAsync(EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
+        public async Task GenerateDtoAsync(EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties, string ancestorTeam = null)
         {
             try
             {
@@ -139,7 +139,7 @@
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
 
-                var templateModel = fileGenerator.GetDtoTemplateModel(currentProject, entityInfo, domainName, mappingEntityProperties);
+                var templateModel = fileGenerator.GetDtoTemplateModel(currentProject, entityInfo, domainName, mappingEntityProperties, ancestorTeam);
                 var dtoFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "DTO")
                     ?? throw new KeyNotFoundException($"no DTO feature for template manifest {currentManifest.Version}");
 

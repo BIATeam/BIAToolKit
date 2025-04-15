@@ -27,7 +27,7 @@
             return new EntityDtoModel();
         }
 
-        public object GetDtoTemplateModel(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
+        public object GetDtoTemplateModel(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties, string ancestorTeam)
         {
             var model = CreateDtoEntityModel();
 
@@ -37,6 +37,7 @@
             model.DomainName = domainName;
             model.EntityName = entityInfo.Name;
             model.BaseKeyType = entityInfo.BaseKeyType;
+            model.AncestorTeam = ancestorTeam;
             model.Properties = mappingEntityProperties.Select(x => new PropertyModel()
             {
                 MappingName = x.MappingName,
@@ -54,6 +55,7 @@
                 OptionRelationPropertyComposite = x.OptionRelationPropertyComposite,
                 OptionRelationFirstIdProperty = x.OptionRelationFirstIdProperty,
                 OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty,
+                IsParent = x.IsParent,
             }).ToList();
             model.IsTeamType = entityInfo.BaseType?.Contains("Team") ?? false;
 

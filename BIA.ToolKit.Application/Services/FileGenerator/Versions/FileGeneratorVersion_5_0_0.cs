@@ -34,9 +34,9 @@
             return new EntityCrudModel();
         }
 
-        public new object GetDtoTemplateModel(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties)
+        public new object GetDtoTemplateModel(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties, string ancestorTeam)
         {
-            var model = base.GetDtoTemplateModel(project, entityInfo, domainName, mappingEntityProperties) as EntityDtoModel;
+            var model = base.GetDtoTemplateModel(project, entityInfo, domainName, mappingEntityProperties, ancestorTeam) as EntityDtoModel;
             // Map additionnal properties of your model 
             return model;
         }
