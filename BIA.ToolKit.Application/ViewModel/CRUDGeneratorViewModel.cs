@@ -163,6 +163,8 @@
             }
         }
 
+        public string SelectedOptionItems => string.Join(", ", OptionItems.Where(x => x.Check).Select(x => x.OptionName));
+
         private bool isDtoGenerated = false;
         public bool IsDtoGenerated
         {
@@ -175,6 +177,24 @@
                     RaisePropertyChanged(nameof(IsDtoGenerated));
                 }
             }
+        }
+
+        public void AddOptionItems(IEnumerable<OptionItem> optionItems)
+        {
+            OptionItems.Clear();
+            foreach (var optionItem in optionItems)
+            {
+                OptionItems.Add(optionItem);
+            }
+            foreach(var optionItem in OptionItems)
+            {
+                optionItem.PropertyChanged += OptionItem_PropertyChanged;
+            }
+        }
+
+        private void OptionItem_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            RaisePropertyChanged(nameof(SelectedOptionItems));
         }
         #endregion
 
@@ -365,17 +385,25 @@
 
         private void UpdateParentPreSelection()
         {
+            if(!string.IsNullOrWhiteSpace(ParentName))
+            {
+                return;
+            }
+
             var selectedFeaturesWithParent = ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected && x.Parents.Any(y => y.IsPrincipal));
             if ((UseFileGenerator || selectedFeaturesWithParent.Any()) && DtoEntity != null)
             {
                 var propertiesWithParent = DtoEntity.Properties.Where(x => x.Annotations != null && x.Annotations.Any(y => y.Key == "IsParent"));
-                HasParent = selectedFeaturesWithParent.Any(x => x.NeedParent) || propertiesWithParent.Any();
-
                 var parentPropertyName = propertiesWithParent.FirstOrDefault(x => x.Name.EndsWith("Id"))?.Name;
                 if (!string.IsNullOrEmpty(parentPropertyName))
                 {
                     var parentName = parentPropertyName.Replace("Id", string.Empty);
                     ParentName = parentName;
+                    HasParent = true;
+                }
+                if(!UseFileGenerator && !HasParent)
+                {
+                    HasParent = selectedFeaturesWithParent.Any(x => x.NeedParent);
                 }
             }
             else
@@ -391,6 +419,11 @@
             if (DtoEntity == null)
             {
                 Domain = null;
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(Domain))
+            {
                 return;
             }
 
@@ -533,9 +566,19 @@
         #endregion
     }
 
-    public class OptionItem
+    public class OptionItem : ObservableObject
     {
-        public bool Check { get; set; }
+        private bool check;
+        public bool Check
+        {
+            get => check;
+            set
+            {
+                check = value;
+                RaisePropertyChanged(nameof(Check));
+            }
+        }
+
         public string OptionName { get; set; }
 
         public OptionItem(string name, bool check = false)

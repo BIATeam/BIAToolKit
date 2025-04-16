@@ -311,9 +311,10 @@
             string backSettingsFileName = Path.Combine(dotnetBiaFolderPath, settings.GenerationSettingsFileName);
             this.optionHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.OptionGenerationHistoryFileName);
 
-            if (fileGeneratorService.IsInit)
+            if (fileGeneratorService.IsProjectCompatible())
             {
                 vm.IsZipParsed = true;
+                this.optionGenerationHistory = CommonTools.DeserializeJsonFile<OptionGeneration>(this.optionHistoryFileName);
                 return;
             }
 
@@ -349,7 +350,7 @@
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
             string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
 
-            if(fileGeneratorService.IsInit)
+            if(fileGeneratorService.IsProjectCompatible())
             {
                 return;
             }
