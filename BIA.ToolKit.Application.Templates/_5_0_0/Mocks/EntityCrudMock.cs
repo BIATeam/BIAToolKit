@@ -14,18 +14,18 @@
             CompanyName = "TheBIADevCompany";
             ProjectName = "BIADemo";
             EntityNameArticle = "a";
-            DomainName = "Fleet";
-            EntityName = "Plane";
+            DomainName = "MaintenanceCompanies";
+            EntityName = "MaintenanceTeam";
             BaseKeyType = "int";
-            EntityNamePlural = "Planes";
-            IsTeam = false;
+            EntityNamePlural = "MaintenanceTeams";
+            IsTeam = true;
             HasAncestorTeam = true;
             AncestorTeamName = "Site";
             DisplayItemName = "Name";
             OptionItems = new List<string> { "Engine", "Airport", "PlaneType" };
-            HasParent = false;
-            ParentName = "Plane";
-            ParentNamePlural = "Planes";
+            HasParent = true;
+            ParentName = "AircraftMaintenanceCompany";
+            ParentNamePlural = "AircraftMaintenanceCompanies";
         }
     }
 }

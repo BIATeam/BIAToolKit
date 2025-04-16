@@ -235,6 +235,16 @@
       <LastGenOutput>EntityOptionStateTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\PartialCrudEntityModuleTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudEntityModuleTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\EntityModuleTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityModuleTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="_5_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityAppServiceTemplate.cs</LastGenOutput>
@@ -370,42 +380,53 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionModuleTemplate.ts">
+    <None Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionModuleTemplate.ts">
       <DependentUpon>EntityOptionModuleTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.ts">
+    </None>
+    <None Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.ts">
       <DependentUpon>EntityOptionConstantsTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\domains\services\EntityOptionDasServiceTemplate.ts">
+    </None>
+    <None Include="_5_0_0\Templates\Angular\src\app\domains\services\EntityOptionDasServiceTemplate.ts">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>EntityOptionDasServiceTemplate.tt</DependentUpon>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsActionsTemplate.ts">
+    </None>
+    <None Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsActionsTemplate.ts">
       <DependentUpon>EntityOptionsActionsTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsEffectsTemplate.ts">
+    </None>
+    <None Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsEffectsTemplate.ts">
       <DependentUpon>EntityOptionsEffectsTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsReducerTemplate.ts">
+    </None>
+    <None Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsReducerTemplate.ts">
       <DependentUpon>EntityOptionsReducerTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionStateTemplate.ts">
+    </None>
+    <None Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionStateTemplate.ts">
       <DependentUpon>EntityOptionStateTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-    </TypeScriptCompile>
+    </None>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\EntityModuleTemplate.ts">
+      <DependentUpon>EntityModuleTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\PartialCrudEntityModuleTemplate.ts">
+      <DependentUpon>PartialCrudEntityModuleTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

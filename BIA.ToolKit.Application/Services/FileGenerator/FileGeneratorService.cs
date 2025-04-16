@@ -38,6 +38,8 @@
         private string currentEntityName;
         private string currentEntityNamePlural;
         private string currentAngularFront;
+        private string currentParentName;
+        private string currentParentNamePlural;
         public Manifest.Feature CurrentFeature { get; private set; }
 
         public bool IsInit { get; private set; }
@@ -146,6 +148,8 @@
                 currentDomain = domainName;
                 currentEntityName = entityInfo.Name;
                 currentEntityNamePlural = string.Empty;
+                currentParentName = string.Empty;
+                currentParentNamePlural = string.Empty;
                 CurrentFeature = dtoFeature;
 
                 await GenerateTemplatesFromManifestFeatureAsync(dtoFeature, templateModel);
@@ -174,6 +178,8 @@
                 currentEntityName = entityInfo.Name;
                 currentEntityNamePlural = entityNamePlural;
                 currentAngularFront = angularFront;
+                currentParentName = string.Empty;
+                currentParentNamePlural = string.Empty;
                 CurrentFeature = optionFeature;
 
                 await GenerateTemplatesFromManifestFeatureAsync(optionFeature, templateModel);
@@ -202,6 +208,8 @@
                 currentDomain = domainName;
                 currentEntityName = entityInfo.Name.Replace("dto", string.Empty, StringComparison.InvariantCultureIgnoreCase);
                 currentEntityNamePlural = entityNamePlural;
+                currentParentName = parentName;
+                currentParentNamePlural = parentNamePlural;
                 currentAngularFront = angularFront;
                 CurrentFeature = optionFeature;
 
@@ -224,7 +232,7 @@
         private async Task GenerateTemplatesFromManifestFeatureAsync(Manifest.Feature manifestFeature, object model)
         {
             await GenerateAngularTemplates(manifestFeature.AngularTemplates, model);
-            await GenerateDotNetTemplatesAsync(manifestFeature.DotNetTemplates, model);
+            // await GenerateDotNetTemplatesAsync(manifestFeature.DotNetTemplates, model);
         }
 
         private async Task GenerateDotNetTemplatesAsync(IEnumerable<Manifest.Feature.Template> templates, object model)
@@ -240,7 +248,14 @@
         {
             var projectName = $"{project.CompanyName}.{project.Name}";
             var dotNetProjectPath = Path.Combine(project.Folder, Constants.FolderDotNet);
-            return Path.Combine(dotNetProjectPath, templateOutputPath.Replace("{Project}", projectName).Replace("{Domain}", domainName).Replace("{Entity}", entityName).Replace("{EntityPlural}", entityNamePlural));
+            return Path.Combine(
+                dotNetProjectPath, 
+                templateOutputPath
+                    .Replace("{Project}", projectName)
+                    .Replace("{Domain}", domainName)
+                    .Replace("{Entity}", entityName)
+                    .Replace("{EntityPlural}", entityNamePlural)
+            );
         }
 
         private async Task GenerateAngularTemplates(IEnumerable<Manifest.Feature.Template> templates, object model)
@@ -248,14 +263,29 @@
             foreach (var template in templates)
             {
                 var templatePath = Path.Combine(templatesPath, currentAngularFront, template.InputPath);
-                await GenerateFromTemplateAsync(template, templatePath, model, GetAngularTemplateOutputPath(template.OutputPath, currentProject, currentEntityName));
+                await GenerateFromTemplateAsync(template, templatePath, model, GetAngularTemplateOutputPath(template.OutputPath, currentProject, currentEntityName, currentEntityNamePlural, currentParentName, currentParentNamePlural));
             }
         }
 
-        public static string GetAngularTemplateOutputPath(string templateOutputPath, Project project, string entityName)
+        public static string GetAngularTemplateOutputPath(string templateOutputPath, Project project, string entityName, string entityNamePlural, string parentName, string parentNamePlural)
         {
             var angularProjectPath = Path.Combine(project.Folder, Constants.FolderAngular);
-            return Path.Combine(angularProjectPath, templateOutputPath.Replace("{Entity}", entityName.ToKebabCase()));
+            var parentRelativePathSearchRootFolder = Path.Combine(angularProjectPath, @"src\app\features\");
+
+            var parentRelativePath = Directory.EnumerateDirectories(parentRelativePathSearchRootFolder, parentNamePlural.ToKebabCase(), System.IO.SearchOption.AllDirectories).SingleOrDefault();
+            parentRelativePath = !string.IsNullOrWhiteSpace(parentRelativePath) ? parentRelativePath.Replace(parentRelativePathSearchRootFolder, string.Empty) : string.Empty;
+            var parentChildrenRelativePath = !string.IsNullOrWhiteSpace(parentRelativePath) ? Path.Combine(parentRelativePath, "children") : string.Empty;
+
+            return Path.Combine(
+                angularProjectPath, 
+                templateOutputPath
+                    .Replace("{Entity}", entityName.ToKebabCase())
+                    .Replace("{EntityPlural}", entityNamePlural.ToKebabCase())
+                    .Replace("{ParentRelativePath}", parentRelativePath)
+                    .Replace("{ParentChildrenRelativePath}", parentChildrenRelativePath)
+                    .Replace("{Parent}", parentName.ToKebabCase())
+                    .Replace(@"\\\\", @"\\")
+            );
         }
 
         private async Task GenerateFromTemplateAsync(Manifest.Feature.Template template, string templatePath, object model, string outputPath)
@@ -316,16 +346,19 @@
 
         private async Task WritePartialContentAsync(Manifest.Feature.Template template, string outputPath, string relativeOutputPath, List<string> generatedTemplateContent)
         {
+            var partialInsertionMarkup = template.PartialInsertionMarkup
+                .Replace("{Parent}", currentParentName);
+
             var outputContent = (await File.ReadAllLinesAsync(outputPath)).ToList();
-            var biaToolKitMarkupBegin = string.Format(BiaToolKitMarkupBeginPattern, template.PartialInsertionMarkup);
-            var biaToolKitMarkupEnd = string.Format(BiaToolKitMarkupEndPattern, template.PartialInsertionMarkup);
+            var biaToolKitMarkupBegin = string.Format(BiaToolKitMarkupBeginPattern, partialInsertionMarkup);
+            var biaToolKitMarkupEnd = string.Format(BiaToolKitMarkupEndPattern, partialInsertionMarkup);
             if (!outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupBegin)) || !outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupEnd)))
             {
-                throw new Exception($"Unable to find insertion markup {template.PartialInsertionMarkup} into {relativeOutputPath}");
+                throw new Exception($"Unable to find insertion markup {partialInsertionMarkup} into {relativeOutputPath}");
             }
 
-            var biaToolKitMarkupPartialBeginPattern = string.Format(BiaToolKitMarkupPartialBeginPattern, template.PartialInsertionMarkup, currentEntityName);
-            var biaToolKitMarkupPartialEndPattern = string.Format(BiaToolKitMarkupPartialEndPattern, template.PartialInsertionMarkup, currentEntityName);
+            var biaToolKitMarkupPartialBeginPattern = string.Format(BiaToolKitMarkupPartialBeginPattern, partialInsertionMarkup, currentEntityName);
+            var biaToolKitMarkupPartialEndPattern = string.Format(BiaToolKitMarkupPartialEndPattern, partialInsertionMarkup, currentEntityName);
             // Partial content already exists
             if (outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialBeginPattern)) && outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialEndPattern)))
             {

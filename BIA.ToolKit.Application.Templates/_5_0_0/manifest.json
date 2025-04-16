@@ -168,6 +168,18 @@
           "isPartial": true,
           "partialInsertionMarkup": "AuthController"
         }
+      ],
+      "angularTemplates": [
+        {
+          "inputPath": "src\\app\\features\\EntityModuleTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\{Entity}.module.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\PartialCrudEntityModuleTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentRelativePath}\\{Parent}.module.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "{Parent}ModuleChildPath"
+        }
       ]
     }
   ]
