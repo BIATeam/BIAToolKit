@@ -236,11 +236,13 @@
                     vm.Domain, 
                     vm.DtoDisplayItemSelected, 
                     vm.BiaFront, 
-                    vm.DtoEntity.IsTeam, 
-                    vm.OptionItems.Where(x => x.Check).Select(x => x.OptionName).ToList(), 
-                    vm.HasParent, 
-                    vm.ParentName, 
-                    vm.ParentNamePlural);
+                    generateBack: vm.IsWebApiSelected,
+                    generatedFront: vm.IsFrontSelected,
+                    isTeam: vm.DtoEntity.IsTeam, 
+                    optionItems: vm.OptionItems.Where(x => x.Check).Select(x => x.OptionName).ToList(), 
+                    hasParent: vm.HasParent, 
+                    parentName: vm.ParentName, 
+                    parentNamePlural: vm.ParentNamePlural);
 
                 UpdateCrudGenerationHistory();
                 return;

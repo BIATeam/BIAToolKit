@@ -40,6 +40,8 @@
         private string currentAngularFront;
         private string currentParentName;
         private string currentParentNamePlural;
+        private bool currentGenerateFront = true;
+        private bool currentGenerateBack = true;
         public Manifest.Feature CurrentFeature { get; private set; }
 
         public bool IsInit { get; private set; }
@@ -180,6 +182,7 @@
                 currentAngularFront = angularFront;
                 currentParentName = string.Empty;
                 currentParentNamePlural = string.Empty;
+                currentGenerateBack = false;
                 CurrentFeature = optionFeature;
 
                 await GenerateTemplatesFromManifestFeatureAsync(optionFeature, templateModel);
@@ -192,7 +195,7 @@
             }
         }
 
-        public async Task GenerateCRUDAsync(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayItemName, string angularFront, bool isTeam = false, List<string> optionItems = null, bool hasParent = false, string parentName = null, string parentNamePlural = null)
+        public async Task GenerateCRUDAsync(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayItemName, string angularFront, bool generateBack = true, bool generatedFront = true, bool isTeam = false, List<string> optionItems = null, bool hasParent = false, string parentName = null, string parentNamePlural = null)
         {
             try
             {
@@ -211,6 +214,8 @@
                 currentParentName = parentName;
                 currentParentNamePlural = parentNamePlural;
                 currentAngularFront = angularFront;
+                currentGenerateBack = generateBack;
+                currentGenerateFront = generatedFront;
                 CurrentFeature = optionFeature;
 
                 await GenerateTemplatesFromManifestFeatureAsync(optionFeature, templateModel);
@@ -231,8 +236,15 @@
 
         private async Task GenerateTemplatesFromManifestFeatureAsync(Manifest.Feature manifestFeature, object model)
         {
-            await GenerateAngularTemplates(manifestFeature.AngularTemplates, model);
-            // await GenerateDotNetTemplatesAsync(manifestFeature.DotNetTemplates, model);
+            if (currentGenerateFront)
+            {
+                await GenerateAngularTemplates(manifestFeature.AngularTemplates, model);
+            }
+
+            if (currentGenerateBack)
+            {
+                await GenerateDotNetTemplatesAsync(manifestFeature.DotNetTemplates, model);
+            }
         }
 
         private async Task GenerateDotNetTemplatesAsync(IEnumerable<Manifest.Feature.Template> templates, object model)
