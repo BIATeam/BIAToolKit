@@ -17,5 +17,18 @@
         public string ParentName { get; set; }
         public string ParentNamePlural { get; set; }
         public List<PropertyCrudModel> Properties { get; set; } = new List<PropertyCrudModel>();
+        public int AngularDeepLevel { get; set; }
+        public string AngularDeepRelativePath
+        {
+            get
+            {
+                var pathBuilder = new StringBuilder();
+                for (int i = 0; i < AngularDeepLevel; i++)
+                {
+                    pathBuilder.Append("../");
+                }
+                return pathBuilder.ToString();
+            }
+        }
     }
 }

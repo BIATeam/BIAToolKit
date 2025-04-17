@@ -236,6 +236,16 @@
       <LastGenOutput>EntityOptionStateTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\components\EntityTableComponentTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityTableComponentTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\components\EntityFormComponentTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityFormComponentTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="_5_0_0\Templates\Angular\src\app\features\EntityConstantsTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityConstantsTemplate.ts</LastGenOutput>
@@ -449,6 +459,20 @@
   <ItemGroup>
     <None Include="_5_0_0\Templates\Angular\src\app\features\model\EntityTemplate.ts">
       <DependentUpon>EntityTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\components\EntityFormComponentTemplate.ts">
+      <DependentUpon>EntityFormComponentTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\components\EntityTableComponentTemplate.ts">
+      <DependentUpon>EntityTableComponentTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>

@@ -26,6 +26,7 @@
             HasParent = true;
             ParentName = "AircraftMaintenanceCompany";
             ParentNamePlural = "AircraftMaintenanceCompanies";
+            AngularDeepLevel = 2;
             Properties = new List<PropertyCrudModel>
             {
                 new PropertyCrudModel

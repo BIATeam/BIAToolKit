@@ -88,6 +88,7 @@
             model.HasParent = crudContext.HasParent;
             model.ParentName = crudContext.ParentName;
             model.ParentNamePlural = crudContext.ParentNamePlural;
+            model.AngularDeepLevel = crudContext.AngularDeepLevel;
             model.OptionItems = crudContext.OptionItems;
 
             model.Properties = crudContext.Properties.Select(x => new PropertyCrudModel

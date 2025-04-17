@@ -188,6 +188,11 @@
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
 
+                if (crudContext.GenerateFront && crudContext.HasParent)
+                {
+                    crudContext.ComputeAngularParentLocation(currentProject.Folder);
+                }
+
                 var templateModel = fileGenerator.GetCrudTemplateModel(crudContext);
                 var optionFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "CRUD")
                     ?? throw new KeyNotFoundException($"no CRUD feature for template manifest {currentManifest.Version}");
@@ -251,15 +256,14 @@
         {
             foreach (var template in templates)
             {
-                var templatePath = Path.Combine(templatesPath, currentContext.AngularFront, template.InputPath);
+                var templatePath = Path.Combine(templatesPath, Constants.FolderAngular, template.InputPath);
                 await GenerateFromTemplateAsync(template, templatePath, model, GetAngularTemplateOutputPath(template.OutputPath, currentContext, currentProject.Folder));
             }
         }
 
         public static string GetAngularTemplateOutputPath(string templateOutputPath, FileGeneratorContext context, string projectFolder)
         {
-            var angularProjectPath = Path.Combine(projectFolder, Constants.FolderAngular);
-            var parentRelativePathSearchRootFolder = Path.Combine(angularProjectPath, @"src\app\features\");
+            var angularProjectPath = Path.Combine(projectFolder, context.AngularFront);
 
             var outputPath = Path.Combine(
                 angularProjectPath,
@@ -270,12 +274,9 @@
 
             if (context.HasParent)
             {
-                var parentRelativePath = Directory.EnumerateDirectories(parentRelativePathSearchRootFolder, context.ParentNamePlural.ToKebabCase(), System.IO.SearchOption.AllDirectories).SingleOrDefault();
-                parentRelativePath = !string.IsNullOrWhiteSpace(parentRelativePath) ? parentRelativePath.Replace(parentRelativePathSearchRootFolder, string.Empty) : string.Empty;
-                var parentChildrenRelativePath = !string.IsNullOrWhiteSpace(parentRelativePath) ? Path.Combine(parentRelativePath, "children") : string.Empty;
                 outputPath = outputPath
-                    .Replace("{ParentRelativePath}", parentRelativePath)
-                    .Replace("{ParentChildrenRelativePath}", parentChildrenRelativePath)
+                    .Replace("{ParentRelativePath}", context.AngularParentFolderRelativePath)
+                    .Replace("{ParentChildrenRelativePath}", context.AngularParentChildrenFolderRelativePath)
                     .Replace(@"\\\\", @"\\");
             }
 
