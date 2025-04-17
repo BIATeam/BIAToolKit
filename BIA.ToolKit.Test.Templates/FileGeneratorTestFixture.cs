@@ -25,7 +25,7 @@
         private readonly string referenceProjectPath;
         private readonly string testProjectPath;
         private readonly Project referenceProject;
-        private readonly Project testProject;
+        public Project TestProject { get; private set; }
         public FileGeneratorService FileGeneratorService { get; private set; }
 
         public FileGeneratorTestFixture()
@@ -55,7 +55,7 @@
                 FrameworkVersion = "5.0.0"
             };
 
-            testProject = new Project
+            TestProject = new Project
             {
                 Folder = testProjectPath,
                 Name = referenceProject.Name,
@@ -66,7 +66,7 @@
 
             var consoleWriter = new ConsoleWriterTest();
             FileGeneratorService = new FileGeneratorService(consoleWriter);
-            FileGeneratorService.Init(testProject);
+            FileGeneratorService.Init(TestProject);
 
             consoleWriter.AddMessageLine($"Reference project at {referenceProjectPath}");
             consoleWriter.AddMessageLine($"Generation path at {testProjectPath}");
@@ -86,12 +86,12 @@
 
         public (string referencePath, string generatedPath) GetDotNetFilesPath(string templateOutputPath, FileGeneratorContext context)
         {
-            return (FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, context, testProject.Folder));
+            return (FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, context, TestProject.Folder));
         }
 
         public (string referencePath, string generatedPath) GetAngularFilesPath(string templateOutputPath, FileGeneratorContext context)
         {
-            return (FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, testProject.Folder));
+            return (FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, TestProject.Folder));
         }
     }
 }

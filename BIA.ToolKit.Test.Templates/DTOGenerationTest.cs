@@ -59,8 +59,8 @@
 
             var dtoContext = new FileGeneratorDtoContext
             {
-                CompanyName = entityInfo.CompanyName,
-                ProjectName = entityInfo.ProjectName,
+                CompanyName = fixture.TestProject.CompanyName,
+                ProjectName = fixture.TestProject.Name,
                 DomainName = domainName,
                 EntityName = entityInfo.Name,
                 EntityNamePlural = entityInfo.NamePluralized,
