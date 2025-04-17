@@ -13,11 +13,12 @@
         public List<KeyValuePair<string, string>> BiaFieldAttributes { get; set; } = new List<KeyValuePair<string, string>>();
         
         public bool IsRequired => !IsNullable || BiaFieldAttributes.Any(x => x.Key == "IsRequired" && x.Value == "true");
-        public bool IsOption => Type.StartsWith("OptionDto");
+        public bool IsOption => Type.StartsWith("OptionDto") || Type.StartsWith("ICollection<OptionDto>");
         public bool IsCollection => Type.StartsWith("ICollection");
         public bool IsNullable => Type.EndsWith("?");
         public bool IsDecimal => Type.StartsWith("decimal", StringComparison.InvariantCultureIgnoreCase);
-        
+        public string OptionItemType => BiaFieldAttributes.SingleOrDefault(x => x.Key == "ItemType").Value;
+
         private string angularType;
         public string AngularType
         {

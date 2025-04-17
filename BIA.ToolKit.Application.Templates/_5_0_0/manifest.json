@@ -195,6 +195,18 @@
         {
           "inputPath": "src\\app\\features\\components\\EntityTableComponentTemplate.tt",
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\components\\{Entity}-table\\{Entity}-table.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\services\\EntityDasServiceTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\services\\{Entity}-das.service.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\services\\EntityOptionsServiceTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\services\\{Entity}-options.service.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\services\\EntityServiceTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\services\\{Entity}.service.ts"
         }
       ]
     }

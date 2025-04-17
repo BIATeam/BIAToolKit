@@ -1,0 +1,124 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".ts" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityCrudMock(); #>
+import { Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { TableLazyLoadEvent } from 'primeng/table';
+import { map, Observable } from 'rxjs';
+import { AuthService } from 'src/app/core/bia-core/services/auth.service';
+import { CrudItemSignalRService } from 'src/app/shared/bia-shared/feature-templates/crud-items/services/crud-item-signalr.service';
+import { CrudItemService } from 'src/app/shared/bia-shared/feature-templates/crud-items/services/crud-item.service';
+import { TeamTypeId } from 'src/app/shared/constants';
+import { AppState } from 'src/app/store/state';
+import { <#= ModelInstance.EntityName #> } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
+import { Feature<#= ModelInstance.EntityNamePlural #>Store } from '../store/<#= ModelInstance.EntityName.ToKebabCase() #>.state';
+import { Feature<#= ModelInstance.EntityNamePlural #>Actions } from '../store/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-actions';
+import { <#= ModelInstance.EntityName #>Das } from './<#= ModelInstance.EntityName.ToKebabCase() #>-das.service';
+import { <#= ModelInstance.EntityName #>OptionsService } from './<#= ModelInstance.EntityName.ToKebabCase() #>-options.service';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= ModelInstance.EntityName #>> {
+  _updateSuccessActionType = Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost.type;
+  _createSuccessActionType = Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost.type;
+  _updateFailureActionType = Feature<#= ModelInstance.EntityNamePlural #>Actions.failure.type;
+
+  constructor(
+    private store: Store<AppState>,
+    public dasService: <#= ModelInstance.EntityName #>Das,
+    public signalRService: CrudItemSignalRService<<#= ModelInstance.EntityName #>>,
+    public optionsService: <#= ModelInstance.EntityName #>OptionsService,
+    // required only for parent key
+    protected authService: AuthService
+  ) {
+    super(dasService, signalRService, optionsService);
+  }
+
+  public getParentIds(): any[] {
+    // TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the parent Key tothe context. It can be null if root crud
+    return [<# if(ModelInstance.HasParent) { #>this.authService.getCurrentTeamId(TeamTypeId.<#= ModelInstance.ParentName #>)<# } #>];
+  }
+
+  public getFeatureName() {
+    return <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.featureName;
+  }
+
+  public crudItems$: Observable<<#= ModelInstance.EntityName #>[]> = this.store.select(
+    Feature<#= ModelInstance.EntityNamePlural #>Store.getAll<#= ModelInstance.EntityNamePlural #>
+  );
+  public totalCount$: Observable<number> = this.store.select(
+    Feature<#= ModelInstance.EntityNamePlural #>Store.get<#= ModelInstance.EntityNamePlural #>TotalCount
+  );
+  public loadingGetAll$: Observable<boolean> = this.store.select(
+    Feature<#= ModelInstance.EntityNamePlural #>Store.get<#= ModelInstance.EntityName #>LoadingGetAll
+  );
+  public lastLazyLoadEvent$: Observable<TableLazyLoadEvent> = this.store.select(
+    Feature<#= ModelInstance.EntityNamePlural #>Store.getLastLazyLoadEvent
+  );
+
+  public crudItem$: Observable<<#= ModelInstance.EntityName #>> = this.store.select(
+    Feature<#= ModelInstance.EntityNamePlural #>Store.getCurrent<#= ModelInstance.EntityName #>
+  );
+
+  public displayItemName$: Observable<string> = this.crudItem$.pipe(
+    map(<#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>?.<#= ModelInstance.DisplayItemName.ToCamelCase() #>?.toString() ?? '')
+  );
+
+  public loadingGet$: Observable<boolean> = this.store.select(
+    Feature<#= ModelInstance.EntityNamePlural #>Store.get<#= ModelInstance.EntityName #>LoadingGet
+  );
+
+  public load(id: any) {
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.load({ id }));
+  }
+  public loadAllByPost(event: TableLazyLoadEvent) {
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost({ event }));
+  }
+  public create(crudItem: <#= ModelInstance.EntityName #>) {
+    // TODO after creation of CRUD <#= ModelInstance.EntityName #> : map parent Key on the corresponding field
+<#  if(ModelInstance.HasParent) { #>
+    let indexParent = 0;
+    crudItem.<#= ModelInstance.ParentName.ToCamelCase() #>Id = this.getParentIds()[indexParent++];
+<#  } #>
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.create({ <#= ModelInstance.EntityName.ToCamelCase() #>: crudItem }));
+  }
+  public update(crudItem: <#= ModelInstance.EntityName #>) {
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.update({ <#= ModelInstance.EntityName.ToCamelCase() #>: crudItem }));
+  }
+  public save(crudItems: <#= ModelInstance.EntityName #>[]) {
+<#  if(ModelInstance.HasParent) { #>
+    let indexParent = 0;
+    const <#= ModelInstance.ParentName.ToCamelCase() #>IdIndexParent = indexParent++;
+    crudItems
+      .filter(x => !x.id)
+      .map(x => (x.<#= ModelInstance.ParentName.ToCamelCase() #>Id = this.getParentIds()[<#= ModelInstance.ParentName.ToCamelCase() #>IdIndexParent]));
+<#  } #>
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.save({ <#= ModelInstance.EntityNamePlural.ToCamelCase() #>: crudItems }));
+  }
+  public remove(id: any) {
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.remove({ id }));
+  }
+  public multiRemove(ids: any[]) {
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.multiRemove({ ids }));
+  }
+  public clearAll() {
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.clearAll());
+  }
+  public clearCurrent() {
+    this._currentCrudItem = <<#= ModelInstance.EntityName #>>{};
+    this._currentCrudItemId = 0;
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.clearCurrent());
+  }
+}
+

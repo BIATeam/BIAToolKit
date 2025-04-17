@@ -1,0 +1,85 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".ts" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityCrudMock(); #>
+import { Injectable } from '@angular/core';
+import {
+<# if(ModelInstance.OptionItems.Any()) { #>
+  Observable,
+<# } #>
+  combineLatest,
+} from 'rxjs';
+import { map } from 'rxjs/operators';
+import { DictOptionDto } from 'src/app/shared/bia-shared/components/table/bia-table/dict-option-dto';
+<# if(ModelInstance.OptionItems.Any()) { #>
+import { Store } from '@ngrx/store';
+import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
+import { AppState } from 'src/app/store/state';
+<# } #>
+<#  foreach(var optionItem in ModelInstance.OptionItems) { #>
+import { getAll<#= optionItem #>Options } from 'src/app/domains/<#= optionItem.ToKebabCase() #>-option/store/<#= optionItem.ToKebabCase() #>-option.state';
+import { Domain<#= optionItem #>OptionsActions } from 'src/app/domains/<#= optionItem.ToKebabCase() #>-option/store/<#= optionItem.ToKebabCase() #>-options-actions';
+<#  } #>
+import { CrudItemOptionsService } from 'src/app/shared/bia-shared/feature-templates/crud-items/services/crud-item-options.service';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class <#= ModelInstance.EntityName #>OptionsService extends CrudItemOptionsService {
+<#  foreach(var optionItem in ModelInstance.OptionItems) { #>
+  <#= optionItem.ToCamelCase() #>Options$: Observable<OptionDto[]>;
+<#  } #>
+
+  constructor(
+  <# if(ModelInstance.OptionItems.Any()) { #>
+    private store: Store<AppState>
+  <# } #>
+  ) {
+    super();
+    // TODO after creation of CRUD <#= ModelInstance.EntityName #> : get all required option dto use in Table calc and create and edit form
+<#  foreach(var optionItem in ModelInstance.OptionItems) { #>
+    this.<#= optionItem.ToCamelCase() #>Options$ = this.store.select(getAll<#= optionItem #>Options);
+<#  } #>
+
+<# if(ModelInstance.OptionItems.Any()) { #>
+    let cpt = 0;
+<# } #>
+<#  foreach(var optionItem in ModelInstance.OptionItems) { #>
+    const <#= optionItem.ToCamelCase() #> = cpt++;
+<#  } #>
+
+    this.dictOptionDtos$ = combineLatest([
+<#  foreach(var optionItem in ModelInstance.OptionItems) { #>
+      this.<#= optionItem.ToCamelCase() #>Options$,
+<#  } #>
+    ]).pipe(
+      map(options => {
+        return <DictOptionDto[]>[
+<#  foreach(var optionItem in ModelInstance.OptionItems) { 
+        var matchingOptionProperties = ModelInstance.Properties.Where(x => x.IsOption && x.OptionItemType == optionItem);
+        foreach(var property in matchingOptionProperties) { #>
+          new DictOptionDto('<#= property.Name.ToCamelCase() #>', options[<#= optionItem.ToCamelCase() #>]),
+<#      }
+    } #>
+        ];
+      })
+    );
+  }
+
+<# if(ModelInstance.OptionItems.Any()) { #>
+  loadAllOptions() {
+<#  foreach(var optionItem in ModelInstance.OptionItems) { #>
+    this.store.dispatch(Domain<#= optionItem #>OptionsActions.loadAll());
+<#  } #>
+  }
+<# } #>
+}
+

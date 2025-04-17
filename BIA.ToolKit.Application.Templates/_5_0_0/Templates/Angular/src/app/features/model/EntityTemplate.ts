@@ -19,11 +19,13 @@ import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
 
 // TODO after creation of CRUD MaintenanceTeam : adapt the model
 export class MaintenanceTeam extends BaseDto {
+  aircraftMaintenanceCompanyId: number;
   msn: string;
   isActive: boolean;
   firstFlightDate: Date;
   motorsCount: number | null;
   someDecimal: number;
+  engines: OptionDto[];
   planeType: OptionDto;
   similarTypes: OptionDto[] | null;
 }
@@ -31,6 +33,11 @@ export class MaintenanceTeam extends BaseDto {
 // TODO after creation of CRUD MaintenanceTeam : adapt the field configuration
 export const maintenanceTeamFieldsConfiguration: BiaFieldsConfig<MaintenanceTeam> = {
   columns: [
+    Object.assign(new BiaFieldConfig('aircraftMaintenanceCompanyId', 'maintenanceTeam.aircraftMaintenanceCompanyId'), {
+      isRequired: true,
+      type: PropType.Number,
+      validators: [Validators.required],
+    }),
     Object.assign(new BiaFieldConfig('msn', 'maintenanceTeam.msn'), {
       isRequired: true,
       type: PropType.String,
@@ -57,6 +64,11 @@ export const maintenanceTeamFieldsConfiguration: BiaFieldsConfig<MaintenanceTeam
         minFractionDigits: 2,
         maxFractionDigits: 2,
       }),
+      validators: [Validators.required],
+    }),
+    Object.assign(new BiaFieldConfig('engines', 'maintenanceTeam.engines'), {
+      isRequired: true,
+      type: PropType.ManyToMany,
       validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('planeType', 'maintenanceTeam.planeType'), {

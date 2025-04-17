@@ -22,13 +22,22 @@
             HasAncestorTeam = true;
             AncestorTeamName = "Site";
             DisplayItemName = "Name";
-            OptionItems = new List<string> { "Engine", "Airport", "PlaneType" };
+            OptionItems = new List<string> { "Engine", "PlaneType" };
             HasParent = true;
             ParentName = "AircraftMaintenanceCompany";
             ParentNamePlural = "AircraftMaintenanceCompanies";
             AngularDeepLevel = 2;
             Properties = new List<PropertyCrudModel>
             {
+                 new PropertyCrudModel
+                {
+                    Name = "AircraftMaintenanceCompanyId",
+                    Type = "int",
+                    BiaFieldAttributes = new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("IsRequired", "true")
+                    }
+                },
                 new PropertyCrudModel
                 {
                     Name = "Msn",
@@ -77,13 +86,30 @@
                 },
                 new PropertyCrudModel
                 {
+                    Name = "Engines",
+                    Type = "ICollection<OptionDto>",
+                    BiaFieldAttributes = new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("ItemType", "Engine")
+                    }
+                },
+                new PropertyCrudModel
+                {
                     Name = "PlaneType",
-                    Type = "OptionDto"
+                    Type = "OptionDto",
+                    BiaFieldAttributes = new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("ItemType", "PlaneType")
+                    }
                 },
                 new PropertyCrudModel
                 {
                     Name = "SimilarTypes",
-                    Type = "ICollection<OptionDto>?"
+                    Type = "ICollection<OptionDto>?",
+                    BiaFieldAttributes = new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("ItemType", "PlaneType")
+                    }
                 }
             };
         }
