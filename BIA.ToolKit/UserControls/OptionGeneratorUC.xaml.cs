@@ -184,7 +184,7 @@
         /// </summary>
         private async void Generate_Click(object sender, RoutedEventArgs e)
         {
-            if (fileGeneratorService.IsProjectCompatible())
+            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
                 await fileGeneratorService.GenerateOptionAsync(new FileGeneratorOptionContext
                 {
@@ -324,7 +324,7 @@
             string backSettingsFileName = Path.Combine(dotnetBiaFolderPath, settings.GenerationSettingsFileName);
             this.optionHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.OptionGenerationHistoryFileName);
 
-            if (fileGeneratorService.IsProjectCompatible())
+            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
                 vm.IsZipParsed = true;
                 this.optionGenerationHistory = CommonTools.DeserializeJsonFile<OptionGeneration>(this.optionHistoryFileName);
@@ -363,7 +363,7 @@
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
             string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
 
-            if(fileGeneratorService.IsProjectCompatible())
+            if(fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
                 return;
             }

@@ -229,7 +229,7 @@
         /// </summary>
         private async void Generate_Click(object sender, RoutedEventArgs e)
         {
-            if (fileGeneratorService.IsProjectCompatible())
+            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
                 await fileGeneratorService.GenerateCRUDAsync(new FileGeneratorCrudContext
                 {
@@ -397,7 +397,7 @@
                 File.Move(oldCrudHistoryFilePath, this.crudHistoryFileName);
             }
 
-            if(fileGeneratorService.IsProjectCompatible())
+            if(fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
                 vm.UseFileGenerator = true;
                 vm.IsZipParsed = true;
@@ -451,7 +451,7 @@
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
             string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
 
-            if(fileGeneratorService.IsProjectCompatible())
+            if(fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
                 return;
             }
@@ -510,7 +510,7 @@
                     }
                 };
 
-                if (fileGeneratorService.IsProjectCompatible())
+                if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
                 {
                     if (vm.IsWebApiSelected)
                     {

@@ -120,12 +120,12 @@
         }
 
         /// <summary>
-        /// Check if current project is compatible for generation with current file generator service.
+        /// Check if current project is compatible for generation with current file generator service for CRUD or Option feature.
         /// </summary>
         /// <returns></returns>
-        public bool IsProjectCompatible()
+        public bool IsProjectCompatibleForCrudOrOptionFeature()
         {
-            return Version.TryParse(currentProject.FrameworkVersion, out Version projectVersion) && projectVersion >= new Version(5, 0);
+            return Version.TryParse(currentProject?.FrameworkVersion, out Version projectVersion) && projectVersion >= new Version(5, 0);
         }
 
         public async Task GenerateDtoAsync(FileGeneratorDtoContext dtoContext)
