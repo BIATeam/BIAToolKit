@@ -36,7 +36,7 @@
             var parentRelativePath = Directory.EnumerateDirectories(parentRelativePathSearchRootFolder, ParentNamePlural.ToKebabCase(), SearchOption.AllDirectories).SingleOrDefault();
             AngularParentFolderRelativePath = !string.IsNullOrWhiteSpace(parentRelativePath) ? parentRelativePath.Replace(parentRelativePathSearchRootFolder, string.Empty) : string.Empty;
             AngularParentChildrenFolderRelativePath = !string.IsNullOrWhiteSpace(AngularParentFolderRelativePath) ? Path.Combine(AngularParentFolderRelativePath, "children") : string.Empty;
-            AngularDeepLevel = AngularParentChildrenFolderRelativePath.Split('\\').Count();
+            AngularDeepLevel = AngularParentChildrenFolderRelativePath.Split('\\').Length;
         }
     }
 }
