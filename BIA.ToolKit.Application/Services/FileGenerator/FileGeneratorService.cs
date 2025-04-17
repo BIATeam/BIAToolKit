@@ -240,12 +240,10 @@
 
         public static string GetDotNetTemplateOutputPath(string templateOutputPath, FileGeneratorContext context, string projectFolder)
         {
-            var projectName = $"{context.CompanyName}.{context.ProjectName}";
-            var dotNetProjectPath = Path.Combine(projectFolder, Constants.FolderDotNet);
             return Path.Combine(
-                dotNetProjectPath, 
+                Path.Combine(projectFolder, Constants.FolderDotNet), 
                 templateOutputPath
-                    .Replace("{Project}", projectName)
+                    .Replace("{Project}", $"{context.CompanyName}.{context.ProjectName}")
                     .Replace("{Domain}", context.DomainName)
                     .Replace("{Entity}", context.EntityName)
                     .Replace("{EntityPlural}", context.EntityNamePlural)
@@ -263,22 +261,15 @@
 
         public static string GetAngularTemplateOutputPath(string templateOutputPath, FileGeneratorContext context, string projectFolder)
         {
-            var angularProjectPath = Path.Combine(projectFolder, context.AngularFront);
-
             var outputPath = Path.Combine(
-                angularProjectPath,
+                Path.Combine(projectFolder, context.AngularFront),
                 templateOutputPath
                     .Replace("{Entity}", context.EntityName.ToKebabCase())
                     .Replace("{EntityPlural}", context.EntityNamePlural.ToKebabCase())
-                    .Replace("{Parent}", context.ParentName.ToKebabCase()));
-
-            if (context.HasParent)
-            {
-                outputPath = outputPath
+                    .Replace("{Parent}", context.ParentName.ToKebabCase()))
                     .Replace("{ParentRelativePath}", context.AngularParentFolderRelativePath)
                     .Replace("{ParentChildrenRelativePath}", context.AngularParentChildrenFolderRelativePath)
                     .Replace(@"\\\\", @"\\");
-            }
 
             return outputPath;
         }
