@@ -131,7 +131,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
        if (!property.IsOption && !property.IsOptionCollection) { #>
                 <#= property.MappingName #> = entity.<#= property.EntityCompositeName #>,
 <#       } else if (property.IsOption) { #>
-                <#= property.MappingName #> = entity.<#= property.EntityCompositeName #> != null ? 
+                <#= property.MappingName #> = entity.<#= property.EntityCompositeName #> != null ?
                   new OptionDto { Id = entity.<#= property.EntityCompositeName #>.<#= property.OptionIdProperty #>, Display = entity.<#= property.EntityCompositeName #>.<#= property.OptionDisplayProperty #> } :
                   null,
 <#       } else if (property.IsOptionCollection) { #>

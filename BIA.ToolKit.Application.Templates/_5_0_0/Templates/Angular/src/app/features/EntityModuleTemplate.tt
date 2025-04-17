@@ -137,4 +137,3 @@ export const ROUTES: Routes = [
   ],
 })
 export class <#= ModelInstance.EntityName #>Module {}
-

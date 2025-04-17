@@ -51,7 +51,7 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
             {
                 Id = entity.Id,
                 Name = entity.Name,
-                Option = entity.Option != null ? 
+                Option = entity.Option != null ?
                   new OptionDto { Id = entity.Option.Id, Display = entity.Option.Name } :
                   null,
             };
