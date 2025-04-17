@@ -6,7 +6,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Services.FileGenerator.Context;
+    using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Templates._5_0_0.Models;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;

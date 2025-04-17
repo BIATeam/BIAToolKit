@@ -8,7 +8,7 @@
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Services.FileGenerator.Context;
+    using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Services.FileGenerator.Versions;
     using BIA.ToolKit.Application.Templates;
     using BIA.ToolKit.Application.ViewModel;
