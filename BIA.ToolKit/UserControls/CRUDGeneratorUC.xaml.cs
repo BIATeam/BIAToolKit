@@ -3,6 +3,7 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator.Context;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
@@ -230,19 +231,27 @@
         {
             if (fileGeneratorService.IsProjectCompatible())
             {
-                await fileGeneratorService.GenerateCRUDAsync(
-                    vm.DtoEntity, 
-                    vm.CRUDNamePlural, 
-                    vm.Domain, 
-                    vm.DtoDisplayItemSelected, 
-                    vm.BiaFront, 
-                    generateBack: vm.IsWebApiSelected,
-                    generatedFront: vm.IsFrontSelected,
-                    isTeam: vm.DtoEntity.IsTeam, 
-                    optionItems: vm.OptionItems.Where(x => x.Check).Select(x => x.OptionName).ToList(), 
-                    hasParent: vm.HasParent, 
-                    parentName: vm.ParentName, 
-                    parentNamePlural: vm.ParentNamePlural);
+                await fileGeneratorService.GenerateCRUDAsync(new FileGeneratorCrudContext
+                {
+                    CompanyName = vm.CurrentProject.CompanyName,
+                    ProjectName = vm.CurrentProject.Name,
+                    DomainName = vm.Domain,
+                    EntityName = vm.CRUDNameSingular,
+                    EntityNamePlural = vm.CRUDNamePlural,
+                    BaseKeyType = vm.DtoEntity.BaseKeyType ?? vm.DtoEntity.PrimaryKey,
+                    IsTeam = vm.DtoEntity.IsTeam,
+                    Properties = [.. vm.DtoEntity.Properties],
+                    OptionItems = [.. vm.OptionItems.Where(x => x.Check).Select(x => x.OptionName)],
+                    HasParent = vm.HasParent,
+                    ParentName = vm.ParentName,
+                    ParentNamePlural = vm.ParentNamePlural,
+                    AncestorTeamName = vm.DtoEntity.AncestorTeamName,
+                    HasAncestorTeam = vm.DtoEntity.HasAncestorTeam,
+                    AngularFront = vm.BiaFront,
+                    GenerateBack = vm.IsWebApiSelected,
+                    GenerateFront = vm.IsFrontSelected,
+                    DisplayItemName = vm.DtoDisplayItemSelected
+                });
 
                 UpdateCrudGenerationHistory();
                 return;

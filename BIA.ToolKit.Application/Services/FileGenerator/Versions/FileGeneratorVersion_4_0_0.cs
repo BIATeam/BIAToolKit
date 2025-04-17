@@ -7,6 +7,7 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator.Context;
     using BIA.ToolKit.Application.Templates._4_0_0.Models;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
@@ -22,23 +23,23 @@
             new("4.*"),
         ];
 
-        protected virtual EntityDtoModel CreateDtoEntityModel()
+        protected virtual EntityDtoModel CreateDtoTemplateModel()
         {
             return new EntityDtoModel();
         }
 
-        public object GetDtoTemplateModel(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties, string ancestorTeam)
+        public object GetDtoTemplateModel(FileGeneratorDtoContext dtoContext)
         {
-            var model = CreateDtoEntityModel();
+            var model = CreateDtoTemplateModel();
 
-            model.CompanyName = project.CompanyName;
-            model.ProjectName = project.Name;
-            model.EntityNameArticle = Common.ComputeNameArticle(entityInfo.Name);
-            model.DomainName = domainName;
-            model.EntityName = entityInfo.Name;
-            model.BaseKeyType = entityInfo.BaseKeyType;
-            model.AncestorTeam = ancestorTeam;
-            model.Properties = mappingEntityProperties.Select(x => new PropertyModel()
+            model.CompanyName = dtoContext.CompanyName;
+            model.ProjectName = dtoContext.ProjectName;
+            model.EntityNameArticle = Common.ComputeNameArticle(dtoContext.EntityName);
+            model.DomainName = dtoContext.DomainName;
+            model.EntityName = dtoContext.EntityName;
+            model.BaseKeyType = dtoContext.BaseKeyType;
+            model.AncestorTeam = dtoContext.AncestorTeamName;
+            model.Properties = dtoContext.Properties.Select(x => new PropertyModel()
             {
                 MappingName = x.MappingName,
                 EntityCompositeName = x.EntityCompositeName,
@@ -57,7 +58,7 @@
                 OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty,
                 IsParent = x.IsParent,
             }).ToList();
-            model.IsTeamType = entityInfo.IsTeam;
+            model.IsTeamType = dtoContext.IsTeam;
 
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {
@@ -68,12 +69,12 @@
             return model;
         }
 
-        public object GetOptionTemplateModel(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayName)
+        public object GetOptionTemplateModel(FileGeneratorOptionContext optionContext)
         {
             throw new NotImplementedException();
         }
 
-        public object GetCrudTemplateModel(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayItemName, bool isTeam = false, List<string> optionItems = null, bool hasParent = false, string parentName = null, string parentNamePlural = null)
+        public object GetCrudTemplateModel(FileGeneratorCrudContext crudContext)
         {
             throw new NotImplementedException();
         }

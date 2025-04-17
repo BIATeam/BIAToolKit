@@ -9,6 +9,7 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator.Context;
     using BIA.ToolKit.Domain.ModifyProject;
 
     public class FileGeneratorTestFixture : IDisposable
@@ -83,14 +84,14 @@
             }
         }
 
-        public (string referencePath, string generatedPath) GetDotNetFilesPath(string templateOutputPath, string domainName, string entityName, string entityNamePlural)
+        public (string referencePath, string generatedPath) GetDotNetFilesPath(string templateOutputPath, FileGeneratorContext context)
         {
-            return (FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, referenceProject, domainName, entityName, entityNamePlural), FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, testProject, domainName, entityName, entityNamePlural));
+            return (FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, context, testProject.Folder));
         }
 
-        public (string referencePath, string generatedPath) GetAngularFilesPath(string templateOutputPath, string entityName)
+        public (string referencePath, string generatedPath) GetAngularFilesPath(string templateOutputPath, FileGeneratorContext context)
         {
-            return (FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, referenceProject, entityName), FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, testProject, entityName));
+            return (FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, testProject.Folder));
         }
     }
 }

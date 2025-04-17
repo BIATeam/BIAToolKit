@@ -3,6 +3,7 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator.Context;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Behaviors;
@@ -134,7 +135,19 @@
         private async void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
             UpdateHistoryFile();
-            await fileGeneratorService.GenerateDtoAsync(vm.SelectedEntityInfo, vm.EntityDomain, vm.MappingEntityProperties, vm.AncestorTeam);
+            await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext
+            {
+                CompanyName = project.CompanyName,
+                ProjectName = project.Name,
+                DomainName = vm.EntityDomain,
+                EntityName = vm.SelectedEntityInfo.Name,
+                EntityNamePlural = vm.SelectedEntityInfo.NamePluralized,
+                BaseKeyType = vm.SelectedEntityInfo.BaseKeyType,
+                Properties = [.. vm.MappingEntityProperties],
+                AncestorTeamName = vm.AncestorTeam,
+                HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
+                GenerateBack = true
+            });
         }
 
         private void UpdateHistoryFile()

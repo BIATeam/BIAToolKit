@@ -6,6 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator.Context;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
 
@@ -56,18 +57,30 @@
                 },
             };
 
-            await fixture.FileGeneratorService.GenerateDtoAsync(entityInfo, domainName, mappingProperties);
+            var dtoContext = new FileGeneratorDtoContext
+            {
+                CompanyName = entityInfo.CompanyName,
+                ProjectName = entityInfo.ProjectName,
+                DomainName = domainName,
+                EntityName = entityInfo.Name,
+                EntityNamePlural = entityInfo.NamePluralized,
+                BaseKeyType = entityInfo.BaseKeyType,
+                Properties = [.. mappingProperties],
+                GenerateBack = true
+            };
+
+            await fixture.FileGeneratorService.GenerateDtoAsync(dtoContext);
 
             foreach(var dotNetTemplate in fixture.FileGeneratorService.CurrentFeature.DotNetTemplates)
             {
-                var (referencePath, generatedPath) = fixture.GetDotNetFilesPath(dotNetTemplate.OutputPath, domainName, entityInfo.Name, string.Empty);
+                var (referencePath, generatedPath) = fixture.GetDotNetFilesPath(dotNetTemplate.OutputPath, dtoContext);
                 Assert.True(File.Exists(generatedPath));
                 CustomAssert.FilesEquals(referencePath, generatedPath);
             }
 
             foreach (var angularTemplate in fixture.FileGeneratorService.CurrentFeature.AngularTemplates)
             {
-                var (referencePath, generatedPath) = fixture.GetAngularFilesPath(angularTemplate.OutputPath, entityInfo.Name);
+                var (referencePath, generatedPath) = fixture.GetAngularFilesPath(angularTemplate.OutputPath, dtoContext);
                 Assert.True(File.Exists(generatedPath));
                 CustomAssert.FilesEquals(referencePath, generatedPath);
             }

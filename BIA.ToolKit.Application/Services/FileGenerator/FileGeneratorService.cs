@@ -8,6 +8,7 @@
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services.FileGenerator.Context;
     using BIA.ToolKit.Application.Services.FileGenerator.Versions;
     using BIA.ToolKit.Application.Templates;
     using BIA.ToolKit.Application.ViewModel;
@@ -31,17 +32,10 @@
         private readonly TemplateGenerator templateGenerator;
         private readonly IConsoleWriter consoleWriter;
         private readonly List<Manifest> manifests = [];
+        private string templatesPath;
         private Project currentProject;
         private Manifest currentManifest;
-        private string templatesPath;
-        private string currentDomain;
-        private string currentEntityName;
-        private string currentEntityNamePlural;
-        private string currentAngularFront;
-        private string currentParentName;
-        private string currentParentNamePlural;
-        private bool currentGenerateFront = true;
-        private bool currentGenerateBack = true;
+        private FileGeneratorContext currentContext;
         public Manifest.Feature CurrentFeature { get; private set; }
 
         public bool IsInit { get; private set; }
@@ -134,7 +128,7 @@
             return Version.TryParse(currentProject.FrameworkVersion, out Version projectVersion) && projectVersion >= new Version(5, 0);
         }
 
-        public async Task GenerateDtoAsync(EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties, string ancestorTeam = null)
+        public async Task GenerateDtoAsync(FileGeneratorDtoContext dtoContext)
         {
             try
             {
@@ -143,16 +137,12 @@
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
 
-                var templateModel = fileGenerator.GetDtoTemplateModel(currentProject, entityInfo, domainName, mappingEntityProperties, ancestorTeam);
+                var templateModel = fileGenerator.GetDtoTemplateModel(dtoContext);
                 var dtoFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "DTO")
                     ?? throw new KeyNotFoundException($"no DTO feature for template manifest {currentManifest.Version}");
 
-                currentDomain = domainName;
-                currentEntityName = entityInfo.Name;
-                currentEntityNamePlural = string.Empty;
-                currentParentName = string.Empty;
-                currentParentNamePlural = string.Empty;
                 CurrentFeature = dtoFeature;
+                currentContext = dtoContext;
 
                 await GenerateTemplatesFromManifestFeatureAsync(dtoFeature, templateModel);
                 consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
@@ -163,7 +153,7 @@
             }
         }
 
-        public async Task GenerateOptionAsync(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayName, string angularFront)
+        public async Task GenerateOptionAsync(FileGeneratorOptionContext optionContext)
         {
             try
             {
@@ -172,18 +162,12 @@
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
 
-                var templateModel = fileGenerator.GetOptionTemplateModel(entityInfo, entityNamePlural, domainName, displayName);
+                var templateModel = fileGenerator.GetOptionTemplateModel(optionContext);
                 var optionFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "Option")
                     ?? throw new KeyNotFoundException($"no Option feature for template manifest {currentManifest.Version}");
 
-                currentDomain = domainName;
-                currentEntityName = entityInfo.Name;
-                currentEntityNamePlural = entityNamePlural;
-                currentAngularFront = angularFront;
-                currentParentName = string.Empty;
-                currentParentNamePlural = string.Empty;
-                currentGenerateBack = false;
                 CurrentFeature = optionFeature;
+                currentContext = optionContext;
 
                 await GenerateTemplatesFromManifestFeatureAsync(optionFeature, templateModel);
 
@@ -195,7 +179,7 @@
             }
         }
 
-        public async Task GenerateCRUDAsync(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayItemName, string angularFront, bool generateBack = true, bool generatedFront = true, bool isTeam = false, List<string> optionItems = null, bool hasParent = false, string parentName = null, string parentNamePlural = null)
+        public async Task GenerateCRUDAsync(FileGeneratorCrudContext crudContext)
         {
             try
             {
@@ -204,19 +188,12 @@
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
 
-                var templateModel = fileGenerator.GetCrudTemplateModel(entityInfo, entityNamePlural, domainName, displayItemName, isTeam, optionItems, hasParent, parentName, parentNamePlural);
+                var templateModel = fileGenerator.GetCrudTemplateModel(crudContext);
                 var optionFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "CRUD")
                     ?? throw new KeyNotFoundException($"no CRUD feature for template manifest {currentManifest.Version}");
 
-                currentDomain = domainName;
-                currentEntityName = entityInfo.Name.Replace("dto", string.Empty, StringComparison.InvariantCultureIgnoreCase);
-                currentEntityNamePlural = entityNamePlural;
-                currentParentName = parentName;
-                currentParentNamePlural = parentNamePlural;
-                currentAngularFront = angularFront;
-                currentGenerateBack = generateBack;
-                currentGenerateFront = generatedFront;
                 CurrentFeature = optionFeature;
+                currentContext = crudContext;
 
                 await GenerateTemplatesFromManifestFeatureAsync(optionFeature, templateModel);
 
@@ -236,12 +213,12 @@
 
         private async Task GenerateTemplatesFromManifestFeatureAsync(Manifest.Feature manifestFeature, object model)
         {
-            if (currentGenerateFront)
+            if (currentContext.GenerateFront)
             {
                 await GenerateAngularTemplates(manifestFeature.AngularTemplates, model);
             }
 
-            if (currentGenerateBack)
+            if (currentContext.GenerateBack)
             {
                 await GenerateDotNetTemplatesAsync(manifestFeature.DotNetTemplates, model);
             }
@@ -252,21 +229,21 @@
             foreach (var template in templates)
             {
                 var templatePath = Path.Combine(templatesPath, Constants.FolderDotNet, template.InputPath);
-                await GenerateFromTemplateAsync(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, currentProject, currentDomain, currentEntityName, currentEntityNamePlural));
+                await GenerateFromTemplateAsync(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, currentContext, currentProject.Folder));
             }
         }
 
-        public static string GetDotNetTemplateOutputPath(string templateOutputPath, Project project, string domainName, string entityName, string entityNamePlural)
+        public static string GetDotNetTemplateOutputPath(string templateOutputPath, FileGeneratorContext context, string projectFolder)
         {
-            var projectName = $"{project.CompanyName}.{project.Name}";
-            var dotNetProjectPath = Path.Combine(project.Folder, Constants.FolderDotNet);
+            var projectName = $"{context.CompanyName}.{context.ProjectName}";
+            var dotNetProjectPath = Path.Combine(projectFolder, Constants.FolderDotNet);
             return Path.Combine(
                 dotNetProjectPath, 
                 templateOutputPath
                     .Replace("{Project}", projectName)
-                    .Replace("{Domain}", domainName)
-                    .Replace("{Entity}", entityName)
-                    .Replace("{EntityPlural}", entityNamePlural)
+                    .Replace("{Domain}", context.DomainName)
+                    .Replace("{Entity}", context.EntityName)
+                    .Replace("{EntityPlural}", context.EntityNamePlural)
             );
         }
 
@@ -274,30 +251,35 @@
         {
             foreach (var template in templates)
             {
-                var templatePath = Path.Combine(templatesPath, currentAngularFront, template.InputPath);
-                await GenerateFromTemplateAsync(template, templatePath, model, GetAngularTemplateOutputPath(template.OutputPath, currentProject, currentEntityName, currentEntityNamePlural, currentParentName, currentParentNamePlural));
+                var templatePath = Path.Combine(templatesPath, currentContext.AngularFront, template.InputPath);
+                await GenerateFromTemplateAsync(template, templatePath, model, GetAngularTemplateOutputPath(template.OutputPath, currentContext, currentProject.Folder));
             }
         }
 
-        public static string GetAngularTemplateOutputPath(string templateOutputPath, Project project, string entityName, string entityNamePlural, string parentName, string parentNamePlural)
+        public static string GetAngularTemplateOutputPath(string templateOutputPath, FileGeneratorContext context, string projectFolder)
         {
-            var angularProjectPath = Path.Combine(project.Folder, Constants.FolderAngular);
+            var angularProjectPath = Path.Combine(projectFolder, Constants.FolderAngular);
             var parentRelativePathSearchRootFolder = Path.Combine(angularProjectPath, @"src\app\features\");
 
-            var parentRelativePath = Directory.EnumerateDirectories(parentRelativePathSearchRootFolder, parentNamePlural.ToKebabCase(), System.IO.SearchOption.AllDirectories).SingleOrDefault();
-            parentRelativePath = !string.IsNullOrWhiteSpace(parentRelativePath) ? parentRelativePath.Replace(parentRelativePathSearchRootFolder, string.Empty) : string.Empty;
-            var parentChildrenRelativePath = !string.IsNullOrWhiteSpace(parentRelativePath) ? Path.Combine(parentRelativePath, "children") : string.Empty;
-
-            return Path.Combine(
-                angularProjectPath, 
+            var outputPath = Path.Combine(
+                angularProjectPath,
                 templateOutputPath
-                    .Replace("{Entity}", entityName.ToKebabCase())
-                    .Replace("{EntityPlural}", entityNamePlural.ToKebabCase())
+                    .Replace("{Entity}", context.EntityName.ToKebabCase())
+                    .Replace("{EntityPlural}", context.EntityNamePlural.ToKebabCase())
+                    .Replace("{Parent}", context.ParentName.ToKebabCase()));
+
+            if (context.HasParent)
+            {
+                var parentRelativePath = Directory.EnumerateDirectories(parentRelativePathSearchRootFolder, context.ParentNamePlural.ToKebabCase(), System.IO.SearchOption.AllDirectories).SingleOrDefault();
+                parentRelativePath = !string.IsNullOrWhiteSpace(parentRelativePath) ? parentRelativePath.Replace(parentRelativePathSearchRootFolder, string.Empty) : string.Empty;
+                var parentChildrenRelativePath = !string.IsNullOrWhiteSpace(parentRelativePath) ? Path.Combine(parentRelativePath, "children") : string.Empty;
+                outputPath = outputPath
                     .Replace("{ParentRelativePath}", parentRelativePath)
                     .Replace("{ParentChildrenRelativePath}", parentChildrenRelativePath)
-                    .Replace("{Parent}", parentName.ToKebabCase())
-                    .Replace(@"\\\\", @"\\")
-            );
+                    .Replace(@"\\\\", @"\\");
+            }
+
+            return outputPath;
         }
 
         private async Task GenerateFromTemplateAsync(Manifest.Feature.Template template, string templatePath, object model, string outputPath)
@@ -359,7 +341,7 @@
         private async Task WritePartialContentAsync(Manifest.Feature.Template template, string outputPath, string relativeOutputPath, List<string> generatedTemplateContent)
         {
             var partialInsertionMarkup = template.PartialInsertionMarkup
-                .Replace("{Parent}", currentParentName);
+                .Replace("{Parent}", currentContext.ParentName);
 
             var outputContent = (await File.ReadAllLinesAsync(outputPath)).ToList();
             var biaToolKitMarkupBegin = string.Format(BiaToolKitMarkupBeginPattern, partialInsertionMarkup);
@@ -369,8 +351,8 @@
                 throw new Exception($"Unable to find insertion markup {partialInsertionMarkup} into {relativeOutputPath}");
             }
 
-            var biaToolKitMarkupPartialBeginPattern = string.Format(BiaToolKitMarkupPartialBeginPattern, partialInsertionMarkup, currentEntityName);
-            var biaToolKitMarkupPartialEndPattern = string.Format(BiaToolKitMarkupPartialEndPattern, partialInsertionMarkup, currentEntityName);
+            var biaToolKitMarkupPartialBeginPattern = string.Format(BiaToolKitMarkupPartialBeginPattern, partialInsertionMarkup, currentContext.EntityName);
+            var biaToolKitMarkupPartialEndPattern = string.Format(BiaToolKitMarkupPartialEndPattern, partialInsertionMarkup, currentContext.EntityName);
             // Partial content already exists
             if (outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialBeginPattern)) && outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialEndPattern)))
             {

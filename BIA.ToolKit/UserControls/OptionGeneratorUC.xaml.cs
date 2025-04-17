@@ -3,6 +3,7 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator.Context;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
@@ -185,7 +186,19 @@
         {
             if (fileGeneratorService.IsProjectCompatible())
             {
-                await fileGeneratorService.GenerateOptionAsync(vm.Entity, vm.EntityNamePlural, vm.Domain, vm.EntityDisplayItemSelected, vm.BiaFront);
+                await fileGeneratorService.GenerateOptionAsync(new FileGeneratorOptionContext
+                {
+                    CompanyName = vm.CurrentProject.CompanyName,
+                    ProjectName = vm.CurrentProject.Name,
+                    DomainName = vm.Domain,
+                    EntityName = vm.Entity.Name,
+                    EntityNamePlural = vm.Entity.NamePluralized,
+                    BaseKeyType = vm.Entity.BaseKeyType,
+                    DisplayName = vm.EntityDisplayItemSelected,
+                    AngularFront = vm.BiaFront,
+                    GenerateFront = true,
+                    GenerateBack = true,
+                });
                 UpdateOptionGenerationHistory();
                 return;
             }

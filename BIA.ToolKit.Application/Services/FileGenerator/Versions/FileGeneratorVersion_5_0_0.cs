@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services.FileGenerator.Context;
     using BIA.ToolKit.Application.Templates._5_0_0.Models;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
@@ -19,75 +20,75 @@
             new("5.*"),
         ];
 
-        protected override Templates._4_0_0.Models.EntityDtoModel CreateDtoEntityModel()
+        protected override Templates._4_0_0.Models.EntityDtoModel CreateDtoTemplateModel()
         {
             return new EntityDtoModel();
         }
 
-        protected virtual EntityOptionModel CreateOptionModel()
+        protected virtual EntityOptionModel CreateOptionTemplateModel()
         {
             return new EntityOptionModel();
         }
 
-        protected virtual EntityCrudModel CreateCrudModel()
+        protected virtual EntityCrudModel CreateCrudTemplateModel()
         {
             return new EntityCrudModel();
         }
 
-        public new object GetDtoTemplateModel(Project project, EntityInfo entityInfo, string domainName, IEnumerable<MappingEntityProperty> mappingEntityProperties, string ancestorTeam)
+        public new object GetDtoTemplateModel(FileGeneratorDtoContext dtoContext)
         {
-            var model = base.GetDtoTemplateModel(project, entityInfo, domainName, mappingEntityProperties, ancestorTeam) as EntityDtoModel;
+            var model = base.GetDtoTemplateModel(dtoContext) as EntityDtoModel;
             // Map additionnal properties of your model 
             return model;
         }
 
-        public new object GetOptionTemplateModel(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayName)
+        public new object GetOptionTemplateModel(FileGeneratorOptionContext optionContext)
         {
-            var model = CreateOptionModel();
+            var model = CreateOptionTemplateModel();
 
-            model.CompanyName = entityInfo.CompanyName;
-            model.ProjectName = entityInfo.ProjectName;
-            model.EntityNameArticle = Common.ComputeNameArticle(entityInfo.Name);
-            model.EntityName = entityInfo.Name;
-            model.EntityNamePlural = entityNamePlural;
-            model.BaseKeyType = entityInfo.BaseKeyType;
+            model.CompanyName = optionContext.CompanyName;
+            model.ProjectName = optionContext.ProjectName;
+            model.EntityNameArticle = Common.ComputeNameArticle(optionContext.EntityName);
+            model.EntityName = optionContext.EntityName;
+            model.EntityNamePlural = optionContext.EntityNamePlural;
+            model.BaseKeyType = optionContext.BaseKeyType;
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {
                 consoleWriter.AddMessageLine($"WARNING: Unable to retrieve entity's base key type, you'll must replace the template '{Common.TemplateValue_BaseKeyType}' by corresponding type value after generation.", "orange");
                 model.BaseKeyType = Common.TemplateValue_BaseKeyType;
             }
 
-            model.DomainName = domainName;
-            model.OptionDisplayName = displayName;
+            model.DomainName = optionContext.DomainName;
+            model.OptionDisplayName = optionContext.DisplayName;
 
             return model;
         }
 
-        public new object GetCrudTemplateModel(EntityInfo entityInfo, string entityNamePlural, string domainName, string displayItemName, bool isTeam = false, List<string> optionItems = null, bool hasParent = false, string parentName = null, string parentNamePlural = null)
+        public new object GetCrudTemplateModel(FileGeneratorCrudContext crudContext)
         {
-            var model = CreateCrudModel();
+            var model = CreateCrudTemplateModel();
 
-            model.CompanyName = entityInfo.CompanyName;
-            model.ProjectName = entityInfo.ProjectName;
-            model.EntityNameArticle = Common.ComputeNameArticle(entityInfo.Name);
-            model.EntityName = entityInfo.Name.Replace("dto", string.Empty, StringComparison.InvariantCultureIgnoreCase);
-            model.EntityNamePlural = entityNamePlural;
-            model.BaseKeyType = entityInfo.BaseKeyType ?? entityInfo.PrimaryKey ?? (entityInfo.BaseType == "TeamDto" ? "int" : null);
+            model.CompanyName = crudContext.CompanyName;
+            model.ProjectName = crudContext.ProjectName;
+            model.EntityNameArticle = Common.ComputeNameArticle(crudContext.EntityName);
+            model.EntityName = crudContext.EntityName;
+            model.EntityNamePlural = crudContext.EntityNamePlural;
+            model.BaseKeyType = crudContext.BaseKeyType;
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {
                 consoleWriter.AddMessageLine($"WARNING: Unable to retrieve entity's base key type, you'll must replace the template '{Common.TemplateValue_BaseKeyType}' by corresponding type value after generation.", "orange");
                 model.BaseKeyType = Common.TemplateValue_BaseKeyType;
             }
 
-            model.DomainName = domainName;
-            model.DisplayItemName = displayItemName;
-            model.HasAncestorTeam = entityInfo.HasAncestorTeam;
-            model.AncestorTeamName = entityInfo.AncestorTeamName;
-            model.IsTeam = isTeam;
-            model.HasParent = hasParent;
-            model.ParentName = parentName;
-            model.ParentNamePlural = parentNamePlural;
-            model.OptionItems = optionItems ?? [];
+            model.DomainName = crudContext.DomainName;
+            model.DisplayItemName = crudContext.DisplayItemName;
+            model.HasAncestorTeam = crudContext.HasAncestorTeam;
+            model.AncestorTeamName = crudContext.AncestorTeamName;
+            model.IsTeam = crudContext.IsTeam;
+            model.HasParent = crudContext.HasParent;
+            model.ParentName = crudContext.ParentName;
+            model.ParentNamePlural = crudContext.ParentNamePlural;
+            model.OptionItems = crudContext.OptionItems;
 
             return model;
         }
