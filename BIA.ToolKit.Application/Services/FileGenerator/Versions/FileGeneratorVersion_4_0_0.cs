@@ -39,7 +39,7 @@
             model.EntityName = dtoContext.EntityName;
             model.BaseKeyType = dtoContext.BaseKeyType;
             model.AncestorTeam = dtoContext.AncestorTeamName;
-            model.Properties = dtoContext.Properties.Select(x => new PropertyModel()
+            model.Properties = dtoContext.Properties.Select(x => new PropertyDtoModel()
             {
                 MappingName = x.MappingName,
                 EntityCompositeName = x.EntityCompositeName,

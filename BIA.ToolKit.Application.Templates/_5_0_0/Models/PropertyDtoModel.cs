@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public class PropertyModel : _4_0_0.Models.PropertyModel
+    public class PropertyDtoModel : _4_0_0.Models.PropertyDtoModel
     {
     }
 }

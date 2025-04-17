@@ -17,23 +17,23 @@
             DomainName = "Fleet";
             EntityName = "Plane";
             BaseKeyType = "int";
-            Properties = new List<_4_0_0.Models.PropertyModel>()
+            Properties = new List<_4_0_0.Models.PropertyDtoModel>()
             {
-                new PropertyModel
+                new PropertyDtoModel
                 {
                     EntityCompositeName = "Id",
                     MappingType = "int",
                     MappingName = "Id",
                     IsRequired = true
                 },
-                new PropertyModel
+                new PropertyDtoModel
                 {
                     EntityCompositeName = "Name",
                     MappingType = "string",
                     MappingName = "Name",
                     IsRequired = true,
                 },
-                new PropertyModel
+                new PropertyDtoModel
                 {
                     EntityCompositeName = "Option",
                     MappingType = "OptionDto",

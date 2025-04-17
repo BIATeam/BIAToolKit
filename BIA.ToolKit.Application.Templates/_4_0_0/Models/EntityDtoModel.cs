@@ -17,7 +17,8 @@
             "IsFixed"
         };
 
-        public IEnumerable<PropertyModel> DtoPropertiesToGenerate => Properties.Where(p => !excludedDtoPropertiesToGenerate.Contains(p.MappingName));
+        public List<PropertyDtoModel> Properties { get; set; } = new List<PropertyDtoModel>();
+        public IEnumerable<PropertyDtoModel> DtoPropertiesToGenerate => Properties.Where(p => !excludedDtoPropertiesToGenerate.Contains(p.MappingName));
         public bool HasCollectionOptions => Properties.Any(p => p.MappingType.Equals(CollectionOptionDto));
         public bool HasOptions => HasCollectionOptions || Properties.Any(p => p.MappingType.Equals(OptionDto));
         public string AncestorTeam { get; set; }

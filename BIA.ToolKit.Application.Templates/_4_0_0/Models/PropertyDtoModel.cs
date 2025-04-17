@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public class PropertyModel
+    public class PropertyDtoModel
     {
         public string MappingName { get; set; }
         public string EntityCompositeName { get; set; }
