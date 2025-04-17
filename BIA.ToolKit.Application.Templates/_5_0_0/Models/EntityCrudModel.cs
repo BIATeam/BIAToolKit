@@ -16,5 +16,6 @@
         public bool HasParent { get; set; }
         public string ParentName { get; set; }
         public string ParentNamePlural { get; set; }
+        public List<PropertyCrudModel> Properties { get; set; } = new List<PropertyCrudModel>();
     }
 }

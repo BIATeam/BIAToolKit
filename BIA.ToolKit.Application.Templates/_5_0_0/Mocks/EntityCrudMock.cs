@@ -26,6 +26,56 @@
             HasParent = true;
             ParentName = "AircraftMaintenanceCompany";
             ParentNamePlural = "AircraftMaintenanceCompanies";
+            Properties = new List<PropertyCrudModel>
+            {
+                new PropertyCrudModel
+                {
+                    Name = "Msn",
+                    Type = "string",
+                    BiaFieldAttributes = new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("IsRequired", "true")
+                    }
+                },
+                new PropertyCrudModel
+                {
+                    Name = "IsActive",
+                    Type = "bool",
+                    BiaFieldAttributes = new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("IsRequired", "true")
+                    }
+                },
+                new PropertyCrudModel
+                {
+                    Name = "FirstFlightDate",
+                    Type = "DateTime",
+                    BiaFieldAttributes = new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("IsRequired", "true"),
+                        new KeyValuePair<string, string>("Type", "date")
+                    }
+                },
+                new PropertyCrudModel
+                {
+                    Name = "MotorsCount",
+                    Type = "int?",
+                    BiaFieldAttributes = new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("IsRequired", "false")
+                    }
+                },
+                new PropertyCrudModel
+                {
+                    Name = "PlaneType",
+                    Type = "OptionDto"
+                },
+                new PropertyCrudModel
+                {
+                    Name = "SimilarTypes",
+                    Type = "ICollection<OptionDto>?"
+                }
+            };
         }
     }
 }

@@ -90,6 +90,13 @@
             model.ParentNamePlural = crudContext.ParentNamePlural;
             model.OptionItems = crudContext.OptionItems;
 
+            model.Properties = crudContext.Properties.Select(x => new PropertyCrudModel
+            {
+                Name = x.Name,
+                Type = x.Type,
+                BiaFieldAttributes = x.Annotations
+            }).ToList();
+
             return model;
         }
     }

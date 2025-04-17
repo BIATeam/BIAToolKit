@@ -60,6 +60,7 @@
     <Compile Include="_5_0_0\Models\EntityModel.cs" />
     <Compile Include="_5_0_0\Models\EntityDtoModel.cs" />
     <Compile Include="_5_0_0\Models\EntityOptionModel.cs" />
+    <Compile Include="_5_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyDtoModel.cs" />
     <None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\PartialCrudAuthControllerTemplate.cs">
       <DependentUpon>PartialCrudAuthControllerTemplate.tt</DependentUpon>
@@ -238,6 +239,11 @@
     <Content Include="_5_0_0\Templates\Angular\src\app\features\EntityConstantsTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityConstantsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\model\EntityTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="_5_0_0\Templates\Angular\src\app\features\PartialCrudEntityModuleTemplate.tt">
@@ -436,6 +442,13 @@
   <ItemGroup>
     <None Include="_5_0_0\Templates\Angular\src\app\features\EntityConstantsTemplate.ts">
       <DependentUpon>EntityConstantsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\model\EntityTemplate.ts">
+      <DependentUpon>EntityTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>

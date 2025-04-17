@@ -183,6 +183,10 @@
         {
           "inputPath": "src\\app\\features\\EntityConstantsTemplate.tt",
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\{Entity}.constants.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\model\\EntityTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\model\\{Entity}.ts"
         }
       ]
     }

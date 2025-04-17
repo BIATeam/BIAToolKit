@@ -1,0 +1,65 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".ts" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityCrudMock(); #>
+import { Validators } from '@angular/forms';
+import { BaseDto } from 'src/app/shared/bia-shared/model/base-dto';
+import {
+  BiaFieldConfig,
+  BiaFieldNumberFormat,
+  BiaFieldsConfig,
+  NumberMode,
+  PrimeNGFiltering,
+  PropType,
+} from 'src/app/shared/bia-shared/model/bia-field-config';
+import {
+  BiaFormLayoutConfig,
+  BiaFormLayoutConfigColumnSize,
+  BiaFormLayoutConfigField,
+  BiaFormLayoutConfigGroup,
+  BiaFormLayoutConfigRow,
+} from 'src/app/shared/bia-shared/model/bia-form-layout-config';
+import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
+
+// TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the model
+export class <#= ModelInstance.EntityName #> extends BaseDto {
+<#  foreach(var property in ModelInstance.Properties) { #>
+  <#= property.Name.ToCamelCase() #>: <#= property.AngularType #>;
+<# }  #>
+}
+
+// TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the field configuration
+export const <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration: BiaFieldsConfig<<#= ModelInstance.EntityName #>> = {
+  columns: [
+<#  foreach(var property in ModelInstance.Properties) { #>
+    Object.assign(new BiaFieldConfig('<#= property.Name.ToCamelCase() #>', '<#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.Name.ToCamelCase() #>'), {
+<#  if(property.IsRequired) { #>
+      isRequired: true,
+<#  } #>
+<#  if(property.HasAngularPropType) { #>
+      type: PropType.<#= property.AngularPropType #>,
+<#  } #>
+<#  if(property.HasAngularValidators) { #>
+      validators: [<#= property.AngularValidators #>],
+<#  } #>
+    }),
+<# }  #>
+    Object.assign(new BiaFieldConfig('rowVersion', '<#= ModelInstance.EntityName.ToCamelCase() #>.rowVersion'), {
+      isVisible: false,
+      isHideByDefault: true,
+      isVisibleInTable: false,
+    }),
+  ],
+};
+
+// TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the form layout configuration
+export const <#= ModelInstance.EntityName.ToCamelCase() #>FormLayoutConfiguration: BiaFormLayoutConfig<<#= ModelInstance.EntityName #>> =
+  new BiaFormLayoutConfig([]);
