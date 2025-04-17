@@ -16,6 +16,7 @@
         public bool IsOption => Type.StartsWith("OptionDto");
         public bool IsCollection => Type.StartsWith("ICollection");
         public bool IsNullable => Type.EndsWith("?");
+        public bool IsDecimal => Type.StartsWith("decimal", StringComparison.InvariantCultureIgnoreCase);
         
         private string angularType;
         public string AngularType
@@ -89,7 +90,10 @@
             }
 
             if(IsCollection)
-                baseType = baseType.Replace("ICollection", string.Empty).Replace("<", string.Empty).Replace(">", string.Empty);
+                baseType = baseType
+                    .Replace("ICollection", string.Empty)
+                    .Replace("<", string.Empty)
+                    .Replace(">", string.Empty);
 
             if (IsNullable)
                 baseType = baseType.Replace("?", string.Empty);

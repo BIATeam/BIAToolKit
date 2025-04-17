@@ -23,6 +23,7 @@ export class MaintenanceTeam extends BaseDto {
   isActive: boolean;
   firstFlightDate: Date;
   motorsCount: number | null;
+  someDecimal: number;
   planeType: OptionDto;
   similarTypes: OptionDto[] | null;
 }
@@ -48,8 +49,20 @@ export const maintenanceTeamFieldsConfiguration: BiaFieldsConfig<MaintenanceTeam
     Object.assign(new BiaFieldConfig('motorsCount', 'maintenanceTeam.motorsCount'), {
       type: PropType.Number,
     }),
+    Object.assign(new BiaFieldConfig('someDecimal', 'maintenanceTeam.someDecimal'), {
+      isRequired: true,
+      type: PropType.Number,
+      displayFormat: Object.assign(new BiaFieldNumberFormat(), {
+        mode: NumberMode.Decimal,
+        minFractionDigits: 2,
+        maxFractionDigits: 2,
+      }),
+      validators: [Validators.required],
+    }),
     Object.assign(new BiaFieldConfig('planeType', 'maintenanceTeam.planeType'), {
+      isRequired: true,
       type: PropType.OneToMany,
+      validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('similarTypes', 'maintenanceTeam.similarTypes'), {
       type: PropType.ManyToMany,

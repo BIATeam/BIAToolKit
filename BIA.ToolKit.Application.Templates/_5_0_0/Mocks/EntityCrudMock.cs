@@ -67,6 +67,15 @@
                 },
                 new PropertyCrudModel
                 {
+                    Name = "SomeDecimal",
+                    Type = "decimal",
+                    BiaFieldAttributes = new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("IsRequired", "false")
+                    }
+                },
+                new PropertyCrudModel
+                {
                     Name = "PlaneType",
                     Type = "OptionDto"
                 },
