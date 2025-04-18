@@ -16,10 +16,10 @@ import { TableLazyLoadEvent } from 'primeng/table';
 import { map, Observable } from 'rxjs';
 <#  if(ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) {#>
 import { AuthService } from 'src/app/core/bia-core/services/auth.service';
+import { TeamTypeId } from 'src/app/shared/constants';
 <#  } #>
 import { CrudItemSignalRService } from 'src/app/shared/bia-shared/feature-templates/crud-items/services/crud-item-signalr.service';
 import { CrudItemService } from 'src/app/shared/bia-shared/feature-templates/crud-items/services/crud-item.service';
-import { TeamTypeId } from 'src/app/shared/constants';
 import { AppState } from 'src/app/store/state';
 import { <#= ModelInstance.EntityName #> } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
 import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
