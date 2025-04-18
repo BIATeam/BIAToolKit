@@ -297,6 +297,12 @@
           "outputPath": "src\\app\\app-routing.module.ts",
           "isPartial": true,
           "partialInsertionMarkup": "Routing"
+        },
+        {
+          "inputPath": "src\\app\\shared\\PartialCrudNavigation.tt",
+          "outputPath": "src\\app\\shared\\navigation.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "Navigation"
         }
       ]
     }

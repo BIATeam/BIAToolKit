@@ -411,6 +411,11 @@
       <LastGenOutput>PartialCrudAppRoutingModule.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudNavigation.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="_5_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityAppServiceTemplate.cs</LastGenOutput>
@@ -737,6 +742,13 @@
   <ItemGroup>
     <None Include="_5_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule.ts">
       <DependentUpon>PartialCrudAppRoutingModule.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation.ts">
+      <DependentUpon>PartialCrudNavigation.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
