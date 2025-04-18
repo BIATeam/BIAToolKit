@@ -306,6 +306,16 @@
       <LastGenOutput>EntityStateTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\item\EntityItemComponentTsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityItemComponentTsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\import\EntityImportComponentTsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityImportComponentTsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentScssTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -350,6 +360,51 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <LastGenOutput>EntityIndexComponentHtmlTemplate.html</LastGenOutput>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\edit\EntityEditComponentHtmlTemplate.html">
+      <DependentUpon>EntityEditComponentHtmlTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\edit\EntityEditComponentHtmlTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityEditComponentHtmlTemplate.html</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\edit\EntityEditComponentTsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityEditComponentTsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\new\EntityNewComponentHtmlTemplate.html">
+      <DependentUpon>EntityNewComponentHtmlTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\new\EntityNewComponentHtmlTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityNewComponentHtmlTemplate.html</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\new\EntityNewComponentTsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityNewComponentTsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\read\EntityReadComponentTsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityReadComponentTsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\read\EntityReadComponentHtmlTemplate.html">
+      <DependentUpon>EntityReadComponentHtmlTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\read\EntityReadComponentHtmlTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityReadComponentHtmlTemplate.html</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="_5_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -635,6 +690,41 @@
   <ItemGroup>
     <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_OnViewChild.ts">
       <DependentUpon>PartialCrudEntityIndexComponentTsTemplate_OnViewChild.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\read\EntityReadComponentTsTemplate.ts">
+      <DependentUpon>EntityReadComponentTsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\new\EntityNewComponentTsTemplate.ts">
+      <DependentUpon>EntityNewComponentTsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\edit\EntityEditComponentTsTemplate.ts">
+      <DependentUpon>EntityEditComponentTsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\import\EntityImportComponentTsTemplate.ts">
+      <DependentUpon>EntityImportComponentTsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\item\EntityItemComponentTsTemplate.ts">
+      <DependentUpon>EntityItemComponentTsTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>

@@ -1,0 +1,37 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".ts" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityCrudMock(); #>
+import { AsyncPipe, NgIf } from '@angular/common';
+import { Component, Injector } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { SpinnerComponent } from 'src/app/shared/bia-shared/components/spinner/spinner.component';
+import { CrudItemItemComponent } from 'src/app/shared/bia-shared/feature-templates/crud-items/views/crud-item-item/crud-item-item.component';
+import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
+
+@Component({
+  selector: 'app-<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-item',
+  templateUrl:
+    '../../../../<#= ModelInstance.AngularDeepRelativePath #>shared/bia-shared/feature-templates/crud-items/views/crud-item-item/crud-item-item.component.html',
+  styleUrls: [
+    '../../../../<#= ModelInstance.AngularDeepRelativePath #>shared/bia-shared/feature-templates/crud-items/views/crud-item-item/crud-item-item.component.scss',
+  ],
+  imports: [RouterOutlet, NgIf, AsyncPipe, SpinnerComponent],
+})
+export class <#= ModelInstance.EntityName #>ItemComponent extends CrudItemItemComponent<<#= ModelInstance.EntityName #>> {
+  constructor(
+    protected injector: Injector,
+    public <#= ModelInstance.EntityName.ToCamelCase() #>Service: <#= ModelInstance.EntityName #>Service
+  ) {
+    super(injector, <#= ModelInstance.EntityName.ToCamelCase() #>Service);
+  }
+}

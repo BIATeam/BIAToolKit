@@ -1,0 +1,37 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".ts" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityCrudMock(); #>
+import { Component, Injector } from '@angular/core';
+import { SpinnerComponent } from 'src/app/shared/bia-shared/components/spinner/spinner.component';
+import { AuthService } from 'src/app/core/bia-core/services/auth.service';
+import { CrudItemReadComponent } from 'src/app/shared/bia-shared/feature-templates/crud-items/views/crud-item-read/crud-item-read.component';
+import { AsyncPipe, NgIf } from '@angular/common';
+import { <#= ModelInstance.EntityName #>FormComponent } from '../../components/<#= ModelInstance.EntityName.ToKebabCase() #>-form/<#= ModelInstance.EntityName.ToKebabCase() #>-form.component';
+import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../../<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
+import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
+
+@Component({
+  selector: 'app-<#= ModelInstance.EntityName.ToKebabCase() #>-read',
+  templateUrl: './<#= ModelInstance.EntityName.ToKebabCase() #>-read.component.html',
+  imports: [NgIf, <#= ModelInstance.EntityName #>FormComponent, AsyncPipe, SpinnerComponent],
+})
+export class <#= ModelInstance.EntityName #>ReadComponent extends CrudItemReadComponent<<#= ModelInstance.EntityName #>> {
+  constructor(
+    protected injector: Injector,
+    public <#= ModelInstance.EntityName.ToCamelCase() #>Service: <#= ModelInstance.EntityName #>Service,
+    protected authService: AuthService
+  ) {
+    super(injector, <#= ModelInstance.EntityName.ToCamelCase() #>Service, authService);
+    this.crudConfiguration = <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration;
+  }
+}

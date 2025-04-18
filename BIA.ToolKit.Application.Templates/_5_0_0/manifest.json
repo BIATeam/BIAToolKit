@@ -259,6 +259,38 @@
         {
           "inputPath": "src\\app\\features\\views\\index\\EntityIndexComponentScssTemplate.tt",
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{EntityPlural}-index\\{EntityPlural}-index.component.scss"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\edit\\EntityEditComponentHtmlTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-edit\\{Entity}-edit.component.html"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\edit\\EntityEditComponentTsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-edit\\{Entity}-edit.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\new\\EntityNewComponentHtmlTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-new\\{Entity}-new.component.html"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\new\\EntityNewComponentTsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-new\\{Entity}-new.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\read\\EntityReadComponentHtmlTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-read\\{Entity}-read.component.html"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\read\\EntityReadComponentTsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-read\\{Entity}-read.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\import\\EntityImportComponentTsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-import\\{Entity}-import.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\item\\EntityItemComponentTsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-item\\{Entity}-item.component.ts"
         }
       ]
     }
