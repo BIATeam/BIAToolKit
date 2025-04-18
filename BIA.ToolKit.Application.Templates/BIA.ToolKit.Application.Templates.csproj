@@ -411,6 +411,16 @@
       <LastGenOutput>PartialCrudAppRoutingModule.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudConstants_TeamTypeRightPrefix.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudConstants_TeamTypeRightPrefix.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudConstants_TeamTypeId.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudConstants_TeamTypeId.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudPermission.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PartialCrudPermission.ts</LastGenOutput>
@@ -761,6 +771,20 @@
   <ItemGroup>
     <None Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudPermission.ts">
       <DependentUpon>PartialCrudPermission.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudConstants_TeamTypeId.ts">
+      <DependentUpon>PartialCrudConstants_TeamTypeId.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudConstants_TeamTypeRightPrefix.ts">
+      <DependentUpon>PartialCrudConstants_TeamTypeRightPrefix.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>

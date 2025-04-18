@@ -309,6 +309,18 @@
           "outputPath": "src\\app\\shared\\permission.ts",
           "isPartial": true,
           "partialInsertionMarkup": "Permission"
+        },
+        {
+          "inputPath": "src\\app\\shared\\PartialCrudConstants_TeamTypeId.tt",
+          "outputPath": "src\\app\\shared\\constants.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamTypeIdConstants"
+        },
+        {
+          "inputPath": "src\\app\\shared\\PartialCrudConstants_TeamTypeRightPrefix.tt",
+          "outputPath": "src\\app\\shared\\constants.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamTypeRightPrefixConstants"
         }
       ]
     }

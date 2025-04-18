@@ -1,0 +1,18 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".ts" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityCrudMock(); #>
+<#  if(ModelInstance.IsTeam) { #>
+  // BIAToolKit - Begin Partial TeamTypeIdConstants <#= ModelInstance.EntityName #>
+  // TODO after creation of team <#= ModelInstance.EntityName #> : adapt enum value
+  <#= ModelInstance.EntityName #> = 4,
+  // BIAToolKit - End Partial TeamTypeIdConstants <#= ModelInstance.EntityName #>
+<# }  #>
