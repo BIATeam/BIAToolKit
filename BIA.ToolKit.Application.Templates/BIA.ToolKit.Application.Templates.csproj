@@ -431,6 +431,11 @@
       <LastGenOutput>PartialCrudNavigation.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\environments\PartialCrudAllEnvironments.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudAllEnvironments.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="_5_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityAppServiceTemplate.cs</LastGenOutput>
@@ -785,6 +790,13 @@
   <ItemGroup>
     <None Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudConstants_TeamTypeRightPrefix.ts">
       <DependentUpon>PartialCrudConstants_TeamTypeRightPrefix.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\environments\PartialCrudAllEnvironments.ts">
+      <DependentUpon>PartialCrudAllEnvironments.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>

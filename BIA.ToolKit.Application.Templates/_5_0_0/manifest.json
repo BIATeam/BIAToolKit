@@ -321,6 +321,12 @@
           "outputPath": "src\\app\\shared\\constants.ts",
           "isPartial": true,
           "partialInsertionMarkup": "TeamTypeRightPrefixConstants"
+        },
+        {
+          "inputPath": "src\\app\\environments\\PartialCrudAllEnvironments.tt",
+          "outputPath": "src\\app\\environments\\all-environments.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "AllEnvironment"
         }
       ]
     }
