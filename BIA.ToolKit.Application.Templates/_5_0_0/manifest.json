@@ -207,6 +207,22 @@
         {
           "inputPath": "src\\app\\features\\services\\EntityServiceTemplate.tt",
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\services\\{Entity}.service.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\store\\EntityActionsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\store\\{EntityPlural}-actions.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\store\\EntityEffectsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\store\\{EntityPlural}-effects.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\store\\EntityReducerTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\store\\{EntityPlural}-reducer.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\store\\EntityStateTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\store\\{Entity}.state.ts"
         }
       ]
     }
