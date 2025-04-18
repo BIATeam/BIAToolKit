@@ -10,9 +10,11 @@
 <#@ output extension=".ts" #>
 <#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
 <# var ModelInstance = Model ?? new EntityCrudMock(); #>
+<#  if(ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
     // BIAToolKit - Begin Partial <#= ModelInstance.ParentName #>IndexTsCanViewChildSet <#= ModelInstance.EntityName #>
     this.canView<#= ModelInstance.EntityNamePlural #> = this.authService.hasPermission(
       Permission.<#= ModelInstance.EntityName #>_List_Access
     );
     this.canSelect = this.canSelect || this.canView<#= ModelInstance.EntityNamePlural #>;
     // BIAToolKit - End Partial <#= ModelInstance.ParentName #>IndexTsCanViewChildSet <#= ModelInstance.EntityName #>
+<# }  #>

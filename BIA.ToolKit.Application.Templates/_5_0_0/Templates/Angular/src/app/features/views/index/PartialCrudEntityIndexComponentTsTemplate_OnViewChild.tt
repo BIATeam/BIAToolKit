@@ -10,6 +10,7 @@
 <#@ output extension=".ts" #>
 <#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
 <# var ModelInstance = Model ?? new EntityCrudMock(); #>
+<#  if(ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
   // BIAToolKit - Begin Partial <#= ModelInstance.ParentName #>IndexTsOnViewChild <#= ModelInstance.EntityName #>
   onView<#= ModelInstance.EntityNamePlural #>(crudItemId: any) {
     if (crudItemId && crudItemId > 0) {
@@ -19,3 +20,4 @@
     }
   }
   // BIAToolKit - End Partial <#= ModelInstance.ParentName #>IndexTsOnViewChild <#= ModelInstance.EntityName #>
+<# }  #>

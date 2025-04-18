@@ -10,6 +10,7 @@
 <#@ output extension=".html" #>
 <#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
 <# var ModelInstance = Model ?? new EntityCrudMock(); #>
+<#  if(ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
       <!-- BIAToolKit - Begin Partial <#= ModelInstance.ParentName #>IndexHtml <#= ModelInstance.EntityName #> -->
       <ng-template pTemplate="actionOnSelected">
         <button
@@ -21,3 +22,4 @@
           (click)="onView<#= ModelInstance.EntityNamePlural #>(selectedCrudItems[0].id)"></button>
       </ng-template>
       <!-- BIAToolKit - End Partial <#= ModelInstance.ParentName #>IndexHtml <#= ModelInstance.EntityName #> -->
+<# }  #>
