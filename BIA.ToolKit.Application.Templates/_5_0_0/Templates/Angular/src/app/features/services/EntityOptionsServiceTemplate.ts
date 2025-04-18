@@ -52,4 +52,3 @@ export class MaintenanceTeamOptionsService extends CrudItemOptionsService {
     this.store.dispatch(DomainPlaneTypeOptionsActions.loadAll());
   }
 }
-

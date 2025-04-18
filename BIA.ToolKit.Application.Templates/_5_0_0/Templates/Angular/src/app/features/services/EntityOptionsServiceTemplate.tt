@@ -82,4 +82,3 @@ export class <#= ModelInstance.EntityName #>OptionsService extends CrudItemOptio
   }
 <# } #>
 }
-

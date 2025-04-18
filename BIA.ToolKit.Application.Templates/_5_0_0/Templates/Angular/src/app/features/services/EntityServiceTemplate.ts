@@ -116,4 +116,3 @@ export class MaintenanceTeamService extends CrudItemService<MaintenanceTeam> {
     this.store.dispatch(FeatureMaintenanceTeamsActions.clearCurrent());
   }
 }
-

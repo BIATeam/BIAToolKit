@@ -76,7 +76,7 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
   public getParentIds(): any[] {
     // TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the parent Key tothe context. It can be null if root crud
 <#  if (ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
-    return [this.<#= ModelInstance.ParentName.ToCamelCase()  #>Service.currentCrudItemId]
+    return [this.<#= ModelInstance.ParentName.ToCamelCase()  #>Service.currentCrudItemId];
 <#  } else if (ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) { #>
     return [ this.authService.getCurrentTeamId(TeamTypeId.<#= ModelInstance.AncestorTeamName #>)];
 <#  } else { #>
@@ -154,4 +154,3 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
     this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.clearCurrent());
   }
 }
-
