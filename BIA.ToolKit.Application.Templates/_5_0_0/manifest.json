@@ -223,6 +223,16 @@
         {
           "inputPath": "src\\app\\features\\store\\EntityStateTemplate.tt",
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\store\\{Entity}.state.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\EntityIndexComponentHtmlTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{EntityPlural}-index\\{EntityPlural}-index.component.html"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\PartialCrudEntityIndexComponentHtmlTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentRelativePath}\\views\\{ParentPlural}-index\\{ParentPlural}-index.component.html",
+          "isPartial": true,
+          "partialInsertionMarkup": "{Parent}IndexHtml"
         }
       ]
     }

@@ -1,0 +1,150 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".html" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityCrudMock(); #>
+<div>
+  <div [ngClass]="{ 'table-compact': crudConfiguration.useCompactMode }">
+    <bia-table-header
+      [headerTitle]="'<#= ModelInstance.EntityName.ToCamelCase() #>.listOf' | translate"
+      [canAdd]="canAdd && !crudConfiguration.useCalcMode"
+      [canDelete]="canDelete"
+      [canEdit]="canEdit"
+      [canFix]="canFix"
+      [canImport]="canSave && crudConfiguration.useImport"
+      [canExportCSV]="true"
+      (create)="onCreate()"
+      (exportCSV)="onExportCSV('<#= ModelInstance.EntityName.ToCamelCase() #>.listOf')"
+      (fullExportCSV)="onExportCSV('<#= ModelInstance.EntityName.ToCamelCase() #>.listOf', true)"
+      (delete)="onDelete()"
+      (import)="onImport()"
+      [selectedElements]="selectedCrudItems"
+      [showTableControllerButton]="crudConfiguration.useCompactMode ?? false"
+      [tableControllerVisible]="showTableController"
+      [showFixedButtons]="crudConfiguration.isFixable"
+      (toggleTableControllerVisibility)="toggleTableControllerVisibility()"
+      (crudItemFixedChanged)="
+        crudItemService.updateFixedStatus($event.crudItemId, $event.fixed)
+      ">
+      <!-- BIAToolKit - Begin Partial <#= ModelInstance.EntityName #>IndexHtml Engine -->
+      <ng-template pTemplate="actionOnSelected">
+        <button
+          *ngIf="canViewEngines"
+          pButton
+          [disabled]="selectedCrudItems.length !== 1"
+          class="p-button-outlined"
+          label="{{ '<#= ModelInstance.EntityName.ToCamelCase() #>.engines' | translate }}"
+          (click)="onViewEngines(selectedCrudItems[0].id)"></button>
+      </ng-template>
+      <!-- BIAToolKit - End Partial <#= ModelInstance.EntityName #>IndexHtml Engine -->
+      <!-- BIAToolKit - Begin <#= ModelInstance.EntityName #>IndexHtml -->
+      <!-- BIAToolKit - End <#= ModelInstance.EntityName #>IndexHtml -->
+    </bia-table-header>
+    <bia-table-controller
+      [ngClass]="{ 'table-controller-hidden': !showTableController }"
+      [defaultPageSize]="defaultPageSize"
+      [columns]="columns"
+      [columnToDisplays]="displayedColumns"
+      (displayedColumnsChange)="displayedColumnsChanged($event)"
+      (filter)="searchGlobalChanged($event)"
+      (clearFilters)="onClearFilters()"
+      (toggleSearch)="onToggleSearch()"
+      (viewChange)="onViewChange($event)"
+      [tableStateKey]="tableStateKey"
+      [tableState]="tableState"
+      [defaultViewPref]="defaultViewPref"
+      [useViewTeamWithTypeId]="useViewTeamWithTypeId"
+      [hasColumnFilter]="hasColumnFilter">
+      <ng-template pTemplate="customControl"
+        ><bia-table-behavior-controller
+          [crudConfiguration]="crudConfiguration"
+          (useCalcModeChanged)="useCalcModeChange($event)"
+          (usePopupChanged)="usePopupChange($event)"
+          (useSplitChanged)="useSplitChange($event)"
+          (useSignalRChanged)="useSignalRChange($event)"
+          (useViewChanged)="useViewChange($event)"
+          (useCompactModeChanged)="useCompactModeChange($event)"
+          (useVirtualScrollChanged)="useVirtualScrollChange($event)"
+          (useResizableColumnChanged)="
+            useResizableColumnChange($event)
+          "></bia-table-behavior-controller
+      ></ng-template>
+    </bia-table-controller>
+    <bia-table
+      *ngIf="!crudConfiguration.useCalcMode"
+      [elements]="
+        crudConfiguration.useVirtualScroll
+          ? virtualCrudItems
+          : ((crudItems$ | async) ?? [])
+      "
+      [dictOptionDtos]="
+        (crudItemService.optionsService.dictOptionDtos$ | async) ?? []
+      "
+      [totalRecord]="(totalCount$ | async) ?? 0"
+      [columnToDisplays]="displayedColumns"
+      [pageSize]="pageSize"
+      (pageSizeChange)="onPageSizeChange($event)"
+      [configuration]="crudConfiguration.fieldsConfig"
+      [(showColSearch)]="showColSearch"
+      [globalSearchValue]="globalSearchValue"
+      [canClickRow]="canEdit"
+      [canSelectElement]="canSelect"
+      [loading]="(loading$ | async) ?? false"
+      (clickRowId)="onClickRow($event)"
+      (loadLazy)="onLoadLazy($event)"
+      [viewPreference]="viewPreference"
+      [tableStateKey]="tableStateKey"
+      (selectedElementsChanged)="onSelectedElementsChanged($event)"
+      [sortFieldValue]="sortFieldValue"
+      (stateSave)="onStateSave($event)"
+      [scrollHeightValue]="getFillScrollHeightValue()"
+      [frozeSelectColumn]="true"
+      [virtualScroll]="crudConfiguration.useVirtualScroll"
+      [isResizableColumn]="crudConfiguration.useResizableColumn"
+      [rowHeight]="defaultRowHeight"
+      [showFixableState]="crudConfiguration.isFixable"></bia-table>
+    <app-<#= ModelInstance.EntityName.ToKebabCase() #>-table
+      *ngIf="crudConfiguration.useCalcMode"
+      [elements]="
+        crudConfiguration.useVirtualScroll
+          ? virtualCrudItems
+          : ((crudItems$ | async) ?? [])
+      "
+      [dictOptionDtos]="
+        (crudItemService.optionsService.dictOptionDtos$ | async) ?? []
+      "
+      [totalRecord]="(totalCount$ | async) ?? 0"
+      [columnToDisplays]="displayedColumns"
+      [pageSize]="pageSize"
+      (pageSizeChange)="onPageSizeChange($event)"
+      [configuration]="crudConfiguration.fieldsConfig"
+      [(showColSearch)]="showColSearch"
+      [globalSearchValue]="globalSearchValue"
+      [canEdit]="canEdit"
+      [canAdd]="canAdd"
+      [canSelectElement]="canSelect"
+      [canSelectMultipleElement]="canDelete"
+      [loading]="(loading$ | async) ?? false"
+      (loadLazy)="onLoadLazy($event)"
+      [viewPreference]="viewPreference"
+      [tableStateKey]="tableStateKey"
+      (selectedElementsChanged)="onSelectedElementsChanged($event)"
+      [sortFieldValue]="sortFieldValue"
+      (stateSave)="onStateSave($event)"
+      (save)="onSave($event)"
+      [frozeSelectColumn]="true"
+      [scrollHeightValue]="getFillScrollHeightValue()"
+      [virtualScroll]="crudConfiguration.useVirtualScroll"
+      [isResizableColumn]="crudConfiguration.useResizableColumn"
+      [rowHeight]="defaultRowHeight"
+      [showFixableState]="crudConfiguration.isFixable"></app-<#= ModelInstance.EntityName.ToKebabCase() #>-table>
+  </div>
+</div>
+

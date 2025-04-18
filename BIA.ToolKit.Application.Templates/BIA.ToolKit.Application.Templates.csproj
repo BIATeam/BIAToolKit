@@ -301,6 +301,26 @@
       <LastGenOutput>EntityStateTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentHtmlTemplate.html">
+      <DependentUpon>PartialCrudEntityIndexComponentHtmlTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentHtmlTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudEntityIndexComponentHtmlTemplate.html</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.html">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityIndexComponentHtmlTemplate.tt</DependentUpon>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>EntityIndexComponentHtmlTemplate.html</LastGenOutput>
+    </Content>
     <Content Include="_5_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityAppServiceTemplate.cs</LastGenOutput>
@@ -561,5 +581,6 @@
       <DesignTime>True</DesignTime>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

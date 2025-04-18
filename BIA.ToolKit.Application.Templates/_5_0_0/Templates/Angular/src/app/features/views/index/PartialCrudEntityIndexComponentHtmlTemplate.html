@@ -1,0 +1,11 @@
+﻿      <!-- BIAToolKit - Begin Partial AircraftMaintenanceCompanyIndexHtml MaintenanceTeam -->
+      <ng-template pTemplate="actionOnSelected">
+        <button
+          *ngIf="canViewMaintenanceTeams"
+          pButton
+          [disabled]="selectedCrudItems.length !== 1"
+          class="p-button-outlined"
+          label="{{ 'aircraftMaintenanceCompany.maintenanceTeams' | translate }}"
+          (click)="onViewMaintenanceTeams(selectedCrudItems[0].id)"></button>
+      </ng-template>
+      <!-- BIAToolKit - End Partial AircraftMaintenanceCompanyIndexHtml MaintenanceTeam -->

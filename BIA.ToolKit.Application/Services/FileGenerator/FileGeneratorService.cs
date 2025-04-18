@@ -266,10 +266,11 @@
                 templateOutputPath
                     .Replace("{Entity}", context.EntityName.ToKebabCase())
                     .Replace("{EntityPlural}", context.EntityNamePlural.ToKebabCase())
-                    .Replace("{Parent}", context.ParentName.ToKebabCase()))
+                    .Replace("{Parent}", context.ParentName.ToKebabCase())
+                    .Replace("{ParentPlural}", context.ParentNamePlural.ToKebabCase())
                     .Replace("{ParentRelativePath}", context.AngularParentFolderRelativePath)
                     .Replace("{ParentChildrenRelativePath}", context.AngularParentChildrenFolderRelativePath)
-                    .Replace(@"\\\\", @"\\");
+                    .Replace(@"\\\\", @"\\"));
 
             return outputPath;
         }
@@ -336,15 +337,15 @@
                 .Replace("{Parent}", currentContext.ParentName);
 
             var outputContent = (await File.ReadAllLinesAsync(outputPath)).ToList();
-            var biaToolKitMarkupBegin = string.Format(BiaToolKitMarkupBeginPattern, partialInsertionMarkup);
-            var biaToolKitMarkupEnd = string.Format(BiaToolKitMarkupEndPattern, partialInsertionMarkup);
+            var biaToolKitMarkupBegin = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupBeginPattern, partialInsertionMarkup), outputPath);
+            var biaToolKitMarkupEnd = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupEndPattern, partialInsertionMarkup), outputPath);
             if (!outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupBegin)) || !outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupEnd)))
             {
                 throw new Exception($"Unable to find insertion markup {partialInsertionMarkup} into {relativeOutputPath}");
             }
 
-            var biaToolKitMarkupPartialBeginPattern = string.Format(BiaToolKitMarkupPartialBeginPattern, partialInsertionMarkup, currentContext.EntityName);
-            var biaToolKitMarkupPartialEndPattern = string.Format(BiaToolKitMarkupPartialEndPattern, partialInsertionMarkup, currentContext.EntityName);
+            var biaToolKitMarkupPartialBeginPattern = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupPartialBeginPattern, partialInsertionMarkup, currentContext.EntityName), outputPath);
+            var biaToolKitMarkupPartialEndPattern = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupPartialEndPattern, partialInsertionMarkup, currentContext.EntityName), outputPath);
             // Partial content already exists
             if (outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialBeginPattern)) && outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialEndPattern)))
             {
@@ -361,6 +362,16 @@
             }
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
             await File.WriteAllLinesAsync(outputPath, outputContent);
+        }
+
+        private static string AdaptBiaToolKitMarkup(string markup, string outputPath)
+        {
+            if (outputPath.EndsWith(".html"))
+            {
+                return markup.Replace("//", "<!--") + " -->";
+            }
+
+            return markup;
         }
     }
 }
