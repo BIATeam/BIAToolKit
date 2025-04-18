@@ -14,7 +14,9 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { TableLazyLoadEvent } from 'primeng/table';
 import { map, Observable } from 'rxjs';
+<#  if(ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) {#>
 import { AuthService } from 'src/app/core/bia-core/services/auth.service';
+<#  } #>
 import { CrudItemSignalRService } from 'src/app/shared/bia-shared/feature-templates/crud-items/services/crud-item-signalr.service';
 import { CrudItemService } from 'src/app/shared/bia-shared/feature-templates/crud-items/services/crud-item.service';
 import { TeamTypeId } from 'src/app/shared/constants';
@@ -25,6 +27,9 @@ import { Feature<#= ModelInstance.EntityNamePlural #>Store } from '../store/<#= 
 import { Feature<#= ModelInstance.EntityNamePlural #>Actions } from '../store/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-actions';
 import { <#= ModelInstance.EntityName #>Das } from './<#= ModelInstance.EntityName.ToKebabCase() #>-das.service';
 import { <#= ModelInstance.EntityName #>OptionsService } from './<#= ModelInstance.EntityName.ToKebabCase() #>-options.service';
+<#  if(ModelInstance.HasParent && !ModelInstance.IsTeam) {#>
+import { <#= ModelInstance.ParentName #>Service } from '../../../services/<#= ModelInstance.ParentName.ToKebabCase() #>.service';
+<#  } #>
 
 @Injectable({
   providedIn: 'root',
@@ -38,16 +43,45 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
     private store: Store<AppState>,
     public dasService: <#= ModelInstance.EntityName #>Das,
     public signalRService: CrudItemSignalRService<<#= ModelInstance.EntityName #>>,
-    public optionsService: <#= ModelInstance.EntityName #>OptionsService,
-    // required only for parent key
-    protected authService: AuthService
+<#  if(ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
+    protected <#=  ModelInstance.ParentName.ToCamelCase() #>Service: <#=  ModelInstance.ParentName #>Service,
+<#  } else if (ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) {#>
+    protected authService: AuthService,
+<#  } #>
+    public optionsService: <#= ModelInstance.EntityName #>OptionsService
   ) {
     super(dasService, signalRService, optionsService);
   }
+<#  if(ModelInstance.IsTeam) { #>
+
+  // Custo for teams
+  public get currentCrudItemId(): any {
+    // should be redifine due to the setter
+    return super.currentCrudItemId;
+  }
+
+  // Custo for teams
+  public set currentCrudItemId(id: any) {
+    if (this._currentCrudItemId !== id) {
+      this._currentCrudItemId = id;
+      this.authService.changeCurrentTeamId(
+        TeamTypeId.<#= ModelInstance.EntityName #>,
+        id
+      );
+    }
+    this.load(id);
+  }
+<#  } #>
 
   public getParentIds(): any[] {
     // TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the parent Key tothe context. It can be null if root crud
-    return [<# if(ModelInstance.HasParent) { #>this.authService.getCurrentTeamId(TeamTypeId.<#= ModelInstance.ParentName #>)<# } #>];
+<#  if (ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
+    return [this.<#= ModelInstance.ParentName.ToCamelCase()  #>Service.currentCrudItemId]
+<#  } else if (ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) { #>
+    return [ this.authService.getCurrentTeamId(TeamTypeId.<#= ModelInstance.AncestorTeamName #>)];
+<#  } else { #>
+    return [];
+<#  } #>
   }
 
   public getFeatureName() {
@@ -86,10 +120,11 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
     this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost({ event }));
   }
   public create(crudItem: <#= ModelInstance.EntityName #>) {
+<#  if(ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
     // TODO after creation of CRUD <#= ModelInstance.EntityName #> : map parent Key on the corresponding field
-<#  if(ModelInstance.HasParent) { #>
-    let indexParent = 0;
-    crudItem.<#= ModelInstance.ParentName.ToCamelCase() #>Id = this.getParentIds()[indexParent++];
+    crudItem.<#= ModelInstance.ParentName.ToCamelCase() #>Id = this.getParentIds()[0];
+<#  } else if (ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) {#>
+    crudItem.<#= ModelInstance.AncestorTeamName.ToCamelCase() #>Id = this.getParentIds()[0];
 <#  } #>
     this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.create({ <#= ModelInstance.EntityName.ToCamelCase() #>: crudItem }));
   }
@@ -97,12 +132,10 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
     this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.update({ <#= ModelInstance.EntityName.ToCamelCase() #>: crudItem }));
   }
   public save(crudItems: <#= ModelInstance.EntityName #>[]) {
-<#  if(ModelInstance.HasParent) { #>
-    let indexParent = 0;
-    const <#= ModelInstance.ParentName.ToCamelCase() #>IdIndexParent = indexParent++;
-    crudItems
-      .filter(x => !x.id)
-      .map(x => (x.<#= ModelInstance.ParentName.ToCamelCase() #>Id = this.getParentIds()[<#= ModelInstance.ParentName.ToCamelCase() #>IdIndexParent]));
+<#  if(ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
+    crudItems.map(x => (x.<#= ModelInstance.ParentName.ToCamelCase() #>Id = this.getParentIds()[0]));
+<#  } else if (ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) {#>
+    crudItems.map(x => (x.<#= ModelInstance.AncestorTeamName.ToCamelCase() #>Id = this.getParentIds()[0]));
 <#  } #>
     this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.save({ <#= ModelInstance.EntityNamePlural.ToCamelCase() #>: crudItems }));
   }

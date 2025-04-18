@@ -26,16 +26,33 @@ export class MaintenanceTeamService extends CrudItemService<MaintenanceTeam> {
     private store: Store<AppState>,
     public dasService: MaintenanceTeamDas,
     public signalRService: CrudItemSignalRService<MaintenanceTeam>,
-    public optionsService: MaintenanceTeamOptionsService,
-    // required only for parent key
-    protected authService: AuthService
+    protected authService: AuthService,
+    public optionsService: MaintenanceTeamOptionsService
   ) {
     super(dasService, signalRService, optionsService);
   }
 
+  // Custo for teams
+  public get currentCrudItemId(): any {
+    // should be redifine due to the setter
+    return super.currentCrudItemId;
+  }
+
+  // Custo for teams
+  public set currentCrudItemId(id: any) {
+    if (this._currentCrudItemId !== id) {
+      this._currentCrudItemId = id;
+      this.authService.changeCurrentTeamId(
+        TeamTypeId.MaintenanceTeam,
+        id
+      );
+    }
+    this.load(id);
+  }
+
   public getParentIds(): any[] {
     // TODO after creation of CRUD MaintenanceTeam : adapt the parent Key tothe context. It can be null if root crud
-    return [this.authService.getCurrentTeamId(TeamTypeId.AircraftMaintenanceCompany)];
+    return [ this.authService.getCurrentTeamId(TeamTypeId.Site)];
   }
 
   public getFeatureName() {
@@ -74,20 +91,14 @@ export class MaintenanceTeamService extends CrudItemService<MaintenanceTeam> {
     this.store.dispatch(FeatureMaintenanceTeamsActions.loadAllByPost({ event }));
   }
   public create(crudItem: MaintenanceTeam) {
-    // TODO after creation of CRUD MaintenanceTeam : map parent Key on the corresponding field
-    let indexParent = 0;
-    crudItem.aircraftMaintenanceCompanyId = this.getParentIds()[indexParent++];
+    crudItem.siteId = this.getParentIds()[0];
     this.store.dispatch(FeatureMaintenanceTeamsActions.create({ maintenanceTeam: crudItem }));
   }
   public update(crudItem: MaintenanceTeam) {
     this.store.dispatch(FeatureMaintenanceTeamsActions.update({ maintenanceTeam: crudItem }));
   }
   public save(crudItems: MaintenanceTeam[]) {
-    let indexParent = 0;
-    const aircraftMaintenanceCompanyIdIndexParent = indexParent++;
-    crudItems
-      .filter(x => !x.id)
-      .map(x => (x.aircraftMaintenanceCompanyId = this.getParentIds()[aircraftMaintenanceCompanyIdIndexParent]));
+    crudItems.map(x => (x.siteId = this.getParentIds()[0]));
     this.store.dispatch(FeatureMaintenanceTeamsActions.save({ maintenanceTeams: crudItems }));
   }
   public remove(id: any) {
