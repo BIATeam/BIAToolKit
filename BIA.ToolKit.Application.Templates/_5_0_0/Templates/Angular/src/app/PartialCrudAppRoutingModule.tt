@@ -1,0 +1,29 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".ts" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityCrudMock(); #>
+          // BIAToolKit - Begin Partial Routing <#=  ModelInstance.EntityName #>
+          {
+            path: '<#= ModelInstance.EntityNamePlural.ToKebabCase() #>',
+            data: {
+              breadcrumb: 'app.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>',
+              canNavigate: true,
+            },
+            loadChildren: () =>
+              import(
+<#  if(ModelInstance.HasParent) { #>
+                './features/<#= ModelInstance.AngularParentRelativePath.Replace(@"\", "/") #>/children/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>/<#= ModelInstance.EntityName.ToKebabCase() #>.module'
+<#  } else { #>
+                './features/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>/<#= ModelInstance.EntityName.ToKebabCase() #>.module'
+<#  } #>
+              ).then(m => m.<#= ModelInstance.EntityName #>Module),
+          },
+          // BIAToolKit - End Partial Routing <#=  ModelInstance.EntityName #>

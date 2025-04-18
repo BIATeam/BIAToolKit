@@ -26,6 +26,7 @@
             HasParent = true;
             ParentName = "AircraftMaintenanceCompany";
             ParentNamePlural = "AircraftMaintenanceCompanies";
+            AngularParentRelativePath = "aircraft-maintenance-companies";
             AngularDeepLevel = 2;
             Properties = new List<PropertyCrudModel>
             {
