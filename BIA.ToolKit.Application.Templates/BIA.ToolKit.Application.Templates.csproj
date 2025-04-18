@@ -411,6 +411,11 @@
       <LastGenOutput>PartialCrudAppRoutingModule.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudPermission.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudPermission.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PartialCrudNavigation.ts</LastGenOutput>
@@ -749,6 +754,13 @@
   <ItemGroup>
     <None Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation.ts">
       <DependentUpon>PartialCrudNavigation.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudPermission.ts">
+      <DependentUpon>PartialCrudPermission.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>

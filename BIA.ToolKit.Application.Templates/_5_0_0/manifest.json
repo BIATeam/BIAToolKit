@@ -303,6 +303,12 @@
           "outputPath": "src\\app\\shared\\navigation.ts",
           "isPartial": true,
           "partialInsertionMarkup": "Navigation"
+        },
+        {
+          "inputPath": "src\\app\\shared\\PartialCrudPermission.tt",
+          "outputPath": "src\\app\\shared\\permission.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "Permission"
         }
       ]
     }
