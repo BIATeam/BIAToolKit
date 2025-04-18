@@ -233,6 +233,32 @@
           "outputPath": "src\\app\\features\\{ParentRelativePath}\\views\\{ParentPlural}-index\\{ParentPlural}-index.component.html",
           "isPartial": true,
           "partialInsertionMarkup": "{Parent}IndexHtml"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\EntityIndexComponentTsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{EntityPlural}-index\\{EntityPlural}-index.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\PartialCrudEntityIndexComponentTsTemplate_CanViewChildDeclaration.tt",
+          "outputPath": "src\\app\\features\\{ParentRelativePath}\\views\\{ParentPlural}-index\\{ParentPlural}-index.component.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "{Parent}IndexTsCanViewChildDeclaration"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\PartialCrudEntityIndexComponentTsTemplate_CanViewChildSet.tt",
+          "outputPath": "src\\app\\features\\{ParentRelativePath}\\views\\{ParentPlural}-index\\{ParentPlural}-index.component.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "{Parent}IndexTsCanViewChildSet"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\PartialCrudEntityIndexComponentTsTemplate_OnViewChild.tt",
+          "outputPath": "src\\app\\features\\{ParentRelativePath}\\views\\{ParentPlural}-index\\{ParentPlural}-index.component.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "{Parent}IndexTsOnViewChild"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\EntityIndexComponentScssTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{EntityPlural}-index\\{EntityPlural}-index.component.scss"
         }
       ]
     }

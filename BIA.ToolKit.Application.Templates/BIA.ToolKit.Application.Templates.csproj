@@ -62,6 +62,11 @@
     <Compile Include="_5_0_0\Models\EntityOptionModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyDtoModel.cs" />
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentScssTemplate.scss">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityIndexComponentScssTemplate.tt</DependentUpon>
+    </None>
     <None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\PartialCrudAuthControllerTemplate.cs">
       <DependentUpon>PartialCrudAuthControllerTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -299,6 +304,31 @@
     <Content Include="_5_0_0\Templates\Angular\src\app\features\store\EntityStateTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityStateTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentScssTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>EntityIndexComponentScssTemplate.scss</LastGenOutput>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_OnViewChild.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_OnViewChild.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanViewChildSet.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_CanViewChildSet.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanViewChildDeclaration.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_CanViewChildDeclaration.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentTsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityIndexComponentTsTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentHtmlTemplate.html">
@@ -581,6 +611,33 @@
       <DesignTime>True</DesignTime>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentTsTemplate.ts">
+      <DependentUpon>EntityIndexComponentTsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanViewChildDeclaration.ts">
+      <DependentUpon>PartialCrudEntityIndexComponentTsTemplate_CanViewChildDeclaration.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanViewChildSet.ts">
+      <DependentUpon>PartialCrudEntityIndexComponentTsTemplate_CanViewChildSet.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_OnViewChild.ts">
+      <DependentUpon>PartialCrudEntityIndexComponentTsTemplate_OnViewChild.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

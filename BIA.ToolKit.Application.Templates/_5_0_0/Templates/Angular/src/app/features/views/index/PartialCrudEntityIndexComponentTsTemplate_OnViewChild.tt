@@ -1,0 +1,21 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".ts" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityCrudMock(); #>
+  // BIAToolKit - Begin Partial <#= ModelInstance.ParentName #>IndexTsOnViewChild <#= ModelInstance.EntityName #>
+  onView<#= ModelInstance.EntityNamePlural #>(crudItemId: any) {
+    if (crudItemId && crudItemId > 0) {
+      this.router.navigate([crudItemId, '<#= ModelInstance.EntityNamePlural.ToKebabCase() #>'], {
+        relativeTo: this.activatedRoute,
+      });
+    }
+  }
+  // BIAToolKit - End Partial <#= ModelInstance.ParentName #>IndexTsOnViewChild <#= ModelInstance.EntityName #>

@@ -33,17 +33,6 @@
       (crudItemFixedChanged)="
         crudItemService.updateFixedStatus($event.crudItemId, $event.fixed)
       ">
-      <!-- BIAToolKit - Begin Partial <#= ModelInstance.EntityName #>IndexHtml Engine -->
-      <ng-template pTemplate="actionOnSelected">
-        <button
-          *ngIf="canViewEngines"
-          pButton
-          [disabled]="selectedCrudItems.length !== 1"
-          class="p-button-outlined"
-          label="{{ '<#= ModelInstance.EntityName.ToCamelCase() #>.engines' | translate }}"
-          (click)="onViewEngines(selectedCrudItems[0].id)"></button>
-      </ng-template>
-      <!-- BIAToolKit - End Partial <#= ModelInstance.EntityName #>IndexHtml Engine -->
       <!-- BIAToolKit - Begin <#= ModelInstance.EntityName #>IndexHtml -->
       <!-- BIAToolKit - End <#= ModelInstance.EntityName #>IndexHtml -->
     </bia-table-header>

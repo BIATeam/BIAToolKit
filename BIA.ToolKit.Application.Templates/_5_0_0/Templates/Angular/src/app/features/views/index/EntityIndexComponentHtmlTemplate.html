@@ -21,17 +21,6 @@
       (crudItemFixedChanged)="
         crudItemService.updateFixedStatus($event.crudItemId, $event.fixed)
       ">
-      <!-- BIAToolKit - Begin Partial MaintenanceTeamIndexHtml Engine -->
-      <ng-template pTemplate="actionOnSelected">
-        <button
-          *ngIf="canViewEngines"
-          pButton
-          [disabled]="selectedCrudItems.length !== 1"
-          class="p-button-outlined"
-          label="{{ 'maintenanceTeam.engines' | translate }}"
-          (click)="onViewEngines(selectedCrudItems[0].id)"></button>
-      </ng-template>
-      <!-- BIAToolKit - End Partial MaintenanceTeamIndexHtml Engine -->
       <!-- BIAToolKit - Begin MaintenanceTeamIndexHtml -->
       <!-- BIAToolKit - End MaintenanceTeamIndexHtml -->
     </bia-table-header>
