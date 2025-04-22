@@ -8,6 +8,12 @@
 
     public class EntityCrudModel : EntityModel
     {
+        private readonly List<string> excludedPropertiesForBiaFieldConfigColumns = new List<string>
+        {
+            "Id",
+            "IsFixed"
+        };
+
         public bool IsTeam { get; set; }
         public bool HasAncestorTeam { get; set; }
         public string AncestorTeamName { get; set; }
@@ -32,5 +38,6 @@
                 return pathBuilder.ToString();
             }
         }
+        public IEnumerable<PropertyCrudModel> BiaFieldConfigProperties => Properties.Where(p => !excludedPropertiesForBiaFieldConfigColumns.Contains(p.Name) && !p.IsParentIdentifier);
     }
 }

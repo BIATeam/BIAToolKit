@@ -18,6 +18,7 @@
         public bool IsNullable => Type.EndsWith("?");
         public bool IsDecimal => Type.StartsWith("decimal", StringComparison.InvariantCultureIgnoreCase);
         public string OptionItemType => BiaFieldAttributes.SingleOrDefault(x => x.Key == "ItemType").Value;
+        public bool IsParentIdentifier => BiaFieldAttributes.Any(x => x.Key == "IsParent" && x.Value == "true");
 
         private string angularType;
         public string AngularType

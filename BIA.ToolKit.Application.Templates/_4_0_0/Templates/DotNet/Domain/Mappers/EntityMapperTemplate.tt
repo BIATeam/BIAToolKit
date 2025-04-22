@@ -35,11 +35,12 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <# if (ModelInstance.HasOptions) { #>
     using BIA.Net.Core.Domain.Dto.Option;
 <# } #>
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
 <# if (ModelInstance.IsTeamType) { #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common.Enum;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.User.Mappers;
 <# } #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
 
     /// <summary>
     /// The mapper used for <#= ModelInstance.EntityName #>.
@@ -57,7 +58,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         }
 
         /// <inheritdoc/>
-        public override int TeamType => base.TeamType;
+        public override int TeamType => (int)TeamTypeId.<#= ModelInstance.EntityName #>;
 
 <# } #>
         /// <inheritdoc/>
@@ -143,6 +144,17 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <#       }
 } #>
 <# if (ModelInstance.IsTeamType) { #>
+                CanUpdate =
+                    this.UserRoleIds.Contains((int)RoleId.<#= ModelInstance.EntityName #>Admin) ||
+                    this.UserRoleIds.Contains((int)RoleId.Admin),
+
+                CanMemberListAccess =
+                    this.UserRoleIds.Contains((int)RoleId.Admin) ||
+<#  if(ModelInstance.HasAncestorTeam) { #>
+                    entity.<#= ModelInstance.AncestorTeam #>.Members.Any(m => m.UserId == this.UserId) ||
+<#  } #>
+                    entity.Members.Any(m => m.UserId == this.UserId),
+
                 TeamTypeId = this.TeamType,
 <# } #>
             <#= ModelInstance.IsTeamType ? "})" : "}" #>;

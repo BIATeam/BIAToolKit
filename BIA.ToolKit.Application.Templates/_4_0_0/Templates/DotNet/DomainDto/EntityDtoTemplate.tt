@@ -40,14 +40,14 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
     public class <#= ModelInstance.EntityName #>Dto : <#= ModelInstance.IsTeamType ? "TeamDto" : $"BaseDto<{ModelInstance.BaseKeyType}>" #>
     {
 <# var index = 0;  #>
-<# foreach(var prop in ModelInstance.DtoPropertiesToGenerate) { #>
+<# foreach(var prop in ModelInstance.PropertiesToGenerate) { #>
         /// <summary>
         /// Gets or sets the <#= prop.MappingName #>.
         /// </summary>
         [BiaDtoField(<#= prop.BiaDtoFieldAttributeProperties #>)]
         public <#= prop.MappingType #> <#= prop.MappingName #> { get; set; }
 <# index++;  #>
-<# if(index != ModelInstance.DtoPropertiesToGenerate.Count()) {#>
+<# if(index != ModelInstance.PropertiesToGenerate.Count()) {#>
 
 <# }#>
 <# } #>

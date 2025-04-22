@@ -26,13 +26,13 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration: Cru
   featureName: '<#= ModelInstance.EntityNamePlural.ToKebabCase() #>',
   fieldsConfig: <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration,
   formLayoutConfig: <#= ModelInstance.EntityName.ToCamelCase() #>FormLayoutConfiguration,
-  useCalcMode: true,
+  useCalcMode: <# if(ModelInstance.IsTeam) { #>false<#  } else { #>true<# } #>,
   useSignalR: false,
   useView: true,
 <#  if(ModelInstance.HasAncestorTeam) { #>
   useViewTeamWithTypeId: TeamTypeId.<#= ModelInstance.AncestorTeamName #>, // use to filter view by teams => should know the type of team
 <#  } #>
-  usePopup: false,
+  usePopup: <# if(ModelInstance.IsTeam) { #>true<#  } else { #>false<# } #>,
   useSplit: false,
   useOfflineMode: false,
   useCompactMode: false,

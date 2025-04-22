@@ -2,7 +2,6 @@
 import { Component, Injector, ViewChild } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { PrimeTemplate } from 'primeng/api';
-import { ButtonDirective } from 'primeng/button';
 import { AuthService } from 'src/app/core/bia-core/services/auth.service';
 import { BiaTableBehaviorControllerComponent } from 'src/app/shared/bia-shared/components/table/bia-table-behavior-controller/bia-table-behavior-controller.component';
 import { BiaTableControllerComponent } from 'src/app/shared/bia-shared/components/table/bia-table-controller/bia-table-controller.component';
@@ -15,6 +14,7 @@ import { MaintenanceTeamTableComponent } from '../../components/maintenance-team
 import { MaintenanceTeam } from '../../model/maintenance-team';
 import { maintenanceTeamCRUDConfiguration } from '../../maintenance-team.constants';
 import { MaintenanceTeamService } from '../../services/maintenance-team.service';
+import { TeamAdvancedFilterDto } from 'src/app/shared/bia-shared/model/team-advanced-filter-dto';
 import {
   BiaButtonGroupComponent,
   BiaButtonGroupItem,
@@ -42,6 +42,8 @@ import {
 export class MaintenanceTeamsIndexComponent extends CrudItemsIndexComponent<MaintenanceTeam> {
   @ViewChild(MaintenanceTeamTableComponent, { static: false })
   crudItemTableComponent: MaintenanceTeamTableComponent;
+  canViewMembers = false;
+  canSelectElement = false;
   // BIAToolKit - Begin MaintenanceTeamIndexTsCanViewChildDeclaration
   // BIAToolKit - End MaintenanceTeamIndexTsCanViewChildDeclaration
 
@@ -62,8 +64,14 @@ export class MaintenanceTeamsIndexComponent extends CrudItemsIndexComponent<Main
     this.canSelect = this.canDelete;
     // BIAToolKit - Begin MaintenanceTeamIndexTsCanViewChildSet
     // BIAToolKit - End MaintenanceTeamIndexTsCanViewChildSet
-    // BIAToolKit - Begin MaintenanceTeamIndexTsCanSelectElementChildSet
-    // BIAToolKit - End MaintenanceTeamIndexTsCanSelectElementChildSet
+    this.canViewMembers = this.authService.hasPermission(
+      Permission.MaintenanceTeam_Member_List_Access
+    );
+    this.canSelectElement =
+      // BIAToolKit - Begin MaintenanceTeamIndexTsCanSelectElementChildSet
+      // BIAToolKit - End MaintenanceTeamIndexTsCanSelectElementChildSet
+      this.canViewMembers ||
+      this.canDelete;
   }
 
   checkhasAdvancedFilter() {

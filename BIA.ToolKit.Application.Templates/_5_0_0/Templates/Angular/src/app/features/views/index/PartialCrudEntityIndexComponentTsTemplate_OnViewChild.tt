@@ -21,7 +21,7 @@
     }
   }
 <#  } else { #>
-  onViewMaintenanceTeams() {
+  onView<#= ModelInstance.EntityNamePlural #>() {
     if (this.selectedCrudItems.length === 1) {
       this.router.navigate(
         [this.selectedCrudItems[0].id, '<#= ModelInstance.EntityNamePlural.ToKebabCase() #>'],

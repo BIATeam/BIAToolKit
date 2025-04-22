@@ -11,14 +11,14 @@
         public const string OptionDto = "OptionDto";
         public const string CollectionOptionDto = "ICollection<" + OptionDto + ">";
 
-        private readonly List<string> excludedDtoPropertiesToGenerate = new List<string>
+        private readonly List<string> excludedPropertiesToGenerate = new List<string>
         {
             "Id",
             "IsFixed"
         };
 
         public List<PropertyDtoModel> Properties { get; set; } = new List<PropertyDtoModel>();
-        public IEnumerable<PropertyDtoModel> DtoPropertiesToGenerate => Properties.Where(p => !excludedDtoPropertiesToGenerate.Contains(p.MappingName));
+        public IEnumerable<PropertyDtoModel> PropertiesToGenerate => Properties.Where(p => !excludedPropertiesToGenerate.Contains(p.MappingName));
         public bool HasCollectionOptions => Properties.Any(p => p.MappingType.Equals(CollectionOptionDto));
         public bool HasOptions => HasCollectionOptions || Properties.Any(p => p.MappingType.Equals(OptionDto));
         public string AncestorTeam { get; set; }

@@ -11,7 +11,14 @@
 <#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
 <# var ModelInstance = Model ?? new EntityCrudMock(); #>
 import { Validators } from '@angular/forms';
+<#  if(ModelInstance.IsTeam) { #>
+import {
+  BaseTeamDto,
+  teamFieldsConfigurationColumns,
+} from 'src/app/shared/bia-shared/model/base-team-dto';
+<#  } else { #>
 import { BaseDto } from 'src/app/shared/bia-shared/model/base-dto';
+<#  } #>
 import {
   BiaFieldConfig,
   BiaFieldNumberFormat,
@@ -26,7 +33,7 @@ import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
 <#  } #>
 
 // TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the model
-export class <#= ModelInstance.EntityName #> extends BaseDto {
+export class <#= ModelInstance.EntityName #> extends <#  if(ModelInstance.IsTeam) { #>BaseTeamDto<# } else {  #>BaseDto<#  } #> {
 <#  foreach(var property in ModelInstance.Properties) { #>
   <#= property.Name.ToCamelCase() #>: <#= property.AngularType #>;
 <# }  #>
@@ -35,7 +42,11 @@ export class <#= ModelInstance.EntityName #> extends BaseDto {
 // TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the field configuration
 export const <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration: BiaFieldsConfig<<#= ModelInstance.EntityName #>> = {
   columns: [
-<#  foreach(var property in ModelInstance.Properties) { #>
+<#  if(ModelInstance.IsTeam) { #>
+      ...teamFieldsConfigurationColumns,
+      ...[
+<#  } #>
+<#  foreach(var property in ModelInstance.BiaFieldConfigProperties) { #>
     Object.assign(new BiaFieldConfig('<#= property.Name.ToCamelCase() #>', '<#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.Name.ToCamelCase() #>'), {
 <#  if(property.IsRequired) { #>
       isRequired: true,
@@ -60,6 +71,9 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration: B
       isHideByDefault: true,
       isVisibleInTable: false,
     }),
+<#  if(ModelInstance.IsTeam) { #>
+    ],
+<#  } #>
   ],
 };
 

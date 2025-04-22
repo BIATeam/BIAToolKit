@@ -16,8 +16,8 @@
         this.translateService.instant(
           '<#= ModelInstance.ParentName.ToCamelCase() #>.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>'
         ),
-        () => this.onViewMaintenanceTeams(),
-        this.canViewMaintenanceTeams,
+        () => this.onView<#= ModelInstance.EntityNamePlural #>(),
+        this.canView<#= ModelInstance.EntityNamePlural #>,
         this.selectedCrudItems.length !== 1,
         this.translateService.instant(
           '<#= ModelInstance.ParentName.ToCamelCase() #>.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>'

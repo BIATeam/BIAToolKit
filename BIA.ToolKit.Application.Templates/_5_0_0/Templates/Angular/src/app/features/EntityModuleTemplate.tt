@@ -84,6 +84,22 @@ export const ROUTES: Routes = [
         component: <#= ModelInstance.EntityName #>ItemComponent,
         canActivate: [PermissionGuard],
         children: [
+<#  if(ModelInstance.IsTeam) { #>
+          {
+            path: 'members',
+            data: {
+              breadcrumb: 'app.members',
+              canNavigate: true,
+              permission:
+                Permission.<#= ModelInstance.EntityName #>_Member_List_Access,
+              layoutMode: LayoutMode.fullPage,
+            },
+            loadChildren: () =>
+              import(
+                './children/members/<#= ModelInstance.EntityName.ToKebabCase() #>-member.module'
+              ).then(m => m.<#= ModelInstance.EntityName #>MemberModule),
+          },
+<#  } #>
           {
             path: 'read',
             data: {

@@ -1,5 +1,8 @@
 ﻿import { Validators } from '@angular/forms';
-import { BaseDto } from 'src/app/shared/bia-shared/model/base-dto';
+import {
+  BaseTeamDto,
+  teamFieldsConfigurationColumns,
+} from 'src/app/shared/bia-shared/model/base-team-dto';
 import {
   BiaFieldConfig,
   BiaFieldNumberFormat,
@@ -12,7 +15,7 @@ import { BiaFormLayoutConfig } from 'src/app/shared/bia-shared/model/bia-form-la
 import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
 
 // TODO after creation of CRUD MaintenanceTeam : adapt the model
-export class MaintenanceTeam extends BaseDto {
+export class MaintenanceTeam extends BaseTeamDto {
   aircraftMaintenanceCompanyId: number;
   msn: string;
   isActive: boolean;
@@ -27,6 +30,8 @@ export class MaintenanceTeam extends BaseDto {
 // TODO after creation of CRUD MaintenanceTeam : adapt the field configuration
 export const maintenanceTeamFieldsConfiguration: BiaFieldsConfig<MaintenanceTeam> = {
   columns: [
+      ...teamFieldsConfigurationColumns,
+      ...[
     Object.assign(new BiaFieldConfig('aircraftMaintenanceCompanyId', 'maintenanceTeam.aircraftMaintenanceCompanyId'), {
       isRequired: true,
       type: PropType.Number,
@@ -78,6 +83,7 @@ export const maintenanceTeamFieldsConfiguration: BiaFieldsConfig<MaintenanceTeam
       isHideByDefault: true,
       isVisibleInTable: false,
     }),
+    ],
   ],
 };
 
