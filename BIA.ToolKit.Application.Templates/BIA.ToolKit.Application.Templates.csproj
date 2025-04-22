@@ -241,6 +241,16 @@
       <LastGenOutput>EntityOptionStateTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\children\members\edit\EntityMemberEditComponentTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityMemberEditComponentTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\children\members\EntityMemberModuleTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityMemberModuleTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="_5_0_0\Templates\Angular\src\app\features\components\EntityTableComponentTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityTableComponentTemplate.ts</LastGenOutput>
@@ -821,6 +831,20 @@
   <ItemGroup>
     <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.ts">
       <DependentUpon>PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\children\members\edit\EntityMemberEditComponentTemplate.ts">
+      <DependentUpon>EntityMemberEditComponentTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\children\members\EntityMemberModuleTemplate.ts">
+      <DependentUpon>EntityMemberModuleTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>

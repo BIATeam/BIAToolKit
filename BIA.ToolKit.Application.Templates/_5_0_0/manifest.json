@@ -339,6 +339,10 @@
           "outputPath": "src\\environments\\all-environments.ts",
           "isPartial": true,
           "partialInsertionMarkup": "AllEnvironment"
+        },
+        {
+          "inputPath": "src\\app\\features\\children\\members\\EntityMemberModuleTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\children\\members\\{Entity}-member.module.ts"
         }
       ]
     }
