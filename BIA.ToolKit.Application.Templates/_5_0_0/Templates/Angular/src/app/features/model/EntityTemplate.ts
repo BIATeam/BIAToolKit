@@ -8,13 +8,7 @@ import {
   PrimeNGFiltering,
   PropType,
 } from 'src/app/shared/bia-shared/model/bia-field-config';
-import {
-  BiaFormLayoutConfig,
-  BiaFormLayoutConfigColumnSize,
-  BiaFormLayoutConfigField,
-  BiaFormLayoutConfigGroup,
-  BiaFormLayoutConfigRow,
-} from 'src/app/shared/bia-shared/model/bia-form-layout-config';
+import { BiaFormLayoutConfig } from 'src/app/shared/bia-shared/model/bia-form-layout-config';
 import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
 
 // TODO after creation of CRUD MaintenanceTeam : adapt the model

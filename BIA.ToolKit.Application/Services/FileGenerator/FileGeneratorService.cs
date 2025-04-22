@@ -270,7 +270,7 @@
                     .Replace("{ParentPlural}", context.ParentNamePlural.ToKebabCase())
                     .Replace("{ParentRelativePath}", context.AngularParentFolderRelativePath)
                     .Replace("{ParentChildrenRelativePath}", context.AngularParentChildrenFolderRelativePath)
-                    .Replace(@"\\\\", @"\\"));
+                    .Replace(@"\\", @"\"));
 
             return outputPath;
         }

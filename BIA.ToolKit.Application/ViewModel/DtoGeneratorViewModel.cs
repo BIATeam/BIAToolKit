@@ -88,6 +88,7 @@
             {
                 selectedEntityName = value;
                 RaisePropertyChanged(nameof(SelectedEntityName));
+                AncestorTeam = null;
 
                 if (selectedEntityName != null)
                 {
@@ -194,6 +195,7 @@
         {
             WasAlreadyGenerated = false;
             EntityDomain = null;
+            AncestorTeam = null;
 
             domainEntities.Clear();
             domainEntities.AddRange(entities);

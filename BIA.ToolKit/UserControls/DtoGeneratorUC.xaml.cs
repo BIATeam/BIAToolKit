@@ -144,6 +144,7 @@
                 EntityNamePlural = vm.SelectedEntityInfo.NamePluralized,
                 BaseKeyType = vm.SelectedEntityInfo.BaseKeyType,
                 Properties = [.. vm.MappingEntityProperties],
+                IsTeam = vm.SelectedEntityInfo.IsTeam,
                 AncestorTeamName = vm.AncestorTeam,
                 HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
                 GenerateBack = true

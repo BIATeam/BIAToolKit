@@ -14,7 +14,7 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { TableLazyLoadEvent } from 'primeng/table';
 import { map, Observable } from 'rxjs';
-<#  if(ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) {#>
+<#  if(ModelInstance.IsTeam) {#>
 import { AuthService } from 'src/app/core/bia-core/services/auth.service';
 import { TeamTypeId } from 'src/app/shared/constants';
 <#  } #>
@@ -45,7 +45,7 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
     public signalRService: CrudItemSignalRService<<#= ModelInstance.EntityName #>>,
 <#  if(ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
     protected <#=  ModelInstance.ParentName.ToCamelCase() #>Service: <#=  ModelInstance.ParentName #>Service,
-<#  } else if (ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) {#>
+<#  } else if (ModelInstance.IsTeam) {#>
     protected authService: AuthService,
 <#  } #>
     public optionsService: <#= ModelInstance.EntityName #>OptionsService

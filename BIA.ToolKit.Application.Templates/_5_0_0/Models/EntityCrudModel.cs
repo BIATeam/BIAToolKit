@@ -13,6 +13,7 @@
         public string AncestorTeamName { get; set; }
         public string DisplayItemName { get; set; }
         public List<string> OptionItems { get; set; }
+        public bool HasOptions => OptionItems?.Count > 0;
         public bool HasParent { get; set; }
         public string ParentName { get; set; }
         public string ParentNamePlural { get; set; }
