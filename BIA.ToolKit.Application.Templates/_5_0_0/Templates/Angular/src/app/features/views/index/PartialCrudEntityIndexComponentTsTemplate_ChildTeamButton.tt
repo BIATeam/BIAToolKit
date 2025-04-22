@@ -1,0 +1,27 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="$(TargetPath)" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Models" #>
+<#@ import namespace="BIA.ToolKit.Application.Templates._5_0_0.Mocks" #>
+<#@ output extension=".ts" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityCrudMock(); #>
+<#  if(ModelInstance.HasParent && ModelInstance.IsTeam) { #>
+      // Begin Partial <#= ModelInstance.ParentName #>IndexTsChildTeamButton <#= ModelInstance.EntityName #>
+      new BiaButtonGroupItem(
+        this.translateService.instant(
+          '<#= ModelInstance.ParentName.ToCamelCase() #>.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>'
+        ),
+        () => this.onViewMaintenanceTeams(),
+        this.canViewMaintenanceTeams,
+        this.selectedCrudItems.length !== 1,
+        this.translateService.instant(
+          '<#= ModelInstance.ParentName.ToCamelCase() #>.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>'
+        )
+      ),
+      // End Partial <#= ModelInstance.ParentName #>IndexTsChildTeamButton <#= ModelInstance.EntityName #>
+<# }  #>

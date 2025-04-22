@@ -27,6 +27,12 @@ import { <#= ModelInstance.EntityName #>TableComponent } from '../../components/
 import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
 import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../../<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
 import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
+<#  if(ModelInstance.IsTeam) { #>
+import {
+  BiaButtonGroupComponent,
+  BiaButtonGroupItem,
+} from 'src/app/shared/bia-shared/components/bia-button-group/bia-button-group.component';
+<# } #>
 
 @Component({
   selector: 'app-<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-index',
@@ -36,7 +42,11 @@ import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= Model
     NgClass,
     PrimeTemplate,
     NgIf,
+<#  if(ModelInstance.IsTeam) { #>
+    BiaButtonGroupComponent,
+<#  } else { #>
     ButtonDirective,
+<#  } #>
     <#= ModelInstance.EntityName #>TableComponent,
     AsyncPipe,
     TranslateModule,
@@ -70,7 +80,68 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
     this.canSelect = this.canDelete;
     // BIAToolKit - Begin <#= ModelInstance.EntityName #>IndexTsCanViewChildSet
     // BIAToolKit - End <#= ModelInstance.EntityName #>IndexTsCanViewChildSet
+<#  if(ModelInstance.IsTeam) { #>
+    // BIAToolKit - Begin <#= ModelInstance.EntityName #>IndexTsCanSelectElementChildSet
+    // BIAToolKit - End <#= ModelInstance.EntityName #>IndexTsCanSelectElementChildSet
+<#  } #>
   }
+
+<#  if(ModelInstance.IsTeam) { #>
+  checkhasAdvancedFilter() {
+    this.hasAdvancedFilter = TeamAdvancedFilterDto.hasFilter(
+      this.crudConfiguration.fieldsConfig.advancedFilter
+    );
+  }
+
+  protected initSelectedButtonGroup() {
+    this.selectedButtonGroup = [
+      new BiaButtonGroupItem(
+        this.translateService.instant('<#= ModelInstance.EntityName.ToCamelCase() #>.edit'),
+        () => this.onEdit(this.selectedCrudItems[0].id),
+        this.canEdit,
+        this.selectedCrudItems.length !== 1,
+        this.translateService.instant('<#= ModelInstance.EntityName.ToCamelCase() #>.edit')
+      ),
+      // BIAToolKit - Begin <#= ModelInstance.EntityName #>IndexTsChildTeamButton
+      // BIAToolKit - End <#= ModelInstance.EntityName #>IndexTsChildTeamButton
+      new BiaButtonGroupItem(
+        this.translateService.instant('app.members'),
+        () => this.onViewMembers(this.selectedCrudItems[0].id),
+        this.canViewMembers,
+        this.selectedCrudItems.length !== 1 ||
+          !this.selectedCrudItems[0].canMemberListAccess,
+        this.translateService.instant('app.members')
+      ),
+    ];
+  }
+
+  onClickRowData(crudItem: <#= ModelInstance.EntityName #>) {
+    if (crudItem.canMemberListAccess) {
+      this.onViewMembers(crudItem.id);
+    }
+  }
+
+  onViewMembers(crudItemId: any) {
+    if (crudItemId && crudItemId > 0) {
+      this.router.navigate([crudItemId, 'members'], {
+        relativeTo: this.activatedRoute,
+      });
+    }
+  }
+
+  onSelectedElementsChanged(crudItems: <#= ModelInstance.EntityName #>[]) {
+    super.onSelectedElementsChanged(crudItems);
+    if (crudItems.length === 1) {
+      this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.currentCrudItemId =
+        crudItems[0].id;
+    }
+  }
+
+  onDelete(): void {
+    super.onDelete();
+    this.authService.reLogin();
+  }
+<#  } #>
 
   // BIAToolKit - Begin <#= ModelInstance.EntityName #>IndexTsOnViewChild
   // BIAToolKit - End <#= ModelInstance.EntityName #>IndexTsOnViewChild

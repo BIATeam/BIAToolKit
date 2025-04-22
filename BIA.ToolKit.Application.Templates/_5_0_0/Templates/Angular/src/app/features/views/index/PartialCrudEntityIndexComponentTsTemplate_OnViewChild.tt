@@ -10,8 +10,9 @@
 <#@ output extension=".ts" #>
 <#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
 <# var ModelInstance = Model ?? new EntityCrudMock(); #>
-<#  if(ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
+<#  if(ModelInstance.HasParent) { #>
   // BIAToolKit - Begin Partial <#= ModelInstance.ParentName #>IndexTsOnViewChild <#= ModelInstance.EntityName #>
+<#  if(!ModelInstance.IsTeam) { #>
   onView<#= ModelInstance.EntityNamePlural #>(crudItemId: any) {
     if (crudItemId && crudItemId > 0) {
       this.router.navigate([crudItemId, '<#= ModelInstance.EntityNamePlural.ToKebabCase() #>'], {
@@ -19,5 +20,15 @@
       });
     }
   }
+<#  } else { #>
+  onViewMaintenanceTeams() {
+    if (this.selectedCrudItems.length === 1) {
+      this.router.navigate(
+        [this.selectedCrudItems[0].id, '<#= ModelInstance.EntityNamePlural.ToKebabCase() #>'],
+        { relativeTo: this.activatedRoute }
+      );
+    }
+  }
+<#  } #>
   // BIAToolKit - End Partial <#= ModelInstance.ParentName #>IndexTsOnViewChild <#= ModelInstance.EntityName #>
 <# }  #>

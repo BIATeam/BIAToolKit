@@ -306,6 +306,16 @@
       <LastGenOutput>EntityStateTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="_5_0_0\Templates\Angular\src\app\features\views\item\EntityItemComponentTsTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityItemComponentTsTemplate.ts</LastGenOutput>
@@ -797,6 +807,20 @@
   <ItemGroup>
     <None Include="_5_0_0\Templates\Angular\src\environments\PartialCrudAllEnvironments.ts">
       <DependentUpon>PartialCrudAllEnvironments.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.ts">
+      <DependentUpon>PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.ts">
+      <DependentUpon>PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>

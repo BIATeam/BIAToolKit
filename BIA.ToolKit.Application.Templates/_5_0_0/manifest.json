@@ -257,6 +257,18 @@
           "partialInsertionMarkup": "{Parent}IndexTsOnViewChild"
         },
         {
+          "inputPath": "src\\app\\features\\views\\index\\PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.tt",
+          "outputPath": "src\\app\\features\\{ParentRelativePath}\\views\\{ParentPlural}-index\\{ParentPlural}-index.component.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "{Parent}IndexTsCanSelectElementChildSet"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.tt",
+          "outputPath": "src\\app\\features\\{ParentRelativePath}\\views\\{ParentPlural}-index\\{ParentPlural}-index.component.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "{Parent}IndexTsChildTeamButton"
+        },
+        {
           "inputPath": "src\\app\\features\\views\\index\\EntityIndexComponentScssTemplate.tt",
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{EntityPlural}-index\\{EntityPlural}-index.component.scss"
         },

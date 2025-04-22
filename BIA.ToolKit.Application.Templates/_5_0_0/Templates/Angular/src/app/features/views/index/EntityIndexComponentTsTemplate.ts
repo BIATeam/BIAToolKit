@@ -15,6 +15,10 @@ import { MaintenanceTeamTableComponent } from '../../components/maintenance-team
 import { MaintenanceTeam } from '../../model/maintenance-team';
 import { maintenanceTeamCRUDConfiguration } from '../../maintenance-team.constants';
 import { MaintenanceTeamService } from '../../services/maintenance-team.service';
+import {
+  BiaButtonGroupComponent,
+  BiaButtonGroupItem,
+} from 'src/app/shared/bia-shared/components/bia-button-group/bia-button-group.component';
 
 @Component({
   selector: 'app-maintenance-teams-index',
@@ -24,7 +28,7 @@ import { MaintenanceTeamService } from '../../services/maintenance-team.service'
     NgClass,
     PrimeTemplate,
     NgIf,
-    ButtonDirective,
+    BiaButtonGroupComponent,
     MaintenanceTeamTableComponent,
     AsyncPipe,
     TranslateModule,
@@ -58,6 +62,63 @@ export class MaintenanceTeamsIndexComponent extends CrudItemsIndexComponent<Main
     this.canSelect = this.canDelete;
     // BIAToolKit - Begin MaintenanceTeamIndexTsCanViewChildSet
     // BIAToolKit - End MaintenanceTeamIndexTsCanViewChildSet
+    // BIAToolKit - Begin MaintenanceTeamIndexTsCanSelectElementChildSet
+    // BIAToolKit - End MaintenanceTeamIndexTsCanSelectElementChildSet
+  }
+
+  checkhasAdvancedFilter() {
+    this.hasAdvancedFilter = TeamAdvancedFilterDto.hasFilter(
+      this.crudConfiguration.fieldsConfig.advancedFilter
+    );
+  }
+
+  protected initSelectedButtonGroup() {
+    this.selectedButtonGroup = [
+      new BiaButtonGroupItem(
+        this.translateService.instant('maintenanceTeam.edit'),
+        () => this.onEdit(this.selectedCrudItems[0].id),
+        this.canEdit,
+        this.selectedCrudItems.length !== 1,
+        this.translateService.instant('maintenanceTeam.edit')
+      ),
+      // BIAToolKit - Begin MaintenanceTeamIndexTsChildTeamButton
+      // BIAToolKit - End MaintenanceTeamIndexTsChildTeamButton
+      new BiaButtonGroupItem(
+        this.translateService.instant('app.members'),
+        () => this.onViewMembers(this.selectedCrudItems[0].id),
+        this.canViewMembers,
+        this.selectedCrudItems.length !== 1 ||
+          !this.selectedCrudItems[0].canMemberListAccess,
+        this.translateService.instant('app.members')
+      ),
+    ];
+  }
+
+  onClickRowData(crudItem: MaintenanceTeam) {
+    if (crudItem.canMemberListAccess) {
+      this.onViewMembers(crudItem.id);
+    }
+  }
+
+  onViewMembers(crudItemId: any) {
+    if (crudItemId && crudItemId > 0) {
+      this.router.navigate([crudItemId, 'members'], {
+        relativeTo: this.activatedRoute,
+      });
+    }
+  }
+
+  onSelectedElementsChanged(crudItems: MaintenanceTeam[]) {
+    super.onSelectedElementsChanged(crudItems);
+    if (crudItems.length === 1) {
+      this.maintenanceTeamService.currentCrudItemId =
+        crudItems[0].id;
+    }
+  }
+
+  onDelete(): void {
+    super.onDelete();
+    this.authService.reLogin();
   }
 
   // BIAToolKit - Begin MaintenanceTeamIndexTsOnViewChild

@@ -33,8 +33,16 @@
       (crudItemFixedChanged)="
         crudItemService.updateFixedStatus($event.crudItemId, $event.fixed)
       ">
+<#  if(ModelInstance.IsTeam) { #>
+        <ng-template pTemplate="actionOnSelected">
+          <bia-button-group
+            [buttons]="selectedButtonGroup"
+            [compact]="false"></bia-button-group>
+        </ng-template>
+<#   } else { #>
       <!-- BIAToolKit - Begin <#= ModelInstance.EntityName #>IndexHtml -->
       <!-- BIAToolKit - End <#= ModelInstance.EntityName #>IndexHtml -->
+<#  } #>
     </bia-table-header>
     <bia-table-controller
       [ngClass]="{ 'table-controller-hidden': !showTableController }"
