@@ -85,5 +85,4 @@ const ROUTES: Routes = [
   imports: [RouterModule.forChild(ROUTES), MemberModule],
 })
 export class <#= ModelInstance.EntityName #>MemberModule {}
-
 <#  } #>

@@ -343,6 +343,22 @@
         {
           "inputPath": "src\\app\\features\\children\\members\\EntityMemberModuleTemplate.tt",
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\children\\members\\{Entity}-member.module.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\children\\members\\edit\\EntityMemberEditComponentTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\children\\members\\views\\{Entity}-member-edit\\{Entity}-member-edit.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\children\\members\\item\\EntityMemberItemComponentTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\children\\members\\views\\{Entity}-member-item\\{Entity}-member-item.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\children\\members\\new\\EntityMemberNewComponentTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\children\\members\\views\\{Entity}-member-new\\{Entity}-member-new.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\children\\members\\index\\EntityMemberIndexComponentTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\children\\members\\views\\{Entity}-members-index\\{Entity}-members-index.component.ts"
         }
       ]
     }

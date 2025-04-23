@@ -72,4 +72,3 @@ const ROUTES: Routes = [
   imports: [RouterModule.forChild(ROUTES), MemberModule],
 })
 export class MaintenanceTeamMemberModule {}
-

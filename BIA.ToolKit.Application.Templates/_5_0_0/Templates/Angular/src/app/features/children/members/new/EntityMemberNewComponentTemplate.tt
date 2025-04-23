@@ -11,29 +11,22 @@
 <#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
 <# var ModelInstance = Model ?? new EntityCrudMock(); #>
 <#  if(ModelInstance.IsTeam) { #>
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Component, Injector, OnInit } from '@angular/core';
-import { SpinnerComponent } from 'src/app/shared/bia-shared/components/spinner/spinner.component';
-import { MemberFormEditComponent } from 'src/app/shared/bia-shared/feature-templates/members/components/member-form-edit/member-form-edit.component';
+import { MemberFormNewComponent } from 'src/app/shared/bia-shared/feature-templates/members/components/member-form-new/member-form-new.component';
 import { MemberModule } from 'src/app/shared/bia-shared/feature-templates/members/member.module';
-import { MemberEditComponent } from 'src/app/shared/bia-shared/feature-templates/members/views/member-edit/member-edit.component';
+import { MemberNewComponent } from 'src/app/shared/bia-shared/feature-templates/members/views/member-new/member-new.component';
 import { TeamTypeId } from 'src/app/shared/constants';
 import { <#= ModelInstance.EntityName #>Service } from '../../../../services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
 
 @Component({
-  selector: 'app-<#= ModelInstance.EntityName.ToKebabCase() #>-member-edit',
+  selector: 'app-<#= ModelInstance.EntityName.ToKebabCase() #>-member-new',
   templateUrl:
-    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>shared/bia-shared/feature-templates/members/views/member-edit/member-edit.component.html',
-  imports: [
-    MemberModule,
-    NgIf,
-    AsyncPipe,
-    SpinnerComponent,
-    MemberFormEditComponent,
-  ],
+    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>shared/bia-shared/feature-templates/members/views/member-new/member-new.component.html',
+  imports: [MemberModule, AsyncPipe, MemberFormNewComponent],
 })
-export class <#= ModelInstance.EntityName #>MemberEditComponent
-  extends MemberEditComponent
+export class <#= ModelInstance.EntityName #>MemberNewComponent
+  extends MemberNewComponent
   implements OnInit
 {
   constructor(
