@@ -29,7 +29,7 @@
 
         private readonly FileGeneratorVersionFactory fileGeneratorFactory;
         private IFileGeneratorVersion fileGenerator;
-        private readonly TemplateGenerator templateGenerator;
+        private readonly VersionedTemplateGenerator templateGenerator;
         private readonly IConsoleWriter consoleWriter;
         private readonly List<Manifest> manifests = [];
         private string templatesPath;
@@ -44,7 +44,7 @@
         {
             this.consoleWriter = consoleWriter;
             fileGeneratorFactory = new FileGeneratorVersionFactory(consoleWriter);
-            templateGenerator = new TemplateGenerator();
+            templateGenerator = new VersionedTemplateGenerator();
             templateGenerator.Refs.Add(typeof(Manifest).Assembly.Location);
             LoadTemplatesManifests();
         }
@@ -115,6 +115,8 @@
                 consoleWriter.AddMessageLine($"File generator : no manifest for version {manifestVersion}", "red");
                 return;
             }
+
+            templateGenerator.SetTemplateVersion(fileGeneratorVersion);
 
             IsInit = true;
         }

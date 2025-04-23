@@ -1,0 +1,4 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="Template.ttinclude" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityCrudModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityCrudMock(); #>
