@@ -387,7 +387,7 @@
         {
             // Get files/folders name
             string dotnetBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, Constants.FolderBia);
-            string backSettingsFileName = Path.Combine(dotnetBiaFolderPath, settings.GenerationSettingsFileName);
+            string backSettingsFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, settings.GenerationSettingsFileName);
             this.crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.CrudGenerationHistoryFileName);
 
             // Handle old path of CRUD history file
@@ -449,7 +449,7 @@
             vm.ZipFeatureTypeList.RemoveAll(x => x.GenerationType == GenerationType.Front);
 
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
-            string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
+            string frontSettingsFileName = Path.Combine(vm.CurrentProject.Folder, biaFront, settings.GenerationSettingsFileName);
 
             if(fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
