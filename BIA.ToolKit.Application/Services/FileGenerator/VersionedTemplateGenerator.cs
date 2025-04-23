@@ -9,7 +9,10 @@
     using System.Threading.Tasks;
     using Mono.TextTemplating;
 
-    internal class VersionedTemplateGenerator : TemplateGenerator
+    /// <summary>
+    /// Extended class of <see cref="TemplateGenerator"/> used for versionned templates.
+    /// </summary>
+    internal sealed class VersionedTemplateGenerator : TemplateGenerator
     {
         private string templateVersion;
 

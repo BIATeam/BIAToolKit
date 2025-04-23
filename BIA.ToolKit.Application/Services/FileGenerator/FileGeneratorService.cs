@@ -44,8 +44,11 @@
         {
             this.consoleWriter = consoleWriter;
             modelProviderFactory = new FileGeneratorModelProviderFactory(consoleWriter);
+
             templateGenerator = new VersionedTemplateGenerator();
+            // Add reference to assembly of Manifest class to the template generator
             templateGenerator.Refs.Add(typeof(Manifest).Assembly.Location);
+
             LoadTemplatesManifests();
         }
 
@@ -288,8 +291,6 @@
 
                 var generationTemplatePath = Path.GetTempFileName();
                 var templateContent = await File.ReadAllTextAsync(templatePath);
-                // Replace the load of assembly based on $(TargetPath) from template content to avoid generation errors
-                templateContent = templateContent.Replace("<#@ assembly name=\"$(TargetPath)\" #>", "<#@ #>");
                 await File.WriteAllTextAsync(generationTemplatePath, templateContent);
 
                 // Inject Model parameter for template generation
