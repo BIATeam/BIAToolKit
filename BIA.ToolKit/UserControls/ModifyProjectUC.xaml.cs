@@ -50,8 +50,8 @@
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
-            MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService);
-            MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService);
+            MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService, settingsService);
+            MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService, settingsService);
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
