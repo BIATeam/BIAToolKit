@@ -7,6 +7,7 @@
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
+    using Humanizer;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -55,6 +56,8 @@
                 RaisePropertyChanged(nameof(IsProjectChosen));
             }
         }
+
+        public bool UseFileGenerator { get; set; }
         #endregion
 
         #region Dto
@@ -160,6 +163,8 @@
             }
         }
 
+        public string SelectedOptionItems => string.Join(", ", OptionItems.Where(x => x.Check).Select(x => x.OptionName));
+
         private bool isDtoGenerated = false;
         public bool IsDtoGenerated
         {
@@ -172,6 +177,24 @@
                     RaisePropertyChanged(nameof(IsDtoGenerated));
                 }
             }
+        }
+
+        public void AddOptionItems(IEnumerable<OptionItem> optionItems)
+        {
+            OptionItems.Clear();
+            foreach (var optionItem in optionItems)
+            {
+                OptionItems.Add(optionItem);
+            }
+            foreach(var optionItem in OptionItems)
+            {
+                optionItem.PropertyChanged += OptionItem_PropertyChanged;
+            }
+        }
+
+        private void OptionItem_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            RaisePropertyChanged(nameof(SelectedOptionItems));
         }
         #endregion
 
@@ -246,6 +269,7 @@
                 {
                     entityNameSingular = value;
                     RaisePropertyChanged(nameof(CRUDNameSingular));
+                    CRUDNamePlural = value.Pluralize();
                 }
             }
         }
@@ -270,6 +294,11 @@
         {
             get
             {
+                if(UseFileGenerator)
+                {
+                    return true;
+                }
+
                 // CRUD feature always disable
                 if (!string.IsNullOrEmpty(FeatureNameSelected) && FeatureNameSelected.Equals("CRUD"))
                     return false;
@@ -297,9 +326,12 @@
 
                     if (value == false)
                     {
-                        Domain = null;
                         ParentName = null;
                         ParentNamePlural = null;
+                    }
+                    else
+                    {
+                        UpdateParentPreSelection();
                     }
                 }
             }
@@ -331,6 +363,7 @@
                     parentName = value;
                     RaisePropertyChanged(nameof(ParentName));
                     RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                    ParentNamePlural = value.Pluralize();
                 }
             }
         }
@@ -352,17 +385,25 @@
 
         private void UpdateParentPreSelection()
         {
+            if(!string.IsNullOrWhiteSpace(ParentName))
+            {
+                return;
+            }
+
             var selectedFeaturesWithParent = ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected && x.Parents.Any(y => y.IsPrincipal));
-            if (selectedFeaturesWithParent.Any() && DtoEntity != null)
+            if ((UseFileGenerator || selectedFeaturesWithParent.Any()) && DtoEntity != null)
             {
                 var propertiesWithParent = DtoEntity.Properties.Where(x => x.Annotations != null && x.Annotations.Any(y => y.Key == "IsParent"));
-                HasParent = selectedFeaturesWithParent.Any(x => x.NeedParent) || propertiesWithParent.Any();
-
                 var parentPropertyName = propertiesWithParent.FirstOrDefault(x => x.Name.EndsWith("Id"))?.Name;
                 if (!string.IsNullOrEmpty(parentPropertyName))
                 {
                     var parentName = parentPropertyName.Replace("Id", string.Empty);
                     ParentName = parentName;
+                    HasParent = true;
+                }
+                if(!UseFileGenerator && !HasParent)
+                {
+                    HasParent = selectedFeaturesWithParent.Any(x => x.NeedParent);
                 }
             }
             else
@@ -378,6 +419,11 @@
             if (DtoEntity == null)
             {
                 Domain = null;
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(Domain))
+            {
                 return;
             }
 
@@ -449,6 +495,7 @@
             {
                 _biaFront = value;
                 RaisePropertyChanged(nameof(BiaFront));
+                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
 
@@ -463,8 +510,8 @@
             }
         }
 
-        public bool IsWebApiAvailable => !string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.WebApi);
-        public bool IsFrontAvailable => !string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.Front);
+        public bool IsWebApiAvailable => UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.WebApi));
+        public bool IsFrontAvailable => UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.Front));
         #endregion
 
         #region ZipFile
@@ -498,7 +545,7 @@
         {
             get
             {
-                return isDtoParsed && !string.IsNullOrEmpty(featureNameSelected) && !ZipFeatureTypeList.Any(x => x.Feature == featureNameSelected && x.FeatureType == FeatureType.Option);
+                return isDtoParsed && UseFileGenerator || (!string.IsNullOrEmpty(featureNameSelected) && !ZipFeatureTypeList.Any(x => x.Feature == featureNameSelected && x.FeatureType == FeatureType.Option));
             }
         }
 
@@ -519,9 +566,19 @@
         #endregion
     }
 
-    public class OptionItem
+    public class OptionItem : ObservableObject
     {
-        public bool Check { get; set; }
+        private bool check;
+        public bool Check
+        {
+            get => check;
+            set
+            {
+                check = value;
+                RaisePropertyChanged(nameof(Check));
+            }
+        }
+
         public string OptionName { get; set; }
 
         public OptionItem(string name, bool check = false)

@@ -1,0 +1,22 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".html" #>
+<app-<#= ModelInstance.EntityName.ToKebabCase() #>-form
+  *ngIf="crudItemService.crudItem$ | async; let crudItem"
+  [crudItem]="crudItem"
+  [fields]="crudConfiguration.fieldsConfig.columns"
+  [formLayoutConfig]="crudConfiguration.formLayoutConfig"
+  [formReadOnlyMode]="formReadOnlyMode"
+  [dictOptionDtos]="(<#= ModelInstance.EntityName.ToCamelCase() #>Service.optionsService.dictOptionDtos$ | async) ?? []"
+  [isCrudItemOutdated]="isCrudItemOutdated"
+  [showSubmitButton]="canEdit"
+  [showFixableState]="crudConfiguration.isFixable"
+  [canFix]="canFix"
+  (cancelled)="onCancelled()"
+  (save)="onSubmitted($event)"
+  (fixedChanged)="
+    crudItemService.updateFixedStatus(crudItem.id, $event)
+  "></app-<#= ModelInstance.EntityName.ToKebabCase() #>-form>
+<bia-spinner
+  *ngIf="<#= ModelInstance.EntityName.ToCamelCase() #>Service.loadingGet$ | async"
+  [overlay]="true"></bia-spinner>

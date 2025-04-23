@@ -1,0 +1,14 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<# if(ModelInstance.IsTeam) { #>
+        // BIAToolKit - Begin Partial TeamTypeId <#= ModelInstance.EntityName #>
+
+        /// <summary>
+        /// Value for Maintenance Team.
+        /// </summary>
+        // TODO after creation of team <#= ModelInstance.EntityName #> : adapt the enum value
+        <#= ModelInstance.EntityName #> = 4,
+
+        // BIAToolKit - End Partial TeamTypeId <#= ModelInstance.EntityName #>
+<# }  #>

@@ -1,0 +1,73 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+import { Validators } from '@angular/forms';
+<#  if(ModelInstance.IsTeam) { #>
+import {
+  BaseTeamDto,
+  teamFieldsConfigurationColumns,
+} from 'src/app/shared/bia-shared/model/base-team-dto';
+<#  } else { #>
+import { BaseDto } from 'src/app/shared/bia-shared/model/base-dto';
+<#  } #>
+import {
+  BiaFieldConfig,
+  BiaFieldNumberFormat,
+  BiaFieldsConfig,
+  NumberMode,
+  PrimeNGFiltering,
+  PropType,
+} from 'src/app/shared/bia-shared/model/bia-field-config';
+import { BiaFormLayoutConfig } from 'src/app/shared/bia-shared/model/bia-form-layout-config';
+<#  if(ModelInstance.HasOptions) { #>
+import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
+<#  } #>
+
+// TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the model
+export class <#= ModelInstance.EntityName #> extends <#  if(ModelInstance.IsTeam) { #>BaseTeamDto<# } else {  #>BaseDto<#  } #> {
+<#  foreach(var property in ModelInstance.Properties) { #>
+  <#= property.Name.ToCamelCase() #>: <#= property.AngularType #>;
+<# }  #>
+}
+
+// TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the field configuration
+export const <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration: BiaFieldsConfig<<#= ModelInstance.EntityName #>> = {
+  columns: [
+<#  if(ModelInstance.IsTeam) { #>
+      ...teamFieldsConfigurationColumns,
+      ...[
+<#  } #>
+<#  foreach(var property in ModelInstance.BiaFieldConfigProperties) { #>
+    Object.assign(new BiaFieldConfig('<#= property.Name.ToCamelCase() #>', '<#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.Name.ToCamelCase() #>'), {
+<#  if(property.IsRequired) { #>
+      isRequired: true,
+<#  } #>
+<#  if(property.HasAngularPropType) { #>
+      type: PropType.<#= property.AngularPropType #>,
+<#  } #>
+<#  if(property.IsDecimal) { #>
+      displayFormat: Object.assign(new BiaFieldNumberFormat(), {
+        mode: NumberMode.Decimal,
+        minFractionDigits: 2,
+        maxFractionDigits: 2,
+      }),
+<#  } #>
+<#  if(property.HasAngularValidators) { #>
+      validators: [<#= property.AngularValidators #>],
+<#  } #>
+    }),
+<# }  #>
+    Object.assign(new BiaFieldConfig('rowVersion', '<#= ModelInstance.EntityName.ToCamelCase() #>.rowVersion'), {
+      isVisible: false,
+      isHideByDefault: true,
+      isVisibleInTable: false,
+    }),
+<#  if(ModelInstance.IsTeam) { #>
+    ],
+<#  } #>
+  ],
+};
+
+// TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the form layout configuration
+export const <#= ModelInstance.EntityName.ToCamelCase() #>FormLayoutConfiguration: BiaFormLayoutConfig<<#= ModelInstance.EntityName #>> =
+  new BiaFormLayoutConfig([]);

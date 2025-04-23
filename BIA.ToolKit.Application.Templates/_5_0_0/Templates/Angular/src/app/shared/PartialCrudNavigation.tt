@@ -1,0 +1,12 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(!ModelInstance.HasParent || ModelInstance.IsTeam) {  #>
+  // BIAToolKit - Begin Partial Navigation <#= ModelInstance.EntityName #>
+  {
+    labelKey: 'app.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>',
+    permissions: [Permission.<#= ModelInstance.EntityName #>_List_Access],
+    path: ['/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>'],
+  },
+  // BIAToolKit - End Partial Navigation <#= ModelInstance.EntityName #>
+<# }  #>

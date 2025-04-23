@@ -1,0 +1,28 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+import { AsyncPipe, NgIf } from '@angular/common';
+import { Component, Injector } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { SpinnerComponent } from 'src/app/shared/bia-shared/components/spinner/spinner.component';
+import { CrudItemItemComponent } from 'src/app/shared/bia-shared/feature-templates/crud-items/views/crud-item-item/crud-item-item.component';
+import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
+
+@Component({
+  selector: 'app-<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-item',
+  templateUrl:
+    '../../../../<#= ModelInstance.AngularDeepRelativePath #>shared/bia-shared/feature-templates/crud-items/views/crud-item-item/crud-item-item.component.html',
+  styleUrls: [
+    '../../../../<#= ModelInstance.AngularDeepRelativePath #>shared/bia-shared/feature-templates/crud-items/views/crud-item-item/crud-item-item.component.scss',
+  ],
+  imports: [RouterOutlet, NgIf, AsyncPipe, SpinnerComponent],
+})
+export class <#= ModelInstance.EntityName #>ItemComponent extends CrudItemItemComponent<<#= ModelInstance.EntityName #>> {
+  constructor(
+    protected injector: Injector,
+    public <#= ModelInstance.EntityName.ToCamelCase() #>Service: <#= ModelInstance.EntityName #>Service
+  ) {
+    super(injector, <#= ModelInstance.EntityName.ToCamelCase() #>Service);
+  }
+}

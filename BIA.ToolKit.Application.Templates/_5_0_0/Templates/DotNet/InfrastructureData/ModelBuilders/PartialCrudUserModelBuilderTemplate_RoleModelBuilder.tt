@@ -1,0 +1,12 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<# if(ModelInstance.IsTeam) { #>
+            // BIAToolKit - Begin Partial RoleModelBuilder <#= ModelInstance.EntityName #>
+            modelBuilder.Entity<Role>().HasData(new Role { Id = (int)RoleId.<#= ModelInstance.EntityName #>Admin, Code = "<#= ModelInstance.EntityName #>_Admin", Label = "<#= ModelInstance.EntityName #> administrator" });
+<#  if(ModelInstance.HasParent) { #>
+            modelBuilder.Entity<Role>().HasData(new Role { Id = (int)RoleId.<#= ModelInstance.ParentName #>TeamLeader, Code = "<#= ModelInstance.ParentName #>_TeamLeader", Label = "<#= ModelInstance.ParentName #> Team leader" });
+<#  } #>
+
+            // BIAToolKit - End Partial RoleModelBuilder <#= ModelInstance.EntityName #>
+<# }  #>

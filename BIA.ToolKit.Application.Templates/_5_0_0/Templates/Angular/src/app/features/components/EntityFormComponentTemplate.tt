@@ -1,0 +1,26 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+import { Component } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { BiaFormComponent } from 'src/app/shared/bia-shared/components/form/bia-form/bia-form.component';
+import { CrudItemFormComponent } from 'src/app/shared/bia-shared/feature-templates/crud-items/components/crud-item-form/crud-item-form.component';
+import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+
+@Component({
+  selector: 'app-<#= ModelInstance.EntityName.ToKebabCase() #>-form',
+  templateUrl:
+    '../../../../<#= ModelInstance.AngularDeepRelativePath #>shared/bia-shared/feature-templates/crud-items/components/crud-item-form/crud-item-form.component.html',
+  styleUrls: [
+    '../../../../<#= ModelInstance.AngularDeepRelativePath #>shared/bia-shared/feature-templates/crud-items/components/crud-item-form/crud-item-form.component.scss',
+  ],
+  imports: [BiaFormComponent],
+})
+export class <#= ModelInstance.EntityName #>FormComponent extends CrudItemFormComponent<<#= ModelInstance.EntityName #>> {
+  constructor(
+    protected router: Router,
+    protected activatedRoute: ActivatedRoute
+  ) {
+    super(router, activatedRoute);
+  }
+}

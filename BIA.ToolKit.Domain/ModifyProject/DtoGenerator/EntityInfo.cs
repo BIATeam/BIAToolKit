@@ -3,12 +3,12 @@ namespace BIA.ToolKit.Domain.DtoGenerator
 {
     using System.Text.RegularExpressions;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using Humanizer;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
 
     public class EntityInfo
     {
-        
         public EntityInfo(string path, string @namespace, string name, string? baseType, string? primaryKey, List<AttributeArgumentSyntax>? arguments, List<string>? baseList)
         {
             Path = path;
@@ -28,7 +28,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
         public string Namespace { get; }
         public string Path { get; }
         public string NamespaceLastPart => Namespace.Split('.').Last();
-        public string CompagnyName => Namespace.Split('.').First();
+        public string CompanyName => Namespace.Split('.').First();
         public string ProjectName => Namespace.Split('.').ElementAt(1);
         public string Name { get; }
         public string FullNamespace => string.Join(".", Namespace, Name);
@@ -39,8 +39,11 @@ namespace BIA.ToolKit.Domain.DtoGenerator
         public List<PropertyInfo> Properties { get; } = new List<PropertyInfo>();
         public string? CompositeKeyName { get; set; }
         public List<PropertyInfo> CompositeKeys { get; } = new List<PropertyInfo>();
-        public List<KeyValuePair<string, string>> ClassAnnotations { get; }
+        public List<KeyValuePair<string, string>> ClassAnnotations { get; } = new();
         public string BaseKeyType { get; set; }
+        public bool IsTeam => BaseList.Contains("Team") || BaseList.Contains("TeamDto");
+        public string AncestorTeamName => ClassAnnotations.FirstOrDefault(c => c.Key == CRUDDataUpdateType.AncestorTeam.ToString()).Value;
+        public bool HasAncestorTeam => !string.IsNullOrWhiteSpace(AncestorTeamName);
 
         private void ParseAnnotations(List<AttributeArgumentSyntax> annotations)
         {

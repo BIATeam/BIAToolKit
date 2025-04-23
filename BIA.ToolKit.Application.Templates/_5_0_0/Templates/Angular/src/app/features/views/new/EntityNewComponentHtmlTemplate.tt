@@ -1,0 +1,14 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".html" #>
+<app-<#= ModelInstance.EntityName.ToKebabCase() #>-form
+  [isAdd]="true"
+  [fields]="crudConfiguration.fieldsConfig.columns"
+  [formLayoutConfig]="crudConfiguration.formLayoutConfig"
+  [dictOptionDtos]="(<#= ModelInstance.EntityName.ToCamelCase() #>Service.optionsService.dictOptionDtos$ | async) ?? []"
+  (cancelled)="onCancelled()"
+  (save)="onSubmitted($event)"
+  [showPopupButton]="showPopupButton"
+  [showSplitButton]="showSplitButton"
+  [showFullPageButton]="showFullPageButton"
+  (layoutChanged)="notifyLayoutChange($event)"></app-<#= ModelInstance.EntityName.ToKebabCase() #>-form>

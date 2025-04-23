@@ -1,0 +1,21 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<# if(ModelInstance.IsTeam) { #>
+        // BIAToolKit - Begin Partial RoleId <#= ModelInstance.EntityName #>
+
+        /// <summary>
+        /// The <#= ModelInstance.EntityName #> admin role identifier.
+        /// </summary>
+        // TODO after creation of team <#= ModelInstance.EntityName #> : adapt the enum value
+        <#= ModelInstance.EntityName #>Admin = 3,
+
+<#  if(ModelInstance.HasParent) { #>
+        /// <summary>
+        /// The <#= ModelInstance.ParentName #>TeamLeader role identifier
+        /// </summary>
+        // TODO after creation of team <#= ModelInstance.EntityName #> : adapt the enum value
+        <#= ModelInstance.ParentName #>TeamLeader = 201,
+<# }  #>
+        // BIAToolKit - End Partial RoleId <#= ModelInstance.EntityName #>
+<# }  #>

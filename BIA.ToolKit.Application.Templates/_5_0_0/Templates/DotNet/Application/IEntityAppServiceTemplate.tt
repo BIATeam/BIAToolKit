@@ -1,0 +1,21 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+// <copyright file="I<#= ModelInstance.EntityName #>AppService.cs" company="<#= ModelInstance.CompanyName #>">
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.DomainName #>
+{
+    using BIA.Net.Core.Application.Services;
+    using BIA.Net.Core.Domain.Dto.Base;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
+
+    /// <summary>
+    /// The interface defining the application service for <#= ModelInstance.EntityName.ToCamelCase() #>.
+    /// </summary>
+    public interface I<#= ModelInstance.EntityName #>AppService : ICrudAppServiceBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto>
+    {
+    }
+}

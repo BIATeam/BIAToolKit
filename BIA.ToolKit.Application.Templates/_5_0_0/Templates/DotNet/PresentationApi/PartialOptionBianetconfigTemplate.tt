@@ -1,0 +1,10 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateOption.ttinclude" #>
+<#@ output extension=".json" #>
+      // BIAToolKit - Begin Partial ConfigForOption <#= ModelInstance.EntityName #>
+      // <#= ModelInstance.EntityName #>
+      {
+        "Name": "<#= ModelInstance.EntityName #>_Options",
+        "Roles": [ "Admin", "Site_Member" ]
+      },
+      // BIAToolKit - End Partial ConfigForOption <#= ModelInstance.EntityName #>

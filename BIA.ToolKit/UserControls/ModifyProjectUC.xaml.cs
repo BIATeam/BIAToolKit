@@ -9,7 +9,7 @@
     using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
@@ -42,7 +42,7 @@
 
         public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService, FeatureSettingService featureSettingService,
-            BiaFrameworkFileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
+            FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
         {
             this.settings = settings;
             this.repositoryService = repositoryService;
@@ -52,11 +52,12 @@
             this.projectCreatorService = projectCreatorService;
             MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService, settingsService);
             MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService, settingsService);
-            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker);
-            OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker);
+            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
+            OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
             this.crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
+            _viewModel.Inject(fileGeneratorService, uiEventBroker);
             this.settingsService = settingsService;
         }
 

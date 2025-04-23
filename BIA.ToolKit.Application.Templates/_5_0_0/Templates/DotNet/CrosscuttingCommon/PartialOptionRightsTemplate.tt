@@ -1,0 +1,17 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateOption.ttinclude" #>
+<#@ output extension=".cs" #>
+        // BIAToolKit - Begin Partial RightsForOption <#= ModelInstance.EntityName #>
+
+        /// <summary>
+        /// The <#= ModelInstance.EntityName #> options rights.
+        /// </summary>
+        public static class <#= ModelInstance.EntityName #>Options
+        {
+            /// <summary>
+            /// The right to access to the list of <#= ModelInstance.EntityNamePlural #> (options only).
+            /// </summary>
+            public const string Options = "<#= ModelInstance.EntityName #>_Options";
+        }
+
+        // BIAToolKit - End Partial RightsForOption <#= ModelInstance.EntityName #>

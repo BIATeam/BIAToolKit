@@ -1,0 +1,79 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(ModelInstance.IsTeam) { #>
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { PermissionGuard } from 'src/app/core/bia-core/guards/permission.guard';
+import { FullPageLayoutComponent } from 'src/app/shared/bia-shared/components/layout/fullpage-layout/fullpage-layout.component';
+import { PopupLayoutComponent } from 'src/app/shared/bia-shared/components/layout/popup-layout/popup-layout.component';
+import { MemberModule } from 'src/app/shared/bia-shared/feature-templates/members/member.module';
+import { Permission } from 'src/app/shared/permission';
+
+import { <#= ModelInstance.EntityName #>MemberEditComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-member-edit/<#= ModelInstance.EntityName.ToKebabCase() #>-member-edit.component';
+import { <#= ModelInstance.EntityName #>MemberItemComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-member-item/<#= ModelInstance.EntityName.ToKebabCase() #>-member-item.component';
+import { <#= ModelInstance.EntityName #>MemberNewComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-member-new/<#= ModelInstance.EntityName.ToKebabCase() #>-member-new.component';
+import { <#= ModelInstance.EntityName #>MembersIndexComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-members-index/<#= ModelInstance.EntityName.ToKebabCase() #>-members-index.component';
+
+const ROUTES: Routes = [
+  {
+    path: '',
+    data: {
+      breadcrumb: null,
+      permission: Permission.<#= ModelInstance.EntityName #>_Member_List_Access,
+      injectComponent: <#= ModelInstance.EntityName #>MembersIndexComponent,
+    },
+    component: FullPageLayoutComponent,
+    canActivate: [PermissionGuard],
+    // [Calc] : The children are not used in calc
+    children: [
+      {
+        path: 'create',
+        data: {
+          breadcrumb: 'bia.add',
+          canNavigate: false,
+          permission: Permission.<#= ModelInstance.EntityName #>_Member_Create,
+          title: 'member.add',
+          injectComponent: <#= ModelInstance.EntityName #>MemberNewComponent,
+        },
+        component: PopupLayoutComponent,
+        canActivate: [PermissionGuard],
+      },
+      {
+        path: ':crudItemId',
+        data: {
+          breadcrumb: '',
+          canNavigate: true,
+        },
+        component: <#= ModelInstance.EntityName #>MemberItemComponent,
+        canActivate: [PermissionGuard],
+        children: [
+          {
+            path: 'edit',
+            data: {
+              breadcrumb: 'member.manage',
+              canNavigate: true,
+              permission: Permission.<#= ModelInstance.EntityName #>_Member_Update,
+              title: 'member.manage',
+              injectComponent: <#= ModelInstance.EntityName #>MemberEditComponent,
+            },
+            component: PopupLayoutComponent,
+            canActivate: [PermissionGuard],
+          },
+          {
+            path: '',
+            pathMatch: 'full',
+            redirectTo: 'edit',
+          },
+        ],
+      },
+    ],
+  },
+  { path: '**', redirectTo: '' },
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(ROUTES), MemberModule],
+})
+export class <#= ModelInstance.EntityName #>MemberModule {}
+<#  } #>

@@ -1,0 +1,46 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_4_0_0)\TemplateDto.ttinclude" #>
+<#@ output extension=".cs" #>
+// <copyright file="<#= ModelInstance.EntityName #>Dto.cs" company="<#= ModelInstance.CompanyName #>">
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>
+{
+    using System;
+<# if(ModelInstance.HasCollectionOptions) { #>
+    using System.Collections.Generic;
+<# } #>
+<# if(!ModelInstance.IsTeamType) { #>
+    using BIA.Net.Core.Domain.Dto.Base;
+<# } #>
+    using BIA.Net.Core.Domain.Dto.CustomAttribute;
+<# if(ModelInstance.HasOptions) { #>
+    using BIA.Net.Core.Domain.Dto.Option;
+<# } #>
+<# if(ModelInstance.IsTeamType) { #>
+    using BIA.Net.Core.Domain.Dto.User;
+<# } #>
+
+    /// <summary>
+    /// The DTO used to represent <#= ModelInstance.EntityNameArticle #> <#= ModelInstance.EntityName #>.
+    /// </summary>
+<#  if(ModelInstance.HasAncestorTeam) { #>
+    [BiaDtoClass(AncestorTeam = "<#= ModelInstance.AncestorTeam #>")]
+<#  } #>
+    public class <#= ModelInstance.EntityName #>Dto : <#= ModelInstance.IsTeamType ? "TeamDto" : $"BaseDto<{ModelInstance.BaseKeyType}>" #>
+    {
+<# var index = 0;  #>
+<# foreach(var prop in ModelInstance.PropertiesToGenerate) { #>
+        /// <summary>
+        /// Gets or sets the <#= prop.MappingName #>.
+        /// </summary>
+        [BiaDtoField(<#= prop.BiaDtoFieldAttributeProperties #>)]
+        public <#= prop.MappingType #> <#= prop.MappingName #> { get; set; }
+<# index++;  #>
+<# if(index != ModelInstance.PropertiesToGenerate.Count()) {#>
+
+<# }#>
+<# } #>
+    }
+}

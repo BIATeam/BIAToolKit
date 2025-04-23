@@ -1,0 +1,146 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { PermissionGuard } from 'src/app/core/bia-core/guards/permission.guard';
+import { Permission } from 'src/app/shared/permission';
+import { <#= ModelInstance.EntityName #>ItemComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-item/<#= ModelInstance.EntityName.ToKebabCase() #>-item.component';
+import { <#= ModelInstance.EntityNamePlural #>IndexComponent } from './views/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-index/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-index.component';
+<#  foreach(var optionItem in ModelInstance.OptionItems) { #>
+import { <#= optionItem #>OptionModule } from 'src/app/domains/<#= optionItem.ToKebabCase() #>-option/<#= optionItem.ToKebabCase() #>-option.module';
+<#  } #>
+import { EffectsModule } from '@ngrx/effects';
+import { StoreModule } from '@ngrx/store';
+import {
+  DynamicLayoutComponent,
+  LayoutMode,
+} from 'src/app/shared/bia-shared/components/layout/dynamic-layout/dynamic-layout.component';
+
+import { <#= ModelInstance.EntityName #>ReadComponent } from '../<#= ModelInstance.EntityNamePlural.ToKebabCase() #>/views/<#= ModelInstance.EntityName.ToKebabCase() #>-read/<#= ModelInstance.EntityName.ToKebabCase() #>-read.component';
+import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from './<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
+import { Feature<#= ModelInstance.EntityNamePlural #>Store } from './store/<#= ModelInstance.EntityName.ToKebabCase() #>.state';
+import { <#= ModelInstance.EntityNamePlural #>Effects } from './store/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-effects';
+import { <#= ModelInstance.EntityName #>EditComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-edit/<#= ModelInstance.EntityName.ToKebabCase() #>-edit.component';
+import { <#= ModelInstance.EntityName #>ImportComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-import/<#= ModelInstance.EntityName.ToKebabCase() #>-import.component';
+import { <#= ModelInstance.EntityName #>NewComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-new/<#= ModelInstance.EntityName.ToKebabCase() #>-new.component';
+
+export const ROUTES: Routes = [
+  {
+    path: '',
+    data: {
+      breadcrumb: null,
+      permission: Permission.<#= ModelInstance.EntityName #>_List_Access,
+      injectComponent: <#= ModelInstance.EntityNamePlural #>IndexComponent,
+      configuration: <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration,
+    },
+    component: DynamicLayoutComponent,
+    canActivate: [PermissionGuard],
+    // [Calc] : The children are not used in calc
+    children: [
+      {
+        path: 'create',
+        data: {
+          breadcrumb: 'bia.add',
+          canNavigate: false,
+          permission: Permission.<#= ModelInstance.EntityName #>_Create,
+          title: '<#= ModelInstance.EntityName.ToCamelCase() #>.add',
+        },
+        component: <#= ModelInstance.EntityName #>NewComponent,
+        canActivate: [PermissionGuard],
+      },
+      {
+        path: 'import',
+        data: {
+          breadcrumb: '<#= ModelInstance.EntityName.ToCamelCase() #>.import',
+          canNavigate: false,
+          layoutMode: LayoutMode.popup,
+          style: {
+            minWidth: '80vw',
+            maxWidth: '80vw',
+            maxHeight: '80vh',
+          },
+          permission: Permission.<#= ModelInstance.EntityName #>_Save,
+          title: '<#= ModelInstance.EntityName.ToCamelCase() #>.import',
+        },
+        component: <#= ModelInstance.EntityName #>ImportComponent,
+        canActivate: [PermissionGuard],
+      },
+      {
+        path: ':crudItemId',
+        data: {
+          breadcrumb: '',
+          canNavigate: true,
+        },
+        component: <#= ModelInstance.EntityName #>ItemComponent,
+        canActivate: [PermissionGuard],
+        children: [
+<#  if(ModelInstance.IsTeam) { #>
+          {
+            path: 'members',
+            data: {
+              breadcrumb: 'app.members',
+              canNavigate: true,
+              permission:
+                Permission.<#= ModelInstance.EntityName #>_Member_List_Access,
+              layoutMode: LayoutMode.fullPage,
+            },
+            loadChildren: () =>
+              import(
+                './children/members/<#= ModelInstance.EntityName.ToKebabCase() #>-member.module'
+              ).then(m => m.<#= ModelInstance.EntityName #>MemberModule),
+          },
+<#  } #>
+          {
+            path: 'read',
+            data: {
+              breadcrumb: 'bia.read',
+              canNavigate: true,
+              permission: Permission.<#= ModelInstance.EntityName #>_Read,
+              readOnlyMode: <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.formEditReadOnlyMode,
+              title: '<#= ModelInstance.EntityName.ToCamelCase() #>.read',
+            },
+            component: <#= ModelInstance.EntityName #>ReadComponent,
+            canActivate: [PermissionGuard],
+          },
+          {
+            path: 'edit',
+            data: {
+              breadcrumb: 'bia.edit',
+              canNavigate: true,
+              permission: Permission.<#= ModelInstance.EntityName #>_Update,
+              title: '<#= ModelInstance.EntityName.ToCamelCase() #>.edit',
+            },
+            component: <#= ModelInstance.EntityName #>EditComponent,
+            canActivate: [PermissionGuard],
+          },
+          {
+            path: '',
+            pathMatch: 'full',
+            redirectTo: 'read',
+          },
+          // BIAToolKit - Begin <#= ModelInstance.EntityName #>ModuleChildPath
+          // BIAToolKit - End <#= ModelInstance.EntityName #>ModuleChildPath
+        ],
+      },
+    ],
+  },
+  { path: '**', redirectTo: '' },
+];
+
+@NgModule({
+  imports: [
+    RouterModule.forChild(ROUTES),
+    StoreModule.forFeature(
+      <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey,
+      Feature<#= ModelInstance.EntityNamePlural #>Store.reducers
+    ),
+    EffectsModule.forFeature([<#= ModelInstance.EntityNamePlural #>Effects]),
+    // TODO after creation of CRUD <#= ModelInstance.EntityName #> : select the optioDto dommain module required for link
+    // Domain Modules:
+<#  foreach(var optionItem in ModelInstance.OptionItems) { #>
+    <#= optionItem #>OptionModule,
+<#  } #>
+  ],
+})
+export class <#= ModelInstance.EntityName #>Module {}

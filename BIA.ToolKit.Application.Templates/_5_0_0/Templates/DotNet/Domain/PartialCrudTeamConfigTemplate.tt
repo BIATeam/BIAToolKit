@@ -1,0 +1,25 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<# if(ModelInstance.IsTeam) { #>
+            // BIAToolKit - Begin Partial TeamConfig <#= ModelInstance.EntityName #>
+            new BiaTeamConfig<Team>()
+            {
+                TeamTypeId = (int)TeamTypeId.<#= ModelInstance.EntityName #>,
+                RightPrefix = "<#= ModelInstance.EntityName #>",
+                AdminRoleIds = new int[] { (int)RoleId.<#= ModelInstance.EntityName #>Admin },
+<#  if(ModelInstance.HasParent) { #>
+                Parents = new ImmutableListBuilder<BiaTeamParentConfig<Team>>
+                {
+                    new BiaTeamParentConfig<Team>
+                    {
+                        TeamTypeId = (int)TeamTypeId.<#= ModelInstance.ParentName #>,
+                        GetParent = team => (team as <#= ModelInstance.DomainName #>.Entities.<#= ModelInstance.EntityName #>).<#= ModelInstance.ParentName #>,
+                    },
+                }
+                .ToImmutable(),
+<#  } #>
+            },
+
+            // BIAToolKit - End Partial TeamConfig <#= ModelInstance.EntityName #>
+<# }  #>

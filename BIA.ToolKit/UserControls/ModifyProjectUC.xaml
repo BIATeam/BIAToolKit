@@ -72,7 +72,7 @@
                     </Grid>
                 </ScrollViewer>
             </TabItem>
-            <TabItem x:Name="TabDtoGenerator" Header="2 - DTO Generator" Margin="3,0,-7,0" >
+            <TabItem x:Name="TabDtoGenerator" Header="2 - DTO Generator" Margin="3,0,-7,0" IsEnabled="{Binding IsFileGeneratorServiceInit}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
                     <Grid Background="Transparent" Margin="5">
                         <uc:DtoGeneratorUC x:Name="DtoGenerator" />

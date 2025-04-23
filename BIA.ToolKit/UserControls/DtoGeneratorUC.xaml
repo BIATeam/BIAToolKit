@@ -15,9 +15,9 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     </UserControl.Resources>
-    <Grid>
+    <Grid IsEnabled="{Binding IsFileGeneratorInit}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="110"/>
+            <RowDefinition Height="160"/>
             <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
 
@@ -42,6 +42,9 @@
 
             <Label Grid.Column="0" Content="Domain:"  Margin="0,55,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
             <TextBox Grid.Column="0" Text="{Binding EntityDomain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Padding="2" Margin="20,80,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Top" IsEnabled="{Binding IsEntitySelected}" MinWidth="250"/>
+
+            <Label Grid.Column="0" Content="Ancestor Team:"  Margin="0,110,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
+            <TextBox Grid.Column="0" Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Padding="2" Margin="20,135,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Top" MinWidth="250"/>
         </Grid>
 
         <Label Grid.Row="1" Grid.Column="0" Content="Properties:"  Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
@@ -183,6 +186,19 @@
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Foreground="Black" Text="{Binding MappingType}"></TextBlock>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Parent Identifier">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <CheckBox 
+                                IsChecked="{Binding IsParent, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                Command="{Binding DataContext.SetMappedPropertyIsParentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}"
+                                Visibility="{Binding IsVisibleIsParentCheckbox, Converter={StaticResource BoolToVisConverter}}"></CheckBox>
+                                </Grid>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>

@@ -2,6 +2,8 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
@@ -12,7 +14,9 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Text;
+    using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
@@ -33,6 +37,7 @@
         private GenerateCrudService crudService;
         private CRUDSettings settings;
         private UIEventBroker uiEventBroker;
+        private FileGeneratorService fileGeneratorService;
 
         private readonly CRUDGeneratorViewModel vm;
         private CRUDGeneration crudHistory;
@@ -55,7 +60,7 @@
         /// Injection of services.
         /// </summary>
         public void Inject(CSharpParserService service, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, UIEventBroker uiEventBroker)
+            IConsoleWriter consoleWriter, UIEventBroker uiEventBroker, FileGeneratorService fileGeneratorService)
         {
             this.consoleWriter = consoleWriter;
             this.service = service;
@@ -64,6 +69,7 @@
             this.settings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
+            this.fileGeneratorService = fileGeneratorService;
         }
 
         private void UiEventBroker_OnBIAFrontFolderChanged()
@@ -135,9 +141,19 @@
             if (vm.CurrentProject is null)
                 return;
 
+            vm.ParentName = null;
+            vm.ParentNamePlural = null;
+            vm.HasParent = false;
+            vm.Domain = null;
+            vm.IsDtoParsed = ParseDtoFile();
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
             var isBackSelected = vm.IsWebApiAvailable;
             var isFrontSelected = vm.IsFrontAvailable;
+            
+            foreach(var optionItem in vm.OptionItems)
+            {
+                optionItem.Check = false;
+            }
 
             if (this.crudHistory != null)
             {
@@ -179,8 +195,6 @@
             vm.IsDtoGenerated = CrudAlreadyGeneratedLabel.Visibility == Visibility.Visible;
             vm.IsWebApiSelected = isBackSelected;
             vm.IsFrontSelected = isFrontSelected;
-
-            vm.IsDtoParsed = ParseDtoFile();
         }
 
         /// <summary>
@@ -213,8 +227,36 @@
         /// <summary>
         /// Action linked with "Generate CRUD" button.
         /// </summary>
-        private void Generate_Click(object sender, RoutedEventArgs e)
+        private async void Generate_Click(object sender, RoutedEventArgs e)
         {
+            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            {
+                await fileGeneratorService.GenerateCRUDAsync(new FileGeneratorCrudContext
+                {
+                    CompanyName = vm.CurrentProject.CompanyName,
+                    ProjectName = vm.CurrentProject.Name,
+                    DomainName = vm.Domain,
+                    EntityName = vm.CRUDNameSingular,
+                    EntityNamePlural = vm.CRUDNamePlural,
+                    BaseKeyType = vm.DtoEntity.BaseKeyType ?? vm.DtoEntity.PrimaryKey,
+                    IsTeam = vm.DtoEntity.IsTeam,
+                    Properties = [.. vm.DtoEntity.Properties],
+                    OptionItems = [.. vm.OptionItems.Where(x => x.Check).Select(x => x.OptionName)],
+                    HasParent = vm.HasParent,
+                    ParentName = vm.ParentName,
+                    ParentNamePlural = vm.ParentNamePlural,
+                    AncestorTeamName = vm.DtoEntity.AncestorTeamName,
+                    HasAncestorTeam = vm.DtoEntity.HasAncestorTeam,
+                    AngularFront = vm.BiaFront,
+                    GenerateBack = vm.IsWebApiSelected,
+                    GenerateFront = vm.IsFrontSelected,
+                    DisplayItemName = vm.DtoDisplayItemSelected
+                });
+
+                UpdateCrudGenerationHistory();
+                return;
+            }
+
             var crudParent = new CrudParent
             {
                 Exists = vm.HasParent,
@@ -355,6 +397,17 @@
                 File.Move(oldCrudHistoryFilePath, this.crudHistoryFileName);
             }
 
+            if(fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            {
+                vm.UseFileGenerator = true;
+                vm.IsZipParsed = true;
+                vm.FeatureNames.Add("CRUD");
+                vm.FeatureNameSelected = "CRUD";
+                this.crudHistory = CommonTools.DeserializeJsonFile<CRUDGeneration>(this.crudHistoryFileName);
+                return;
+            }
+
+            vm.UseFileGenerator = false;
             // Load BIA settings
             if (File.Exists(backSettingsFileName))
             {
@@ -397,6 +450,11 @@
 
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
             string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
+
+            if(fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            {
+                return;
+            }
 
             if (File.Exists(frontSettingsFileName))
             {
@@ -452,30 +510,56 @@
                     }
                 };
 
-                // Create "Generation" list part
-                vm.ZipFeatureTypeList.Where(f => f.FeatureDataList != null).ToList().ForEach(feature =>
+                if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
                 {
-                    if (feature.IsChecked)
+                    if (vm.IsWebApiSelected)
                     {
-                        Generation crudGeneration = new()
+                        history.Generation.Add(new Generation
                         {
-                            GenerationType = feature.GenerationType.ToString(),
-                            FeatureType = feature.FeatureType.ToString(),
-                            Template = feature.ZipName
-                        };
-                        if (feature.GenerationType == GenerationType.WebApi)
-                        {
-                            crudGeneration.Type = DOTNET_TYPE;
-                            crudGeneration.Folder = Constants.FolderDotNet;
-                        }
-                        else if (feature.GenerationType == GenerationType.Front)
-                        {
-                            crudGeneration.Type = ANGULAR_TYPE;
-                            crudGeneration.Folder = vm.BiaFront;
-                        }
-                        history.Generation.Add(crudGeneration);
+                            FeatureType = FeatureType.CRUD.ToString(),
+                            GenerationType = GenerationType.WebApi.ToString(),
+                            Type = DOTNET_TYPE,
+                            Folder = Constants.FolderDotNet
+                        });
                     }
-                });
+                    if (vm.IsFrontSelected)
+                    {
+                        history.Generation.Add(new Generation
+                        {
+                            FeatureType = FeatureType.CRUD.ToString(),
+                            GenerationType = GenerationType.Front.ToString(),
+                            Type = ANGULAR_TYPE,
+                            Folder = vm.BiaFront
+                        });
+                    }
+                }
+                else
+                {
+                    // Create "Generation" list part
+                    vm.ZipFeatureTypeList.Where(f => f.FeatureDataList != null).ToList().ForEach(feature =>
+                    {
+                        if (feature.IsChecked)
+                        {
+                            Generation crudGeneration = new()
+                            {
+                                GenerationType = feature.GenerationType.ToString(),
+                                FeatureType = feature.FeatureType.ToString(),
+                                Template = feature.ZipName
+                            };
+                            if (feature.GenerationType == GenerationType.WebApi)
+                            {
+                                crudGeneration.Type = DOTNET_TYPE;
+                                crudGeneration.Folder = Constants.FolderDotNet;
+                            }
+                            else if (feature.GenerationType == GenerationType.Front)
+                            {
+                                crudGeneration.Type = ANGULAR_TYPE;
+                                crudGeneration.Folder = vm.BiaFront;
+                            }
+                            history.Generation.Add(crudGeneration);
+                        }
+                    });
+                }
 
                 // Get existing to verify if previous generation for same entity name was already done
                 CRUDGenerationHistory genFound = this.crudHistory.CRUDGenerationHistory.FirstOrDefault(gen => gen.EntityNameSingular == history.EntityNameSingular);
@@ -627,8 +711,7 @@
             folders.ForEach(f => foldersName.Add(new DirectoryInfo(f).Name.Replace(suffix, "")));
 
             // Get Options name
-            vm.OptionItems?.Clear();
-            foldersName.ForEach(f => vm.OptionItems.Add(new OptionItem(CommonTools.ConvertKebabToPascalCase(f))));
+            vm.AddOptionItems(foldersName.Select(x => new OptionItem(CommonTools.ConvertKebabToPascalCase(x))));
         }
 
         /// <summary>

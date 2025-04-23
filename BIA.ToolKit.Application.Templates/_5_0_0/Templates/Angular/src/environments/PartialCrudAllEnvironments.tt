@@ -1,0 +1,14 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(ModelInstance.IsTeam) {  #>
+    // BIAToolKit - Begin Partial AllEnvironment <#= ModelInstance.EntityName #>
+    {
+      teamTypeId: TeamTypeId.<#= ModelInstance.EntityName #>,
+      roleMode: RoleMode.AllRoles,
+      inHeader: true,
+      displayAlways: true,
+      label: '<#= ModelInstance.EntityName.ToCamelCase() #>.headerLabel',
+    },
+    // BIAToolKit - End Partial AllEnvironment <#= ModelInstance.EntityName #>
+<# }  #>

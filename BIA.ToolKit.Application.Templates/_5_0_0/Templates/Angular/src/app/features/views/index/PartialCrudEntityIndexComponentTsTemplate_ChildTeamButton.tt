@@ -1,0 +1,18 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(ModelInstance.HasParent && ModelInstance.IsTeam) { #>
+      // Begin Partial <#= ModelInstance.ParentName #>IndexTsChildTeamButton <#= ModelInstance.EntityName #>
+      new BiaButtonGroupItem(
+        this.translateService.instant(
+          '<#= ModelInstance.ParentName.ToCamelCase() #>.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>'
+        ),
+        () => this.onView<#= ModelInstance.EntityNamePlural #>(),
+        this.canView<#= ModelInstance.EntityNamePlural #>,
+        this.selectedCrudItems.length !== 1,
+        this.translateService.instant(
+          '<#= ModelInstance.ParentName.ToCamelCase() #>.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>'
+        )
+      ),
+      // End Partial <#= ModelInstance.ParentName #>IndexTsChildTeamButton <#= ModelInstance.EntityName #>
+<# }  #>
