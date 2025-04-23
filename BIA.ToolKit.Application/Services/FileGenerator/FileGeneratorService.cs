@@ -53,10 +53,11 @@
             if(project is null)
             {
                 IsInit = false;
+                currentProject = null;
                 return;
             }
 
-            if (project != currentProject)
+            if (project.Folder != currentProject?.Folder)
             {
                 Init(project);
             }
@@ -65,6 +66,7 @@
         public void Init(Project project)
         {
             IsInit = false;
+            currentProject = project;
 
             // Parse version of project
             if (!Version.TryParse(project.FrameworkVersion, out Version projectVersion))
@@ -80,7 +82,6 @@
             }
 
             // Get compatible file generator version
-            currentProject = project;
             modelProvider = modelProviderFactory.GetFileGeneratorVersion(projectVersion);
             if (modelProvider is null)
             {
