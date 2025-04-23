@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.FileGenerator.Versions
+﻿namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
 {
     using System;
     using System.Collections.Generic;
@@ -14,7 +14,7 @@
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
 
-    internal class FileGeneratorVersion_4_0_0(IConsoleWriter consoleWriter) : IFileGeneratorVersion
+    internal class FileGeneratorModelProvider_4_0_0(IConsoleWriter consoleWriter) : IFileGeneratorModelProvider
     {
         protected readonly IConsoleWriter consoleWriter = consoleWriter;
 

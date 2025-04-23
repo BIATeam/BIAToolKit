@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.FileGenerator.Versions
+﻿namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
 {
     using System;
     using System.Collections.Generic;
@@ -13,7 +13,7 @@
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
 
-    internal class FileGeneratorVersion_5_0_0(IConsoleWriter consoleWriter) : FileGeneratorVersion_4_0_0(consoleWriter), IFileGeneratorVersion
+    internal class FileGeneratorModelProvider_5_0_0(IConsoleWriter consoleWriter) : FileGeneratorModelProvider_4_0_0(consoleWriter), IFileGeneratorModelProvider
     {
         public new List<BiaFrameworkVersion> CompatibleBiaFrameworkVersions =>
         [

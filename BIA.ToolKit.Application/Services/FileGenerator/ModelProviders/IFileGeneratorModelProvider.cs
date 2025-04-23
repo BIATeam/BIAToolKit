@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.FileGenerator.Versions
+﻿namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
 {
     using System;
     using System.Collections.Generic;
@@ -9,7 +9,7 @@
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
 
-    internal interface IFileGeneratorVersion
+    internal interface IFileGeneratorModelProvider
     {
         List<BiaFrameworkVersion> CompatibleBiaFrameworkVersions { get; }
         object GetDtoTemplateModel(FileGeneratorDtoContext dtoContext);

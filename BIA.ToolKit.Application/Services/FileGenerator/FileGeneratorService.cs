@@ -9,7 +9,7 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
-    using BIA.ToolKit.Application.Services.FileGenerator.Versions;
+    using BIA.ToolKit.Application.Services.FileGenerator.ModelProviders;
     using BIA.ToolKit.Application.Templates;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
@@ -27,8 +27,8 @@
         const string BiaToolKitMarkupPartialBeginPattern = "// BIAToolKit - Begin Partial {0} {1}";
         const string BiaToolKitMarkupPartialEndPattern = "// BIAToolKit - End Partial {0} {1}";
 
-        private readonly FileGeneratorVersionFactory fileGeneratorFactory;
-        private IFileGeneratorVersion fileGenerator;
+        private readonly FileGeneratorModelProviderFactory modelProviderFactory;
+        private IFileGeneratorModelProvider modelProvider;
         private readonly VersionedTemplateGenerator templateGenerator;
         private readonly IConsoleWriter consoleWriter;
         private readonly List<Manifest> manifests = [];
@@ -43,7 +43,7 @@
         public FileGeneratorService(IConsoleWriter consoleWriter)
         {
             this.consoleWriter = consoleWriter;
-            fileGeneratorFactory = new FileGeneratorVersionFactory(consoleWriter);
+            modelProviderFactory = new FileGeneratorModelProviderFactory(consoleWriter);
             templateGenerator = new VersionedTemplateGenerator();
             templateGenerator.Refs.Add(typeof(Manifest).Assembly.Location);
             LoadTemplatesManifests();
@@ -82,8 +82,8 @@
 
             // Get compatible file generator version
             currentProject = project;
-            fileGenerator = fileGeneratorFactory.GetFileGeneratorVersion(projectVersion);
-            if (fileGenerator is null)
+            modelProvider = modelProviderFactory.GetFileGeneratorVersion(projectVersion);
+            if (modelProvider is null)
             {
                 consoleWriter.AddMessageLine($"File generator : incompatible project version {projectVersion}", "red");
                 return;
@@ -91,7 +91,7 @@
 
             // Parse file generator version number (_X_Y_Z)
             var regex = new Regex(@"^[^_]+(.+)$");
-            var match = regex.Match(fileGenerator.GetType().Name);
+            var match = regex.Match(modelProvider.GetType().Name);
             if (!match.Success)
             {
                 consoleWriter.AddMessageLine($"File generator : invalid file generator version", "red");
@@ -139,7 +139,7 @@
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
 
-                var templateModel = fileGenerator.GetDtoTemplateModel(dtoContext);
+                var templateModel = modelProvider.GetDtoTemplateModel(dtoContext);
                 var dtoFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "DTO")
                     ?? throw new KeyNotFoundException($"no DTO feature for template manifest {currentManifest.Version}");
 
@@ -164,7 +164,7 @@
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
 
-                var templateModel = fileGenerator.GetOptionTemplateModel(optionContext);
+                var templateModel = modelProvider.GetOptionTemplateModel(optionContext);
                 var optionFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "Option")
                     ?? throw new KeyNotFoundException($"no Option feature for template manifest {currentManifest.Version}");
 
@@ -195,7 +195,7 @@
                     crudContext.ComputeAngularParentLocation(currentProject.Folder);
                 }
 
-                var templateModel = fileGenerator.GetCrudTemplateModel(crudContext);
+                var templateModel = modelProvider.GetCrudTemplateModel(crudContext);
                 var optionFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "CRUD")
                     ?? throw new KeyNotFoundException($"no CRUD feature for template manifest {currentManifest.Version}");
 
