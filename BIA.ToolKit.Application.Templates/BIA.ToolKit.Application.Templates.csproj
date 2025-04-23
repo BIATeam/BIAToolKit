@@ -1,905 +1,911 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-	<Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-	<PropertyGroup>
-		<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-		<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-		<ProjectGuid>{03EA3958-5144-43DB-82C4-471E803D5ADB}</ProjectGuid>
-		<OutputType>Library</OutputType>
-		<AppDesignerFolder>Properties</AppDesignerFolder>
-		<RootNamespace>BIA.ToolKit.Application.Templates</RootNamespace>
-		<AssemblyName>BIA.ToolKit.Application.Templates</AssemblyName>
-		<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-		<FileAlignment>512</FileAlignment>
-		<Deterministic>true</Deterministic>
-	</PropertyGroup>
-	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-		<DebugSymbols>true</DebugSymbols>
-		<DebugType>full</DebugType>
-		<Optimize>false</Optimize>
-		<OutputPath>bin\Debug\</OutputPath>
-		<DefineConstants>DEBUG;TRACE</DefineConstants>
-		<ErrorReport>prompt</ErrorReport>
-		<WarningLevel>4</WarningLevel>
-	</PropertyGroup>
-	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-		<DebugType>pdbonly</DebugType>
-		<Optimize>true</Optimize>
-		<OutputPath>bin\Release\</OutputPath>
-		<DefineConstants>TRACE</DefineConstants>
-		<ErrorReport>prompt</ErrorReport>
-		<WarningLevel>4</WarningLevel>
-	</PropertyGroup>
-	<PropertyGroup>
-		<SignAssembly>true</SignAssembly>
-	</PropertyGroup>
-	<PropertyGroup>
-		<AssemblyOriginatorKeyFile>..\BIA.ToolKit\KeepSettingsAtUpgrade.snk</AssemblyOriginatorKeyFile>
-	</PropertyGroup>
-	<PropertyGroup>
-		<T4Includes_4_0_0>$(MSBuildProjectDirectory)\_4_0_0\Templates\Includes</T4Includes_4_0_0>
-		<T4Includes_5_0_0>$(MSBuildProjectDirectory)\_5_0_0\Templates\Includes</T4Includes_5_0_0>
-	</PropertyGroup>
-	<ItemGroup>
-		<Reference Include="System" />
-		<Reference Include="System.Core" />
-		<Reference Include="System.Xml.Linq" />
-		<Reference Include="System.Data.DataSetExtensions" />
-		<Reference Include="Microsoft.CSharp" />
-		<Reference Include="System.Data" />
-		<Reference Include="System.Net.Http" />
-		<Reference Include="System.Xml" />
-	</ItemGroup>
-	<ItemGroup>
-		<Compile Include="Extensions.cs" />
-		<Compile Include="Manifest.cs" />
-		<Compile Include="Properties\AssemblyInfo.cs" />
-		<Compile Include="_4_0_0\Mocks\EntityDtoMock.cs" />
-		<Compile Include="_4_0_0\Models\EntityDtoModel.cs" />
-		<Compile Include="_4_0_0\Models\PropertyDtoModel.cs" />
-		<Compile Include="_5_0_0\Mocks\EntityCrudMock.cs" />
-		<Compile Include="_5_0_0\Mocks\EntityOptionMock.cs" />
-		<Compile Include="_5_0_0\Mocks\EntityDtoMock.cs" />
-		<Compile Include="_5_0_0\Models\EntityCrudModel.cs" />
-		<Compile Include="_5_0_0\Models\EntityModel.cs" />
-		<Compile Include="_5_0_0\Models\EntityDtoModel.cs" />
-		<Compile Include="_5_0_0\Models\EntityOptionModel.cs" />
-		<Compile Include="_5_0_0\Models\PropertyCrudModel.cs" />
-		<Compile Include="_5_0_0\Models\PropertyDtoModel.cs" />
-		<None Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentScssTemplate.scss">
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-			<DependentUpon>EntityIndexComponentScssTemplate.tt</DependentUpon>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\PartialCrudAuthControllerTemplate.cs">
-			<DependentUpon>PartialCrudAuthControllerTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.cs">
-			<DependentUpon>PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.cs">
-			<DependentUpon>PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperUsing.cs">
-			<DependentUpon>PartialCrudTeamMapperTemplate_TeamMapperUsing.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate.cs">
-			<DependentUpon>PartialCrudTeamConfigTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_RoleModelBuilder.cs">
-			<DependentUpon>PartialCrudUserModelBuilderTemplate_RoleModelBuilder.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.cs">
-			<DependentUpon>PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.cs">
-			<DependentUpon>PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudRoleIdTemplate.cs">
-			<DependentUpon>PartialCrudRoleIdTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudTeamTypeIdTemplate.cs">
-			<DependentUpon>PartialCrudTeamTypeIdTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\PartialCrudRightsTemplate.cs">
-			<DependentUpon>PartialCrudRightsTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\Domain\Specifications\EntitySpecificationTemplate.cs">
-			<DependentUpon>EntitySpecificationTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.cs">
-			<DependentUpon>EntityAppServiceTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\Application\IEntityAppServiceTemplate.cs">
-			<DependentUpon>IEntityAppServiceTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityControllerTemplate.cs">
-			<DependentUpon>EntityControllerTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\PartialOptionRightsTemplate.cs">
-			<DependentUpon>PartialOptionRightsTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityOptionMapperTemplate.cs">
-			<DependentUpon>EntityOptionMapperTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\Application\IEntityOptionAppServiceTemplate.cs">
-			<DependentUpon>IEntityOptionAppServiceTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\Application\EntityOptionAppServiceTemplate.cs">
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-			<DependentUpon>EntityOptionAppServiceTemplate.tt</DependentUpon>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityOptionsControllerTemplate.cs">
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-			<DependentUpon>EntityOptionsControllerTemplate.tt</DependentUpon>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.cs">
-			<DependentUpon>EntityMapperTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.cs">
-			<DependentUpon>EntityDtoTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<Compile Include="_4_0_0\Models\EntityModel.cs" />
-		<None Include="_5_0_0\manifest.json">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Include="_4_0_0\manifest.json">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Include="_4_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.cs">
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-			<DependentUpon>EntityDtoTemplate.tt</DependentUpon>
-		</None>
-		<None Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.cs">
-			<DependentUpon>EntityMapperTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\PresentationApi\PartialCrudBianetconfigTemplate.json">
-			<DependentUpon>PartialCrudBianetconfigTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\DotNet\PresentationApi\PartialOptionBianetconfigTemplate.json">
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-			<DependentUpon>PartialOptionBianetconfigTemplate.tt</DependentUpon>
-		</None>
-		<None Include="_5_0_0\Templates\Includes\Template.ttinclude">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Include="_5_0_0\Templates\Includes\TemplateOption.ttinclude">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Include="_5_0_0\Templates\Includes\TemplateCrud.ttinclude">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Include="_5_0_0\Templates\Includes\TemplateDto.ttinclude">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<Content Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionModuleTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityOptionModuleTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityOptionConstantsTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\domains\services\EntityOptionDasServiceTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<LastGenOutput>EntityOptionDasServiceTemplate.ts</LastGenOutput>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsActionsTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityOptionsActionsTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsEffectsTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityOptionsEffectsTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsReducerTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityOptionsReducerTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionStateTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityOptionStateTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\children\members\index\EntityMemberIndexComponentTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityMemberIndexComponentTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\children\members\new\EntityMemberNewComponentTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityMemberNewComponentTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\children\members\item\EntityMemberItemComponentTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityMemberItemComponentTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\children\members\edit\EntityMemberEditComponentTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityMemberEditComponentTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\children\members\EntityMemberModuleTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityMemberModuleTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\components\EntityTableComponentTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityTableComponentTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\components\EntityFormComponentTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityFormComponentTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\EntityConstantsTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityConstantsTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\model\EntityTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\PartialCrudEntityModuleTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudEntityModuleTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\EntityModuleTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityModuleTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\services\EntityServiceTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityServiceTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\services\EntityOptionsServiceTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityOptionsServiceTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\services\EntityDasServiceTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityDasServiceTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\store\EntityActionsTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityActionsTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\store\EntityEffectsTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityEffectsTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\store\EntityReducerTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityReducerTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\store\EntityStateTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityStateTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\item\EntityItemComponentTsTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityItemComponentTsTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\import\EntityImportComponentTsTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityImportComponentTsTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentScssTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<LastGenOutput>EntityIndexComponentScssTemplate.scss</LastGenOutput>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_OnViewChild.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_OnViewChild.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanViewChildSet.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_CanViewChildSet.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanViewChildDeclaration.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_CanViewChildDeclaration.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentTsTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityIndexComponentTsTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentHtmlTemplate.html">
-			<DependentUpon>PartialCrudEntityIndexComponentHtmlTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentHtmlTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudEntityIndexComponentHtmlTemplate.html</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.html">
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-			<DependentUpon>EntityIndexComponentHtmlTemplate.tt</DependentUpon>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<LastGenOutput>EntityIndexComponentHtmlTemplate.html</LastGenOutput>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\edit\EntityEditComponentHtmlTemplate.html">
-			<DependentUpon>EntityEditComponentHtmlTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\edit\EntityEditComponentHtmlTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityEditComponentHtmlTemplate.html</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\edit\EntityEditComponentTsTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityEditComponentTsTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\new\EntityNewComponentHtmlTemplate.html">
-			<DependentUpon>EntityNewComponentHtmlTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\new\EntityNewComponentHtmlTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityNewComponentHtmlTemplate.html</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\new\EntityNewComponentTsTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityNewComponentTsTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\read\EntityReadComponentTsTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityReadComponentTsTemplate.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\read\EntityReadComponentHtmlTemplate.html">
-			<DependentUpon>EntityReadComponentHtmlTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\features\views\read\EntityReadComponentHtmlTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityReadComponentHtmlTemplate.html</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudAppRoutingModule.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudConstants_TeamTypeRightPrefix.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudConstants_TeamTypeRightPrefix.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudConstants_TeamTypeId.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudConstants_TeamTypeId.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudPermission.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudPermission.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudNavigation.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\Angular\src\environments\PartialCrudAllEnvironments.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudAllEnvironments.ts</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityAppServiceTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\Application\IEntityAppServiceTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>IEntityAppServiceTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\Application\IEntityOptionAppServiceTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>IEntityOptionAppServiceTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\Application\EntityOptionAppServiceTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityOptionAppServiceTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudRoleIdTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudRoleIdTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudTeamTypeIdTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudTeamTypeIdTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\PartialCrudRightsTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudRightsTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\PartialOptionRightsTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialOptionRightsTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityDtoTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityOptionMapperTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityOptionMapperTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityMapperTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_4_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.tt">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityDtoTemplate.cs</LastGenOutput>
-		</Content>
-		<Content Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityMapperTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperUsing.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudTeamMapperTemplate_TeamMapperUsing.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudTeamConfigTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\Domain\Specifications\EntitySpecificationTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntitySpecificationTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_RoleModelBuilder.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudUserModelBuilderTemplate_RoleModelBuilder.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityControllerTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityControllerTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityOptionsControllerTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>EntityOptionsControllerTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\PartialCrudAuthControllerTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudAuthControllerTemplate.cs</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\PresentationApi\PartialCrudBianetconfigTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>PartialCrudBianetconfigTemplate.json</LastGenOutput>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="_5_0_0\Templates\DotNet\PresentationApi\PartialOptionBianetconfigTemplate.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<LastGenOutput>PartialOptionBianetconfigTemplate.json</LastGenOutput>
-		</Content>
-	</ItemGroup>
-	<ItemGroup>
-		<Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionModuleTemplate.ts">
-			<DependentUpon>EntityOptionModuleTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.ts">
-			<DependentUpon>EntityOptionConstantsTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\Angular\src\app\domains\services\EntityOptionDasServiceTemplate.ts">
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-			<DependentUpon>EntityOptionDasServiceTemplate.tt</DependentUpon>
-		</None>
-		<None Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsActionsTemplate.ts">
-			<DependentUpon>EntityOptionsActionsTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsEffectsTemplate.ts">
-			<DependentUpon>EntityOptionsEffectsTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsReducerTemplate.ts">
-			<DependentUpon>EntityOptionsReducerTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionStateTemplate.ts">
-			<DependentUpon>EntityOptionStateTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\EntityModuleTemplate.ts">
-			<DependentUpon>EntityModuleTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\PartialCrudEntityModuleTemplate.ts">
-			<DependentUpon>PartialCrudEntityModuleTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\EntityConstantsTemplate.ts">
-			<DependentUpon>EntityConstantsTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\model\EntityTemplate.ts">
-			<DependentUpon>EntityTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\components\EntityFormComponentTemplate.ts">
-			<DependentUpon>EntityFormComponentTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\components\EntityTableComponentTemplate.ts">
-			<DependentUpon>EntityTableComponentTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\services\EntityDasServiceTemplate.ts">
-			<DependentUpon>EntityDasServiceTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\services\EntityOptionsServiceTemplate.ts">
-			<DependentUpon>EntityOptionsServiceTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\services\EntityServiceTemplate.ts">
-			<DependentUpon>EntityServiceTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\store\EntityStateTemplate.ts">
-			<DependentUpon>EntityStateTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\store\EntityActionsTemplate.ts">
-			<DependentUpon>EntityActionsTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\store\EntityEffectsTemplate.ts">
-			<DependentUpon>EntityEffectsTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\store\EntityReducerTemplate.ts">
-			<DependentUpon>EntityReducerTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentTsTemplate.ts">
-			<DependentUpon>EntityIndexComponentTsTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanViewChildDeclaration.ts">
-			<DependentUpon>PartialCrudEntityIndexComponentTsTemplate_CanViewChildDeclaration.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanViewChildSet.ts">
-			<DependentUpon>PartialCrudEntityIndexComponentTsTemplate_CanViewChildSet.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_OnViewChild.ts">
-			<DependentUpon>PartialCrudEntityIndexComponentTsTemplate_OnViewChild.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\views\read\EntityReadComponentTsTemplate.ts">
-			<DependentUpon>EntityReadComponentTsTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\views\new\EntityNewComponentTsTemplate.ts">
-			<DependentUpon>EntityNewComponentTsTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\views\edit\EntityEditComponentTsTemplate.ts">
-			<DependentUpon>EntityEditComponentTsTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\views\import\EntityImportComponentTsTemplate.ts">
-			<DependentUpon>EntityImportComponentTsTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\views\item\EntityItemComponentTsTemplate.ts">
-			<DependentUpon>EntityItemComponentTsTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule.ts">
-			<DependentUpon>PartialCrudAppRoutingModule.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation.ts">
-			<DependentUpon>PartialCrudNavigation.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudPermission.ts">
-			<DependentUpon>PartialCrudPermission.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudConstants_TeamTypeId.ts">
-			<DependentUpon>PartialCrudConstants_TeamTypeId.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudConstants_TeamTypeRightPrefix.ts">
-			<DependentUpon>PartialCrudConstants_TeamTypeRightPrefix.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\environments\PartialCrudAllEnvironments.ts">
-			<DependentUpon>PartialCrudAllEnvironments.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.ts">
-			<DependentUpon>PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.ts">
-			<DependentUpon>PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\children\members\edit\EntityMemberEditComponentTemplate.ts">
-			<DependentUpon>EntityMemberEditComponentTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\children\members\EntityMemberModuleTemplate.ts">
-			<DependentUpon>EntityMemberModuleTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\children\members\item\EntityMemberItemComponentTemplate.ts">
-			<DependentUpon>EntityMemberItemComponentTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\children\members\new\EntityMemberNewComponentTemplate.ts">
-			<DependentUpon>EntityMemberNewComponentTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="_5_0_0\Templates\Angular\src\app\features\children\members\index\EntityMemberIndexComponentTemplate.ts">
-			<DependentUpon>EntityMemberIndexComponentTemplate.tt</DependentUpon>
-			<AutoGen>True</AutoGen>
-			<DesignTime>True</DesignTime>
-		</None>
-	</ItemGroup>
-	<Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{03EA3958-5144-43DB-82C4-471E803D5ADB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>BIA.ToolKit.Application.Templates</RootNamespace>
+    <AssemblyName>BIA.ToolKit.Application.Templates</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\BIA.ToolKit\KeepSettingsAtUpgrade.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <T4Includes_4_0_0>$(MSBuildProjectDirectory)\_4_0_0\Templates\Includes</T4Includes_4_0_0>
+    <T4Includes_5_0_0>$(MSBuildProjectDirectory)\_5_0_0\Templates\Includes</T4Includes_5_0_0>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Extensions.cs" />
+    <Compile Include="Manifest.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="_4_0_0\Mocks\EntityDtoMock.cs" />
+    <Compile Include="_4_0_0\Models\EntityDtoModel.cs" />
+    <Compile Include="_4_0_0\Models\PropertyDtoModel.cs" />
+    <Compile Include="_5_0_0\Mocks\EntityCrudMock.cs" />
+    <Compile Include="_5_0_0\Mocks\EntityOptionMock.cs" />
+    <Compile Include="_5_0_0\Mocks\EntityDtoMock.cs" />
+    <Compile Include="_5_0_0\Models\EntityCrudModel.cs" />
+    <Compile Include="_5_0_0\Models\EntityModel.cs" />
+    <Compile Include="_5_0_0\Models\EntityDtoModel.cs" />
+    <Compile Include="_5_0_0\Models\EntityOptionModel.cs" />
+    <Compile Include="_5_0_0\Models\PropertyCrudModel.cs" />
+    <Compile Include="_5_0_0\Models\PropertyDtoModel.cs" />
+    <None Include="_4_0_0\Templates\Includes\Template.ttinclude">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="_4_0_0\Templates\Includes\TemplateDto.ttinclude">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentScssTemplate.scss">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityIndexComponentScssTemplate.tt</DependentUpon>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\PartialCrudAuthControllerTemplate.cs">
+      <DependentUpon>PartialCrudAuthControllerTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.cs">
+      <DependentUpon>PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.cs">
+      <DependentUpon>PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperUsing.cs">
+      <DependentUpon>PartialCrudTeamMapperTemplate_TeamMapperUsing.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate.cs">
+      <DependentUpon>PartialCrudTeamConfigTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_RoleModelBuilder.cs">
+      <DependentUpon>PartialCrudUserModelBuilderTemplate_RoleModelBuilder.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.cs">
+      <DependentUpon>PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.cs">
+      <DependentUpon>PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudRoleIdTemplate.cs">
+      <DependentUpon>PartialCrudRoleIdTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudTeamTypeIdTemplate.cs">
+      <DependentUpon>PartialCrudTeamTypeIdTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\PartialCrudRightsTemplate.cs">
+      <DependentUpon>PartialCrudRightsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Domain\Specifications\EntitySpecificationTemplate.cs">
+      <DependentUpon>EntitySpecificationTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.cs">
+      <DependentUpon>EntityAppServiceTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Application\IEntityAppServiceTemplate.cs">
+      <DependentUpon>IEntityAppServiceTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityControllerTemplate.cs">
+      <DependentUpon>EntityControllerTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\PartialOptionRightsTemplate.cs">
+      <DependentUpon>PartialOptionRightsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityOptionMapperTemplate.cs">
+      <DependentUpon>EntityOptionMapperTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Application\IEntityOptionAppServiceTemplate.cs">
+      <DependentUpon>IEntityOptionAppServiceTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Application\EntityOptionAppServiceTemplate.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityOptionAppServiceTemplate.tt</DependentUpon>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityOptionsControllerTemplate.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityOptionsControllerTemplate.tt</DependentUpon>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.cs">
+      <DependentUpon>EntityMapperTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.cs">
+      <DependentUpon>EntityDtoTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <Compile Include="_4_0_0\Models\EntityModel.cs" />
+    <None Include="_5_0_0\manifest.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="_4_0_0\manifest.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="_4_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityDtoTemplate.tt</DependentUpon>
+    </None>
+    <None Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.cs">
+      <DependentUpon>EntityMapperTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\PresentationApi\PartialCrudBianetconfigTemplate.json">
+      <DependentUpon>PartialCrudBianetconfigTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\PresentationApi\PartialOptionBianetconfigTemplate.json">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PartialOptionBianetconfigTemplate.tt</DependentUpon>
+    </None>
+    <None Include="_5_0_0\Templates\Includes\Template.ttinclude">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="_5_0_0\Templates\Includes\TemplateOption.ttinclude">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="_5_0_0\Templates\Includes\TemplateCrud.ttinclude">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="_5_0_0\Templates\Includes\TemplateDto.ttinclude">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionModuleTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionModuleTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionConstantsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\domains\services\EntityOptionDasServiceTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>EntityOptionDasServiceTemplate.ts</LastGenOutput>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsActionsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionsActionsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsEffectsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionsEffectsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsReducerTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionsReducerTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionStateTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionStateTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\children\members\index\EntityMemberIndexComponentTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityMemberIndexComponentTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\children\members\new\EntityMemberNewComponentTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityMemberNewComponentTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\children\members\item\EntityMemberItemComponentTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityMemberItemComponentTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\children\members\edit\EntityMemberEditComponentTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityMemberEditComponentTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\children\members\EntityMemberModuleTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityMemberModuleTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\components\EntityTableComponentTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityTableComponentTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\components\EntityFormComponentTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityFormComponentTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\EntityConstantsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityConstantsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\model\EntityTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\PartialCrudEntityModuleTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudEntityModuleTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\EntityModuleTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityModuleTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\services\EntityServiceTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityServiceTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\services\EntityOptionsServiceTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionsServiceTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\services\EntityDasServiceTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityDasServiceTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\store\EntityActionsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityActionsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\store\EntityEffectsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityEffectsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\store\EntityReducerTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityReducerTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\store\EntityStateTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityStateTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\item\EntityItemComponentTsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityItemComponentTsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\import\EntityImportComponentTsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityImportComponentTsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentScssTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>EntityIndexComponentScssTemplate.scss</LastGenOutput>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_OnViewChild.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_OnViewChild.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanViewChildSet.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_CanViewChildSet.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanViewChildDeclaration.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_CanViewChildDeclaration.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentTsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityIndexComponentTsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentHtmlTemplate.html">
+      <DependentUpon>PartialCrudEntityIndexComponentHtmlTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentHtmlTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudEntityIndexComponentHtmlTemplate.html</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.html">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityIndexComponentHtmlTemplate.tt</DependentUpon>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>EntityIndexComponentHtmlTemplate.html</LastGenOutput>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\edit\EntityEditComponentHtmlTemplate.html">
+      <DependentUpon>EntityEditComponentHtmlTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\edit\EntityEditComponentHtmlTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityEditComponentHtmlTemplate.html</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\edit\EntityEditComponentTsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityEditComponentTsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\new\EntityNewComponentHtmlTemplate.html">
+      <DependentUpon>EntityNewComponentHtmlTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\new\EntityNewComponentHtmlTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityNewComponentHtmlTemplate.html</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\new\EntityNewComponentTsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityNewComponentTsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\read\EntityReadComponentTsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityReadComponentTsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\read\EntityReadComponentHtmlTemplate.html">
+      <DependentUpon>EntityReadComponentHtmlTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\features\views\read\EntityReadComponentHtmlTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityReadComponentHtmlTemplate.html</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudAppRoutingModule.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudConstants_TeamTypeRightPrefix.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudConstants_TeamTypeRightPrefix.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudConstants_TeamTypeId.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudConstants_TeamTypeId.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudPermission.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudPermission.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudNavigation.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\Angular\src\environments\PartialCrudAllEnvironments.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudAllEnvironments.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityAppServiceTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Application\IEntityAppServiceTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>IEntityAppServiceTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Application\IEntityOptionAppServiceTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>IEntityOptionAppServiceTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Application\EntityOptionAppServiceTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionAppServiceTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudRoleIdTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudRoleIdTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudTeamTypeIdTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudTeamTypeIdTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\PartialCrudRightsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudRightsTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\CrosscuttingCommon\PartialOptionRightsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialOptionRightsTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityDtoTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityOptionMapperTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionMapperTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityMapperTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_4_0_0\Templates\DotNet\DomainDto\EntityDtoTemplate.tt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityDtoTemplate.cs</LastGenOutput>
+    </Content>
+    <Content Include="_4_0_0\Templates\DotNet\Domain\Mappers\EntityMapperTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityMapperTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Domain\Mappers\PartialCrudTeamMapperTemplate_TeamMapperUsing.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudTeamMapperTemplate_TeamMapperUsing.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudTeamConfigTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\Domain\Specifications\EntitySpecificationTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntitySpecificationTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_RoleModelBuilder.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudUserModelBuilderTemplate_RoleModelBuilder.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityControllerTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityControllerTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\EntityOptionsControllerTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityOptionsControllerTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\PresentationApi\Controllers\PartialCrudAuthControllerTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudAuthControllerTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\PresentationApi\PartialCrudBianetconfigTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudBianetconfigTemplate.json</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="_5_0_0\Templates\DotNet\PresentationApi\PartialOptionBianetconfigTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>PartialOptionBianetconfigTemplate.json</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionModuleTemplate.ts">
+      <DependentUpon>EntityOptionModuleTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.ts">
+      <DependentUpon>EntityOptionConstantsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\Angular\src\app\domains\services\EntityOptionDasServiceTemplate.ts">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityOptionDasServiceTemplate.tt</DependentUpon>
+    </None>
+    <None Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsActionsTemplate.ts">
+      <DependentUpon>EntityOptionsActionsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsEffectsTemplate.ts">
+      <DependentUpon>EntityOptionsEffectsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionsReducerTemplate.ts">
+      <DependentUpon>EntityOptionsReducerTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\Angular\src\app\domains\store\EntityOptionStateTemplate.ts">
+      <DependentUpon>EntityOptionStateTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\EntityModuleTemplate.ts">
+      <DependentUpon>EntityModuleTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\PartialCrudEntityModuleTemplate.ts">
+      <DependentUpon>PartialCrudEntityModuleTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\EntityConstantsTemplate.ts">
+      <DependentUpon>EntityConstantsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\model\EntityTemplate.ts">
+      <DependentUpon>EntityTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\components\EntityFormComponentTemplate.ts">
+      <DependentUpon>EntityFormComponentTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\components\EntityTableComponentTemplate.ts">
+      <DependentUpon>EntityTableComponentTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\services\EntityDasServiceTemplate.ts">
+      <DependentUpon>EntityDasServiceTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\services\EntityOptionsServiceTemplate.ts">
+      <DependentUpon>EntityOptionsServiceTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\services\EntityServiceTemplate.ts">
+      <DependentUpon>EntityServiceTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\store\EntityStateTemplate.ts">
+      <DependentUpon>EntityStateTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\store\EntityActionsTemplate.ts">
+      <DependentUpon>EntityActionsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\store\EntityEffectsTemplate.ts">
+      <DependentUpon>EntityEffectsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\store\EntityReducerTemplate.ts">
+      <DependentUpon>EntityReducerTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentTsTemplate.ts">
+      <DependentUpon>EntityIndexComponentTsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanViewChildDeclaration.ts">
+      <DependentUpon>PartialCrudEntityIndexComponentTsTemplate_CanViewChildDeclaration.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanViewChildSet.ts">
+      <DependentUpon>PartialCrudEntityIndexComponentTsTemplate_CanViewChildSet.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_OnViewChild.ts">
+      <DependentUpon>PartialCrudEntityIndexComponentTsTemplate_OnViewChild.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\read\EntityReadComponentTsTemplate.ts">
+      <DependentUpon>EntityReadComponentTsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\new\EntityNewComponentTsTemplate.ts">
+      <DependentUpon>EntityNewComponentTsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\edit\EntityEditComponentTsTemplate.ts">
+      <DependentUpon>EntityEditComponentTsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\import\EntityImportComponentTsTemplate.ts">
+      <DependentUpon>EntityImportComponentTsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\item\EntityItemComponentTsTemplate.ts">
+      <DependentUpon>EntityItemComponentTsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule.ts">
+      <DependentUpon>PartialCrudAppRoutingModule.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation.ts">
+      <DependentUpon>PartialCrudNavigation.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudPermission.ts">
+      <DependentUpon>PartialCrudPermission.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudConstants_TeamTypeId.ts">
+      <DependentUpon>PartialCrudConstants_TeamTypeId.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\shared\PartialCrudConstants_TeamTypeRightPrefix.ts">
+      <DependentUpon>PartialCrudConstants_TeamTypeRightPrefix.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\environments\PartialCrudAllEnvironments.ts">
+      <DependentUpon>PartialCrudAllEnvironments.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.ts">
+      <DependentUpon>PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.ts">
+      <DependentUpon>PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\children\members\edit\EntityMemberEditComponentTemplate.ts">
+      <DependentUpon>EntityMemberEditComponentTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\children\members\EntityMemberModuleTemplate.ts">
+      <DependentUpon>EntityMemberModuleTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\children\members\item\EntityMemberItemComponentTemplate.ts">
+      <DependentUpon>EntityMemberItemComponentTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\children\members\new\EntityMemberNewComponentTemplate.ts">
+      <DependentUpon>EntityMemberNewComponentTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_5_0_0\Templates\Angular\src\app\features\children\members\index\EntityMemberIndexComponentTemplate.ts">
+      <DependentUpon>EntityMemberIndexComponentTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
