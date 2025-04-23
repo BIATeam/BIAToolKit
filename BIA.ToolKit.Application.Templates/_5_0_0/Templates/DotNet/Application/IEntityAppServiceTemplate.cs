@@ -1,18 +1,18 @@
-﻿// <copyright file="IPlaneAppService.cs" company="TheBIADevCompany">
+﻿// <copyright file="IMaintenanceTeamAppService.cs" company="TheBIADevCompany">
 // Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 
-namespace TheBIADevCompany.BIADemo.Application.Fleet
+namespace TheBIADevCompany.BIADemo.Application.MaintenanceCompanies
 {
     using BIA.Net.Core.Application.Services;
     using BIA.Net.Core.Domain.Dto.Base;
-    using TheBIADevCompany.BIADemo.Domain.Dto.Fleet;
-    using TheBIADevCompany.BIADemo.Domain.Fleet.Entities;
+    using TheBIADevCompany.BIADemo.Domain.Dto.MaintenanceCompanies;
+    using TheBIADevCompany.BIADemo.Domain.MaintenanceCompanies.Entities;
 
     /// <summary>
-    /// The interface defining the application service for plane.
+    /// The interface defining the application service for maintenanceTeam.
     /// </summary>
-    public interface IPlaneAppService : ICrudAppServiceBase<PlaneDto, Plane, int, PagingFilterFormatDto>
+    public interface IMaintenanceTeamAppService : ICrudAppServiceBase<MaintenanceTeamDto, MaintenanceTeam, int, PagingFilterFormatDto>
     {
     }
 }

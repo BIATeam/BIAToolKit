@@ -1,7 +1,7 @@
-﻿      // BIAToolKit - Begin Partial ConfigForOption Country
-      // Country
+﻿      // BIAToolKit - Begin Partial ConfigForOption MyCountry
+      // MyCountry
       {
-        "Name": "Country_Options",
+        "Name": "MyCountry_Options",
         "Roles": [ "Admin", "Site_Member" ]
       },
-      // BIAToolKit - End Partial ConfigForOption Country
+      // BIAToolKit - End Partial ConfigForOption MyCountry

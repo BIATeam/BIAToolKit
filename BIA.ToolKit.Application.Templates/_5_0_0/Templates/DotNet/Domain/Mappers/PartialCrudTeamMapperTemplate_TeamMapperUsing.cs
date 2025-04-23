@@ -1,4 +1,4 @@
-﻿    // BIAToolKit - Begin Partial TeamMapperUsing Plane
-    using TheBIADevCompany.BIADemo.Domain.Fleet.Entities;
+﻿    // BIAToolKit - Begin Partial TeamMapperUsing MaintenanceTeam
+    using TheBIADevCompany.BIADemo.Domain.MaintenanceCompanies.Entities;
 
-    // BIAToolKit - End Partial TeamMapperUsing Plane
+    // BIAToolKit - End Partial TeamMapperUsing MaintenanceTeam

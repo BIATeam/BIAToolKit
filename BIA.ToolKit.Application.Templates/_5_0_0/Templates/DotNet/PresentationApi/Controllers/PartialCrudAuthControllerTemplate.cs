@@ -1,4 +1,4 @@
-﻿                    // BIAToolKit - Begin Partial AuthController Plane
-                    new TeamConfigDto() { TeamTypeId = (int)TeamTypeId.Plane, RoleMode = RoleMode.AllRoles, InHeader = false },
+﻿                    // BIAToolKit - Begin Partial AuthController MaintenanceTeam
+                    new TeamConfigDto() { TeamTypeId = (int)TeamTypeId.MaintenanceTeam, RoleMode = RoleMode.AllRoles, InHeader = false },
 
-                    // BIAToolKit - End Partial AuthController Plane
+                    // BIAToolKit - End Partial AuthController MaintenanceTeam

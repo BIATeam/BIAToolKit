@@ -1,4 +1,4 @@
-﻿            // BIAToolKit - Begin Partial TeamTypeModelBuilder Plane
-            modelBuilder.Entity<TeamType>().HasData(new TeamType { Id = (int)TeamTypeId.Plane, Name = "Plane" });
+﻿            // BIAToolKit - Begin Partial TeamTypeModelBuilder MaintenanceTeam
+            modelBuilder.Entity<TeamType>().HasData(new TeamType { Id = (int)TeamTypeId.MaintenanceTeam, Name = "MaintenanceTeam" });
 
-            // BIAToolKit - End Partial TeamTypeModelBuilder Plane
+            // BIAToolKit - End Partial TeamTypeModelBuilder MaintenanceTeam

@@ -1,42 +1,42 @@
-﻿      // BIAToolKit - Begin Partial Config Plane
-      // Plane
+﻿      // BIAToolKit - Begin Partial Config MaintenanceTeam
+      // MaintenanceTeam
       {
-        "Names": [ "Plane_Create", "Plane_Update", "Plane_Delete", "Plane_Save" ],
+        "Names": [ "MaintenanceTeam_Create", "MaintenanceTeam_Update", "MaintenanceTeam_Delete", "MaintenanceTeam_Save" ],
         "Roles": [
-          "Plane_Admin",
+          "MaintenanceTeam_Admin",
           "Admin"
         ]
       },
       {
-        "Names": [ "Plane_List_Access" ],
+        "Names": [ "MaintenanceTeam_List_Access" ],
         "Roles": [
           "Admin",
-          "Site_Member",
-          "Plane_MemberOfOne"
+          "AircraftMaintenanceCompany_Member",
+          "MaintenanceTeam_MemberOfOne"
         ]
       },
       {
-        "Names": [ "Plane_Read", "Plane_Member_List_Access" ],
+        "Names": [ "MaintenanceTeam_Read", "MaintenanceTeam_Member_List_Access" ],
         "Roles": [
           "Admin",
-          "Site_Member",
-          "Plane_Member"
+          "AircraftMaintenanceCompany_Member",
+          "MaintenanceTeam_Member"
         ]
       },
       {
-        "Names": [ "Plane_Member_Create", "Plane_Member_Read", "Plane_Member_Update", "Plane_Member_Delete", "Plane_Member_Save" ],
+        "Names": [ "MaintenanceTeam_Member_Create", "MaintenanceTeam_Member_Read", "MaintenanceTeam_Member_Update", "MaintenanceTeam_Member_Delete", "MaintenanceTeam_Member_Save" ],
         "Roles": [
           "Admin",
-          "Site_TeamLeader",
-          "Plane_Admin"
+          "AircraftMaintenanceCompany_TeamLeader",
+          "MaintenanceTeam_Admin"
         ]
       },
       {
-        "Names": [ "Plane_View_Add_TeamView", "Plane_View_Update_TeamView", "Plane_View_Set_Default_TeamView", "Plane_View_Assign_To_Team" ],
+        "Names": [ "MaintenanceTeam_View_Add_TeamView", "MaintenanceTeam_View_Update_TeamView", "MaintenanceTeam_View_Set_Default_TeamView", "MaintenanceTeam_View_Assign_To_Team" ],
         "Roles": [
           "Admin",
-          "Site_TeamLeader",
-          "Plane_Admin"
+          "AircraftMaintenanceCompany_TeamLeader",
+          "MaintenanceTeam_Admin"
         ]
       },
-      // BIAToolKit - End Partial Config Plane
+      // BIAToolKit - End Partial Config MaintenanceTeam

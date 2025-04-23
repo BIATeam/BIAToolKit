@@ -1,4 +1,4 @@
-﻿                // BIAToolKit - Begin Partial TeamMapperParentTeamTitle Plane
-                Plane plane => team.TeamTypeId == (int)TeamTypeId.Plane ? plane.Site.Title : string.Empty,
+﻿                // BIAToolKit - Begin Partial TeamMapperParentTeamTitle MaintenanceTeam
+                MaintenanceTeam maintenanceTeam => team.TeamTypeId == (int)TeamTypeId.MaintenanceTeam ? maintenanceTeam.AircraftMaintenanceCompany.Title : string.Empty,
 
-                // BIAToolKit - End Partial TeamMapperParentTeamTitle Plane
+                // BIAToolKit - End Partial TeamMapperParentTeamTitle MaintenanceTeam

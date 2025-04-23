@@ -1,5 +1,5 @@
-﻿            // BIAToolKit - Begin Partial RoleModelBuilder Plane
-            modelBuilder.Entity<Role>().HasData(new Role { Id = (int)RoleId.PlaneAdmin, Code = "Plane_Admin", Label = "Plane administrator" });
-            modelBuilder.Entity<Role>().HasData(new Role { Id = (int)RoleId.SiteTeamLeader, Code = "Site_TeamLeader", Label = "Site Team leader" });
+﻿            // BIAToolKit - Begin Partial RoleModelBuilder MaintenanceTeam
+            modelBuilder.Entity<Role>().HasData(new Role { Id = (int)RoleId.MaintenanceTeamAdmin, Code = "MaintenanceTeam_Admin", Label = "MaintenanceTeam administrator" });
+            modelBuilder.Entity<Role>().HasData(new Role { Id = (int)RoleId.AircraftMaintenanceCompanyTeamLeader, Code = "AircraftMaintenanceCompany_TeamLeader", Label = "AircraftMaintenanceCompany Team leader" });
 
-            // BIAToolKit - End Partial RoleModelBuilder Plane
+            // BIAToolKit - End Partial RoleModelBuilder MaintenanceTeam

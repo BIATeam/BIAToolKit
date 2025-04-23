@@ -1,14 +1,14 @@
-﻿        // BIAToolKit - Begin Partial RightsForOption Country
+﻿        // BIAToolKit - Begin Partial RightsForOption MyCountry
 
         /// <summary>
-        /// The Country options rights.
+        /// The MyCountry options rights.
         /// </summary>
-        public static class CountryOptions
+        public static class MyCountryOptions
         {
             /// <summary>
-            /// The right to access to the list of Countries (options only).
+            /// The right to access to the list of MyCountries (options only).
             /// </summary>
-            public const string Options = "Country_Options";
+            public const string Options = "MyCountry_Options";
         }
 
-        // BIAToolKit - End Partial RightsForOption Country
+        // BIAToolKit - End Partial RightsForOption MyCountry

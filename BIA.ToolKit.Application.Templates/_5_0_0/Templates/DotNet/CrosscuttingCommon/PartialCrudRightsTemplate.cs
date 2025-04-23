@@ -1,39 +1,39 @@
-﻿        // BIAToolKit - Begin Partial Rights Plane
+﻿        // BIAToolKit - Begin Partial Rights MaintenanceTeam
 
         /// <summary>
-        /// The Planes rights.
+        /// The MaintenanceTeams rights.
         /// </summary>
-        public static class Planes
+        public static class MaintenanceTeams
         {
             /// <summary>
-            /// The right to access to the list of Planes.
+            /// The right to access to the list of MaintenanceTeams.
             /// </summary>
-            public const string ListAccess = "Plane_List_Access";
+            public const string ListAccess = "MaintenanceTeam_List_Access";
 
             /// <summary>
-            /// The right to create Planes.
+            /// The right to create MaintenanceTeams.
             /// </summary>
-            public const string Create = "Plane_Create";
+            public const string Create = "MaintenanceTeam_Create";
 
             /// <summary>
-            /// The right to read Planes.
+            /// The right to read MaintenanceTeams.
             /// </summary>
-            public const string Read = "Plane_Read";
+            public const string Read = "MaintenanceTeam_Read";
 
             /// <summary>
-            /// The right to update Planes.
+            /// The right to update MaintenanceTeams.
             /// </summary>
-            public const string Update = "Plane_Update";
+            public const string Update = "MaintenanceTeam_Update";
 
             /// <summary>
-            /// The right to delete Planes.
+            /// The right to delete MaintenanceTeams.
             /// </summary>
-            public const string Delete = "Plane_Delete";
+            public const string Delete = "MaintenanceTeam_Delete";
 
             /// <summary>
-            /// The right to save Planes.
+            /// The right to save MaintenanceTeams.
             /// </summary>
-            public const string Save = "Plane_Save";
+            public const string Save = "MaintenanceTeam_Save";
         }
 
-        // BIAToolKit - End Partial Rights Plane
+        // BIAToolKit - End Partial Rights MaintenanceTeam
