@@ -12,6 +12,7 @@
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.Properties;
@@ -30,6 +31,7 @@
         ProjectCreatorService projectCreatorService;
         CRUDSettings crudSettings;
         UIEventBroker uiEventBroker;
+        SettingsService settingsService;
 
         public ModifyProjectUC()
         {
@@ -56,6 +58,7 @@
             this.crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             _viewModel.Inject(fileGeneratorService, uiEventBroker);
+            this.settingsService = settingsService;
         }
 
         public void RefreshConfiguration()
@@ -75,8 +78,8 @@
 
             ParameterModifyChange();
             MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
-            MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder);
-            MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder);
+            MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, true);
+            MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false);
         }
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
@@ -195,6 +198,28 @@
                 }
             }
 
+            string rootBiaFolder = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name,  Constants.FolderBia);
+            if (!Directory.Exists(rootBiaFolder))
+            {
+                Directory.CreateDirectory(rootBiaFolder);
+            }
+
+            var fileToSuppress = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, FeatureSettingService.fileName);
+            if (File.Exists(fileToSuppress))
+            {
+                File.Delete(fileToSuppress);
+            }
+
+            var fileToCheck = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
+            if (!File.Exists(fileToCheck))
+            {
+                string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
+                MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
+                var fileToCopy = Path.Combine(projectTargetPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
+
+                File.Copy(fileToCopy, fileToCheck);
+            }
+
             Enable(true);
         }
 
@@ -241,7 +266,17 @@
         //TODO mutualiser avec celle de MainWindows
         private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, List<string> fronts)
         {
-            await this.projectCreatorService.Create(actionFinishedAtEnd, CompanyName, ProjectName, projectPath, versionAndOption.vm.VersionAndOption, fronts);
+            await this.projectCreatorService.Create(
+                actionFinishedAtEnd, 
+                projectPath,
+                new Domain.Model.ProjectParameters
+                { 
+                    CompanyName = CompanyName, 
+                    ProjectName = ProjectName, 
+                    VersionAndOption = versionAndOption.vm.VersionAndOption, 
+                    AngularFronts = fronts
+                }
+            );
         }
 
         private void MigrateOpenFolder_Click(object sender, RoutedEventArgs e)

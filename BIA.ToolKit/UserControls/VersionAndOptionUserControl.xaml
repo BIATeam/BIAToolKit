@@ -49,24 +49,21 @@
                     ItemsSource="{Binding WorkCompanyFiles}" 
                     DisplayMemberPath="Version"
                     SelectedItem="{Binding WorkCompanyFile}"
+                    SelectionChanged="CFVersion_SelectionChanged"
                     Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}"
-                    HorizontalAlignment="Left" Margin="20,40,0,0" VerticalAlignment="Top" Width="120"  SelectionChanged="CompanyFileVersion_SelectionChanged"/>
+                    HorizontalAlignment="Left" Margin="20,40,0,0" VerticalAlignment="Top" Width="120" />
 
                 <Label Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}" Content="Profile" HorizontalAlignment="Left" Margin="0,65,0,0" VerticalAlignment="Top" Foreground="White" Name="CompanyFileProfileLabel"/>
                 <ComboBox Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}" ItemsSource="{Binding Profiles}" SelectedItem="{Binding Profile}" 
                           HorizontalAlignment="Left" Margin="20,90,0,0" VerticalAlignment="Top" Width="120"/>
-
-                <ScrollViewer Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}" VerticalScrollBarVisibility="Auto" Margin="150,0,0,0" Name="CompanyFileOptionViewer">
-                    <Grid Name="GridOption">
-                        <CheckBox Content="Option1" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CFOption_Option1" Margin="0,0,0,0"/>
-                        <CheckBox Content="Option2" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CFOption_Option2" Margin="0,25,0,0" />
-                        <CheckBox Content="Option3" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CFOption_Option3" Margin="0,50,0,0"/>
-                        <CheckBox Content="Option4" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CFOption_Option4" Margin="0,75,0,0" />
-                        <CheckBox Content="Option5" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CFOption_Option5" Margin="0,100,0,0"/>
-                        <CheckBox Content="Option6" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CFOption_Option6" Margin="0,125,0,0" />
-                        <CheckBox Content="Option7" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CFOption_Option7" Margin="0,150,0,0"/>
-                        <CheckBox Content="Option8" Foreground="White"  Height="16" VerticalAlignment="Top" Name="CFOption_Option8" Margin="0,175,0,0" />
-                    </Grid>
+                <ScrollViewer Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="auto" Margin="150,0,0,0">
+                    <ItemsControl ItemsSource="{Binding Options}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,5" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </ScrollViewer>
             </Grid>
         </GroupBox>
