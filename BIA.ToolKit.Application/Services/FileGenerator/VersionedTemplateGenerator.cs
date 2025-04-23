@@ -12,19 +12,9 @@
     /// <summary>
     /// Extended class of <see cref="TemplateGenerator"/> used for versionned templates.
     /// </summary>
-    internal sealed class VersionedTemplateGenerator : TemplateGenerator
+    /// <param name="templateVersion">Template version at format _X_Y_Z</param>
+    internal sealed class VersionedTemplateGenerator(string templateVersion) : TemplateGenerator
     {
-        private string templateVersion;
-
-        /// <summary>
-        /// Set the template version (_X_Y_Z)
-        /// </summary>
-        /// <param name="templateVersion"></param>
-        public void SetTemplateVersion(string templateVersion)
-        {
-            this.templateVersion = templateVersion;
-        }
-
         protected override bool LoadIncludeText(string requestFileName, out string content, out string location)
         {
             if (requestFileName.EndsWith("ttinclude"))

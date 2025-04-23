@@ -28,10 +28,10 @@
         const string BiaToolKitMarkupPartialEndPattern = "// BIAToolKit - End Partial {0} {1}";
 
         private readonly FileGeneratorModelProviderFactory modelProviderFactory;
-        private IFileGeneratorModelProvider modelProvider;
-        private readonly VersionedTemplateGenerator templateGenerator;
         private readonly IConsoleWriter consoleWriter;
         private readonly List<Manifest> manifests = [];
+        private IFileGeneratorModelProvider modelProvider;
+        private VersionedTemplateGenerator templateGenerator;
         private string templatesPath;
         private Project currentProject;
         private Manifest currentManifest;
@@ -44,10 +44,6 @@
         {
             this.consoleWriter = consoleWriter;
             modelProviderFactory = new FileGeneratorModelProviderFactory(consoleWriter);
-
-            templateGenerator = new VersionedTemplateGenerator();
-            // Add reference to assembly of Manifest class to the template generator
-            templateGenerator.Refs.Add(typeof(Manifest).Assembly.Location);
 
             LoadTemplatesManifests();
         }
@@ -119,7 +115,10 @@
                 return;
             }
 
-            templateGenerator.SetTemplateVersion(fileGeneratorVersion);
+            // Init template generator
+            templateGenerator = new VersionedTemplateGenerator(fileGeneratorVersion);
+            // Add reference to assembly of Manifest class to the template generator
+            templateGenerator.Refs.Add(typeof(Manifest).Assembly.Location);
 
             IsInit = true;
         }

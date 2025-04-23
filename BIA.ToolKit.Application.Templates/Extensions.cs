@@ -14,6 +14,11 @@
             if (string.IsNullOrEmpty(s))
                 return s;
 
+            if (s.All(c => !char.IsUpper(c) || c == s[0]))
+            {
+                return s.ToLowerInvariant();
+            }
+
             return char.ToLowerInvariant(s[0]) + s.Substring(1);
         }
 
