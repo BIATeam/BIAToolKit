@@ -6,6 +6,7 @@
     <bia-table-header
       [headerTitle]="'<#= ModelInstance.EntityName.ToCamelCase() #>.listOf' | translate"
       [canAdd]="canAdd && !crudConfiguration.useCalcMode"
+      [canClone]="canAdd && crudConfiguration.isClonable"
       [canDelete]="canDelete"
       [canEdit]="canEdit"
       [canFix]="canFix"
@@ -14,6 +15,7 @@
       (create)="onCreate()"
       (exportCSV)="onExportCSV('<#= ModelInstance.EntityName.ToCamelCase() #>.listOf')"
       (fullExportCSV)="onExportCSV('<#= ModelInstance.EntityName.ToCamelCase() #>.listOf', true)"
+      (clone)="onClone()"
       (delete)="onDelete()"
       (import)="onImport()"
       [selectedElements]="selectedCrudItems"

@@ -2,6 +2,7 @@
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".html" #>
 <app-<#= ModelInstance.EntityName.ToKebabCase() #>-form
+  [crudItem]="(itemTemplate$ | async) ?? undefined"
   [isAdd]="true"
   [fields]="crudConfiguration.fieldsConfig.columns"
   [formLayoutConfig]="crudConfiguration.formLayoutConfig"
