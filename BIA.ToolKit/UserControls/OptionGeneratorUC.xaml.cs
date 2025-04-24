@@ -248,7 +248,7 @@
         /// <summary>
         /// Action linked with "Delete Annotations" button.
         /// </summary>
-        private void DeleteBIAToolkitAnnotations_Click(object sender, RoutedEventArgs e)
+        private async void DeleteBIAToolkitAnnotations_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -266,7 +266,7 @@
                         Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, "src",  "app")
                     };
 
-                    crudService.DeleteBIAToolkitAnnotations(folders);
+                    await crudService.DeleteBIAToolkitAnnotations(folders);
                 }
 
                 consoleWriter.AddMessageLine($"End of annotations suppression.", "Purple");

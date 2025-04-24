@@ -18,6 +18,7 @@
     using System.Runtime.CompilerServices;
     using System.Text;
     using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
 
     public class GenerateCrudService
     {
@@ -167,7 +168,7 @@
             }
         }
 
-        public void DeleteBIAToolkitAnnotations(List<string> folders)
+        public async Task DeleteBIAToolkitAnnotations(List<string> folders)
         {
             string markerBegin = $"{ZipParserService.MARKER_BEGIN}";
             string markerEnd = $"{ZipParserService.MARKER_END}";
@@ -184,13 +185,19 @@
                     foreach (string file in Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories))
                     {
                         // Read file lines
-                        List<string> content = File.ReadAllLines(file).ToList();
+                        var content = await File.ReadAllLinesAsync(file);
                         if (content.Any(line => line.Contains(markerBegin)))
                         {
-                            List<string> newContent = content;
-                            newContent = newContent.Where(line => !line.Contains(markerBegin) || line.Contains(markerBegin) && !line.Contains(markerPartialBegin)).ToList();
-                            newContent = newContent.Where(line => !line.Contains(markerEnd) || line.Contains(markerEnd) && !line.Contains(markerPartialEnd)).ToList();
-                            CommonTools.GenerateFile(file, newContent);
+                            var newContent = content
+                                .Where(line => 
+                                !line.Contains(markerBegin) 
+                                && !line.Contains(markerPartialBegin)
+                                && !line.Contains(markerEnd) 
+                                && !line.Contains(markerPartialEnd)).ToList();
+                            if (content.Length != newContent.Count)
+                            {
+                                CommonTools.GenerateFile(file, newContent);
+                            }
                         }
                     }
                 }
