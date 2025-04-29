@@ -3,6 +3,7 @@
     <bia-table-header
       [headerTitle]="'maintenanceTeam.listOf' | translate"
       [canAdd]="canAdd && !crudConfiguration.useCalcMode"
+      [canClone]="canAdd && crudConfiguration.isClonable"
       [canDelete]="canDelete"
       [canEdit]="canEdit"
       [canFix]="canFix"
@@ -11,6 +12,7 @@
       (create)="onCreate()"
       (exportCSV)="onExportCSV('maintenanceTeam.listOf')"
       (fullExportCSV)="onExportCSV('maintenanceTeam.listOf', true)"
+      (clone)="onClone()"
       (delete)="onDelete()"
       (import)="onImport()"
       [selectedElements]="selectedCrudItems"
