@@ -1,7 +1,13 @@
 ﻿      // BIAToolKit - Begin Partial Config MaintenanceTeam
       // MaintenanceTeam
       {
-        "Names": [ "MaintenanceTeam_Create", "MaintenanceTeam_Update", "MaintenanceTeam_Delete", "MaintenanceTeam_Save" ],
+        "Names": [ "MaintenanceTeam_Create", "MaintenanceTeam_Delete" ],
+        "Roles": [
+          "Admin"
+        ]
+      },
+      {
+        "Names": [  "MaintenanceTeam_Update", "MaintenanceTeam_Save" ],
         "Roles": [
           "MaintenanceTeam_Admin",
           "Admin"
