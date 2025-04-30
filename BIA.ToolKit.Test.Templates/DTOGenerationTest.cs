@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Diagnostics;
     using System.Linq;
     using System.Text;
@@ -11,6 +12,7 @@
     using BIA.ToolKit.Application.Templates;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
+    using Newtonsoft.Json;
 
     public class DTOGenerationTest : IClassFixture<FileGeneratorTestFixture>
     {
@@ -75,5 +77,198 @@
 
             fixture.AssertFilesEquals(dtoContext, fixture.FileGeneratorService.CurrentFeature);
         }
+
+        [Fact]
+        public async Task GenerateDTO_Plane()
+        {
+            var entityInfo = new EntityInfo(
+                path: string.Empty,
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Plane.Entities",
+                name: "Plane",
+                baseType: "VersionedTable",
+                primaryKey: null,
+                arguments: null,
+                baseList: ["IEntityArchivable<int>"]);
+
+            var domainName = "Plane";
+
+            var mappingProperties = new List<MappingEntityProperty>
+            {
+                new()
+                {
+                    EntityCompositeName = "Id",
+                    MappingType = "int",
+                },
+                new()
+                {
+                    EntityCompositeName = "Msn",
+                    MappingType = "string",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "Manufacturer",
+                    MappingType = "string",
+                },
+                new()
+                {
+                    EntityCompositeName = "IsActive",
+                    MappingType = "bool",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "IsMaintenance",
+                    MappingType = "bool?",
+                },
+                new()
+                {
+                    EntityCompositeName = "FirstFlightDate",
+                    MappingType = "DateTime",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "LastFlightDate",
+                    MappingType = "DateTime?",
+                },
+                new()
+                {
+                    EntityCompositeName = "DeliveryDate",
+                    MappingType = "DateTime?",
+                    MappingDateType = "date",
+                },
+                new()
+                {
+                    EntityCompositeName = "NextMaintenanceDate",
+                    MappingType = "DateTime",
+                    IsRequired = true,
+                    MappingDateType = "date",
+                },
+                new()
+                {
+                    EntityCompositeName = "SyncTime",
+                    MappingType = "TimeSpan?",
+                },
+                new()
+                {
+                    EntityCompositeName = "SyncFlightDataTime",
+                    MappingType = "TimeSpan",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "Capacity",
+                    MappingType = "int",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "MotorsCount",
+                    MappingType = "int",
+                },
+                new()
+                {
+                   EntityCompositeName = "TotalFlightHours",
+                   MappingType = "double",
+                   IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "Probability",
+                    MappingType = "double",
+                },
+                new()
+                {
+                    EntityCompositeName = "FuelCapacity",
+                    MappingType = "float",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "FuelLevel",
+                    MappingType = "float",
+                },
+                new()
+                {
+                    EntityCompositeName = "OriginalPrice",
+                    MappingType = "decimal",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "EstimatedPrice",
+                    MappingType = "decimal",
+                },
+                new()
+                {
+                    EntityCompositeName = "SiteId",
+                    MappingType = "int",
+                    IsRequired = true,
+                    IsParent = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "ConnectingAirports",
+                    MappingType = "ICollection<OptionDto>",
+                    IsRequired = true,
+                    OptionType = "Airport",
+                    OptionIdProperty = "Id",
+                    OptionDisplayProperty = "Name",
+                    OptionRelationPropertyComposite = "ConnectingPlaneAirports",
+                    OptionRelationType = "PlaneAirport",
+                    OptionRelationFirstIdProperty = "PlaneId",
+                    OptionRelationSecondIdProperty = "AirportId",
+                },
+                new()
+                {
+                    EntityCompositeName = "PlaneType",
+                    MappingType = "OptionDto",
+                    OptionType = "PlaneType",
+                    OptionIdProperty = "Id",
+                    OptionDisplayProperty = "Title",
+                    OptionEntityIdProperty = "PlaneTypeId",
+                },
+                new()
+                {
+                    EntityCompositeName = "SimilarTypes",
+                    MappingType = "ICollection<OptionDto>",
+                    OptionType = "PlaneType",
+                    OptionIdProperty = "Id",
+                    OptionDisplayProperty = "Title",
+                    OptionRelationPropertyComposite = "SimilarTypes", // TODO voir pourquoi on n'utilise pas EntityCompositeName
+                    OptionRelationType = "PlanePlaneType",
+                    OptionRelationFirstIdProperty = "PlaneId",
+                    OptionRelationSecondIdProperty = "PlaneTypeId",
+                },
+                new()
+                {
+                    EntityCompositeName = "CurrentAirport",
+                    MappingType = "OptionDto",
+                    IsRequired = true,
+                    OptionType = "Airport",
+                    OptionIdProperty = "Id",
+                    OptionDisplayProperty = "Name",
+                    OptionEntityIdProperty = "CurrentAirportId",
+                },
+            };
+
+            var dtoContext = new FileGeneratorDtoContext
+            {
+                CompanyName = fixture.TestProject.CompanyName,
+                ProjectName = fixture.TestProject.Name,
+                DomainName = domainName,
+                EntityName = entityInfo.Name,
+                EntityNamePlural = entityInfo.NamePluralized,
+                BaseKeyType = entityInfo.BaseKeyType,
+                Properties = [.. mappingProperties],
+                GenerateBack = true
+            };
+
+            await fixture.FileGeneratorService.GenerateDtoAsync(dtoContext);
+
+            fixture.AssertFilesEquals(dtoContext, fixture.FileGeneratorService.CurrentFeature);
+        }
+
     }
 }

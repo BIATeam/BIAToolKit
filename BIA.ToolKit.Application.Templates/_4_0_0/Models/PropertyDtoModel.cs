@@ -8,7 +8,10 @@
 
     public class PropertyDtoModel
     {
-        public string MappingName { get; set; }
+        private string mappingName = null;
+        public string MappingName { 
+            get { if (mappingName != null) { return mappingName; } else { return EntityCompositeName; } }
+            set { mappingName = value; } }
         public string EntityCompositeName { get; set; }
         public string MappingType { get; set; }
         public string MappingDateType { get; set; }
