@@ -8,33 +8,30 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
     using System.Linq;
     using System.Linq.Expressions;
     using BIA.Net.Core.Domain;
-    using BIA.Net.Core.Domain.Dto.Base;
     using BIA.Net.Core.Domain.Dto.Option;
-    using TheBIADevCompany.BIADemo.Domain.Fleet.Entities;
     using TheBIADevCompany.BIADemo.Domain.Dto.Fleet;
+    using TheBIADevCompany.BIADemo.Domain.Fleet.Entities;
 
     /// <summary>
     /// The mapper used for Plane.
     /// </summary>
     public class PlaneMapper : BaseMapper<PlaneDto, Plane, int>
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.ExpressionCollection"/>
         public override ExpressionCollection<Plane> ExpressionCollection
         {
-            // It is not necessary to implement this function if you do not use the mapper for filtered list.
-            // In BIADemo it is used only for Calc SpreadSheet.
             get
             {
                 return new ExpressionCollection<Plane>
                 {
-                    { HeaderName.Id, x => x.Id },
-                    { HeaderName.Name, x => x.Name },
-                    { HeaderName.Option, x => x.Option != null ? x.Option.Name : null },
+                    { HeaderName.Id, plane => plane.Id },
+                    { HeaderName.Name, plane => plane.Name },
+                    { HeaderName.Option, plane => plane.Option != null ? plane.Option.Name : null },
                 };
             }
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToEntity"/>
         public override void DtoToEntity(PlaneDto dto, Plane entity)
         {
             entity ??= new Plane();
@@ -44,7 +41,7 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
             entity.OptionId = dto.Option.Id;
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
         public override Expression<Func<Plane, PlaneDto>> EntityToDto()
         {
             return entity => new PlaneDto
@@ -54,36 +51,55 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
                 Option = entity.Option != null ?
                   new OptionDto { Id = entity.Option.Id, Display = entity.Option.Name } :
                   null,
+                RowVersion = Convert.ToBase64String(entity.RowVersion),
             };
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToRecord"/>
         public override Func<PlaneDto, object[]> DtoToRecord(List<string> headerNames = null)
         {
-            return x => (new object[]
+            return x =>
             {
-                CSVNumber(x.Id),
-                CSVString(x.Name),
-            });
+                List<object> records = new List<object>();
+
+                if (headerNames?.Any() == true)
+                {
+                    foreach (string headerName in headerNames)
+                    {
+                        if (string.Equals(headerName, HeaderName.Id, StringComparison.OrdinalIgnoreCase))
+                        {
+                            records.Add(CSVNumber(x.Id));
+                        }
+
+                        if (string.Equals(headerName, HeaderName.Name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            records.Add(CSVString(x.Name));
+                        }
+
+                    }
+                }
+
+                return records.ToArray();
+            };
         }
 
         /// <summary>
-        /// Header Names.
+        /// Header names.
         /// </summary>
-        private struct HeaderName
+        public struct HeaderName
         {
             /// <summary>
-            /// Header Name Id.
+            /// Header name for Id.
             /// </summary>
             public const string Id = "id";
 
             /// <summary>
-            /// Header Name Name.
+            /// Header name for Name.
             /// </summary>
             public const string Name = "name";
 
             /// <summary>
-            /// Header Name Option.
+            /// Header name for Option.
             /// </summary>
             public const string Option = "option";
         }

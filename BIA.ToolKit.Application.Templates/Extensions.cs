@@ -30,5 +30,14 @@
             string result = Regex.Replace(s, @"(?<=[a-z0-9])([A-Z])", "-$1");
             return result.ToLowerInvariant();
         }
+
+        public static string ToLitteral(this string s)
+        {
+            if (string.IsNullOrEmpty(s))
+                return s;
+
+            string result = Regex.Replace(s, @"(?<=[a-z0-9])([A-Z])", " $1");
+            return result;
+        }
     }
 }

@@ -54,7 +54,7 @@
                 {
                     EntityCompositeName = "CertificationDate",
                     MappingType = "DateTime?",
-                    MappingName = "Family",
+                    MappingName = "CertificationDate",
                     MappingDateType = "datetime"
                 },
             };

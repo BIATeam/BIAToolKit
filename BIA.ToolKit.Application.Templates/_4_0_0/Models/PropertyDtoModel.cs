@@ -66,7 +66,7 @@
 
             if (nonNullMappingType == "bool")
             {
-                return $"CSVBool(x.{MappingName}),";
+                return $"CSVBool(x.{MappingName})";
             }
 
             if (
@@ -81,7 +81,7 @@
                 || nonNullMappingType == "ushort"
                 )
             {
-                return $"CSVNumber(x.{MappingName}),";
+                return $"CSVNumber(x.{MappingName})";
             }
 
             if (!string.IsNullOrWhiteSpace(MappingDateType))
@@ -89,11 +89,11 @@
                 switch (MappingDateType)
                 {
                     case "datetime":
-                        return $"CSVDateTime(x.{MappingName}),";
+                        return $"CSVDateTime(x.{MappingName})";
                     case "date":
-                        return $"CSVDate(x.{MappingName}),";
+                        return $"CSVDate(x.{MappingName})";
                     case "time":
-                        return $"CSVTime(x.{MappingName}),";
+                        return $"CSVTime(x.{MappingName})";
                     default:
                         throw new InvalidOperationException($"Unable to get CSV method for mapping date type {MappingDateType}");
                 }
@@ -101,10 +101,10 @@
 
             if (nonNullMappingType == "string")
             {
-                return $"CSVString(x.{MappingName}),";
+                return $"CSVString(x.{MappingName})";
             }
 
-            return $"CSVString(x.{MappingName}.ToString()),";
+            return $"CSVString(x.{MappingName}.ToString())";
         }
     }
 }

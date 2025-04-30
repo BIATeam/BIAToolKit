@@ -157,7 +157,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
             return x => (new object[]
             {
 <# foreach (var property in ModelInstance.Properties.Where(p => !p.IsOption && !p.IsOptionCollection)) { #>
-                <#= property.GenerateMapperCSV() #>
+                <#= property.GenerateMapperCSV() #>,
 <# } #>
             });
         }
