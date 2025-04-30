@@ -185,7 +185,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <# index = 0;  #>
 <# foreach (var property in ModelInstance.Properties) { #>
             /// <summary>
-            /// Header name for <#= property.MappingName.ToLitteral() #>.
+            /// Header name for <#= property.MappingName.ToLiteral() #>.
             /// </summary>
             public const string <#= property.MappingName #> = "<#= property.MappingName.ToCamelCase() #>";
 <# index++;  #>

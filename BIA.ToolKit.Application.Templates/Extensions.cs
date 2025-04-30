@@ -31,7 +31,7 @@
             return result.ToLowerInvariant();
         }
 
-        public static string ToLitteral(this string s)
+        public static string ToLiteral(this string s)
         {
             if (string.IsNullOrEmpty(s))
                 return s;

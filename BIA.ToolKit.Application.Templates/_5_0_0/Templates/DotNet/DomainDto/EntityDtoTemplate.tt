@@ -33,7 +33,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <# var index = 0;  #>
 <# foreach(var prop in ModelInstance.PropertiesToGenerate) { #>
         /// <summary>
-        /// Gets or sets the <#= prop.MappingName #>.
+        /// Gets or sets the <#= prop.MappingName.ToLiteral() #>.
         /// </summary>
         [BiaDtoField(<#= prop.BiaDtoFieldAttributeProperties #>)]
         public <#= prop.MappingType #> <#= prop.MappingName #> { get; set; }
