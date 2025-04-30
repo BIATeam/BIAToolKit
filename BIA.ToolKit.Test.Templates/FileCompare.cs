@@ -6,9 +6,9 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    internal static class CustomAssert
+    internal static class FileCompare
     {
-        public static void FilesEquals(string expectedFilePath, string actualFilePath)
+        public static string? FilesEquals(string expectedFilePath, string actualFilePath)
         {
             var expectedLines = File.ReadAllLines(expectedFilePath);
             var actualLines = File.ReadAllLines(actualFilePath);
@@ -30,12 +30,13 @@
             if (differences.Count != 0)
             {
                 var builder = new StringBuilder();
-                builder.AppendLine($"File : {Path.GetFileName(expectedFilePath)}");
-                builder.AppendLine($"Compare : kdiff3.exe {expectedFilePath} {actualFilePath}");
-                builder.AppendLine();
-                builder.AppendLine(string.Join("\n\n", differences));
-                throw new FilesEqualsException(builder.ToString());
+                builder.AppendLine($"File : {Path.GetFileName(expectedFilePath)} {differences.Count} differences");
+                builder.AppendLine($"kdiff3.exe {expectedFilePath} {actualFilePath}");
+                //builder.AppendLine();
+                //builder.AppendLine(string.Join("\n\n", differences));
+                return builder.ToString();
             }
+            return null;
         }
     }
 }

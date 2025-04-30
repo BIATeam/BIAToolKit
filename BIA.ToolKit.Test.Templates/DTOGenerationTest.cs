@@ -2,11 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
+    using BIA.ToolKit.Application.Templates;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
 
@@ -50,7 +52,7 @@
                 },
                 new()
                 {
-                    EntityCompositeName = "Family",
+                    EntityCompositeName = "CertificationDate",
                     MappingType = "DateTime?",
                     MappingName = "Family",
                     MappingDateType = "datetime"
@@ -71,19 +73,7 @@
 
             await fixture.FileGeneratorService.GenerateDtoAsync(dtoContext);
 
-            foreach(var dotNetTemplate in fixture.FileGeneratorService.CurrentFeature.DotNetTemplates)
-            {
-                var (referencePath, generatedPath) = fixture.GetDotNetFilesPath(dotNetTemplate.OutputPath, dtoContext);
-                Assert.True(File.Exists(generatedPath));
-                CustomAssert.FilesEquals(referencePath, generatedPath);
-            }
-
-            foreach (var angularTemplate in fixture.FileGeneratorService.CurrentFeature.AngularTemplates)
-            {
-                var (referencePath, generatedPath) = fixture.GetAngularFilesPath(angularTemplate.OutputPath, dtoContext);
-                Assert.True(File.Exists(generatedPath));
-                CustomAssert.FilesEquals(referencePath, generatedPath);
-            }
+            fixture.AssertFilesEquals(dtoContext, fixture.FileGeneratorService.CurrentFeature);
         }
     }
 }

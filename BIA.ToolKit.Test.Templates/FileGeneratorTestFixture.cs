@@ -11,6 +11,7 @@
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Domain.ModifyProject;
+    using static BIA.ToolKit.Application.Templates.Manifest;
 
     public class FileGeneratorTestFixture : IDisposable
     {
@@ -92,6 +93,50 @@
         public (string referencePath, string generatedPath) GetAngularFilesPath(string templateOutputPath, FileGeneratorContext context)
         {
             return (FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, TestProject.Folder));
+        }
+
+
+
+        public void AssertFilesEquals(FileGeneratorDtoContext dtoContext, Feature currentFeature)
+        {
+            var error = new List<string>();
+
+            foreach (var dotNetTemplate in currentFeature.DotNetTemplates)
+            {
+                var (referencePath, generatedPath) = GetDotNetFilesPath(dotNetTemplate.OutputPath, dtoContext);
+                if (!File.Exists(generatedPath))
+                {
+                    error.Add($"Missing file: {generatedPath}");
+                }
+
+                string? errorEquals = FileCompare.FilesEquals(referencePath, generatedPath);
+
+                if (errorEquals != null)
+                {
+                    error.Add(errorEquals);
+                }
+            }
+
+            foreach (var angularTemplate in currentFeature.AngularTemplates)
+            {
+                var (referencePath, generatedPath) = GetAngularFilesPath(angularTemplate.OutputPath, dtoContext);
+                if (!File.Exists(generatedPath))
+                {
+                    error.Add($"Missing file: {generatedPath}");
+                }
+
+                string? errorEquals = FileCompare.FilesEquals(referencePath, generatedPath);
+
+                if (errorEquals != null)
+                {
+                    error.Add(errorEquals);
+                }
+            }
+
+            if (error.Count != 0)
+            {
+                throw new FilesEqualsException(string.Join("\n\n", error));
+            }
         }
 
         public static string NormalisePath(string path)
