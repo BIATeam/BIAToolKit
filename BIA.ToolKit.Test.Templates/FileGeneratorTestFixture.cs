@@ -30,14 +30,14 @@
 
         public FileGeneratorTestFixture()
         {
-            var biaDemoZipPath = "C:\\sources\\Github\\BIAToolKit\\BIADemoVersions\\BIADemo_5.0.0-alpha.zip";
-            referenceProjectPath = Path.Combine(Path.GetTempPath(), Path.GetFileNameWithoutExtension(biaDemoZipPath));
+            var biaDemoZipPath = "..\\..\\..\\..\\BIADemoVersions\\BIADemo_5.0.0-alpha.zip";
+            var currentDir = Directory.GetCurrentDirectory();
+            referenceProjectPath = NormalisePath(Path.Combine(currentDir, "..\\..\\..\\..\\BIADemoVersions\\", Path.GetFileNameWithoutExtension(biaDemoZipPath)));
 
-            if (Directory.Exists(referenceProjectPath))
+            if (!Directory.Exists(referenceProjectPath))
             {
-                Directory.Delete(referenceProjectPath, true);
+                ZipFile.ExtractToDirectory(biaDemoZipPath, referenceProjectPath);
             }
-            ZipFile.ExtractToDirectory(biaDemoZipPath, referenceProjectPath);
 
             testProjectPath = Path.Combine(Path.GetTempPath(), "BIAToolKitTestTemplatesGenerated");
             if (Directory.Exists(testProjectPath))
@@ -74,14 +74,14 @@
 
         public void Dispose()
         {
-            if (Directory.Exists(testProjectPath))
+            /*if (Directory.Exists(testProjectPath))
             {
                 Directory.Delete(testProjectPath, true);
             }
             if (Directory.Exists(referenceProjectPath))
             {
                 Directory.Delete(referenceProjectPath, true);
-            }
+            }*/
         }
 
         public (string referencePath, string generatedPath) GetDotNetFilesPath(string templateOutputPath, FileGeneratorContext context)
@@ -92,6 +92,40 @@
         public (string referencePath, string generatedPath) GetAngularFilesPath(string templateOutputPath, FileGeneratorContext context)
         {
             return (FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, TestProject.Folder));
+        }
+
+        public static string NormalisePath(string path)
+        {
+            var components = path.Split(new Char[] { '\\' });
+
+            var retval = new Stack<string>();
+            foreach (var bit in components)
+            {
+                if (bit == "..")
+                {
+                    if (retval.Any())
+                    {
+                        var popped = retval.Pop();
+                        if (popped == "..")
+                        {
+                            retval.Push(popped);
+                            retval.Push(bit);
+                        }
+                    }
+                    else
+                    {
+                        retval.Push(bit);
+                    }
+                }
+                else
+                {
+                    retval.Push(bit);
+                }
+            }
+
+            var final = retval.ToList();
+            final.Reverse();
+            return string.Join("\\", final.ToArray());
         }
     }
 }

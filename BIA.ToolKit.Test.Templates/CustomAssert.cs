@@ -31,6 +31,7 @@
             {
                 var builder = new StringBuilder();
                 builder.AppendLine($"File : {Path.GetFileName(expectedFilePath)}");
+                builder.AppendLine($"Compare : kdiff3.exe {expectedFilePath} {actualFilePath}");
                 builder.AppendLine();
                 builder.AppendLine(string.Join("\n\n", differences));
                 throw new FilesEqualsException(builder.ToString());
