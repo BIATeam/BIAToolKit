@@ -87,6 +87,11 @@
                 return $"CSVNumber(x.{MappingName})";
             }
 
+            if (nonNullMappingType == "TimeSpan")
+            {
+                return $"CSVTime(x.{MappingName})";
+            }
+
             if (!string.IsNullOrWhiteSpace(MappingDateType))
             {
                 switch (MappingDateType)
@@ -102,9 +107,24 @@
                 }
             }
 
+            if (nonNullMappingType == "DateTime")
+            {
+                return $"CSVDateTime(x.{MappingName})";
+            }
+
             if (nonNullMappingType == "string")
             {
                 return $"CSVString(x.{MappingName})";
+            }
+
+            if (IsOption)
+            {
+                return $"CSVString(x.{MappingName}?.Display)";
+            }
+
+            if (IsOptionCollection)
+            {
+                return $"CSVList(x.{MappingName})";
             }
 
             return $"CSVString(x.{MappingName}.ToString())";

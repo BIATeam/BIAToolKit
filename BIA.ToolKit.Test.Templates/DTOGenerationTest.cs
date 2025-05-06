@@ -96,6 +96,13 @@
             {
                 new()
                 {
+                    EntityCompositeName = "SiteId",
+                    MappingType = "int",
+                    IsRequired = true,
+                    IsParent = true,
+                },
+                new()
+                {
                     EntityCompositeName = "Id",
                     MappingType = "int",
                 },
@@ -202,26 +209,6 @@
                 },
                 new()
                 {
-                    EntityCompositeName = "SiteId",
-                    MappingType = "int",
-                    IsRequired = true,
-                    IsParent = true,
-                },
-                new()
-                {
-                    EntityCompositeName = "ConnectingAirports",
-                    MappingType = "ICollection<OptionDto>",
-                    IsRequired = true,
-                    OptionType = "Airport",
-                    OptionIdProperty = "Id",
-                    OptionDisplayProperty = "Name",
-                    OptionRelationPropertyComposite = "ConnectingPlaneAirports",
-                    OptionRelationType = "PlaneAirport",
-                    OptionRelationFirstIdProperty = "PlaneId",
-                    OptionRelationSecondIdProperty = "AirportId",
-                },
-                new()
-                {
                     EntityCompositeName = "PlaneType",
                     MappingType = "OptionDto",
                     OptionType = "PlaneType",
@@ -236,7 +223,7 @@
                     OptionType = "PlaneType",
                     OptionIdProperty = "Id",
                     OptionDisplayProperty = "Title",
-                    OptionRelationPropertyComposite = "SimilarTypes", // TODO voir pourquoi on n'utilise pas EntityCompositeName
+                    OptionRelationPropertyComposite = "SimilarPlaneType",
                     OptionRelationType = "PlanePlaneType",
                     OptionRelationFirstIdProperty = "PlaneId",
                     OptionRelationSecondIdProperty = "PlaneTypeId",
@@ -250,6 +237,19 @@
                     OptionIdProperty = "Id",
                     OptionDisplayProperty = "Name",
                     OptionEntityIdProperty = "CurrentAirportId",
+                },
+                new()
+                {
+                    EntityCompositeName = "ConnectingAirports",
+                    MappingType = "ICollection<OptionDto>",
+                    IsRequired = true,
+                    OptionType = "Airport",
+                    OptionIdProperty = "Id",
+                    OptionDisplayProperty = "Name",
+                    OptionRelationPropertyComposite = "ConnectingPlaneAirports",
+                    OptionRelationType = "PlaneAirport",
+                    OptionRelationFirstIdProperty = "PlaneId",
+                    OptionRelationSecondIdProperty = "AirportId",
                 },
             };
 

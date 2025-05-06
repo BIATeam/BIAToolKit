@@ -15,6 +15,9 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <# if (ModelInstance.HasCollectionOptions) { #>
     using System.Collections.Generic;
 <# } #>
+<# if (ModelInstance.HasTimeSpanProperty) { #>
+    using System.Globalization;
+<# } #>
     using System.Linq;
     using System.Linq.Expressions;
 <# if (ModelInstance.IsTeamType) { #>
@@ -22,6 +25,9 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
     using BIA.Net.Core.Common.Extensions;
 <# } #>
     using BIA.Net.Core.Domain;
+<# if (ModelInstance.HasCollectionOptions) { #>
+    using BIA.Net.Core.Domain.Dto.Base;
+<# } #>
 <# if (ModelInstance.HasOptions) { #>
     using BIA.Net.Core.Domain.Dto.Option;
 <# } #>
@@ -59,15 +65,15 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
                 return new ExpressionCollection<<#= ModelInstance.EntityName #>>
                 {
 <# foreach (var property in ModelInstance.Properties) { 
-       if (!property.IsOption && !property.IsOptionCollection) { #>
-                    { HeaderName.<#= property.MappingName #>, <#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #> },
-<#       }
        if (property.IsOptionCollection) { #>
-                    { HeaderName.<#= property.MappingName #>, <#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #>.Select(y => y.<#= property.OptionDisplayProperty #>).OrderBy(y => y) },
-<#       }
-       if (property.IsOption) { #>
+                    { HeaderName.<#= property.MappingName #>, <#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #>.Select(x => x.<#= property.OptionDisplayProperty #>).OrderBy(x => x) },
+<#     }
+       else if (property.IsOption) { #>
                     { HeaderName.<#= property.MappingName #>, <#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #> != null ? <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #>.<#= property.OptionDisplayProperty #> : null },
-<#       } 
+<#     }
+       else { #>
+                    { HeaderName.<#= property.MappingName #>, <#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #> },
+<#     }
 } #>                };
             }
         }
@@ -76,38 +82,59 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         public override void DtoToEntity(<#= ModelInstance.EntityName #>Dto dto, <#= ModelInstance.EntityName #> entity)
         {
             entity ??= new <#= ModelInstance.EntityName #>();
-
 <# if (ModelInstance.IsTeamType) { #>
             base.DtoToEntity(dto, entity);
 <# } #>
 <# foreach (var property in ModelInstance.Properties) {
-       if (!property.IsOption && !property.IsOptionCollection) { #>
-            entity.<#= property.EntityCompositeName #> = dto.<#= property.MappingName #>;
-<#       } else if (property.IsOption) { #>
-            entity.<#= property.OptionEntityIdPropertyComposite #> = dto.<#= property.MappingName #>.Id;
-<#       } else if (property.IsOptionCollection) { #>
-            if (dto.<#= property.MappingName #> != null && dto.<#= property.MappingName #>.Count != 0)
+       if (property.IsParent) { #>
+
+            // Map parent relationship 1-* : <#= property.MappingName #>
+            if (dto.<#= property.MappingName #> != 0)
             {
-                foreach (var optionDto in dto.<#= property.MappingName #>.Where(x => x.DtoState == DtoState.Deleted))
+                entity.<#= property.EntityCompositeName #> = dto.<#= property.MappingName #>;
+            }
+
+<#     } else if (property.IsOption) { 
+           if (property.IsRequired) { #>
+
+            // Map relationship 1-* : <#= property.MappingName #>
+            entity.<#= property.OptionEntityIdPropertyComposite #> = dto.<#= property.MappingName #>.Id;
+<#         } else { #>
+
+            // Map relationship 0..1-* : <#= property.MappingName #>
+            entity.<#= property.OptionEntityIdPropertyComposite #> = dto.<#= property.MappingName #>?.Id;
+<#         }
+       } else if (property.IsOptionCollection) { #>
+
+            // Map relationship *-* : <#= property.MappingName #>
+            if (dto.<#= property.MappingName #>?.Count != 0)
+            {
+                foreach (var <#= property.MappingName.ToSingular().ToCamelCase() #>Dto in dto.<#= property.MappingName #>.Where(x => x.DtoState == DtoState.Deleted))
                 {
-                    var entityToRemove = entity.<#= property.EntityCompositeName #>.FirstOrDefault(x => x.<#= property.OptionIdProperty #> == optionDto.Id);
-                    if (entityToRemove != null)
+                    var <#= property.EntityCompositeName.ToSingular().ToCamelCase() #> = entity.<#= property.EntityCompositeName #>.FirstOrDefault(x => x.<#= property.OptionIdProperty #> == <#= property.MappingName.ToSingular().ToCamelCase() #>Dto.Id);
+                    if (<#= property.EntityCompositeName.ToSingular().ToCamelCase() #> != null)
                     {
-                        entity.<#= property.EntityCompositeName #>.Remove(entityToRemove);
+                        entity.<#= property.EntityCompositeName #>.Remove(<#= property.EntityCompositeName.ToSingular().ToCamelCase() #>);
                     }
                 }
 
                 entity.<#= property.OptionRelationPropertyComposite #> = entity.<#= property.OptionRelationPropertyComposite #> ?? new List<<#= property.OptionRelationType #>>();
-                foreach (var optionDto in dto.<#= property.MappingName #>.Where(x => x.DtoState == DtoState.Added))
+                foreach (var <#= property.MappingName.ToSingular().ToCamelCase() #>Dto in dto.<#= property.MappingName #>.Where(x => x.DtoState == DtoState.Added))
                 {
                     entity.<#= property.OptionRelationPropertyComposite #>.Add(new <#= property.OptionRelationType #>
                     {
+                        <#= property.OptionRelationSecondIdProperty #> = <#= property.MappingName.ToSingular().ToCamelCase() #>Dto.Id,
                         <#= property.OptionRelationFirstIdProperty #> = dto.Id,
-                        <#= property.OptionRelationSecondIdProperty #> = optionDto.Id,
                     });
                 }
             }
-<#       } 
+<#     } else if (property.MappingType == "TimeSpan") { #>
+            entity.<#= property.EntityCompositeName #> = TimeSpan.Parse(dto.<#= property.MappingName #>, new CultureInfo("en-US"));
+<#     } else if (property.MappingType == "TimeSpan?") { #>
+            entity.<#= property.EntityCompositeName #> = string.IsNullOrEmpty(dto.<#= property.MappingName #>) ? null : TimeSpan.Parse(dto.<#= property.MappingName #>, new CultureInfo("en-US"));
+<#     } else { #>
+            entity.<#= property.EntityCompositeName #> = dto.<#= property.MappingName #>;
+<#     } 
 } #>
         }
 
@@ -117,17 +144,34 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
             return <#= ModelInstance.IsTeamType ? "base.EntityToDto().CombineMapping(" : "" #>entity => new <#= ModelInstance.EntityName #>Dto
             {
 <# foreach (var property in ModelInstance.Properties) {
-       if (!property.IsOption && !property.IsOptionCollection) { #>
-                <#= property.MappingName #> = entity.<#= property.EntityCompositeName #>,
-<#       } else if (property.IsOption) { #>
-                <#= property.MappingName #> = entity.<#= property.EntityCompositeName #> != null ?
-                  new OptionDto { Id = entity.<#= property.EntityCompositeName #>.<#= property.OptionIdProperty #>, Display = entity.<#= property.EntityCompositeName #>.<#= property.OptionDisplayProperty #> } :
-                  null,
+         if (property.IsOption) {
+                if (property.IsRequired) { #>
+
+                // Map relationship 1-* : <#= property.MappingName #>
+<#              } else { #>
+
+                // Map relationship 0..1-* : <#= property.MappingName #>
+<#              } #>
+                <#= property.MappingName #> = entity.<#= property.EntityCompositeName #> != null ? new OptionDto
+                {
+                    Id = entity.<#= property.EntityCompositeName #>.<#= property.OptionIdProperty #>,
+                    Display = entity.<#= property.EntityCompositeName #>.<#= property.OptionDisplayProperty #>,
+                }
+                : null,
 <#       } else if (property.IsOptionCollection) { #>
-                <#= property.MappingName #> = entity.<#= property.EntityCompositeName #>
-                .Select(x => new OptionDto { Id = x.<#= property.OptionIdProperty #>, Display = x.<#= property.OptionDisplayProperty #> })
-                .OrderBy(x => x.Display)
-                .ToList(),
+
+                // Map relationship *-* : <#= property.MappingName #>
+                <#= property.MappingName #> = entity.<#= property.EntityCompositeName #>.Select(x => new OptionDto
+                {
+                    Id = x.<#= property.OptionIdProperty #>,
+                    Display = x.<#= property.OptionDisplayProperty #>,
+                }).OrderBy(x => x.Display).ToList(),
+<#       } else if (property.MappingType == "TimeSpan") {  #>
+                <#= property.MappingName #> = entity.<#= property.EntityCompositeName #>.ToString(@"hh\:mm\:ss"),
+<#       } else if (property.MappingType == "TimeSpan?") {  #>
+                <#= property.MappingName #> = entity.<#= property.EntityCompositeName #>.Value.ToString(@"hh\:mm\:ss"),
+<#       } else {  #>
+                <#= property.MappingName #> = entity.<#= property.EntityCompositeName #>,
 <#       }
 } #>
 <# if (ModelInstance.IsTeamType) { #>
@@ -160,7 +204,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
                     foreach (string headerName in headerNames)
                     {
 <# var index = 0;  #>
-<# foreach (var property in ModelInstance.Properties.Where(p => !p.IsOption && !p.IsOptionCollection)) { #>
+<# foreach (var property in ModelInstance.Properties) { #>
                         if (string.Equals(headerName, HeaderName.<#= property.MappingName #>, StringComparison.OrdinalIgnoreCase))
                         {
                             records.Add(<#= property.GenerateMapperCSV() #>);
@@ -176,6 +220,28 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
                 return records.ToArray();
             };
         }
+<# if ( ModelInstance.Properties.Any(p => p. IsParent)) {#>
+
+        /// <inheritdoc/>
+        public override void MapEntityKeysInDto(Plane entity, PlaneDto dto)
+        {
+            dto.Id = entity.Id;
+            dto.SiteId = entity.SiteId;
+        }
+<# } #>
+<# if ( ModelInstance.Properties.Any(p => p. IsOptionCollection)) {#>
+
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.IncludesForUpdate"/>
+        public override Expression<Func<Plane, object>>[] IncludesForUpdate()
+        {
+            return new Expression<Func<Plane, object>>[]
+            {
+<# foreach (var property in ModelInstance.Properties.Where(p => p.IsOptionCollection)) { #>
+                x => x.<#= property.EntityCompositeName #>,
+<# } #>
+            };
+        }
+<# } #>
 
         /// <summary>
         /// Header names.

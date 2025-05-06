@@ -35,10 +35,11 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
         public override void DtoToEntity(PlaneDto dto, Plane entity)
         {
             entity ??= new Plane();
-
             entity.Id = dto.Id;
             entity.Name = dto.Name;
-            entity.OptionId = dto.Option.Id;
+
+            // Map relationship 0..1-* : Option
+            entity.OptionId = dto.Option?.Id;
         }
 
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
@@ -48,9 +49,14 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
             {
                 Id = entity.Id,
                 Name = entity.Name,
-                Option = entity.Option != null ?
-                  new OptionDto { Id = entity.Option.Id, Display = entity.Option.Name } :
-                  null,
+
+                // Map relationship 0..1-* : Option
+                Option = entity.Option != null ? new OptionDto
+                {
+                    Id = entity.Option.Id,
+                    Display = entity.Option.Name,
+                }
+                : null,
                 RowVersion = Convert.ToBase64String(entity.RowVersion),
             };
         }
@@ -76,6 +82,10 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
                             records.Add(CSVString(x.Name));
                         }
 
+                        if (string.Equals(headerName, HeaderName.Option, StringComparison.OrdinalIgnoreCase))
+                        {
+                            records.Add(CSVString(x.Option?.Display));
+                        }
                     }
                 }
 

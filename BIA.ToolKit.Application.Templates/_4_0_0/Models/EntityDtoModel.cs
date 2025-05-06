@@ -20,6 +20,9 @@
         public List<PropertyDtoModel> Properties { get; set; } = new List<PropertyDtoModel>();
         public IEnumerable<PropertyDtoModel> PropertiesToGenerate => Properties.Where(p => !excludedPropertiesToGenerate.Contains(p.MappingName));
         public bool HasCollectionOptions => Properties.Any(p => p.MappingType.Equals(CollectionOptionDto));
+        public bool HasTimeSpanProperty => Properties.Any(p => p.MappingType.Equals("TimeSpan") || p.MappingType.Equals("TimeSpan?"));
+
+
         public bool HasOptions => HasCollectionOptions || Properties.Any(p => p.MappingType.Equals(OptionDto));
         public string AncestorTeam { get; set; }
         public bool HasAncestorTeam => !string.IsNullOrWhiteSpace(AncestorTeam);

@@ -121,7 +121,7 @@
                         var match = reg.Match(file);
                         currentProject.CompanyName = match.Groups[1].Value;
                         currentProject.Name = match.Groups[2].Value;
-                        Regex regVersion = new Regex(ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$");
+                        Regex regVersion = new Regex(ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)(-.*)?""[\s]*;[\s]*$");
 
                         foreach (var line in File.ReadAllLines(file))
                         {

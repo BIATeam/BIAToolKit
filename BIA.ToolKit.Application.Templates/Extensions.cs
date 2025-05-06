@@ -6,6 +6,7 @@
     using System.Text;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
+    using Humanizer;
 
     public static class Extensions
     {
@@ -13,11 +14,6 @@
         {
             if (string.IsNullOrEmpty(s))
                 return s;
-
-            if (s.All(c => !char.IsUpper(c) || c == s[0]))
-            {
-                return s.ToLowerInvariant();
-            }
 
             return char.ToLowerInvariant(s[0]) + s.Substring(1);
         }
@@ -37,6 +33,15 @@
                 return s;
 
             string result = Regex.Replace(s, @"(?<=[a-z0-9])([A-Z])", " $1");
+            return result;
+        }
+
+        public static string ToSingular(this string s)
+        {
+            if (string.IsNullOrEmpty(s))
+                return s;
+
+            string result = s.Singularize();
             return result;
         }
     }
