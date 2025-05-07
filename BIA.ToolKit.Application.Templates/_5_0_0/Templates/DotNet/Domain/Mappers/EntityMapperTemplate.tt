@@ -11,32 +11,42 @@ var baseKeyType = ModelInstance.IsTeamType ? string.Empty : $", {ModelInstance.B
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers
 {
+<# if (ModelInstance.Properties.Count() > 0) { #>
     using System;
-<# if (ModelInstance.HasCollectionOptions) { #>
+<# }
+   if (ModelInstance.HasCollectionOptions) { #>
     using System.Collections.Generic;
-<# } #>
-<# if (ModelInstance.HasTimeSpanProperty) { #>
+<# } 
+   if (ModelInstance.HasTimeSpanProperty) { #>
     using System.Globalization;
-<# } #>
+<# } 
+   if (ModelInstance.Properties.Count() > 0) { #>
     using System.Linq;
     using System.Linq.Expressions;
-<# if (ModelInstance.IsTeamType) { #>
+<# }
+   if (ModelInstance.IsTeamType) { #>
     using System.Security.Principal;
+<#      if (ModelInstance.Properties.Count() > 0) { #>
     using BIA.Net.Core.Common.Extensions;
-<# } #>
+<#      }
+   }
+   if (ModelInstance.Properties.Count() > 0) { #>
     using BIA.Net.Core.Domain;
-<# if (ModelInstance.HasCollectionOptions) { #>
+<# }
+   if (ModelInstance.HasCollectionOptions) { #>
     using BIA.Net.Core.Domain.Dto.Base;
-<# } #>
-<# if (ModelInstance.HasOptions) { #>
+<# }
+   if (ModelInstance.HasOptions) { #>
     using BIA.Net.Core.Domain.Dto.Option;
-<# } #>
-<# if (ModelInstance.IsTeamType) { #>
+<# }
+   if (ModelInstance.IsTeamType) { #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common.Enum;
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.User.Mappers;
 <# } #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
+<# if (ModelInstance.IsTeamType) { #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.User.Mappers;
+<# } #>
 
     /// <summary>
     /// The mapper used for <#= ModelInstance.EntityName #>.
@@ -56,7 +66,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToEntity"/>
         public override int TeamType => (int)TeamTypeId.<#= ModelInstance.EntityName #>;
 
-<# } #>
+<# } if (ModelInstance.Properties.Count() > 0) { #>
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.ExpressionCollection"/>
         public override ExpressionCollection<<#= ModelInstance.EntityName #>> ExpressionCollection
         {
@@ -260,5 +270,6 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <# }#>
 <# } #>
         }
+<# } #>
     }
 }

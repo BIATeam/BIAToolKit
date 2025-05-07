@@ -7,18 +7,21 @@
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>
 {
+<# if (ModelInstance.Properties.Count() > 0) { #>
     using System;
-<# if(ModelInstance.HasCollectionOptions) { #>
+<# }
+   if(ModelInstance.HasCollectionOptions) { #>
     using System.Collections.Generic;
-<# } #>
-<# if(!ModelInstance.IsTeamType) { #>
+<# }
+   if(!ModelInstance.IsTeamType) { #>
     using BIA.Net.Core.Domain.Dto.Base;
-<# } #>
+<# } if (ModelInstance.Properties.Count() > 0) { #>
     using BIA.Net.Core.Domain.Dto.CustomAttribute;
-<# if(ModelInstance.HasOptions) { #>
+<# }
+   if(ModelInstance.HasOptions) { #>
     using BIA.Net.Core.Domain.Dto.Option;
-<# } #>
-<# if(ModelInstance.IsTeamType) { #>
+<# }
+   if(ModelInstance.IsTeamType) { #>
     using BIA.Net.Core.Domain.Dto.User;
 <# } #>
 
@@ -28,7 +31,13 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <#  if(ModelInstance.HasAncestorTeam) { #>
     [BiaDtoClass(AncestorTeam = "<#= ModelInstance.AncestorTeam #>")]
 <#  } #>
+<# if (ModelInstance.Properties.Count() == 0) { #>
+#pragma warning disable S2094 // Classes should not be empty
+<#  } #>
     public class <#= ModelInstance.EntityName #>Dto : <#= ModelInstance.IsTeamType ? "TeamDto" : $"BaseDto<{ModelInstance.BaseKeyType}>" #>
+<# if (ModelInstance.Properties.Count() == 0) { #>
+#pragma warning restore S2094 // Classes should not be empty
+<#  } #>
     {
 <# var index = 0;  #>
 <# foreach(var prop in ModelInstance.PropertiesToGenerate) { #>

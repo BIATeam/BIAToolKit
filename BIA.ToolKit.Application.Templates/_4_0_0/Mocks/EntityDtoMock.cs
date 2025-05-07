@@ -23,6 +23,7 @@
                 new PropertyDtoModel
                 {
                     EntityCompositeName = "Id",
+                    EntityType = "int", 
                     MappingType = "int",
                     MappingName = "Id",
                     IsRequired = true
@@ -30,6 +31,7 @@
                 new PropertyDtoModel
                 {
                     EntityCompositeName = "Name",
+                    EntityType = "string", 
                     MappingType = "string",
                     MappingName = "Name",
                     IsRequired = true,
@@ -37,6 +39,7 @@
                 new PropertyDtoModel
                 {
                     EntityCompositeName = "Option",
+                    EntityType = "PlaneType",
                     MappingType = "OptionDto",
                     MappingName = "Option",
                     IsOption = true,

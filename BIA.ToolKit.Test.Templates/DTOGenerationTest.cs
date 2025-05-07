@@ -23,6 +23,10 @@
             this.fixture = fixture;
         }
 
+        /// <summary>
+        /// Generates the type of the dto plane.
+        /// It is a sample for a DTO used for Option and for CRUD
+        /// </summary>
         [Fact]
         public async Task GenerateDTO_PlaneType()
         {
@@ -78,6 +82,10 @@
             fixture.AssertFilesEquals(dtoContext, fixture.FileGeneratorService.CurrentFeature);
         }
 
+        /// <summary>
+        /// Generates the dto plane.
+        /// It is a sample for a DTO used for CRUD with all type of data
+        /// </summary>
         [Fact]
         public async Task GenerateDTO_Plane()
         {
@@ -91,6 +99,7 @@
                 baseList: ["IEntityArchivable<int>"]);
 
             var domainName = "Plane";
+            var ancestorTeamName = "Site";
 
             var mappingProperties = new List<MappingEntityProperty>
             {
@@ -269,7 +278,7 @@
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = [.. mappingProperties],
                 GenerateBack = true,
-                AncestorTeamName = "Site",
+                AncestorTeamName = ancestorTeamName,
             };
 
             await fixture.FileGeneratorService.GenerateDtoAsync(dtoContext);
@@ -277,5 +286,44 @@
             fixture.AssertFilesEquals(dtoContext, fixture.FileGeneratorService.CurrentFeature);
         }
 
+        /// <summary>
+        /// Generates the dto plane.
+        /// It is a sample for a DTO used for Team
+        /// </summary>
+        [Fact]
+        public async Task GenerateDTO_AircraftMaintenanceCompany()
+        {
+            var entityInfo = new EntityInfo(
+                path: string.Empty,
+                @namespace: "TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Entities",
+                name: "AircraftMaintenanceCompany",
+                baseType: "Team",
+                primaryKey: null,
+                arguments: null,
+                baseList: []);
+
+            var domainName = "AircraftMaintenanceCompany";
+
+            var mappingProperties = new List<MappingEntityProperty>
+            {
+            };
+
+            var dtoContext = new FileGeneratorDtoContext
+            {
+                IsTeam = true,
+                CompanyName = fixture.TestProject.CompanyName,
+                ProjectName = fixture.TestProject.Name,
+                DomainName = domainName,
+                EntityName = entityInfo.Name,
+                EntityNamePlural = entityInfo.NamePluralized,
+                BaseKeyType = entityInfo.BaseKeyType,
+                Properties = [.. mappingProperties],
+                GenerateBack = true,
+            };
+
+            await fixture.FileGeneratorService.GenerateDtoAsync(dtoContext);
+
+            fixture.AssertFilesEquals(dtoContext, fixture.FileGeneratorService.CurrentFeature);
+        }
     }
 }
