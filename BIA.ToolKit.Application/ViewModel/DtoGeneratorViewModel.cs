@@ -557,19 +557,23 @@
         public string EntityCompositeName { get; set; }
         public string EntityType { get; set; }
 
-        private string mappingName;
+        private string mappingName = null;
         public string MappingName
         {
-            get => mappingName;
-            set
-            {
-                mappingName = value;
-                RaisePropertyChanged(nameof(MappingName));
-            }
+            // Inteligent getter to simplify unitary test
+            get { if (mappingName != null) { return mappingName; } else { return EntityCompositeName; } }
+            set { mappingName = value; RaisePropertyChanged(nameof(MappingName)); }
+        }
+
+        private string mappingType = null;
+        public string MappingType
+        {
+            // Inteligent getter to simplify unitary test
+            get { if (mappingType != null) { return mappingType; } else { return EntityType; } }
+            set { mappingType = value; }
         }
 
         public string ParentEntityType { get; set; }
-        public string MappingType { get; set; }
         public bool IsOption => MappingType.Equals(Constants.BiaClassName.OptionDto);
         public bool IsOptionCollection => MappingType.Equals(Constants.BiaClassName.CollectionOptionDto);
         public string OptionType { get; set; }

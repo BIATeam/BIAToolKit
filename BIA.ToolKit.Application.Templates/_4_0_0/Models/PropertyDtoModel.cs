@@ -8,19 +8,11 @@
 
     public class PropertyDtoModel
     {
-        private string mappingName = null;
-        public string MappingName { 
-            // Inteligent getter to simplify unitary test
-            get { if (mappingName != null) { return mappingName; } else { return EntityCompositeName; } }
-            set { mappingName = value; } 
-        }
         public string EntityCompositeName { get; set; }
-        private string entityType = null;
-        public string EntityType {
-            // Inteligent getter to simplify unitary test
-            get { if (entityType != null) { return entityType; } else { return MappingType; } }
-            set { entityType = value; }
-        }
+        public string EntityType { get; set; }
+        public string MappingType { get; set; }
+        public string MappingName { get; set; }
+
         public string NonNullEntityType
         {
             get
@@ -28,7 +20,7 @@
                 return EntityType.Replace("?", string.Empty);
             }
         }
-        public string MappingType { get; set; }
+
         public string NonNullMappingType
         {
             get
