@@ -45,10 +45,16 @@
             "string",
             "DateTime",
             "DateOnly",
-            "TimeSpan",
+            
             "TimeOnly",
             "byte[]"
         };
+        private readonly Dictionary<string, string> specialdTypeToRemap = new()
+        {
+            { "TimeSpan", "string" },
+            { "TimeSpan?", "string" },
+        };
+
         private readonly Dictionary<string, List<string>> biaDtoFieldDateTypesByPropertyType = new()
         {
             { "TimeSpan", new List<string> { "time" } },
@@ -324,6 +330,7 @@
                     var mappingEntityProperty = new MappingEntityProperty
                     {
                         EntityCompositeName = selectedEntityProperty.CompositeName,
+                        EntityType = selectedEntityProperty.Type,
                         ParentEntityType = selectedEntityProperty.ParentType,
                         MappingName = selectedEntityProperty.CompositeName.Replace(".", string.Empty),
                         MappingType = ComputeMappingType(selectedEntityProperty)
@@ -436,6 +443,11 @@
                 return entityProperty.Type;
             }
 
+            if (specialdTypeToRemap.Any(x => x.Key.Equals(entityProperty.Type)))
+            {
+                return specialdTypeToRemap.First(x => x.Key.Equals(entityProperty.Type)).Value;
+            }
+
             return Constants.BiaClassName.OptionDto;
         }
 
@@ -543,6 +555,7 @@
     public class MappingEntityProperty : ObservableObject
     {
         public string EntityCompositeName { get; set; }
+        public string EntityType { get; set; }
 
         private string mappingName;
         public string MappingName

@@ -99,17 +99,17 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
         public struct HeaderName
         {
             /// <summary>
-            /// Header name for Id.
+            /// Header name for id.
             /// </summary>
             public const string Id = "id";
 
             /// <summary>
-            /// Header name for Name.
+            /// Header name for name.
             /// </summary>
             public const string Name = "name";
 
             /// <summary>
-            /// Header name for Option.
+            /// Header name for option.
             /// </summary>
             public const string Option = "option";
         }

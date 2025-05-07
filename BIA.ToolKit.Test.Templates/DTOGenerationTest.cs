@@ -133,11 +133,13 @@
                     EntityCompositeName = "FirstFlightDate",
                     MappingType = "DateTime",
                     IsRequired = true,
+                    MappingDateType = "datetime",
                 },
                 new()
                 {
                     EntityCompositeName = "LastFlightDate",
                     MappingType = "DateTime?",
+                    MappingDateType = "datetime",
                 },
                 new()
                 {
@@ -155,13 +157,17 @@
                 new()
                 {
                     EntityCompositeName = "SyncTime",
-                    MappingType = "TimeSpan?",
+                    EntityType = "TimeSpan?",
+                    MappingType = "string",
+                    MappingDateType = "time",
                 },
                 new()
                 {
                     EntityCompositeName = "SyncFlightDataTime",
-                    MappingType = "TimeSpan",
+                    EntityType = "TimeSpan",
+                    MappingType = "string",
                     IsRequired = true,
+                    MappingDateType = "time",
                 },
                 new()
                 {
@@ -172,7 +178,7 @@
                 new()
                 {
                     EntityCompositeName = "MotorsCount",
-                    MappingType = "int",
+                    MappingType = "int?",
                 },
                 new()
                 {
@@ -183,7 +189,7 @@
                 new()
                 {
                     EntityCompositeName = "Probability",
-                    MappingType = "double",
+                    MappingType = "double?",
                 },
                 new()
                 {
@@ -194,7 +200,7 @@
                 new()
                 {
                     EntityCompositeName = "FuelLevel",
-                    MappingType = "float",
+                    MappingType = "float?",
                 },
                 new()
                 {
@@ -205,7 +211,7 @@
                 new()
                 {
                     EntityCompositeName = "EstimatedPrice",
-                    MappingType = "decimal",
+                    MappingType = "decimal?",
                 },
                 new()
                 {
@@ -262,7 +268,8 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = [.. mappingProperties],
-                GenerateBack = true
+                GenerateBack = true,
+                AncestorTeamName = "Site",
             };
 
             await fixture.FileGeneratorService.GenerateDtoAsync(dtoContext);

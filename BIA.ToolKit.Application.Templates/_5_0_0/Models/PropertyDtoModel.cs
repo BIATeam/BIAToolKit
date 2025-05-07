@@ -8,5 +8,6 @@
 
     public class PropertyDtoModel : _4_0_0.Models.PropertyDtoModel
     {
+
     }
 }

@@ -17,6 +17,7 @@
             DomainName = "Fleet";
             EntityName = "Plane";
             BaseKeyType = "int";
+            AncestorTeam = "Site";
             Properties = new List<PropertyDtoModel>()
             {
                 new PropertyDtoModel
