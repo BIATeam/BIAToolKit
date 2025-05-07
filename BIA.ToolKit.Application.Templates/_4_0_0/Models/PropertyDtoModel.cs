@@ -8,12 +8,33 @@
 
     public class PropertyDtoModel
     {
-        private string mappingName = null;
-        public string MappingName { 
-            get { if (mappingName != null) { return mappingName; } else { return EntityCompositeName; } }
-            set { mappingName = value; } }
         public string EntityCompositeName { get; set; }
+        public string EntityType { get; set; }
         public string MappingType { get; set; }
+        public string MappingName { get; set; }
+
+        public string NonNullEntityType
+        {
+            get
+            {
+                return EntityType.Replace("?", string.Empty);
+            }
+        }
+
+        public string NonNullMappingType
+        {
+            get
+            {
+                return MappingType.Replace("?", string.Empty);
+            }
+        }
+        public string MappingTypeInDto {
+            get {
+                if (NonNullEntityType == "TimeSpan") { return "string"; }
+                return MappingType;
+            } 
+        }
+
         public string MappingDateType { get; set; }
         public bool IsOption { get; set; }
         public string OptionType { get; set; }
@@ -65,7 +86,7 @@
 
         public string GenerateMapperCSV()
         {
-            string nonNullMappingType = MappingType.Replace("?", string.Empty);
+            string nonNullMappingType = NonNullMappingType;
 
             if (nonNullMappingType == "bool")
             {
@@ -87,11 +108,6 @@
                 return $"CSVNumber(x.{MappingName})";
             }
 
-            if (nonNullMappingType == "TimeSpan")
-            {
-                return $"CSVTime(x.{MappingName})";
-            }
-
             if (!string.IsNullOrWhiteSpace(MappingDateType))
             {
                 switch (MappingDateType)
@@ -105,11 +121,6 @@
                     default:
                         throw new InvalidOperationException($"Unable to get CSV method for mapping date type {MappingDateType}");
                 }
-            }
-
-            if (nonNullMappingType == "DateTime")
-            {
-                return $"CSVDateTime(x.{MappingName})";
             }
 
             if (nonNullMappingType == "string")
@@ -128,6 +139,20 @@
             }
 
             return $"CSVString(x.{MappingName}.ToString())";
+        }
+
+        public string GenerateGetSetComment(string entityName) // TODO deplace in V5.0.0 but today crash in unitary test
+        {
+            string nonNullMappingType = NonNullMappingType;
+            if (nonNullMappingType == "bool")
+            {
+                return "Gets or sets a value indicating whether the " + entityName + " " + MappingName.ToLiteral();
+            }
+            if (IsOptionCollection)
+            {
+                return "Gets or sets the list of " + MappingName.ToLiteral();
+            }
+            return "Gets or sets the " + MappingName.ToLiteral();
         }
     }
 }

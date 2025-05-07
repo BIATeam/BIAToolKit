@@ -43,6 +43,7 @@
             {
                 MappingName = x.MappingName,
                 EntityCompositeName = x.EntityCompositeName,
+                EntityType = x.EntityType,
                 MappingType = x.MappingType,
                 MappingDateType = x.MappingDateType,
                 IsOption = x.IsOption,

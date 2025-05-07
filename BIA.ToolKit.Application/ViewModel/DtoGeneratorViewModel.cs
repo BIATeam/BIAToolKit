@@ -45,10 +45,16 @@
             "string",
             "DateTime",
             "DateOnly",
-            "TimeSpan",
+            
             "TimeOnly",
             "byte[]"
         };
+        private readonly Dictionary<string, string> specialdTypeToRemap = new()
+        {
+            { "TimeSpan", "string" },
+            { "TimeSpan?", "string" },
+        };
+
         private readonly Dictionary<string, List<string>> biaDtoFieldDateTypesByPropertyType = new()
         {
             { "TimeSpan", new List<string> { "time" } },
@@ -324,6 +330,7 @@
                     var mappingEntityProperty = new MappingEntityProperty
                     {
                         EntityCompositeName = selectedEntityProperty.CompositeName,
+                        EntityType = selectedEntityProperty.Type,
                         ParentEntityType = selectedEntityProperty.ParentType,
                         MappingName = selectedEntityProperty.CompositeName.Replace(".", string.Empty),
                         MappingType = ComputeMappingType(selectedEntityProperty)
@@ -436,6 +443,11 @@
                 return entityProperty.Type;
             }
 
+            if (specialdTypeToRemap.Any(x => x.Key.Equals(entityProperty.Type)))
+            {
+                return specialdTypeToRemap.First(x => x.Key.Equals(entityProperty.Type)).Value;
+            }
+
             return Constants.BiaClassName.OptionDto;
         }
 
@@ -543,20 +555,25 @@
     public class MappingEntityProperty : ObservableObject
     {
         public string EntityCompositeName { get; set; }
+        public string EntityType { get; set; }
 
-        private string mappingName;
+        private string mappingName = null;
         public string MappingName
         {
-            get => mappingName;
-            set
-            {
-                mappingName = value;
-                RaisePropertyChanged(nameof(MappingName));
-            }
+            // Inteligent getter to simplify unitary test
+            get { if (mappingName != null) { return mappingName; } else { return EntityCompositeName; } }
+            set { mappingName = value; RaisePropertyChanged(nameof(MappingName)); }
+        }
+
+        private string mappingType = null;
+        public string MappingType
+        {
+            // Inteligent getter to simplify unitary test
+            get { if (mappingType != null) { return mappingType; } else { return EntityType; } }
+            set { mappingType = value; }
         }
 
         public string ParentEntityType { get; set; }
-        public string MappingType { get; set; }
         public bool IsOption => MappingType.Equals(Constants.BiaClassName.OptionDto);
         public bool IsOptionCollection => MappingType.Equals(Constants.BiaClassName.CollectionOptionDto);
         public string OptionType { get; set; }

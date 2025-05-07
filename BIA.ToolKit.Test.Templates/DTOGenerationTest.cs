@@ -42,20 +42,20 @@
                 new()
                 {
                     EntityCompositeName = "Id",
-                    MappingType = "int",
+                    EntityType = "int",
                     MappingName = "Id",
                 },
                 new()
                 {
                     EntityCompositeName = "Title",
-                    MappingType = "string",
+                    EntityType = "string",
                     MappingName = "Title",
                     IsRequired = true,
                 },
                 new()
                 {
                     EntityCompositeName = "CertificationDate",
-                    MappingType = "DateTime?",
+                    EntityType = "DateTime?",
                     MappingName = "CertificationDate",
                     MappingDateType = "datetime"
                 },
@@ -97,120 +97,126 @@
                 new()
                 {
                     EntityCompositeName = "SiteId",
-                    MappingType = "int",
+                    EntityType = "int",
                     IsRequired = true,
                     IsParent = true,
                 },
                 new()
                 {
                     EntityCompositeName = "Id",
-                    MappingType = "int",
+                    EntityType = "int",
                 },
                 new()
                 {
                     EntityCompositeName = "Msn",
-                    MappingType = "string",
+                    EntityType = "string",
                     IsRequired = true,
                 },
                 new()
                 {
                     EntityCompositeName = "Manufacturer",
-                    MappingType = "string",
+                    EntityType = "string",
                 },
                 new()
                 {
                     EntityCompositeName = "IsActive",
-                    MappingType = "bool",
+                    EntityType = "bool",
                     IsRequired = true,
                 },
                 new()
                 {
                     EntityCompositeName = "IsMaintenance",
-                    MappingType = "bool?",
+                    EntityType = "bool?",
                 },
                 new()
                 {
                     EntityCompositeName = "FirstFlightDate",
-                    MappingType = "DateTime",
+                    EntityType = "DateTime",
                     IsRequired = true,
+                    MappingDateType = "datetime",
                 },
                 new()
                 {
                     EntityCompositeName = "LastFlightDate",
-                    MappingType = "DateTime?",
+                    EntityType = "DateTime?",
+                    MappingDateType = "datetime",
                 },
                 new()
                 {
                     EntityCompositeName = "DeliveryDate",
-                    MappingType = "DateTime?",
+                    EntityType = "DateTime?",
                     MappingDateType = "date",
                 },
                 new()
                 {
                     EntityCompositeName = "NextMaintenanceDate",
-                    MappingType = "DateTime",
+                    EntityType = "DateTime",
                     IsRequired = true,
                     MappingDateType = "date",
                 },
                 new()
                 {
                     EntityCompositeName = "SyncTime",
-                    MappingType = "TimeSpan?",
+                    EntityType = "TimeSpan?",
+                    MappingType = "string",
+                    MappingDateType = "time",
                 },
                 new()
                 {
                     EntityCompositeName = "SyncFlightDataTime",
-                    MappingType = "TimeSpan",
+                    EntityType = "TimeSpan",
+                    MappingType = "string",
                     IsRequired = true,
+                    MappingDateType = "time",
                 },
                 new()
                 {
                     EntityCompositeName = "Capacity",
-                    MappingType = "int",
+                    EntityType = "int",
                     IsRequired = true,
                 },
                 new()
                 {
                     EntityCompositeName = "MotorsCount",
-                    MappingType = "int",
+                    EntityType = "int?",
                 },
                 new()
                 {
                    EntityCompositeName = "TotalFlightHours",
-                   MappingType = "double",
+                   EntityType = "double",
                    IsRequired = true,
                 },
                 new()
                 {
                     EntityCompositeName = "Probability",
-                    MappingType = "double",
+                    EntityType = "double?",
                 },
                 new()
                 {
                     EntityCompositeName = "FuelCapacity",
-                    MappingType = "float",
+                    EntityType = "float",
                     IsRequired = true,
                 },
                 new()
                 {
                     EntityCompositeName = "FuelLevel",
-                    MappingType = "float",
+                    EntityType = "float?",
                 },
                 new()
                 {
                     EntityCompositeName = "OriginalPrice",
-                    MappingType = "decimal",
+                    EntityType = "decimal",
                     IsRequired = true,
                 },
                 new()
                 {
                     EntityCompositeName = "EstimatedPrice",
-                    MappingType = "decimal",
+                    EntityType = "decimal?",
                 },
                 new()
                 {
                     EntityCompositeName = "PlaneType",
-                    MappingType = "OptionDto",
+                    EntityType = "OptionDto",
                     OptionType = "PlaneType",
                     OptionIdProperty = "Id",
                     OptionDisplayProperty = "Title",
@@ -219,7 +225,7 @@
                 new()
                 {
                     EntityCompositeName = "SimilarTypes",
-                    MappingType = "ICollection<OptionDto>",
+                    EntityType = "ICollection<OptionDto>",
                     OptionType = "PlaneType",
                     OptionIdProperty = "Id",
                     OptionDisplayProperty = "Title",
@@ -231,7 +237,7 @@
                 new()
                 {
                     EntityCompositeName = "CurrentAirport",
-                    MappingType = "OptionDto",
+                    EntityType = "OptionDto",
                     IsRequired = true,
                     OptionType = "Airport",
                     OptionIdProperty = "Id",
@@ -241,7 +247,7 @@
                 new()
                 {
                     EntityCompositeName = "ConnectingAirports",
-                    MappingType = "ICollection<OptionDto>",
+                    EntityType = "ICollection<OptionDto>",
                     IsRequired = true,
                     OptionType = "Airport",
                     OptionIdProperty = "Id",
@@ -262,7 +268,8 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = [.. mappingProperties],
-                GenerateBack = true
+                GenerateBack = true,
+                AncestorTeamName = "Site",
             };
 
             await fixture.FileGeneratorService.GenerateDtoAsync(dtoContext);

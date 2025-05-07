@@ -128,9 +128,9 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
                     });
                 }
             }
-<#     } else if (property.MappingType == "TimeSpan") { #>
+<#     } else if (property.EntityType == "TimeSpan") { #>
             entity.<#= property.EntityCompositeName #> = TimeSpan.Parse(dto.<#= property.MappingName #>, new CultureInfo("en-US"));
-<#     } else if (property.MappingType == "TimeSpan?") { #>
+<#     } else if (property.EntityType == "TimeSpan?") { #>
             entity.<#= property.EntityCompositeName #> = string.IsNullOrEmpty(dto.<#= property.MappingName #>) ? null : TimeSpan.Parse(dto.<#= property.MappingName #>, new CultureInfo("en-US"));
 <#     } else { #>
             entity.<#= property.EntityCompositeName #> = dto.<#= property.MappingName #>;
@@ -166,9 +166,9 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
                     Id = x.<#= property.OptionIdProperty #>,
                     Display = x.<#= property.OptionDisplayProperty #>,
                 }).OrderBy(x => x.Display).ToList(),
-<#       } else if (property.MappingType == "TimeSpan") {  #>
+<#       } else if (property.EntityType == "TimeSpan") {  #>
                 <#= property.MappingName #> = entity.<#= property.EntityCompositeName #>.ToString(@"hh\:mm\:ss"),
-<#       } else if (property.MappingType == "TimeSpan?") {  #>
+<#       } else if (property.EntityType == "TimeSpan?") {  #>
                 <#= property.MappingName #> = entity.<#= property.EntityCompositeName #>.Value.ToString(@"hh\:mm\:ss"),
 <#       } else {  #>
                 <#= property.MappingName #> = entity.<#= property.EntityCompositeName #>,

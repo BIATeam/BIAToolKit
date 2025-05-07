@@ -182,13 +182,6 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Header="Mapping Type">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Foreground="Black" Text="{Binding MappingType}"></TextBlock>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
                     <GridViewColumn Header="Parent Identifier">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
@@ -249,6 +242,20 @@
                                 SelectedValue="{Binding OptionDisplayProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                 Visibility="{Binding IsVisibleOptionPropertiesComboBox, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
                                 </Grid>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Entity Type">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Foreground="Black" Text="{Binding EntityType}"></TextBlock>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Mapping Type">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Foreground="Black" Text="{Binding MappingType}"></TextBlock>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
