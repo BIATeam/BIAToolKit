@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace BIA.ToolKit.Application.Templates._4_0_0.Models
 {
-    public class EntityModel
+    public class EntityModel : DotNetModel
     {
         public string CompanyName { get; set; }
         public string ProjectName { get; set; }

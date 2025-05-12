@@ -10,44 +10,42 @@ var baseKeyType = ModelInstance.IsTeamType ? string.Empty : $", {ModelInstance.B
 // </copyright>
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers
-{
-<# if (ModelInstance.Properties.Count() > 0) { #>
-    using System;
-<# }
-   if (ModelInstance.HasCollectionOptions) { #>
-    using System.Collections.Generic;
-<# } 
-   if (ModelInstance.HasTimeSpanProperty) { #>
-    using System.Globalization;
-<# } 
-   if (ModelInstance.Properties.Count() > 0) { #>
-    using System.Linq;
-    using System.Linq.Expressions;
-<# }
-   if (ModelInstance.IsTeamType) { #>
-    using System.Security.Principal;
-<#      if (ModelInstance.Properties.Count() > 0) { #>
-    using BIA.Net.Core.Common.Extensions;
-<#      }
+{<# if (ModelInstance.Properties.Count() > 0) { 
+       ModelInstance.Use("System");   
    }
-   if (ModelInstance.Properties.Count() > 0) { #>
-    using BIA.Net.Core.Domain;
-<# }
-   if (ModelInstance.HasCollectionOptions) { #>
-    using BIA.Net.Core.Domain.Dto.Base;
-<# }
-   if (ModelInstance.HasOptions) { #>
-    using BIA.Net.Core.Domain.Dto.Option;
-<# }
-   if (ModelInstance.IsTeamType) { #>
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common.Enum;
-<# } #>
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
-<# if (ModelInstance.IsTeamType) { #>
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.User.Mappers;
-<# } #>
-
+   if (ModelInstance.HasCollectionOptions) {  
+       ModelInstance.Use("System.Collections.Generic");   
+   }
+   if (ModelInstance.HasTimeSpanProperty) { 
+       ModelInstance.Use("System.Globalization");   
+   }
+   if (ModelInstance.Properties.Count() > 0) { 
+       ModelInstance.Use("System.Linq");
+       ModelInstance.Use("System.Linq.Expressions");   
+   }
+   if (ModelInstance.IsTeamType) { 
+       ModelInstance.Use("System.Security.Principal");
+       if (ModelInstance.Properties.Count() > 0) {
+           ModelInstance.Use("BIA.Net.Core.Common.Extensions");
+      }
+   }
+   if (ModelInstance.Properties.Count() > 0)  { 
+       ModelInstance.Use("BIA.Net.Core.Domain");
+   }
+   if (ModelInstance.HasCollectionOptions) { 
+       ModelInstance.Use("BIA.Net.Core.Domain.Dto.Base");
+   }
+   if (ModelInstance.HasOptions) { 
+       ModelInstance.Use("BIA.Net.Core.Domain.Dto.Option");
+   }
+   if (ModelInstance.IsTeamType) { 
+       ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Crosscutting.Common.Enum");
+   }
+   ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain.Dto." + ModelInstance.DomainName);
+   ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain." + ModelInstance.DomainName + ".Entities");
+   if (ModelInstance.IsTeamType) { 
+       ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain.User.Mappers");
+   }#><#= ModelInstance.WritteUsing() #>
     /// <summary>
     /// The mapper used for <#= ModelInstance.EntityName #>.
     /// </summary>
