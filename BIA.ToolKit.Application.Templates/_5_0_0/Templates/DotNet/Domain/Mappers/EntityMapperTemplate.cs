@@ -17,6 +17,7 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
     /// </summary>
     public class PlaneMapper : BaseMapper<PlaneDto, Plane, int>
     {
+
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.ExpressionCollection"/>
         public override ExpressionCollection<Plane> ExpressionCollection
         {
