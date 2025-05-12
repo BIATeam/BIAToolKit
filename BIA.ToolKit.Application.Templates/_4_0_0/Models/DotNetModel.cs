@@ -10,6 +10,11 @@
 
         private List<string> usingList = new List<string>();
 
+        public void ClearUse()
+        {
+            usingList.Clear();
+        }
+
         public void Use(string usingItem)
         {
             usingList.Add(usingItem);

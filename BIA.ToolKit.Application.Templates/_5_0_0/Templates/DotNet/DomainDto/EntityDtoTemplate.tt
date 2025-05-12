@@ -6,25 +6,26 @@
 // </copyright>
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>
-{
-<# if (ModelInstance.Properties.Count() > 0) { #>
-    using System;
-<# }
-   if(ModelInstance.HasCollectionOptions) { #>
-    using System.Collections.Generic;
-<# }
-   if(!ModelInstance.IsTeamType) { #>
-    using BIA.Net.Core.Domain.Dto.Base;
-<# } if (ModelInstance.Properties.Count() > 0) { #>
-    using BIA.Net.Core.Domain.Dto.CustomAttribute;
-<# }
-   if(ModelInstance.HasOptions) { #>
-    using BIA.Net.Core.Domain.Dto.Option;
-<# }
-   if(ModelInstance.IsTeamType) { #>
-    using BIA.Net.Core.Domain.Dto.User;
-<# } #>
-
+{<#
+    ModelInstance.ClearUse();
+    if (ModelInstance.Properties.Count() > 0) { 
+        ModelInstance.Use("System");   
+    }
+    if(ModelInstance.HasCollectionOptions) { 
+        ModelInstance.Use("System.Collections.Generic");   
+    }
+    if(!ModelInstance.IsTeamType) { 
+        ModelInstance.Use("BIA.Net.Core.Domain.Dto.Base");   
+    }
+    if (ModelInstance.Properties.Count() > 0) { 
+        ModelInstance.Use("BIA.Net.Core.Domain.Dto.CustomAttribute");   
+    }
+    if(ModelInstance.HasOptions) { 
+        ModelInstance.Use("BIA.Net.Core.Domain.Dto.Option");   
+    }
+    if(ModelInstance.IsTeamType) { 
+        ModelInstance.Use("BIA.Net.Core.Domain.Dto.User");   
+    } #><#= ModelInstance.WritteUsing() #>
     /// <summary>
     /// The DTO used to represent <#= ModelInstance.EntityNameArticle #> <#= ModelInstance.EntityName.ToLiteral() #>.
     /// </summary>

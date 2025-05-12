@@ -10,7 +10,9 @@ var baseKeyType = ModelInstance.IsTeamType ? string.Empty : $", {ModelInstance.B
 // </copyright>
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers
-{<# if (ModelInstance.Properties.Count() > 0) { 
+{<# 
+    ModelInstance.ClearUse();
+    if (ModelInstance.Properties.Count() > 0) { 
        ModelInstance.Use("System");   
    }
    if (ModelInstance.HasCollectionOptions) {  
