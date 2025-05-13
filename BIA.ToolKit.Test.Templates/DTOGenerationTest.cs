@@ -24,7 +24,7 @@
         }
 
         /// <summary>
-        /// Generates the type of the dto plane.
+        /// Generates the dto and mapper for PlaneType.
         /// It is a sample for a DTO used for Option and for CRUD
         /// </summary>
         [Fact]
@@ -83,7 +83,7 @@
         }
 
         /// <summary>
-        /// Generates the dto plane.
+        /// Generates the dto and mapper for Plane.
         /// It is a sample for a DTO used for CRUD with all type of data
         /// </summary>
         [Fact]
@@ -287,7 +287,7 @@
         }
 
         /// <summary>
-        /// Generates the dto plane.
+        /// Generates the dto and mapper AircraftMaintenanceCompany.
         /// It is a sample for a DTO used for Team
         /// </summary>
         [Fact]
@@ -325,5 +325,200 @@
 
             fixture.AssertFilesEquals(dtoContext, fixture.FileGeneratorService.CurrentFeature);
         }
+
+
+        /// <summary>
+        /// Generates the dto and mapper for MaintenanceTeam.
+        /// It is a sample for a DTO used for Child Team
+        /// </summary>
+        [Fact]
+        public async Task GenerateDTOMaintenanceTeam()
+        {
+            var entityInfo = new EntityInfo(
+                path: string.Empty,
+                @namespace: "TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Entities",
+                name: "MaintenanceTeam",
+                baseType: "Team",
+                primaryKey: null,
+                arguments: null,
+                baseList: []);
+
+            var domainName = "AircraftMaintenanceCompany";
+
+            var mappingProperties = new List<MappingEntityProperty>
+            {
+                new()
+                {
+                    EntityCompositeName = "AircraftMaintenanceCompanyId",
+                    EntityType = "int",
+                    IsRequired = true,
+                    IsParent = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "Code",
+                    EntityType = "string",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "IsActive",
+                    EntityType = "bool",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "IsApproved",
+                    EntityType = "bool?",
+                },
+                new()
+                {
+                    EntityCompositeName = "FirstOperation",
+                    EntityType = "DateTime",
+                    IsRequired = true,
+                    MappingDateType = "datetime",
+                },
+                new()
+                {
+                    EntityCompositeName = "LastOperation",
+                    EntityType = "DateTime?",
+                    MappingDateType = "datetime",
+                },
+                new()
+                {
+                    EntityCompositeName = "ApprovedDate",
+                    EntityType = "DateTime?",
+                    MappingDateType = "date",
+                },
+                new()
+                {
+                    EntityCompositeName = "NextOperation",
+                    EntityType = "DateTime",
+                    IsRequired = true,
+                    MappingDateType = "date",
+                },
+                new()
+                {
+                    EntityCompositeName = "MaxTravelDuration",
+                    EntityType = "TimeSpan?",
+                    MappingType = "string",
+                    MappingDateType = "time",
+                },
+                new()
+                {
+                    EntityCompositeName = "MaxOperationDuration",
+                    EntityType = "TimeSpan",
+                    MappingType = "string",
+                    IsRequired = true,
+                    MappingDateType = "time",
+                },
+                new()
+                {
+                    EntityCompositeName = "OperationCount",
+                    EntityType = "int",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "IncidentCount",
+                    EntityType = "int?",
+                },
+                new()
+                {
+                   EntityCompositeName = "TotalOperationDuration",
+                   EntityType = "double",
+                   IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "AverageOperationDuration",
+                    EntityType = "double?",
+                },
+                new()
+                {
+                    EntityCompositeName = "TotalTravelDuration",
+                    EntityType = "float",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "AverageTravelDuration",
+                    EntityType = "float?",
+                },
+                new()
+                {
+                    EntityCompositeName = "TotalOperationCost",
+                    EntityType = "decimal",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "AverageOperationCost",
+                    EntityType = "decimal?",
+                },
+                new()
+                {
+                    EntityCompositeName = "CurrentAirport",
+                    EntityType = "OptionDto",
+                    IsRequired = true,
+                    OptionType = "Airport",
+                    OptionIdProperty = "Id",
+                    OptionDisplayProperty = "Name",
+                    OptionEntityIdProperty = "CurrentAirportId",
+                },
+                new()
+                {
+                    EntityCompositeName = "OperationAirports",
+                    EntityType = "ICollection<OptionDto>",
+                    IsRequired = true,
+                    OptionType = "Airport",
+                    OptionIdProperty = "Id",
+                    OptionDisplayProperty = "Name",
+                    OptionRelationPropertyComposite = "OperationMaintenanceTeamAirports",
+                    OptionRelationType = "MaintenanceTeamAirport",
+                    OptionRelationFirstIdProperty = "MaintenanceTeamId",
+                    OptionRelationSecondIdProperty = "AirportId",
+                },
+                new()
+                {
+                    EntityCompositeName = "CurrentCountry",
+                    EntityType = "OptionDto",
+                    OptionType = "Country",
+                    OptionIdProperty = "Id",
+                    OptionDisplayProperty = "Name",
+                    OptionEntityIdProperty = "CurrentCountryId",
+                },
+                new()
+                {
+                    EntityCompositeName = "OperationCountries",
+                    EntityType = "ICollection<OptionDto>",
+                    OptionType = "Country",
+                    OptionIdProperty = "Id",
+                    OptionDisplayProperty = "Name",
+                    OptionRelationPropertyComposite = "OperationMaintenanceTeamCountries",
+                    OptionRelationType = "MaintenanceTeamCountry",
+                    OptionRelationFirstIdProperty = "MaintenanceTeamId",
+                    OptionRelationSecondIdProperty = "CountryId",
+                },
+            };
+
+            var dtoContext = new FileGeneratorDtoContext
+            {
+                IsTeam = true,
+                CompanyName = fixture.TestProject.CompanyName,
+                ProjectName = fixture.TestProject.Name,
+                DomainName = domainName,
+                EntityName = entityInfo.Name,
+                EntityNamePlural = entityInfo.NamePluralized,
+                BaseKeyType = entityInfo.BaseKeyType,
+                Properties = [.. mappingProperties],
+                GenerateBack = true,
+            };
+
+            await fixture.FileGeneratorService.GenerateDtoAsync(dtoContext);
+
+            fixture.AssertFilesEquals(dtoContext, fixture.FileGeneratorService.CurrentFeature);
+        }
+
     }
 }
