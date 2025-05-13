@@ -74,7 +74,8 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         {
             get
             {
-                return new ExpressionCollection<<#= ModelInstance.EntityName #>>
+                return new ExpressionCollection<<#= ModelInstance.EntityName #>><# if (ModelInstance.IsTeamType) { #>(base.ExpressionCollection)<# } #>
+
                 {
 <# foreach (var property in ModelInstance.Properties) { 
        if (property.IsOptionCollection) { #>
@@ -83,7 +84,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
        else if (property.IsOption) { #>
                     { HeaderName.<#= property.MappingName #>, <#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #> != null ? <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #>.<#= property.OptionDisplayProperty #> : null },
 <#     }
-       else { #>
+       else if (!property.IsParent){ #>
                     { HeaderName.<#= property.MappingName #>, <#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #> },
 <#     }
 } #>                };
@@ -119,7 +120,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
        } else if (property.IsOptionCollection) { #>
 
             // Map relationship *-* : <#= property.MappingName #>
-            if (dto.<#= property.MappingName #>?.Count != 0)
+            if (dto.<#= property.MappingName #> != null && dto.<#= property.MappingName #>.Count != 0)
             {
                 foreach (var <#= property.MappingName.ToSingular().ToCamelCase() #>Dto in dto.<#= property.MappingName #>.Where(x => x.DtoState == DtoState.Deleted))
                 {
@@ -160,17 +161,22 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
                 if (property.IsRequired) { #>
 
                 // Map relationship 1-* : <#= property.MappingName #>
+                <#= property.MappingName #> = new OptionDto
+                {
+                    Id = entity.<#= property.EntityCompositeName #>.<#= property.OptionIdProperty #>,
+                    Display = entity.<#= property.EntityCompositeName #>.<#= property.OptionDisplayProperty #>,
+                },
 <#              } else { #>
 
                 // Map relationship 0..1-* : <#= property.MappingName #>
-<#              } #>
                 <#= property.MappingName #> = entity.<#= property.EntityCompositeName #> != null ? new OptionDto
                 {
                     Id = entity.<#= property.EntityCompositeName #>.<#= property.OptionIdProperty #>,
                     Display = entity.<#= property.EntityCompositeName #>.<#= property.OptionDisplayProperty #>,
                 }
                 : null,
-<#       } else if (property.IsOptionCollection) { #>
+<#              }
+         } else if (property.IsOptionCollection) { #>
 
                 // Map relationship *-* : <#= property.MappingName #>
                 <#= property.MappingName #> = entity.<#= property.EntityCompositeName #>.Select(x => new OptionDto
@@ -209,23 +215,25 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         {
             return x =>
             {
-                List<object> records = new List<object>();
+                List<object> records = <#= ModelInstance.IsTeamType ? "[.. base.DtoToRecord(headerNames)(x)]" : "new List<object>()" #>;
 
                 if (headerNames?.Any() == true)
                 {
                     foreach (string headerName in headerNames)
                     {
 <# var index = 0;  #>
-<# foreach (var property in ModelInstance.Properties) { #>
+<# foreach (var property in ModelInstance.Properties) { 
+       index++; 
+       if (!property.IsParent) {#>
                         if (string.Equals(headerName, HeaderName.<#= property.MappingName #>, StringComparison.OrdinalIgnoreCase))
                         {
                             records.Add(<#= property.GenerateMapperCSV() #>);
                         }
-<# index++;  #>
-<# if(index != ModelInstance.Properties.Count()) {#>
+<#        if(index != ModelInstance.Properties.Count()) {#>
 
-<# }#>
-<# } #>
+<#        }
+       }
+   } #>
                     }
                 }
 

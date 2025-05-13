@@ -8,37 +8,6 @@
 
     internal static class FileCompare
     {
-        /*public static string? FilesEquals(string expectedFilePath, string actualFilePath)
-        {
-            var expectedLines = File.ReadAllLines(expectedFilePath);
-            var actualLines = File.ReadAllLines(actualFilePath);
-
-            var differences = new List<string>();
-
-            int maxLines = Math.Max(expectedLines.Length, actualLines.Length);
-            for (int i = 0; i < maxLines; i++)
-            {
-                string expectedLine = i < expectedLines.Length ? expectedLines[i] : "<no line>";
-                string actualLine = i < actualLines.Length ? actualLines[i] : "<no line>";
-
-                if (!string.Equals(expectedLine, actualLine, StringComparison.Ordinal))
-                {
-                    differences.Add($"Line {i + 1}\n-> Expected: {expectedLine}\n-> Actual  : {actualLine}");
-                }
-            }
-
-            if (differences.Count != 0)
-            {
-                var builder = new StringBuilder();
-                builder.AppendLine($"File : {Path.GetFileName(expectedFilePath)} {differences.Count} differences");
-                builder.AppendLine($"kdiff3.exe {expectedFilePath} {actualFilePath}");
-                //builder.AppendLine();
-                //builder.AppendLine(string.Join("\n\n", differences));
-                return builder.ToString();
-            }
-            return null;
-        }*/
-
         public static string? FilesEquals(string expectedFilePath, string actualFilePath)
         {
             var expectedLines = File.ReadAllLines(expectedFilePath);
@@ -72,6 +41,9 @@
 
             while (expectedIndex < expectedLines.Length || actualIndex < actualLines.Length)
             {
+                var expectedLine = expectedLines[expectedIndex];
+                var actualLine = actualLines[actualIndex];
+
                 if (expectedIndex >= expectedLines.Length)
                 {
                     added++;
@@ -82,15 +54,15 @@
                     deleted++;
                     expectedIndex++;
                 }
-                else if (string.Equals(expectedLines[expectedIndex], actualLines[actualIndex], StringComparison.Ordinal))
+                else if (string.Equals(expectedLine, actualLine, StringComparison.Ordinal))
                 {
                     expectedIndex++;
                     actualIndex++;
                 }
                 else
                 {
-                    var isActualEmpty = string.IsNullOrEmpty(actualLines[actualIndex]);
-                    var isExpectedEmpty = string.IsNullOrEmpty(expectedLines[expectedIndex]);
+                    var isActualEmpty = string.IsNullOrEmpty(actualLine);
+                    var isExpectedEmpty = string.IsNullOrEmpty(expectedLine);
                     if (isActualEmpty && isExpectedEmpty)
                     {
                         modified++;
@@ -107,10 +79,21 @@
                         deleted++;
                         expectedIndex++;
                     }
+                    else if (isExpectedEmpty)
+                    {
+                        deleted++;
+                        expectedIndex++;
+                    }
+                    else if (actualLine.Contains(expectedLine) || expectedLine.Contains(actualLine))
+                    {
+                        modified++;
+                        expectedIndex++;
+                        actualIndex++;
+                    }
                     else
                     {
-                        var actualIsInExpectedLater = expectedLines.Select((s, index) => new { s, index }).Where(x => x.index > expectedIndex).FirstOrDefault(b => b.s == actualLines[actualIndex]);
-                        var expectedIsInActualLater = actualLines.Select((s, index) => new { s, index }).Where(x => x.index > actualIndex).FirstOrDefault(b => b.s == expectedLines[expectedIndex]);
+                        var actualIsInExpectedLater = expectedLines.Select((s, index) => new { s, index }).Where(x => x.index > expectedIndex).FirstOrDefault(b => b.s == actualLine);
+                        var expectedIsInActualLater = actualLines.Select((s, index) => new { s, index }).Where(x => x.index > actualIndex).FirstOrDefault(b => b.s == expectedLine);
                         if (actualIsInExpectedLater != null && expectedIsInActualLater == null)
                         {
                             if (expected_deplaced_line.Contains(expectedIndex))
