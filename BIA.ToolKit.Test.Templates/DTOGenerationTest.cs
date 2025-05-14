@@ -344,6 +344,7 @@
                 baseList: []);
 
             var domainName = "AircraftMaintenanceCompany";
+            var ancestorTeamName = "AircraftMaintenanceCompany";
 
             var mappingProperties = new List<MappingEntityProperty>
             {
@@ -358,7 +359,6 @@
                 {
                     EntityCompositeName = "Code",
                     EntityType = "string",
-                    IsRequired = true,
                 },
                 new()
                 {
@@ -513,6 +513,7 @@
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = [.. mappingProperties],
                 GenerateBack = true,
+                AncestorTeamName = ancestorTeamName,
             };
 
             await fixture.FileGeneratorService.GenerateDtoAsync(dtoContext);

@@ -5,7 +5,6 @@
 namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
 {
     using System;
-    using System.Linq;
     using System.Linq.Expressions;
     using BIA.Net.Core.Domain;
     using BIA.Net.Core.Domain.Dto.Option;
@@ -66,9 +65,9 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
         {
             return x =>
             {
-                List<object> records = new List<object>();
+                List<object> records = [];
 
-                if (headerNames?.Any() == true)
+                if (headerNames != null && headerNames.Count > 0)
                 {
                     foreach (string headerName in headerNames)
                     {
@@ -89,7 +88,7 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
                     }
                 }
 
-                return records.ToArray();
+                return [.. records];
             };
         }
 

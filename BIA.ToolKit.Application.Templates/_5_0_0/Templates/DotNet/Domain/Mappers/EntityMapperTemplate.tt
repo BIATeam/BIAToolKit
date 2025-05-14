@@ -21,8 +21,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
    if (ModelInstance.HasTimeSpanProperty) { 
        ModelInstance.Use("System.Globalization");   
    }
-   if (ModelInstance.Properties.Count() > 0) { 
-       ModelInstance.Use("System.Linq");
+   if (ModelInstance.Properties.Count() > 0) {
        ModelInstance.Use("System.Linq.Expressions");   
    }
    if (ModelInstance.IsTeamType) { 
@@ -94,11 +93,12 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToEntity"/>
         public override void DtoToEntity(<#= ModelInstance.EntityName #>Dto dto, <#= ModelInstance.EntityName #> entity)
         {
-            entity ??= new <#= ModelInstance.EntityName #>();
 <# if (ModelInstance.IsTeamType) { #>
             base.DtoToEntity(dto, entity);
-<# } #>
-<# foreach (var property in ModelInstance.Properties) {
+<# } else { #>
+            entity ??= new <#= ModelInstance.EntityName #>();
+<# }
+   foreach (var property in ModelInstance.Properties) {
        if (property.IsParent) { #>
 
             // Map parent relationship 1-* : <#= property.MappingName #>
@@ -193,20 +193,20 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <#       }
 } #>
 <# if (ModelInstance.IsTeamType) { #>
+
                 CanUpdate =
                     this.UserRoleIds.Contains((int)RoleId.<#= ModelInstance.EntityName #>Admin) ||
                     this.UserRoleIds.Contains((int)RoleId.Admin),
 
                 CanMemberListAccess =
                     this.UserRoleIds.Contains((int)RoleId.Admin) ||
-<#  if(ModelInstance.HasAncestorTeam) { #>
+<#      if(ModelInstance.HasAncestorTeam) { #>
                     entity.<#= ModelInstance.AncestorTeam #>.Members.Any(m => m.UserId == this.UserId) ||
-<#  } #>
+<#      } #>
                     entity.Members.Any(m => m.UserId == this.UserId),
-
-                TeamTypeId = this.TeamType,
-<# } #>
+<# } else { #>
                 RowVersion = Convert.ToBase64String(entity.RowVersion),
+<# } #>
             <#= ModelInstance.IsTeamType ? "})" : "}" #>;
         }
 
@@ -215,9 +215,13 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         {
             return x =>
             {
-                List<object> records = <#= ModelInstance.IsTeamType ? "[.. base.DtoToRecord(headerNames)(x)]" : "new List<object>()" #>;
+<# if (ModelInstance.IsTeamType) { #>
+                List<object> records = [.. base.DtoToRecord(headerNames)(x)];
+<# } else { #>
+                List<object> records = [];
+<# } #>
 
-                if (headerNames?.Any() == true)
+                if (headerNames != null && headerNames.Count > 0)
                 {
                     foreach (string headerName in headerNames)
                     {
@@ -237,29 +241,31 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
                     }
                 }
 
-                return records.ToArray();
+                return [.. records];
             };
         }
 <# if ( ModelInstance.Properties.Any(p => p. IsParent)) {#>
 
         /// <inheritdoc/>
-        public override void MapEntityKeysInDto(Plane entity, PlaneDto dto)
+        public override void MapEntityKeysInDto(<#= ModelInstance.EntityName #> entity, <#= ModelInstance.EntityName #>Dto dto)
         {
-            dto.Id = entity.Id;
-            dto.SiteId = entity.SiteId;
+            base.MapEntityKeysInDto(entity, dto);
+<# foreach (var property in ModelInstance.Properties.Where(p => p.IsParent)) { #>
+            dto.<#= property.MappingName #> = entity.<#= property.EntityCompositeName #>;
+<# } #>
         }
 <# } #>
 <# if ( ModelInstance.Properties.Any(p => p. IsOptionCollection)) {#>
 
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.IncludesForUpdate"/>
-        public override Expression<Func<Plane, object>>[] IncludesForUpdate()
+        public override Expression<Func<<#= ModelInstance.EntityName #>, object>>[] IncludesForUpdate()
         {
-            return new Expression<Func<Plane, object>>[]
-            {
+            return
+            [
 <# foreach (var property in ModelInstance.Properties.Where(p => p.IsOptionCollection)) { #>
                 x => x.<#= property.EntityCompositeName #>,
 <# } #>
-            };
+            ];
         }
 <# } #>
 
