@@ -55,15 +55,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\Models\DotNetModel.cs" />
-    <Compile Include="Common\Models\EntityCrudModel.cs" />
-    <Compile Include="Common\Models\EntityDtoModel.cs" />
     <Compile Include="Common\Models\EntityModel.cs" />
-    <Compile Include="Common\Models\EntityOptionModel.cs" />
     <Compile Include="Common\Interfaces\IEntityCrudModel.cs" />
     <Compile Include="Common\Interfaces\IEntityOptionModel.cs" />
     <Compile Include="Common\Interfaces\IEntityModel.cs" />
-    <Compile Include="Common\Models\PropertyCrudModel.cs" />
-    <Compile Include="Common\Models\PropertyDtoModel.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Manifest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
