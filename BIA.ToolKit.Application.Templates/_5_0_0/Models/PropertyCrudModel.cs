@@ -3,15 +3,14 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
-    public class PropertyCrudModel
+    public class PropertyCrudModel : IPropertyCrudModel
     {
         public string Name { get; set; }
         public string Type { get; set; }
         public List<KeyValuePair<string, string>> BiaFieldAttributes { get; set; } = new List<KeyValuePair<string, string>>();
-        
+
         public bool IsRequired => !IsNullable || BiaFieldAttributes.Any(x => x.Key == "IsRequired" && x.Value == "true");
         public bool IsOption => Type.StartsWith("OptionDto") || Type.StartsWith("ICollection<OptionDto>");
         public bool IsCollection => Type.StartsWith("ICollection");
@@ -91,7 +90,7 @@
                     break;
             }
 
-            if(IsCollection)
+            if (IsCollection)
                 baseType = baseType
                     .Replace("ICollection", string.Empty)
                     .Replace("<", string.Empty)
@@ -114,7 +113,7 @@
             {
                 case "string":
                     return "String";
-                case "boolean": 
+                case "boolean":
                     return "Boolean";
                 case "number":
                     return "Number";

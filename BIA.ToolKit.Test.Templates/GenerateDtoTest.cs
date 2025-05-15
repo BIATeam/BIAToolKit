@@ -1,34 +1,20 @@
 ﻿namespace BIA.ToolKit.Test.Templates
 {
-    using System;
     using System.Collections.Generic;
-    using System.Data;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
-    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
-    using BIA.ToolKit.Application.Templates;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
-    using Newtonsoft.Json;
 
-    public class DTOGenerationTest : IClassFixture<FileGeneratorTestFixture>
+    [Collection("FileGeneratorTestCollection")]
+    public class GenerateDtoTest(FileGeneratorTestFixture fixture)
     {
-        private readonly FileGeneratorTestFixture fixture;
-
-        public DTOGenerationTest(FileGeneratorTestFixture fixture)
-        {
-            this.fixture = fixture;
-        }
-
         /// <summary>
         /// Generates the dto and mapper for PlaneType.
         /// It is a sample for a DTO used for Option and for CRUD
         /// </summary>
         [Fact]
-        public async Task GenerateDTO_PlaneType()
+        public async Task GenerateDto_PlaneType()
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
@@ -87,7 +73,7 @@
         /// It is a sample for a DTO used for CRUD with all type of data
         /// </summary>
         [Fact]
-        public async Task GenerateDTO_Plane()
+        public async Task GenerateDto_Plane()
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
@@ -291,7 +277,7 @@
         /// It is a sample for a DTO used for Team
         /// </summary>
         [Fact]
-        public async Task GenerateDTO_AircraftMaintenanceCompany()
+        public async Task GenerateDto_AircraftMaintenanceCompany()
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
@@ -332,7 +318,7 @@
         /// It is a sample for a DTO used for Child Team
         /// </summary>
         [Fact]
-        public async Task GenerateDTOMaintenanceTeam()
+        public async Task GenerateDto_MaintenanceTeam()
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,

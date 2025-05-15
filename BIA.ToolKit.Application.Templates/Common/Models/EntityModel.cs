@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
-namespace BIA.ToolKit.Application.Templates._4_0_0.Models
+namespace BIA.ToolKit.Application.Templates.Common.Models
 {
-    public class EntityModel : DotNetModel
+    public abstract class EntityModel : DotNetModel, IEntityModel
     {
         public string CompanyName { get; set; }
         public string ProjectName { get; set; }
@@ -13,5 +11,6 @@ namespace BIA.ToolKit.Application.Templates._4_0_0.Models
         public string EntityNameArticle { get; set; }
         public bool IsTeamType { get; set; }
         public string BaseKeyType { get; set; }
+        public string EntityNamePlural { get; set; }
     }
 }

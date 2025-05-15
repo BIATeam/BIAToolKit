@@ -2,11 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
-    public class PropertyDtoModel
+    public class PropertyDtoModel : IPropertyDtoModel
     {
         public string EntityCompositeName { get; set; }
         public string EntityType { get; set; }
@@ -28,11 +26,13 @@
                 return MappingType.Replace("?", string.Empty);
             }
         }
-        public string MappingTypeInDto {
-            get {
+        public string MappingTypeInDto
+        {
+            get
+            {
                 if (NonNullEntityType == "TimeSpan") { return "string"; }
                 return MappingType;
-            } 
+            }
         }
 
         public string MappingDateType { get; set; }
@@ -66,7 +66,7 @@
                 $"Required = {IsRequired.ToString().ToLower()}"
             };
 
-            if(IsParent)
+            if (IsParent)
             {
                 attributeProperties.Add($"IsParent = true");
             }
@@ -141,7 +141,7 @@
             return $"CSVString(x.{MappingName}.ToString())";
         }
 
-        public string GenerateGetSetComment(string entityName) // TODO deplace in V5.0.0 but today crash in unitary test
+        public string GenerateGetSetComment(string entityName)
         {
             string nonNullMappingType = NonNullMappingType;
             if (nonNullMappingType == "bool")

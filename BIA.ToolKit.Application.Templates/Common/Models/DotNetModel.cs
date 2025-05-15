@@ -1,13 +1,11 @@
-﻿namespace BIA.ToolKit.Application.Templates._4_0_0.Models
+﻿namespace BIA.ToolKit.Application.Templates.Common.Models
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
 
-    public class DotNetModel
+    public abstract class DotNetModel
     {
-        public DotNetModel() { }
-
         private List<string> usingList = new List<string>();
 
         public void ClearUse()

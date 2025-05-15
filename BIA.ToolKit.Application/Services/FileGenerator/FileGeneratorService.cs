@@ -90,7 +90,7 @@
             }
 
             // Parse file generator version number (_X_Y_Z)
-            var regex = new Regex(@"^[^_]+(.+)$");
+            var regex = new Regex(@"(_[0-9]+(?:_[0-9]+){0,2})[^0-9]*");
             var match = regex.Match(modelProvider.GetType().Name);
             if (!match.Success)
             {

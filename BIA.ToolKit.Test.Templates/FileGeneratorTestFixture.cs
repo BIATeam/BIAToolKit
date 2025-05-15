@@ -5,15 +5,13 @@
     using System.Diagnostics;
     using System.IO.Compression;
     using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Domain.ModifyProject;
     using static BIA.ToolKit.Application.Templates.Manifest;
 
-    public class FileGeneratorTestFixture : IDisposable
+    public class FileGeneratorTestFixture
     {
         internal class ConsoleWriterTest : IConsoleWriter
         {
@@ -73,18 +71,6 @@
             consoleWriter.AddMessageLine($"Generation path at {testProjectPath}");
         }
 
-        public void Dispose()
-        {
-            /*if (Directory.Exists(testProjectPath))
-            {
-                Directory.Delete(testProjectPath, true);
-            }
-            if (Directory.Exists(referenceProjectPath))
-            {
-                Directory.Delete(referenceProjectPath, true);
-            }*/
-        }
-
         public (string referencePath, string generatedPath) GetDotNetFilesPath(string templateOutputPath, FileGeneratorContext context)
         {
             return (FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, context, TestProject.Folder));
@@ -97,13 +83,13 @@
 
 
 
-        public void AssertFilesEquals(FileGeneratorContext dtoContext, Feature currentFeature)
+        public void AssertFilesEquals(FileGeneratorContext context, Feature currentFeature)
         {
             var error = new List<string>();
 
             foreach (var dotNetTemplate in currentFeature.DotNetTemplates)
             {
-                var (referencePath, generatedPath) = GetDotNetFilesPath(dotNetTemplate.OutputPath, dtoContext);
+                var (referencePath, generatedPath) = GetDotNetFilesPath(dotNetTemplate.OutputPath, context);
                 if (!File.Exists(generatedPath))
                 {
                     error.Add($"Missing file: {generatedPath}");
@@ -119,7 +105,7 @@
 
             foreach (var angularTemplate in currentFeature.AngularTemplates)
             {
-                var (referencePath, generatedPath) = GetAngularFilesPath(angularTemplate.OutputPath, dtoContext);
+                var (referencePath, generatedPath) = GetAngularFilesPath(angularTemplate.OutputPath, context);
                 if (!File.Exists(generatedPath))
                 {
                     error.Add($"Missing file: {generatedPath}");

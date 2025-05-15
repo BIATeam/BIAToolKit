@@ -1,14 +1,14 @@
 ﻿namespace BIA.ToolKit.Application.Templates._5_0_0.Models
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
-    using System.Threading.Tasks;
+    using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
-    public class EntityCrudModel : EntityModel
+    public class EntityCrudModel<TPropertyCrudModel> : Common.Models.EntityModel, IEntityCrudModel<TPropertyCrudModel>
+        where TPropertyCrudModel : class, IPropertyCrudModel
     {
-        private readonly List<string> excludedPropertiesForBiaFieldConfigColumns = new List<string>
+        protected readonly List<string> excludedPropertiesForBiaFieldConfigColumns = new List<string>
         {
             "Id",
             "IsFixed"
@@ -23,7 +23,7 @@
         public bool HasParent { get; set; }
         public string ParentName { get; set; }
         public string ParentNamePlural { get; set; }
-        public List<PropertyCrudModel> Properties { get; set; } = new List<PropertyCrudModel>();
+        public List<TPropertyCrudModel> Properties { get; set; } = new List<TPropertyCrudModel>();
         public string AngularParentRelativePath { get; set; }
         public int AngularDeepLevel { get; set; }
         public string AngularDeepRelativePath
@@ -38,6 +38,6 @@
                 return pathBuilder.ToString();
             }
         }
-        public IEnumerable<PropertyCrudModel> BiaFieldConfigProperties => Properties.Where(p => !excludedPropertiesForBiaFieldConfigColumns.Contains(p.Name) && !p.IsParentIdentifier);
+        public IEnumerable<TPropertyCrudModel> BiaFieldConfigProperties => Properties.Where(p => !excludedPropertiesForBiaFieldConfigColumns.Contains(p.Name) && !p.IsParentIdentifier);
     }
 }
