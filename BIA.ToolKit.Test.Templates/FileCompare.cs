@@ -41,9 +41,6 @@
 
             while (expectedIndex < expectedLines.Length || actualIndex < actualLines.Length)
             {
-                var expectedLine = expectedLines[expectedIndex];
-                var actualLine = actualLines[actualIndex];
-
                 if (expectedIndex >= expectedLines.Length)
                 {
                     added++;
@@ -54,93 +51,99 @@
                     deleted++;
                     expectedIndex++;
                 }
-                else if (string.Equals(expectedLine, actualLine, StringComparison.Ordinal))
-                {
-                    expectedIndex++;
-                    actualIndex++;
-                }
                 else
                 {
-                    var isActualEmpty = string.IsNullOrEmpty(actualLine);
-                    var isExpectedEmpty = string.IsNullOrEmpty(expectedLine);
-                    if (isActualEmpty && isExpectedEmpty)
+                    var expectedLine = expectedLines[expectedIndex];
+                    var actualLine = actualLines[actualIndex];
+
+                    if (string.Equals(expectedLine, actualLine, StringComparison.Ordinal))
                     {
-                        modified++;
-                        expectedIndex++;
-                        actualIndex++;
-                    }
-                    else if (isActualEmpty)
-                    {
-                        added++;
-                        actualIndex++;
-                    }
-                    else if (isExpectedEmpty)
-                    {
-                        deleted++;
-                        expectedIndex++;
-                    }
-                    else if (isExpectedEmpty)
-                    {
-                        deleted++;
-                        expectedIndex++;
-                    }
-                    else if (actualLine.Contains(expectedLine) || expectedLine.Contains(actualLine))
-                    {
-                        modified++;
                         expectedIndex++;
                         actualIndex++;
                     }
                     else
                     {
-                        var actualIsInExpectedLater = expectedLines.Select((s, index) => new { s, index }).Where(x => x.index > expectedIndex).FirstOrDefault(b => b.s == actualLine);
-                        var expectedIsInActualLater = actualLines.Select((s, index) => new { s, index }).Where(x => x.index > actualIndex).FirstOrDefault(b => b.s == expectedLine);
-                        if (actualIsInExpectedLater != null && expectedIsInActualLater == null)
-                        {
-                            if (expected_deplaced_line.Contains(expectedIndex))
-                            {
-                                expected_deplaced_line.Remove(expectedIndex);
-                            }
-                            else
-                            {
-                                deleted++;
-                            }
-                            // actual is in expected later
-                            expectedIndex++;
-
-                        }
-                        else if (actualIsInExpectedLater == null && expectedIsInActualLater != null)
-                        {
-                            if (actual_deplaced_line.Contains(actualIndex))
-                            {
-                                actual_deplaced_line.Remove(actualIndex);
-                            }
-                            else
-                            {
-                                added++;
-                            }
-                            // expected is in actual later
-                            actualIndex++;
-                        }
-                        else if (actualIsInExpectedLater != null && expectedIsInActualLater != null)
-                        {
-                            if ((actualIsInExpectedLater.index - actualIndex) < (expectedIsInActualLater.index - expectedIndex))
-                            {
-                                expected_deplaced_line.Add(expectedIsInActualLater.index);
-                                actualIndex++;
-                                moved++;
-                            }
-                            else
-                            {
-                                actual_deplaced_line.Add(actualIsInExpectedLater.index);
-                                expectedIndex++;
-                                moved++;
-                            }
-                        }
-                        else
+                        var isActualEmpty = string.IsNullOrEmpty(actualLine);
+                        var isExpectedEmpty = string.IsNullOrEmpty(expectedLine);
+                        if (isActualEmpty && isExpectedEmpty)
                         {
                             modified++;
                             expectedIndex++;
                             actualIndex++;
+                        }
+                        else if (isActualEmpty)
+                        {
+                            added++;
+                            actualIndex++;
+                        }
+                        else if (isExpectedEmpty)
+                        {
+                            deleted++;
+                            expectedIndex++;
+                        }
+                        else if (isExpectedEmpty)
+                        {
+                            deleted++;
+                            expectedIndex++;
+                        }
+                        else if (actualLine.Contains(expectedLine) || expectedLine.Contains(actualLine))
+                        {
+                            modified++;
+                            expectedIndex++;
+                            actualIndex++;
+                        }
+                        else
+                        {
+                            var actualIsInExpectedLater = expectedLines.Select((s, index) => new { s, index }).Where(x => x.index > expectedIndex).FirstOrDefault(b => b.s == actualLine);
+                            var expectedIsInActualLater = actualLines.Select((s, index) => new { s, index }).Where(x => x.index > actualIndex).FirstOrDefault(b => b.s == expectedLine);
+                            if (actualIsInExpectedLater != null && expectedIsInActualLater == null)
+                            {
+                                if (expected_deplaced_line.Contains(expectedIndex))
+                                {
+                                    expected_deplaced_line.Remove(expectedIndex);
+                                }
+                                else
+                                {
+                                    deleted++;
+                                }
+                                // actual is in expected later
+                                expectedIndex++;
+
+                            }
+                            else if (actualIsInExpectedLater == null && expectedIsInActualLater != null)
+                            {
+                                if (actual_deplaced_line.Contains(actualIndex))
+                                {
+                                    actual_deplaced_line.Remove(actualIndex);
+                                }
+                                else
+                                {
+                                    added++;
+                                }
+                                // expected is in actual later
+                                actualIndex++;
+                            }
+                            else if (actualIsInExpectedLater != null && expectedIsInActualLater != null)
+                            {
+                                if ((actualIsInExpectedLater.index - actualIndex) < (expectedIsInActualLater.index - expectedIndex))
+                                {
+                                    expected_deplaced_line.Add(expectedIsInActualLater.index);
+                                    actualIndex++;
+                                    moved++;
+                                }
+                                else
+                                {
+                                    actual_deplaced_line.Add(actualIsInExpectedLater.index);
+                                    expectedIndex++;
+                                    moved++;
+                                }
+                            }
+                            else
+                            {
+                                modified++;
+                                expectedIndex++;
+                                actualIndex++;
+                            }
                         }
                     }
                 }

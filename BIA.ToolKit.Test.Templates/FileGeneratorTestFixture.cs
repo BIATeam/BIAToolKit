@@ -97,7 +97,7 @@
 
 
 
-        public void AssertFilesEquals(FileGeneratorDtoContext dtoContext, Feature currentFeature)
+        public void AssertFilesEquals(FileGeneratorContext dtoContext, Feature currentFeature)
         {
             var error = new List<string>();
 
