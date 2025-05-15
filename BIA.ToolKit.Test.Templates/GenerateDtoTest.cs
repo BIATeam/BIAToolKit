@@ -6,7 +6,8 @@
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
 
-    public class GenerateDtoTest(FileGeneratorTestFixture fixture) : IClassFixture<FileGeneratorTestFixture>
+    [Collection("FileGeneratorTestCollection")]
+    public class GenerateDtoTest(FileGeneratorTestFixture fixture)
     {
         /// <summary>
         /// Generates the dto and mapper for PlaneType.

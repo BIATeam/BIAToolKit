@@ -11,7 +11,7 @@
     using BIA.ToolKit.Domain.ModifyProject;
     using static BIA.ToolKit.Application.Templates.Manifest;
 
-    public class FileGeneratorTestFixture : IDisposable
+    public class FileGeneratorTestFixture
     {
         internal class ConsoleWriterTest : IConsoleWriter
         {
@@ -69,18 +69,6 @@
 
             consoleWriter.AddMessageLine($"Reference project at {referenceProjectPath}");
             consoleWriter.AddMessageLine($"Generation path at {testProjectPath}");
-        }
-
-        public void Dispose()
-        {
-            /*if (Directory.Exists(testProjectPath))
-            {
-                Directory.Delete(testProjectPath, true);
-            }
-            if (Directory.Exists(referenceProjectPath))
-            {
-                Directory.Delete(referenceProjectPath, true);
-            }*/
         }
 
         public (string referencePath, string generatedPath) GetDotNetFilesPath(string templateOutputPath, FileGeneratorContext context)

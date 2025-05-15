@@ -14,21 +14,15 @@
     using BIA.ToolKit.Domain.DtoGenerator;
     using Newtonsoft.Json;
 
-    public class OptionGenerationTest : IClassFixture<FileGeneratorTestFixture>
+    [Collection("FileGeneratorTestCollection")]
+    public class GenerateOptionTest(FileGeneratorTestFixture fixture)
     {
-        private readonly FileGeneratorTestFixture fixture;
-
-        public OptionGenerationTest(FileGeneratorTestFixture fixture)
-        {
-            this.fixture = fixture;
-        }
-
         /// <summary>
-        /// Generates the dto and mapper for PlaneType.
-        /// It is a sample for a DTO used for Option and for CRUD
+        /// Generates the option's files for PlaneType.
+        /// It is a sample for an Option used for DTO and for CRUD
         /// </summary>
         [Fact]
-        public async Task GenerateDTO_PlaneType()
+        public async Task GenerateOption_PlaneType()
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
@@ -41,7 +35,7 @@
 
             var domainName = "Plane";
 
-            var dtoContext = new FileGeneratorOptionContext
+            var optionContext = new FileGeneratorOptionContext
             {
                 CompanyName = fixture.TestProject.CompanyName,
                 ProjectName = fixture.TestProject.Name,
@@ -52,9 +46,9 @@
                 GenerateBack = true
             };
 
-            await fixture.FileGeneratorService.GenerateOptionAsync(dtoContext);
+            await fixture.FileGeneratorService.GenerateOptionAsync(optionContext);
 
-            fixture.AssertFilesEquals(dtoContext, fixture.FileGeneratorService.CurrentFeature);
+            fixture.AssertFilesEquals(optionContext, fixture.FileGeneratorService.CurrentFeature);
         }
     }
 }
