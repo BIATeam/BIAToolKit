@@ -5,26 +5,9 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
-    public class EntityDtoModel : EntityModel
+    public class EntityDtoModel : Common.Models.EntityDtoModel<PropertyDtoModel>
     {
-        public const string OptionDto = "OptionDto";
-        public const string CollectionOptionDto = "ICollection<" + OptionDto + ">";
-
-        private readonly List<string> excludedPropertiesToGenerate = new List<string>
-        {
-            "Id",
-            "IsFixed"
-        };
-
-        public List<PropertyDtoModel> Properties { get; set; } = new List<PropertyDtoModel>();
-        public IEnumerable<PropertyDtoModel> PropertiesToGenerate => Properties.Where(p => !excludedPropertiesToGenerate.Contains(p.MappingName));
-        public bool HasCollectionOptions => Properties.Any(p => p.MappingType.Equals(CollectionOptionDto));
-        public bool HasTimeSpanProperty => Properties.Any(p => p.EntityType.Equals("TimeSpan") || p.EntityType.Equals("TimeSpan?"));
-
-
-        public bool HasOptions => HasCollectionOptions || Properties.Any(p => p.MappingType.Equals(OptionDto));
-        public string AncestorTeam { get; set; }
-        public bool HasAncestorTeam => !string.IsNullOrWhiteSpace(AncestorTeam);
     }
 }

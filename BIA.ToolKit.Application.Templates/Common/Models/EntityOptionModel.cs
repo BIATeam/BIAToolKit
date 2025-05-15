@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates._5_0_0.Models
+﻿namespace BIA.ToolKit.Application.Templates.Common.Models
 {
     using System;
     using System.Collections.Generic;
@@ -7,7 +7,8 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
-    public class EntityDtoModel : Common.Models.EntityDtoModel<PropertyDtoModel>
+    public class EntityOptionModel : EntityModel, IEntityOptionModel
     {
+        public string OptionDisplayName { get; set; }
     }
 }

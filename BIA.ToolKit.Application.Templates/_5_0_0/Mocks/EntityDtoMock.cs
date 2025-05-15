@@ -17,7 +17,7 @@
             DomainName = "Fleet";
             EntityName = "Plane";
             BaseKeyType = "int";
-            Properties = new List<_4_0_0.Models.PropertyDtoModel>()
+            Properties = new List<PropertyDtoModel>()
             {
                 new PropertyDtoModel
                 {

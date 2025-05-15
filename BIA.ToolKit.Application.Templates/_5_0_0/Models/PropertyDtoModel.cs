@@ -5,9 +5,9 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
-    public class PropertyDtoModel : _4_0_0.Models.PropertyDtoModel
+    public class PropertyDtoModel : Common.Models.PropertyDtoModel
     {
-
     }
 }

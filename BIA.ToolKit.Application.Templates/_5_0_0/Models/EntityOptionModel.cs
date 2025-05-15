@@ -6,8 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public class EntityOptionModel : EntityModel
+    public class EntityOptionModel : Common.Models.EntityOptionModel
     {
-        public string OptionDisplayName { get; set; }
     }
 }

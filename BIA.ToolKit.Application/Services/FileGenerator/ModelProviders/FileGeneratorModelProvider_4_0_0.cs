@@ -9,26 +9,32 @@
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Templates._4_0_0.Models;
+    using BIA.ToolKit.Application.Templates.Common.Interfaces;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
 
-    internal class FileGeneratorModelProvider_4_0_0(IConsoleWriter consoleWriter) : IFileGeneratorModelProvider
+    internal class FileGeneratorModelProvider_4_0_0<TEntityDtoModel, TEntityCrudModel, TEntityOptionModel, TPropertyDtoModel, TPropertyCrudModel>(IConsoleWriter consoleWriter) : FileGeneratorModelProviderBase<TEntityDtoModel, TEntityCrudModel, TEntityOptionModel, TPropertyDtoModel, TPropertyCrudModel>
+        where TPropertyDtoModel : class, IPropertyDtoModel, new()
+        where TEntityDtoModel : class, IEntityDtoModel<TPropertyDtoModel>, new()
+        where TPropertyCrudModel : class, IPropertyCrudModel, new()
+        where TEntityCrudModel : class, IEntityCrudModel<TPropertyCrudModel>, new()
+        where TEntityOptionModel : class, IEntityOptionModel, new()
     {
         protected readonly IConsoleWriter consoleWriter = consoleWriter;
 
-        public List<BiaFrameworkVersion> CompatibleBiaFrameworkVersions =>
+        public override List<BiaFrameworkVersion> CompatibleBiaFrameworkVersions =>
         [
             new("4.*"),
         ];
 
-        protected virtual EntityDtoModel CreateDtoTemplateModel()
+        public override object GetCrudTemplateModel(FileGeneratorCrudContext crudContext)
         {
-            return new EntityDtoModel();
+            throw new NotImplementedException();
         }
 
-        public object GetDtoTemplateModel(FileGeneratorDtoContext dtoContext)
+        public override object GetDtoTemplateModel(FileGeneratorDtoContext dtoContext)
         {
             var model = CreateDtoTemplateModel();
 
@@ -39,7 +45,7 @@
             model.EntityName = dtoContext.EntityName;
             model.BaseKeyType = dtoContext.BaseKeyType;
             model.AncestorTeam = dtoContext.AncestorTeamName;
-            model.Properties = dtoContext.Properties.Select(x => new PropertyDtoModel()
+            model.Properties = dtoContext.Properties.Select(x => new TPropertyDtoModel()
             {
                 MappingName = x.MappingName,
                 EntityCompositeName = x.EntityCompositeName,
@@ -70,12 +76,7 @@
             return model;
         }
 
-        public object GetOptionTemplateModel(FileGeneratorOptionContext optionContext)
-        {
-            throw new NotImplementedException();
-        }
-
-        public object GetCrudTemplateModel(FileGeneratorCrudContext crudContext)
+        public override object GetOptionTemplateModel(FileGeneratorOptionContext optionContext)
         {
             throw new NotImplementedException();
         }

@@ -8,41 +8,67 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Templates._5_0_0.Models;
+    using BIA.ToolKit.Application.Templates.Common.Interfaces;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
 
-    internal class FileGeneratorModelProvider_5_0_0(IConsoleWriter consoleWriter) : FileGeneratorModelProvider_4_0_0(consoleWriter), IFileGeneratorModelProvider
+    internal class FileGeneratorModelProvider_5_0_0<TEntityDtoModel, TEntityCrudModel, TEntityOptionModel, TPropertyDtoModel, TPropertyCrudModel>(IConsoleWriter consoleWriter) : FileGeneratorModelProviderBase<TEntityDtoModel, TEntityCrudModel, TEntityOptionModel, TPropertyDtoModel, TPropertyCrudModel>
+        where TPropertyDtoModel : class, IPropertyDtoModel, new()
+        where TEntityDtoModel : class, IEntityDtoModel<TPropertyDtoModel>, new()
+        where TPropertyCrudModel : class, IPropertyCrudModel, new()
+        where TEntityCrudModel : class, IEntityCrudModel<TPropertyCrudModel>, new()
+        where TEntityOptionModel : class, IEntityOptionModel, new()
     {
-        public new List<BiaFrameworkVersion> CompatibleBiaFrameworkVersions =>
+        public override List<BiaFrameworkVersion> CompatibleBiaFrameworkVersions =>
         [
             new("5.*"),
         ];
 
-        protected override Templates._4_0_0.Models.EntityDtoModel CreateDtoTemplateModel()
+        public override object GetDtoTemplateModel(FileGeneratorDtoContext dtoContext)
         {
-            return new EntityDtoModel();
-        }
+            var model = CreateDtoTemplateModel();
 
-        protected virtual EntityOptionModel CreateOptionTemplateModel()
-        {
-            return new EntityOptionModel();
-        }
+            model.CompanyName = dtoContext.CompanyName;
+            model.ProjectName = dtoContext.ProjectName;
+            model.EntityNameArticle = Common.ComputeNameArticle(dtoContext.EntityName);
+            model.DomainName = dtoContext.DomainName;
+            model.EntityName = dtoContext.EntityName;
+            model.BaseKeyType = dtoContext.BaseKeyType;
+            model.AncestorTeam = dtoContext.AncestorTeamName;
+            model.Properties = dtoContext.Properties.Select(x => new TPropertyDtoModel()
+            {
+                MappingName = x.MappingName,
+                EntityCompositeName = x.EntityCompositeName,
+                EntityType = x.EntityType,
+                MappingType = x.MappingType,
+                MappingDateType = x.MappingDateType,
+                IsOption = x.IsOption,
+                IsOptionCollection = x.IsOptionCollection,
+                OptionType = x.OptionType,
+                IsRequired = x.IsRequired,
+                OptionDisplayProperty = x.OptionDisplayProperty,
+                OptionIdProperty = x.OptionIdProperty,
+                OptionEntityIdPropertyComposite = x.OptionEntityIdPropertyComposite,
+                OptionRelationType = x.OptionRelationType,
+                OptionRelationPropertyComposite = x.OptionRelationPropertyComposite,
+                OptionRelationFirstIdProperty = x.OptionRelationFirstIdProperty,
+                OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty,
+                IsParent = x.IsParent,
+            }).ToList();
+            model.IsTeamType = dtoContext.IsTeam;
 
-        protected virtual EntityCrudModel CreateCrudTemplateModel()
-        {
-            return new EntityCrudModel();
-        }
+            if (string.IsNullOrWhiteSpace(model.BaseKeyType))
+            {
+                consoleWriter.AddMessageLine($"WARNING: Unable to retrieve entity's base key type, you'll must replace the template '{Common.TemplateValue_BaseKeyType}' by corresponding type value after generation.", "orange");
+                model.BaseKeyType = Common.TemplateValue_BaseKeyType;
+            }
 
-        public new object GetDtoTemplateModel(FileGeneratorDtoContext dtoContext)
-        {
-            var model = base.GetDtoTemplateModel(dtoContext) as EntityDtoModel;
-            // Map additionnal properties of your model 
             return model;
         }
 
-        public new object GetOptionTemplateModel(FileGeneratorOptionContext optionContext)
+        public override object GetOptionTemplateModel(FileGeneratorOptionContext optionContext)
         {
             var model = CreateOptionTemplateModel();
 
@@ -64,7 +90,7 @@
             return model;
         }
 
-        public new object GetCrudTemplateModel(FileGeneratorCrudContext crudContext)
+        public override object GetCrudTemplateModel(FileGeneratorCrudContext crudContext)
         {
             var model = CreateCrudTemplateModel();
 
@@ -92,7 +118,7 @@
             model.AngularDeepLevel = crudContext.AngularDeepLevel;
             model.OptionItems = crudContext.OptionItems;
 
-            model.Properties = crudContext.Properties.Select(x => new PropertyCrudModel
+            model.Properties = crudContext.Properties.Select(x => new TPropertyCrudModel
             {
                 Name = x.Name,
                 Type = x.Type,

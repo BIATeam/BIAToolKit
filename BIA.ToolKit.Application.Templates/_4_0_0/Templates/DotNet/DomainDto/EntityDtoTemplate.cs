@@ -12,6 +12,7 @@ namespace TheBIADevCompany.BIADemo.Domain.Dto.Fleet
     /// <summary>
     /// The DTO used to represent a Plane.
     /// </summary>
+    [BiaDtoClass(AncestorTeam = "Site")]
     public class PlaneDto : BaseDto<int>
     {
         /// <summary>
