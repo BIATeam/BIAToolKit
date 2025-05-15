@@ -5,8 +5,6 @@
     using System.Diagnostics;
     using System.IO.Compression;
     using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
@@ -97,13 +95,13 @@
 
 
 
-        public void AssertFilesEquals(FileGeneratorDtoContext dtoContext, Feature currentFeature)
+        public void AssertFilesEquals(FileGeneratorContext context, Feature currentFeature)
         {
             var error = new List<string>();
 
             foreach (var dotNetTemplate in currentFeature.DotNetTemplates)
             {
-                var (referencePath, generatedPath) = GetDotNetFilesPath(dotNetTemplate.OutputPath, dtoContext);
+                var (referencePath, generatedPath) = GetDotNetFilesPath(dotNetTemplate.OutputPath, context);
                 if (!File.Exists(generatedPath))
                 {
                     error.Add($"Missing file: {generatedPath}");
@@ -119,7 +117,7 @@
 
             foreach (var angularTemplate in currentFeature.AngularTemplates)
             {
-                var (referencePath, generatedPath) = GetAngularFilesPath(angularTemplate.OutputPath, dtoContext);
+                var (referencePath, generatedPath) = GetAngularFilesPath(angularTemplate.OutputPath, context);
                 if (!File.Exists(generatedPath))
                 {
                     error.Add($"Missing file: {generatedPath}");

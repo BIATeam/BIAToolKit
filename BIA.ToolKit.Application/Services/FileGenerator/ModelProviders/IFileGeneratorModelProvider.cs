@@ -2,13 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Threading.Tasks;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
-    using BIA.ToolKit.Application.Templates.Common.Interfaces;
-    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain.DtoGenerator;
-    using BIA.ToolKit.Domain.ModifyProject;
 
     internal interface IFileGeneratorModelProvider
     {

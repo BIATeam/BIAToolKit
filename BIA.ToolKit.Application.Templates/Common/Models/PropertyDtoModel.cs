@@ -141,18 +141,9 @@
             return $"CSVString(x.{MappingName}.ToString())";
         }
 
-        public string GenerateGetSetComment(string entityName) 
+        public string GenerateGetSetComment(string entityName)
         {
-            string nonNullMappingType = NonNullMappingType;
-            if (nonNullMappingType == "bool")
-            {
-                return "Gets or sets a value indicating whether the " + entityName + " " + MappingName.ToLiteral();
-            }
-            if (IsOptionCollection)
-            {
-                return "Gets or sets the list of " + MappingName.ToLiteral();
-            }
-            return "Gets or sets the " + MappingName.ToLiteral();
+            throw new NotImplementedException();
         }
     }
 }

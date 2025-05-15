@@ -1,13 +1,19 @@
 ﻿namespace BIA.ToolKit.Application.Templates._5_0_0.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using BIA.ToolKit.Application.Templates.Common.Interfaces;
-
-    public class PropertyDtoModel : Common.Models.PropertyDtoModel
+    public class PropertyDtoModel : _4_0_0.Models.PropertyDtoModel
     {
+        public new string GenerateGetSetComment(string entityName)
+        {
+            string nonNullMappingType = NonNullMappingType;
+            if (nonNullMappingType == "bool")
+            {
+                return "Gets or sets a value indicating whether the " + entityName + " " + MappingName.ToLiteral();
+            }
+            if (IsOptionCollection)
+            {
+                return "Gets or sets the list of " + MappingName.ToLiteral();
+            }
+            return "Gets or sets the " + MappingName.ToLiteral();
+        }
     }
 }

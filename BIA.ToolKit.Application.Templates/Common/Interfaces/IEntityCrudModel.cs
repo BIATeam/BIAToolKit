@@ -1,7 +1,6 @@
 ﻿namespace BIA.ToolKit.Application.Templates.Common.Interfaces
 {
     using System.Collections.Generic;
-    using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
     public interface IEntityCrudModel<TPropertyCrudModel> : IEntityModel
         where TPropertyCrudModel : class, IPropertyCrudModel
