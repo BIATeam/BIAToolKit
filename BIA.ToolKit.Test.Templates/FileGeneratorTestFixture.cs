@@ -35,10 +35,11 @@
             var currentDir = Directory.GetCurrentDirectory();
             referenceProjectPath = NormalisePath(Path.Combine(currentDir, "..\\..\\..\\..\\BIADemoVersions\\", Path.GetFileNameWithoutExtension(biaDemoZipPath)));
 
-            if (!Directory.Exists(referenceProjectPath))
+            if (Directory.Exists(referenceProjectPath))
             {
-                ZipFile.ExtractToDirectory(biaDemoZipPath, referenceProjectPath);
+                Directory.Delete(referenceProjectPath, true);
             }
+            ZipFile.ExtractToDirectory(biaDemoZipPath, referenceProjectPath);
 
             testProjectPath = Path.Combine(Path.GetTempPath(), "BIAToolKitTestTemplatesGenerated");
             if (Directory.Exists(testProjectPath))

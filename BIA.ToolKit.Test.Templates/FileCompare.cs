@@ -15,49 +15,92 @@
             var expectedLines = File.ReadAllLines(expectedFilePath).ToList();
             var actualLines = File.ReadAllLines(actualFilePath).ToList();
 
-            if(template.IsPartial)
+            if (template.IsPartial)
             {
-                (var partialInsertionMarkupBegin, var partialInsertionMarkupEnd) = FileGeneratorService.GetPartialInsertionMarkups(context, template, template.OutputPath);
+                ExtractPartialContent(ref expectedFilePath, ref actualFilePath, context, template, ref expectedLines, ref actualLines);
+            }
 
-                var expectedMarkupBeginIndex = expectedLines.FindIndex(l => l.Contains(partialInsertionMarkupBegin));
-                if(expectedMarkupBeginIndex < 0)
+            RemoveBiaDemoCodeExample(ref expectedFilePath, expectedLines);
+            return CompareFiles(expectedFilePath, actualFilePath, expectedLines, actualLines);
+        }
+
+        private static void RemoveBiaDemoCodeExample(ref string expectedFilePath, List<string> expectedLines)
+        {
+            const string biaDemoMarkupBegin = "Begin BIADemo";
+            const string biaDemoMarkupEnd = "End BIADemo";
+
+            var expectedBiaDemoMarkupBeginIndex = expectedLines.FindIndex(l => l.Contains(biaDemoMarkupBegin));
+            var expectedBiaDemoMarkupEndIndex = expectedLines.FindIndex(l => l.Contains(biaDemoMarkupEnd));
+            var areLinesRemoved = false;
+            while (expectedBiaDemoMarkupBeginIndex > -1 && expectedBiaDemoMarkupEndIndex > -1 && expectedBiaDemoMarkupBeginIndex < expectedBiaDemoMarkupEndIndex)
+            {
+                areLinesRemoved = true;
+                if (expectedLines[expectedBiaDemoMarkupBeginIndex - 1].Trim() == string.Empty)
                 {
-                    throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupBegin, expectedFilePath);
-                }
-                var expectedMarkupEndIndex = expectedLines.FindIndex(l => l.Contains(partialInsertionMarkupEnd));
-                if (expectedMarkupEndIndex < 0)
-                {
-                    throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupEnd, expectedFilePath);
+                    expectedBiaDemoMarkupBeginIndex--;
                 }
 
-                var actualMarkupBeginIndex = actualLines.FindIndex(l => l.Contains(partialInsertionMarkupBegin));
-                if (actualMarkupBeginIndex < 0)
-                {
-                    throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupBegin, actualFilePath);
-                }
-                var actualMarkupEndIndex = actualLines.FindIndex(l => l.Contains(partialInsertionMarkupEnd));
-                if (actualMarkupEndIndex < 0)
-                {
-                    throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupEnd, actualFilePath);
-                }
+                expectedLines.RemoveRange(expectedBiaDemoMarkupBeginIndex, expectedBiaDemoMarkupEndIndex - expectedBiaDemoMarkupBeginIndex + 1);
+                expectedBiaDemoMarkupBeginIndex = expectedLines.FindIndex(l => l.Contains(biaDemoMarkupBegin));
+                expectedBiaDemoMarkupEndIndex = expectedLines.FindIndex(l => l.Contains(biaDemoMarkupEnd));
+            }
 
-                expectedLines = expectedLines.GetRange(expectedMarkupBeginIndex, expectedMarkupEndIndex - expectedMarkupBeginIndex + 1);
-                actualLines = actualLines.GetRange(actualMarkupBeginIndex, actualMarkupEndIndex - actualMarkupBeginIndex + 1);
-
-                expectedFilePath = expectedFilePath.Replace(Path.GetFileNameWithoutExtension(expectedFilePath), $"{Path.GetFileNameWithoutExtension(expectedFilePath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}");
-                actualFilePath = actualFilePath.Replace(Path.GetFileNameWithoutExtension(actualFilePath), $"{Path.GetFileNameWithoutExtension(actualFilePath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}");
+            if (areLinesRemoved)
+            {
+                expectedFilePath = expectedFilePath.Replace(Path.GetFileNameWithoutExtension(expectedFilePath), $"{Path.GetFileNameWithoutExtension(expectedFilePath)}_Cleaned");
                 if (File.Exists(expectedFilePath))
                 {
                     File.Delete(expectedFilePath);
                 }
-                if (File.Exists(actualFilePath))
-                {
-                    File.Delete(actualFilePath);
-                }
                 File.AppendAllLines(expectedFilePath, expectedLines);
-                File.AppendAllLines(actualFilePath, actualLines);
+            }
+        }
+
+        private static void ExtractPartialContent(ref string expectedFilePath, ref string actualFilePath, FileGeneratorContext context, Manifest.Feature.Template template, ref List<string> expectedLines, ref List<string> actualLines)
+        {
+            (var partialInsertionMarkupBegin, var partialInsertionMarkupEnd) = FileGeneratorService.GetPartialInsertionMarkups(context, template, template.OutputPath);
+
+            var expectedMarkupBeginIndex = expectedLines.FindIndex(l => l.Contains(partialInsertionMarkupBegin));
+            if (expectedMarkupBeginIndex < 0)
+            {
+                throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupBegin, expectedFilePath);
+            }
+            var expectedMarkupEndIndex = expectedLines.FindIndex(l => l.Contains(partialInsertionMarkupEnd));
+            if (expectedMarkupEndIndex < 0)
+            {
+                throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupEnd, expectedFilePath);
             }
 
+            var actualMarkupBeginIndex = actualLines.FindIndex(l => l.Contains(partialInsertionMarkupBegin));
+            if (actualMarkupBeginIndex < 0)
+            {
+                throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupBegin, actualFilePath);
+            }
+            var actualMarkupEndIndex = actualLines.FindIndex(l => l.Contains(partialInsertionMarkupEnd));
+            if (actualMarkupEndIndex < 0)
+            {
+                throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupEnd, actualFilePath);
+            }
+
+            expectedLines = expectedLines.GetRange(expectedMarkupBeginIndex, expectedMarkupEndIndex - expectedMarkupBeginIndex + 1);
+            actualLines = actualLines.GetRange(actualMarkupBeginIndex, actualMarkupEndIndex - actualMarkupBeginIndex + 1);
+
+            expectedFilePath = expectedFilePath.Replace(Path.GetFileNameWithoutExtension(expectedFilePath), $"{Path.GetFileNameWithoutExtension(expectedFilePath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}");
+            actualFilePath = actualFilePath.Replace(Path.GetFileNameWithoutExtension(actualFilePath), $"{Path.GetFileNameWithoutExtension(actualFilePath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}");
+            if (File.Exists(expectedFilePath))
+            {
+                File.Delete(expectedFilePath);
+            }
+            if (File.Exists(actualFilePath))
+            {
+                File.Delete(actualFilePath);
+            }
+            File.AppendAllLines(expectedFilePath, expectedLines);
+            File.AppendAllLines(actualFilePath, actualLines);
+        }
+
+        private static string? CompareFiles(string expectedFilePath, string actualFilePath, List<string> expectedLines, List<string> actualLines)
+        {
             int modified = 0;
             int moved = 0;
             int added = 0;
@@ -203,6 +246,7 @@
                 //builder.AppendLine(string.Join("\n\n", differences));
                 return builder.ToString();
             }
+
             return null;
         }
     }
