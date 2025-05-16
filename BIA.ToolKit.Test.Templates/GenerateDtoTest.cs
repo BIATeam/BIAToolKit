@@ -63,9 +63,7 @@
                 GenerateBack = true
             };
 
-            await fixture.FileGeneratorService.GenerateDtoAsync(dtoContext);
-
-            fixture.AssertFilesEquals(dtoContext, fixture.FileGeneratorService.CurrentFeature);
+            await fixture.TestGenerateDtoAsync(dtoContext);
         }
 
         /// <summary>
@@ -267,9 +265,7 @@
                 AncestorTeamName = ancestorTeamName,
             };
 
-            await fixture.FileGeneratorService.GenerateDtoAsync(dtoContext);
-
-            fixture.AssertFilesEquals(dtoContext, fixture.FileGeneratorService.CurrentFeature);
+            await fixture.TestGenerateDtoAsync(dtoContext);
         }
 
         /// <summary>
@@ -307,9 +303,7 @@
                 GenerateBack = true,
             };
 
-            await fixture.FileGeneratorService.GenerateDtoAsync(dtoContext);
-
-            fixture.AssertFilesEquals(dtoContext, fixture.FileGeneratorService.CurrentFeature);
+            await fixture.TestGenerateDtoAsync(dtoContext);
         }
 
 
@@ -502,9 +496,7 @@
                 AncestorTeamName = ancestorTeamName,
             };
 
-            await fixture.FileGeneratorService.GenerateDtoAsync(dtoContext);
-
-            fixture.AssertFilesEquals(dtoContext, fixture.FileGeneratorService.CurrentFeature);
+            await fixture.TestGenerateDtoAsync(dtoContext);
         }
 
     }

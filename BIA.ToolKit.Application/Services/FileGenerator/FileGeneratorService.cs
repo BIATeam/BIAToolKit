@@ -34,9 +34,8 @@
         private VersionedTemplateGenerator templateGenerator;
         private string templatesPath;
         private Project currentProject;
-        private Manifest currentManifest;
         private FileGeneratorContext currentContext;
-        public Manifest.Feature CurrentFeature { get; private set; }
+        private Manifest currentManifest;
 
         public bool IsInit { get; private set; }
 
@@ -143,10 +142,8 @@
                     throw new Exception("file generator has not been initialiazed");
 
                 var templateModel = modelProvider.GetDtoTemplateModel(dtoContext);
-                var dtoFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "DTO")
-                    ?? throw new KeyNotFoundException($"no DTO feature for template manifest {currentManifest.Version}");
+                var dtoFeature = GetCurrentManifestFeature("DTO");
 
-                CurrentFeature = dtoFeature;
                 currentContext = dtoContext;
 
                 await GenerateTemplatesFromManifestFeatureAsync(dtoFeature, templateModel);
@@ -168,10 +165,8 @@
                     throw new Exception("file generator has not been initialiazed");
 
                 var templateModel = modelProvider.GetOptionTemplateModel(optionContext);
-                var optionFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "Option")
-                    ?? throw new KeyNotFoundException($"no Option feature for template manifest {currentManifest.Version}");
+                var optionFeature = GetCurrentManifestFeature("Option");
 
-                CurrentFeature = optionFeature;
                 currentContext = optionContext;
 
                 await GenerateTemplatesFromManifestFeatureAsync(optionFeature, templateModel);
@@ -199,13 +194,11 @@
                 }
 
                 var templateModel = modelProvider.GetCrudTemplateModel(crudContext);
-                var optionFeature = currentManifest.Features.SingleOrDefault(f => f.Name == "CRUD")
-                    ?? throw new KeyNotFoundException($"no CRUD feature for template manifest {currentManifest.Version}");
+                var crudFeature = GetCurrentManifestFeature("CRUD");
 
-                CurrentFeature = optionFeature;
                 currentContext = crudContext;
 
-                await GenerateTemplatesFromManifestFeatureAsync(optionFeature, templateModel);
+                await GenerateTemplatesFromManifestFeatureAsync(crudFeature, templateModel);
 
                 consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
             }
@@ -213,6 +206,12 @@
             {
                 consoleWriter.AddMessageLine($"CRUD generation failed : {ex}", color: "red");
             }
+        }
+
+        public Manifest.Feature GetCurrentManifestFeature(string featureName)
+        {
+            return currentManifest.Features.SingleOrDefault(f => f.Name == featureName)
+                    ?? throw new KeyNotFoundException($"no {featureName} feature for template manifest {currentManifest.Version}");
         }
 
         private void LoadTemplatesManifests()

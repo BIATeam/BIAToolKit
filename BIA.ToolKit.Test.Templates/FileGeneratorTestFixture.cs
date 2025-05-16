@@ -17,15 +17,16 @@
         {
             public void AddMessageLine(string message, string? color = null, bool refreshimediate = true)
             {
-                Debug.WriteLine(message);
+                Console.WriteLine(message);
             }
         }
 
+        private readonly FileGeneratorService fileGeneratorService;
         private readonly string referenceProjectPath;
         private readonly string testProjectPath;
         private readonly Project referenceProject;
+        private Feature? currentTestFeature;
         public Project TestProject { get; private set; }
-        public FileGeneratorService FileGeneratorService { get; private set; }
 
         public FileGeneratorTestFixture()
         {
@@ -64,8 +65,8 @@
             };
 
             var consoleWriter = new ConsoleWriterTest();
-            FileGeneratorService = new FileGeneratorService(consoleWriter);
-            FileGeneratorService.Init(TestProject);
+            fileGeneratorService = new FileGeneratorService(consoleWriter);
+            fileGeneratorService.Init(TestProject);
 
             consoleWriter.AddMessageLine($"Reference project at {referenceProjectPath}");
             consoleWriter.AddMessageLine($"Generation path at {testProjectPath}");
@@ -81,47 +82,90 @@
             return (FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, TestProject.Folder));
         }
 
+        public async Task TestGenerateDtoAsync(FileGeneratorDtoContext dtoContext)
+        {
+            currentTestFeature = fileGeneratorService.GetCurrentManifestFeature("DTO");
+            ImportTargetedPartialFiles(dtoContext);
+            await fileGeneratorService.GenerateDtoAsync(dtoContext);
+            AssertFilesEquals(dtoContext);
+        }
 
+        public async Task TestGenerateOptionAsync(FileGeneratorOptionContext optionContext)
+        {
+            currentTestFeature = fileGeneratorService.GetCurrentManifestFeature("Option");
+            ImportTargetedPartialFiles(optionContext);
+            await fileGeneratorService.GenerateOptionAsync(optionContext);
+            AssertFilesEquals(optionContext);
+        }
 
-        public void AssertFilesEquals(FileGeneratorContext context, Feature currentFeature)
+        private void AssertFilesEquals(FileGeneratorContext context)
         {
             var error = new List<string>();
 
-            foreach (var dotNetTemplate in currentFeature.DotNetTemplates)
+            if (context.GenerateBack)
             {
-                var (referencePath, generatedPath) = GetDotNetFilesPath(dotNetTemplate.OutputPath, context);
-                if (!File.Exists(generatedPath))
+                foreach (var dotNetTemplate in currentTestFeature!.DotNetTemplates)
                 {
-                    error.Add($"Missing file: {generatedPath}");
-                }
+                    var (referencePath, generatedPath) = GetDotNetFilesPath(dotNetTemplate.OutputPath, context);
+                    if (!File.Exists(generatedPath))
+                    {
+                        error.Add($"Missing file: {generatedPath}");
+                    }
 
-                string? errorEquals = FileCompare.FilesEquals(referencePath, generatedPath);
+                    string? errorEquals = FileCompare.FilesEquals(referencePath, generatedPath);
 
-                if (errorEquals != null)
-                {
-                    error.Add(errorEquals);
+                    if (errorEquals != null)
+                    {
+                        error.Add(errorEquals);
+                    }
                 }
             }
 
-            foreach (var angularTemplate in currentFeature.AngularTemplates)
+            if (context.GenerateFront)
             {
-                var (referencePath, generatedPath) = GetAngularFilesPath(angularTemplate.OutputPath, context);
-                if (!File.Exists(generatedPath))
+                foreach (var angularTemplate in currentTestFeature!.AngularTemplates)
                 {
-                    error.Add($"Missing file: {generatedPath}");
-                }
+                    var (referencePath, generatedPath) = GetAngularFilesPath(angularTemplate.OutputPath, context);
+                    if (!File.Exists(generatedPath))
+                    {
+                        error.Add($"Missing file: {generatedPath}");
+                    }
 
-                string? errorEquals = FileCompare.FilesEquals(referencePath, generatedPath);
+                    string? errorEquals = FileCompare.FilesEquals(referencePath, generatedPath);
 
-                if (errorEquals != null)
-                {
-                    error.Add(errorEquals);
+                    if (errorEquals != null)
+                    {
+                        error.Add(errorEquals);
+                    }
                 }
             }
 
             if (error.Count != 0)
             {
                 throw new FilesEqualsException(string.Join("\n\n", error));
+            }
+        }
+
+        private void ImportTargetedPartialFiles(FileGeneratorContext context)
+        {
+            if (context.GenerateBack)
+            {
+                foreach (var template in currentTestFeature!.DotNetTemplates.Where(t => t.IsPartial))
+                {
+                    var (referencePath, generatedPath) = GetDotNetFilesPath(template.OutputPath, context);
+                    Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);
+                    File.Copy(referencePath, generatedPath, true);
+                }
+            }
+
+            if (context.GenerateFront)
+            {
+                foreach (var template in currentTestFeature!.AngularTemplates.Where(t => t.IsPartial))
+                {
+                    var (referencePath, generatedPath) = GetAngularFilesPath(template.OutputPath, context);
+                    Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);
+                    File.Copy(referencePath, generatedPath, true);
+                }
             }
         }
 

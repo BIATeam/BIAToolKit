@@ -43,12 +43,11 @@
                 EntityName = entityInfo.Name,
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
-                GenerateBack = true
+                GenerateBack = true,
+                DisplayName = "PlaneType"
             };
 
-            await fixture.FileGeneratorService.GenerateOptionAsync(optionContext);
-
-            fixture.AssertFilesEquals(optionContext, fixture.FileGeneratorService.CurrentFeature);
+            await fixture.TestGenerateOptionAsync(optionContext);
         }
     }
 }
