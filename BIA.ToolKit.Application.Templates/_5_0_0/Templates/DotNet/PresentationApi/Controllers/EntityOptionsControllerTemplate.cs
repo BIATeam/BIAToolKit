@@ -13,19 +13,19 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.AircraftMaintena
     using TheBIADevCompany.BIADemo.Crosscutting.Common;
 
     /// <summary>
-    /// The API controller used to manage MyCountry options.
+    /// The API controller used to manage my country options.
     /// </summary>
     public class MyCountryOptionsController : BiaControllerBase
     {
         /// <summary>
-        /// The MyCountry application service.
+        /// The my country application service.
         /// </summary>
         private readonly IMyCountryOptionAppService myCountryOptionService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MyCountryOptionsController"/> class.
         /// </summary>
-        /// <param name="myCountryOptionService">The myCountry application service.</param>
+        /// <param name="myCountryOptionService">The my country application service.</param>
         public MyCountryOptionsController(IMyCountryOptionAppService myCountryOptionService)
         {
             this.myCountryOptionService = myCountryOptionService;
@@ -34,7 +34,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.AircraftMaintena
         /// <summary>
         /// Gets all option that I can see.
         /// </summary>
-        /// /// <returns>The list of MyCountries.</returns>
+        /// /// <returns>The list of my countries.</returns>
         [HttpGet("allOptions")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

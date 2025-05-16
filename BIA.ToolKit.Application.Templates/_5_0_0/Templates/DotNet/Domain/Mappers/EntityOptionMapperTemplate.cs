@@ -11,7 +11,7 @@ namespace TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Mappers
     using TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Entities;
 
     /// <summary>
-    /// The mapper used for MyCountry option.
+    /// The mapper used for my country option.
     /// </summary>
     public class MyCountryOptionMapper : BaseMapper<OptionDto, MyCountry, int>
     {

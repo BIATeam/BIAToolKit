@@ -335,35 +335,48 @@
 
         private async Task WritePartialContentAsync(Manifest.Feature.Template template, string outputPath, string relativeOutputPath, List<string> generatedTemplateContent)
         {
-            var partialInsertionMarkup = template.PartialInsertionMarkup
-                .Replace("{Parent}", currentContext.ParentName);
+            var insertionMarkup = GetInsertionMarkup(template, currentContext);
 
             var outputContent = (await File.ReadAllLinesAsync(outputPath)).ToList();
-            var biaToolKitMarkupBegin = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupBeginPattern, partialInsertionMarkup), outputPath);
-            var biaToolKitMarkupEnd = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupEndPattern, partialInsertionMarkup), outputPath);
-            if (!outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupBegin)) || !outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupEnd)))
+            var insertionMarkupBegin = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupBeginPattern, insertionMarkup), outputPath);
+            var insertionMarkupEnd = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupEndPattern, insertionMarkup), outputPath);
+            if (!outputContent.Any(line => line.Trim().Equals(insertionMarkupBegin)) || !outputContent.Any(line => line.Trim().Equals(insertionMarkupEnd)))
             {
-                throw new Exception($"Unable to find insertion markup {partialInsertionMarkup} into {relativeOutputPath}");
+                throw new Exception($"Unable to find insertion markup {insertionMarkup} into {relativeOutputPath}");
             }
 
-            var biaToolKitMarkupPartialBeginPattern = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupPartialBeginPattern, partialInsertionMarkup, currentContext.EntityName), outputPath);
-            var biaToolKitMarkupPartialEndPattern = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupPartialEndPattern, partialInsertionMarkup, currentContext.EntityName), outputPath);
+            (var partialInsertionMarkupBegin, var partialInsertionMarkupEnd) = GetPartialInsertionMarkups(currentContext, template, outputPath);
             // Partial content already exists
-            if (outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialBeginPattern)) && outputContent.Any(line => line.Trim().Equals(biaToolKitMarkupPartialEndPattern)))
+            if (outputContent.Any(line => line.Trim().Equals(partialInsertionMarkupBegin)) && outputContent.Any(line => line.Trim().Equals(partialInsertionMarkupEnd)))
             {
-                var indexBegin = outputContent.FindIndex(line => line.Trim().Equals(biaToolKitMarkupPartialBeginPattern));
-                var indexEnd = outputContent.FindIndex(line => line.Trim().Equals(biaToolKitMarkupPartialEndPattern));
+                var indexBegin = outputContent.FindIndex(line => line.Trim().Equals(partialInsertionMarkupBegin));
+                var indexEnd = outputContent.FindIndex(line => line.Trim().Equals(partialInsertionMarkupEnd));
                 // Replace previous generated content by new one
                 outputContent.RemoveRange(indexBegin, indexEnd - indexBegin + 1);
                 outputContent.InsertRange(indexBegin, generatedTemplateContent);
             }
             else
             {
-                var indexBegin = outputContent.FindIndex(line => line.Contains(biaToolKitMarkupEnd));
+                var indexBegin = outputContent.FindIndex(line => line.Contains(insertionMarkupEnd));
                 outputContent.InsertRange(indexBegin, generatedTemplateContent);
             }
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
             await File.WriteAllLinesAsync(outputPath, outputContent);
+        }
+
+        public static (string partialInsertionMarkupBegin, string partialInsertionMarkupEnd) GetPartialInsertionMarkups(FileGeneratorContext context, Manifest.Feature.Template template, string outputPath)
+        {
+            var partialInsertionMarkup = GetInsertionMarkup(template, context);
+
+            return (
+                AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupPartialBeginPattern, partialInsertionMarkup, context.EntityName), outputPath),
+                AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupPartialEndPattern, partialInsertionMarkup, context.EntityName), outputPath)
+                );
+        }
+
+        private static string GetInsertionMarkup(Manifest.Feature.Template template, FileGeneratorContext context)
+        {
+            return template.PartialInsertionMarkup.Replace("{Parent}", context.ParentName);
         }
 
         private static string AdaptBiaToolKitMarkup(string markup, string outputPath)

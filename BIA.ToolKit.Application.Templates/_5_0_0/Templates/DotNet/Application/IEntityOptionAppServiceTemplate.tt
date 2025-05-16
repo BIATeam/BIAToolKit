@@ -11,7 +11,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     using BIA.Net.Core.Domain.Dto.Option;
 
     /// <summary>
-    /// The interface defining the application service for <#= ModelInstance.EntityName #> option.
+    /// The interface defining the application service for <#= ModelInstance.EntityName.ToLiteral() #> option.
     /// </summary>
     public interface I<#= ModelInstance.EntityName #>OptionAppService : IOptionAppServiceBase<OptionDto, <#= ModelInstance.BaseKeyType #>>
     {

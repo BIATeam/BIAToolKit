@@ -8,7 +8,7 @@ namespace TheBIADevCompany.BIADemo.Application.AircraftMaintenanceCompany
     using BIA.Net.Core.Domain.Dto.Option;
 
     /// <summary>
-    /// The interface defining the application service for MyCountry option.
+    /// The interface defining the application service for my country option.
     /// </summary>
     public interface IMyCountryOptionAppService : IOptionAppServiceBase<OptionDto, int>
     {

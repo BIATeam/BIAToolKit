@@ -12,6 +12,17 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>OptionsAdapter = creat
   sortComparer: false,
 });
 
+// -----------------------------------------
+// The shape of EntityState
+// ------------------------------------------
+// interface EntityState<<#= ModelInstance.EntityName #>> {
+//   ids: string[] | number[];
+//   entities: { [id: string]: <#= ModelInstance.EntityName #> };
+// }
+// -----------------------------------------
+// -> ids arrays allow us to sort data easily
+// -> entities map allows us to access the data quickly without iterating/filtering though an array of objects
+
 export type State = EntityState<OptionDto>;
 
 export const INIT_STATE: State = <#= ModelInstance.EntityName.ToCamelCase() #>OptionsAdapter.getInitialState({

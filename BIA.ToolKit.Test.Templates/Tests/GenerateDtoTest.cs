@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Test.Templates
+﻿namespace BIA.ToolKit.Test.Templates.Tests
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -14,7 +14,7 @@
         /// It is a sample for a DTO used for Option and for CRUD
         /// </summary>
         [Fact]
-        public async Task GenerateDto_PlaneType()
+        public async Task GeneratePlaneType_BIADemoConfiguration_AllFilesEquals()
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
@@ -63,7 +63,7 @@
                 GenerateBack = true
             };
 
-            await fixture.TestGenerateDtoAsync(dtoContext);
+            await fixture.RunTestGenerateDtoAllFilesEqualsAsync(dtoContext);
         }
 
         /// <summary>
@@ -71,7 +71,7 @@
         /// It is a sample for a DTO used for CRUD with all type of data
         /// </summary>
         [Fact]
-        public async Task GenerateDto_Plane()
+        public async Task GeneratePlane_BIADemoConfiguration_AllFilesEquals()
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
@@ -265,7 +265,7 @@
                 AncestorTeamName = ancestorTeamName,
             };
 
-            await fixture.TestGenerateDtoAsync(dtoContext);
+            await fixture.RunTestGenerateDtoAllFilesEqualsAsync(dtoContext);
         }
 
         /// <summary>
@@ -273,7 +273,7 @@
         /// It is a sample for a DTO used for Team
         /// </summary>
         [Fact]
-        public async Task GenerateDto_AircraftMaintenanceCompany()
+        public async Task GenerateAircraftMaintenanceCompany_BIADemoConfiguration_AllFilesEquals()
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
@@ -303,7 +303,7 @@
                 GenerateBack = true,
             };
 
-            await fixture.TestGenerateDtoAsync(dtoContext);
+            await fixture.RunTestGenerateDtoAllFilesEqualsAsync(dtoContext);
         }
 
 
@@ -312,7 +312,7 @@
         /// It is a sample for a DTO used for Child Team
         /// </summary>
         [Fact]
-        public async Task GenerateDto_MaintenanceTeam()
+        public async Task GenerateMaintenanceTeam_BIADemoConfiguration_AllFilesEquals()
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
@@ -496,7 +496,7 @@
                 AncestorTeamName = ancestorTeamName,
             };
 
-            await fixture.TestGenerateDtoAsync(dtoContext);
+            await fixture.RunTestGenerateDtoAllFilesEqualsAsync(dtoContext);
         }
 
     }

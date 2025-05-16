@@ -9,6 +9,17 @@ export const myCountryOptionsAdapter = createEntityAdapter<OptionDto>({
   sortComparer: false,
 });
 
+// -----------------------------------------
+// The shape of EntityState
+// ------------------------------------------
+// interface EntityState<MyCountry> {
+//   ids: string[] | number[];
+//   entities: { [id: string]: MyCountry };
+// }
+// -----------------------------------------
+// -> ids arrays allow us to sort data easily
+// -> entities map allows us to access the data quickly without iterating/filtering though an array of objects
+
 export type State = EntityState<OptionDto>;
 
 export const INIT_STATE: State = myCountryOptionsAdapter.getInitialState({

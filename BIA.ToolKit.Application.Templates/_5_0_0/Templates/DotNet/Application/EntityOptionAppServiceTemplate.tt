@@ -10,12 +10,11 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     using BIA.Net.Core.Application.Services;
     using BIA.Net.Core.Domain.Dto.Option;
     using BIA.Net.Core.Domain.RepoContract;
-    using BIA.Net.Core.Domain.Service;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers;
 
     /// <summary>
-    /// The application service used for <#= ModelInstance.EntityName #> option.
+    /// The application service used for <#= ModelInstance.EntityName.ToLiteral() #> option.
     /// </summary>
     public class <#= ModelInstance.EntityName #>OptionAppService : OptionAppServiceBase<OptionDto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, <#= ModelInstance.EntityName #>OptionMapper>, I<#= ModelInstance.EntityName #>OptionAppService
     {

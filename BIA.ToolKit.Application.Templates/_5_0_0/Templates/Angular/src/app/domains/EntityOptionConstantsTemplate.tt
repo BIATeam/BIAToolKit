@@ -2,4 +2,4 @@
 <#@ include file="$(T4Includes_5_0_0)\TemplateOption.ttinclude" #>
 <#@ output extension=".ts" #>
 // IMPORTANT: this key should be unique in all the application. Use the path of the feature.
-export const storeKey = 'domain-<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-options';
+export const storeKey = 'domain-<#= ModelInstance.EntityName.ToKebabCase() #>-options';
