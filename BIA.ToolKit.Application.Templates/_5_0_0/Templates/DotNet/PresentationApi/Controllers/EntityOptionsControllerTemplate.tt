@@ -16,12 +16,12 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common;
 
     /// <summary>
-    /// The API controller used to manage <#= ModelInstance.EntityName #> options.
+    /// The API controller used to manage <#= ModelInstance.EntityName.ToLiteral() #> options.
     /// </summary>
     public class <#= ModelInstance.EntityName #>OptionsController : BiaControllerBase
     {
         /// <summary>
-        /// The <#= ModelInstance.EntityName #> application service.
+        /// The <#= ModelInstance.EntityName.ToLiteral() #> application service.
         /// </summary>
         private readonly I<#= ModelInstance.EntityName #>OptionAppService <#= ModelInstance.EntityName.ToCamelCase() #>OptionService;
 

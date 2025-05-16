@@ -13,12 +13,12 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.AircraftMaintena
     using TheBIADevCompany.BIADemo.Crosscutting.Common;
 
     /// <summary>
-    /// The API controller used to manage MyCountry options.
+    /// The API controller used to manage my country options.
     /// </summary>
     public class MyCountryOptionsController : BiaControllerBase
     {
         /// <summary>
-        /// The MyCountry application service.
+        /// The my country application service.
         /// </summary>
         private readonly IMyCountryOptionAppService myCountryOptionService;
 
