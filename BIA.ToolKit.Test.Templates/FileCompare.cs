@@ -4,13 +4,59 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
+    using BIA.ToolKit.Application.Templates;
 
     internal static class FileCompare
     {
-        public static string? FilesEquals(string expectedFilePath, string actualFilePath)
+        public static string? FilesEquals(string expectedFilePath, string actualFilePath, FileGeneratorContext context, Manifest.Feature.Template template)
         {
-            var expectedLines = File.ReadAllLines(expectedFilePath);
-            var actualLines = File.ReadAllLines(actualFilePath);
+            var expectedLines = File.ReadAllLines(expectedFilePath).ToList();
+            var actualLines = File.ReadAllLines(actualFilePath).ToList();
+
+            if(template.IsPartial)
+            {
+                (var partialInsertionMarkupBegin, var partialInsertionMarkupEnd) = FileGeneratorService.GetPartialInsertionMarkups(context, template, template.OutputPath);
+
+                var expectedMarkupBeginIndex = expectedLines.FindIndex(l => l.Contains(partialInsertionMarkupBegin));
+                if(expectedMarkupBeginIndex < 0)
+                {
+                    throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupBegin, expectedFilePath);
+                }
+                var expectedMarkupEndIndex = expectedLines.FindIndex(l => l.Contains(partialInsertionMarkupEnd));
+                if (expectedMarkupEndIndex < 0)
+                {
+                    throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupEnd, expectedFilePath);
+                }
+
+                var actualMarkupBeginIndex = actualLines.FindIndex(l => l.Contains(partialInsertionMarkupBegin));
+                if (actualMarkupBeginIndex < 0)
+                {
+                    throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupBegin, actualFilePath);
+                }
+                var actualMarkupEndIndex = actualLines.FindIndex(l => l.Contains(partialInsertionMarkupEnd));
+                if (actualMarkupEndIndex < 0)
+                {
+                    throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupEnd, actualFilePath);
+                }
+
+                expectedLines = expectedLines.GetRange(expectedMarkupBeginIndex, expectedMarkupEndIndex - expectedMarkupBeginIndex + 1);
+                actualLines = actualLines.GetRange(actualMarkupBeginIndex, actualMarkupEndIndex - actualMarkupBeginIndex + 1);
+
+                expectedFilePath = expectedFilePath.Replace(Path.GetFileNameWithoutExtension(expectedFilePath), $"{Path.GetFileNameWithoutExtension(expectedFilePath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}");
+                actualFilePath = actualFilePath.Replace(Path.GetFileNameWithoutExtension(actualFilePath), $"{Path.GetFileNameWithoutExtension(actualFilePath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}");
+                if (File.Exists(expectedFilePath))
+                {
+                    File.Delete(expectedFilePath);
+                }
+                if (File.Exists(actualFilePath))
+                {
+                    File.Delete(actualFilePath);
+                }
+                File.AppendAllLines(expectedFilePath, expectedLines);
+                File.AppendAllLines(actualFilePath, actualLines);
+            }
 
             int modified = 0;
             int moved = 0;
@@ -38,14 +84,14 @@
                         actualLines.Where(a => expectedLines.All(
                         b => b != a));
 
-            while (expectedIndex < expectedLines.Length || actualIndex < actualLines.Length)
+            while (expectedIndex < expectedLines.Count || actualIndex < actualLines.Count)
             {
-                if (expectedIndex >= expectedLines.Length)
+                if (expectedIndex >= expectedLines.Count)
                 {
                     added++;
                     actualIndex++;
                 }
-                else if (actualIndex >= actualLines.Length)
+                else if (actualIndex >= actualLines.Count)
                 {
                     deleted++;
                     expectedIndex++;

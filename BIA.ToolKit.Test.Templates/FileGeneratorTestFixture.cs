@@ -112,7 +112,7 @@
                         continue;
                     }
 
-                    string? errorEquals = FileCompare.FilesEquals(referencePath, generatedPath);
+                    string? errorEquals = FileCompare.FilesEquals(referencePath, generatedPath, context, dotNetTemplate);
 
                     if (errorEquals != null)
                     {
@@ -132,7 +132,7 @@
                         continue;
                     }
 
-                    string? errorEquals = FileCompare.FilesEquals(referencePath, generatedPath);
+                    string? errorEquals = FileCompare.FilesEquals(referencePath, generatedPath, context, angularTemplate);
 
                     if (errorEquals != null)
                     {
