@@ -51,5 +51,40 @@
 
             await fixture.TestGenerateOptionAsync(optionContext);
         }
+
+        /// <summary>
+        /// Generates the option's files for Country.
+        /// It is a sample for an Option used for DTO and for CRUD
+        /// </summary>
+        [Fact]
+        public async Task GenerateOption_Country()
+        {
+            var entityInfo = new EntityInfo(
+                path: string.Empty,
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Plane.Entities",
+                name: "Country",
+                baseType: "VersionedTable",
+                primaryKey: null,
+                arguments: null,
+                baseList: ["IEntity<int>"]);
+
+            var domainName = "AircraftMaintenanceCompany";
+
+            var optionContext = new FileGeneratorOptionContext
+            {
+                CompanyName = fixture.TestProject.CompanyName,
+                ProjectName = fixture.TestProject.Name,
+                DomainName = domainName,
+                EntityName = entityInfo.Name,
+                EntityNamePlural = entityInfo.NamePluralized,
+                BaseKeyType = entityInfo.BaseKeyType,
+                GenerateBack = true,
+                GenerateFront = true,
+                AngularFront = "Angular",
+                DisplayName = "Name"
+            };
+
+            await fixture.TestGenerateOptionAsync(optionContext);
+        }
     }
 }
