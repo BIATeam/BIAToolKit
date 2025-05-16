@@ -5,13 +5,13 @@
     using System.Text;
     using static BIA.ToolKit.Application.Templates.Manifest.Feature;
 
-    internal class AssertionException(string message) : Exception(message)
+    internal class GenerationAssertionException(string message) : Exception(message)
     { }
 
-    internal class AllFilesEqualsException(string details) : AssertionException($"some files are not equals, see details below\n\n{details}")
+    internal class AllFilesNotEqualsException(string details) : GenerationAssertionException($"some files are not equals, see details below\n\n{details}")
     { }
 
-    internal class FilesEqualsException(string referencePath, string generatedPath, int modifiedLines, int movedLines, int addedLines, int deletedLines) : AssertionException(GenerateErrorDetails(referencePath, generatedPath, modifiedLines, movedLines, addedLines, deletedLines))
+    internal class FilesNotEqualsException(string referencePath, string generatedPath, int modifiedLines, int movedLines, int addedLines, int deletedLines) : GenerationAssertionException(GenerateErrorDetails(referencePath, generatedPath, modifiedLines, movedLines, addedLines, deletedLines))
     {
         private static string GenerateErrorDetails(string referencePath, string generatedPath, int modifiedLines, int movedLines, int addedLines, int deletedLines)
         {
@@ -23,12 +23,12 @@
         }
     }
 
-    internal class PartialInsertionMarkupNotFoundException(string partialInsertionMarkup, string filePath) : AssertionException($"File: {filePath}\nMarkup: \"{partialInsertionMarkup}\"")
+    internal class PartialInsertionMarkupNotFoundException(string partialInsertionMarkup, string filePath) : GenerationAssertionException($"File: {filePath}\nMarkup: \"{partialInsertionMarkup}\"")
     { }
     
-    internal class ReferenceFileNotFoundException(string filePath) : AssertionException($"File: {filePath}")
+    internal class ReferenceFileNotFoundException(string filePath) : GenerationAssertionException($"File: {filePath}")
     { }
 
-    internal class GeneratedFileNotFoundException(string filePath) : AssertionException($"File: {filePath}")
+    internal class GeneratedFileNotFoundException(string filePath) : GenerationAssertionException($"File: {filePath}")
     { }
 }

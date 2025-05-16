@@ -13,7 +13,7 @@
     {
         public static void AssertAllFilesEquals(FileGeneratorTestFixture testFixture, FileGeneratorContext context)
         {
-            var assertionExceptions = new List<AssertionException>();
+            var assertionExceptions = new List<GenerationAssertionException>();
 
             if (context.GenerateBack)
             {
@@ -24,7 +24,7 @@
                         var (referencePath, generatedPath) = testFixture.GetDotNetFilesPath(dotNetTemplate.OutputPath, context);
                         VerifyFilesEquals(referencePath, generatedPath, context, dotNetTemplate);
                     }
-                    catch (AssertionException ex)
+                    catch (GenerationAssertionException ex)
                     {
                         assertionExceptions.Add(ex);
                         continue;
@@ -41,7 +41,7 @@
                         var (referencePath, generatedPath) = testFixture.GetAngularFilesPath(angularTemplate.OutputPath, context);
                         VerifyFilesEquals(referencePath, generatedPath, context, angularTemplate);
                     }
-                    catch (AssertionException ex)
+                    catch (GenerationAssertionException ex)
                     {
                         assertionExceptions.Add(ex);
                         continue;
@@ -51,7 +51,7 @@
 
             if (assertionExceptions.Count != 0)
             {
-                throw new AllFilesEqualsException(string.Join("\n\n", assertionExceptions.Select(x => $"[{x.GetType().Name}]\n{x.Message}")));
+                throw new AllFilesNotEqualsException(string.Join("\n\n", assertionExceptions.Select(x => $"[{x.GetType().Name}]\n{x.Message}")));
             }
         }
 
@@ -288,7 +288,7 @@
 
             if (modified != 0 || added != 0 || deleted != 0 || moved != 0)
             {
-                throw new FilesEqualsException(referencePath, generatedPath, modified, moved, added, deleted);
+                throw new FilesNotEqualsException(referencePath, generatedPath, modified, moved, added, deleted);
             }
         }
     }
