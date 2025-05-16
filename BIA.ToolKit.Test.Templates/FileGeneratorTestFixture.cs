@@ -10,7 +10,6 @@
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Test.Templates.Assertions;
-    using BIA.ToolKit.Test.Templates.Helpers;
     using static BIA.ToolKit.Application.Templates.Manifest;
 
     public class FileGeneratorTestFixture : IDisposable
@@ -28,7 +27,7 @@
         private readonly string testProjectPath;
         private readonly Project referenceProject;
         private readonly Stopwatch stopwatch = new();
-        private Feature? currentTestFeature;
+        public Feature? CurrentTestFeature { get; private set; }
         public Project TestProject { get; private set; }
 
         public FileGeneratorTestFixture()
@@ -90,25 +89,25 @@
 
         public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext)
         {
-            currentTestFeature = fileGeneratorService.GetCurrentManifestFeature("DTO");
+            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature("DTO");
             ImportTargetedPartialFiles(dtoContext);
             await fileGeneratorService.GenerateDtoAsync(dtoContext);
-            GenerationAssertions.AssertAllFilesEquals(this, dtoContext, currentTestFeature);
+            GenerationAssertions.AssertAllFilesEquals(this, dtoContext);
         }
 
         public async Task RunTestGenerateOptionAllFilesEqualsAsync(FileGeneratorOptionContext optionContext)
         {
-            currentTestFeature = fileGeneratorService.GetCurrentManifestFeature("Option");
+            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature("Option");
             ImportTargetedPartialFiles(optionContext);
             await fileGeneratorService.GenerateOptionAsync(optionContext);
-            GenerationAssertions.AssertAllFilesEquals(this, optionContext, currentTestFeature);
+            GenerationAssertions.AssertAllFilesEquals(this, optionContext);
         }
 
         private void ImportTargetedPartialFiles(FileGeneratorContext context)
         {
             if (context.GenerateBack)
             {
-                foreach (var template in currentTestFeature!.DotNetTemplates.Where(t => t.IsPartial))
+                foreach (var template in CurrentTestFeature!.DotNetTemplates.Where(t => t.IsPartial))
                 {
                     var (referencePath, generatedPath) = GetDotNetFilesPath(template.OutputPath, context);
                     Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);
@@ -118,7 +117,7 @@
 
             if (context.GenerateFront)
             {
-                foreach (var template in currentTestFeature!.AngularTemplates.Where(t => t.IsPartial))
+                foreach (var template in CurrentTestFeature!.AngularTemplates.Where(t => t.IsPartial))
                 {
                     var (referencePath, generatedPath) = GetAngularFilesPath(template.OutputPath, context);
                     Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);
