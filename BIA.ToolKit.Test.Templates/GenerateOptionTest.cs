@@ -46,7 +46,7 @@
                 GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
-                DisplayName = "PlaneType"
+                DisplayName = "Title"
             };
 
             await fixture.TestGenerateOptionAsync(optionContext);

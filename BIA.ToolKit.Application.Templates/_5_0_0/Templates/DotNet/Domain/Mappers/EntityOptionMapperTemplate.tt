@@ -14,7 +14,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
 
     /// <summary>
-    /// The mapper used for <#= ModelInstance.EntityName #> option.
+    /// The mapper used for <#= ModelInstance.EntityName.ToLiteral() #> option.
     /// </summary>
     public class <#= ModelInstance.EntityName #>OptionMapper : BaseMapper<OptionDto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>>
     {
