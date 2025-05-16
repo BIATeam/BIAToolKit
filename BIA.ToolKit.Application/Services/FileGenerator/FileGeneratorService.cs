@@ -136,7 +136,7 @@
         {
             try
             {
-                consoleWriter.AddMessageLine($" === GENERATE DTO ===", color: "lightblue");
+                consoleWriter.AddMessageLine($"=== GENERATE DTO ===", color: "lightblue");
 
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
@@ -159,7 +159,7 @@
         {
             try
             {
-                consoleWriter.AddMessageLine($" === GENERATE OPTION ===", color: "lightblue");
+                consoleWriter.AddMessageLine($"=== GENERATE OPTION ===", color: "lightblue");
 
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
@@ -183,7 +183,7 @@
         {
             try
             {
-                consoleWriter.AddMessageLine($" === GENERATE CRUD ===", color: "lightblue");
+                consoleWriter.AddMessageLine($"=== GENERATE CRUD ===", color: "lightblue");
 
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");

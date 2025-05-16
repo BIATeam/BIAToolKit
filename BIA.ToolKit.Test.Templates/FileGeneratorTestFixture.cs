@@ -11,13 +11,13 @@
     using BIA.ToolKit.Domain.ModifyProject;
     using static BIA.ToolKit.Application.Templates.Manifest;
 
-    public class FileGeneratorTestFixture
+    public class FileGeneratorTestFixture : IDisposable
     {
-        internal class ConsoleWriterTest : IConsoleWriter
+        internal class ConsoleWriterTest(Stopwatch stopwatch) : IConsoleWriter
         {
             public void AddMessageLine(string message, string? color = null, bool refreshimediate = true)
             {
-                Console.WriteLine(message);
+                Console.WriteLine($"[{nameof(FileGeneratorTestFixture)} {stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}]\t{message}");
             }
         }
 
@@ -25,6 +25,7 @@
         private readonly string referenceProjectPath;
         private readonly string testProjectPath;
         private readonly Project referenceProject;
+        private readonly Stopwatch stopwatch = new();
         private Feature? currentTestFeature;
         public Project TestProject { get; private set; }
 
@@ -64,22 +65,20 @@
                 FrameworkVersion = referenceProject.FrameworkVersion
             };
 
-            var consoleWriter = new ConsoleWriterTest();
+            var consoleWriter = new ConsoleWriterTest(stopwatch);
             fileGeneratorService = new FileGeneratorService(consoleWriter);
-            fileGeneratorService.Init(TestProject);
+
+            stopwatch.Start();
 
             consoleWriter.AddMessageLine($"Reference project at {referenceProjectPath}");
             consoleWriter.AddMessageLine($"Generation path at {testProjectPath}");
+            
+            fileGeneratorService.Init(TestProject);
         }
 
-        public (string referencePath, string generatedPath) GetDotNetFilesPath(string templateOutputPath, FileGeneratorContext context)
+        public void Dispose()
         {
-            return (FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, context, TestProject.Folder));
-        }
-
-        public (string referencePath, string generatedPath) GetAngularFilesPath(string templateOutputPath, FileGeneratorContext context)
-        {
-            return (FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, TestProject.Folder));
+            stopwatch.Stop();
         }
 
         public async Task TestGenerateDtoAsync(FileGeneratorDtoContext dtoContext)
@@ -169,7 +168,17 @@
             }
         }
 
-        public static string NormalisePath(string path)
+        private (string referencePath, string generatedPath) GetDotNetFilesPath(string templateOutputPath, FileGeneratorContext context)
+        {
+            return (FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, context, TestProject.Folder));
+        }
+
+        private (string referencePath, string generatedPath) GetAngularFilesPath(string templateOutputPath, FileGeneratorContext context)
+        {
+            return (FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, TestProject.Folder));
+        }
+
+        private static string NormalisePath(string path)
         {
             var components = path.Split(new Char[] { '\\' });
 
