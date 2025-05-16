@@ -109,6 +109,7 @@
                     if (!File.Exists(generatedPath))
                     {
                         error.Add($"Missing file: {generatedPath}");
+                        continue;
                     }
 
                     string? errorEquals = FileCompare.FilesEquals(referencePath, generatedPath);
@@ -128,6 +129,7 @@
                     if (!File.Exists(generatedPath))
                     {
                         error.Add($"Missing file: {generatedPath}");
+                        continue;
                     }
 
                     string? errorEquals = FileCompare.FilesEquals(referencePath, generatedPath);

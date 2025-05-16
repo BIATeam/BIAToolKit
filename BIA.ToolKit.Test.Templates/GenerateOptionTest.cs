@@ -44,6 +44,8 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 GenerateBack = true,
+                GenerateFront = true,
+                AngularFront = "Angular",
                 DisplayName = "PlaneType"
             };
 
