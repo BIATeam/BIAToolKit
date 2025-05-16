@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Test.Templates
+﻿namespace BIA.ToolKit.Test.Templates.Helpers
 {
     using System;
     using System.Collections.Generic;
@@ -8,7 +8,7 @@
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Templates;
 
-    internal static class FileCompare
+    internal static class FileCompareHelper
     {
         public static string? FilesEquals(string expectedFilePath, string actualFilePath, FileGeneratorContext context, Manifest.Feature.Template template)
         {
@@ -213,7 +213,7 @@
                             }
                             else if (actualIsInExpectedLater != null && expectedIsInActualLater != null)
                             {
-                                if ((actualIsInExpectedLater.index - actualIndex) < (expectedIsInActualLater.index - expectedIndex))
+                                if (actualIsInExpectedLater.index - actualIndex < expectedIsInActualLater.index - expectedIndex)
                                 {
                                     expected_deplaced_line.Add(expectedIsInActualLater.index);
                                     actualIndex++;

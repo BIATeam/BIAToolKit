@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Test.Templates
+﻿namespace BIA.ToolKit.Test.Templates.Tests
 {
     using System;
     using System.Collections.Generic;
@@ -22,7 +22,7 @@
         /// It is a sample for an Option used for DTO and for CRUD
         /// </summary>
         [Fact]
-        public async Task GenerateOption_PlaneType()
+        public async Task GeneratePlaneType_BIADemoConfiguration_AllFilesEquals()
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
@@ -49,7 +49,7 @@
                 DisplayName = "Title"
             };
 
-            await fixture.TestGenerateOptionAsync(optionContext);
+            await fixture.RunTestGenerateOptionAllFilesEqualsAsync(optionContext);
         }
 
         /// <summary>
@@ -57,7 +57,7 @@
         /// It is a sample for an Option used for DTO and for CRUD
         /// </summary>
         [Fact]
-        public async Task GenerateOption_Country()
+        public async Task GenerateCountry_BIADemoConfiguration_AllFilesEquals()
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
@@ -84,7 +84,7 @@
                 DisplayName = "Name"
             };
 
-            await fixture.TestGenerateOptionAsync(optionContext);
+            await fixture.RunTestGenerateOptionAllFilesEqualsAsync(optionContext);
         }
     }
 }

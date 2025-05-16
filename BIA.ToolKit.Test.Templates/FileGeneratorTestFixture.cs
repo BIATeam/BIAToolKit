@@ -9,6 +9,8 @@
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Domain.ModifyProject;
+    using BIA.ToolKit.Test.Templates.Assertions;
+    using BIA.ToolKit.Test.Templates.Helpers;
     using static BIA.ToolKit.Application.Templates.Manifest;
 
     public class FileGeneratorTestFixture : IDisposable
@@ -86,70 +88,20 @@
             stopwatch.Stop();
         }
 
-        public async Task TestGenerateDtoAsync(FileGeneratorDtoContext dtoContext)
+        public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext)
         {
             currentTestFeature = fileGeneratorService.GetCurrentManifestFeature("DTO");
             ImportTargetedPartialFiles(dtoContext);
             await fileGeneratorService.GenerateDtoAsync(dtoContext);
-            AssertFilesEquals(dtoContext);
+            GenerationAssertions.AssertAllFilesEquals(this, dtoContext, currentTestFeature);
         }
 
-        public async Task TestGenerateOptionAsync(FileGeneratorOptionContext optionContext)
+        public async Task RunTestGenerateOptionAllFilesEqualsAsync(FileGeneratorOptionContext optionContext)
         {
             currentTestFeature = fileGeneratorService.GetCurrentManifestFeature("Option");
             ImportTargetedPartialFiles(optionContext);
             await fileGeneratorService.GenerateOptionAsync(optionContext);
-            AssertFilesEquals(optionContext);
-        }
-
-        private void AssertFilesEquals(FileGeneratorContext context)
-        {
-            var error = new List<string>();
-
-            if (context.GenerateBack)
-            {
-                foreach (var dotNetTemplate in currentTestFeature!.DotNetTemplates)
-                {
-                    var (referencePath, generatedPath) = GetDotNetFilesPath(dotNetTemplate.OutputPath, context);
-                    if (!File.Exists(generatedPath))
-                    {
-                        error.Add($"Missing file: {generatedPath}");
-                        continue;
-                    }
-
-                    string? errorEquals = FileCompare.FilesEquals(referencePath, generatedPath, context, dotNetTemplate);
-
-                    if (errorEquals != null)
-                    {
-                        error.Add(errorEquals);
-                    }
-                }
-            }
-
-            if (context.GenerateFront)
-            {
-                foreach (var angularTemplate in currentTestFeature!.AngularTemplates)
-                {
-                    var (referencePath, generatedPath) = GetAngularFilesPath(angularTemplate.OutputPath, context);
-                    if (!File.Exists(generatedPath))
-                    {
-                        error.Add($"Missing file: {generatedPath}");
-                        continue;
-                    }
-
-                    string? errorEquals = FileCompare.FilesEquals(referencePath, generatedPath, context, angularTemplate);
-
-                    if (errorEquals != null)
-                    {
-                        error.Add(errorEquals);
-                    }
-                }
-            }
-
-            if (error.Count != 0)
-            {
-                throw new FilesEqualsException(string.Join("\n", error));
-            }
+            GenerationAssertions.AssertAllFilesEquals(this, optionContext, currentTestFeature);
         }
 
         private void ImportTargetedPartialFiles(FileGeneratorContext context)
@@ -175,12 +127,12 @@
             }
         }
 
-        private (string referencePath, string generatedPath) GetDotNetFilesPath(string templateOutputPath, FileGeneratorContext context)
+        internal (string referencePath, string generatedPath) GetDotNetFilesPath(string templateOutputPath, FileGeneratorContext context)
         {
             return (FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetDotNetTemplateOutputPath(templateOutputPath, context, TestProject.Folder));
         }
 
-        private (string referencePath, string generatedPath) GetAngularFilesPath(string templateOutputPath, FileGeneratorContext context)
+        internal (string referencePath, string generatedPath) GetAngularFilesPath(string templateOutputPath, FileGeneratorContext context)
         {
             return (FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, referenceProject.Folder), FileGeneratorService.GetAngularTemplateOutputPath(templateOutputPath, context, TestProject.Folder));
         }
