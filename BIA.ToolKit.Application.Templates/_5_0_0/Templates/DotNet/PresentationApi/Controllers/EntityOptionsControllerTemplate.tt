@@ -28,7 +28,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
         /// <summary>
         /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>OptionsController"/> class.
         /// </summary>
-        /// <param name="<#= ModelInstance.EntityName.ToCamelCase() #>OptionService">The <#= ModelInstance.EntityName.ToCamelCase() #> application service.</param>
+        /// <param name="<#= ModelInstance.EntityName.ToCamelCase() #>OptionService">The <#= ModelInstance.EntityName.ToLiteral() #> application service.</param>
         public <#= ModelInstance.EntityName #>OptionsController(I<#= ModelInstance.EntityName #>OptionAppService <#= ModelInstance.EntityName.ToCamelCase() #>OptionService)
         {
             this.<#= ModelInstance.EntityName.ToCamelCase() #>OptionService = <#= ModelInstance.EntityName.ToCamelCase() #>OptionService;
@@ -37,7 +37,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
         /// <summary>
         /// Gets all option that I can see.
         /// </summary>
-        /// /// <returns>The list of <#= ModelInstance.EntityNamePlural #>.</returns>
+        /// /// <returns>The list of <#= ModelInstance.EntityNamePlural.ToLiteral() #>.</returns>
         [HttpGet("allOptions")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
