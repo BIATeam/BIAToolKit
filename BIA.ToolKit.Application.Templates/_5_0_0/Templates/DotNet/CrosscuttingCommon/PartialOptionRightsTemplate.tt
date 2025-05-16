@@ -4,12 +4,12 @@
         // BIAToolKit - Begin Partial RightsForOption <#= ModelInstance.EntityName #>
 
         /// <summary>
-        /// The <#= ModelInstance.EntityName #> options rights.
+        /// The <#= ModelInstance.EntityName.ToLiteral() #> options rights.
         /// </summary>
         public static class <#= ModelInstance.EntityName #>Options
         {
             /// <summary>
-            /// The right to access to the list of <#= ModelInstance.EntityNamePlural #> (options only).
+            /// The right to access to the list of <#= ModelInstance.EntityNamePlural.ToLiteral() #> (options only).
             /// </summary>
             public const string Options = "<#= ModelInstance.EntityName #>_Options";
         }
