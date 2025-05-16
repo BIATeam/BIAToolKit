@@ -31,17 +31,25 @@
 
         public FileGeneratorTestFixture()
         {
+            var consoleWriter = new ConsoleWriterTest(stopwatch);
+            stopwatch.Start();
+
             var biaDemoZipPath = "..\\..\\..\\..\\BIADemoVersions\\BIADemo_5.0.0-alpha.zip";
             var currentDir = Directory.GetCurrentDirectory();
             referenceProjectPath = NormalisePath(Path.Combine(currentDir, "..\\..\\..\\..\\BIADemoVersions\\", Path.GetFileNameWithoutExtension(biaDemoZipPath)));
+            testProjectPath = Path.Combine(Path.GetTempPath(), "BIAToolKitTestTemplatesGenerated");
 
+            consoleWriter.AddMessageLine($"Reference project at {referenceProjectPath}");
+            consoleWriter.AddMessageLine($"Generation path at {testProjectPath}");
+
+            consoleWriter.AddMessageLine($"Unzipping {Path.GetFileName(biaDemoZipPath)}...");
             if (Directory.Exists(referenceProjectPath))
             {
                 Directory.Delete(referenceProjectPath, true);
             }
             ZipFile.ExtractToDirectory(biaDemoZipPath, referenceProjectPath);
 
-            testProjectPath = Path.Combine(Path.GetTempPath(), "BIAToolKitTestTemplatesGenerated");
+            consoleWriter.AddMessageLine($"Creating target test directory for generation...");
             if (Directory.Exists(testProjectPath))
             {
                 Directory.Delete(testProjectPath, true);
@@ -66,15 +74,11 @@
                 FrameworkVersion = referenceProject.FrameworkVersion
             };
 
-            var consoleWriter = new ConsoleWriterTest(stopwatch);
-            fileGeneratorService = new FileGeneratorService(consoleWriter);
-
-            stopwatch.Start();
-
-            consoleWriter.AddMessageLine($"Reference project at {referenceProjectPath}");
-            consoleWriter.AddMessageLine($"Generation path at {testProjectPath}");
             
+            consoleWriter.AddMessageLine($"Init service...");
+            fileGeneratorService = new FileGeneratorService(consoleWriter);
             fileGeneratorService.Init(TestProject);
+            consoleWriter.AddMessageLine($"Ready");
         }
 
         public void Dispose()
@@ -144,7 +148,7 @@
 
             if (error.Count != 0)
             {
-                throw new FilesEqualsException(string.Join("\n\n", error));
+                throw new FilesEqualsException(string.Join("\n", error));
             }
         }
 
