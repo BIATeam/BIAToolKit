@@ -2,11 +2,20 @@
 {
     using System;
     using System.Collections.Generic;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
 
     public class Manifest
     {
         public class Feature
         {
+            public enum FeatureType
+            {
+                Dto,
+                Option,
+                Crud
+            }
+
             public class Template
             {
                 public string InputPath { get; set; }
@@ -15,7 +24,8 @@
                 public string PartialInsertionMarkup { get; set; }
             }
 
-            public string Name { get; set; }
+            [JsonConverter(typeof(StringEnumConverter))]
+            public FeatureType Type { get; set; }
             public List<Template> DotNetTemplates { get; set; } = new List<Template>();
             public List<Template> AngularTemplates { get; set; } = new List<Template>();
         }

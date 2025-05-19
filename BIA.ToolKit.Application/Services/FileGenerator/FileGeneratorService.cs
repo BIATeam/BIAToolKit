@@ -5,6 +5,8 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Text.Json.Serialization;
+    using System.Text.Json;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
@@ -19,6 +21,7 @@
     using Microsoft.VisualBasic.FileIO;
     using Mono.TextTemplating;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
 
     public class FileGeneratorService
     {
@@ -142,7 +145,7 @@
                     throw new Exception("file generator has not been initialiazed");
 
                 var templateModel = modelProvider.GetDtoTemplateModel(dtoContext);
-                var dtoFeature = GetCurrentManifestFeature("DTO");
+                var dtoFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Dto);
 
                 currentContext = dtoContext;
 
@@ -165,7 +168,7 @@
                     throw new Exception("file generator has not been initialiazed");
 
                 var templateModel = modelProvider.GetOptionTemplateModel(optionContext);
-                var optionFeature = GetCurrentManifestFeature("Option");
+                var optionFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Option);
 
                 currentContext = optionContext;
 
@@ -194,7 +197,7 @@
                 }
 
                 var templateModel = modelProvider.GetCrudTemplateModel(crudContext);
-                var crudFeature = GetCurrentManifestFeature("CRUD");
+                var crudFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Crud);
 
                 currentContext = crudContext;
 
@@ -208,16 +211,21 @@
             }
         }
 
-        public Manifest.Feature GetCurrentManifestFeature(string featureName)
+        public Manifest.Feature GetCurrentManifestFeature(Manifest.Feature.FeatureType featureType)
         {
-            return currentManifest.Features.SingleOrDefault(f => f.Name == featureName)
-                    ?? throw new KeyNotFoundException($"no {featureName} feature for template manifest {currentManifest.Version}");
+            return currentManifest.Features.SingleOrDefault(f => f.Type == featureType)
+                    ?? throw new KeyNotFoundException($"no {featureType} feature for template manifest {currentManifest.Version}");
         }
 
         private void LoadTemplatesManifests()
         {
+            var jsonSerializersettings = new JsonSerializerSettings
+            {
+                Converters = { new StringEnumConverter() }, 
+                MissingMemberHandling = MissingMemberHandling.Error
+            };
             var manifestsFiles = Directory.EnumerateFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "manifest.json", System.IO.SearchOption.AllDirectories).ToList();
-            manifestsFiles.ForEach(m => manifests.Add(JsonConvert.DeserializeObject<Manifest>(File.ReadAllText(m))));
+            manifestsFiles.ForEach(m => manifests.Add(JsonConvert.DeserializeObject<Manifest>(File.ReadAllText(m), jsonSerializersettings)));
         }
 
         private async Task GenerateTemplatesFromManifestFeatureAsync(Manifest.Feature manifestFeature, object model)

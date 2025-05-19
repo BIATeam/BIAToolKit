@@ -8,6 +8,7 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
+    using BIA.ToolKit.Application.Templates;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Test.Templates.Assertions;
     using static BIA.ToolKit.Application.Templates.Manifest;
@@ -89,7 +90,7 @@
 
         public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext)
         {
-            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature("DTO");
+            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Dto);
             ImportTargetedPartialFiles(dtoContext);
             await fileGeneratorService.GenerateDtoAsync(dtoContext);
             GenerationAssertions.AssertAllFilesEquals(this, dtoContext);
@@ -97,10 +98,18 @@
 
         public async Task RunTestGenerateOptionAllFilesEqualsAsync(FileGeneratorOptionContext optionContext)
         {
-            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature("Option");
+            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Option);
             ImportTargetedPartialFiles(optionContext);
             await fileGeneratorService.GenerateOptionAsync(optionContext);
             GenerationAssertions.AssertAllFilesEquals(this, optionContext);
+        }
+
+        public async Task RunTestGenerateCrudAllFilesEqualsAsync(FileGeneratorCrudContext crudContext)
+        {
+            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Crud);
+            ImportTargetedPartialFiles(crudContext);
+            await fileGeneratorService.GenerateCRUDAsync(crudContext);
+            GenerationAssertions.AssertAllFilesEquals(this, crudContext);
         }
 
         private void ImportTargetedPartialFiles(FileGeneratorContext context)
