@@ -107,6 +107,10 @@
         public async Task RunTestGenerateCrudAllFilesEqualsAsync(FileGeneratorCrudContext crudContext)
         {
             CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Crud);
+            if (crudContext.GenerateFront && crudContext.HasParent)
+            {
+                crudContext.ComputeAngularParentLocation(referenceProjectPath);
+            }
             ImportTargetedPartialFiles(crudContext);
             await fileGeneratorService.GenerateCRUDAsync(crudContext);
             GenerationAssertions.AssertAllFilesEquals(this, crudContext);

@@ -9,7 +9,7 @@
 
         public string Name { get; }
 
-        public List<KeyValuePair<string, string>> Annotations { get; }
+        public List<KeyValuePair<string, string>> Annotations { get; } = new List<KeyValuePair<string, string>>();
 
         public PropertyInfo(string type, string name, List<AttributeArgumentSyntax>? arguments)
         {
@@ -17,7 +17,6 @@
             Name = name;
             if (arguments != null && arguments.Count > 0)
             {
-                Annotations = new();
                 ParseAnnotations(arguments);
             }
         }
