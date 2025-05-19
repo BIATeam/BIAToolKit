@@ -79,6 +79,7 @@
                 ParentName = "Plane",
                 ParentNamePlural = "Planes",
                 DisplayItemName = "Reference",
+                UseHubForClient = true,
                 GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",

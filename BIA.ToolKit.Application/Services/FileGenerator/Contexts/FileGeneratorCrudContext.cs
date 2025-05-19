@@ -13,5 +13,6 @@
         public string DisplayItemName { get; set; }
         public List<string> OptionItems { get; set; } = [];
         public List<PropertyInfo> Properties { get; set; } = [];
+        public bool UseHubForClient { get; set; }
     }
 }

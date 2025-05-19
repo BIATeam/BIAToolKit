@@ -51,6 +51,7 @@
             model.AngularParentRelativePath = crudContext.AngularParentFolderRelativePath;
             model.AngularDeepLevel = crudContext.AngularDeepLevel;
             model.OptionItems = crudContext.OptionItems;
+            model.UseHubForClient = crudContext.UseHubForClient;
 
             model.Properties = crudContext.Properties.Select(x => new TPropertyCrudModel
             {

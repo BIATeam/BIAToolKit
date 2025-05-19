@@ -4,7 +4,7 @@
 // <copyright file="<#= ModelInstance.EntityNamePlural #>Controller.cs" company="<#= ModelInstance.CompanyName #>">
 // Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
-// #define UseHubForClientIn<#= ModelInstance.EntityName #>
+<# if(!ModelInstance.UseHubForClient) { #>// <# } #>#define UseHubForClientIn<#= ModelInstance.EntityName #>
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Presentation.Api.Controllers.<#= ModelInstance.DomainName #>
 {
     using System;
@@ -44,7 +44,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
 
 #if UseHubForClientIn<#= ModelInstance.EntityName #>
         /// <summary>
-        /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityNamePlural #>Controller" /> class.
+        /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityNamePlural #>Controller"/> class.
         /// </summary>
         /// <param name="<#= ModelInstance.EntityName.ToCamelCase() #>Service">The <#= ModelInstance.EntityName.ToCamelCase() #> application service.</param>
         /// <param name="clientForHubService">The hub for client.</param>
@@ -53,11 +53,10 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
             IClientForHubService clientForHubService)
 #else
         /// <summary>
-        /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityNamePlural #>Controller" /> class.
+        /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityNamePlural #>Controller"/> class.
         /// </summary>
         /// <param name="<#= ModelInstance.EntityName.ToCamelCase() #>Service">The <#= ModelInstance.EntityName.ToCamelCase() #> application service.</param>
-        public <#= ModelInstance.EntityNamePlural #>Controller(
-            I<#= ModelInstance.EntityName #>AppService <#= ModelInstance.EntityName.ToCamelCase() #>Service)
+        public <#= ModelInstance.EntityNamePlural #>Controller(I<#= ModelInstance.EntityName #>AppService <#= ModelInstance.EntityName.ToCamelCase() #>Service)
 #endif
         {
 #if UseHubForClientIn<#= ModelInstance.EntityName #>

@@ -26,5 +26,6 @@
         public string ParentName { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         public string ParentNamePlural { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         public List<TPropertyCrudModel> Properties { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public bool UseHubForClient { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
     }
 }
