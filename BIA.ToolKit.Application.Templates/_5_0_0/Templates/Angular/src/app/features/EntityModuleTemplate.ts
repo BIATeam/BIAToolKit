@@ -12,7 +12,6 @@ import {
   DynamicLayoutComponent,
   LayoutMode,
 } from 'src/app/shared/bia-shared/components/layout/dynamic-layout/dynamic-layout.component';
-
 import { MaintenanceTeamReadComponent } from '../maintenance-teams/views/maintenance-team-read/maintenance-team-read.component';
 import { maintenanceTeamCRUDConfiguration } from './maintenance-team.constants';
 import { FeatureMaintenanceTeamsStore } from './store/maintenance-team.state';

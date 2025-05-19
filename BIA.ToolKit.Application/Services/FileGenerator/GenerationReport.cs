@@ -10,6 +10,8 @@
     public class GenerationReport
     {
         public List<Manifest.Feature.Template> TemplatesIgnored { get; private set; } = [];
-        public bool HasFailed { get; set; }
+        public List<Manifest.Feature.Template> TemplatesGenerated { get; private set; } = [];
+        public List<Manifest.Feature.Template> TemplatesFailed { get; private set; } = [];
+        public bool HasFailed => TemplatesFailed.Count > 0;
     }
 }

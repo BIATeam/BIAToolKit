@@ -22,6 +22,8 @@
     using Mono.TextTemplating;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
+    using System.Diagnostics;
+    using System.Threading;
 
     public class FileGeneratorService
     {
@@ -39,6 +41,7 @@
         private Project currentProject;
         private FileGeneratorContext currentContext;
         private Manifest currentManifest;
+        private string prettierAngularProjectPath;
 
         public bool IsInit { get; private set; }
 
@@ -133,6 +136,11 @@
         public bool IsProjectCompatibleForCrudOrOptionFeature()
         {
             return Version.TryParse(currentProject?.FrameworkVersion, out Version projectVersion) && projectVersion >= new Version(5, 0);
+        }
+
+        public void SetPrettierAngularProjectPath(string projectPath)
+        {
+            prettierAngularProjectPath = projectPath;
         }
 
         public async Task GenerateDtoAsync(FileGeneratorDtoContext dtoContext)
@@ -264,10 +272,20 @@
 
         private async Task GenerateAngularTemplates(IEnumerable<Manifest.Feature.Template> templates, object model)
         {
+            if (string.IsNullOrWhiteSpace(prettierAngularProjectPath))
+            {
+                throw new Exception("no path set for Angular project with Prettier");
+            }
+
             foreach (var template in templates)
             {
                 var templatePath = Path.Combine(templatesPath, Constants.FolderAngular, template.InputPath);
-                await GenerateFromTemplateAsync(template, templatePath, model, GetAngularTemplateOutputPath(template.OutputPath, currentContext, currentProject.Folder));
+                var outputPath = GetAngularTemplateOutputPath(template.OutputPath, currentContext, currentProject.Folder);
+                await GenerateFromTemplateAsync(template, templatePath, model, outputPath);
+                if (currentContext.GenerationReport.TemplatesGenerated.Contains(template))
+                {
+                    await ApplyPrettierToGeneratedAngularFileAsync(outputPath);
+                }
             }
         }
 
@@ -285,6 +303,36 @@
                     .Replace(@"\\", @"\"));
 
             return outputPath;
+        }
+
+        private async Task ApplyPrettierToGeneratedAngularFileAsync(string filePath)
+        {
+            var cts = new CancellationTokenSource();
+
+            var process = new Process();
+            process.StartInfo.WorkingDirectory = prettierAngularProjectPath;
+            process.StartInfo.FileName = "cmd.exe";
+            process.StartInfo.Arguments = $"/C npx prettier --write {filePath} --plugin=prettier-plugin-organize-imports --config \"{Path.Combine(prettierAngularProjectPath, ".prettierrc")}\"";
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+            process.Start();
+            consoleWriter.AddMessageLine($"Prettier generated file... (PID:{process.Id})");
+
+            try
+            {
+                cts.CancelAfter(5000);
+                await process.WaitForExitAsync(cts.Token);
+                consoleWriter.AddMessageLine($"Prettier succeed !");
+            }
+            catch(Exception ex)
+            {
+                consoleWriter.AddMessageLine($"prettier failed ({ex.Message})", "red");
+                process.Kill();
+            }
+            finally
+            {
+                process.Dispose();
+            }
         }
 
         private async Task GenerateFromTemplateAsync(Manifest.Feature.Template template, string templatePath, object model, string outputPath)
@@ -335,11 +383,12 @@
                 }
 
                 consoleWriter.AddMessageLine($"Success !", "lightgreen");
+                currentContext.GenerationReport.TemplatesGenerated.Add(template);
             }
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"Generate from template failed : {ex}", color: "red");
-                currentContext.GenerationReport.HasFailed = true;
+                currentContext.GenerationReport.TemplatesFailed.Add(template);
             }
         }
 

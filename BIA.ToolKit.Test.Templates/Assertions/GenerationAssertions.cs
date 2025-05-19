@@ -22,7 +22,7 @@
 
             if (context.GenerateBack)
             {
-                foreach (var dotNetTemplate in testFixture.CurrentTestFeature!.DotNetTemplates)
+                foreach (var dotNetTemplate in testFixture.CurrentTestFeature.DotNetTemplates)
                 {
                     try
                     {
@@ -39,7 +39,7 @@
 
             if (context.GenerateFront)
             {
-                foreach (var angularTemplate in testFixture.CurrentTestFeature!.AngularTemplates)
+                foreach (var angularTemplate in testFixture.CurrentTestFeature.AngularTemplates)
                 {
                     try
                     {

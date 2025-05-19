@@ -79,6 +79,7 @@
                 ParentName = "Plane",
                 ParentNamePlural = "Planes",
                 DisplayItemName = "Reference",
+                OptionItems = ["Part"],
                 HasAncestorTeam = true,
                 AncestorTeamName = "Site",
                 UseHubForClient = true,

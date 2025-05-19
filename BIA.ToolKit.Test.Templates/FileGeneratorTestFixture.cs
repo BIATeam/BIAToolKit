@@ -23,15 +23,20 @@
             }
         }
 
-        private readonly FileGeneratorService fileGeneratorService;
-        private readonly string referenceProjectPath;
-        private readonly string testProjectPath;
-        private readonly Project referenceProject;
+        private FileGeneratorService fileGeneratorService;
+        private string referenceProjectPath;
+        private string testProjectPath;
+        private Project referenceProject;
         private readonly Stopwatch stopwatch = new();
-        public Feature? CurrentTestFeature { get; private set; }
+        public Feature CurrentTestFeature { get; private set; }
         public Project TestProject { get; private set; }
 
         public FileGeneratorTestFixture()
+        {
+            Init(false);
+        }
+
+        private void Init(bool doUnzip)
         {
             var consoleWriter = new ConsoleWriterTest(stopwatch);
             stopwatch.Start();
@@ -44,12 +49,22 @@
             consoleWriter.AddMessageLine($"Reference project at {referenceProjectPath}");
             consoleWriter.AddMessageLine($"Generation path at {testProjectPath}");
 
-            consoleWriter.AddMessageLine($"Unzipping {Path.GetFileName(biaDemoZipPath)}...");
-            if (Directory.Exists(referenceProjectPath))
+            if (doUnzip)
             {
-                Directory.Delete(referenceProjectPath, true);
+                consoleWriter.AddMessageLine($"Unzipping {Path.GetFileName(biaDemoZipPath)}...");
+                if (Directory.Exists(referenceProjectPath))
+                {
+                    Directory.Delete(referenceProjectPath, true);
+                }
+                ZipFile.ExtractToDirectory(biaDemoZipPath, referenceProjectPath);
             }
-            ZipFile.ExtractToDirectory(biaDemoZipPath, referenceProjectPath);
+            else
+            {
+                if (!Directory.Exists(referenceProjectPath))
+                {
+                    throw new DirectoryNotFoundException(referenceProjectPath);
+                }
+            }
 
             consoleWriter.AddMessageLine($"Creating target test directory for generation...");
             if (Directory.Exists(testProjectPath))
@@ -76,10 +91,31 @@
                 FrameworkVersion = referenceProject.FrameworkVersion
             };
 
-            
+
+
             consoleWriter.AddMessageLine($"Init service...");
             fileGeneratorService = new FileGeneratorService(consoleWriter);
             fileGeneratorService.Init(TestProject);
+
+            if (referenceProject.BIAFronts.Count != 0)
+            {
+                var referenceProjetAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
+                fileGeneratorService.SetPrettierAngularProjectPath(referenceProjetAngularPath);
+                
+                if (doUnzip)
+                {
+                    consoleWriter.AddMessageLine("npm i reference project...");
+                    var process = new Process();
+                    process.StartInfo.WorkingDirectory = referenceProjetAngularPath;
+                    process.StartInfo.FileName = "cmd.exe";
+                    process.StartInfo.Arguments = $"/C npm i";
+                    process.StartInfo.UseShellExecute = true;
+                    process.StartInfo.CreateNoWindow = false;
+                    process.Start();
+                    process.WaitForExit();
+                }
+            }
+
             consoleWriter.AddMessageLine($"Ready");
         }
 
@@ -107,9 +143,12 @@
         public async Task RunTestGenerateCrudAllFilesEqualsAsync(FileGeneratorCrudContext crudContext)
         {
             CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Crud);
-            if (crudContext.GenerateFront && crudContext.HasParent)
+            if (crudContext.GenerateFront)
             {
-                crudContext.ComputeAngularParentLocation(referenceProjectPath);
+                if (crudContext.HasParent)
+                {
+                    crudContext.ComputeAngularParentLocation(referenceProjectPath);
+                }
             }
             ImportTargetedPartialFiles(crudContext);
             await fileGeneratorService.GenerateCRUDAsync(crudContext);
@@ -120,7 +159,7 @@
         {
             if (context.GenerateBack)
             {
-                foreach (var template in CurrentTestFeature!.DotNetTemplates.Where(t => t.IsPartial))
+                foreach (var template in CurrentTestFeature.DotNetTemplates.Where(t => t.IsPartial))
                 {
                     var (referencePath, generatedPath) = GetDotNetFilesPath(template.OutputPath, context);
                     Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);
@@ -130,7 +169,7 @@
 
             if (context.GenerateFront)
             {
-                foreach (var template in CurrentTestFeature!.AngularTemplates.Where(t => t.IsPartial))
+                foreach (var template in CurrentTestFeature.AngularTemplates.Where(t => t.IsPartial))
                 {
                     var (referencePath, generatedPath) = GetAngularFilesPath(template.OutputPath, context);
                     Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);

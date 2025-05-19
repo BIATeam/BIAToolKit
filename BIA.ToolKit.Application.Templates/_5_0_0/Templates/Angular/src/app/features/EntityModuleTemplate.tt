@@ -16,7 +16,6 @@ import {
   DynamicLayoutComponent,
   LayoutMode,
 } from 'src/app/shared/bia-shared/components/layout/dynamic-layout/dynamic-layout.component';
-
 import { <#= ModelInstance.EntityName #>ReadComponent } from '../<#= ModelInstance.EntityNamePlural.ToKebabCase() #>/views/<#= ModelInstance.EntityName.ToKebabCase() #>-read/<#= ModelInstance.EntityName.ToKebabCase() #>-read.component';
 import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from './<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
 import { Feature<#= ModelInstance.EntityNamePlural #>Store } from './store/<#= ModelInstance.EntityName.ToKebabCase() #>.state';
