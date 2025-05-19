@@ -7,6 +7,7 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Templates;
@@ -26,44 +27,38 @@
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
-                @namespace: "TheBIADevCompany.BIADemo.Domain.Plane.Entities",
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Plane",
                 name: "Engine",
                 baseType: "VersionedTable",
                 primaryKey: null,
-                arguments: null,
+                arguments: [RoslynHelper.CreateAttributeArgument("BiaDtoClass", [("AncestorTeam", "Site")])],
                 baseList: ["IEntityFixable<int>"]);
 
             var domainName = "Plane";
 
             var properties = new List<PropertyInfo>
             {
-                new("int", "Id", []),
-                new("string", "Reference", []),
-                new("string", "Manufacturer", []),
-                new("DateTime", "NextMaintenanceDate", []),
-                new("DateTime?", "LastMaintenanceDate", []),
-                new("DateTime", "DeliveryDate", []),
-                new("DateTime?", "ExchangeDate", []),
-                new("TimeSpan", "SyncTime", []),
-                new("TimeSpan?", "IgnitionTime", []),
-                new("int?", "Power", []),
-                new("int", "NoiseLevel", []),
-                new("double", "FlightHours", []),
-                new("double?", "AverageFlightHours", []),
-                new("float", "FuelConsumption", []),
-                new("float?", "AverageFuelConsumption", []),
-                new("decimal", "OriginalPrice", []),
-                new("decimal?", "EstimatedPrice", []),
-                new("Plane", "Plane", []),
-                new("int", "PlaneId", []),
-                new("bool", "IsToBeMaintained", []),
-                new("bool?", "IsHybrid", []),
-                new("Part", "PrincipalPart", []),
-                new("int?", "PrincipalPartId", []),
-                new("ICollection<Part>", "InstalledParts", []),
-                new("ICollection<EnginePart>", "InstalledEngineParts", []),
-                new("bool", "IsFixed", []),
-                new("DateTime?", "FixedDate", []),
+                new("string", "Reference", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true)])]),
+                new("string?", "Manufacturer", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false)])]),
+                new("DateTime", "NextMaintenanceDate", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Type", "datetime"),("Required", true)])]),
+                new("DateTime?", "LastMaintenanceDate", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Type", "datetime"), ("Required", false)])]),
+                new("DateTime", "DeliveryDate", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Type", "date"),("Required", true)])]),
+                new("DateTime?", "ExchangeDate", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Type", "date"),("Required", false)])]),
+                new("string", "SyncTime", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Type", "time"),("Required", true)])]),
+                new("string?", "IgnitionTime", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Type", "time"),("Required", false)])]),
+                new("int?", "Power", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false)])]),
+                new("int", "NoiseLevel", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true)])]),
+                new("double", "FlightHours", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true)])]),
+                new("double?", "AverageFlightHours", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false)])]),
+                new("float", "FuelConsumption", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true)])]),
+                new("float?", "AverageFuelConsumption", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false)])]),
+                new("decimal", "OriginalPrice", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true)])]),
+                new("decimal?", "EstimatedPrice", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false)])]),
+                new("bool", "IsToBeMaintained", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true)])]),
+                new("bool?", "IsHybrid", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false)])]),
+                new("int", "PlaneId", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("IsParent", true),("Required", false)])]),
+                new("OptionDto?", "PrincipalPart", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("ItemType", "Part")])]),
+                new("ICollection<OptionDto>", "InstalledParts", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("ItemType", "Part")])])
             };
 
             var crudContext = new FileGeneratorCrudContext

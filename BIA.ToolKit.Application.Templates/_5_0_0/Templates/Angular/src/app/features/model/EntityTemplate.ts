@@ -33,31 +33,31 @@ export const maintenanceTeamFieldsConfiguration: BiaFieldsConfig<MaintenanceTeam
       ...teamFieldsConfigurationColumns,
       ...[
     Object.assign(new BiaFieldConfig('aircraftMaintenanceCompanyId', 'maintenanceTeam.aircraftMaintenanceCompanyId'), {
-      isRequired: true,
       type: PropType.Number,
+      isRequired: true,
       validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('msn', 'maintenanceTeam.msn'), {
-      isRequired: true,
       type: PropType.String,
+      isRequired: true,
       validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('isActive', 'maintenanceTeam.isActive'), {
-      isRequired: true,
       type: PropType.Boolean,
+      isRequired: true,
       validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('firstFlightDate', 'maintenanceTeam.firstFlightDate'), {
-      isRequired: true,
       type: PropType.Date,
+      isRequired: true,
       validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('motorsCount', 'maintenanceTeam.motorsCount'), {
       type: PropType.Number,
     }),
     Object.assign(new BiaFieldConfig('someDecimal', 'maintenanceTeam.someDecimal'), {
-      isRequired: true,
       type: PropType.Number,
+      isRequired: true,
       displayFormat: Object.assign(new BiaFieldNumberFormat(), {
         mode: NumberMode.Decimal,
         minFractionDigits: 2,
@@ -66,13 +66,13 @@ export const maintenanceTeamFieldsConfiguration: BiaFieldsConfig<MaintenanceTeam
       validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('engines', 'maintenanceTeam.engines'), {
-      isRequired: true,
       type: PropType.ManyToMany,
+      isRequired: true,
       validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('planeType', 'maintenanceTeam.planeType'), {
-      isRequired: true,
       type: PropType.OneToMany,
+      isRequired: true,
       validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('similarTypes', 'maintenanceTeam.similarTypes'), {

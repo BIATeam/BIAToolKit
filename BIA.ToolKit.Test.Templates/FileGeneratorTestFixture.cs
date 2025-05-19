@@ -11,6 +11,7 @@
     using BIA.ToolKit.Application.Templates;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Test.Templates.Assertions;
+    using Microsoft.Build.Tasks;
     using static BIA.ToolKit.Application.Templates.Manifest;
 
     public class FileGeneratorTestFixture : IDisposable
@@ -23,20 +24,15 @@
             }
         }
 
-        private FileGeneratorService fileGeneratorService;
-        private string referenceProjectPath;
-        private string testProjectPath;
-        private Project referenceProject;
+        private readonly FileGeneratorService fileGeneratorService;
+        private readonly string referenceProjectPath;
+        private readonly string testProjectPath;
+        private readonly Project referenceProject;
         private readonly Stopwatch stopwatch = new();
         public Feature CurrentTestFeature { get; private set; }
         public Project TestProject { get; private set; }
 
         public FileGeneratorTestFixture()
-        {
-            Init(false);
-        }
-
-        private void Init(bool doUnzip)
         {
             var consoleWriter = new ConsoleWriterTest(stopwatch);
             stopwatch.Start();
@@ -49,6 +45,7 @@
             consoleWriter.AddMessageLine($"Reference project at {referenceProjectPath}");
             consoleWriter.AddMessageLine($"Generation path at {testProjectPath}");
 
+            var doUnzip = !Directory.Exists(referenceProjectPath);
             if (doUnzip)
             {
                 consoleWriter.AddMessageLine($"Unzipping {Path.GetFileName(biaDemoZipPath)}...");
@@ -91,8 +88,6 @@
                 FrameworkVersion = referenceProject.FrameworkVersion
             };
 
-
-
             consoleWriter.AddMessageLine($"Init service...");
             fileGeneratorService = new FileGeneratorService(consoleWriter);
             fileGeneratorService.Init(TestProject);
@@ -101,7 +96,7 @@
             {
                 var referenceProjetAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
                 fileGeneratorService.SetPrettierAngularProjectPath(referenceProjetAngularPath);
-                
+
                 if (doUnzip)
                 {
                     consoleWriter.AddMessageLine("npm i reference project...");
