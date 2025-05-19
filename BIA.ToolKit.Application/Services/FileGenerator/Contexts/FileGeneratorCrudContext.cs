@@ -15,5 +15,6 @@
         public List<PropertyInfo> Properties { get; set; } = [];
         public bool UseHubForClient { get; set; }
         public bool HasCustomRepository { get; set; }
+        public bool HasReadOnlyFormMode { get; set; }
     }
 }

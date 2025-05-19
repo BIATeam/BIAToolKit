@@ -12,7 +12,6 @@ import {
   DynamicLayoutComponent,
   LayoutMode,
 } from 'src/app/shared/bia-shared/components/layout/dynamic-layout/dynamic-layout.component';
-import { MaintenanceTeamReadComponent } from '../maintenance-teams/views/maintenance-team-read/maintenance-team-read.component';
 import { maintenanceTeamCRUDConfiguration } from './maintenance-team.constants';
 import { FeatureMaintenanceTeamsStore } from './store/maintenance-team.state';
 import { MaintenanceTeamsEffects } from './store/maintenance-teams-effects';
@@ -85,18 +84,6 @@ export const ROUTES: Routes = [
               ).then(m => m.MaintenanceTeamMemberModule),
           },
           {
-            path: 'read',
-            data: {
-              breadcrumb: 'bia.read',
-              canNavigate: true,
-              permission: Permission.MaintenanceTeam_Read,
-              readOnlyMode: maintenanceTeamCRUDConfiguration.formEditReadOnlyMode,
-              title: 'maintenanceTeam.read',
-            },
-            component: MaintenanceTeamReadComponent,
-            canActivate: [PermissionGuard],
-          },
-          {
             path: 'edit',
             data: {
               breadcrumb: 'bia.edit',
@@ -110,7 +97,7 @@ export const ROUTES: Routes = [
           {
             path: '',
             pathMatch: 'full',
-            redirectTo: 'read',
+            redirectTo: 'edit',
           },
           // BIAToolKit - Begin MaintenanceTeamModuleChildPath
           // BIAToolKit - End MaintenanceTeamModuleChildPath

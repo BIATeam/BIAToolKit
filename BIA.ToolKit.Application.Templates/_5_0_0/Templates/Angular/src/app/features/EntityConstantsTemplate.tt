@@ -1,7 +1,12 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
-import { CrudConfig } from 'src/app/shared/bia-shared/feature-templates/crud-items/model/crud-config';
+import { 
+<#  if(ModelInstance.HasReadOnlyFormMode) { #>
+	FormReadOnlyMode,
+<#  } #>
+	CrudConfig 
+} from 'src/app/shared/bia-shared/feature-templates/crud-items/model/crud-config';
 <#  if(ModelInstance.HasAncestorTeam) { #>
 import { TeamTypeId } from 'src/app/shared/constants';
 <#  } #>
@@ -28,6 +33,9 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration: Cru
   useOfflineMode: false,
   useCompactMode: false,
   useVirtualScroll: false,
+<#  if(ModelInstance.HasReadOnlyFormMode) { #>
+  formEditReadOnlyMode: FormReadOnlyMode.on,
+<#  } #>
   // IMPORTANT: this key should be unique in all the application.
   // storeKey: 'feature-' + featureName,
   // IMPORTANT: this is the key used for the view management it should be unique in all the application (except if share same views).

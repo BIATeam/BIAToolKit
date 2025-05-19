@@ -21,5 +21,6 @@
         List<TPropertyCrudModel> Properties { get; set; }
         bool UseHubForClient { get; set; }
         bool HasCustomRepository { get; set; }
+        bool HasReadOnlyFormMode { get; set; }
     }
 }
