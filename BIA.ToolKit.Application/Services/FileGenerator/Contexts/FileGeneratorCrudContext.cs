@@ -14,5 +14,6 @@
         public List<string> OptionItems { get; set; } = [];
         public List<PropertyInfo> Properties { get; set; } = [];
         public bool UseHubForClient { get; set; }
+        public bool HasCustomRepository { get; set; }
     }
 }

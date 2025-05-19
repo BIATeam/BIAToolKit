@@ -20,5 +20,6 @@
         string ParentNamePlural { get; set; }
         List<TPropertyCrudModel> Properties { get; set; }
         bool UseHubForClient { get; set; }
+        bool HasCustomRepository { get; set; }
     }
 }

@@ -52,6 +52,7 @@
             model.AngularDeepLevel = crudContext.AngularDeepLevel;
             model.OptionItems = crudContext.OptionItems;
             model.UseHubForClient = crudContext.UseHubForClient;
+            model.HasCustomRepository = crudContext.HasCustomRepository;
 
             model.Properties = crudContext.Properties.Select(x => new TPropertyCrudModel
             {
