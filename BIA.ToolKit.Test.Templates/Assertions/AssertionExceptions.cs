@@ -31,4 +31,7 @@
 
     internal class GeneratedFileNotFoundException(string filePath) : GenerationAssertionException($"File: {filePath}")
     { }
+
+    internal class GenerationFailureException() : GenerationAssertionException($"Generation has failed")
+    { }
 }

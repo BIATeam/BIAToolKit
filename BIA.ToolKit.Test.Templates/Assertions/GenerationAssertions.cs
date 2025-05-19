@@ -13,6 +13,11 @@
     {
         public static void AssertAllFilesEquals(FileGeneratorTestFixture testFixture, FileGeneratorContext context)
         {
+            if(context.GenerationReport.HasFailed)
+            {
+                throw new GenerationFailureException();
+            }
+
             var assertionExceptions = new List<GenerationAssertionException>();
 
             if (context.GenerateBack)
@@ -57,6 +62,9 @@
 
         private static void VerifyFilesEquals(string referencePath, string generatedPath, FileGeneratorContext context, Manifest.Feature.Template template)
         {
+            if (context.GenerationReport.TemplatesIgnored.Any(t => t.Equals(template)))
+                return;
+
             if (!File.Exists(referencePath))
                 throw new ReferenceFileNotFoundException(referencePath);
             if (!File.Exists(generatedPath))

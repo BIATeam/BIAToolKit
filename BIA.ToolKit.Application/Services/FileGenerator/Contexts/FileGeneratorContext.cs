@@ -29,6 +29,7 @@
         public int AngularDeepLevel { get; private set; }
         public string AngularParentFolderRelativePath { get; private set; }
         public string AngularParentChildrenFolderRelativePath { get; private set; }
+        public GenerationReport GenerationReport { get; private set; } = new();
 
         public void ComputeAngularParentLocation(string projectFolder)
         {

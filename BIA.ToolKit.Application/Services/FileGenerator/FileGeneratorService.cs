@@ -320,6 +320,7 @@
                 if (generatedTemplateContent.Count == 0)
                 {
                     consoleWriter.AddMessageLine("Ignored : generated content is empty", "orange");
+                    currentContext.GenerationReport.TemplatesIgnored.Add(template);
                     return;
                 }
 
@@ -338,6 +339,7 @@
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"Generate from template failed : {ex}", color: "red");
+                currentContext.GenerationReport.HasFailed = true;
             }
         }
 
