@@ -27,6 +27,8 @@
         public string AncestorTeam { get; set; }
         public bool HasAncestorTeam => !string.IsNullOrWhiteSpace(AncestorTeam);
         public bool IsArchivable { get; set; }
+        public bool IsFixable { get; set; }
+        public bool IsVersioned { get; set; }
 
         public string GetClassInheritance()
         {

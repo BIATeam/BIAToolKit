@@ -11,5 +11,7 @@
     {
         public List<MappingEntityProperty> Properties { get; set; } = [];
         public bool IsArchivable { get; set; }
+        public bool IsFixable { get; set; }
+        public bool IsVersioned { get; set; }
     }
 }
