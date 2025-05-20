@@ -58,11 +58,6 @@ export const maintenanceTeamFieldsConfiguration: BiaFieldsConfig<MaintenanceTeam
     Object.assign(new BiaFieldConfig('someDecimal', 'maintenanceTeam.someDecimal'), {
       type: PropType.Number,
       isRequired: true,
-      displayFormat: Object.assign(new BiaFieldNumberFormat(), {
-        mode: NumberMode.Decimal,
-        minFractionDigits: 2,
-        maxFractionDigits: 2,
-      }),
       validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('engines', 'maintenanceTeam.engines'), {

@@ -105,7 +105,7 @@
 
             if (areLinesRemoved)
             {
-                referencePath = referencePath.Replace(Path.GetFileNameWithoutExtension(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Cleaned");
+                referencePath = referencePath.Replace(Path.GetFileName(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Cleaned{Path.GetExtension(referencePath)}");
                 if (File.Exists(referencePath))
                 {
                     File.Delete(referencePath);
