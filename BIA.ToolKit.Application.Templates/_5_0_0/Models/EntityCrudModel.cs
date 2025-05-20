@@ -42,5 +42,6 @@
         public bool UseHubForClient {  get; set; }
         public bool HasCustomRepository {  get; set; }
         public bool HasReadOnlyFormMode { get; set; }
+        public bool HasFixableParent { get; set; }
     }
 }

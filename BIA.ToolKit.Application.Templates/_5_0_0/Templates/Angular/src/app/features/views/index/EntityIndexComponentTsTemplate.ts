@@ -1,7 +1,8 @@
 ﻿import { AsyncPipe, NgClass, NgIf } from '@angular/common';
-import { Component, Injector, ViewChild } from '@angular/core';
+import { Component, Injector, OnInit, ViewChild } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { PrimeTemplate } from 'primeng/api';
+import { filter } from 'rxjs';
 import { AuthService } from 'src/app/core/bia-core/services/auth.service';
 import { BiaTableBehaviorControllerComponent } from 'src/app/shared/bia-shared/components/table/bia-table-behavior-controller/bia-table-behavior-controller.component';
 import { BiaTableControllerComponent } from 'src/app/shared/bia-shared/components/table/bia-table-controller/bia-table-controller.component';
@@ -19,6 +20,7 @@ import {
   BiaButtonGroupComponent,
   BiaButtonGroupItem,
 } from 'src/app/shared/bia-shared/components/bia-button-group/bia-button-group.component';
+import { MaintenanceTeamOptionsService } from '../../services/maintenance-team-options.service';
 
 @Component({
   selector: 'app-maintenance-teams-index',
@@ -39,7 +41,7 @@ import {
   ],
   providers: [{ provide: CrudItemService, useExisting: MaintenanceTeamService }],
 })
-export class MaintenanceTeamsIndexComponent extends CrudItemsIndexComponent<MaintenanceTeam> {
+export class MaintenanceTeamsIndexComponent extends CrudItemsIndexComponent<MaintenanceTeam> implements OnInit {
   @ViewChild(MaintenanceTeamTableComponent, { static: false })
   crudItemTableComponent: MaintenanceTeamTableComponent;
   canViewMembers = false;
@@ -49,11 +51,23 @@ export class MaintenanceTeamsIndexComponent extends CrudItemsIndexComponent<Main
 
   constructor(
     protected injector: Injector,
-    public maintenanceTeamService: MaintenanceTeamService,
+    public crudItemService: MaintenanceTeamService,
+    protected maintenanceTeamOptionsService: MaintenanceTeamOptionsService,
     protected authService: AuthService
   ) {
-    super(injector, maintenanceTeamService);
+    super(injector, crudItemService);
     this.crudConfiguration = maintenanceTeamCRUDConfiguration;
+  }
+
+  ngOnInit(): void {
+    super.ngOnInit();
+    this.parentDisplayItemName$ =
+      this.crudItemService.aircraftMaintenanceCompanyService.displayItemName$;
+    this.sub.add(
+      this.biaTranslationService.currentCulture$.subscribe(() => {
+        this.maintenanceTeamOptionsService.loadAllOptions();
+      })
+    );
   }
 
   protected setPermissions() {
@@ -119,8 +133,7 @@ export class MaintenanceTeamsIndexComponent extends CrudItemsIndexComponent<Main
   onSelectedElementsChanged(crudItems: MaintenanceTeam[]) {
     super.onSelectedElementsChanged(crudItems);
     if (crudItems.length === 1) {
-      this.maintenanceTeamService.currentCrudItemId =
-        crudItems[0].id;
+      this.crudItemService.currentCrudItemId = crudItems[0].id;
     }
   }
 

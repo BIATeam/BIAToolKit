@@ -2,11 +2,11 @@
   <div [ngClass]="{ 'table-compact': crudConfiguration.useCompactMode }">
     <bia-table-header
       [headerTitle]="'maintenanceTeam.listOf' | translate"
+      [parentDisplayName]="(parentDisplayItemName$ | async) ?? ''"
       [canAdd]="canAdd && !crudConfiguration.useCalcMode"
       [canClone]="canAdd && crudConfiguration.isClonable"
       [canDelete]="canDelete"
       [canEdit]="canEdit"
-      [canFix]="canFix"
       [canImport]="canSave && crudConfiguration.useImport"
       [canExportCSV]="true"
       (create)="onCreate()"
@@ -18,11 +18,7 @@
       [selectedElements]="selectedCrudItems"
       [showTableControllerButton]="crudConfiguration.useCompactMode ?? false"
       [tableControllerVisible]="showTableController"
-      [showFixedButtons]="crudConfiguration.isFixable"
-      (toggleTableControllerVisibility)="toggleTableControllerVisibility()"
-      (crudItemFixedChanged)="
-        crudItemService.updateFixedStatus($event.crudItemId, $event.fixed)
-      ">
+      (toggleTableControllerVisibility)="toggleTableControllerVisibility()">
         <ng-template pTemplate="actionOnSelected">
           <bia-button-group
             [buttons]="selectedButtonGroup"
@@ -44,8 +40,8 @@
       [defaultViewPref]="defaultViewPref"
       [useViewTeamWithTypeId]="useViewTeamWithTypeId"
       [hasColumnFilter]="hasColumnFilter">
-      <ng-template pTemplate="customControl"
-        ><bia-table-behavior-controller
+      <ng-template pTemplate="customControl">
+        <bia-table-behavior-controller
           [crudConfiguration]="crudConfiguration"
           (useCalcModeChanged)="useCalcModeChange($event)"
           (usePopupChanged)="usePopupChange($event)"
@@ -56,8 +52,8 @@
           (useVirtualScrollChanged)="useVirtualScrollChange($event)"
           (useResizableColumnChanged)="
             useResizableColumnChange($event)
-          "></bia-table-behavior-controller
-      ></ng-template>
+          "></bia-table-behavior-controller>
+      </ng-template>
     </bia-table-controller>
     <bia-table
       *ngIf="!crudConfiguration.useCalcMode"
@@ -71,13 +67,14 @@
       "
       [totalRecord]="(totalCount$ | async) ?? 0"
       [columnToDisplays]="displayedColumns"
+      [reorderableColumns]="reorderableColumns"
       [pageSize]="pageSize"
       (pageSizeChange)="onPageSizeChange($event)"
       [configuration]="crudConfiguration.fieldsConfig"
-      [(showColSearch)]="showColSearch"
+      [showColSearch]="showColSearch"
       [globalSearchValue]="globalSearchValue"
       [canClickRow]="canEdit"
-      [canSelectElement]="canSelect"
+      [canSelectElement]="canDelete"
       [loading]="(loading$ | async) ?? false"
       (clickRowId)="onClickRow($event)"
       (loadLazy)="onLoadLazy($event)"
@@ -90,8 +87,7 @@
       [frozeSelectColumn]="true"
       [virtualScroll]="crudConfiguration.useVirtualScroll"
       [isResizableColumn]="crudConfiguration.useResizableColumn"
-      [rowHeight]="defaultRowHeight"
-      [showFixableState]="crudConfiguration.isFixable"></bia-table>
+      [rowHeight]="defaultRowHeight"></bia-table>
     <app-maintenance-team-table
       *ngIf="crudConfiguration.useCalcMode"
       [elements]="
@@ -104,10 +100,11 @@
       "
       [totalRecord]="(totalCount$ | async) ?? 0"
       [columnToDisplays]="displayedColumns"
+      [reorderableColumns]="reorderableColumns"
       [pageSize]="pageSize"
       (pageSizeChange)="onPageSizeChange($event)"
       [configuration]="crudConfiguration.fieldsConfig"
-      [(showColSearch)]="showColSearch"
+      [showColSearch]="showColSearch"
       [globalSearchValue]="globalSearchValue"
       [canEdit]="canEdit"
       [canAdd]="canAdd"
@@ -125,8 +122,7 @@
       [scrollHeightValue]="getFillScrollHeightValue()"
       [virtualScroll]="crudConfiguration.useVirtualScroll"
       [isResizableColumn]="crudConfiguration.useResizableColumn"
-      [rowHeight]="defaultRowHeight"
-      [showFixableState]="crudConfiguration.isFixable"></app-maintenance-team-table>
+      [rowHeight]="defaultRowHeight"></app-maintenance-team-table>
   </div>
 </div>
 

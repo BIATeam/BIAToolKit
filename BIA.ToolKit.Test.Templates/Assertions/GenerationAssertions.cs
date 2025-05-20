@@ -143,8 +143,13 @@
             referenceLines = referenceLines.GetRange(referenceMarkupBeginIndex, referenceMarkupEndIndex - referenceMarkupBeginIndex + 1);
             generatedLines = generatedLines.GetRange(generatedMarkupBeginIndex, generatedMarkupEndIndex - generatedMarkupBeginIndex + 1);
 
-            referencePath = referencePath.Replace(Path.GetFileNameWithoutExtension(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}");
-            generatedPath = generatedPath.Replace(Path.GetFileNameWithoutExtension(generatedPath), $"{Path.GetFileNameWithoutExtension(generatedPath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}");
+            referencePath = referencePath
+                .Replace(Path.GetFileNameWithoutExtension(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}")
+                .Replace("{Parent}", context.ParentName);
+            generatedPath = generatedPath
+                .Replace(Path.GetFileNameWithoutExtension(generatedPath), $"{Path.GetFileNameWithoutExtension(generatedPath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}")
+                .Replace("{Parent}", context.ParentName);
+
             if (File.Exists(referencePath))
             {
                 File.Delete(referencePath);

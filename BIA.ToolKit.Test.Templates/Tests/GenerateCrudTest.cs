@@ -79,6 +79,7 @@
                 AncestorTeamName = "Site",
                 UseHubForClient = true,
                 HasCustomRepository = true,
+                HasFixableParent = true,
                 GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
