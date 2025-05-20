@@ -51,7 +51,8 @@ export class MaintenanceTeamService extends CrudItemService<MaintenanceTeam> {
   }
 
   public getParentIds(): any[] {
-    // TODO after creation of CRUD MaintenanceTeam : adapt the parent Key tothe context. It can be null if root crud
+    // TODO after creation of CRUD MaintenanceTeam : adapt the parent Key to the context. It can be null if root crud
+    // For child : set the Id of the Parent
     return [ this.authService.getCurrentTeamId(TeamTypeId.Site)];
   }
 
@@ -94,12 +95,12 @@ export class MaintenanceTeamService extends CrudItemService<MaintenanceTeam> {
     crudItem.siteId = this.getParentIds()[0];
     this.store.dispatch(FeatureMaintenanceTeamsActions.create({ maintenanceTeam: crudItem }));
   }
-  public update(crudItem: MaintenanceTeam) {
-    this.store.dispatch(FeatureMaintenanceTeamsActions.update({ maintenanceTeam: crudItem }));
-  }
   public save(crudItems: MaintenanceTeam[]) {
     crudItems.map(x => (x.siteId = this.getParentIds()[0]));
     this.store.dispatch(FeatureMaintenanceTeamsActions.save({ maintenanceTeams: crudItems }));
+  }
+  public update(crudItem: MaintenanceTeam) {
+    this.store.dispatch(FeatureMaintenanceTeamsActions.update({ maintenanceTeam: crudItem }));
   }
   public remove(id: any) {
     this.store.dispatch(FeatureMaintenanceTeamsActions.remove({ id }));

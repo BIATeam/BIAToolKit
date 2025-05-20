@@ -35,7 +35,7 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
     public dasService: <#= ModelInstance.EntityName #>Das,
     public signalRService: CrudItemSignalRService<<#= ModelInstance.EntityName #>>,
 <#  if(ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
-    protected <#=  ModelInstance.ParentName.ToCamelCase() #>Service: <#=  ModelInstance.ParentName #>Service,
+    public <#=  ModelInstance.ParentName.ToCamelCase() #>Service: <#=  ModelInstance.ParentName #>Service,
 <#  } else if (ModelInstance.IsTeam) {#>
     protected authService: AuthService,
 <#  } #>
@@ -65,7 +65,8 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
 <#  } #>
 
   public getParentIds(): any[] {
-    // TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the parent Key tothe context. It can be null if root crud
+    // TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the parent Key to the context. It can be null if root crud
+    // For child : set the Id of the Parent
 <#  if (ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
     return [this.<#= ModelInstance.ParentName.ToCamelCase()  #>Service.currentCrudItemId];
 <#  } else if (ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) { #>
@@ -119,16 +120,17 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
 <#  } #>
     this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.create({ <#= ModelInstance.EntityName.ToCamelCase() #>: crudItem }));
   }
-  public update(crudItem: <#= ModelInstance.EntityName #>) {
-    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.update({ <#= ModelInstance.EntityName.ToCamelCase() #>: crudItem }));
-  }
   public save(crudItems: <#= ModelInstance.EntityName #>[]) {
 <#  if(ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
+    // TODO after creation of CRUD <#= ModelInstance.EntityName #> : map parent Key on the corresponding field
     crudItems.map(x => (x.<#= ModelInstance.ParentName.ToCamelCase() #>Id = this.getParentIds()[0]));
 <#  } else if (ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) {#>
     crudItems.map(x => (x.<#= ModelInstance.AncestorTeamName.ToCamelCase() #>Id = this.getParentIds()[0]));
 <#  } #>
     this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.save({ <#= ModelInstance.EntityNamePlural.ToCamelCase() #>: crudItems }));
+  }
+  public update(crudItem: <#= ModelInstance.EntityName #>) {
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.update({ <#= ModelInstance.EntityName.ToCamelCase() #>: crudItem }));
   }
   public remove(id: any) {
     this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.remove({ id }));
