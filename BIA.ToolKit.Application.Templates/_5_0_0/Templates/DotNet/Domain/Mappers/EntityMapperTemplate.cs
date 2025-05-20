@@ -24,7 +24,6 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
             {
                 return new ExpressionCollection<Plane>(base.ExpressionCollection)
                 {
-                    { HeaderName.Id, plane => plane.Id },
                     { HeaderName.Name, plane => plane.Name },
                     { HeaderName.Option, plane => plane.Option != null ? plane.Option.Name : null },
                 };
@@ -44,7 +43,7 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
         public override Expression<Func<Plane, PlaneDto>> EntityToDto()
         {
-            return entity => new PlaneDto
+            return base.EntityToDto().CombineMapping(entity => new PlaneDto
             {
                 Name = entity.Name,
 
@@ -59,8 +58,8 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
             };
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToRecord"/>
-        public override Func<PlaneDto, object[]> DtoToRecord(List<string> headerNames = null)
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToCell"/>
+        public override string DtoToCell(PlaneDto dto, List<string> headerNames = null)
         {
             return x =>
             {

@@ -73,7 +73,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
             {
                 return new ExpressionCollection<<#= ModelInstance.EntityName #>>(base.ExpressionCollection)
                 {
-<# foreach (var property in ModelInstance.Properties) { 
+<# foreach (var property in ModelInstance.PropertiesToGenerate) { 
        if (property.IsOptionCollection) { #>
                     { HeaderName.<#= property.MappingName #>, <#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #>.Select(x => x.<#= property.OptionDisplayProperty #>).OrderBy(x => x) },
 <#     }
@@ -147,7 +147,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
         public override Expression<Func<<#= ModelInstance.EntityName #>, <#= ModelInstance.EntityName #>Dto>> EntityToDto()
         {
-            return <#= ModelInstance.IsTeamType ? "base.EntityToDto().CombineMapping(" : "" #>entity => new <#= ModelInstance.EntityName #>Dto
+            return base.EntityToDto().CombineMapping(entity => new <#= ModelInstance.EntityName #>Dto
             {
 <# foreach (var property in ModelInstance.PropertiesToGenerate) {
          if (property.IsOption) {
@@ -200,11 +200,11 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <# } else { #>
                 RowVersion = Convert.ToBase64String(entity.RowVersion),
 <# } #>
-            <#= ModelInstance.IsTeamType ? "})" : "}" #>;
+            };
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToRecord"/>
-        public override Func<<#= ModelInstance.EntityName #>Dto, object[]> DtoToRecord(List<string> headerNames = null)
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToCell"/>
+        public override string DtoToCell(<#= ModelInstance.EntityName #>Dto dto, List<string> headerNames = null)
         {
             return x =>
             {
