@@ -16,11 +16,4 @@ import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.E
   ],
   imports: [BiaFormComponent],
 })
-export class <#= ModelInstance.EntityName #>FormComponent extends CrudItemFormComponent<<#= ModelInstance.EntityName #>> {
-  constructor(
-    protected router: Router,
-    protected activatedRoute: ActivatedRoute
-  ) {
-    super(router, activatedRoute);
-  }
-}
+export class <#= ModelInstance.EntityName #>FormComponent extends CrudItemFormComponent<<#= ModelInstance.EntityName #>> {}
