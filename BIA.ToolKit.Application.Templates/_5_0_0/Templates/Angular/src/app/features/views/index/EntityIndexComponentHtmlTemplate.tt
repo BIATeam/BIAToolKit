@@ -12,6 +12,7 @@
       [canClone]="canAdd && crudConfiguration.isClonable"
       [canDelete]="canDelete"
       [canEdit]="canEdit"
+      [canFix]="canFix"
       [canImport]="canSave && crudConfiguration.useImport"
       [canExportCSV]="true"
       (create)="onCreate()"
@@ -23,7 +24,11 @@
       [selectedElements]="selectedCrudItems"
       [showTableControllerButton]="crudConfiguration.useCompactMode ?? false"
       [tableControllerVisible]="showTableController"
-      (toggleTableControllerVisibility)="toggleTableControllerVisibility()">
+      [showFixedButtons]="crudConfiguration.isFixable"
+      (toggleTableControllerVisibility)="toggleTableControllerVisibility()"
+      (crudItemFixedChanged)="
+        crudItemService.updateFixedStatus($event.crudItemId, $event.fixed)
+      ">
 <#  if(ModelInstance.HasFixableParent) { #>
       <ng-template pTemplate="customControl">
         <button
@@ -111,7 +116,8 @@
 <#  if(ModelInstance.HasFixableParent) { #>
       [readOnly]="isParentFixed"
 <#  } #>
-      [rowHeight]="defaultRowHeight"></bia-table>
+      [rowHeight]="defaultRowHeight"
+      [showFixableState]="crudConfiguration.isFixable"></bia-table>
     <app-<#= ModelInstance.EntityName.ToKebabCase() #>-table
       *ngIf="crudConfiguration.useCalcMode"
       [elements]="
@@ -149,7 +155,8 @@
 <#  if(ModelInstance.HasFixableParent) { #>
       [readOnly]="isParentFixed"
 <#  } #>
-      [rowHeight]="defaultRowHeight"></app-<#= ModelInstance.EntityName.ToKebabCase() #>-table>
+      [rowHeight]="defaultRowHeight"
+      [showFixableState]="crudConfiguration.isFixable"></app-<#= ModelInstance.EntityName.ToKebabCase() #>-table>
   </div>
 </div>
 
