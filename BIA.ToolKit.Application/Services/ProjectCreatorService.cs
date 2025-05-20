@@ -131,6 +131,7 @@
                 FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.RepositorySettings.CompanyName.ToLower(), projectParameters.CompanyName.ToLower(), FileTransform.projectFileExtensions);
                 FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.RepositorySettings.ProjectName.ToLower(), projectParameters.ProjectName.ToLower(), FileTransform.projectFileExtensions);
 
+                ReplaceInFileFromConfig(projectPath, projectParameters);
 
                 consoleWriter.AddMessageLine("Start remove BIATemplate only.", "Pink");
                 FileTransform.RemoveTemplateOnly(projectPath, "# Begin BIATemplate only", "# End BIATemplate only", new List<string>() { ".gitignore" });
@@ -207,6 +208,14 @@
             }
             consoleWriter.AddMessageLine("Overwrite BIA Folder finished.", actionFinishedAtEnd ? "Green" : "Blue");
 
+        }
+
+        private void ReplaceInFileFromConfig(string projectPath, ProjectParameters projectParameters)
+        {
+            foreach (FeatureSetting featureSetting in projectParameters.VersionAndOption.FeatureSettings)
+            {
+                FileTransform.ReplaceInFileAndFileName(projectPath, "BIAToolkit_FeatureSetting_" + featureSetting.DisplayName, featureSetting.IsSelected ? "true" : "false", FileTransform.projectFileExtensions);
+            }
         }
 
         private void CleanSln(string projectPath, VersionAndOption versionAndOption)

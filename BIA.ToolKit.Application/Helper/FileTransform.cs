@@ -9,10 +9,10 @@
 
     static public class FileTransform
     {
-        static public IList<string> projectFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md", ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml" };
-        static public IList<string> allTextFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md" , ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml",
+        static public IList<string> projectFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md", ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml", ".webmanifest" };
+        static public IList<string> allTextFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md" , ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml", ".webmanifest",
             ".editorconfig", ".gitignore" , ".prettierrc", ".html" ,".css" ,".scss", ".svg" , ".js", ".ruleset", ".props" };
-        static public IList<string> allTextFileNameWithoutExtension = new List<string>() { "browserslist", "Dockerfile" };
+        static public IList<string> allTextFileNameWithoutExtension = new List<string>() { "browserslist", "Dockerfile", "Dockerfile_Rosa" };
 
         public static void SwapValues(this string[] source, long index1, long index2)
         {
