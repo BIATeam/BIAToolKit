@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@angular/core';
+﻿import { Injectable, Injector } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { TableLazyLoadEvent } from 'primeng/table';
 import { map, Observable } from 'rxjs';
@@ -27,9 +27,10 @@ export class MaintenanceTeamService extends CrudItemService<MaintenanceTeam> {
     public dasService: MaintenanceTeamDas,
     public signalRService: CrudItemSignalRService<MaintenanceTeam>,
     protected authService: AuthService,
-    public optionsService: MaintenanceTeamOptionsService
+    public optionsService: MaintenanceTeamOptionsService,
+    protected injector: Injector
   ) {
-    super(dasService, signalRService, optionsService);
+    super(dasService, signalRService, optionsService, injector);
   }
 
   // Custo for teams

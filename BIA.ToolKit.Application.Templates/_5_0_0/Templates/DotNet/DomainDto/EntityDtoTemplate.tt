@@ -35,7 +35,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <# if (ModelInstance.Properties.Count() == 0) { #>
 #pragma warning disable S2094 // Classes should not be empty
 <#  } #>
-    public class <#= ModelInstance.EntityName #>Dto : <#= ModelInstance.IsTeamType ? "TeamDto" : $"BaseDto<{ModelInstance.BaseKeyType}>" #>
+    public class <#= ModelInstance.EntityName #>Dto : <#= ModelInstance.GetClassInheritance() #>
 <# if (ModelInstance.Properties.Count() == 0) { #>
 #pragma warning restore S2094 // Classes should not be empty
 <#  } #>
@@ -52,5 +52,27 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 
 <# }#>
 <# } #>
+<#  if(ModelInstance.IsArchivable) { #>
+
+        /// <summary>
+        /// Gets or sets the is fixed.
+        /// </summary>
+        public bool IsFixed { get; set; }
+
+        /// <summary>
+        /// Gets or sets the fixed date.
+        /// </summary>
+        public DateTime? FixedDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the is archived.
+        /// </summary>
+        public bool IsArchived { get; set; }
+
+        /// <summary>
+        /// Gets or sets the archived date.
+        /// </summary>
+        public DateTime? ArchivedDate { get; set; }
+<#  } #>
     }
 }

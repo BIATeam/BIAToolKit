@@ -26,10 +26,8 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
    }
    if (ModelInstance.IsTeamType) { 
        ModelInstance.Use("System.Security.Principal");
-       if (ModelInstance.Properties.Count() > 0) {
-           ModelInstance.Use("BIA.Net.Core.Common.Extensions");
-      }
    }
+   ModelInstance.Use("BIA.Net.Core.Common.Extensions");
    if (ModelInstance.Properties.Count() > 0)  { 
        ModelInstance.Use("BIA.Net.Core.Domain");
    }
@@ -73,10 +71,9 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         {
             get
             {
-                return new ExpressionCollection<<#= ModelInstance.EntityName #>><# if (ModelInstance.IsTeamType) { #>(base.ExpressionCollection)<# } #>
-
+                return new ExpressionCollection<<#= ModelInstance.EntityName #>>(base.ExpressionCollection)
                 {
-<# foreach (var property in ModelInstance.Properties) { 
+<# foreach (var property in ModelInstance.PropertiesToGenerate) { 
        if (property.IsOptionCollection) { #>
                     { HeaderName.<#= property.MappingName #>, <#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #>.Select(x => x.<#= property.OptionDisplayProperty #>).OrderBy(x => x) },
 <#     }
@@ -91,14 +88,10 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         }
 
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToEntity"/>
-        public override void DtoToEntity(<#= ModelInstance.EntityName #>Dto dto, <#= ModelInstance.EntityName #> entity)
+        public override void DtoToEntity(<#= ModelInstance.EntityName #>Dto dto, ref <#= ModelInstance.EntityName #> entity)
         {
-<# if (ModelInstance.IsTeamType) { #>
-            base.DtoToEntity(dto, entity);
-<# } else { #>
-            entity ??= new <#= ModelInstance.EntityName #>();
-<# }
-   foreach (var property in ModelInstance.Properties) {
+            base.DtoToEntity(dto, ref entity);
+<# foreach (var property in ModelInstance.PropertiesToGenerate) {
        if (property.IsParent) { #>
 
             // Map parent relationship 1-* : <#= property.MappingName #>
@@ -154,9 +147,9 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
         public override Expression<Func<<#= ModelInstance.EntityName #>, <#= ModelInstance.EntityName #>Dto>> EntityToDto()
         {
-            return <#= ModelInstance.IsTeamType ? "base.EntityToDto().CombineMapping(" : "" #>entity => new <#= ModelInstance.EntityName #>Dto
+            return base.EntityToDto().CombineMapping(entity => new <#= ModelInstance.EntityName #>Dto
             {
-<# foreach (var property in ModelInstance.Properties) {
+<# foreach (var property in ModelInstance.PropertiesToGenerate) {
          if (property.IsOption) {
                 if (property.IsRequired) { #>
 
@@ -207,11 +200,11 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <# } else { #>
                 RowVersion = Convert.ToBase64String(entity.RowVersion),
 <# } #>
-            <#= ModelInstance.IsTeamType ? "})" : "}" #>;
+            };
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToRecord"/>
-        public override Func<<#= ModelInstance.EntityName #>Dto, object[]> DtoToRecord(List<string> headerNames = null)
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToCell"/>
+        public override string DtoToCell(<#= ModelInstance.EntityName #>Dto dto, List<string> headerNames = null)
         {
             return x =>
             {

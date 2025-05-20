@@ -98,6 +98,9 @@
                 IsParent = x.IsParent,
             }).ToList();
             model.IsTeamType = dtoContext.IsTeam;
+            model.IsArchivable = dtoContext.IsArchivable;
+            model.IsFixable = dtoContext.IsFixable;
+            model.IsVersioned = dtoContext.IsVersioned;
 
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {

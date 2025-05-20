@@ -18,14 +18,14 @@
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
-                @namespace: "TheBIADevCompany.BIADemo.Domain.Plane.Entities",
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
                 name: "PlaneType",
                 baseType: "VersionedTable",
                 primaryKey: null,
                 arguments: null,
                 baseList: ["IEntity<int>"]);
 
-            var domainName = "Plane";
+            var domainName = "Fleet";
 
             var mappingProperties = new List<MappingEntityProperty>
             {
@@ -75,14 +75,14 @@
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
-                @namespace: "TheBIADevCompany.BIADemo.Domain.Plane.Entities",
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
                 name: "Plane",
                 baseType: "VersionedTable",
                 primaryKey: null,
                 arguments: null,
                 baseList: ["IEntityArchivable<int>"]);
 
-            var domainName = "Plane";
+            var domainName = "Fleet";
             var ancestorTeamName = "Site";
 
             var mappingProperties = new List<MappingEntityProperty>
@@ -263,6 +263,7 @@
                 Properties = [.. mappingProperties],
                 GenerateBack = true,
                 AncestorTeamName = ancestorTeamName,
+                IsArchivable = true,
             };
 
             await fixture.RunTestGenerateDtoAllFilesEqualsAsync(dtoContext);
@@ -277,14 +278,14 @@
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
-                @namespace: "TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Entities",
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Maintenance.Entities",
                 name: "AircraftMaintenanceCompany",
                 baseType: "Team",
                 primaryKey: null,
                 arguments: null,
                 baseList: []);
 
-            var domainName = "AircraftMaintenanceCompany";
+            var domainName = "Maintenance";
 
             var mappingProperties = new List<MappingEntityProperty>
             {
@@ -316,14 +317,14 @@
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
-                @namespace: "TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Entities",
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Maintenance.Entities",
                 name: "MaintenanceTeam",
                 baseType: "Team",
                 primaryKey: null,
                 arguments: null,
                 baseList: []);
 
-            var domainName = "AircraftMaintenanceCompany";
+            var domainName = "Maintenance";
             var ancestorTeamName = "AircraftMaintenanceCompany";
 
             var mappingProperties = new List<MappingEntityProperty>

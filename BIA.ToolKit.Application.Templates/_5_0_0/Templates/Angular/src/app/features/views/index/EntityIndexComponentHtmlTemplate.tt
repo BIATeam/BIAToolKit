@@ -9,7 +9,7 @@
       [parentDisplayName]="(parentDisplayItemName$ | async) ?? ''"
 <#  } #>
       [canAdd]="canAdd && !crudConfiguration.useCalcMode"
-      [canClone]="canAdd && crudConfiguration.isClonable"
+      [canClone]="canAdd && crudConfiguration.isCloneable"
       [canDelete]="canDelete"
       [canEdit]="canEdit"
       [canFix]="canFix"

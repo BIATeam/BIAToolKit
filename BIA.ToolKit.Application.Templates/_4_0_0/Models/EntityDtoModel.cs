@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
     public class EntityDtoModel<TPropertyDtoModel> : Common.Models.EntityModel, IEntityDtoModel<TPropertyDtoModel>
@@ -25,5 +26,28 @@
         public bool HasOptions => HasCollectionOptions || Properties.Any(p => p.MappingType.Equals(OptionDto));
         public string AncestorTeam { get; set; }
         public bool HasAncestorTeam => !string.IsNullOrWhiteSpace(AncestorTeam);
+        public bool IsArchivable { get; set; }
+        public bool IsFixable { get; set; }
+        public bool IsVersioned { get; set; }
+
+        public string GetClassInheritance()
+        {
+            var types = new List<string>();
+            if(IsTeamType)
+            {
+                types.Add("TeamDto");
+            }
+            else
+            {
+                types.Add($"BaseDto<{BaseKeyType}>");
+            }
+
+            if(IsArchivable)
+            {
+                types.Add("IArchivableDto");
+            }
+
+            return string.Join(", ", types);
+        }
     }
 }
