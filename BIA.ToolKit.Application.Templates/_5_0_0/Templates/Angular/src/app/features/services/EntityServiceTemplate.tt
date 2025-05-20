@@ -1,7 +1,7 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { TableLazyLoadEvent } from 'primeng/table';
 import { map, Observable } from 'rxjs';
@@ -39,9 +39,10 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
 <#  } else if (ModelInstance.IsTeam) {#>
     protected authService: AuthService,
 <#  } #>
-    public optionsService: <#= ModelInstance.EntityName #>OptionsService
+    public optionsService: <#= ModelInstance.EntityName #>OptionsService,
+    protected injector: Injector
   ) {
-    super(dasService, signalRService, optionsService);
+    super(dasService, signalRService, optionsService, injector);
   }
 <#  if(ModelInstance.IsTeam) { #>
 

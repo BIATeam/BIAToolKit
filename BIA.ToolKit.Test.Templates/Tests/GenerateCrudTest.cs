@@ -27,14 +27,14 @@
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
-                @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Plane",
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
                 name: "Engine",
                 baseType: "VersionedTable",
                 primaryKey: null,
                 arguments: [RoslynHelper.CreateAttributeArgument("BiaDtoClass", [("AncestorTeam", "Site")])],
                 baseList: ["IEntityFixable<int>"]);
 
-            var domainName = "Plane";
+            var domainName = "Fleet";
 
             var properties = new List<PropertyInfo>
             {

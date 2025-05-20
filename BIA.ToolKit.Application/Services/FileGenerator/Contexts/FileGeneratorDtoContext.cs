@@ -10,5 +10,6 @@
     public sealed class FileGeneratorDtoContext : FileGeneratorContext
     {
         public List<MappingEntityProperty> Properties { get; set; } = [];
+        public bool IsArchivable { get; set; }
     }
 }

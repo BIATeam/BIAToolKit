@@ -12,5 +12,7 @@
         bool HasTimeSpanProperty { get; }
         List<TPropertyDtoModel> Properties { get; set; }
         IEnumerable<TPropertyDtoModel> PropertiesToGenerate { get; }
+        bool IsArchivable { get; set; }
+        string GetClassInheritance();
     }
 }

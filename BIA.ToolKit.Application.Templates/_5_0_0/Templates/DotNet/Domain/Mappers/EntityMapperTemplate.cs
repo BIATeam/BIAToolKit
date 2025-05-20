@@ -6,6 +6,7 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
 {
     using System;
     using System.Linq.Expressions;
+    using BIA.Net.Core.Common.Extensions;
     using BIA.Net.Core.Domain;
     using BIA.Net.Core.Domain.Dto.Option;
     using TheBIADevCompany.BIADemo.Domain.Dto.Fleet;
@@ -21,7 +22,7 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
         {
             get
             {
-                return new ExpressionCollection<Plane>
+                return new ExpressionCollection<Plane>(base.ExpressionCollection)
                 {
                     { HeaderName.Id, plane => plane.Id },
                     { HeaderName.Name, plane => plane.Name },
@@ -31,10 +32,9 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
         }
 
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToEntity"/>
-        public override void DtoToEntity(PlaneDto dto, Plane entity)
+        public override void DtoToEntity(PlaneDto dto, ref Plane entity)
         {
-            entity ??= new Plane();
-            entity.Id = dto.Id;
+            base.DtoToEntity(dto, ref entity);
             entity.Name = dto.Name;
 
             // Map relationship 0..1-* : Option
@@ -46,7 +46,6 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
         {
             return entity => new PlaneDto
             {
-                Id = entity.Id,
                 Name = entity.Name,
 
                 // Map relationship 0..1-* : Option

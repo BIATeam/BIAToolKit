@@ -98,6 +98,7 @@
                 IsParent = x.IsParent,
             }).ToList();
             model.IsTeamType = dtoContext.IsTeam;
+            model.IsArchivable = dtoContext.IsArchivable;
 
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {
