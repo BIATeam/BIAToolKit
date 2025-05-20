@@ -7,6 +7,8 @@
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.DomainName #>
 {
+    using System;
+    using System.Collections.Generic;
     using System.Linq.Expressions;
     using System.Security.Principal;
     using System.Threading.Tasks;
@@ -45,16 +47,30 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
         private readonly int currentAncestorTeamId;
 
 <#  } #>
+<#  if(ModelInstance.HasCustomRepository) { #>
+        /// <summary>
+        /// The repository.
+        /// </summary>
+        private readonly I<#= ModelInstance.EntityName #>Repository repository;
+
+<#  } #>
         /// <summary>
         /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>AppService"/> class.
         /// </summary>
         /// <param name="repository">The repository.</param>
         /// <param name="principal">The claims principal.</param>
         public <#= ModelInstance.EntityName #>AppService(
+<#  if(!ModelInstance.HasCustomRepository) { #>
             ITGenericRepository<<#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>> repository,
+<#  } else { #>
+            I<#= ModelInstance.EntityName #>Repository repository,
+<#  } #>
             IPrincipal principal)
             : base(repository)
         {
+<#  if(ModelInstance.HasCustomRepository) { #>
+            this.repository = repository;
+<#  } #>
 <#  if(ModelInstance.IsTeam) {  #>
             this.FiltersContext.Add(
                 AccessMode.Read,

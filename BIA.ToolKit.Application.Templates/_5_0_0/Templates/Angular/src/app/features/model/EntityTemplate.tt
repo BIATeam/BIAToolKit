@@ -39,18 +39,11 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration: B
 <#  } #>
 <#  foreach(var property in ModelInstance.BiaFieldConfigProperties) { #>
     Object.assign(new BiaFieldConfig('<#= property.Name.ToCamelCase() #>', '<#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.Name.ToCamelCase() #>'), {
-<#  if(property.IsRequired) { #>
-      isRequired: true,
-<#  } #>
 <#  if(property.HasAngularPropType) { #>
       type: PropType.<#= property.AngularPropType #>,
 <#  } #>
-<#  if(property.IsDecimal) { #>
-      displayFormat: Object.assign(new BiaFieldNumberFormat(), {
-        mode: NumberMode.Decimal,
-        minFractionDigits: 2,
-        maxFractionDigits: 2,
-      }),
+<#  if(property.IsRequired) { #>
+      isRequired: true,
 <#  } #>
 <#  if(property.HasAngularValidators) { #>
       validators: [<#= property.AngularValidators #>],

@@ -2,24 +2,41 @@
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
 import { AsyncPipe } from '@angular/common';
-import { Component, Injector } from '@angular/core';
+import { Component, Injector, OnInit } from '@angular/core';
 import { CrudItemNewComponent } from 'src/app/shared/bia-shared/feature-templates/crud-items/views/crud-item-new/crud-item-new.component';
 import { <#= ModelInstance.EntityName #>FormComponent } from '../../components/<#= ModelInstance.EntityName.ToKebabCase() #>-form/<#= ModelInstance.EntityName.ToKebabCase() #>-form.component';
 import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
 import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../../<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
 import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
+<#  if(ModelInstance.OptionItems.Any()) { #>
+import { <#= ModelInstance.EntityName #>OptionsService } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>-options.service';
+<#  } #>
 
 @Component({
   selector: 'app-<#= ModelInstance.EntityName.ToKebabCase() #>-new',
   templateUrl: './<#= ModelInstance.EntityName.ToKebabCase() #>-new.component.html',
   imports: [<#= ModelInstance.EntityName #>FormComponent, AsyncPipe],
 })
-export class <#= ModelInstance.EntityName #>NewComponent extends CrudItemNewComponent<<#= ModelInstance.EntityName #>> {
+export class <#= ModelInstance.EntityName #>NewComponent extends CrudItemNewComponent<<#= ModelInstance.EntityName #>> implements OnInit {
   constructor(
     protected injector: Injector,
+<#  if(ModelInstance.OptionItems.Any()) { #>
+    protected <#= ModelInstance.EntityName.ToCamelCase() #>OptionsService: <#= ModelInstance.EntityName #>OptionsService,
+<#  } #>
     public <#= ModelInstance.EntityName.ToCamelCase() #>Service: <#= ModelInstance.EntityName #>Service
   ) {
     super(injector, <#= ModelInstance.EntityName.ToCamelCase() #>Service);
     this.crudConfiguration = <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration;
+  }
+
+  ngOnInit(): void {
+    super.ngOnInit();
+<#  if(ModelInstance.OptionItems.Any()) { #>
+    this.sub.add(
+      this.biaTranslationService.currentCulture$.subscribe(() => {
+        this.<#= ModelInstance.EntityName.ToCamelCase() #>OptionsService.loadAllOptions();
+      })
+    );
+<#  } #>
   }
 }

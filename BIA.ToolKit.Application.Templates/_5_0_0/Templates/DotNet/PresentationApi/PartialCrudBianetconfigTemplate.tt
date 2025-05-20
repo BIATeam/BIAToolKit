@@ -9,7 +9,7 @@
         "Roles": [ "Admin", "Site_Member" ]
       },
       {
-        "Names": [ "<#= ModelInstance.EntityName #>_Update", "<#= ModelInstance.EntityName #>_Save", "<#= ModelInstance.EntityName #>_Fix" ],
+        "Names": [ "<#= ModelInstance.EntityName #>_Update", "<#= ModelInstance.EntityName #>_Save" ],
         "Roles": [ "Site_Admin" ]
       },
       {

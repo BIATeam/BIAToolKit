@@ -112,7 +112,13 @@
             switch (angularType)
             {
                 case "string":
-                    return "String";
+                    switch (biaFieldType)
+                    {
+                        case "time":
+                            return "TimeSecOnly";
+                        default:
+                            return "String";
+                    }
                 case "boolean":
                     return "Boolean";
                 case "number":

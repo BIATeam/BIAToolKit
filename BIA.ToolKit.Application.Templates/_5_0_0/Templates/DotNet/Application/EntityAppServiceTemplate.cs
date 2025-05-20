@@ -4,6 +4,8 @@
 
 namespace TheBIADevCompany.BIADemo.Application.MaintenanceCompanies
 {
+    using System;
+    using System.Collections.Generic;
     using System.Linq.Expressions;
     using System.Security.Principal;
     using System.Threading.Tasks;

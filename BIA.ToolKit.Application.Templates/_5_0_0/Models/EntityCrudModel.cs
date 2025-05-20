@@ -39,5 +39,9 @@
             }
         }
         public IEnumerable<TPropertyCrudModel> BiaFieldConfigProperties => Properties.Where(p => !excludedPropertiesForBiaFieldConfigColumns.Contains(p.Name) && !p.IsParentIdentifier);
+        public bool UseHubForClient {  get; set; }
+        public bool HasCustomRepository {  get; set; }
+        public bool HasReadOnlyFormMode { get; set; }
+        public bool HasFixableParent { get; set; }
     }
 }

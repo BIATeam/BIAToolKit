@@ -1,6 +1,7 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
+<#  if(ModelInstance.HasReadOnlyFormMode) { #>
 import { Component, Injector } from '@angular/core';
 import { SpinnerComponent } from 'src/app/shared/bia-shared/components/spinner/spinner.component';
 import { AuthService } from 'src/app/core/bia-core/services/auth.service';
@@ -26,3 +27,5 @@ export class <#= ModelInstance.EntityName #>ReadComponent extends CrudItemReadCo
     this.crudConfiguration = <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration;
   }
 }
+
+<#  } #>

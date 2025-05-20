@@ -8,8 +8,10 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
+    using BIA.ToolKit.Application.Templates;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Test.Templates.Assertions;
+    using Microsoft.Build.Tasks;
     using static BIA.ToolKit.Application.Templates.Manifest;
 
     public class FileGeneratorTestFixture : IDisposable
@@ -27,7 +29,7 @@
         private readonly string testProjectPath;
         private readonly Project referenceProject;
         private readonly Stopwatch stopwatch = new();
-        public Feature? CurrentTestFeature { get; private set; }
+        public Feature CurrentTestFeature { get; private set; }
         public Project TestProject { get; private set; }
 
         public FileGeneratorTestFixture()
@@ -43,12 +45,23 @@
             consoleWriter.AddMessageLine($"Reference project at {referenceProjectPath}");
             consoleWriter.AddMessageLine($"Generation path at {testProjectPath}");
 
-            consoleWriter.AddMessageLine($"Unzipping {Path.GetFileName(biaDemoZipPath)}...");
-            if (Directory.Exists(referenceProjectPath))
+            var doUnzip = !Directory.Exists(referenceProjectPath);
+            if (doUnzip)
             {
-                Directory.Delete(referenceProjectPath, true);
+                consoleWriter.AddMessageLine($"Unzipping {Path.GetFileName(biaDemoZipPath)}...");
+                if (Directory.Exists(referenceProjectPath))
+                {
+                    Directory.Delete(referenceProjectPath, true);
+                }
+                ZipFile.ExtractToDirectory(biaDemoZipPath, referenceProjectPath);
             }
-            ZipFile.ExtractToDirectory(biaDemoZipPath, referenceProjectPath);
+            else
+            {
+                if (!Directory.Exists(referenceProjectPath))
+                {
+                    throw new DirectoryNotFoundException(referenceProjectPath);
+                }
+            }
 
             consoleWriter.AddMessageLine($"Creating target test directory for generation...");
             if (Directory.Exists(testProjectPath))
@@ -75,10 +88,29 @@
                 FrameworkVersion = referenceProject.FrameworkVersion
             };
 
-            
             consoleWriter.AddMessageLine($"Init service...");
             fileGeneratorService = new FileGeneratorService(consoleWriter);
             fileGeneratorService.Init(TestProject);
+
+            if (referenceProject.BIAFronts.Count != 0)
+            {
+                var referenceProjetAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
+                fileGeneratorService.SetPrettierAngularProjectPath(referenceProjetAngularPath);
+
+                if (doUnzip)
+                {
+                    consoleWriter.AddMessageLine("npm i reference project...");
+                    var process = new Process();
+                    process.StartInfo.WorkingDirectory = referenceProjetAngularPath;
+                    process.StartInfo.FileName = "cmd.exe";
+                    process.StartInfo.Arguments = $"/C npm i";
+                    process.StartInfo.UseShellExecute = true;
+                    process.StartInfo.CreateNoWindow = false;
+                    process.Start();
+                    process.WaitForExit();
+                }
+            }
+
             consoleWriter.AddMessageLine($"Ready");
         }
 
@@ -89,7 +121,7 @@
 
         public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext)
         {
-            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature("DTO");
+            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Dto);
             ImportTargetedPartialFiles(dtoContext);
             await fileGeneratorService.GenerateDtoAsync(dtoContext);
             GenerationAssertions.AssertAllFilesEquals(this, dtoContext);
@@ -97,17 +129,32 @@
 
         public async Task RunTestGenerateOptionAllFilesEqualsAsync(FileGeneratorOptionContext optionContext)
         {
-            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature("Option");
+            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Option);
             ImportTargetedPartialFiles(optionContext);
             await fileGeneratorService.GenerateOptionAsync(optionContext);
             GenerationAssertions.AssertAllFilesEquals(this, optionContext);
+        }
+
+        public async Task RunTestGenerateCrudAllFilesEqualsAsync(FileGeneratorCrudContext crudContext)
+        {
+            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Crud);
+            if (crudContext.GenerateFront)
+            {
+                if (crudContext.HasParent)
+                {
+                    crudContext.ComputeAngularParentLocation(referenceProjectPath);
+                }
+            }
+            ImportTargetedPartialFiles(crudContext);
+            await fileGeneratorService.GenerateCRUDAsync(crudContext);
+            GenerationAssertions.AssertAllFilesEquals(this, crudContext);
         }
 
         private void ImportTargetedPartialFiles(FileGeneratorContext context)
         {
             if (context.GenerateBack)
             {
-                foreach (var template in CurrentTestFeature!.DotNetTemplates.Where(t => t.IsPartial))
+                foreach (var template in CurrentTestFeature.DotNetTemplates.Where(t => t.IsPartial))
                 {
                     var (referencePath, generatedPath) = GetDotNetFilesPath(template.OutputPath, context);
                     Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);
@@ -117,7 +164,7 @@
 
             if (context.GenerateFront)
             {
-                foreach (var template in CurrentTestFeature!.AngularTemplates.Where(t => t.IsPartial))
+                foreach (var template in CurrentTestFeature.AngularTemplates.Where(t => t.IsPartial))
                 {
                     var (referencePath, generatedPath) = GetAngularFilesPath(template.OutputPath, context);
                     Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);

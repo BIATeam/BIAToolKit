@@ -1,6 +1,7 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".html" #>
+<#  if(ModelInstance.HasReadOnlyFormMode) { #>
 <app-<#= ModelInstance.EntityName.ToKebabCase() #>-form
   *ngIf="crudItemService.crudItem$ | async; let crudItem"
   [crudItem]="crudItem"
@@ -20,3 +21,5 @@
 <bia-spinner
   *ngIf="<#= ModelInstance.EntityName.ToCamelCase() #>Service.loadingGet$ | async"
   [overlay]="true"></bia-spinner>
+
+<#  } #>

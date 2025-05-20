@@ -5,6 +5,8 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Text.Json.Serialization;
+    using System.Text.Json;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
@@ -19,6 +21,9 @@
     using Microsoft.VisualBasic.FileIO;
     using Mono.TextTemplating;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
+    using System.Diagnostics;
+    using System.Threading;
 
     public class FileGeneratorService
     {
@@ -36,6 +41,7 @@
         private Project currentProject;
         private FileGeneratorContext currentContext;
         private Manifest currentManifest;
+        private string prettierAngularProjectPath;
 
         public bool IsInit { get; private set; }
 
@@ -132,6 +138,11 @@
             return Version.TryParse(currentProject?.FrameworkVersion, out Version projectVersion) && projectVersion >= new Version(5, 0);
         }
 
+        public void SetPrettierAngularProjectPath(string projectPath)
+        {
+            prettierAngularProjectPath = projectPath;
+        }
+
         public async Task GenerateDtoAsync(FileGeneratorDtoContext dtoContext)
         {
             try
@@ -142,7 +153,7 @@
                     throw new Exception("file generator has not been initialiazed");
 
                 var templateModel = modelProvider.GetDtoTemplateModel(dtoContext);
-                var dtoFeature = GetCurrentManifestFeature("DTO");
+                var dtoFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Dto);
 
                 currentContext = dtoContext;
 
@@ -165,7 +176,7 @@
                     throw new Exception("file generator has not been initialiazed");
 
                 var templateModel = modelProvider.GetOptionTemplateModel(optionContext);
-                var optionFeature = GetCurrentManifestFeature("Option");
+                var optionFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Option);
 
                 currentContext = optionContext;
 
@@ -194,7 +205,7 @@
                 }
 
                 var templateModel = modelProvider.GetCrudTemplateModel(crudContext);
-                var crudFeature = GetCurrentManifestFeature("CRUD");
+                var crudFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Crud);
 
                 currentContext = crudContext;
 
@@ -208,16 +219,21 @@
             }
         }
 
-        public Manifest.Feature GetCurrentManifestFeature(string featureName)
+        public Manifest.Feature GetCurrentManifestFeature(Manifest.Feature.FeatureType featureType)
         {
-            return currentManifest.Features.SingleOrDefault(f => f.Name == featureName)
-                    ?? throw new KeyNotFoundException($"no {featureName} feature for template manifest {currentManifest.Version}");
+            return currentManifest.Features.SingleOrDefault(f => f.Type == featureType)
+                    ?? throw new KeyNotFoundException($"no {featureType} feature for template manifest {currentManifest.Version}");
         }
 
         private void LoadTemplatesManifests()
         {
+            var jsonSerializersettings = new JsonSerializerSettings
+            {
+                Converters = { new StringEnumConverter() }, 
+                MissingMemberHandling = MissingMemberHandling.Error
+            };
             var manifestsFiles = Directory.EnumerateFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "manifest.json", System.IO.SearchOption.AllDirectories).ToList();
-            manifestsFiles.ForEach(m => manifests.Add(JsonConvert.DeserializeObject<Manifest>(File.ReadAllText(m))));
+            manifestsFiles.ForEach(m => manifests.Add(JsonConvert.DeserializeObject<Manifest>(File.ReadAllText(m), jsonSerializersettings)));
         }
 
         private async Task GenerateTemplatesFromManifestFeatureAsync(Manifest.Feature manifestFeature, object model)
@@ -256,10 +272,20 @@
 
         private async Task GenerateAngularTemplates(IEnumerable<Manifest.Feature.Template> templates, object model)
         {
+            if (string.IsNullOrWhiteSpace(prettierAngularProjectPath))
+            {
+                throw new Exception("no path set for Angular project with Prettier");
+            }
+
             foreach (var template in templates)
             {
                 var templatePath = Path.Combine(templatesPath, Constants.FolderAngular, template.InputPath);
-                await GenerateFromTemplateAsync(template, templatePath, model, GetAngularTemplateOutputPath(template.OutputPath, currentContext, currentProject.Folder));
+                var outputPath = GetAngularTemplateOutputPath(template.OutputPath, currentContext, currentProject.Folder);
+                await GenerateFromTemplateAsync(template, templatePath, model, outputPath);
+                if (!template.IsPartial && currentContext.GenerationReport.TemplatesGenerated.Contains(template))
+                {
+                    await ApplyPrettierToGeneratedAngularFileAsync(outputPath);
+                }
             }
         }
 
@@ -277,6 +303,36 @@
                     .Replace(@"\\", @"\"));
 
             return outputPath;
+        }
+
+        private async Task ApplyPrettierToGeneratedAngularFileAsync(string filePath)
+        {
+            var cts = new CancellationTokenSource();
+
+            var process = new Process();
+            process.StartInfo.WorkingDirectory = prettierAngularProjectPath;
+            process.StartInfo.FileName = "cmd.exe";
+            process.StartInfo.Arguments = $"/C npx prettier --write {filePath} --plugin=prettier-plugin-organize-imports --config \"{Path.Combine(prettierAngularProjectPath, ".prettierrc")}\"";
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+            process.Start();
+            consoleWriter.AddMessageLine($"Prettier generated file... (PID:{process.Id})");
+
+            try
+            {
+                cts.CancelAfter(5000);
+                await process.WaitForExitAsync(cts.Token);
+                consoleWriter.AddMessageLine($"Prettier succeed !");
+            }
+            catch(Exception ex)
+            {
+                consoleWriter.AddMessageLine($"prettier failed ({ex.Message})", "red");
+                process.Kill();
+            }
+            finally
+            {
+                process.Dispose();
+            }
         }
 
         private async Task GenerateFromTemplateAsync(Manifest.Feature.Template template, string templatePath, object model, string outputPath)
@@ -312,6 +368,7 @@
                 if (generatedTemplateContent.Count == 0)
                 {
                     consoleWriter.AddMessageLine("Ignored : generated content is empty", "orange");
+                    currentContext.GenerationReport.TemplatesIgnored.Add(template);
                     return;
                 }
 
@@ -326,10 +383,12 @@
                 }
 
                 consoleWriter.AddMessageLine($"Success !", "lightgreen");
+                currentContext.GenerationReport.TemplatesGenerated.Add(template);
             }
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"Generate from template failed : {ex}", color: "red");
+                currentContext.GenerationReport.TemplatesFailed.Add(template);
             }
         }
 

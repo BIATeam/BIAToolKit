@@ -41,7 +41,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
 
 #if UseHubForClientInMaintenanceTeam
         /// <summary>
-        /// Initializes a new instance of the <see cref="MaintenanceTeamsController" /> class.
+        /// Initializes a new instance of the <see cref="MaintenanceTeamsController"/> class.
         /// </summary>
         /// <param name="maintenanceTeamService">The maintenanceTeam application service.</param>
         /// <param name="clientForHubService">The hub for client.</param>
@@ -50,11 +50,10 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
             IClientForHubService clientForHubService)
 #else
         /// <summary>
-        /// Initializes a new instance of the <see cref="MaintenanceTeamsController" /> class.
+        /// Initializes a new instance of the <see cref="MaintenanceTeamsController"/> class.
         /// </summary>
         /// <param name="maintenanceTeamService">The maintenanceTeam application service.</param>
-        public MaintenanceTeamsController(
-            IMaintenanceTeamAppService maintenanceTeamService)
+        public MaintenanceTeamsController(IMaintenanceTeamAppService maintenanceTeamService)
 #endif
         {
 #if UseHubForClientInMaintenanceTeam

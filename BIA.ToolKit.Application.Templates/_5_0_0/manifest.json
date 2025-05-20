@@ -2,7 +2,7 @@
   "version": "5.0.0",
   "features": [
     {
-      "name": "DTO",
+      "type": "Dto",
       "dotNetTemplates": [
         {
           "inputPath": "Domain\\Mappers\\EntityMapperTemplate.tt",
@@ -15,7 +15,7 @@
       ]
     },
     {
-      "name": "Option",
+      "type": "Option",
       "angularTemplates": [
         {
           "inputPath": "src\\app\\domains\\services\\EntityOptionDasServiceTemplate.tt",
@@ -78,7 +78,7 @@
       ]
     },
     {
-      "name": "CRUD",
+      "type": "Crud",
       "dotNetTemplates": [
         {
           "inputPath": "PresentationApi\\Controllers\\EntityControllerTemplate.tt",

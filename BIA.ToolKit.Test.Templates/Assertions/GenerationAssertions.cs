@@ -13,11 +13,16 @@
     {
         public static void AssertAllFilesEquals(FileGeneratorTestFixture testFixture, FileGeneratorContext context)
         {
+            if(context.GenerationReport.HasFailed)
+            {
+                throw new GenerationFailureException();
+            }
+
             var assertionExceptions = new List<GenerationAssertionException>();
 
             if (context.GenerateBack)
             {
-                foreach (var dotNetTemplate in testFixture.CurrentTestFeature!.DotNetTemplates)
+                foreach (var dotNetTemplate in testFixture.CurrentTestFeature.DotNetTemplates)
                 {
                     try
                     {
@@ -34,7 +39,7 @@
 
             if (context.GenerateFront)
             {
-                foreach (var angularTemplate in testFixture.CurrentTestFeature!.AngularTemplates)
+                foreach (var angularTemplate in testFixture.CurrentTestFeature.AngularTemplates)
                 {
                     try
                     {
@@ -57,6 +62,9 @@
 
         private static void VerifyFilesEquals(string referencePath, string generatedPath, FileGeneratorContext context, Manifest.Feature.Template template)
         {
+            if (context.GenerationReport.TemplatesIgnored.Any(t => t.Equals(template)))
+                return;
+
             if (!File.Exists(referencePath))
                 throw new ReferenceFileNotFoundException(referencePath);
             if (!File.Exists(generatedPath))
@@ -97,7 +105,7 @@
 
             if (areLinesRemoved)
             {
-                referencePath = referencePath.Replace(Path.GetFileNameWithoutExtension(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Cleaned");
+                referencePath = referencePath.Replace(Path.GetFileName(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Cleaned{Path.GetExtension(referencePath)}");
                 if (File.Exists(referencePath))
                 {
                     File.Delete(referencePath);
@@ -135,8 +143,13 @@
             referenceLines = referenceLines.GetRange(referenceMarkupBeginIndex, referenceMarkupEndIndex - referenceMarkupBeginIndex + 1);
             generatedLines = generatedLines.GetRange(generatedMarkupBeginIndex, generatedMarkupEndIndex - generatedMarkupBeginIndex + 1);
 
-            referencePath = referencePath.Replace(Path.GetFileNameWithoutExtension(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}");
-            generatedPath = generatedPath.Replace(Path.GetFileNameWithoutExtension(generatedPath), $"{Path.GetFileNameWithoutExtension(generatedPath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}");
+            referencePath = referencePath
+                .Replace(Path.GetFileNameWithoutExtension(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}")
+                .Replace("{Parent}", context.ParentName);
+            generatedPath = generatedPath
+                .Replace(Path.GetFileNameWithoutExtension(generatedPath), $"{Path.GetFileNameWithoutExtension(generatedPath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}")
+                .Replace("{Parent}", context.ParentName);
+
             if (File.Exists(referencePath))
             {
                 File.Delete(referencePath);

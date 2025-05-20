@@ -51,6 +51,10 @@
             model.AngularParentRelativePath = crudContext.AngularParentFolderRelativePath;
             model.AngularDeepLevel = crudContext.AngularDeepLevel;
             model.OptionItems = crudContext.OptionItems;
+            model.UseHubForClient = crudContext.UseHubForClient;
+            model.HasCustomRepository = crudContext.HasCustomRepository;
+            model.HasReadOnlyFormMode = crudContext.HasReadOnlyFormMode;
+            model.HasFixableParent = crudContext.HasFixableParent;
 
             model.Properties = crudContext.Properties.Select(x => new TPropertyCrudModel
             {

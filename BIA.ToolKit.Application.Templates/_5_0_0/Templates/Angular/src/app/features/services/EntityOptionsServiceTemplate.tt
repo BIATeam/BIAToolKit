@@ -39,7 +39,6 @@ export class <#= ModelInstance.EntityName #>OptionsService extends CrudItemOptio
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>
     this.<#= optionItem.ToCamelCase() #>Options$ = this.store.select(getAll<#= optionItem #>Options);
 <#  } #>
-
 <# if(ModelInstance.OptionItems.Any()) { #>
     let cpt = 0;
 <# } #>

@@ -13,11 +13,4 @@ import { MaintenanceTeam } from '../../model/maintenance-team';
   ],
   imports: [BiaFormComponent],
 })
-export class MaintenanceTeamFormComponent extends CrudItemFormComponent<MaintenanceTeam> {
-  constructor(
-    protected router: Router,
-    protected activatedRoute: ActivatedRoute
-  ) {
-    super(router, activatedRoute);
-  }
-}
+export class MaintenanceTeamFormComponent extends CrudItemFormComponent<MaintenanceTeam> {}

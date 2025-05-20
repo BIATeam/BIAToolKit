@@ -2,7 +2,7 @@
   "version": "4.0.0",
   "features": [
     {
-      "name": "DTO",
+      "type": "Dto",
       "dotNetTemplates": [
         {
           "inputPath": "Domain\\Mappers\\EntityMapperTemplate.tt",
