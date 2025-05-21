@@ -53,7 +53,7 @@
             model.OptionItems = crudContext.OptionItems;
             model.UseHubForClient = crudContext.UseHubForClient;
             model.HasCustomRepository = crudContext.HasCustomRepository;
-            model.HasReadOnlyFormMode = crudContext.HasReadOnlyFormMode;
+            model.HasReadOnlyMode = crudContext.HasReadOnlyMode;
             model.HasFixableParent = crudContext.HasFixableParent;
             model.IsFixable = crudContext.IsFixable;
 

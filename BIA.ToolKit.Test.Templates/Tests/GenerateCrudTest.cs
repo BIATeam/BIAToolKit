@@ -146,7 +146,7 @@
                 HasAncestorTeam = true,
                 AncestorTeamName = "Site",
                 UseHubForClient = true,
-                HasReadOnlyFormMode = true,
+                HasReadOnlyMode = true,
                 IsFixable = true,
                 GenerateBack = false,
                 GenerateFront = true,

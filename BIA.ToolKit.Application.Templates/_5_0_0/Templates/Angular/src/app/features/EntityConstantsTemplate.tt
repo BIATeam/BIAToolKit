@@ -2,7 +2,7 @@
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
 import { 
-<#  if(ModelInstance.HasReadOnlyFormMode) { #>
+<#  if(ModelInstance.HasReadOnlyMode) { #>
 	FormReadOnlyMode,
 <#  } #>
 	CrudConfig 
@@ -22,6 +22,9 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration: Cru
   featureName: '<#= ModelInstance.EntityNamePlural.ToKebabCase() #>',
   fieldsConfig: <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration,
   formLayoutConfig: <#= ModelInstance.EntityName.ToCamelCase() #>FormLayoutConfiguration,
+<#  if(ModelInstance.HasReadOnlyMode) { #>
+  formEditReadOnlyMode: FormReadOnlyMode.off,
+<#  } #>
   useCalcMode: <# if(ModelInstance.IsTeam) { #>false<#  } else { #>true<# } #>,
   useSignalR: false,
   useView: true,
@@ -33,9 +36,6 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration: Cru
   useOfflineMode: false,
   useCompactMode: false,
   useVirtualScroll: false,
-<#  if(ModelInstance.HasReadOnlyFormMode) { #>
-  formEditReadOnlyMode: FormReadOnlyMode.on,
-<#  } #>
   // IMPORTANT: this key should be unique in all the application.
   // storeKey: 'feature-' + featureName,
   // IMPORTANT: this is the key used for the view management it should be unique in all the application (except if share same views).
