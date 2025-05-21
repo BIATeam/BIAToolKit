@@ -239,7 +239,7 @@
                     DomainName = vm.Domain,
                     EntityName = vm.CRUDNameSingular,
                     EntityNamePlural = vm.CRUDNamePlural,
-                    BaseKeyType = vm.DtoEntity.BaseKeyType ?? vm.DtoEntity.PrimaryKey,
+                    BaseKeyType = vm.DtoEntity.BaseKeyType,
                     IsTeam = vm.DtoEntity.IsTeam,
                     Properties = [.. vm.DtoEntity.Properties],
                     OptionItems = [.. vm.OptionItems.Where(x => x.Check).Select(x => x.OptionName)],

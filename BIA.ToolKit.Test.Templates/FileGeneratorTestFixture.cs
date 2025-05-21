@@ -157,6 +157,8 @@
                 foreach (var template in CurrentTestFeature.DotNetTemplates.Where(t => t.IsPartial))
                 {
                     var (referencePath, generatedPath) = GetDotNetFilesPath(template.OutputPath, context);
+                    if (!File.Exists(referencePath))
+                        continue;
                     Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);
                     File.Copy(referencePath, generatedPath, true);
                 }
@@ -167,6 +169,8 @@
                 foreach (var template in CurrentTestFeature.AngularTemplates.Where(t => t.IsPartial))
                 {
                     var (referencePath, generatedPath) = GetAngularFilesPath(template.OutputPath, context);
+                    if (!File.Exists(referencePath))
+                        continue;
                     Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);
                     File.Copy(referencePath, generatedPath, true);
                 }

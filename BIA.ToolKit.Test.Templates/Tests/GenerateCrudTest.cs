@@ -29,10 +29,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
                 name: "Engine",
-                baseType: "VersionedTable",
-                primaryKey: null,
+                baseType: "BaseDto",
+                baseKeyType: "int",
                 arguments: [RoslynHelper.CreateAttributeArgument("BiaDtoClass", [("AncestorTeam", "Site")])],
-                baseList: ["IEntityFixable<int>"]);
+                baseList: ["BaseDto<int>", "IFixableDto"]);
 
             var domainName = "Fleet";
 
@@ -80,6 +80,72 @@
                 UseHubForClient = true,
                 HasCustomRepository = true,
                 HasFixableParent = true,
+                GenerateBack = true,
+                GenerateFront = true,
+                AngularFront = "Angular",
+            };
+
+            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);
+        }
+
+        /// <summary>
+        /// Generates the CRUD's files for Engine.
+        /// </summary>
+        [Fact]
+        public async Task GeneratePlane_BIADemoConfiguration_AllFilesEquals()
+        {
+            var entityInfo = new EntityInfo(
+                path: string.Empty,
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
+                name: "Plane",
+                baseType: "BaseDto",
+                baseKeyType: "int",
+                arguments: [RoslynHelper.CreateAttributeArgument("BiaDtoClass", [("AncestorTeam", "Site")])],
+                baseList: ["BaseDto<int>", "IArchivableDto"]);
+
+            var domainName = "Fleet";
+
+            var properties = new List<PropertyInfo>
+            {
+                new("int", "SiteId", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true),("IsParent", true)])]),
+                new("string", "Msn", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true)])]),
+                new("string?", "Manufacturer", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false)])]),
+                new("bool", "IsActive", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true)])]),
+                new("bool?", "IsMaintenance", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false)])]),
+                new("DateTime", "FirstFlightDate", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true),("Type", "datetime")])]),
+                new("DateTime?", "LastFlightDate", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false),("Type", "datetime")])]),
+                new("DateTime?", "DeliveryDate", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false),("Type", "date")])]),
+                new("DateTime", "NextMaintenanceDate", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true),("Type", "date")])]),
+                new("string", "SyncTime", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true),("Type", "time")])]),
+                new("string?", "SyncFlightDataTime", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false),("Type", "time")])]),
+                new("int", "Capacity", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true)])]),
+                new("int?", "MotorsCount", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false)])]),
+                new("double", "TotalFlightHours", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true)])]),
+                new("double?", "Probability", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false)])]),
+                new("float", "FuelCapacity", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true)])]),
+                new("float?", "FuelLevel", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false)])]),
+                new("decimal", "OriginalPrice", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true)])]),
+                new("decimal?", "EstimatedPrice", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false)])]),
+                new("OptionDto", "PlaneType", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false),("ItemType", "PlaneType")])]),
+                new("ICollection<OptionDto>", "SimilarTypes", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", false), ("ItemType", "PlaneType")])]),
+                new("OptionDto", "CurrentAirport", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true),("ItemType", "Airport")])]),
+                new("ICollection<OptionDto>", "ConnectingAirports", [RoslynHelper.CreateAttributeArgument("BiaDtoField", [("Required", true), ("ItemType", "Airport")])])
+            };
+
+            var crudContext = new FileGeneratorCrudContext
+            {
+                CompanyName = fixture.TestProject.CompanyName,
+                ProjectName = fixture.TestProject.Name,
+                DomainName = domainName,
+                EntityName = entityInfo.Name,
+                EntityNamePlural = entityInfo.NamePluralized,
+                BaseKeyType = entityInfo.BaseKeyType,
+                Properties = properties,
+                DisplayItemName = "Msn",
+                OptionItems = ["PlaneType", "Airport"],
+                HasAncestorTeam = true,
+                AncestorTeamName = "Site",
+                UseHubForClient = true,
                 GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",

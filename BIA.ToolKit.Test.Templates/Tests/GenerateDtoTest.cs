@@ -21,7 +21,7 @@
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
                 name: "PlaneType",
                 baseType: "VersionedTable",
-                primaryKey: null,
+                baseKeyType: null,
                 arguments: null,
                 baseList: ["IEntity<int>"]);
 
@@ -78,7 +78,7 @@
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
                 name: "Plane",
                 baseType: "VersionedTable",
-                primaryKey: null,
+                baseKeyType: null,
                 arguments: null,
                 baseList: ["IEntityArchivable<int>"]);
 
@@ -281,7 +281,7 @@
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Maintenance.Entities",
                 name: "AircraftMaintenanceCompany",
                 baseType: "Team",
-                primaryKey: null,
+                baseKeyType: null,
                 arguments: null,
                 baseList: []);
 
@@ -320,7 +320,7 @@
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Maintenance.Entities",
                 name: "MaintenanceTeam",
                 baseType: "Team",
-                primaryKey: null,
+                baseKeyType: null,
                 arguments: null,
                 baseList: []);
 

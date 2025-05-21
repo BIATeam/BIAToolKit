@@ -26,14 +26,14 @@
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
-                @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Plane.Entities",
                 name: "PlaneType",
                 baseType: "VersionedTable",
-                primaryKey: null,
+                baseKeyType: null,
                 arguments: null,
                 baseList: ["IEntity<int>"]);
 
-            var domainName = "Fleet";
+            var domainName = "Plane";
 
             var optionContext = new FileGeneratorOptionContext
             {
@@ -61,14 +61,14 @@
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
-                @namespace: "TheBIADevCompany.BIADemo.Domain.Maintenance.Entities",
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Plane.Entities",
                 name: "Country",
                 baseType: "VersionedTable",
-                primaryKey: null,
+                baseKeyType: null,
                 arguments: null,
                 baseList: ["IEntity<int>"]);
 
-            var domainName = "Maintenance";
+            var domainName = "AircraftMaintenanceCompany";
 
             var optionContext = new FileGeneratorOptionContext
             {
