@@ -3,5 +3,6 @@
     labelKey: 'app.maintenanceTeams',
     permissions: [Permission.MaintenanceTeam_List_Access],
     path: ['/maintenance-teams'],
+    icon: 'pi pi-th-large',
   },
   // BIAToolKit - End Partial Navigation MaintenanceTeam
