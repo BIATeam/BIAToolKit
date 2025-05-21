@@ -146,8 +146,9 @@
                 HasAncestorTeam = true,
                 AncestorTeamName = "Site",
                 UseHubForClient = true,
+                HasReadOnlyFormMode = true,
                 IsFixable = true,
-                GenerateBack = true,
+                GenerateBack = false,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };

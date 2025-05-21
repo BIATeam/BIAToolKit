@@ -139,7 +139,7 @@ export const ROUTES: Routes = [
       Feature<#= ModelInstance.EntityNamePlural #>Store.reducers
     ),
     EffectsModule.forFeature([<#= ModelInstance.EntityNamePlural #>Effects]),
-    // TODO after creation of CRUD <#= ModelInstance.EntityName #> : select the optioDto dommain module required for link
+    // TODO after creation of CRUD <#= ModelInstance.EntityName #> : select the optionDto domain module required for link
     // Domain Modules:
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>
     <#= optionItem #>OptionModule,
