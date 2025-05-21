@@ -4,39 +4,46 @@
         // BIAToolKit - Begin Partial Rights <#= ModelInstance.EntityName #>
 
         /// <summary>
-        /// The <#= ModelInstance.EntityNamePlural #> rights.
+        /// The <#= ModelInstance.EntityNamePlural.ToLiteral() #> rights.
         /// </summary>
         public static class <#= ModelInstance.EntityNamePlural #>
         {
             /// <summary>
-            /// The right to access to the list of <#= ModelInstance.EntityNamePlural #>.
+            /// The right to access to the list of <#= ModelInstance.EntityNamePlural.ToLiteral() #>.
             /// </summary>
             public const string ListAccess = "<#= ModelInstance.EntityName #>_List_Access";
 
             /// <summary>
-            /// The right to create <#= ModelInstance.EntityNamePlural #>.
+            /// The right to create <#= ModelInstance.EntityName.ToLiteral() #>.
             /// </summary>
             public const string Create = "<#= ModelInstance.EntityName #>_Create";
 
             /// <summary>
-            /// The right to read <#= ModelInstance.EntityNamePlural #>.
+            /// The right to read <#= ModelInstance.EntityName.ToLiteral() #>.
             /// </summary>
             public const string Read = "<#= ModelInstance.EntityName #>_Read";
 
             /// <summary>
-            /// The right to update <#= ModelInstance.EntityNamePlural #>.
+            /// The right to update <#= ModelInstance.EntityName.ToLiteral() #>.
             /// </summary>
             public const string Update = "<#= ModelInstance.EntityName #>_Update";
 
             /// <summary>
-            /// The right to delete <#= ModelInstance.EntityNamePlural #>.
+            /// The right to delete <#= ModelInstance.EntityName.ToLiteral() #>.
             /// </summary>
             public const string Delete = "<#= ModelInstance.EntityName #>_Delete";
 
             /// <summary>
-            /// The right to save <#= ModelInstance.EntityNamePlural #>.
+            /// The right to save <#= ModelInstance.EntityName.ToLiteral() #>.
             /// </summary>
             public const string Save = "<#= ModelInstance.EntityName #>_Save";
+<#  if(ModelInstance.IsFixable) { #>
+
+            /// <summary>
+            /// The right to fixe <#= ModelInstance.EntityName.ToLiteral() #>.
+            /// </summary>
+            public const string Fix = "<#= ModelInstance.EntityName #>_Fix";
+<#  } #>
         }
 
         // BIAToolKit - End Partial Rights <#= ModelInstance.EntityName #>

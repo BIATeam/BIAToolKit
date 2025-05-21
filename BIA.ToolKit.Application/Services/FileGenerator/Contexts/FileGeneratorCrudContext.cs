@@ -17,5 +17,6 @@
         public bool HasCustomRepository { get; set; }
         public bool HasReadOnlyFormMode { get; set; }
         public bool HasFixableParent { get; set; }
+        public bool IsFixable { get; set; }
     }
 }

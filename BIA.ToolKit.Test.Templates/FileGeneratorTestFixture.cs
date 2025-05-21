@@ -64,10 +64,6 @@
             }
 
             consoleWriter.AddMessageLine($"Creating target test directory for generation...");
-            if (Directory.Exists(testProjectPath))
-            {
-                Directory.Delete(testProjectPath, true);
-            }
             Directory.CreateDirectory(testProjectPath);
 
             referenceProject = new Project
@@ -122,7 +118,7 @@
         public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext)
         {
             CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Dto);
-            SetTestProjectFolder(Feature.FeatureType.Dto, dtoContext);
+            InitTestProjectFolder(Feature.FeatureType.Dto, dtoContext);
             ImportTargetedPartialFiles(dtoContext);
             await fileGeneratorService.GenerateDtoAsync(dtoContext);
             GenerationAssertions.AssertAllFilesEquals(this, dtoContext);
@@ -131,7 +127,7 @@
         public async Task RunTestGenerateOptionAllFilesEqualsAsync(FileGeneratorOptionContext optionContext)
         {
             CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Option);
-            SetTestProjectFolder(Feature.FeatureType.Option, optionContext);
+            InitTestProjectFolder(Feature.FeatureType.Option, optionContext);
             ImportTargetedPartialFiles(optionContext);
             await fileGeneratorService.GenerateOptionAsync(optionContext);
             GenerationAssertions.AssertAllFilesEquals(this, optionContext);
@@ -140,7 +136,7 @@
         public async Task RunTestGenerateCrudAllFilesEqualsAsync(FileGeneratorCrudContext crudContext)
         {
             CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Crud);
-            SetTestProjectFolder(Feature.FeatureType.Crud, crudContext);
+            InitTestProjectFolder(Feature.FeatureType.Crud, crudContext);
             if (crudContext.GenerateFront)
             {
                 if (crudContext.HasParent)
@@ -153,9 +149,15 @@
             GenerationAssertions.AssertAllFilesEquals(this, crudContext);
         }
 
-        private void SetTestProjectFolder(Feature.FeatureType featureType, FileGeneratorContext context)
+        private void InitTestProjectFolder(Feature.FeatureType featureType, FileGeneratorContext context)
         {
-            TestProject.Folder = Path.Combine(TestProject.Folder, $"{featureType}_{context.EntityName}");
+            var generationFolder = Path.Combine(TestProject.Folder, $"{featureType}_{context.EntityName}");
+            if(Directory.Exists(generationFolder))
+            {
+                Directory.Delete(generationFolder, true);
+            }
+            Directory.CreateDirectory(generationFolder);
+            TestProject.Folder = generationFolder;
         }
 
         private void ImportTargetedPartialFiles(FileGeneratorContext context)

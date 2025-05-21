@@ -50,7 +50,6 @@ namespace TheBIADevCompany.BIADemo.Application.MaintenanceCompanies
             this.FiltersContext.Add(
                 AccessMode.Update,
                 TeamAppService.UpdateSpecification<MaintenanceTeam>(TeamTypeId.MaintenanceTeam, principal));
-
             var userData = (principal as BiaClaimsPrincipal).GetUserData<UserDataDto>();
             this.currentAncestorTeamId = userData != null ? userData.GetCurrentTeamId((int)TeamTypeId.Site) : 0;
         }

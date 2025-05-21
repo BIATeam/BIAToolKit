@@ -81,7 +81,6 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
                 TeamAppService.UpdateSpecification<<#= ModelInstance.EntityName #>>(TeamTypeId.<#= ModelInstance.EntityName #>, principal));
 <#  } #>
 <#  if(ModelInstance.HasAncestorTeam) {  #>
-
             var userData = (principal as BiaClaimsPrincipal).GetUserData<UserDataDto>();
             this.currentAncestorTeamId = userData != null ? userData.GetCurrentTeamId((int)TeamTypeId.<#= ModelInstance.AncestorTeamName #>) : 0;
 <#  if(!ModelInstance.IsTeam) { #>

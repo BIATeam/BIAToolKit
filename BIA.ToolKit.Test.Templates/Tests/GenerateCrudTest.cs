@@ -146,6 +146,7 @@
                 HasAncestorTeam = true,
                 AncestorTeamName = "Site",
                 UseHubForClient = true,
+                IsFixable = true,
                 GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",

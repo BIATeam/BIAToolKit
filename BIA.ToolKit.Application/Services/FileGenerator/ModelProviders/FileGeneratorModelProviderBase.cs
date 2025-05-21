@@ -55,6 +55,7 @@
             model.HasCustomRepository = crudContext.HasCustomRepository;
             model.HasReadOnlyFormMode = crudContext.HasReadOnlyFormMode;
             model.HasFixableParent = crudContext.HasFixableParent;
+            model.IsFixable = crudContext.IsFixable;
 
             model.Properties = crudContext.Properties.Select(x => new TPropertyCrudModel
             {
