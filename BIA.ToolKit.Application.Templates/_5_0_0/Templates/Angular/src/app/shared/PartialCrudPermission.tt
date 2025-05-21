@@ -14,4 +14,7 @@
   <#= ModelInstance.EntityName #>_Member_Create = '<#= ModelInstance.EntityName #>_Member_Create',
   <#= ModelInstance.EntityName #>_Member_List_Access = '<#= ModelInstance.EntityName #>_Member_List_Access',
 <# }  #>
+<#  if(ModelInstance.IsFixable) { #>
+  <#= ModelInstance.EntityName #>_Fix = '<#= ModelInstance.EntityName #>_Fix',
+<#  } #>
   // BIAToolKit - End Partial Permission <#= ModelInstance.EntityName #>
