@@ -122,6 +122,7 @@
         public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext)
         {
             CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Dto);
+            SetTestProjectFolder(Feature.FeatureType.Dto, dtoContext);
             ImportTargetedPartialFiles(dtoContext);
             await fileGeneratorService.GenerateDtoAsync(dtoContext);
             GenerationAssertions.AssertAllFilesEquals(this, dtoContext);
@@ -130,6 +131,7 @@
         public async Task RunTestGenerateOptionAllFilesEqualsAsync(FileGeneratorOptionContext optionContext)
         {
             CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Option);
+            SetTestProjectFolder(Feature.FeatureType.Option, optionContext);
             ImportTargetedPartialFiles(optionContext);
             await fileGeneratorService.GenerateOptionAsync(optionContext);
             GenerationAssertions.AssertAllFilesEquals(this, optionContext);
@@ -138,6 +140,7 @@
         public async Task RunTestGenerateCrudAllFilesEqualsAsync(FileGeneratorCrudContext crudContext)
         {
             CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Crud);
+            SetTestProjectFolder(Feature.FeatureType.Crud, crudContext);
             if (crudContext.GenerateFront)
             {
                 if (crudContext.HasParent)
@@ -148,6 +151,11 @@
             ImportTargetedPartialFiles(crudContext);
             await fileGeneratorService.GenerateCRUDAsync(crudContext);
             GenerationAssertions.AssertAllFilesEquals(this, crudContext);
+        }
+
+        private void SetTestProjectFolder(Feature.FeatureType featureType, FileGeneratorContext context)
+        {
+            TestProject.Folder = Path.Combine(TestProject.Folder, $"{featureType}_{context.EntityName}");
         }
 
         private void ImportTargetedPartialFiles(FileGeneratorContext context)
