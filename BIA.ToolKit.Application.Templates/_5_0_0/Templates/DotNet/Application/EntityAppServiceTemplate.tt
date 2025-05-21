@@ -7,9 +7,9 @@
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.DomainName #>
 {
-    using System;
-    using System.Collections.Generic;
+<#  if(ModelInstance.IsTeam || ModelInstance.HasParent) { #>
     using System.Linq.Expressions;
+<#  } #>
     using System.Security.Principal;
     using System.Threading.Tasks;
     using BIA.Net.Core.Application.Services;
