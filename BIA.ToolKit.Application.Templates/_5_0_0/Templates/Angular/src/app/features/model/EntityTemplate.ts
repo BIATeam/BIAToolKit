@@ -11,19 +11,25 @@ import {
   PrimeNGFiltering,
   PropType,
 } from 'src/app/shared/bia-shared/model/bia-field-config';
-import { BiaFormLayoutConfig } from 'src/app/shared/bia-shared/model/bia-form-layout-config';
+import { 
+  BiaFormLayoutConfig,
+  BiaFormLayoutConfigColumnSize,
+  BiaFormLayoutConfigField,
+  BiaFormLayoutConfigGroup,
+  BiaFormLayoutConfigRow,
+} from 'src/app/shared/bia-shared/model/bia-form-layout-config';
 import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
 
 // TODO after creation of CRUD MaintenanceTeam : adapt the model
 export class MaintenanceTeam extends BaseTeamDto {
-  aircraftMaintenanceCompanyId: number;
-  msn: string;
-  isActive: boolean;
-  firstFlightDate: Date;
+  aircraftMaintenanceCompanyId: number | null;
+  msn: string | null;
+  isActive: boolean | null;
+  firstFlightDate: Date | null;
   motorsCount: number | null;
-  someDecimal: number;
-  engines: OptionDto[];
-  planeType: OptionDto;
+  someDecimal: number | null;
+  engines: OptionDto[] | null;
+  planeType: OptionDto | null;
   similarTypes: OptionDto[] | null;
 }
 
@@ -34,41 +40,27 @@ export const maintenanceTeamFieldsConfiguration: BiaFieldsConfig<MaintenanceTeam
       ...[
     Object.assign(new BiaFieldConfig('aircraftMaintenanceCompanyId', 'maintenanceTeam.aircraftMaintenanceCompanyId'), {
       type: PropType.Number,
-      isRequired: true,
-      validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('msn', 'maintenanceTeam.msn'), {
       type: PropType.String,
-      isRequired: true,
-      validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('isActive', 'maintenanceTeam.isActive'), {
       type: PropType.Boolean,
-      isRequired: true,
-      validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('firstFlightDate', 'maintenanceTeam.firstFlightDate'), {
       type: PropType.Date,
-      isRequired: true,
-      validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('motorsCount', 'maintenanceTeam.motorsCount'), {
       type: PropType.Number,
     }),
     Object.assign(new BiaFieldConfig('someDecimal', 'maintenanceTeam.someDecimal'), {
       type: PropType.Number,
-      isRequired: true,
-      validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('engines', 'maintenanceTeam.engines'), {
       type: PropType.ManyToMany,
-      isRequired: true,
-      validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('planeType', 'maintenanceTeam.planeType'), {
       type: PropType.OneToMany,
-      isRequired: true,
-      validators: [Validators.required],
     }),
     Object.assign(new BiaFieldConfig('similarTypes', 'maintenanceTeam.similarTypes'), {
       type: PropType.ManyToMany,
@@ -84,4 +76,5 @@ export const maintenanceTeamFieldsConfiguration: BiaFieldsConfig<MaintenanceTeam
 
 // TODO after creation of CRUD MaintenanceTeam : adapt the form layout configuration
 export const maintenanceTeamFormLayoutConfiguration: BiaFormLayoutConfig<MaintenanceTeam> =
-  new BiaFormLayoutConfig([]);
+  new BiaFormLayoutConfig([
+  ]);

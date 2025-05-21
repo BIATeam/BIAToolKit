@@ -12,44 +12,12 @@
 
     public static class RoslynHelper
     {
-        public static AttributeArgumentSyntax CreateAttributeArgument(
-        string attributeName,
-        IEnumerable<(string Name, object Value)> namedArgs)
+        public static AttributeArgumentSyntax CreateAttributeArgument(string argName, object value)
         {
-            // -----------------------------------------------------------------
-            // 1. Convertit chaque (clé,valeur) en « Prop = Expression »
-            // -----------------------------------------------------------------
-            var assignmentsWithCommas = namedArgs
-                .Select((kvp, idx) =>
-                {
-                    // PropName = <expr>
-                    var assignExpr = SyntaxFactory.AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        SyntaxFactory.IdentifierName(kvp.Name),
-                        ToExpression(kvp.Value));
-
-                    // Insère la virgule SAUF après le dernier
-                    return idx < namedArgs.Count() - 1
-                        ? new SyntaxNodeOrToken[]
-                          { assignExpr, SyntaxFactory.Token(SyntaxKind.CommaToken) }
-                        : new SyntaxNodeOrToken[] { assignExpr };
-                })
-                .SelectMany(x => x);
-
-            // -----------------------------------------------------------------
-            // 2. new AttributeName { … }
-            // -----------------------------------------------------------------
-            var objCreation = SyntaxFactory.ObjectCreationExpression(
-                                  SyntaxFactory.IdentifierName(attributeName))
-                             .WithInitializer(
-                                 SyntaxFactory.InitializerExpression(
-                                     SyntaxKind.ObjectInitializerExpression,
-                                     SyntaxFactory.SeparatedList<ExpressionSyntax>(assignmentsWithCommas)));
-
-            // -----------------------------------------------------------------
-            // 3. Enveloppe dans l'argument d'attribut
-            // -----------------------------------------------------------------
-            return SyntaxFactory.AttributeArgument(objCreation);
+            return SyntaxFactory.AttributeArgument(ToExpression(value))
+                                .WithNameEquals(
+                                    SyntaxFactory.NameEquals(
+                                        SyntaxFactory.IdentifierName(argName)));
         }
 
         // ---------------------------------------------------------------------
