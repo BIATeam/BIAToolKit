@@ -624,7 +624,7 @@
                 consoleWriter.AddMessageLine(ex.Message, "Red");
             }
 
-            vm.DtoFiles = dtoFiles;
+            vm.DtoFiles = dtoFiles.OrderBy(x => x.Key).ToDictionary();
         }
 
         /// <summary>
