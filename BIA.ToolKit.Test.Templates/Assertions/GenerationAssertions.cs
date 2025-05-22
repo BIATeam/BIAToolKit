@@ -27,7 +27,7 @@
                     try
                     {
                         var (referencePath, generatedPath) = testFixture.GetDotNetFilesPath(dotNetTemplate.OutputPath, context);
-                        VerifyFilesEquals(referencePath, generatedPath, context, dotNetTemplate);
+                        VerifyFilesEquals(testFixture, referencePath, generatedPath, context, dotNetTemplate);
                     }
                     catch (GenerationAssertionException ex)
                     {
@@ -44,7 +44,7 @@
                     try
                     {
                         var (referencePath, generatedPath) = testFixture.GetAngularFilesPath(angularTemplate.OutputPath, context);
-                        VerifyFilesEquals(referencePath, generatedPath, context, angularTemplate);
+                        VerifyFilesEquals(testFixture, referencePath, generatedPath, context, angularTemplate, true);
                     }
                     catch (GenerationAssertionException ex)
                     {
@@ -60,7 +60,7 @@
             }
         }
 
-        private static void VerifyFilesEquals(string referencePath, string generatedPath, FileGeneratorContext context, Manifest.Feature.Template template)
+        private static void VerifyFilesEquals(FileGeneratorTestFixture testFixture, string referencePath, string generatedPath, FileGeneratorContext context, Manifest.Feature.Template template, bool isAngularTemplate = false)
         {
             if (context.GenerationReport.TemplatesIgnored.Any(t => t.Equals(template)))
                 return;
@@ -70,22 +70,21 @@
             if (!File.Exists(generatedPath))
                 throw new GeneratedFileNotFoundException(generatedPath);
 
-            var referenceLines = File.ReadAllLines(referencePath).ToList();
-            var generatedlLines = File.ReadAllLines(generatedPath).ToList();
-
             if (template.IsPartial)
             {
-                ExtractPartialContent(ref referencePath, ref generatedPath, context, template, ref referenceLines, ref generatedlLines);
+                ExtractPartialContent(ref referencePath, ref generatedPath, context, template);
             }
 
-            RemoveBiaDemoCodeExample(ref referencePath, referenceLines);
-            CompareFiles(referencePath, generatedPath, referenceLines, generatedlLines);
+            RemoveBiaDemoCodeExample(testFixture, ref referencePath, isAngularTemplate);
+            CompareFiles(referencePath, generatedPath);
         }
 
-        private static void RemoveBiaDemoCodeExample(ref string referencePath, List<string> referenceLines)
+        private static void RemoveBiaDemoCodeExample(FileGeneratorTestFixture testFixture, ref string referencePath, bool isAngularTemplate)
         {
             const string biaDemoMarkupBegin = "Begin BIADemo";
             const string biaDemoMarkupEnd = "End BIADemo";
+
+            var referenceLines = File.ReadAllLines(referencePath).ToList();
 
             var expectedBiaDemoMarkupBeginIndex = referenceLines.FindIndex(l => l.Contains(biaDemoMarkupBegin));
             var expectedBiaDemoMarkupEndIndex = referenceLines.FindIndex(l => l.Contains(biaDemoMarkupEnd));
@@ -111,12 +110,19 @@
                     File.Delete(referencePath);
                 }
                 File.AppendAllLines(referencePath, referenceLines);
+
+                if (isAngularTemplate)
+                {
+                    testFixture.FileGeneratorService.ApplyPrettierToGeneratedAngularFileAsync(referencePath).Wait();
+                }
             }
         }
 
-        private static void ExtractPartialContent(ref string referencePath, ref string generatedPath, FileGeneratorContext context, Manifest.Feature.Template template, ref List<string> referenceLines, ref List<string> generatedLines)
+        private static void ExtractPartialContent(ref string referencePath, ref string generatedPath, FileGeneratorContext context, Manifest.Feature.Template template)
         {
             (var partialInsertionMarkupBegin, var partialInsertionMarkupEnd) = FileGeneratorService.GetPartialInsertionMarkups(context, template, template.OutputPath);
+            var referenceLines = File.ReadAllLines(referencePath).ToList();
+            var generatedLines = File.ReadAllLines(generatedPath).ToList();
 
             var referenceMarkupBeginIndex = referenceLines.FindIndex(l => l.Contains(partialInsertionMarkupBegin));
             if (referenceMarkupBeginIndex < 0)
@@ -162,7 +168,7 @@
             File.AppendAllLines(generatedPath, generatedLines);
         }
 
-        private static void CompareFiles(string referencePath, string generatedPath, List<string> referenceLines, List<string> generatedLines)
+        private static void CompareFiles(string referencePath, string generatedPath)
         {
             int modified = 0;
             int moved = 0;
@@ -174,6 +180,9 @@
 
             List<int> generatedDeplacedLineIndexes = new List<int>();
             List<int> referenceDeplacedLineIndexes = new List<int>();
+
+            var referenceLines = File.ReadAllLines(referencePath);
+            var generatedLines = File.ReadAllLines(generatedPath);
 
             //var toBeUpdated =
             //referenceLines.Where(
@@ -189,14 +198,14 @@
                         generatedLines.Where(a => referenceLines.All(
                         b => b != a));
 
-            while (referenceIndex < referenceLines.Count || generatedIndex < generatedLines.Count)
+            while (referenceIndex < referenceLines.Length || generatedIndex < generatedLines.Length)
             {
-                if (referenceIndex >= referenceLines.Count)
+                if (referenceIndex >= referenceLines.Length)
                 {
                     added++;
                     generatedIndex++;
                 }
-                else if (generatedIndex >= generatedLines.Count)
+                else if (generatedIndex >= generatedLines.Length)
                 {
                     deleted++;
                     referenceIndex++;

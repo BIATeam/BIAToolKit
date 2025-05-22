@@ -305,7 +305,7 @@
             return outputPath;
         }
 
-        private async Task ApplyPrettierToGeneratedAngularFileAsync(string filePath)
+        public async Task ApplyPrettierToGeneratedAngularFileAsync(string filePath)
         {
             var cts = new CancellationTokenSource();
 

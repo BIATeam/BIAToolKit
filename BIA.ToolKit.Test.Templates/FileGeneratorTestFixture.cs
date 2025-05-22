@@ -24,7 +24,7 @@
             }
         }
 
-        private readonly FileGeneratorService fileGeneratorService;
+        public FileGeneratorService FileGeneratorService { get; private set; }
         private readonly string referenceProjectPath;
         private readonly string testProjectPath;
         private readonly Project referenceProject;
@@ -85,13 +85,13 @@
             };
 
             consoleWriter.AddMessageLine($"Init service...");
-            fileGeneratorService = new FileGeneratorService(consoleWriter);
-            fileGeneratorService.Init(TestProject);
+            FileGeneratorService = new FileGeneratorService(consoleWriter);
+            FileGeneratorService.Init(TestProject);
 
             if (referenceProject.BIAFronts.Count != 0)
             {
                 var referenceProjetAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
-                fileGeneratorService.SetPrettierAngularProjectPath(referenceProjetAngularPath);
+                FileGeneratorService.SetPrettierAngularProjectPath(referenceProjetAngularPath);
 
                 if (doUnzip)
                 {
@@ -117,25 +117,25 @@
 
         public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext)
         {
-            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Dto);
+            CurrentTestFeature = FileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Dto);
             InitTestProjectFolder(Feature.FeatureType.Dto, dtoContext);
             ImportTargetedPartialFiles(dtoContext);
-            await fileGeneratorService.GenerateDtoAsync(dtoContext);
+            await FileGeneratorService.GenerateDtoAsync(dtoContext);
             GenerationAssertions.AssertAllFilesEquals(this, dtoContext);
         }
 
         public async Task RunTestGenerateOptionAllFilesEqualsAsync(FileGeneratorOptionContext optionContext)
         {
-            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Option);
+            CurrentTestFeature = FileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Option);
             InitTestProjectFolder(Feature.FeatureType.Option, optionContext);
             ImportTargetedPartialFiles(optionContext);
-            await fileGeneratorService.GenerateOptionAsync(optionContext);
+            await FileGeneratorService.GenerateOptionAsync(optionContext);
             GenerationAssertions.AssertAllFilesEquals(this, optionContext);
         }
 
         public async Task RunTestGenerateCrudAllFilesEqualsAsync(FileGeneratorCrudContext crudContext)
         {
-            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Crud);
+            CurrentTestFeature = FileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Crud);
             InitTestProjectFolder(Feature.FeatureType.Crud, crudContext);
             if (crudContext.GenerateFront)
             {
@@ -145,7 +145,7 @@
                 }
             }
             ImportTargetedPartialFiles(crudContext);
-            await fileGeneratorService.GenerateCRUDAsync(crudContext);
+            await FileGeneratorService.GenerateCRUDAsync(crudContext);
             GenerationAssertions.AssertAllFilesEquals(this, crudContext);
         }
 
