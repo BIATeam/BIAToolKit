@@ -11,10 +11,10 @@
         public string Type { get; set; }
         public List<KeyValuePair<string, string>> BiaFieldAttributes { get; set; } = new List<KeyValuePair<string, string>>();
 
-        public bool IsRequired => !IsNullable || BiaFieldAttributes.Any(x => x.Key == "IsRequired" && x.Value == "true");
+        public bool IsRequired => !IsNullable;
         public bool IsOption => Type.StartsWith("OptionDto") || Type.StartsWith("ICollection<OptionDto>");
         public bool IsCollection => Type.StartsWith("ICollection");
-        public bool IsNullable => Type.EndsWith("?");
+        public bool IsNullable => Type.EndsWith("?") || !BiaFieldAttributes.Any(x => x.Key == "Required" && x.Value == "true");
         public bool IsDecimal => Type.StartsWith("decimal", StringComparison.InvariantCultureIgnoreCase);
         public string OptionItemType => BiaFieldAttributes.SingleOrDefault(x => x.Key == "ItemType").Value;
         public bool IsParentIdentifier => BiaFieldAttributes.Any(x => x.Key == "IsParent" && x.Value == "true");

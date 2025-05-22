@@ -28,7 +28,8 @@
         public List<TPropertyCrudModel> Properties { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         public bool UseHubForClient { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         public bool HasCustomRepository { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
-        public bool HasReadOnlyFormMode { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public bool HasReadOnlyMode { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         public bool HasFixableParent { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public bool IsFixable { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
     }
 }

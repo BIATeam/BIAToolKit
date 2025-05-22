@@ -10,6 +10,7 @@ import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.E
 import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../../<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
 import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
 import { filter } from 'rxjs';
+import { Permission } from 'src/app/shared/permission';
 import { FormReadOnlyMode } from 'src/app/shared/bia-shared/feature-templates/crud-items/model/crud-config';
 <#  if(ModelInstance.OptionItems.Any()) { #>
 import { <#= ModelInstance.EntityName #>OptionsService } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>-options.service';
@@ -43,6 +44,7 @@ export class <#= ModelInstance.EntityName #>EditComponent extends CrudItemEditCo
 <#  } #>
   }
 
+<#  if(ModelInstance.HasFixableParent) { #>
   protected setPermissions(): void {
     super.setPermissions();
 
@@ -59,4 +61,21 @@ export class <#= ModelInstance.EntityName #>EditComponent extends CrudItemEditCo
         })
     );
   }
+<# } else if (ModelInstance.IsFixable) { #>
+  protected setPermissions(): void {
+    super.setPermissions();
+
+    this.canFix = this.authService.hasPermission(Permission.<#= ModelInstance.EntityName #>_Fix);
+    this.permissionSub.add(
+      this.crudItemService.crudItem$
+        .pipe(filter(<#= ModelInstance.EntityName.ToCamelCase() #> => !!<#= ModelInstance.EntityName.ToCamelCase() #> && Object.keys(<#= ModelInstance.EntityName.ToCamelCase() #>).length > 0))
+        .subscribe(<#= ModelInstance.EntityName.ToCamelCase() #> => {
+          this.formReadOnlyMode =
+            this.crudConfiguration.isFixable === true && <#= ModelInstance.EntityName.ToCamelCase() #>.isFixed === true
+              ? FormReadOnlyMode.on
+              : FormReadOnlyMode.off;
+        })
+    );
+  }
+<#  } #>
 }

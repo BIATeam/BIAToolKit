@@ -29,7 +29,7 @@
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
                 name: "PlaneType",
                 baseType: "VersionedTable",
-                primaryKey: null,
+                baseKeyType: null,
                 arguments: null,
                 baseList: ["IEntity<int>"]);
 
@@ -61,10 +61,10 @@
         {
             var entityInfo = new EntityInfo(
                 path: string.Empty,
-                @namespace: "TheBIADevCompany.BIADemo.Domain.Maintenance.Entities",
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
                 name: "Country",
                 baseType: "VersionedTable",
-                primaryKey: null,
+                baseKeyType: null,
                 arguments: null,
                 baseList: ["IEntity<int>"]);
 

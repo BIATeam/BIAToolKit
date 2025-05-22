@@ -7,9 +7,9 @@
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.DomainName #>
 {
-    using System;
-    using System.Collections.Generic;
+<#  if(ModelInstance.IsTeam || ModelInstance.HasParent) { #>
     using System.Linq.Expressions;
+<#  } #>
     using System.Security.Principal;
     using System.Threading.Tasks;
     using BIA.Net.Core.Application.Services;
@@ -81,7 +81,6 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
                 TeamAppService.UpdateSpecification<<#= ModelInstance.EntityName #>>(TeamTypeId.<#= ModelInstance.EntityName #>, principal));
 <#  } #>
 <#  if(ModelInstance.HasAncestorTeam) {  #>
-
             var userData = (principal as BiaClaimsPrincipal).GetUserData<UserDataDto>();
             this.currentAncestorTeamId = userData != null ? userData.GetCurrentTeamId((int)TeamTypeId.<#= ModelInstance.AncestorTeamName #>) : 0;
 <#  if(!ModelInstance.IsTeam) { #>

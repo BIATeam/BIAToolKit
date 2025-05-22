@@ -98,6 +98,9 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
     this.canDelete = this.authService.hasPermission(Permission.<#= ModelInstance.EntityName #>_Delete);
     this.canAdd = this.authService.hasPermission(Permission.<#= ModelInstance.EntityName #>_Create);
     this.canSave = this.authService.hasPermission(Permission.<#= ModelInstance.EntityName #>_Save);
+<#  if(ModelInstance.IsFixable) { #>
+    this.canFix = this.authService.hasPermission(Permission.<#= ModelInstance.EntityName #>_Fix);
+<#  } #>
     this.canSelect = this.canDelete;
     // BIAToolKit - Begin <#= ModelInstance.EntityName #>IndexTsCanViewChildSet
     // BIAToolKit - End <#= ModelInstance.EntityName #>IndexTsCanViewChildSet

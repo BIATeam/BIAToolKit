@@ -16,7 +16,7 @@ import {
   DynamicLayoutComponent,
   LayoutMode,
 } from 'src/app/shared/bia-shared/components/layout/dynamic-layout/dynamic-layout.component';
-<#  if(ModelInstance.HasReadOnlyFormMode) { #>
+<#  if(ModelInstance.HasReadOnlyMode) { #>
 import { <#= ModelInstance.EntityName #>ReadComponent } from '../<#= ModelInstance.EntityNamePlural.ToKebabCase() #>/views/<#= ModelInstance.EntityName.ToKebabCase() #>-read/<#= ModelInstance.EntityName.ToKebabCase() #>-read.component';
 <#  } #>
 import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from './<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
@@ -92,7 +92,7 @@ export const ROUTES: Routes = [
               ).then(m => m.<#= ModelInstance.EntityName #>MemberModule),
           },
 <#  } #>
-<#  if(ModelInstance.HasReadOnlyFormMode) { #>
+<#  if(ModelInstance.HasReadOnlyMode) { #>
           {
             path: 'read',
             data: {
@@ -120,7 +120,7 @@ export const ROUTES: Routes = [
           {
             path: '',
             pathMatch: 'full',
-            redirectTo: '<#  if(ModelInstance.HasReadOnlyFormMode) { #>read<# } else { #>edit<# } #>',
+            redirectTo: '<#  if(ModelInstance.HasReadOnlyMode) { #>read<# } else { #>edit<# } #>',
           },
           // BIAToolKit - Begin <#= ModelInstance.EntityName #>ModuleChildPath
           // BIAToolKit - End <#= ModelInstance.EntityName #>ModuleChildPath
@@ -139,7 +139,7 @@ export const ROUTES: Routes = [
       Feature<#= ModelInstance.EntityNamePlural #>Store.reducers
     ),
     EffectsModule.forFeature([<#= ModelInstance.EntityNamePlural #>Effects]),
-    // TODO after creation of CRUD <#= ModelInstance.EntityName #> : select the optioDto dommain module required for link
+    // TODO after creation of CRUD <#= ModelInstance.EntityName #> : select the optionDto domain module required for link
     // Domain Modules:
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>
     <#= optionItem #>OptionModule,

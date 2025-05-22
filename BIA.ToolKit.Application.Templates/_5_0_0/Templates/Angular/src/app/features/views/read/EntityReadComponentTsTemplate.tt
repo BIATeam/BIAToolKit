@@ -1,9 +1,14 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
-<#  if(ModelInstance.HasReadOnlyFormMode) { #>
+<#  if(ModelInstance.HasReadOnlyMode) { #>
 import { Component, Injector } from '@angular/core';
 import { SpinnerComponent } from 'src/app/shared/bia-shared/components/spinner/spinner.component';
+import { filter } from 'rxjs';
+import { AuthService } from 'src/app/core/bia-core/services/auth.service';
+import { FormReadOnlyMode } from 'src/app/shared/bia-shared/feature-templates/crud-items/model/crud-config';
+import { CrudItemReadComponent } from 'src/app/shared/bia-shared/feature-templates/crud-items/views/crud-item-read/crud-item-read.component';
+import { Permission } from 'src/app/shared/permission';
 import { AuthService } from 'src/app/core/bia-core/services/auth.service';
 import { CrudItemReadComponent } from 'src/app/shared/bia-shared/feature-templates/crud-items/views/crud-item-read/crud-item-read.component';
 import { AsyncPipe, NgIf } from '@angular/common';
@@ -26,6 +31,29 @@ export class <#= ModelInstance.EntityName #>ReadComponent extends CrudItemReadCo
     super(injector, <#= ModelInstance.EntityName.ToCamelCase() #>Service, authService);
     this.crudConfiguration = <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration;
   }
-}
 
+<#  if(ModelInstance.IsFixable) { #>
+  protected setPermissions(): void {
+    super.setPermissions();
+    this.canFix = this.authService.hasPermission(Permission.<#= ModelInstance.EntityName #>_Fix);
+    this.permissionSub.add(
+      this.crudItemService.crudItem$
+        .pipe(filter(<#= ModelInstance.EntityName.ToCamelCase() #> => !!<#= ModelInstance.EntityName.ToCamelCase() #> && Object.keys(<#= ModelInstance.EntityName.ToCamelCase() #>).length > 0))
+        .subscribe(<#= ModelInstance.EntityName.ToCamelCase() #> => {
+          this.canEdit =
+            this.crudConfiguration.isFixable === true && <#= ModelInstance.EntityName.ToCamelCase() #>.isFixed === true
+              ? false
+              : this.authService.hasPermission(Permission.<#= ModelInstance.EntityName #>_Update);
+
+          this.formReadOnlyMode =
+            this.canEdit === false &&
+            this.crudConfiguration.isFixable === true &&
+            <#= ModelInstance.EntityName.ToCamelCase() #>.isFixed === true
+              ? FormReadOnlyMode.on
+              : this.initialFormReadOnlyMode;
+        })
+    );
+  }
+<#  } #>
+}
 <#  } #>

@@ -24,7 +24,7 @@
             }
         }
 
-        private readonly FileGeneratorService fileGeneratorService;
+        public FileGeneratorService FileGeneratorService { get; private set; }
         private readonly string referenceProjectPath;
         private readonly string testProjectPath;
         private readonly Project referenceProject;
@@ -64,10 +64,6 @@
             }
 
             consoleWriter.AddMessageLine($"Creating target test directory for generation...");
-            if (Directory.Exists(testProjectPath))
-            {
-                Directory.Delete(testProjectPath, true);
-            }
             Directory.CreateDirectory(testProjectPath);
 
             referenceProject = new Project
@@ -89,13 +85,13 @@
             };
 
             consoleWriter.AddMessageLine($"Init service...");
-            fileGeneratorService = new FileGeneratorService(consoleWriter);
-            fileGeneratorService.Init(TestProject);
+            FileGeneratorService = new FileGeneratorService(consoleWriter);
+            FileGeneratorService.Init(TestProject);
 
             if (referenceProject.BIAFronts.Count != 0)
             {
                 var referenceProjetAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
-                fileGeneratorService.SetPrettierAngularProjectPath(referenceProjetAngularPath);
+                FileGeneratorService.SetPrettierAngularProjectPath(referenceProjetAngularPath);
 
                 if (doUnzip)
                 {
@@ -121,23 +117,26 @@
 
         public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext)
         {
-            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Dto);
+            CurrentTestFeature = FileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Dto);
+            InitTestProjectFolder(Feature.FeatureType.Dto, dtoContext);
             ImportTargetedPartialFiles(dtoContext);
-            await fileGeneratorService.GenerateDtoAsync(dtoContext);
+            await FileGeneratorService.GenerateDtoAsync(dtoContext);
             GenerationAssertions.AssertAllFilesEquals(this, dtoContext);
         }
 
         public async Task RunTestGenerateOptionAllFilesEqualsAsync(FileGeneratorOptionContext optionContext)
         {
-            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Option);
+            CurrentTestFeature = FileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Option);
+            InitTestProjectFolder(Feature.FeatureType.Option, optionContext);
             ImportTargetedPartialFiles(optionContext);
-            await fileGeneratorService.GenerateOptionAsync(optionContext);
+            await FileGeneratorService.GenerateOptionAsync(optionContext);
             GenerationAssertions.AssertAllFilesEquals(this, optionContext);
         }
 
         public async Task RunTestGenerateCrudAllFilesEqualsAsync(FileGeneratorCrudContext crudContext)
         {
-            CurrentTestFeature = fileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Crud);
+            CurrentTestFeature = FileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Crud);
+            InitTestProjectFolder(Feature.FeatureType.Crud, crudContext);
             if (crudContext.GenerateFront)
             {
                 if (crudContext.HasParent)
@@ -146,8 +145,19 @@
                 }
             }
             ImportTargetedPartialFiles(crudContext);
-            await fileGeneratorService.GenerateCRUDAsync(crudContext);
+            await FileGeneratorService.GenerateCRUDAsync(crudContext);
             GenerationAssertions.AssertAllFilesEquals(this, crudContext);
+        }
+
+        private void InitTestProjectFolder(Feature.FeatureType featureType, FileGeneratorContext context)
+        {
+            var generationFolder = Path.Combine(TestProject.Folder, $"{featureType}_{context.EntityName}");
+            if(Directory.Exists(generationFolder))
+            {
+                Directory.Delete(generationFolder, true);
+            }
+            Directory.CreateDirectory(generationFolder);
+            TestProject.Folder = generationFolder;
         }
 
         private void ImportTargetedPartialFiles(FileGeneratorContext context)
@@ -157,6 +167,8 @@
                 foreach (var template in CurrentTestFeature.DotNetTemplates.Where(t => t.IsPartial))
                 {
                     var (referencePath, generatedPath) = GetDotNetFilesPath(template.OutputPath, context);
+                    if (!File.Exists(referencePath))
+                        continue;
                     Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);
                     File.Copy(referencePath, generatedPath, true);
                 }
@@ -167,6 +179,8 @@
                 foreach (var template in CurrentTestFeature.AngularTemplates.Where(t => t.IsPartial))
                 {
                     var (referencePath, generatedPath) = GetAngularFilesPath(template.OutputPath, context);
+                    if (!File.Exists(referencePath))
+                        continue;
                     Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);
                     File.Copy(referencePath, generatedPath, true);
                 }

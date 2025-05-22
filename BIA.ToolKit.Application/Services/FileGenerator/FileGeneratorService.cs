@@ -282,7 +282,7 @@
                 var templatePath = Path.Combine(templatesPath, Constants.FolderAngular, template.InputPath);
                 var outputPath = GetAngularTemplateOutputPath(template.OutputPath, currentContext, currentProject.Folder);
                 await GenerateFromTemplateAsync(template, templatePath, model, outputPath);
-                if (!template.IsPartial && currentContext.GenerationReport.TemplatesGenerated.Contains(template))
+                if (currentContext.GenerationReport.TemplatesGenerated.Contains(template))
                 {
                     await ApplyPrettierToGeneratedAngularFileAsync(outputPath);
                 }
@@ -305,7 +305,7 @@
             return outputPath;
         }
 
-        private async Task ApplyPrettierToGeneratedAngularFileAsync(string filePath)
+        public async Task ApplyPrettierToGeneratedAngularFileAsync(string filePath)
         {
             var cts = new CancellationTokenSource();
 
