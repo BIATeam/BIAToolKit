@@ -337,6 +337,15 @@
             ApplyReplaceInFiles(adaptPaths, dest, fileLinesContent, GenerationType.WebApi);
             ReplaceContentWithFeatureParentPrincipal(fileLinesContent, dest, GenerationType.WebApi);
 
+            // Replace values in header
+            for(int i = 0; i <= 2; i++)
+            {
+                if (i > fileLinesContent.Count)
+                    break;
+
+                fileLinesContent[i] = ReplaceCompagnyNameProjetName(fileLinesContent[i], currentProject, dtoClassDefiniton);
+            }
+
             // Generate new file
             CommonTools.GenerateFile(dest, fileLinesContent);
         }
