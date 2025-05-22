@@ -1,0 +1,9 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<# if(ModelInstance.IsTeam) { #>
+                    // BIAToolKit - Begin Partial AuthController <#= ModelInstance.EntityName #>
+                    new TeamConfigDto() { TeamTypeId = (int)TeamTypeId.<#= ModelInstance.EntityName #>, RoleMode = RoleMode.AllRoles, InHeader = false },
+
+                    // BIAToolKit - End Partial AuthController <#= ModelInstance.EntityName #>
+<# }  #>

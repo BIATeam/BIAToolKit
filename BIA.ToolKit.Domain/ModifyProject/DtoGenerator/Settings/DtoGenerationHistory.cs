@@ -17,6 +17,7 @@
         public string EntityName { get; set; }
         public string EntityNamespace { get; set; }
         public string Domain { get; set; }
+        public string AncestorTeam { get; set; }
         public List<DtoGenerationPropertyMapping> PropertyMappings { get; set; } = new();
     }
 
@@ -29,5 +30,6 @@
         public string OptionMappingEntityIdProperty { get; set; }
         public string OptionMappingIdProperty { get; set; }
         public string OptionMappingDisplayProperty { get; set; }
+        public bool IsParent { get; set; }
     }
 }

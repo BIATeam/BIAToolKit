@@ -1,0 +1,3 @@
+﻿<#@ include file="Template.ttinclude" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._5_0_0.Models.EntityDtoModel<BIA.ToolKit.Application.Templates._5_0_0.Models.PropertyDtoModel>" name="Model" #>
+<# var ModelInstance = Model ?? new EntityDtoMock(); #>

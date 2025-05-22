@@ -1,0 +1,6 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".scss" #>
+:host {
+  flex-direction: column;
+}

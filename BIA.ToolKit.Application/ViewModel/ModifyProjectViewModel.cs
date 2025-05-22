@@ -1,6 +1,8 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.ModifyProject;
     using System;
@@ -13,6 +15,7 @@
 
     public class ModifyProjectViewModel : ObservableObject
     {
+        private FileGeneratorService fileGeneratorService;
         public ModifyProjectViewModel()
         {
             ModifyProject = new ModifyProject();
@@ -20,8 +23,21 @@
             SynchronizeSettings.AddCallBack("RootProjectsPath", DelegateSetRootProjectsPath);
         }
 
+        public void Inject(FileGeneratorService fileGeneratorService, UIEventBroker eventBroker)
+        {
+            this.fileGeneratorService = fileGeneratorService;
+            eventBroker.OnProjectChanged += EventBroker_OnProjectChanged;
+        }
+
+        private void EventBroker_OnProjectChanged(Project project, UIEventBroker.TabItemModifyProjectEnum currentTabItem)
+        {
+            RaisePropertyChanged(nameof(IsFileGeneratorServiceInit));
+        }
+
         //public IProductRepository Repository { get; set; }
         public ModifyProject ModifyProject { get; set; }
+
+        public bool IsFileGeneratorServiceInit => fileGeneratorService?.IsInit == true;
 
         public List<string> Projects
         {
@@ -105,7 +121,7 @@
                         var match = reg.Match(file);
                         currentProject.CompanyName = match.Groups[1].Value;
                         currentProject.Name = match.Groups[2].Value;
-                        Regex regVersion = new Regex(ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$");
+                        Regex regVersion = new Regex(ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)(-.*)?""[\s]*;[\s]*$");
 
                         foreach (var line in File.ReadAllLines(file))
                         {

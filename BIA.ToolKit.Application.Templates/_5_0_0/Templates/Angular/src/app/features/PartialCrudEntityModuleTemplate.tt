@@ -1,0 +1,20 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(ModelInstance.HasParent) { #>
+          // BIAToolKit - Begin Partial <#= ModelInstance.ParentName #>ModuleChildPath <#= ModelInstance.EntityName #>
+          {
+            path: '<#= ModelInstance.EntityNamePlural.ToKebabCase() #>',
+            data: {
+              breadcrumb: 'app.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>',
+              canNavigate: true,
+              permission: Permission.<#= ModelInstance.EntityName #>_List_Access,
+              layoutMode: LayoutMode.fullPage,
+            },
+            loadChildren: () =>
+              import('./children/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>/<#= ModelInstance.EntityName.ToKebabCase() #>.module').then(
+                m => m.<#= ModelInstance.EntityName #>Module
+              ),
+          },
+          // BIAToolKit - End Partial <#= ModelInstance.ParentName #>ModuleChildPath <#= ModelInstance.EntityName #>
+<# }  #>

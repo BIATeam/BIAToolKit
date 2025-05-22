@@ -1,0 +1,366 @@
+﻿{
+  "version": "5.0.0",
+  "features": [
+    {
+      "type": "Dto",
+      "dotNetTemplates": [
+        {
+          "inputPath": "Domain\\Mappers\\EntityMapperTemplate.tt",
+          "outputPath": "{Project}.Domain\\{Domain}\\Mappers\\{Entity}Mapper.cs"
+        },
+        {
+          "inputPath": "DomainDto\\EntityDtoTemplate.tt",
+          "outputPath": "{Project}.Domain.Dto\\{Domain}\\{Entity}Dto.cs"
+        }
+      ]
+    },
+    {
+      "type": "Option",
+      "angularTemplates": [
+        {
+          "inputPath": "src\\app\\domains\\services\\EntityOptionDasServiceTemplate.tt",
+          "outputPath": "src\\app\\domains\\{Entity}-option\\services\\{Entity}-option-das.service.ts"
+        },
+        {
+          "inputPath": "src\\app\\domains\\store\\EntityOptionStateTemplate.tt",
+          "outputPath": "src\\app\\domains\\{Entity}-option\\store\\{Entity}-option.state.ts"
+        },
+        {
+          "inputPath": "src\\app\\domains\\store\\EntityOptionsActionsTemplate.tt",
+          "outputPath": "src\\app\\domains\\{Entity}-option\\store\\{Entity}-options-actions.ts"
+        },
+        {
+          "inputPath": "src\\app\\domains\\store\\EntityOptionsEffectsTemplate.tt",
+          "outputPath": "src\\app\\domains\\{Entity}-option\\store\\{Entity}-options-effects.ts"
+        },
+        {
+          "inputPath": "src\\app\\domains\\store\\EntityOptionsReducerTemplate.tt",
+          "outputPath": "src\\app\\domains\\{Entity}-option\\store\\{Entity}-options-reducer.ts"
+        },
+        {
+          "inputPath": "src\\app\\domains\\EntityOptionConstantsTemplate.tt",
+          "outputPath": "src\\app\\domains\\{Entity}-option\\{Entity}-option.constants.ts"
+        },
+        {
+          "inputPath": "src\\app\\domains\\EntityOptionModuleTemplate.tt",
+          "outputPath": "src\\app\\domains\\{Entity}-option\\{Entity}-option.module.ts"
+        }
+      ],
+      "dotNetTemplates": [
+        {
+          "inputPath": "PresentationApi\\Controllers\\EntityOptionsControllerTemplate.tt",
+          "outputPath": "{Project}.Presentation.Api\\Controllers\\{Domain}\\{Entity}OptionsController.cs"
+        },
+        {
+          "inputPath": "Application\\EntityOptionAppServiceTemplate.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\{Entity}OptionAppService.cs"
+        },
+        {
+          "inputPath": "Application\\IEntityOptionAppServiceTemplate.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\I{Entity}OptionAppService.cs"
+        },
+        {
+          "inputPath": "Domain\\Mappers\\EntityOptionMapperTemplate.tt",
+          "outputPath": "{Project}.Domain\\{Domain}\\Mappers\\{Entity}OptionMapper.cs"
+        },
+        {
+          "inputPath": "CrosscuttingCommon\\PartialOptionRightsTemplate.tt",
+          "outputPath": "{Project}.Crosscutting.Common\\Rights.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "RightsForOption"
+        },
+        {
+          "inputPath": "PresentationApi\\PartialOptionBianetconfigTemplate.tt",
+          "outputPath": "{Project}.Presentation.Api\\bianetconfig.json",
+          "isPartial": true,
+          "partialInsertionMarkup": "ConfigForOption"
+        }
+      ]
+    },
+    {
+      "type": "Crud",
+      "dotNetTemplates": [
+        {
+          "inputPath": "PresentationApi\\Controllers\\EntityControllerTemplate.tt",
+          "outputPath": "{Project}.Presentation.Api\\Controllers\\{Domain}\\{EntityPlural}Controller.cs"
+        },
+        {
+          "inputPath": "Application\\EntityAppServiceTemplate.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\{Entity}AppService.cs"
+        },
+        {
+          "inputPath": "Application\\IEntityAppServiceTemplate.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\I{Entity}AppService.cs"
+        },
+        {
+          "inputPath": "Domain\\Specifications\\EntitySpecificationTemplate.tt",
+          "outputPath": "{Project}.Domain\\{Domain}\\Specifications\\{Entity}Specification.cs"
+        },
+        {
+          "inputPath": "CrosscuttingCommon\\PartialCrudRightsTemplate.tt",
+          "outputPath": "{Project}.Crosscutting.Common\\Rights.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "Rights"
+        },
+        {
+          "inputPath": "PresentationApi\\PartialCrudBianetconfigTemplate.tt",
+          "outputPath": "{Project}.Presentation.Api\\bianetconfig.json",
+          "isPartial": true,
+          "partialInsertionMarkup": "Config"
+        },
+        {
+          "inputPath": "CrosscuttingCommon\\Enum\\PartialCrudRoleIdTemplate.tt",
+          "outputPath": "{Project}.Crosscutting.Common\\Enum\\RoleId.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "RoleId"
+        },
+        {
+          "inputPath": "CrosscuttingCommon\\Enum\\PartialCrudTeamTypeIdTemplate.tt",
+          "outputPath": "{Project}.Crosscutting.Common\\Enum\\TeamTypeId.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamTypeId"
+        },
+        {
+          "inputPath": "InfrastructureData\\ModelBuilders\\PartialCrudUserModelBuilderTemplate_RoleModelBuilder.tt",
+          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\UserModelBuilder.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "RoleModelBuilder"
+        },
+        {
+          "inputPath": "InfrastructureData\\ModelBuilders\\PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.tt",
+          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\UserModelBuilder.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamTypeModelBuilder"
+        },
+        {
+          "inputPath": "InfrastructureData\\ModelBuilders\\PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.tt",
+          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\UserModelBuilder.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamTypeRoleModelBuilder"
+        },
+        {
+          "inputPath": "Domain\\Mappers\\PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.tt",
+          "outputPath": "{Project}.Domain\\User\\Mappers\\TeamMapper.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamMapperParentTeamId"
+        },
+        {
+          "inputPath": "Domain\\Mappers\\PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.tt",
+          "outputPath": "{Project}.Domain\\User\\Mappers\\TeamMapper.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamMapperParentTeamTitle"
+        },
+        {
+          "inputPath": "Domain\\Mappers\\PartialCrudTeamMapperTemplate_TeamMapperUsing.tt",
+          "outputPath": "{Project}.Domain\\User\\Mappers\\TeamMapper.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamMapperUsing"
+        },
+        {
+          "inputPath": "Domain\\PartialCrudTeamConfigTemplate.tt",
+          "outputPath": "{Project}.Domain\\User\\TeamConfig.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamConfig"
+        },
+        {
+          "inputPath": "PresentationApi\\Controllers\\PartialCrudAuthControllerTemplate.tt",
+          "outputPath": "{Project}.Presentation.Api\\Controllers\\User\\AuthController.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "AuthController"
+        }
+      ],
+      "angularTemplates": [
+        {
+          "inputPath": "src\\app\\features\\EntityModuleTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\{Entity}.module.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\PartialCrudEntityModuleTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentRelativePath}\\{Parent}.module.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "{Parent}ModuleChildPath"
+        },
+        {
+          "inputPath": "src\\app\\features\\EntityConstantsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\{Entity}.constants.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\model\\EntityTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\model\\{Entity}.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\components\\EntityFormComponentTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\components\\{Entity}-form\\{Entity}-form.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\components\\EntityTableComponentTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\components\\{Entity}-table\\{Entity}-table.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\services\\EntityDasServiceTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\services\\{Entity}-das.service.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\services\\EntityOptionsServiceTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\services\\{Entity}-options.service.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\services\\EntityServiceTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\services\\{Entity}.service.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\store\\EntityActionsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\store\\{EntityPlural}-actions.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\store\\EntityEffectsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\store\\{EntityPlural}-effects.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\store\\EntityReducerTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\store\\{EntityPlural}-reducer.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\store\\EntityStateTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\store\\{Entity}.state.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\EntityIndexComponentHtmlTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{EntityPlural}-index\\{EntityPlural}-index.component.html"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\PartialCrudEntityIndexComponentHtmlTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentRelativePath}\\views\\{ParentPlural}-index\\{ParentPlural}-index.component.html",
+          "isPartial": true,
+          "partialInsertionMarkup": "{Parent}IndexHtml"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\EntityIndexComponentTsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{EntityPlural}-index\\{EntityPlural}-index.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\PartialCrudEntityIndexComponentTsTemplate_CanViewChildDeclaration.tt",
+          "outputPath": "src\\app\\features\\{ParentRelativePath}\\views\\{ParentPlural}-index\\{ParentPlural}-index.component.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "{Parent}IndexTsCanViewChildDeclaration"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\PartialCrudEntityIndexComponentTsTemplate_CanViewChildSet.tt",
+          "outputPath": "src\\app\\features\\{ParentRelativePath}\\views\\{ParentPlural}-index\\{ParentPlural}-index.component.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "{Parent}IndexTsCanViewChildSet"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\PartialCrudEntityIndexComponentTsTemplate_OnViewChild.tt",
+          "outputPath": "src\\app\\features\\{ParentRelativePath}\\views\\{ParentPlural}-index\\{ParentPlural}-index.component.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "{Parent}IndexTsOnViewChild"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.tt",
+          "outputPath": "src\\app\\features\\{ParentRelativePath}\\views\\{ParentPlural}-index\\{ParentPlural}-index.component.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "{Parent}IndexTsCanSelectElementChildSet"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.tt",
+          "outputPath": "src\\app\\features\\{ParentRelativePath}\\views\\{ParentPlural}-index\\{ParentPlural}-index.component.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "{Parent}IndexTsChildTeamButton"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\index\\EntityIndexComponentScssTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{EntityPlural}-index\\{EntityPlural}-index.component.scss"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\edit\\EntityEditComponentHtmlTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-edit\\{Entity}-edit.component.html"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\edit\\EntityEditComponentTsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-edit\\{Entity}-edit.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\new\\EntityNewComponentHtmlTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-new\\{Entity}-new.component.html"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\new\\EntityNewComponentTsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-new\\{Entity}-new.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\read\\EntityReadComponentHtmlTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-read\\{Entity}-read.component.html"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\read\\EntityReadComponentTsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-read\\{Entity}-read.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\import\\EntityImportComponentTsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-import\\{Entity}-import.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\item\\EntityItemComponentTsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-item\\{Entity}-item.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\PartialCrudAppRoutingModule.tt",
+          "outputPath": "src\\app\\app-routing.module.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "Routing"
+        },
+        {
+          "inputPath": "src\\app\\shared\\PartialCrudNavigation.tt",
+          "outputPath": "src\\app\\shared\\navigation.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "Navigation"
+        },
+        {
+          "inputPath": "src\\app\\shared\\PartialCrudPermission.tt",
+          "outputPath": "src\\app\\shared\\permission.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "Permission"
+        },
+        {
+          "inputPath": "src\\app\\shared\\PartialCrudConstants_TeamTypeId.tt",
+          "outputPath": "src\\app\\shared\\constants.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamTypeIdConstants"
+        },
+        {
+          "inputPath": "src\\app\\shared\\PartialCrudConstants_TeamTypeRightPrefix.tt",
+          "outputPath": "src\\app\\shared\\constants.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamTypeRightPrefixConstants"
+        },
+        {
+          "inputPath": "src\\environments\\PartialCrudAllEnvironments.tt",
+          "outputPath": "src\\environments\\all-environments.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "AllEnvironment"
+        },
+        {
+          "inputPath": "src\\app\\features\\children\\members\\EntityMemberModuleTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\children\\members\\{Entity}-member.module.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\children\\members\\edit\\EntityMemberEditComponentTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\children\\members\\views\\{Entity}-member-edit\\{Entity}-member-edit.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\children\\members\\item\\EntityMemberItemComponentTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\children\\members\\views\\{Entity}-member-item\\{Entity}-member-item.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\children\\members\\new\\EntityMemberNewComponentTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\children\\members\\views\\{Entity}-member-new\\{Entity}-member-new.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\children\\members\\index\\EntityMemberIndexComponentTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\children\\members\\views\\{Entity}-members-index\\{Entity}-members-index.component.ts"
+        }
+      ]
+    }
+  ]
+}

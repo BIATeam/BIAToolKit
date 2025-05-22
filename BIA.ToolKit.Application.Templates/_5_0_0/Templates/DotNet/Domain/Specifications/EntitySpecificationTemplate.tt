@@ -1,0 +1,39 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<#  if(ModelInstance.HasParent) { #>
+// <copyright file="<#= ModelInstance.EntityName #>Specification.cs" company="<#= ModelInstance.CompanyName #>">
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Specifications
+{
+    using BIA.Net.Core.Domain.Dto.Base;
+    using BIA.Net.Core.Domain.Specification;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
+
+    /// <summary>
+    /// The specifications of the member entity.
+    /// </summary>
+    public static class <#= ModelInstance.EntityName #>Specification
+    {
+        /// <summary>
+        /// Search member using the filter.
+        /// </summary>
+        /// <param name="filter">The filter.</param>
+        /// <returns>The specification.</returns>
+        public static Specification<<#= ModelInstance.EntityName #>> SearchGetAll(PagingFilterFormatDto filter)
+        {
+            Specification<<#= ModelInstance.EntityName #>> specification = new TrueSpecification<<#= ModelInstance.EntityName #>>();
+
+            if (filter.ParentIds != null && filter.ParentIds.Length > 0)
+            {
+                specification &= new DirectSpecification<<#= ModelInstance.EntityName #>>(s =>
+                    s.<#= ModelInstance.ParentName #>Id == int.Parse(filter.ParentIds[0]));
+            }
+
+            return specification;
+        }
+    }
+}
+<# }  #>

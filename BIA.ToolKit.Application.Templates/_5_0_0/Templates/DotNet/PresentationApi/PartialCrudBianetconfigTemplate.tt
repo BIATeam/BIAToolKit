@@ -1,0 +1,89 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".json" #>
+      // BIAToolKit - Begin Partial Config <#= ModelInstance.EntityName #>
+      // <#= ModelInstance.EntityName #>
+<#  if(!ModelInstance.IsTeam) { #>
+      {
+        "Names": [ "<#= ModelInstance.EntityName #>_List_Access", "<#= ModelInstance.EntityName #>_Read" ],
+        "Roles": [ "Admin", "Site_Member" ]
+      },
+      {
+        "Names": [ "<#= ModelInstance.EntityName #>_Update", "<#= ModelInstance.EntityName #>_Save"<# if (ModelInstance.IsFixable) { #>, "<#= ModelInstance.EntityName #>_Fix"<# } #> ],
+        "Roles": [ "Site_Admin" ]
+      },
+      {
+        "Names": [ "<#= ModelInstance.EntityName #>_Create", "<#= ModelInstance.EntityName #>_Delete" ],
+        "Roles": [ "Site_Admin" ]
+      },
+<#  } else { #>
+<#  if(!ModelInstance.HasParent) { #>
+      {
+        "Names": [ "<#= ModelInstance.EntityName #>_Create", "<#= ModelInstance.EntityName #>_Update", "<#= ModelInstance.EntityName #>_Delete", "<#= ModelInstance.EntityName #>_Save" ],
+        "Roles": [ "Admin" ]
+      },
+      {
+        "Names": [ "<#= ModelInstance.EntityName #>_List_Access" ],
+        "Roles": [ "Admin", "<#= ModelInstance.EntityName #>_MemberOfOne" ]
+      },
+      {
+        "Names": [ "<#= ModelInstance.EntityName #>_Read", "<#= ModelInstance.EntityName #>_Member_List_Access" ],
+        "Roles": [ "Admin", "<#= ModelInstance.EntityName #>_Member" ]
+      },
+      {
+        "Names": [ "<#= ModelInstance.EntityName #>_Member_Create", "<#= ModelInstance.EntityName #>_Member_Read", "<#= ModelInstance.EntityName #>_Member_Update", "<#= ModelInstance.EntityName #>_Member_Delete", "<#= ModelInstance.EntityName #>_Member_Save" ],
+        "Roles": [ "Admin" ]
+      },
+      {
+        "Names": [ "<#= ModelInstance.EntityName #>_View_Add_TeamView", "<#= ModelInstance.EntityName #>_View_Update_TeamView", "<#= ModelInstance.EntityName #>_View_Set_Default_TeamView", "<#= ModelInstance.EntityName #>_View_Assign_To_Team" ],
+        "Roles": [ "Admin" ]
+      },
+<# } else {  #>
+      {
+        "Names": [ "<#= ModelInstance.EntityName #>_Create", "<#= ModelInstance.EntityName #>_Delete" ],
+        "Roles": [
+          "Admin"
+        ]
+      },
+      {
+        "Names": [  "<#= ModelInstance.EntityName #>_Update", "<#= ModelInstance.EntityName #>_Save" ],
+        "Roles": [
+          "<#= ModelInstance.EntityName #>_Admin",
+          "Admin"
+        ]
+      },
+      {
+        "Names": [ "<#= ModelInstance.EntityName #>_List_Access" ],
+        "Roles": [
+          "Admin",
+          "<#= ModelInstance.ParentName #>_Member",
+          "<#= ModelInstance.EntityName #>_MemberOfOne"
+        ]
+      },
+      {
+        "Names": [ "<#= ModelInstance.EntityName #>_Read", "<#= ModelInstance.EntityName #>_Member_List_Access" ],
+        "Roles": [
+          "Admin",
+          "<#= ModelInstance.ParentName #>_Member",
+          "<#= ModelInstance.EntityName #>_Member"
+        ]
+      },
+      {
+        "Names": [ "<#= ModelInstance.EntityName #>_Member_Create", "<#= ModelInstance.EntityName #>_Member_Read", "<#= ModelInstance.EntityName #>_Member_Update", "<#= ModelInstance.EntityName #>_Member_Delete", "<#= ModelInstance.EntityName #>_Member_Save" ],
+        "Roles": [
+          "Admin",
+          "<#= ModelInstance.ParentName #>_TeamLeader",
+          "<#= ModelInstance.EntityName #>_Admin"
+        ]
+      },
+      {
+        "Names": [ "<#= ModelInstance.EntityName #>_View_Add_TeamView", "<#= ModelInstance.EntityName #>_View_Update_TeamView", "<#= ModelInstance.EntityName #>_View_Set_Default_TeamView", "<#= ModelInstance.EntityName #>_View_Assign_To_Team" ],
+        "Roles": [
+          "Admin",
+          "<#= ModelInstance.ParentName #>_TeamLeader",
+          "<#= ModelInstance.EntityName #>_Admin"
+        ]
+      },
+<#  } #>
+<#  } #>
+      // BIAToolKit - End Partial Config <#= ModelInstance.EntityName #>

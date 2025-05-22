@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -15,17 +15,22 @@
 
   <ItemGroup>
     <PackageReference Include="LibGit2Sharp" Version="0.31.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.14" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.7.8" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.13.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.13.0" />
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.5.0" />
+    <PackageReference Include="Mono.TextTemplating" Version="3.0.0" />
     <PackageReference Include="Octokit" Version="14.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BIA.ToolKit.Application.Templates\BIA.ToolKit.Application.Templates.csproj" />
     <ProjectReference Include="..\BIA.ToolKit.Common\BIA.ToolKit.Common.csproj" />
     <ProjectReference Include="..\BIA.ToolKit.Domain\BIA.ToolKit.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
 </Project>

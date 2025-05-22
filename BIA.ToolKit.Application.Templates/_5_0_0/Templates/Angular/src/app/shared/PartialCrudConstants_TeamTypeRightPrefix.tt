@@ -1,0 +1,8 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(ModelInstance.IsTeam) { #>
+  // BIAToolKit - Begin Partial TeamTypeRightPrefixConstants <#= ModelInstance.EntityName #>
+  { key: TeamTypeId.<#= ModelInstance.EntityName #>, value: '<#= ModelInstance.EntityName #>' },
+  // BIAToolKit - End Partial TeamTypeRightPrefixConstants <#= ModelInstance.EntityName #>
+<# }  #>

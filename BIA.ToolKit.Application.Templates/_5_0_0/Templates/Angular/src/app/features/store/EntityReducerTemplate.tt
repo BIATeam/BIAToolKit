@@ -1,0 +1,63 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+import { createEntityAdapter, EntityState } from '@ngrx/entity';
+import { createReducer, on } from '@ngrx/store';
+import {
+  CrudState,
+  DEFAULT_CRUD_STATE,
+} from 'src/app/shared/bia-shared/model/crud-state';
+import { <#= ModelInstance.EntityName #> } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+import { Feature<#= ModelInstance.EntityNamePlural #>Actions } from './<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-actions';
+
+// This adapter will allow is to manipulate <#= ModelInstance.EntityNamePlural.ToCamelCase() #> (mostly CRUD operations)
+export const <#= ModelInstance.EntityNamePlural.ToCamelCase() #>Adapter = createEntityAdapter<<#= ModelInstance.EntityName #>>({
+  selectId: (<#= ModelInstance.EntityName.ToCamelCase() #>: <#= ModelInstance.EntityName #>) => <#= ModelInstance.EntityName.ToCamelCase() #>.id,
+  sortComparer: false,
+});
+
+export interface State extends CrudState<<#= ModelInstance.EntityName #>>, EntityState<<#= ModelInstance.EntityName #>> {
+  // additional props here
+}
+
+export const INIT_STATE: State = <#= ModelInstance.EntityNamePlural.ToCamelCase() #>Adapter.getInitialState({
+  ...DEFAULT_CRUD_STATE(),
+  // additional props default values here
+});
+
+export const <#= ModelInstance.EntityName.ToCamelCase() #>Reducers = createReducer<State>(
+  INIT_STATE,
+  on(Feature<#= ModelInstance.EntityNamePlural #>Actions.clearAll, state => {
+    const stateUpdated = <#= ModelInstance.EntityNamePlural.ToCamelCase() #>Adapter.removeAll(state);
+    stateUpdated.totalCount = 0;
+    return stateUpdated;
+  }),
+  on(Feature<#= ModelInstance.EntityNamePlural #>Actions.clearCurrent, state => {
+    return { ...state, currentItem: <<#= ModelInstance.EntityName #>>{} };
+  }),
+  on(Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost, state => {
+    return { ...state, loadingGetAll: true };
+  }),
+  on(Feature<#= ModelInstance.EntityNamePlural #>Actions.load, state => {
+    return { ...state, loadingGet: true };
+  }),
+  on(Feature<#= ModelInstance.EntityNamePlural #>Actions.save, state => {
+    return { ...state, loadingGetAll: true };
+  }),
+  on(Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPostSuccess, (state, { result, event }) => {
+    const stateUpdated = <#= ModelInstance.EntityNamePlural.ToCamelCase() #>Adapter.setAll(result.data, state);
+    stateUpdated.totalCount = result.totalCount;
+    stateUpdated.lastLazyLoadEvent = event;
+    stateUpdated.loadingGetAll = false;
+    return stateUpdated;
+  }),
+  on(Feature<#= ModelInstance.EntityNamePlural #>Actions.loadSuccess, (state, { <#= ModelInstance.EntityName.ToCamelCase() #> }) => {
+    return { ...state, currentItem: <#= ModelInstance.EntityName.ToCamelCase() #>, loadingGet: false };
+  }),
+  on(Feature<#= ModelInstance.EntityNamePlural #>Actions.failure, state => {
+    return { ...state, loadingGetAll: false, loadingGet: false };
+  })
+);
+
+export const get<#= ModelInstance.EntityName #>ById = (id: number) => (state: State) =>
+  state.entities[id];

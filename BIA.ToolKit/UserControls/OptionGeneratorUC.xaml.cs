@@ -2,6 +2,8 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
@@ -14,10 +16,12 @@
     using System.IO;
     using System.Linq;
     using System.Text;
+    using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
     using System.Windows.Markup;
+    using Windows.Data.Xml.Dom;
     using static BIA.ToolKit.Application.Services.UIEventBroker;
 
     /// <summary>
@@ -35,6 +39,7 @@
         private GenerateCrudService crudService;
         private CRUDSettings settings;
         private UIEventBroker uiEventBroker;
+        private FileGeneratorService fileGeneratorService;
 
         private readonly OptionGeneratorViewModel vm;
         private OptionGeneration optionGenerationHistory;
@@ -60,7 +65,7 @@
         /// Injection of services.
         /// </summary>
         public void Inject(CSharpParserService service, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, UIEventBroker uiEventBroker)
+            IConsoleWriter consoleWriter, UIEventBroker uiEventBroker, FileGeneratorService fileGeneratorService)
         {
             this.consoleWriter = consoleWriter;
             this.service = service;
@@ -69,6 +74,7 @@
             this.settings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
+            this.fileGeneratorService = fileGeneratorService;
         }
 
         private void UIEventBroker_OnProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem)
@@ -129,7 +135,7 @@
             vm.EntityDisplayItems.Clear();
             Visibility msgVisibility = Visibility.Hidden;
 
-            vm.Domain = vm.EntitySelected;
+            vm.Domain = null;
             vm.EntityNamePlural = null;
 
             if (this.optionGenerationHistory != null)
@@ -176,8 +182,27 @@
         /// <summary>
         /// Action linked with "Generate" button.
         /// </summary>
-        private void Generate_Click(object sender, RoutedEventArgs e)
+        private async void Generate_Click(object sender, RoutedEventArgs e)
         {
+            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            {
+                await fileGeneratorService.GenerateOptionAsync(new FileGeneratorOptionContext
+                {
+                    CompanyName = vm.CurrentProject.CompanyName,
+                    ProjectName = vm.CurrentProject.Name,
+                    DomainName = vm.Domain,
+                    EntityName = vm.Entity.Name,
+                    EntityNamePlural = vm.Entity.NamePluralized,
+                    BaseKeyType = vm.Entity.BaseKeyType,
+                    DisplayName = vm.EntityDisplayItemSelected,
+                    AngularFront = vm.BiaFront,
+                    GenerateFront = true,
+                    GenerateBack = true,
+                });
+                UpdateOptionGenerationHistory();
+                return;
+            }
+
             crudService.CrudNames.InitRenameValues(vm.EntitySelected, vm.EntityNamePlural);
 
             // Generation DotNet + Angular files
@@ -223,7 +248,7 @@
         /// <summary>
         /// Action linked with "Delete Annotations" button.
         /// </summary>
-        private void DeleteBIAToolkitAnnotations_Click(object sender, RoutedEventArgs e)
+        private async void DeleteBIAToolkitAnnotations_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -241,7 +266,7 @@
                         Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, "src",  "app")
                     };
 
-                    crudService.DeleteBIAToolkitAnnotations(folders);
+                    await crudService.DeleteBIAToolkitAnnotations(folders);
                 }
 
                 consoleWriter.AddMessageLine($"End of annotations suppression.", "Purple");
@@ -296,8 +321,15 @@
         {
             // Get files/folders name
             string dotnetBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, Constants.FolderBia);
-            string backSettingsFileName = Path.Combine(dotnetBiaFolderPath, settings.GenerationSettingsFileName);
+            string backSettingsFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, settings.GenerationSettingsFileName);
             this.optionHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.OptionGenerationHistoryFileName);
+
+            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            {
+                vm.IsZipParsed = true;
+                this.optionGenerationHistory = CommonTools.DeserializeJsonFile<OptionGeneration>(this.optionHistoryFileName);
+                return;
+            }
 
             // Load BIA settings
             if (File.Exists(backSettingsFileName))
@@ -329,7 +361,12 @@
             vm.ZipFeatureTypeList.RemoveAll(x => x.GenerationType == GenerationType.Front);
 
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
-            string frontSettingsFileName = Path.Combine(angularBiaFolderPath, settings.GenerationSettingsFileName);
+            string frontSettingsFileName = Path.Combine(vm.CurrentProject.Folder, biaFront, settings.GenerationSettingsFileName);
+
+            if(fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            {
+                return;
+            }
 
             if (File.Exists(frontSettingsFileName))
             {
@@ -504,6 +541,13 @@
 
                 // Check parsed Entity entity file
                 vm.Entity = entityInfo;
+                var namespaceParts = entityInfo.Namespace.Split('.').ToList();
+                var domainIndex = namespaceParts.IndexOf("Domain");
+                if (domainIndex != -1)
+                {
+                    vm.Domain = namespaceParts[domainIndex + 1];
+                }
+                vm.EntityNamePlural = entityInfo.NamePluralized;
                 if (!vm.Entity.Properties.Any())
                 {
                     consoleWriter.AddMessageLine("No properties found on entity file.", "Orange");

@@ -2,7 +2,8 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.Services.BiaFrameworkFileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Behaviors;
@@ -30,7 +31,7 @@
 
         private IConsoleWriter consoleWriter;
         private CSharpParserService parserService;
-        private BiaFrameworkFileGeneratorService fileGeneratorService;
+        private FileGeneratorService fileGeneratorService;
         private CRUDSettings settings;
         private Project project;
         private UIEventBroker uiEventBroker;
@@ -48,7 +49,7 @@
         /// <summary>
         /// Injection of services.
         /// </summary>
-        public void Inject(CSharpParserService parserService, SettingsService settingsService, IConsoleWriter consoleWriter, BiaFrameworkFileGeneratorService fileGeneratorService,
+        public void Inject(CSharpParserService parserService, SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
             UIEventBroker uiEventBroker)
         {
             this.consoleWriter = consoleWriter;
@@ -58,7 +59,7 @@
             this.uiEventBroker = uiEventBroker;
             this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
 
-            vm.Inject(consoleWriter);
+            vm.Inject(fileGeneratorService, consoleWriter);
         }
 
         private void UIEventBroker_OnProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem)
@@ -79,18 +80,6 @@
             
             if (project is null)
                 return;
-
-            if (!Version.TryParse(project.FrameworkVersion, out Version projectVersion))
-            {
-                consoleWriter.AddMessageLine($"ERROR: invalid project version", "red");
-                return;
-            }
-
-            if (!fileGeneratorService.Init(projectVersion))
-            {
-                consoleWriter.AddMessageLine($"ERROR: incompatible project version", "red");
-                return;
-            }
 
             this.project = project;
             vm.SetProject(project);
@@ -146,7 +135,20 @@
         private async void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
             UpdateHistoryFile();
-            await fileGeneratorService.GenerateDto(project, vm.SelectedEntityInfo, vm.EntityDomain, vm.MappingEntityProperties);
+            await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext
+            {
+                CompanyName = project.CompanyName,
+                ProjectName = project.Name,
+                DomainName = vm.EntityDomain,
+                EntityName = vm.SelectedEntityInfo.Name,
+                EntityNamePlural = vm.SelectedEntityInfo.NamePluralized,
+                BaseKeyType = vm.SelectedEntityInfo.BaseKeyType,
+                Properties = [.. vm.MappingEntityProperties],
+                IsTeam = vm.SelectedEntityInfo.IsTeam,
+                AncestorTeamName = vm.AncestorTeam,
+                HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
+                GenerateBack = true
+            });
         }
 
         private void UpdateHistoryFile()
@@ -158,6 +160,7 @@
             generation.EntityName = vm.SelectedEntityInfo.Name;
             generation.EntityNamespace = vm.SelectedEntityInfo.Namespace;
             generation.Domain = vm.EntityDomain;
+            generation.AncestorTeam = vm.AncestorTeam;
             generation.PropertyMappings.Clear();
 
             foreach (var property in vm.MappingEntityProperties)
@@ -170,7 +173,8 @@
                     MappingName = property.MappingName,
                     OptionMappingDisplayProperty = property.OptionDisplayProperty,
                     OptionMappingEntityIdProperty = property.OptionEntityIdProperty,
-                    OptionMappingIdProperty = property.OptionIdProperty
+                    OptionMappingIdProperty = property.OptionIdProperty,
+                    IsParent = property.IsParent
                 };
                 generation.PropertyMappings.Add(generationPropertyMapping);
             }
@@ -220,7 +224,7 @@
 
             vm.WasAlreadyGenerated = true;
             vm.EntityDomain = generation.Domain;
-
+            vm.AncestorTeam = generation.AncestorTeam;
 
             var allEntityProperties = vm.AllEntityPropertiesRecursively.ToList();
             foreach (var property in allEntityProperties)
@@ -250,6 +254,7 @@
                 mappingProperty.OptionIdProperty = property.OptionMappingIdProperty;
                 mappingProperty.OptionDisplayProperty = property.OptionMappingDisplayProperty;
                 mappingProperty.OptionEntityIdProperty = property.OptionMappingEntityIdProperty;
+                mappingProperty.IsParent = property.IsParent;
             }
 
             vm.ComputePropertiesValidity();

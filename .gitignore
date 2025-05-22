@@ -339,3 +339,6 @@ ASALocalRun/
 
 # Publish settings
 package.json
+
+#BIADemo Version
+BIADemoVersions/

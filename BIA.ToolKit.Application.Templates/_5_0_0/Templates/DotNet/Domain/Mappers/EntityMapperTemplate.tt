@@ -1,0 +1,284 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateDto.ttinclude" #>
+<#@ output extension=".cs" #>
+<#
+var baseMapperClass = ModelInstance.IsTeamType ? "TTeamMapper" : "BaseMapper";
+var baseKeyType = ModelInstance.IsTeamType ? string.Empty : $", {ModelInstance.BaseKeyType}";
+#>
+// <copyright file="<#= ModelInstance.EntityName #>Mapper.cs" company="<#= ModelInstance.CompanyName #>">
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers
+{<# 
+    ModelInstance.ClearUse();
+    if (ModelInstance.Properties.Count() > 0) { 
+       ModelInstance.Use("System");   
+   }
+   if (ModelInstance.HasCollectionOptions) {  
+       ModelInstance.Use("System.Collections.Generic");   
+   }
+   if (ModelInstance.HasTimeSpanProperty) { 
+       ModelInstance.Use("System.Globalization");   
+   }
+   if (ModelInstance.Properties.Count() > 0) {
+       ModelInstance.Use("System.Linq.Expressions");   
+   }
+   if (ModelInstance.IsTeamType) { 
+       ModelInstance.Use("System.Security.Principal");
+   }
+   ModelInstance.Use("BIA.Net.Core.Common.Extensions");
+   if (ModelInstance.Properties.Count() > 0)  { 
+       ModelInstance.Use("BIA.Net.Core.Domain");
+   }
+   if (ModelInstance.HasCollectionOptions) { 
+       ModelInstance.Use("BIA.Net.Core.Domain.Dto.Base");
+   }
+   if (ModelInstance.HasOptions) { 
+       ModelInstance.Use("BIA.Net.Core.Domain.Dto.Option");
+   }
+   if (ModelInstance.IsTeamType) { 
+       ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Crosscutting.Common.Enum");
+   }
+   ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain.Dto." + ModelInstance.DomainName);
+   ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain." + ModelInstance.DomainName + ".Entities");
+   if (ModelInstance.IsTeamType) { 
+       ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain.User.Mappers");
+   }#><#= ModelInstance.WritteUsing() #>
+    /// <summary>
+    /// The mapper used for <#= ModelInstance.EntityName #>.
+    /// </summary>
+    public class <#= ModelInstance.EntityName #>Mapper : <#= baseMapperClass #><<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #><#= baseKeyType #>>
+    {
+<# if (ModelInstance.IsTeamType) { #>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>Mapper"/> class.
+        /// </summary>
+        /// <param name="principal">The principal.</param>
+        public <#= ModelInstance.EntityName #>Mapper(IPrincipal principal)
+            : base(principal)
+        {
+        }
+
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToEntity"/>
+        public override int TeamType => (int)TeamTypeId.<#= ModelInstance.EntityName #>;
+<#      if (ModelInstance.Properties.Count() > 0) { #>
+
+<#      }
+   } if (ModelInstance.Properties.Count() > 0) { #>
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.ExpressionCollection"/>
+        public override ExpressionCollection<<#= ModelInstance.EntityName #>> ExpressionCollection
+        {
+            get
+            {
+                return new ExpressionCollection<<#= ModelInstance.EntityName #>>(base.ExpressionCollection)
+                {
+<# foreach (var property in ModelInstance.PropertiesToGenerate) { 
+       if (property.IsOptionCollection) { #>
+                    { HeaderName.<#= property.MappingName #>, <#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #>.Select(x => x.<#= property.OptionDisplayProperty #>).OrderBy(x => x) },
+<#     }
+       else if (property.IsOption) { #>
+                    { HeaderName.<#= property.MappingName #>, <#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #> != null ? <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #>.<#= property.OptionDisplayProperty #> : null },
+<#     }
+       else if (!property.IsParent){ #>
+                    { HeaderName.<#= property.MappingName #>, <#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #> },
+<#     }
+} #>                };
+            }
+        }
+
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToEntity"/>
+        public override void DtoToEntity(<#= ModelInstance.EntityName #>Dto dto, ref <#= ModelInstance.EntityName #> entity)
+        {
+            base.DtoToEntity(dto, ref entity);
+<# foreach (var property in ModelInstance.PropertiesToGenerate) {
+       if (property.IsParent) { #>
+
+            // Map parent relationship 1-* : <#= property.MappingName #>
+            if (dto.<#= property.MappingName #> != 0)
+            {
+                entity.<#= property.EntityCompositeName #> = dto.<#= property.MappingName #>;
+            }
+
+<#     } else if (property.IsOption) { 
+           if (property.IsRequired) { #>
+
+            // Map relationship 1-* : <#= property.MappingName #>
+            entity.<#= property.OptionEntityIdPropertyComposite #> = dto.<#= property.MappingName #>.Id;
+<#         } else { #>
+
+            // Map relationship 0..1-* : <#= property.MappingName #>
+            entity.<#= property.OptionEntityIdPropertyComposite #> = dto.<#= property.MappingName #>?.Id;
+<#         }
+       } else if (property.IsOptionCollection) { #>
+
+            // Map relationship *-* : <#= property.MappingName #>
+            if (dto.<#= property.MappingName #> != null && dto.<#= property.MappingName #>.Count != 0)
+            {
+                foreach (var <#= property.MappingName.ToSingular().ToCamelCase() #>Dto in dto.<#= property.MappingName #>.Where(x => x.DtoState == DtoState.Deleted))
+                {
+                    var <#= property.EntityCompositeName.ToSingular().ToCamelCase() #> = entity.<#= property.EntityCompositeName #>.FirstOrDefault(x => x.<#= property.OptionIdProperty #> == <#= property.MappingName.ToSingular().ToCamelCase() #>Dto.Id);
+                    if (<#= property.EntityCompositeName.ToSingular().ToCamelCase() #> != null)
+                    {
+                        entity.<#= property.EntityCompositeName #>.Remove(<#= property.EntityCompositeName.ToSingular().ToCamelCase() #>);
+                    }
+                }
+
+                entity.<#= property.OptionRelationPropertyComposite #> = entity.<#= property.OptionRelationPropertyComposite #> ?? new List<<#= property.OptionRelationType #>>();
+                foreach (var <#= property.MappingName.ToSingular().ToCamelCase() #>Dto in dto.<#= property.MappingName #>.Where(x => x.DtoState == DtoState.Added))
+                {
+                    entity.<#= property.OptionRelationPropertyComposite #>.Add(new <#= property.OptionRelationType #>
+                    {
+                        <#= property.OptionRelationSecondIdProperty #> = <#= property.MappingName.ToSingular().ToCamelCase() #>Dto.Id,
+                        <#= property.OptionRelationFirstIdProperty #> = dto.Id,
+                    });
+                }
+            }
+<#     } else if (property.EntityType == "TimeSpan") { #>
+            entity.<#= property.EntityCompositeName #> = TimeSpan.Parse(dto.<#= property.MappingName #>, new CultureInfo("en-US"));
+<#     } else if (property.EntityType == "TimeSpan?") { #>
+            entity.<#= property.EntityCompositeName #> = string.IsNullOrEmpty(dto.<#= property.MappingName #>) ? null : TimeSpan.Parse(dto.<#= property.MappingName #>, new CultureInfo("en-US"));
+<#     } else { #>
+            entity.<#= property.EntityCompositeName #> = dto.<#= property.MappingName #>;
+<#     } 
+} #>
+        }
+
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
+        public override Expression<Func<<#= ModelInstance.EntityName #>, <#= ModelInstance.EntityName #>Dto>> EntityToDto()
+        {
+            return base.EntityToDto().CombineMapping(entity => new <#= ModelInstance.EntityName #>Dto
+            {
+<# foreach (var property in ModelInstance.PropertiesToGenerate) {
+         if (property.IsOption) {
+                if (property.IsRequired) { #>
+
+                // Map relationship 1-* : <#= property.MappingName #>
+                <#= property.MappingName #> = new OptionDto
+                {
+                    Id = entity.<#= property.EntityCompositeName #>.<#= property.OptionIdProperty #>,
+                    Display = entity.<#= property.EntityCompositeName #>.<#= property.OptionDisplayProperty #>,
+                },
+<#              } else { #>
+
+                // Map relationship 0..1-* : <#= property.MappingName #>
+                <#= property.MappingName #> = entity.<#= property.EntityCompositeName #> != null ? new OptionDto
+                {
+                    Id = entity.<#= property.EntityCompositeName #>.<#= property.OptionIdProperty #>,
+                    Display = entity.<#= property.EntityCompositeName #>.<#= property.OptionDisplayProperty #>,
+                }
+                : null,
+<#              }
+         } else if (property.IsOptionCollection) { #>
+
+                // Map relationship *-* : <#= property.MappingName #>
+                <#= property.MappingName #> = entity.<#= property.EntityCompositeName #>.Select(x => new OptionDto
+                {
+                    Id = x.<#= property.OptionIdProperty #>,
+                    Display = x.<#= property.OptionDisplayProperty #>,
+                }).OrderBy(x => x.Display).ToList(),
+<#       } else if (property.EntityType == "TimeSpan") {  #>
+                <#= property.MappingName #> = entity.<#= property.EntityCompositeName #>.ToString(@"hh\:mm\:ss"),
+<#       } else if (property.EntityType == "TimeSpan?") {  #>
+                <#= property.MappingName #> = entity.<#= property.EntityCompositeName #>.Value.ToString(@"hh\:mm\:ss"),
+<#       } else {  #>
+                <#= property.MappingName #> = entity.<#= property.EntityCompositeName #>,
+<#       }
+} #>
+<# if (ModelInstance.IsTeamType) { #>
+
+                CanUpdate =
+                    this.UserRoleIds.Contains((int)RoleId.<#= ModelInstance.EntityName #>Admin) ||
+                    this.UserRoleIds.Contains((int)RoleId.Admin),
+
+                CanMemberListAccess =
+                    this.UserRoleIds.Contains((int)RoleId.Admin) ||
+<#      if(ModelInstance.HasAncestorTeam) { #>
+                    entity.<#= ModelInstance.AncestorTeam #>.Members.Any(m => m.UserId == this.UserId) ||
+<#      } #>
+                    entity.Members.Any(m => m.UserId == this.UserId),
+<# } else { #>
+                RowVersion = Convert.ToBase64String(entity.RowVersion),
+<# } #>
+            };
+        }
+
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToCell"/>
+        public override string DtoToCell(<#= ModelInstance.EntityName #>Dto dto, List<string> headerNames = null)
+        {
+            return x =>
+            {
+<# if (ModelInstance.IsTeamType) { #>
+                List<object> records = [.. base.DtoToRecord(headerNames)(x)];
+<# } else { #>
+                List<object> records = [];
+<# } #>
+
+                if (headerNames != null && headerNames.Count > 0)
+                {
+                    foreach (string headerName in headerNames)
+                    {
+<# var index = 0;  #>
+<# foreach (var property in ModelInstance.Properties) { 
+       index++; 
+       if (!property.IsParent) {#>
+                        if (string.Equals(headerName, HeaderName.<#= property.MappingName #>, StringComparison.OrdinalIgnoreCase))
+                        {
+                            records.Add(<#= property.GenerateMapperCSV() #>);
+                        }
+<#        if(index != ModelInstance.Properties.Count()) {#>
+
+<#        }
+       }
+   } #>
+                    }
+                }
+
+                return [.. records];
+            };
+        }
+<# if ( ModelInstance.Properties.Any(p => p. IsParent)) {#>
+
+        /// <inheritdoc/>
+        public override void MapEntityKeysInDto(<#= ModelInstance.EntityName #> entity, <#= ModelInstance.EntityName #>Dto dto)
+        {
+            base.MapEntityKeysInDto(entity, dto);
+<# foreach (var property in ModelInstance.Properties.Where(p => p.IsParent)) { #>
+            dto.<#= property.MappingName #> = entity.<#= property.EntityCompositeName #>;
+<# } #>
+        }
+<# } #>
+<# if ( ModelInstance.Properties.Any(p => p. IsOptionCollection)) {#>
+
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.IncludesForUpdate"/>
+        public override Expression<Func<<#= ModelInstance.EntityName #>, object>>[] IncludesForUpdate()
+        {
+            return
+            [
+<# foreach (var property in ModelInstance.Properties.Where(p => p.IsOptionCollection)) { #>
+                x => x.<#= property.EntityCompositeName #>,
+<# } #>
+            ];
+        }
+<# } #>
+
+        /// <summary>
+        /// Header names.
+        /// </summary>
+        public struct HeaderName
+        {
+<# index = 0;  #>
+<# foreach (var property in ModelInstance.Properties) { #>
+            /// <summary>
+            /// Header name for <#= property.MappingName.ToLiteral() #>.
+            /// </summary>
+            public const string <#= property.MappingName #> = "<#= property.MappingName.ToCamelCase() #>";
+<# index++;  #>
+<# if(index != ModelInstance.Properties.Count()) {#>
+
+<# }#>
+<# } #>
+        }
+<# } #>
+    }
+}

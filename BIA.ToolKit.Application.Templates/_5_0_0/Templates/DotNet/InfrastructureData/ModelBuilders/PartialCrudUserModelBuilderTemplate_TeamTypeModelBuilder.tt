@@ -1,0 +1,9 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<# if(ModelInstance.IsTeam) { #>
+            // BIAToolKit - Begin Partial TeamTypeModelBuilder <#= ModelInstance.EntityName #>
+            modelBuilder.Entity<TeamType>().HasData(new TeamType { Id = (int)TeamTypeId.<#= ModelInstance.EntityName #>, Name = "<#= ModelInstance.EntityName #>" });
+
+            // BIAToolKit - End Partial TeamTypeModelBuilder <#= ModelInstance.EntityName #>
+<# }  #>

@@ -65,7 +65,7 @@
             <TextBox Grid.Column="0" Text="{Binding CRUDNamePlural,UpdateSourceTrigger=PropertyChanged}" Margin="20,200,0,0" TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Top" TextChanged="ModifyEntityPlural_TextChange" Height="21" IsEnabled="{Binding IsDtoParsed}"/>
 
             <Label Grid.Column="0" Content="Option item:"  Margin="0,235,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-            <ComboBox Grid.Column="0" ItemsSource="{Binding OptionItems}" Margin="20,260,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Top" IsEnabled="{Binding IsOptionItemEnable}">
+            <ComboBox Grid.Column="0" ItemsSource="{Binding OptionItems}" Margin="20,260,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Top" IsEnabled="{Binding IsOptionItemEnable}" Text="{Binding SelectedOptionItems, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" IsReadOnly="True">
                 <ComboBox.ItemTemplate>
                     <DataTemplate >
                         <CheckBox Content="{Binding OptionName}" IsChecked="{Binding Check}"/>

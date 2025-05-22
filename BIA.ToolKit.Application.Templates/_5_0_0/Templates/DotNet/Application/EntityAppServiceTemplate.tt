@@ -1,0 +1,137 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+// <copyright file="<#= ModelInstance.EntityName #>AppService.cs" company="<#= ModelInstance.CompanyName #>">
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.DomainName #>
+{
+<#  if(ModelInstance.IsTeam || ModelInstance.HasParent) { #>
+    using System.Linq.Expressions;
+<#  } #>
+    using System.Security.Principal;
+    using System.Threading.Tasks;
+    using BIA.Net.Core.Application.Services;
+    using BIA.Net.Core.Common.Exceptions;
+    using BIA.Net.Core.Domain.Authentication;
+    using BIA.Net.Core.Domain.Dto.Base;
+    using BIA.Net.Core.Domain.Dto.User;
+    using BIA.Net.Core.Domain.RepoContract;
+    using BIA.Net.Core.Domain.Service;
+    using BIA.Net.Core.Domain.Specification;
+<#  if(ModelInstance.IsTeam) {  #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.User;
+<#  } #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common.Enum;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers;
+<#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Specifications;
+<#  } #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.RepoContract;
+<#  if(ModelInstance.IsTeam) { #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.User.Specifications;
+<#  } #>
+
+    /// <summary>
+    /// The application service used for <#= ModelInstance.EntityName.ToCamelCase() #>.
+    /// </summary>
+    public class <#= ModelInstance.EntityName #>AppService : CrudAppServiceBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto, <#= ModelInstance.EntityName #>Mapper>, I<#= ModelInstance.EntityName #>AppService
+    {
+<#  if(ModelInstance.HasAncestorTeam) { #>
+        /// <summary>
+        /// The current AncestorTeamId.
+        /// </summary>
+        private readonly int currentAncestorTeamId;
+
+<#  } #>
+<#  if(ModelInstance.HasCustomRepository) { #>
+        /// <summary>
+        /// The repository.
+        /// </summary>
+        private readonly I<#= ModelInstance.EntityName #>Repository repository;
+
+<#  } #>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>AppService"/> class.
+        /// </summary>
+        /// <param name="repository">The repository.</param>
+        /// <param name="principal">The claims principal.</param>
+        public <#= ModelInstance.EntityName #>AppService(
+<#  if(!ModelInstance.HasCustomRepository) { #>
+            ITGenericRepository<<#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>> repository,
+<#  } else { #>
+            I<#= ModelInstance.EntityName #>Repository repository,
+<#  } #>
+            IPrincipal principal)
+            : base(repository)
+        {
+<#  if(ModelInstance.HasCustomRepository) { #>
+            this.repository = repository;
+<#  } #>
+<#  if(ModelInstance.IsTeam) {  #>
+            this.FiltersContext.Add(
+                AccessMode.Read,
+                TeamAppService.ReadSpecification<<#= ModelInstance.EntityName #>>(TeamTypeId.<#= ModelInstance.EntityName #>, principal));
+
+            this.FiltersContext.Add(
+                AccessMode.Update,
+                TeamAppService.UpdateSpecification<<#= ModelInstance.EntityName #>>(TeamTypeId.<#= ModelInstance.EntityName #>, principal));
+<#  } #>
+<#  if(ModelInstance.HasAncestorTeam) {  #>
+            var userData = (principal as BiaClaimsPrincipal).GetUserData<UserDataDto>();
+            this.currentAncestorTeamId = userData != null ? userData.GetCurrentTeamId((int)TeamTypeId.<#= ModelInstance.AncestorTeamName #>) : 0;
+<#  if(!ModelInstance.IsTeam) { #>
+
+            // For child : set the TeamId of the Ancestor that contain a team Parent
+<#  if(ModelInstance.HasParent) { #>
+            this.FiltersContext.Add(AccessMode.Read, new DirectSpecification<<#= ModelInstance.EntityName #>>(x => x.<#= ModelInstance.ParentName #>.<#= ModelInstance.AncestorTeamName #>Id == this.currentAncestorTeamId));
+<#  } else { #>
+            this.FiltersContext.Add(AccessMode.Read, new DirectSpecification<<#= ModelInstance.EntityName #>>(x => x.<#= ModelInstance.AncestorTeamName #>Id == this.currentAncestorTeamId));
+<#  } #>
+<#  } #>
+<#  } #>
+        }
+<#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
+
+        /// <inheritdoc/>
+#pragma warning disable S1006 // Method overrides should not change parameter defaults
+        public override Task<(IEnumerable<<#= ModelInstance.EntityName #>Dto> Results, int Total)> GetRangeAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
+#pragma warning restore S1006 // Method overrides should not change parameter defaults
+        {
+            specification ??= <#= ModelInstance.EntityName #>Specification.SearchGetAll(filters);
+            return base.GetRangeAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
+        }
+
+        /// <inheritdoc/>
+#pragma warning disable S1006 // Method overrides should not change parameter defaults
+        public override Task<byte[]> GetCsvAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
+#pragma warning restore S1006 // Method overrides should not change parameter defaults
+        {
+            specification ??= <#= ModelInstance.EntityName #>Specification.SearchGetAll(filters);
+            return base.GetCsvAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
+        }
+<#  } else if(ModelInstance.IsTeam) { #>
+
+        /// <inheritdoc/>
+#pragma warning disable S1006 // Method overrides should not change parameter defaults
+        public override Task<(IEnumerable<<#= ModelInstance.EntityName #>Dto> Results, int Total)> GetRangeAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
+#pragma warning restore S1006 // Method overrides should not change parameter defaults
+        {
+            specification ??= TeamAdvancedFilterSpecification<<#= ModelInstance.EntityName #>>.Filter(filters);
+            return base.GetRangeAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
+        }
+<#  } #>
+<#  if(ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) {  #>
+
+        /// <inheritdoc/>
+        public override Task<<#= ModelInstance.EntityName #>Dto> AddAsync(<#= ModelInstance.EntityName #>Dto dto, string mapperMode = null)
+        {
+            dto.<#= ModelInstance.AncestorTeamName #>Id = this.currentAncestorTeamId;
+            return base.AddAsync(dto, mapperMode);
+        }
+<#  } #>
+    }
+}

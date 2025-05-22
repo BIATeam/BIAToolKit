@@ -131,6 +131,7 @@
                 FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.RepositorySettings.CompanyName.ToLower(), projectParameters.CompanyName.ToLower(), FileTransform.projectFileExtensions);
                 FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.RepositorySettings.ProjectName.ToLower(), projectParameters.ProjectName.ToLower(), FileTransform.projectFileExtensions);
 
+                ReplaceInFileFromConfig(projectPath, projectParameters);
 
                 consoleWriter.AddMessageLine("Start remove BIATemplate only.", "Pink");
                 FileTransform.RemoveTemplateOnly(projectPath, "# Begin BIATemplate only", "# End BIATemplate only", new List<string>() { ".gitignore" });
@@ -176,6 +177,9 @@
                 VersionAndOptionMapper.ModelToDto(projectParameters.VersionAndOption, versionAndOptionDto);
                 CommonTools.SerializeToJsonFile(versionAndOptionDto, projectGenerationFile);
 
+                consoleWriter.AddMessageLine("Remove biatookit.json from BIA folders.", "Pink");
+                CleanBiaToolkitJsonFiles(projectPath);
+
                 consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd ? "Green" : "Blue");
             }
         }
@@ -204,6 +208,14 @@
             }
             consoleWriter.AddMessageLine("Overwrite BIA Folder finished.", actionFinishedAtEnd ? "Green" : "Blue");
 
+        }
+
+        private void ReplaceInFileFromConfig(string projectPath, ProjectParameters projectParameters)
+        {
+            foreach (FeatureSetting featureSetting in projectParameters.VersionAndOption.FeatureSettings)
+            {
+                FileTransform.ReplaceInFileAndFileName(projectPath, "BIAToolkit_FeatureSetting_" + featureSetting.DisplayName, featureSetting.IsSelected ? "true" : "false", FileTransform.projectFileExtensions);
+            }
         }
 
         private void CleanSln(string projectPath, VersionAndOption versionAndOption)
@@ -323,6 +335,28 @@
 
             List<string> tags = featureSettingService.GetAllBiaFeatureTag(featureSettings, "#if ");
             FileHelper.CleanFilesByTag(projectPath, tags, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}", false);
+        }
+
+        private void CleanBiaToolkitJsonFiles(string projectPath)
+        {
+            const string biatoolkitFilename = "biatoolkit.json";
+            CleanFiles(Path.Combine(projectPath, Constants.FolderDotNet, Constants.FolderBia), biatoolkitFilename);
+            CleanFiles(Path.Combine(projectPath, Constants.FolderAngular, Constants.FolderBia), biatoolkitFilename);
+        }
+
+        private void CleanFiles(string rootDirectory, string filePattern)
+        {
+            if (!Directory.Exists(rootDirectory))
+            {
+                consoleWriter.AddMessageLine($"-> Folder {rootDirectory} does not exists", "red");
+                return;
+            }
+
+            foreach(var file in Directory.GetFiles(rootDirectory, filePattern, SearchOption.AllDirectories))
+            {
+                consoleWriter.AddMessageLine($"-> Delete {file}", "orange");
+                File.Delete(file);
+            }
         }
     }
 }

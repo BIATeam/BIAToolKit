@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
@@ -18,6 +19,7 @@
 
     public class DtoGeneratorViewModel : ObservableObject
     {
+        private FileGeneratorService fileGeneratorService;
         private IConsoleWriter consoleWriter;
         private readonly List<EntityInfo> domainEntities = new();
         private readonly List<string> optionCollectionsMappingTypes = new()
@@ -43,14 +45,20 @@
             "string",
             "DateTime",
             "DateOnly",
-            "TimeSpan",
+            
             "TimeOnly",
             "byte[]"
         };
+        private readonly Dictionary<string, string> specialdTypeToRemap = new()
+        {
+            { "TimeSpan", "string" },
+            { "TimeSpan?", "string" },
+        };
+
         private readonly Dictionary<string, List<string>> biaDtoFieldDateTypesByPropertyType = new()
         {
-            { "TimeSpan", new List<string> { "Time" } },
-            { "DateTime", new List<string> { "Datetime", "Date", "Time" } },
+            { "TimeSpan", new List<string> { "time" } },
+            { "DateTime", new List<string> { "datetime", "date", "time" } },
         };
 
         private bool isProjectChosen;
@@ -61,8 +69,11 @@
             {
                 isProjectChosen = value;
                 RaisePropertyChanged(nameof(IsProjectChosen));
+                RaisePropertyChanged(nameof(IsFileGeneratorInit));
             }
         }
+
+        public bool IsFileGeneratorInit => this.fileGeneratorService?.IsInit == true;
 
         private ObservableCollection<string> entitiesNames = new();
         public ObservableCollection<string> EntitiesNames
@@ -83,6 +94,7 @@
             {
                 selectedEntityName = value;
                 RaisePropertyChanged(nameof(SelectedEntityName));
+                AncestorTeam = null;
 
                 if (selectedEntityName != null)
                 {
@@ -112,6 +124,18 @@
                 entityDomain = value;
                 RaisePropertyChanged(nameof(EntityDomain));
                 RaisePropertyChanged(nameof(IsGenerationEnabled));
+            }
+        }
+
+        private string ancestorTeam;
+
+        public string AncestorTeam
+        {
+            get => ancestorTeam;
+            set 
+            { 
+                ancestorTeam = value; 
+                RaisePropertyChanged(nameof(AncestorTeam));
             }
         }
 
@@ -159,6 +183,7 @@
 
         public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>(RemoveMappingProperty);
         public ICommand MoveMappedPropertyCommand => new RelayCommand<MoveItemArgs>(x => MoveMappedProperty(x.OldIndex, x.NewIndex));
+        public ICommand SetMappedPropertyIsParentCommand => new RelayCommand<MappingEntityProperty>(SetMappedPropertyIsParent);
 
         public void SetProject(Project project)
         {
@@ -166,8 +191,9 @@
             IsProjectChosen = true;
         }
 
-        public void Inject(IConsoleWriter consoleWriter)
+        public void Inject(FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter)
         {
+            this.fileGeneratorService = fileGeneratorService;
             this.consoleWriter = consoleWriter;
         }
 
@@ -175,6 +201,7 @@
         {
             WasAlreadyGenerated = false;
             EntityDomain = null;
+            AncestorTeam = null;
 
             domainEntities.Clear();
             domainEntities.AddRange(entities);
@@ -274,7 +301,7 @@
         {
             var mappingEntityProperties = new List<MappingEntityProperty>(MappingEntityProperties);
             AddMappingProperties(EntityProperties, mappingEntityProperties);
-            MappingEntityProperties = new(mappingEntityProperties.OrderBy(x => x.EntityCompositeName));
+            MappingEntityProperties = new(mappingEntityProperties);
 
             foreach(var mappingEntityProperty in MappingEntityProperties.Where(x => x.IsOptionCollection))
             {
@@ -303,6 +330,7 @@
                     var mappingEntityProperty = new MappingEntityProperty
                     {
                         EntityCompositeName = selectedEntityProperty.CompositeName,
+                        EntityType = selectedEntityProperty.Type,
                         ParentEntityType = selectedEntityProperty.ParentType,
                         MappingName = selectedEntityProperty.CompositeName.Replace(".", string.Empty),
                         MappingType = ComputeMappingType(selectedEntityProperty)
@@ -415,6 +443,11 @@
                 return entityProperty.Type;
             }
 
+            if (specialdTypeToRemap.Any(x => x.Key.Equals(entityProperty.Type)))
+            {
+                return specialdTypeToRemap.First(x => x.Key.Equals(entityProperty.Type)).Value;
+            }
+
             return Constants.BiaClassName.OptionDto;
         }
 
@@ -437,6 +470,16 @@
             RaisePropertyChanged(nameof(IsGenerationEnabled));
         }
 
+        private void SetMappedPropertyIsParent(MappingEntityProperty mappingEntityProperty)
+        {
+            var newValue = mappingEntityProperty.IsParent;
+            foreach (var item in MappingEntityProperties)
+            {
+                item.IsParent = false;
+            }
+            mappingEntityProperty.IsParent = newValue;
+        }
+
         public void RemoveAllMappingProperties()
         {
             MappingEntityProperties.Clear();
@@ -448,25 +491,6 @@
         public void ComputePropertiesValidity()
         {
             const string Error_DuplicateMappingName = "Duplicate property name";
-
-            var propertiesToIgnore = new List<MappingEntityProperty>();
-            foreach (var property in MappingEntityProperties)
-            {
-                var mappingOptionWithSameEntityIdProperty = MappingEntityProperties.FirstOrDefault(x => x.IsOption && x.OptionEntityIdPropertyComposite.Equals(property.EntityCompositeName));
-                if (mappingOptionWithSameEntityIdProperty != null)
-                {
-                    consoleWriter.AddMessageLine($"The entity's property {property.EntityCompositeName} is already used as mapping ID property for the OptionDto {mappingOptionWithSameEntityIdProperty.MappingName}, the mapping for this property has been ignored.", "orange");
-                    propertiesToIgnore.Add(property);
-                }
-            }
-
-            foreach (var property in propertiesToIgnore)
-            {
-                var entityPropertyToUnselect = EntityProperties.First(x => x.CompositeName == property.EntityCompositeName);
-                entityPropertyToUnselect.IsSelected = false;
-
-                MappingEntityProperties.Remove(property);
-            }
 
             foreach (var mappingEntityproperty in MappingEntityProperties)
             {
@@ -489,6 +513,7 @@
         {
             EntitiesNames.Clear();
             EntityDomain = null;
+            AncestorTeam = null;
         }
 
         private void MoveMappedProperty(int oldIndex, int newIndex)
@@ -530,20 +555,25 @@
     public class MappingEntityProperty : ObservableObject
     {
         public string EntityCompositeName { get; set; }
+        public string EntityType { get; set; }
 
-        private string mappingName;
+        private string mappingName = null;
         public string MappingName
         {
-            get => mappingName;
-            set
-            {
-                mappingName = value;
-                RaisePropertyChanged(nameof(MappingName));
-            }
+            // Inteligent getter to simplify unitary test
+            get { if (mappingName != null) { return mappingName; } else { return EntityCompositeName; } }
+            set { mappingName = value; RaisePropertyChanged(nameof(MappingName)); }
+        }
+
+        private string mappingType = null;
+        public string MappingType
+        {
+            // Inteligent getter to simplify unitary test
+            get { if (mappingType != null) { return mappingType; } else { return EntityType; } }
+            set { mappingType = value; }
         }
 
         public string ParentEntityType { get; set; }
-        public string MappingType { get; set; }
         public bool IsOption => MappingType.Equals(Constants.BiaClassName.OptionDto);
         public bool IsOptionCollection => MappingType.Equals(Constants.BiaClassName.CollectionOptionDto);
         public string OptionType { get; set; }
@@ -636,6 +666,23 @@
                 RaisePropertyChanged(nameof(HasMappingNameError));
             }
         }
+
+        private bool isParent;
+        public bool IsParent
+        {
+            get => isParent;
+            set 
+            { 
+                isParent = value; 
+                RaisePropertyChanged(nameof(IsParent));
+            }
+        }
+        public bool IsVisibleIsParentCheckbox => 
+            MappingType == "int" 
+            && EntityCompositeName.EndsWith("Id") 
+            && !EntityCompositeName.Equals("Id")
+            ;
+
 
         private bool ComputeValidity()
         {
