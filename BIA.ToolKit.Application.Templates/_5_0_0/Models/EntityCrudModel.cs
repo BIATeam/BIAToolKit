@@ -44,5 +44,15 @@
         public bool HasReadOnlyMode { get; set; }
         public bool HasFixableParent { get; set; }
         public bool IsFixable { get; set; }
+        public string GetHubForClientParentKey()
+        {
+            if (!HasParent && !HasAncestorTeam && !IsTeam)
+                return "string.Empty";
+
+            var parentKeyName = HasParent ? ParentName 
+                : HasAncestorTeam ? AncestorTeamName 
+                : "ParentTeam";
+            return $"{parentKeyName}Id";
+        }
     }
 }

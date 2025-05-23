@@ -230,7 +230,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
             {
                 var deletedDtos = await this.maintenanceTeamService.RemoveAsync(ids);
 #if UseHubForClientInMaintenanceTeam
-                deletedDtos.Select(m => m.AircraftMaintenanceCompanyId).Distinct().ToList().ForEach(parentId =>
+                deletedDtos.Select(m => m.AircraftMaintenanceCompanyIdId).Distinct().ToList().ForEach(parentId =>
                 {
                     _ = this.clientForHubService.SendTargetedMessage(parentId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
                 });
@@ -267,7 +267,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
             {
                 var savedDtos = await this.maintenanceTeamService.SaveAsync(dtoList);
 #if UseHubForClientInMaintenanceTeam
-                savedDtos.Select(m => m.AircraftMaintenanceCompanyId).Distinct().ToList().ForEach(parentId =>
+                savedDtos.Select(m => m.AircraftMaintenanceCompanyIdId).Distinct().ToList().ForEach(parentId =>
                 {
                     _ = this.clientForHubService.SendTargetedMessage(parentId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
                 });

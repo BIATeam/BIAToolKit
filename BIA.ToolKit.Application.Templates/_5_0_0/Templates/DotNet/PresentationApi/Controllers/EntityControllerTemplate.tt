@@ -127,7 +127,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
             {
                 var createdDto = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.AddAsync(dto);
 #if UseHubForClientIn<#= ModelInstance.EntityName #>
-                _ = this.clientForHubService.SendTargetedMessage(createdDto.<#= ModelInstance.HasParent ? ModelInstance.ParentName : ModelInstance.AncestorTeamName #>Id.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+                _ = this.clientForHubService.SendTargetedMessage(createdDto.<#= ModelInstance.GetHubForClientParentKey() #>.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
 #endif
                 return this.CreatedAtAction("Get", new { id = createdDto.Id }, createdDto);
             }
@@ -161,7 +161,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
             {
                 var updatedDto = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.UpdateAsync(dto);
 #if UseHubForClientIn<#= ModelInstance.EntityName #>
-                _ = this.clientForHubService.SendTargetedMessage(updatedDto.<#= ModelInstance.HasParent ? ModelInstance.ParentName : ModelInstance.AncestorTeamName #>Id.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+                _ = this.clientForHubService.SendTargetedMessage(updatedDto.<#= ModelInstance.GetHubForClientParentKey() #>.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
 #endif
                 return this.Ok(updatedDto);
             }
@@ -201,7 +201,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
             {
                 var deletedDto = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.RemoveAsync(id);
 #if UseHubForClientIn<#= ModelInstance.EntityName #>
-                _ = this.clientForHubService.SendTargetedMessage(deletedDto.<#= ModelInstance.HasParent ? ModelInstance.ParentName : ModelInstance.AncestorTeamName #>Id.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+                _ = this.clientForHubService.SendTargetedMessage(deletedDto.<#= ModelInstance.GetHubForClientParentKey() #>.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
 #endif
                 return this.Ok();
             }
@@ -233,7 +233,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
             {
                 var deletedDtos = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.RemoveAsync(ids);
 #if UseHubForClientIn<#= ModelInstance.EntityName #>
-                deletedDtos.Select(m => m.<#= ModelInstance.HasParent ? ModelInstance.ParentName : ModelInstance.AncestorTeamName #>Id).Distinct().ToList().ForEach(parentId =>
+                deletedDtos.Select(m => m.<#= ModelInstance.GetHubForClientParentKey() #>Id).Distinct().ToList().ForEach(parentId =>
                 {
                     _ = this.clientForHubService.SendTargetedMessage(parentId.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
                 });
@@ -270,7 +270,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
             {
                 var savedDtos = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.SaveAsync(dtoList);
 #if UseHubForClientIn<#= ModelInstance.EntityName #>
-                savedDtos.Select(m => m.<#= ModelInstance.HasParent ? ModelInstance.ParentName : ModelInstance.AncestorTeamName #>Id).Distinct().ToList().ForEach(parentId =>
+                savedDtos.Select(m => m.<#= ModelInstance.GetHubForClientParentKey() #>Id).Distinct().ToList().ForEach(parentId =>
                 {
                     _ = this.clientForHubService.SendTargetedMessage(parentId.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
                 });
