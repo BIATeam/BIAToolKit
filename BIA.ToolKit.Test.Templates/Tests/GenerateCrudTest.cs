@@ -169,7 +169,7 @@
                 baseType: "TeamDto",
                 baseKeyType: null,
                 arguments: [],
-                baseList: []);
+                baseList: ["TeamDto"]);
 
             var domainName = "Maintenance";
 
