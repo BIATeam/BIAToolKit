@@ -65,4 +65,10 @@ export namespace Feature<#= ModelInstance.EntityNamePlural #>Actions {
   export const clearCurrent = createAction(
     '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Clear current'
   );
+<#  if(ModelInstance.IsFixable) { #>
+  export const updateFixedStatus = createAction(
+    '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Update fixed status',
+    props<{ id: number; isFixed: boolean }>()
+  );
+<#  } #>
 }
