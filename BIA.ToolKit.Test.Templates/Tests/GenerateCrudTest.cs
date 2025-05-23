@@ -190,7 +190,7 @@
                 IsTeam = true,
                 DisplayItemName = "Title",
                 GenerateBack = true,
-                GenerateFront = true,
+                GenerateFront = false,
                 AngularFront = "Angular",
             };
 
