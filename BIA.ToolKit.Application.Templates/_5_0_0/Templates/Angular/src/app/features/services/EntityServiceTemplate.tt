@@ -147,4 +147,11 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
     this._currentCrudItemId = 0;
     this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.clearCurrent());
   }
+<#  if(ModelInstance.IsFixable) { #>
+  public updateFixedStatus(id: any, isFixed: boolean): void {
+    this.store.dispatch(
+      Feature<#= ModelInstance.EntityNamePlural #>Actions.updateFixedStatus({ id: id, isFixed: isFixed })
+    );
+  }
+<#  } #>
 }

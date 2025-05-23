@@ -75,14 +75,14 @@
                 ExtractPartialContent(ref referencePath, ref generatedPath, context, template);
             }
 
-            RemoveBiaDemoCodeExample(testFixture, ref referencePath, isAngularTemplate);
+            RemoveGenerationIgnoreCode(testFixture, ref referencePath, isAngularTemplate);
             CompareFiles(referencePath, generatedPath);
         }
 
-        private static void RemoveBiaDemoCodeExample(FileGeneratorTestFixture testFixture, ref string referencePath, bool isAngularTemplate)
+        private static void RemoveGenerationIgnoreCode(FileGeneratorTestFixture testFixture, ref string referencePath, bool isAngularTemplate)
         {
-            const string biaDemoMarkupBegin = "Begin BIADemo";
-            const string biaDemoMarkupEnd = "End BIADemo";
+            const string biaDemoMarkupBegin = "Begin BIAToolKit Generation Ignore";
+            const string biaDemoMarkupEnd = "End BIAToolKit Generation Ignore";
 
             var referenceLines = File.ReadAllLines(referencePath).ToList();
 
