@@ -3,7 +3,11 @@
             {
                 TeamTypeId = (int)TeamTypeId.MaintenanceTeam,
                 RightPrefix = "MaintenanceTeam",
-                AdminRoleIds = new int[] { (int)RoleId.MaintenanceTeamAdmin },
+                AdminRoleIds = [
+                    (int)RoleId.MaintenanceTeamAdmin
+                    ],
+                // BIAToolKit - Begin TeamConfigAircraftMaintenanceCompanyChildren
+                // BIAToolKit - End TeamConfigAircraftMaintenanceCompanyChildren
                 Parents = new ImmutableListBuilder<BiaTeamParentConfig<Team>>
                 {
                     new BiaTeamParentConfig<Team>

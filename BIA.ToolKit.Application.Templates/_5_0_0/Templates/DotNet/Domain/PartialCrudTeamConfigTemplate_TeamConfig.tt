@@ -7,7 +7,11 @@
             {
                 TeamTypeId = (int)TeamTypeId.<#= ModelInstance.EntityName #>,
                 RightPrefix = "<#= ModelInstance.EntityName #>",
-                AdminRoleIds = new int[] { (int)RoleId.<#= ModelInstance.EntityName #>Admin },
+                AdminRoleIds = [
+                    (int)RoleId.<#= ModelInstance.EntityName #>Admin
+                    ],
+                // BIAToolKit - Begin TeamConfigAircraftMaintenanceCompanyChildren
+                // BIAToolKit - End TeamConfigAircraftMaintenanceCompanyChildren
 <#  if(ModelInstance.HasParent) { #>
                 Parents = new ImmutableListBuilder<BiaTeamParentConfig<Team>>
                 {

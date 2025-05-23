@@ -157,10 +157,16 @@
           "partialInsertionMarkup": "TeamMapperUsing"
         },
         {
-          "inputPath": "Domain\\PartialCrudTeamConfigTemplate.tt",
+          "inputPath": "Domain\\PartialCrudTeamConfigTemplate_TeamConfig.tt",
           "outputPath": "{Project}.Domain\\User\\TeamConfig.cs",
           "isPartial": true,
           "partialInsertionMarkup": "TeamConfig"
+        },
+        {
+          "inputPath": "Domain\\PartialCrudTeamConfigTemplate_TeamConfigChildren.tt",
+          "outputPath": "{Project}.Domain\\User\\TeamConfig.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamConfig{Parent}Children"
         },
         {
           "inputPath": "PresentationApi\\Controllers\\PartialCrudAuthControllerTemplate.tt",

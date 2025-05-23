@@ -20,8 +20,11 @@
       {
         "Names": [ "<#= ModelInstance.EntityName #>_Create", "<#= ModelInstance.EntityName #>_Delete" ],
         "Roles": [
-          "Admin"<#  if(ModelInstance.HasParent) { #>,
+<#  if(ModelInstance.HasParent) { #>
+          "Admin",
           "<#= ModelInstance.ParentName #>_Admin"
+<#  } else { #>
+          "Admin"
 <#  } #>
         ]
       },
