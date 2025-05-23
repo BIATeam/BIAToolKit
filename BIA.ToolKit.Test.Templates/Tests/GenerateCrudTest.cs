@@ -187,6 +187,7 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = properties,
+                IsTeam = true,
                 DisplayItemName = "Title",
                 GenerateBack = true,
                 GenerateFront = true,

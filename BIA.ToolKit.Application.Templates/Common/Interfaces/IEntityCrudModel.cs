@@ -20,10 +20,11 @@
         string ParentNamePlural { get; set; }
         List<TPropertyCrudModel> Properties { get; set; }
         bool UseHubForClient { get; set; }
+        string HubForClientParentKey { get; }
+        bool HasHubForClientParentKey { get; }
         bool HasCustomRepository { get; set; }
         bool HasReadOnlyMode { get; set; }
         bool HasFixableParent { get; set; }
         bool IsFixable { get; set; }
-        string GetHubForClientParentKey();
     }
 }

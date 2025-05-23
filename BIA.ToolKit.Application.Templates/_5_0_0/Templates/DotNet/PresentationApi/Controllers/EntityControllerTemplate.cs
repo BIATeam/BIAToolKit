@@ -124,7 +124,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
             {
                 var createdDto = await this.maintenanceTeamService.AddAsync(dto);
 #if UseHubForClientInMaintenanceTeam
-                _ = this.clientForHubService.SendTargetedMessage(createdDto.AircraftMaintenanceCompanyId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
+                await this.clientForHubService.SendTargetedMessage(createdDto.AircraftMaintenanceCompanyId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
 #endif
                 return this.CreatedAtAction("Get", new { id = createdDto.Id }, createdDto);
             }
@@ -158,7 +158,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
             {
                 var updatedDto = await this.maintenanceTeamService.UpdateAsync(dto);
 #if UseHubForClientInMaintenanceTeam
-                _ = this.clientForHubService.SendTargetedMessage(updatedDto.AircraftMaintenanceCompanyId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
+                await this.clientForHubService.SendTargetedMessage(updatedDto.AircraftMaintenanceCompanyId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
 #endif
                 return this.Ok(updatedDto);
             }
@@ -198,7 +198,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
             {
                 var deletedDto = await this.maintenanceTeamService.RemoveAsync(id);
 #if UseHubForClientInMaintenanceTeam
-                _ = this.clientForHubService.SendTargetedMessage(deletedDto.AircraftMaintenanceCompanyId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
+                await this.clientForHubService.SendTargetedMessage(deletedDto.AircraftMaintenanceCompanyId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
 #endif
                 return this.Ok();
             }
@@ -230,9 +230,9 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
             {
                 var deletedDtos = await this.maintenanceTeamService.RemoveAsync(ids);
 #if UseHubForClientInMaintenanceTeam
-                deletedDtos.Select(m => m.AircraftMaintenanceCompanyIdId).Distinct().ToList().ForEach(parentId =>
+                deletedDtos.Select(m => m.AircraftMaintenanceCompanyId).Distinct().ToList().ForEach(async parentId =>
                 {
-                    _ = this.clientForHubService.SendTargetedMessage(parentId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
+                    await this.clientForHubService.SendTargetedMessage(parentId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
                 });
 #endif
                 return this.Ok();
@@ -267,9 +267,9 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
             {
                 var savedDtos = await this.maintenanceTeamService.SaveAsync(dtoList);
 #if UseHubForClientInMaintenanceTeam
-                savedDtos.Select(m => m.AircraftMaintenanceCompanyIdId).Distinct().ToList().ForEach(parentId =>
+                savedDtos.Select(m => m.AircraftMaintenanceCompanyId).Distinct().ToList().ForEach(async parentId =>
                 {
-                    _ = this.clientForHubService.SendTargetedMessage(parentId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
+                    await this.clientForHubService.SendTargetedMessage(parentId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
                 });
 #endif
                 return this.Ok();
