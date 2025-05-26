@@ -138,42 +138,6 @@ export class MaintenanceTeamsEffects {
     )
   );
 
-  save$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(FeatureMaintenanceTeamsActions.save),
-      map(x => x?.maintenanceTeams),
-      concatMap(maintenanceTeams =>
-        of(maintenanceTeams).pipe(
-          withLatestFrom(
-            this.store.select(FeatureMaintenanceTeamsStore.getLastLazyLoadEvent)
-          )
-        )
-      ),
-      switchMap(([maintenanceTeams, event]) => {
-        return this.maintenanceTeamDas
-          .save({
-            items: maintenanceTeams,
-            offlineMode: maintenanceTeamCRUDConfiguration.useOfflineMode,
-          })
-          .pipe(
-            map(() => {
-              this.biaMessageService.showUpdateSuccess();
-              if (maintenanceTeamCRUDConfiguration.useSignalR) {
-                return biaSuccessWaitRefreshSignalR();
-              } else {
-                return FeatureMaintenanceTeamsActions.loadAllByPost({
-                  event: event,
-                });
-              }
-            }),
-            catchError(err => {
-              this.biaMessageService.showErrorHttpResponse(err);
-              return of(FeatureMaintenanceTeamsActions.failure({ error: err }));
-            })
-          );
-      })
-    )
-  );
 
   destroy$ = createEffect(() =>
     this.actions$.pipe(

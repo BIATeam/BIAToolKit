@@ -25,10 +25,6 @@ export namespace FeatureMaintenanceTeamsActions {
     props<{ maintenanceTeam: MaintenanceTeam }>()
   );
 
-  export const save = createAction(
-    '[' + maintenanceTeamCRUDConfiguration.storeKey + '] Save',
-    props<{ maintenanceTeams: MaintenanceTeam[] }>()
-  );
 
   export const remove = createAction(
     '[' + maintenanceTeamCRUDConfiguration.storeKey + '] Remove',

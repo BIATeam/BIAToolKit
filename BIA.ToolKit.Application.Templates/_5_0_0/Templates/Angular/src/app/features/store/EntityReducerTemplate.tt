@@ -41,9 +41,11 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>Reducers = createReduc
   on(Feature<#= ModelInstance.EntityNamePlural #>Actions.load, state => {
     return { ...state, loadingGet: true };
   }),
+  <#  if(!ModelInstance.IsTeam) { #>
   on(Feature<#= ModelInstance.EntityNamePlural #>Actions.save, state => {
     return { ...state, loadingGetAll: true };
   }),
+  <#  } #>
   on(Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPostSuccess, (state, { result, event }) => {
     const stateUpdated = <#= ModelInstance.EntityNamePlural.ToCamelCase() #>Adapter.setAll(result.data, state);
     stateUpdated.totalCount = result.totalCount;
