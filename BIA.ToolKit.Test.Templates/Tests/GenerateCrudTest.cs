@@ -175,7 +175,7 @@
 
             var properties = new List<PropertyInfo>
             {
-                new("ICollection<OptionDto>", "Admins", [])
+                new("ICollection<OptionDto>", "Admins", [RoslynHelper.CreateAttributeArgument("Required", true)])
             };
 
             var crudContext = new FileGeneratorCrudContext
