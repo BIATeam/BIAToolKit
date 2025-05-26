@@ -35,7 +35,7 @@ export class <#= ModelInstance.EntityName #>OptionsService extends CrudItemOptio
   <# } #>
   ) {
     super();
-    // TODO after creation of CRUD <#= ModelInstance.EntityName #> : get all required option dto use in Table calc and create and edit form
+    // TODO after creation of CRUD<# if(ModelInstance.IsTeam) {#> Team<# } #> <#= ModelInstance.EntityName #> : get all required option dto use in Table calc and create and edit form
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>
     this.<#= optionItem.ToCamelCase() #>Options$ = this.store.select(getAll<#= optionItem #>Options);
 <#  } #>
@@ -46,6 +46,11 @@ export class <#= ModelInstance.EntityName #>OptionsService extends CrudItemOptio
     const <#= optionItem.ToCamelCase() #> = cpt++;
 <#  } #>
 
+<#  if(ModelInstance.OptionItems.Any()) { #>
+    this.dictOptionDtos$ = combineLatest([]).pipe(
+      map(() => <DictOptionDto[]>[])
+    );
+<#  } else { #>
     this.dictOptionDtos$ = combineLatest([
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>
       this.<#= optionItem.ToCamelCase() #>Options$,
@@ -62,6 +67,7 @@ export class <#= ModelInstance.EntityName #>OptionsService extends CrudItemOptio
         ];
       })
     );
+<#  } #>
   }
 
 <# if(ModelInstance.OptionItems.Any()) { #>

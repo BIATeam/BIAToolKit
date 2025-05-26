@@ -25,24 +25,15 @@ export class MaintenanceTeamOptionsService extends CrudItemOptionsService {
       private store: Store<AppState>
     ) {
     super();
-    // TODO after creation of CRUD MaintenanceTeam : get all required option dto use in Table calc and create and edit form
+    // TODO after creation of CRUD Team MaintenanceTeam : get all required option dto use in Table calc and create and edit form
     this.engineOptions$ = this.store.select(getAllEngineOptions);
     this.planeTypeOptions$ = this.store.select(getAllPlaneTypeOptions);
     let cpt = 0;
     const engine = cpt++;
     const planeType = cpt++;
 
-    this.dictOptionDtos$ = combineLatest([
-      this.engineOptions$,
-      this.planeTypeOptions$,
-    ]).pipe(
-      map(options => {
-        return <DictOptionDto[]>[
-          new DictOptionDto('engines', options[engine]),
-          new DictOptionDto('planeType', options[planeType]),
-          new DictOptionDto('similarTypes', options[planeType]),
-        ];
-      })
+    this.dictOptionDtos$ = combineLatest([]).pipe(
+      map(() => <DictOptionDto[]>[])
     );
   }
 
