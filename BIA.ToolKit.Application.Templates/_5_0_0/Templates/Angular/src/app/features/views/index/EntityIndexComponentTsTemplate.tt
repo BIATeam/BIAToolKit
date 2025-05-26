@@ -67,13 +67,13 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
 
   constructor(
     protected injector: Injector,
-    public crudItemService: <#= ModelInstance.EntityName #>Service,
+    public <#= ModelInstance.EntityName.ToCamelCase() #>Service: <#= ModelInstance.EntityName #>Service,
 <#  if(ModelInstance.OptionItems.Any()) { #>
     protected <#= ModelInstance.EntityName.ToCamelCase() #>OptionsService: <#= ModelInstance.EntityName #>OptionsService,
 <#  } #>
     protected authService: AuthService
   ) {
-    super(injector, crudItemService);
+    super(injector, <#= ModelInstance.EntityName.ToCamelCase() #>Service);
     this.crudConfiguration = <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration;
   }
 
@@ -81,7 +81,7 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
     super.ngOnInit();
 <#  if(ModelInstance.HasParent) { #>
     this.parentDisplayItemName$ =
-      this.crudItemService.<#= ModelInstance.ParentName.ToCamelCase() #>Service.displayItemName$;
+      this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.<#= ModelInstance.ParentName.ToCamelCase() #>Service.displayItemName$;
 <#  } #>
 <#  if(ModelInstance.OptionItems.Any()) { #>
     this.sub.add(
@@ -121,7 +121,7 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
     super.setPermissions();
 
     this.permissionSub.add(
-      this.crudItemService.<#= ModelInstance.ParentName.ToCamelCase() #>Service.crudItem$
+      this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.<#= ModelInstance.ParentName.ToCamelCase() #>Service.crudItem$
         .pipe(filter(<#= ModelInstance.ParentName.ToCamelCase() #> => !!<#= ModelInstance.ParentName.ToCamelCase() #> && Object.keys(<#= ModelInstance.ParentName.ToCamelCase() #>).length > 0))
         .subscribe(<#= ModelInstance.ParentName.ToCamelCase() #> => {
           this.isParentFixed = <#= ModelInstance.ParentName.ToCamelCase() #>.isFixed === true;
@@ -189,7 +189,7 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
   onSelectedElementsChanged(crudItems: <#= ModelInstance.EntityName #>[]) {
     super.onSelectedElementsChanged(crudItems);
     if (crudItems.length === 1) {
-      this.crudItemService.currentCrudItemId = crudItems[0].id;
+      this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.currentCrudItemId = crudItems[0].id;
     }
   }
 

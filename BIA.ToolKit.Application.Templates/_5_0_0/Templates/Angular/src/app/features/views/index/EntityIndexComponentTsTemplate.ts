@@ -51,18 +51,18 @@ export class MaintenanceTeamsIndexComponent extends CrudItemsIndexComponent<Main
 
   constructor(
     protected injector: Injector,
-    public crudItemService: MaintenanceTeamService,
+    public maintenanceTeamService: MaintenanceTeamService,
     protected maintenanceTeamOptionsService: MaintenanceTeamOptionsService,
     protected authService: AuthService
   ) {
-    super(injector, crudItemService);
+    super(injector, maintenanceTeamService);
     this.crudConfiguration = maintenanceTeamCRUDConfiguration;
   }
 
   ngOnInit(): void {
     super.ngOnInit();
     this.parentDisplayItemName$ =
-      this.crudItemService.aircraftMaintenanceCompanyService.displayItemName$;
+      this.maintenanceTeamService.aircraftMaintenanceCompanyService.displayItemName$;
     this.sub.add(
       this.biaTranslationService.currentCulture$.subscribe(() => {
         this.maintenanceTeamOptionsService.loadAllOptions();
@@ -133,7 +133,7 @@ export class MaintenanceTeamsIndexComponent extends CrudItemsIndexComponent<Main
   onSelectedElementsChanged(crudItems: MaintenanceTeam[]) {
     super.onSelectedElementsChanged(crudItems);
     if (crudItems.length === 1) {
-      this.crudItemService.currentCrudItemId = crudItems[0].id;
+      this.maintenanceTeamService.currentCrudItemId = crudItems[0].id;
     }
   }
 

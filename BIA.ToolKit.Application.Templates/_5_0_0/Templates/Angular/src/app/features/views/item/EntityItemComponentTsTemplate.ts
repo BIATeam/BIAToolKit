@@ -18,7 +18,7 @@ import { MaintenanceTeamService } from '../../services/maintenance-team.service'
   providers: [
     {
       provide: CrudItemService,
-      useClass: MaintenanceTeamService,
+      useExisting: MaintenanceTeamService,
     },
   ],
 })

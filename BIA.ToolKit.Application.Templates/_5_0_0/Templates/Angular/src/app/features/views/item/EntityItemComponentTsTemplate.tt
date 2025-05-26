@@ -21,7 +21,7 @@ import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= Model
   providers: [
     {
       provide: CrudItemService,
-      useClass: <#= ModelInstance.EntityName #>Service,
+      useExisting: <#= ModelInstance.EntityName #>Service,
     },
   ],
 })
