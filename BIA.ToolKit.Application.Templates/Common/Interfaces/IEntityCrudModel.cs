@@ -12,6 +12,7 @@
         IEnumerable<TPropertyCrudModel> BiaFieldConfigProperties { get; }
         string DisplayItemName { get; set; }
         bool HasAncestorTeam { get; set; }
+        bool HasOptionItems { get; }
         bool HasOptions { get; }
         bool HasParent { get; set; }
         bool IsTeam { get; set; }

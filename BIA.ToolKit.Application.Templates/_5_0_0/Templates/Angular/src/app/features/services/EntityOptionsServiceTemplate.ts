@@ -32,8 +32,17 @@ export class MaintenanceTeamOptionsService extends CrudItemOptionsService {
     const engine = cpt++;
     const planeType = cpt++;
 
-    this.dictOptionDtos$ = combineLatest([]).pipe(
-      map(() => <DictOptionDto[]>[])
+    this.dictOptionDtos$ = combineLatest([
+      this.engineOptions$,
+      this.planeTypeOptions$,
+    ]).pipe(
+      map(options => {
+        return <DictOptionDto[]>[
+          new DictOptionDto('engines', options[engine]),
+          new DictOptionDto('planeType', options[planeType]),
+          new DictOptionDto('similarTypes', options[planeType]),
+        ];
+      })
     );
   }
 

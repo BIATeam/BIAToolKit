@@ -18,6 +18,7 @@
         public string DisplayItemName { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         public bool HasAncestorTeam { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
 
+        public bool HasOptionItems => throw new System.NotImplementedException();
         public bool HasOptions => throw new System.NotImplementedException();
 
         public bool HasParent { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }

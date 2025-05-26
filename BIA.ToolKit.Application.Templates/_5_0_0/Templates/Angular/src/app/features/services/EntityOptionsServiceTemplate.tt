@@ -3,14 +3,14 @@
 <#@ output extension=".ts" #>
 import { Injectable } from '@angular/core';
 import {
-<# if(ModelInstance.OptionItems.Any()) { #>
+<# if(ModelInstance.HasOptionItems) { #>
   Observable,
 <# } #>
   combineLatest,
 } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { DictOptionDto } from 'src/app/shared/bia-shared/components/table/bia-table/dict-option-dto';
-<# if(ModelInstance.OptionItems.Any()) { #>
+<# if(ModelInstance.HasOptionItems) { #>
 import { Store } from '@ngrx/store';
 import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
 import { AppState } from 'src/app/store/state';
@@ -30,7 +30,7 @@ export class <#= ModelInstance.EntityName #>OptionsService extends CrudItemOptio
 <#  } #>
 
   constructor(
-  <# if(ModelInstance.OptionItems.Any()) { #>
+  <# if(ModelInstance.HasOptionItems) { #>
     private store: Store<AppState>
   <# } #>
   ) {
@@ -39,14 +39,14 @@ export class <#= ModelInstance.EntityName #>OptionsService extends CrudItemOptio
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>
     this.<#= optionItem.ToCamelCase() #>Options$ = this.store.select(getAll<#= optionItem #>Options);
 <#  } #>
-<# if(ModelInstance.OptionItems.Any()) { #>
+<# if(ModelInstance.HasOptionItems) { #>
     let cpt = 0;
 <# } #>
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>
     const <#= optionItem.ToCamelCase() #> = cpt++;
 <#  } #>
 
-<#  if(ModelInstance.OptionItems.Any()) { #>
+<#  if(!ModelInstance.HasOptionItems) { #>
     this.dictOptionDtos$ = combineLatest([]).pipe(
       map(() => <DictOptionDto[]>[])
     );
@@ -70,7 +70,7 @@ export class <#= ModelInstance.EntityName #>OptionsService extends CrudItemOptio
 <#  } #>
   }
 
-<# if(ModelInstance.OptionItems.Any()) { #>
+<# if(ModelInstance.HasOptionItems) { #>
   loadAllOptions() {
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>
     this.store.dispatch(Domain<#= optionItem #>OptionsActions.loadAll());

@@ -28,7 +28,7 @@ import {
   BiaButtonGroupItem,
 } from 'src/app/shared/bia-shared/components/bia-button-group/bia-button-group.component';
 <# } #>
-<#  if(ModelInstance.OptionItems.Any()) { #>
+<#  if(ModelInstance.HasOptionItems) { #>
 import { <#= ModelInstance.EntityName #>OptionsService } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>-options.service';
 <#  } #>
 
@@ -68,7 +68,7 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
   constructor(
     protected injector: Injector,
     public <#= ModelInstance.EntityName.ToCamelCase() #>Service: <#= ModelInstance.EntityName #>Service,
-<#  if(ModelInstance.OptionItems.Any()) { #>
+<#  if(ModelInstance.HasOptionItems) { #>
     protected <#= ModelInstance.EntityName.ToCamelCase() #>OptionsService: <#= ModelInstance.EntityName #>OptionsService,
 <#  } #>
     protected authService: AuthService
@@ -83,7 +83,7 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
     this.parentDisplayItemName$ =
       this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.<#= ModelInstance.ParentName.ToCamelCase() #>Service.displayItemName$;
 <#  } #>
-<#  if(ModelInstance.OptionItems.Any()) { #>
+<#  if(ModelInstance.HasOptionItems) { #>
     this.sub.add(
       this.biaTranslationService.currentCulture$.subscribe(() => {
         this.<#= ModelInstance.EntityName.ToCamelCase() #>OptionsService.loadAllOptions();
