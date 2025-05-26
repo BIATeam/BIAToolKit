@@ -80,7 +80,7 @@
                 UseHubForClient = true,
                 HasCustomRepository = true,
                 HasFixableParent = true,
-                GenerateBack = true,
+                GenerateBack = false,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };
@@ -148,7 +148,7 @@
                 UseHubForClient = true,
                 HasReadOnlyMode = true,
                 IsFixable = true,
-                GenerateBack = true,
+                GenerateBack = false,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };
@@ -189,7 +189,7 @@
                 Properties = properties,
                 IsTeam = true,
                 DisplayItemName = "Title",
-                GenerateBack = true,
+                GenerateBack = false,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };

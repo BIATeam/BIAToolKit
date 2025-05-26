@@ -20,7 +20,9 @@
       (fullExportCSV)="onExportCSV('<#= ModelInstance.EntityName.ToCamelCase() #>.listOf', true)"
       (clone)="onClone()"
       (delete)="onDelete()"
+<#  if(!ModelInstance.IsTeam) { #>
       (import)="onImport()"
+<#  } #>
       [selectedElements]="selectedCrudItems"
       [showTableControllerButton]="crudConfiguration.useCompactMode ?? false"
       [tableControllerVisible]="showTableController"
@@ -99,16 +101,27 @@
       [configuration]="crudConfiguration.fieldsConfig"
       [showColSearch]="showColSearch"
       [globalSearchValue]="globalSearchValue"
+<#  if(!ModelInstance.IsTeam) { #>
       [canClickRow]="canEdit"
+<#  } else { #>
+      [canClickRow]="canViewMembers"
+<#  } #>
       [canSelectElement]="canDelete"
       [loading]="(loading$ | async) ?? false"
+<#  if(!ModelInstance.IsTeam) { #>
       (clickRowId)="onClickRow($event)"
+<#  } else { #>
+      (clickRowData)="onClickRowData($event)"
+<#  } #>
       (loadLazy)="onLoadLazy($event)"
       [viewPreference]="viewPreference"
       [tableStateKey]="tableStateKey"
       (selectedElementsChanged)="onSelectedElementsChanged($event)"
       [sortFieldValue]="sortFieldValue"
       (stateSave)="onStateSave($event)"
+<#  if(ModelInstance.IsTeam) { #>
+      [canSelectMultipleElement]="false"
+<#  } #>
       [scrollHeightValue]="getFillScrollHeightValue()"
       [frozeSelectColumn]="true"
       [virtualScroll]="crudConfiguration.useVirtualScroll"
@@ -139,7 +152,11 @@
       [canEdit]="canEdit"
       [canAdd]="canAdd"
       [canSelectElement]="canSelect"
+<#  if(ModelInstance.IsTeam) { #>
+      [canSelectMultipleElement]="false"
+<#  } else { #>
       [canSelectMultipleElement]="canDelete"
+<#  } #>
       [loading]="(loading$ | async) ?? false"
       (loadLazy)="onLoadLazy($event)"
       [viewPreference]="viewPreference"
