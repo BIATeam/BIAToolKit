@@ -31,6 +31,7 @@
         private readonly Stopwatch stopwatch = new();
         public Feature CurrentTestFeature { get; private set; }
         public Project TestProject { get; private set; }
+        public List<string> PartialMarkupIdentifiersToIgnore { get; private set; }
 
         public FileGeneratorTestFixture()
         {
@@ -115,8 +116,9 @@
             stopwatch.Stop();
         }
 
-        public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext)
+        public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext, List<string> partialMarkupIdentifiersToIgnore = null)
         {
+            PartialMarkupIdentifiersToIgnore = partialMarkupIdentifiersToIgnore;
             CurrentTestFeature = FileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Dto);
             InitTestProjectFolder(Feature.FeatureType.Dto, dtoContext);
             ImportTargetedPartialFiles(dtoContext);
@@ -124,8 +126,9 @@
             GenerationAssertions.AssertAllFilesEquals(this, dtoContext);
         }
 
-        public async Task RunTestGenerateOptionAllFilesEqualsAsync(FileGeneratorOptionContext optionContext)
+        public async Task RunTestGenerateOptionAllFilesEqualsAsync(FileGeneratorOptionContext optionContext, List<string> partialMarkupIdentifiersToIgnore = null)
         {
+            PartialMarkupIdentifiersToIgnore = partialMarkupIdentifiersToIgnore;
             CurrentTestFeature = FileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Option);
             InitTestProjectFolder(Feature.FeatureType.Option, optionContext);
             ImportTargetedPartialFiles(optionContext);
@@ -133,8 +136,9 @@
             GenerationAssertions.AssertAllFilesEquals(this, optionContext);
         }
 
-        public async Task RunTestGenerateCrudAllFilesEqualsAsync(FileGeneratorCrudContext crudContext)
+        public async Task RunTestGenerateCrudAllFilesEqualsAsync(FileGeneratorCrudContext crudContext, List<string> partialMarkupIdentifiersToIgnore = null)
         {
+            PartialMarkupIdentifiersToIgnore = partialMarkupIdentifiersToIgnore;
             CurrentTestFeature = FileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Crud);
             InitTestProjectFolder(Feature.FeatureType.Crud, crudContext);
             if (crudContext.GenerateFront)

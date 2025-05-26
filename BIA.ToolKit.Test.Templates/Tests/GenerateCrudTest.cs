@@ -148,7 +148,7 @@
                 UseHubForClient = true,
                 HasReadOnlyMode = true,
                 IsFixable = true,
-                GenerateBack = false,
+                GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };
@@ -194,7 +194,7 @@
                 AngularFront = "Angular",
             };
 
-            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);
+            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext, ["MaintenanceTeam"]);
         }
     }
 }

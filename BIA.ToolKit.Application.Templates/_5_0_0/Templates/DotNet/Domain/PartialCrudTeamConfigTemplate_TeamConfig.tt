@@ -10,8 +10,11 @@
                 AdminRoleIds = [
                     (int)RoleId.<#= ModelInstance.EntityName #>Admin
                     ],
+                Children = new ImmutableListBuilder<BiaTeamChildrenConfig<Team>>
+                {
                 // BIAToolKit - Begin TeamConfigAircraftMaintenanceCompanyChildren
                 // BIAToolKit - End TeamConfigAircraftMaintenanceCompanyChildren
+                }.ToImmutable(),
 <#  if(ModelInstance.HasParent) { #>
                 Parents = new ImmutableListBuilder<BiaTeamParentConfig<Team>>
                 {

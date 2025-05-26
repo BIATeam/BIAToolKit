@@ -6,8 +6,11 @@
                 AdminRoleIds = [
                     (int)RoleId.MaintenanceTeamAdmin
                     ],
+                Children = new ImmutableListBuilder<BiaTeamChildrenConfig<Team>>
+                {
                 // BIAToolKit - Begin TeamConfigAircraftMaintenanceCompanyChildren
                 // BIAToolKit - End TeamConfigAircraftMaintenanceCompanyChildren
+                }.ToImmutable(),
                 Parents = new ImmutableListBuilder<BiaTeamParentConfig<Team>>
                 {
                     new BiaTeamParentConfig<Team>
