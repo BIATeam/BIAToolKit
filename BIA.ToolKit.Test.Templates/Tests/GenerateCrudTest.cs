@@ -189,8 +189,8 @@
                 Properties = properties,
                 IsTeam = true,
                 DisplayItemName = "Title",
-                GenerateBack = true,
-                GenerateFront = false,
+                GenerateBack = false,
+                GenerateFront = true,
                 AngularFront = "Angular",
             };
 
