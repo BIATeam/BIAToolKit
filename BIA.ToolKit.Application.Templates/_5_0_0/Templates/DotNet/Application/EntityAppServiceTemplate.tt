@@ -126,7 +126,6 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
                 // Update entity fixed status
                 var entity = await this.Repository.GetEntityAsync(id) ?? throw new ElementNotFoundException();
                 this.Repository.UpdateFixedAsync(entity, isFixed);
-
                 await this.Repository.UnitOfWork.CommitAsync();
                 return await this.GetAsync(id);
             });

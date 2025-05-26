@@ -320,6 +320,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
             return this.File(buffer, BiaConstants.Csv.ContentType + ";charset=utf-8", $"<#= ModelInstance.EntityNamePlural #>{BiaConstants.Csv.Extension}");
         }
 <#  if (ModelInstance.IsFixable) { #>
+
         /// <summary>
         /// Update the fixed status of an item by its id.
         /// </summary>
