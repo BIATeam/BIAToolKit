@@ -127,7 +127,11 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
             {
                 var createdDto = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.AddAsync(dto);
 #if UseHubForClientIn<#= ModelInstance.EntityName #>
-                _ = this.clientForHubService.SendTargetedMessage(createdDto.<#= ModelInstance.HasParent ? ModelInstance.ParentName : ModelInstance.AncestorTeamName #>Id.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+<#  if(ModelInstance.HasHubForClientParentKey) { #>
+                await this.clientForHubService.SendTargetedMessage(createdDto.<#= ModelInstance.GetHubForClientParentKey() #>.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+<#  } else { #>
+                await this.clientForHubService.SendTargetedMessage(string.Empty, "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+<#  } #>
 #endif
                 return this.CreatedAtAction("Get", new { id = createdDto.Id }, createdDto);
             }
@@ -161,7 +165,11 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
             {
                 var updatedDto = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.UpdateAsync(dto);
 #if UseHubForClientIn<#= ModelInstance.EntityName #>
-                _ = this.clientForHubService.SendTargetedMessage(updatedDto.<#= ModelInstance.HasParent ? ModelInstance.ParentName : ModelInstance.AncestorTeamName #>Id.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+<#  if(ModelInstance.HasHubForClientParentKey) { #>
+                await this.clientForHubService.SendTargetedMessage(updatedDto.<#= ModelInstance.GetHubForClientParentKey() #>.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+<#  } else { #>
+                await this.clientForHubService.SendTargetedMessage(string.Empty, "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+<#  } #>
 #endif
                 return this.Ok(updatedDto);
             }
@@ -201,7 +209,11 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
             {
                 var deletedDto = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.RemoveAsync(id);
 #if UseHubForClientIn<#= ModelInstance.EntityName #>
-                _ = this.clientForHubService.SendTargetedMessage(deletedDto.<#= ModelInstance.HasParent ? ModelInstance.ParentName : ModelInstance.AncestorTeamName #>Id.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+<#  if(ModelInstance.HasHubForClientParentKey) { #>
+                await this.clientForHubService.SendTargetedMessage(deletedDto.<#= ModelInstance.GetHubForClientParentKey() #>.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+<#  } else { #>
+                await this.clientForHubService.SendTargetedMessage(string.Empty, "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+<#  } #>
 #endif
                 return this.Ok();
             }
@@ -233,10 +245,14 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
             {
                 var deletedDtos = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.RemoveAsync(ids);
 #if UseHubForClientIn<#= ModelInstance.EntityName #>
-                deletedDtos.Select(m => m.<#= ModelInstance.HasParent ? ModelInstance.ParentName : ModelInstance.AncestorTeamName #>Id).Distinct().ToList().ForEach(parentId =>
+<#  if(ModelInstance.HasHubForClientParentKey) { #>
+                deletedDtos.Select(m => m.<#= ModelInstance.GetHubForClientParentKey() #>).Distinct().ToList().ForEach(async parentId =>
                 {
-                    _ = this.clientForHubService.SendTargetedMessage(parentId.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+                    await this.clientForHubService.SendTargetedMessage(parentId.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
                 });
+<#  } else { #>
+                await this.clientForHubService.SendTargetedMessage(string.Empty, "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+<#  } #>
 #endif
                 return this.Ok();
             }
@@ -270,10 +286,14 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
             {
                 var savedDtos = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.SaveAsync(dtoList);
 #if UseHubForClientIn<#= ModelInstance.EntityName #>
-                savedDtos.Select(m => m.<#= ModelInstance.HasParent ? ModelInstance.ParentName : ModelInstance.AncestorTeamName #>Id).Distinct().ToList().ForEach(parentId =>
+<#  if(ModelInstance.HasHubForClientParentKey) { #>
+                savedDtos.Select(m => m.<#= ModelInstance.GetHubForClientParentKey() #>).Distinct().ToList().ForEach(async parentId =>
                 {
-                    _ = this.clientForHubService.SendTargetedMessage(parentId.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+                    await this.clientForHubService.SendTargetedMessage(parentId.ToString(), "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
                 });
+<#  } else { #>
+                await this.clientForHubService.SendTargetedMessage(string.Empty, "<#= ModelInstance.EntityNamePlural.ToCamelCase() #>", "refresh-<#= ModelInstance.EntityNamePlural.ToCamelCase() #>");
+<#  } #>
 #endif
                 return this.Ok();
             }
@@ -299,5 +319,31 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
             byte[] buffer = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.GetCsvAsync(filters);
             return this.File(buffer, BiaConstants.Csv.ContentType + ";charset=utf-8", $"<#= ModelInstance.EntityNamePlural #>{BiaConstants.Csv.Extension}");
         }
+<#  if (ModelInstance.IsFixable) { #>
+
+        /// <summary>
+        /// Update the fixed status of an item by its id.
+        /// </summary>
+        /// <param name="id">ID of the item to update.</param>
+        /// <param name="isFixed">Fixed status.</param>
+        /// <returns>Updated item.</returns>
+        [HttpPut("{id}/[action]")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = Rights.<#= ModelInstance.EntityNamePlural #>.Fix)]
+        public virtual async Task<IActionResult> Fix(int id, [FromBody] bool isFixed)
+        {
+            try
+            {
+                var dto = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.UpdateFixedAsync(id, isFixed);
+                return this.Ok(dto);
+            }
+            catch (ElementNotFoundException)
+            {
+                return this.NotFound();
+            }
+        }
+<#  } #>
     }
 }

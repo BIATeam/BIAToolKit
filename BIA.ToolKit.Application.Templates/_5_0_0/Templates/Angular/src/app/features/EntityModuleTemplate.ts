@@ -44,23 +44,6 @@ export const ROUTES: Routes = [
         canActivate: [PermissionGuard],
       },
       {
-        path: 'import',
-        data: {
-          breadcrumb: 'maintenanceTeam.import',
-          canNavigate: false,
-          layoutMode: LayoutMode.popup,
-          style: {
-            minWidth: '80vw',
-            maxWidth: '80vw',
-            maxHeight: '80vh',
-          },
-          permission: Permission.MaintenanceTeam_Save,
-          title: 'maintenanceTeam.import',
-        },
-        component: MaintenanceTeamImportComponent,
-        canActivate: [PermissionGuard],
-      },
-      {
         path: ':crudItemId',
         data: {
           breadcrumb: '',

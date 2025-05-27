@@ -18,6 +18,7 @@
         public string DisplayItemName { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         public bool HasAncestorTeam { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
 
+        public bool HasOptionItems => throw new System.NotImplementedException();
         public bool HasOptions => throw new System.NotImplementedException();
 
         public bool HasParent { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
@@ -31,5 +32,9 @@
         public bool HasReadOnlyMode { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         public bool HasFixableParent { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         public bool IsFixable { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public string HubForClientParentKey { get => throw new System.NotImplementedException(); }
+        public bool HasHubForClientParentKey { get => throw new System.NotImplementedException(); }
+        public bool HasAdvancedFilter { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public bool CanImport { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
     }
 }

@@ -25,7 +25,7 @@ export class MaintenanceTeamOptionsService extends CrudItemOptionsService {
       private store: Store<AppState>
     ) {
     super();
-    // TODO after creation of CRUD MaintenanceTeam : get all required option dto use in Table calc and create and edit form
+    // TODO after creation of CRUD Team MaintenanceTeam : get all required option dto use in Table calc and create and edit form
     this.engineOptions$ = this.store.select(getAllEngineOptions);
     this.planeTypeOptions$ = this.store.select(getAllPlaneTypeOptions);
     let cpt = 0;

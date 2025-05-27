@@ -13,26 +13,32 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     using System.Security.Principal;
     using System.Threading.Tasks;
     using BIA.Net.Core.Application.Services;
+<#  if(ModelInstance.HasAncestorTeam) { #>
     using BIA.Net.Core.Common.Exceptions;
     using BIA.Net.Core.Domain.Authentication;
+<#  } #>
     using BIA.Net.Core.Domain.Dto.Base;
+<#  if(ModelInstance.HasAncestorTeam) {  #>
     using BIA.Net.Core.Domain.Dto.User;
+<#  } #>
     using BIA.Net.Core.Domain.RepoContract;
     using BIA.Net.Core.Domain.Service;
     using BIA.Net.Core.Domain.Specification;
 <#  if(ModelInstance.IsTeam) {  #>
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.User;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.Bia.User;
 <#  } #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common.Enum;
+<#  if(ModelInstance.IsTeam) { #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Bia.User.Specifications;
+<#  } #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers;
 <#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Specifications;
 <#  } #>
+<#  if(ModelInstance.HasCustomRepository) { #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.RepoContract;
-<#  if(ModelInstance.IsTeam) { #>
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.User.Specifications;
 <#  } #>
 
     /// <summary>
@@ -54,10 +60,20 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
         private readonly I<#= ModelInstance.EntityName #>Repository repository;
 
 <#  } #>
+<#  if(ModelInstance.HasFixableParent) { #>
+        /// <summary>
+        /// The <#= ModelInstance.ParentName.ToCamelCase() #> repository.
+        /// </summary>
+        private readonly ITGenericRepository<<#= ModelInstance.ParentName #>, int> <#= ModelInstance.ParentName.ToCamelCase() #>Repository;
+
+<#  } #>
         /// <summary>
         /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>AppService"/> class.
         /// </summary>
         /// <param name="repository">The repository.</param>
+<#  if(ModelInstance.HasFixableParent) { #>
+        /// <param name="<#= ModelInstance.ParentName.ToCamelCase() #>Repository">The <#= ModelInstance.ParentName.ToCamelCase() #> repository.</param>
+<#  } #>
         /// <param name="principal">The claims principal.</param>
         public <#= ModelInstance.EntityName #>AppService(
 <#  if(!ModelInstance.HasCustomRepository) { #>
@@ -65,11 +81,17 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
 <#  } else { #>
             I<#= ModelInstance.EntityName #>Repository repository,
 <#  } #>
+<#  if(ModelInstance.HasFixableParent) { #>
+            ITGenericRepository<<#= ModelInstance.ParentName #>, int> <#= ModelInstance.ParentName.ToCamelCase() #>Repository,
+<#  } #>
             IPrincipal principal)
             : base(repository)
         {
 <#  if(ModelInstance.HasCustomRepository) { #>
             this.repository = repository;
+<#  } #>
+<#  if(ModelInstance.HasFixableParent) { #>
+            this.<#= ModelInstance.ParentName.ToCamelCase() #>Repository = <#= ModelInstance.ParentName.ToCamelCase() #>Repository;
 <#  } #>
 <#  if(ModelInstance.IsTeam) {  #>
             this.FiltersContext.Add(
@@ -94,43 +116,72 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
 <#  } #>
 <#  } #>
         }
+<#  if(ModelInstance.IsFixable) { #>
+
+        /// <inheritdoc/>
+        public override async Task<<#= ModelInstance.EntityName #>Dto> UpdateFixedAsync(int id, bool isFixed)
+        {
+            return await this.ExecuteWithFrontUserExceptionHandlingAsync(async () =>
+            {
+                // Update entity fixed status
+                var entity = await this.Repository.GetEntityAsync(id) ?? throw new ElementNotFoundException();
+                this.Repository.UpdateFixedAsync(entity, isFixed);
+                await this.Repository.UnitOfWork.CommitAsync();
+                return await this.GetAsync(id);
+            });
+        }
+<#  } #>
+<#  if(ModelInstance.HasFixableParent) { #>
+
+        /// <inheritdoc/>
+        public override async Task<<#= ModelInstance.EntityName #>Dto> AddAsync(<#= ModelInstance.EntityName #>Dto dto, string mapperMode = null)
+        {
+            var <#= ModelInstance.ParentName.ToCamelCase() #>Parent = await this.<#= ModelInstance.ParentName.ToCamelCase() #>Repository.GetEntityAsync(dto.<#= ModelInstance.ParentName #>Id, isReadOnlyMode: true);
+            if (<#= ModelInstance.ParentName.ToCamelCase() #>Parent.IsFixed)
+            {
+                throw new FrontUserException("<#= ModelInstance.ParentName #> parent is fixed");
+            }
+
+            return await base.AddAsync(dto, mapperMode);
+        }
+<#  } #>
 <#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
 
         /// <inheritdoc/>
 #pragma warning disable S1006 // Method overrides should not change parameter defaults
-        public override Task<(IEnumerable<<#= ModelInstance.EntityName #>Dto> Results, int Total)> GetRangeAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
+        public override async Task<(IEnumerable<<#= ModelInstance.EntityName #>Dto> Results, int Total)> GetRangeAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
 #pragma warning restore S1006 // Method overrides should not change parameter defaults
         {
             specification ??= <#= ModelInstance.EntityName #>Specification.SearchGetAll(filters);
-            return base.GetRangeAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
+            return await base.GetRangeAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
         }
 
         /// <inheritdoc/>
 #pragma warning disable S1006 // Method overrides should not change parameter defaults
-        public override Task<byte[]> GetCsvAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
+        public override async Task<byte[]> GetCsvAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
 #pragma warning restore S1006 // Method overrides should not change parameter defaults
         {
             specification ??= <#= ModelInstance.EntityName #>Specification.SearchGetAll(filters);
-            return base.GetCsvAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
+            return await base.GetCsvAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
         }
 <#  } else if(ModelInstance.IsTeam) { #>
 
         /// <inheritdoc/>
 #pragma warning disable S1006 // Method overrides should not change parameter defaults
-        public override Task<(IEnumerable<<#= ModelInstance.EntityName #>Dto> Results, int Total)> GetRangeAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
+        public override async Task<(IEnumerable<<#= ModelInstance.EntityName #>Dto> Results, int Total)> GetRangeAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
 #pragma warning restore S1006 // Method overrides should not change parameter defaults
         {
             specification ??= TeamAdvancedFilterSpecification<<#= ModelInstance.EntityName #>>.Filter(filters);
-            return base.GetRangeAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
+            return await base.GetRangeAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
         }
 <#  } #>
 <#  if(ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) {  #>
 
         /// <inheritdoc/>
-        public override Task<<#= ModelInstance.EntityName #>Dto> AddAsync(<#= ModelInstance.EntityName #>Dto dto, string mapperMode = null)
+        public override async Task<<#= ModelInstance.EntityName #>Dto> AddAsync(<#= ModelInstance.EntityName #>Dto dto, string mapperMode = null)
         {
             dto.<#= ModelInstance.AncestorTeamName #>Id = this.currentAncestorTeamId;
-            return base.AddAsync(dto, mapperMode);
+            return await base.AddAsync(dto, mapperMode);
         }
 <#  } #>
     }

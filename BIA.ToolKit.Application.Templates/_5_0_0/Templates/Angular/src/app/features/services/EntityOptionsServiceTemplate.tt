@@ -3,14 +3,14 @@
 <#@ output extension=".ts" #>
 import { Injectable } from '@angular/core';
 import {
-<# if(ModelInstance.OptionItems.Any()) { #>
+<# if(ModelInstance.HasOptionItems) { #>
   Observable,
 <# } #>
   combineLatest,
 } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { DictOptionDto } from 'src/app/shared/bia-shared/components/table/bia-table/dict-option-dto';
-<# if(ModelInstance.OptionItems.Any()) { #>
+<# if(ModelInstance.HasOptionItems) { #>
 import { Store } from '@ngrx/store';
 import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
 import { AppState } from 'src/app/store/state';
@@ -30,22 +30,27 @@ export class <#= ModelInstance.EntityName #>OptionsService extends CrudItemOptio
 <#  } #>
 
   constructor(
-  <# if(ModelInstance.OptionItems.Any()) { #>
+  <# if(ModelInstance.HasOptionItems) { #>
     private store: Store<AppState>
   <# } #>
   ) {
     super();
-    // TODO after creation of CRUD <#= ModelInstance.EntityName #> : get all required option dto use in Table calc and create and edit form
+    // TODO after creation of CRUD<# if(ModelInstance.IsTeam) {#> Team<# } #> <#= ModelInstance.EntityName #> : get all required option dto use in Table calc and create and edit form
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>
     this.<#= optionItem.ToCamelCase() #>Options$ = this.store.select(getAll<#= optionItem #>Options);
 <#  } #>
-<# if(ModelInstance.OptionItems.Any()) { #>
+<# if(ModelInstance.HasOptionItems) { #>
     let cpt = 0;
 <# } #>
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>
     const <#= optionItem.ToCamelCase() #> = cpt++;
 <#  } #>
 
+<#  if(!ModelInstance.HasOptionItems) { #>
+    this.dictOptionDtos$ = combineLatest([]).pipe(
+      map(() => <DictOptionDto[]>[])
+    );
+<#  } else { #>
     this.dictOptionDtos$ = combineLatest([
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>
       this.<#= optionItem.ToCamelCase() #>Options$,
@@ -62,9 +67,10 @@ export class <#= ModelInstance.EntityName #>OptionsService extends CrudItemOptio
         ];
       })
     );
+<#  } #>
   }
 
-<# if(ModelInstance.OptionItems.Any()) { #>
+<# if(ModelInstance.HasOptionItems) { #>
   loadAllOptions() {
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>
     this.store.dispatch(Domain<#= optionItem #>OptionsActions.loadAll());

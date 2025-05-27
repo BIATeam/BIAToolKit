@@ -80,6 +80,7 @@
                 UseHubForClient = true,
                 HasCustomRepository = true,
                 HasFixableParent = true,
+                CanImport = true,
                 GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
@@ -89,7 +90,7 @@
         }
 
         /// <summary>
-        /// Generates the CRUD's files for Engine.
+        /// Generates the CRUD's files for Plane.
         /// </summary>
         [Fact]
         public async Task GeneratePlane_BIADemoConfiguration_AllFilesEquals()
@@ -148,12 +149,55 @@
                 UseHubForClient = true,
                 HasReadOnlyMode = true,
                 IsFixable = true,
-                GenerateBack = false,
+                CanImport = true,
+                GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };
 
             await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);
+        }
+
+        /// <summary>
+        /// Generates the CRUD's files for Aircraft Maintenance Company.
+        /// </summary>
+        [Fact]
+        public async Task GenerateAircraftMaintenanceCompany_BIADemoConfiguration_AllFilesEquals()
+        {
+            var entityInfo = new EntityInfo(
+                path: string.Empty,
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Maintenance",
+                name: "AircraftMaintenanceCompany",
+                baseType: "TeamDto",
+                baseKeyType: null,
+                arguments: [],
+                baseList: ["TeamDto"]);
+
+            var domainName = "Maintenance";
+
+            var properties = new List<PropertyInfo>
+            {
+                new("ICollection<OptionDto>", "Admins", [RoslynHelper.CreateAttributeArgument("Required", true)])
+            };
+
+            var crudContext = new FileGeneratorCrudContext
+            {
+                CompanyName = fixture.TestProject.CompanyName,
+                ProjectName = fixture.TestProject.Name,
+                DomainName = domainName,
+                EntityName = entityInfo.Name,
+                EntityNamePlural = entityInfo.NamePluralized,
+                BaseKeyType = entityInfo.BaseKeyType,
+                Properties = properties,
+                IsTeam = true,
+                DisplayItemName = "Title",
+                HasAdvancedFilter = true,
+                GenerateBack = true,
+                GenerateFront = true,
+                AngularFront = "Angular",
+            };
+
+            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext, ["MaintenanceTeam"]);
         }
     }
 }

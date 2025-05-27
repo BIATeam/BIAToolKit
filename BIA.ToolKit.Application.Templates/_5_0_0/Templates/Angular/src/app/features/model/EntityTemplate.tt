@@ -29,14 +29,14 @@ import {
 import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
 <#  } #>
 
-// TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the model
+// TODO after creation of CRUD<# if(ModelInstance.IsTeam) {#> Team<# } #> <#= ModelInstance.EntityName #> : adapt the model
 export class <#= ModelInstance.EntityName #> extends <#  if(ModelInstance.IsTeam) { #>BaseTeamDto<# } else {  #>BaseDto<#  } #> {
 <#  foreach(var property in ModelInstance.Properties) { #>
   <#= property.Name.ToCamelCase() #>: <#= property.AngularType #>;
 <# }  #>
 }
 
-// TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the field configuration
+// TODO after creation of CRUD<# if(ModelInstance.IsTeam) {#> Team<# } #> <#= ModelInstance.EntityName #> : adapt the field configuration
 export const <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration: BiaFieldsConfig<<#= ModelInstance.EntityName #>> = {
   columns: [
 <#  if(ModelInstance.IsTeam) { #>
@@ -67,7 +67,7 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration: B
   ],
 };
 
-// TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the form layout configuration
+// TODO after creation of CRUD<# if(ModelInstance.IsTeam) {#> Team<# } #> <#= ModelInstance.EntityName #> : adapt the form layout configuration
 export const <#= ModelInstance.EntityName.ToCamelCase() #>FormLayoutConfiguration: BiaFormLayoutConfig<<#= ModelInstance.EntityName #>> =
   new BiaFormLayoutConfig([
   ]);

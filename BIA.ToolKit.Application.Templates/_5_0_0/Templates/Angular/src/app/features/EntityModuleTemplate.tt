@@ -50,6 +50,7 @@ export const ROUTES: Routes = [
         component: <#= ModelInstance.EntityName #>NewComponent,
         canActivate: [PermissionGuard],
       },
+<#  if(ModelInstance.CanImport) { #>
       {
         path: 'import',
         data: {
@@ -67,6 +68,7 @@ export const ROUTES: Routes = [
         component: <#= ModelInstance.EntityName #>ImportComponent,
         canActivate: [PermissionGuard],
       },
+<#  } #>
       {
         path: ':crudItemId',
         data: {

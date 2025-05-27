@@ -82,6 +82,11 @@
     <Compile Include="Common\Interfaces\IPropertyCrudModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyDtoModel.cs" />
+    <None Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate_TeamConfigChildren.cs">
+      <DependentUpon>PartialCrudTeamConfigTemplate_TeamConfigChildren.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="packages.config" />
     <None Include="_4_0_0\Templates\Includes\Template.ttinclude">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -114,8 +119,8 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <None Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate.cs">
-      <DependentUpon>PartialCrudTeamConfigTemplate.tt</DependentUpon>
+    <None Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate_TeamConfig.cs">
+      <DependentUpon>PartialCrudTeamConfigTemplate_TeamConfig.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
@@ -589,9 +594,9 @@
       <LastGenOutput>PartialCrudTeamMapperTemplate_TeamMapperUsing.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate.tt">
+    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate_TeamConfig.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PartialCrudTeamConfigTemplate.cs</LastGenOutput>
+      <LastGenOutput>PartialCrudTeamConfigTemplate_TeamConfig.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="_5_0_0\Templates\DotNet\Domain\Specifications\EntitySpecificationTemplate.tt">
@@ -923,6 +928,12 @@
       <DesignTime>True</DesignTime>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate_TeamConfigChildren.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudTeamConfigTemplate_TeamConfigChildren.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -7,7 +7,11 @@
     labelKey: 'app.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>',
     permissions: [Permission.<#= ModelInstance.EntityName #>_List_Access],
     path: ['/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>'],
+<#  if(!ModelInstance.IsTeam) { #>
     icon: 'pi pi-th-large',
+<#  } else { #>
+    icon: 'pi pi-sitemap',
+<#  } #>
   },
   // BIAToolKit - End Partial Navigation <#= ModelInstance.EntityName #>
 <# }  #>

@@ -3,14 +3,16 @@
       {
         "Names": [ "MaintenanceTeam_Create", "MaintenanceTeam_Delete" ],
         "Roles": [
-          "Admin"
+          "Admin",
+          "AircraftMaintenanceCompany_Admin"
         ]
       },
       {
-        "Names": [  "MaintenanceTeam_Update", "MaintenanceTeam_Save" ],
+        "Names": [ "MaintenanceTeam_Update", "MaintenanceTeam_Save" ],
         "Roles": [
-          "MaintenanceTeam_Admin",
-          "Admin"
+          "Admin",
+          "AircraftMaintenanceCompany_Admin",
+          "MaintenanceTeam_Admin"
         ]
       },
       {
@@ -33,7 +35,7 @@
         "Names": [ "MaintenanceTeam_Member_Create", "MaintenanceTeam_Member_Read", "MaintenanceTeam_Member_Update", "MaintenanceTeam_Member_Delete", "MaintenanceTeam_Member_Save" ],
         "Roles": [
           "Admin",
-          "AircraftMaintenanceCompany_TeamLeader",
+          "AircraftMaintenanceCompany_Admin",
           "MaintenanceTeam_Admin"
         ]
       },
@@ -41,7 +43,7 @@
         "Names": [ "MaintenanceTeam_View_Add_TeamView", "MaintenanceTeam_View_Update_TeamView", "MaintenanceTeam_View_Set_Default_TeamView", "MaintenanceTeam_View_Assign_To_Team" ],
         "Roles": [
           "Admin",
-          "AircraftMaintenanceCompany_TeamLeader",
+          "AircraftMaintenanceCompany_Admin",
           "MaintenanceTeam_Admin"
         ]
       },

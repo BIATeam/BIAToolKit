@@ -28,10 +28,12 @@ export namespace Feature<#= ModelInstance.EntityNamePlural #>Actions {
     props<{ <#= ModelInstance.EntityName.ToCamelCase() #>: <#= ModelInstance.EntityName #> }>()
   );
 
+<#  if(ModelInstance.CanImport) { #>
   export const save = createAction(
     '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Save',
     props<{ <#= ModelInstance.EntityNamePlural.ToCamelCase() #>: <#= ModelInstance.EntityName #>[] }>()
   );
+<#  } #>
 
   export const remove = createAction(
     '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Remove',

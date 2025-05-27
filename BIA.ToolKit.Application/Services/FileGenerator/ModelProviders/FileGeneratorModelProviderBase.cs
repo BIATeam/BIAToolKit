@@ -56,6 +56,8 @@
             model.HasReadOnlyMode = crudContext.HasReadOnlyMode;
             model.HasFixableParent = crudContext.HasFixableParent;
             model.IsFixable = crudContext.IsFixable;
+            model.HasAdvancedFilter = crudContext.HasAdvancedFilter;
+            model.CanImport = crudContext.CanImport;
 
             model.Properties = crudContext.Properties.Select(x => new TPropertyCrudModel
             {
