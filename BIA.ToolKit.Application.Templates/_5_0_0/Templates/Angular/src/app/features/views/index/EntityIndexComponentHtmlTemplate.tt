@@ -13,7 +13,7 @@
       [canDelete]="canDelete"
       [canEdit]="canEdit"
       [canFix]="canFix"
-<#  if(!ModelInstance.IsTeam) { #>
+<#  if(ModelInstance.CanImport) { #>
       [canImport]="canSave && crudConfiguration.useImport"
 <#  } #>
       [canExportCSV]="true"
@@ -22,7 +22,7 @@
       (fullExportCSV)="onExportCSV('<#= ModelInstance.EntityName.ToCamelCase() #>.listOf', true)"
       (clone)="onClone()"
       (delete)="onDelete()"
-<#  if(!ModelInstance.IsTeam) { #>
+<#  if(ModelInstance.CanImport) { #>
       (import)="onImport()"
 <#  } #>
       [selectedElements]="selectedCrudItems"

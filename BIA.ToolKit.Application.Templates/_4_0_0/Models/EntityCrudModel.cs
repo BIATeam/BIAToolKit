@@ -35,5 +35,6 @@
         public string HubForClientParentKey { get => throw new System.NotImplementedException(); }
         public bool HasHubForClientParentKey { get => throw new System.NotImplementedException(); }
         public bool HasAdvancedFilter { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public bool CanImport { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
     }
 }

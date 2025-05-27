@@ -121,7 +121,7 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
 <#  } #>
     this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.create({ <#= ModelInstance.EntityName.ToCamelCase() #>: crudItem }));
   }
-<#  if(!ModelInstance.IsTeam) { #>
+<#  if(ModelInstance.CanImport) { #>
   public save(crudItems: <#= ModelInstance.EntityName #>[]) {
 <#  if(ModelInstance.HasParent) { #>
     // TODO after creation of CRUD <#= ModelInstance.EntityName #> : map parent Key on the corresponding field

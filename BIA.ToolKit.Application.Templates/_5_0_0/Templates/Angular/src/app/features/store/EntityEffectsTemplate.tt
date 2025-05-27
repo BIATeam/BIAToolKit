@@ -141,7 +141,7 @@ export class <#= ModelInstance.EntityNamePlural #>Effects {
     )
   );
 
-<#  if(!ModelInstance.IsTeam) { #>
+<#  if(ModelInstance.CanImport) { #>
   save$ = createEffect(() =>
     this.actions$.pipe(
       ofType(Feature<#= ModelInstance.EntityNamePlural #>Actions.save),

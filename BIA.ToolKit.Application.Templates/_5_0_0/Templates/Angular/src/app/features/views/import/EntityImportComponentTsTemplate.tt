@@ -1,7 +1,7 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
-<#  if(!ModelInstance.IsTeam) { #>
+<#  if(ModelInstance.CanImport) { #>
 import { AsyncPipe } from '@angular/common';
 import { Component, Injector } from '@angular/core';
 import { BiaFormComponent } from 'src/app/shared/bia-shared/components/form/bia-form/bia-form.component';

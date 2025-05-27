@@ -58,5 +58,6 @@
         }
 
         public bool HasAdvancedFilter { get; set; }
+        public bool CanImport { get; set; }
     }
 }

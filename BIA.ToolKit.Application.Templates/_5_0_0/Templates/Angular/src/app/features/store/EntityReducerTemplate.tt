@@ -41,7 +41,7 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>Reducers = createReduc
   on(Feature<#= ModelInstance.EntityNamePlural #>Actions.load, state => {
     return { ...state, loadingGet: true };
   }),
-  <#  if(!ModelInstance.IsTeam) { #>
+  <#  if(ModelInstance.CanImport) { #>
   on(Feature<#= ModelInstance.EntityNamePlural #>Actions.save, state => {
     return { ...state, loadingGetAll: true };
   }),
