@@ -44,6 +44,7 @@ import { MaintenanceTeamOptionsService } from '../../services/maintenance-team-o
 export class MaintenanceTeamsIndexComponent extends CrudItemsIndexComponent<MaintenanceTeam> implements OnInit {
   @ViewChild(MaintenanceTeamTableComponent, { static: false })
   crudItemTableComponent: MaintenanceTeamTableComponent;
+
   // Customization for teams
   canViewMembers = false;
   // BIAToolKit - Begin MaintenanceTeamIndexTsCanViewChildDeclaration

@@ -64,6 +64,7 @@ import { TeamAdvancedFilterComponent } from 'src/app/shared/bia-shared/component
 export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudItemsIndexComponent<<#= ModelInstance.EntityName #>> implements OnInit {
   @ViewChild(<#= ModelInstance.EntityName #>TableComponent, { static: false })
   crudItemTableComponent: <#= ModelInstance.EntityName #>TableComponent;
+
 <#  if(ModelInstance.IsTeam) { #>
   // Customization for teams
   canViewMembers = false;
