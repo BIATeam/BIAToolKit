@@ -82,6 +82,31 @@
     <Compile Include="Common\Interfaces\IPropertyCrudModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyDtoModel.cs" />
+    <None Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositorySet.cs">
+      <DependentUpon>PartialEntityAppServiceTemplate_FixedChildrenRepositorySet.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositoryInjection.cs">
+      <DependentUpon>PartialEntityAppServiceTemplate_FixedChildrenRepositoryInjection.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositoryConstructorParam.cs">
+      <DependentUpon>PartialEntityAppServiceTemplate_FixedChildrenRepositoryConstructorParam.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositoryDefinition.cs">
+      <DependentUpon>PartialEntityAppServiceTemplate_FixedChildrenRepositoryDefinition.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_UpdateFixedChildren.cs">
+      <DependentUpon>PartialEntityAppServiceTemplate_UpdateFixedChildren.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate_TeamConfigChildren.cs">
       <DependentUpon>PartialCrudTeamConfigTemplate_TeamConfigChildren.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -932,6 +957,41 @@
     <EmbeddedResource Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate_TeamConfigChildren.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PartialCrudTeamConfigTemplate_TeamConfigChildren.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_UpdateFixedChildren.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialEntityAppServiceTemplate_UpdateFixedChildren.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositoryDefinition.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialEntityAppServiceTemplate_FixedChildrenRepositoryDefinition.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositoryConstructorParam.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialEntityAppServiceTemplate_FixedChildrenRepositoryConstructorParam.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositoryInjection.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialEntityAppServiceTemplate_FixedChildrenRepositoryInjection.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositorySet.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialEntityAppServiceTemplate_FixedChildrenRepositorySet.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

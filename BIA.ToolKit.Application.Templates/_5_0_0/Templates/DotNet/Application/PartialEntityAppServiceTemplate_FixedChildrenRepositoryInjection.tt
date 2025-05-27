@@ -1,0 +1,8 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<#  if(ModelInstance.IsFixable && ModelInstance.HasFixableParent) { #>
+            // BIAToolKit - Begin Partial FixedChildrenRepositoryInjection<#= ModelInstance.ParentName #> <#= ModelInstance.EntityName #>
+            ITGenericRepository<<#= ModelInstance.EntityName #>, int> <#= ModelInstance.EntityName.ToCamelCase() #>Repository,
+            // BIAToolKit - End Partial FixedChildrenRepositoryInjection<#= ModelInstance.ParentName #> <#= ModelInstance.EntityName #>
+<# }  #>

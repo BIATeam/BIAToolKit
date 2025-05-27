@@ -82,7 +82,7 @@
                 HasFixableParent = true,
                 CanImport = true,
                 GenerateBack = true,
-                GenerateFront = true,
+                GenerateFront = false,
                 AngularFront = "Angular",
             };
 
@@ -151,7 +151,7 @@
                 IsFixable = true,
                 CanImport = true,
                 GenerateBack = true,
-                GenerateFront = true,
+                GenerateFront = false,
                 AngularFront = "Angular",
             };
 
@@ -193,11 +193,64 @@
                 DisplayItemName = "Title",
                 HasAdvancedFilter = true,
                 GenerateBack = true,
-                GenerateFront = true,
+                GenerateFront = false,
                 AngularFront = "Angular",
             };
 
             await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext, ["MaintenanceTeam"]);
+        }
+
+        /// <summary>
+        /// Generates the CRUD's files for Maintenance Team.
+        /// </summary>
+        [Fact]
+        public async Task GenerateMaintenanceTeam_BIADemoConfiguration_AllFilesEquals()
+        {
+            var entityInfo = new EntityInfo(
+                path: string.Empty,
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Maintenance",
+                name: "MaintenanceTeam",
+                baseType: "TeamDto",
+                baseKeyType: null,
+                arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "AircraftMaintenanceCompany")],
+                baseList: ["TeamDto"]);
+
+            var domainName = "Maintenance";
+
+            var properties = new List<PropertyInfo>
+            {
+                new("int", "AircraftMaintenanceCompanyId", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("IsParent", true)]),
+                new("OptionDto", "CurrentAirport", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("ItemType", "Airport")]),
+                new("ICollection<OptionDto>", "OperationAirports", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("ItemType", "Airport")]),
+                new("OptionDto", "CurrentCountry", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("ItemType", "Country")]),
+                new("ICollection<OptionDto>", "OperationCountries", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("ItemType", "Country")])
+            };
+
+            var crudContext = new FileGeneratorCrudContext
+            {
+                CompanyName = fixture.TestProject.CompanyName,
+                ProjectName = fixture.TestProject.Name,
+                DomainName = domainName,
+                EntityName = entityInfo.Name,
+                EntityNamePlural = entityInfo.NamePluralized,
+                BaseKeyType = entityInfo.BaseKeyType,
+                Properties = properties,
+                IsTeam = true,
+                OptionItems = ["Airport", "Country"],
+                HasParent = true,
+                ParentName = "AircraftMaintenanceCompany",
+                ParentNamePlural = "AircraftMaintenanceCompanies",
+                HasAncestorTeam = true,
+                AncestorTeamName = "AircraftMaintenanceCompany",
+                IsFixable = true,
+                DisplayItemName = "Title",
+                HasAdvancedFilter = true,
+                GenerateBack = true,
+                GenerateFront = false,
+                AngularFront = "Angular",
+            };
+
+            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);
         }
     }
 }

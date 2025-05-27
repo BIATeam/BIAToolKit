@@ -67,12 +67,22 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
         private readonly ITGenericRepository<<#= ModelInstance.ParentName #>, int> <#= ModelInstance.ParentName.ToCamelCase() #>Repository;
 
 <#  } #>
+<#  if(ModelInstance.IsFixable) { #>
+        // BIAToolKit - Begin FixedChildrenRepositoryDefinition<#= ModelInstance.EntityName #>
+        // BIAToolKit - End FixedChildrenRepositoryDefinition<#= ModelInstance.EntityName #>
+#pragma warning disable SA1515 // Single-line comment should be preceded by blank line
+#pragma warning disable SA1611 // Element parameters should be documented
+<#  } #>
         /// <summary>
         /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>AppService"/> class.
         /// </summary>
         /// <param name="repository">The repository.</param>
 <#  if(ModelInstance.HasFixableParent) { #>
         /// <param name="<#= ModelInstance.ParentName.ToCamelCase() #>Repository">The <#= ModelInstance.ParentName.ToCamelCase() #> repository.</param>
+<#  } #>
+<#  if(ModelInstance.IsFixable) { #>
+        // BIAToolKit - Begin FixedChildrenRepositoryConstructorParam<#= ModelInstance.EntityName #>
+        // BIAToolKit - End FixedChildrenRepositoryConstructorParam<#= ModelInstance.EntityName #>
 <#  } #>
         /// <param name="principal">The claims principal.</param>
         public <#= ModelInstance.EntityName #>AppService(
@@ -83,6 +93,10 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
 <#  } #>
 <#  if(ModelInstance.HasFixableParent) { #>
             ITGenericRepository<<#= ModelInstance.ParentName #>, int> <#= ModelInstance.ParentName.ToCamelCase() #>Repository,
+<#  } #>
+<#  if(ModelInstance.IsFixable) { #>
+            // BIAToolKit - Begin FixedChildrenRepositoryInjection<#= ModelInstance.EntityName #>
+            // BIAToolKit - End FixedChildrenRepositoryInjection<#= ModelInstance.EntityName #>
 <#  } #>
             IPrincipal principal)
             : base(repository)
@@ -115,8 +129,15 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
 <#  } #>
 <#  } #>
 <#  } #>
+<#  if(ModelInstance.IsFixable) { #>
+
+            // BIAToolKit - Begin FixedChildrenRepositorySet<#= ModelInstance.EntityName #>
+            // BIAToolKit - End FixedChildrenRepositorySet<#= ModelInstance.EntityName #>
+<#  } #>
         }
 <#  if(ModelInstance.IsFixable) { #>
+#pragma warning restore SA1611 // Element parameters should be documented
+#pragma warning restore SA1515 // Single-line comment should be preceded by blank line
 
         /// <inheritdoc/>
         public override async Task<<#= ModelInstance.EntityName #>Dto> UpdateFixedAsync(int id, bool isFixed)
@@ -126,6 +147,9 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
                 // Update entity fixed status
                 var entity = await this.Repository.GetEntityAsync(id) ?? throw new ElementNotFoundException();
                 this.Repository.UpdateFixedAsync(entity, isFixed);
+
+                // BIAToolKit - Begin UpdateFixedChildren<#= ModelInstance.EntityName #>
+                // BIAToolKit - End UpdateFixedChildren<#= ModelInstance.EntityName #>
                 await this.Repository.UnitOfWork.CommitAsync();
                 return await this.GetAsync(id);
             });
