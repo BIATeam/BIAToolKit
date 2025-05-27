@@ -1,9 +1,9 @@
 ﻿    // BIAToolKit - Begin Partial AllEnvironment MaintenanceTeam
     {
       teamTypeId: TeamTypeId.MaintenanceTeam,
-      roleMode: RoleMode.AllRoles,
+      roleMode: RoleMode.MultiRoles,
       inHeader: true,
-      displayAlways: true,
+      displayOne: true,
       label: 'maintenanceTeam.headerLabel',
     },
     // BIAToolKit - End Partial AllEnvironment MaintenanceTeam
