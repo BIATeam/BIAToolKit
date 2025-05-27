@@ -31,6 +31,9 @@ import {
 <#  if(ModelInstance.HasOptionItems) { #>
 import { <#= ModelInstance.EntityName #>OptionsService } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>-options.service';
 <#  } #>
+<#  if(ModelInstance.HasAdvancedFilter) { #>
+import { TeamAdvancedFilterComponent } from 'src/app/shared/bia-shared/components/team-advanced-filter/team-advanced-filter.component';
+<#  } #>
 
 @Component({
   selector: 'app-<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-index',
@@ -48,6 +51,9 @@ import { <#= ModelInstance.EntityName #>OptionsService } from '../../services/<#
     <#= ModelInstance.EntityName #>TableComponent,
     AsyncPipe,
     TranslateModule,
+<#  if(ModelInstance.HasAdvancedFilter) { #>
+    TeamAdvancedFilterComponent,
+<#  } #>
     BiaTableHeaderComponent,
     BiaTableControllerComponent,
     BiaTableBehaviorControllerComponent,
@@ -59,11 +65,19 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
   @ViewChild(<#= ModelInstance.EntityName #>TableComponent, { static: false })
   crudItemTableComponent: <#= ModelInstance.EntityName #>TableComponent;
 <#  if(ModelInstance.IsTeam) { #>
+  // Customization for teams
   canViewMembers = false;
-  canSelectElement = false;
 <#  } #>
   // BIAToolKit - Begin <#= ModelInstance.EntityName #>IndexTsCanViewChildDeclaration
   // BIAToolKit - End <#= ModelInstance.EntityName #>IndexTsCanViewChildDeclaration
+
+<#  if(ModelInstance.HasAdvancedFilter) { #>
+  checkhasAdvancedFilter() {
+    this.hasAdvancedFilter = TeamAdvancedFilterDto.hasFilter(
+      this.crudConfiguration.fieldsConfig.advancedFilter
+    );
+  }
+<#  } #>
 
   constructor(
     protected injector: Injector,
@@ -97,18 +111,20 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
     this.canEdit = this.authService.hasPermission(Permission.<#= ModelInstance.EntityName #>_Update);
     this.canDelete = this.authService.hasPermission(Permission.<#= ModelInstance.EntityName #>_Delete);
     this.canAdd = this.authService.hasPermission(Permission.<#= ModelInstance.EntityName #>_Create);
+<#  if(!ModelInstance.IsTeam) { #>
     this.canSave = this.authService.hasPermission(Permission.<#= ModelInstance.EntityName #>_Save);
+    this.canSelect = this.canDelete;
+<#  } #>
 <#  if(ModelInstance.IsFixable) { #>
     this.canFix = this.authService.hasPermission(Permission.<#= ModelInstance.EntityName #>_Fix);
 <#  } #>
-    this.canSelect = this.canDelete;
     // BIAToolKit - Begin <#= ModelInstance.EntityName #>IndexTsCanViewChildSet
     // BIAToolKit - End <#= ModelInstance.EntityName #>IndexTsCanViewChildSet
 <#  if(ModelInstance.IsTeam) { #>
     this.canViewMembers = this.authService.hasPermission(
       Permission.<#= ModelInstance.EntityName #>_Member_List_Access
     );
-    this.canSelectElement =
+    this.canSelect =
       // BIAToolKit - Begin <#= ModelInstance.EntityName #>IndexTsCanSelectElementChildSet
       // BIAToolKit - End <#= ModelInstance.EntityName #>IndexTsCanSelectElementChildSet
       this.canViewMembers ||
@@ -144,12 +160,6 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
   }
 
 <#  if(ModelInstance.IsTeam) { #>
-  checkhasAdvancedFilter() {
-    this.hasAdvancedFilter = TeamAdvancedFilterDto.hasFilter(
-      this.crudConfiguration.fieldsConfig.advancedFilter
-    );
-  }
-
   protected initSelectedButtonGroup() {
     this.selectedButtonGroup = [
       new BiaButtonGroupItem(

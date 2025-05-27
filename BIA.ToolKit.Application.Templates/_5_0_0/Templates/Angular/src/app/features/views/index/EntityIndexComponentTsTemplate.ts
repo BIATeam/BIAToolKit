@@ -44,10 +44,11 @@ import { MaintenanceTeamOptionsService } from '../../services/maintenance-team-o
 export class MaintenanceTeamsIndexComponent extends CrudItemsIndexComponent<MaintenanceTeam> implements OnInit {
   @ViewChild(MaintenanceTeamTableComponent, { static: false })
   crudItemTableComponent: MaintenanceTeamTableComponent;
+  // Customization for teams
   canViewMembers = false;
-  canSelectElement = false;
   // BIAToolKit - Begin MaintenanceTeamIndexTsCanViewChildDeclaration
   // BIAToolKit - End MaintenanceTeamIndexTsCanViewChildDeclaration
+
 
   constructor(
     protected injector: Injector,
@@ -74,24 +75,16 @@ export class MaintenanceTeamsIndexComponent extends CrudItemsIndexComponent<Main
     this.canEdit = this.authService.hasPermission(Permission.MaintenanceTeam_Update);
     this.canDelete = this.authService.hasPermission(Permission.MaintenanceTeam_Delete);
     this.canAdd = this.authService.hasPermission(Permission.MaintenanceTeam_Create);
-    this.canSave = this.authService.hasPermission(Permission.MaintenanceTeam_Save);
-    this.canSelect = this.canDelete;
     // BIAToolKit - Begin MaintenanceTeamIndexTsCanViewChildSet
     // BIAToolKit - End MaintenanceTeamIndexTsCanViewChildSet
     this.canViewMembers = this.authService.hasPermission(
       Permission.MaintenanceTeam_Member_List_Access
     );
-    this.canSelectElement =
+    this.canSelect =
       // BIAToolKit - Begin MaintenanceTeamIndexTsCanSelectElementChildSet
       // BIAToolKit - End MaintenanceTeamIndexTsCanSelectElementChildSet
       this.canViewMembers ||
       this.canDelete;
-  }
-
-  checkhasAdvancedFilter() {
-    this.hasAdvancedFilter = TeamAdvancedFilterDto.hasFilter(
-      this.crudConfiguration.fieldsConfig.advancedFilter
-    );
   }
 
   protected initSelectedButtonGroup() {
