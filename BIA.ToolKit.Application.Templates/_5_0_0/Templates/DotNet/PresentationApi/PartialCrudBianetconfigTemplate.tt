@@ -9,16 +9,16 @@
         "Roles": [ "Admin", "Site_Member" ]
       },
       {
-        "Names": [ "<#= ModelInstance.EntityName #>_Update", "<#= ModelInstance.EntityName #>_Save"<# if (ModelInstance.IsFixable) { #>, "<#= ModelInstance.EntityName #>_Fix"<# } #> ],
+        "Names": [ "<#= ModelInstance.EntityName #>_Update", "<#= ModelInstance.EntityName #>_Save" ],
         "Roles": [ "Site_Admin" ]
       },
       {
-        "Names": [ "<#= ModelInstance.EntityName #>_Create", "<#= ModelInstance.EntityName #>_Delete" ],
+        "Names": [ "<#= ModelInstance.EntityName #>_Create", "<#= ModelInstance.EntityName #>_Delete"<# if (ModelInstance.IsFixable) { #>, "<#= ModelInstance.EntityName #>_Fix"<# } #> ],
         "Roles": [ "Site_Admin" ]
       },
 <#  } else { #>
       {
-        "Names": [ "<#= ModelInstance.EntityName #>_Create", "<#= ModelInstance.EntityName #>_Delete" ],
+        "Names": [ "<#= ModelInstance.EntityName #>_Create", "<#= ModelInstance.EntityName #>_Delete"<# if (ModelInstance.IsFixable) { #>, "<#= ModelInstance.EntityName #>_Fix"<# } #> ],
         "Roles": [
 <#  if(ModelInstance.HasParent) { #>
           "Admin",
