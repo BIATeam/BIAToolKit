@@ -27,5 +27,6 @@
         bool HasReadOnlyMode { get; set; }
         bool HasFixableParent { get; set; }
         bool IsFixable { get; set; }
+        bool HasAdvancedFilter { get; set; }
     }
 }

@@ -18,5 +18,6 @@
         public bool HasReadOnlyMode { get; set; }
         public bool HasFixableParent { get; set; }
         public bool IsFixable { get; set; }
+        public bool HasAdvancedFilter { get; set; }
     }
 }

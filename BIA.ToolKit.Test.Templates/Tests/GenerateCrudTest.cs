@@ -189,6 +189,7 @@
                 Properties = properties,
                 IsTeam = true,
                 DisplayItemName = "Title",
+                HasAdvancedFilter = true,
                 GenerateBack = false,
                 GenerateFront = true,
                 AngularFront = "Angular",

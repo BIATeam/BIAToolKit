@@ -56,5 +56,7 @@
                 : "ParentTeam";
             return $"{parentKeyName}Id";
         }
+
+        public bool HasAdvancedFilter { get; set; }
     }
 }
