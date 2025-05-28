@@ -18,7 +18,7 @@ import { Feature<#= ModelInstance.EntityNamePlural #>Store } from '../store/<#= 
 import { Feature<#= ModelInstance.EntityNamePlural #>Actions } from '../store/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-actions';
 import { <#= ModelInstance.EntityName #>Das } from './<#= ModelInstance.EntityName.ToKebabCase() #>-das.service';
 import { <#= ModelInstance.EntityName #>OptionsService } from './<#= ModelInstance.EntityName.ToKebabCase() #>-options.service';
-<#  if(ModelInstance.HasParent && !ModelInstance.IsTeam) {#>
+<#  if(ModelInstance.HasParent) {#>
 import { <#= ModelInstance.ParentName #>Service } from '../../../services/<#= ModelInstance.ParentName.ToKebabCase() #>.service';
 <#  } #>
 
@@ -34,9 +34,10 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
     private store: Store<AppState>,
     public dasService: <#= ModelInstance.EntityName #>Das,
     public signalRService: CrudItemSignalRService<<#= ModelInstance.EntityName #>>,
-<#  if(ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
+<#  if(ModelInstance.HasParent) { #>
     public <#=  ModelInstance.ParentName.ToCamelCase() #>Service: <#=  ModelInstance.ParentName #>Service,
-<#  } else if (ModelInstance.IsTeam || ModelInstance.HasAncestorTeam) {#>
+<#  } #>
+<# if (ModelInstance.IsTeam || ModelInstance.HasAncestorTeam) {#>
     protected authService: AuthService,
 <#  } #>
     public optionsService: <#= ModelInstance.EntityName #>OptionsService,
