@@ -3,7 +3,6 @@
 <#@ output extension=".ts" #>
 <#  if(ModelInstance.IsTeam) { #>
   // BIAToolKit - Begin Partial TeamTypeIdConstants <#= ModelInstance.EntityName #>
-  // TODO after creation of team <#= ModelInstance.EntityName #> : adapt enum value
-  <#= ModelInstance.EntityName #> = 3,
+  <#= ModelInstance.EntityName #> = <#= ModelInstance.TeamTypeId #>,
   // BIAToolKit - End Partial TeamTypeIdConstants <#= ModelInstance.EntityName #>
 <# }  #>
