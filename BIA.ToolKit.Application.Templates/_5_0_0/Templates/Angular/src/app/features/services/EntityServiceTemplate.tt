@@ -37,7 +37,7 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
 <#  if(ModelInstance.HasParent) { #>
     public <#=  ModelInstance.ParentName.ToCamelCase() #>Service: <#=  ModelInstance.ParentName #>Service,
 <#  } #>
-<# if (ModelInstance.IsTeam || ModelInstance.HasAncestorTeam) {#>
+<# if (ModelInstance.IsTeam || (!ModelInstance.HasParent && ModelInstance.HasAncestorTeam)) {#>
     protected authService: AuthService,
 <#  } #>
     public optionsService: <#= ModelInstance.EntityName #>OptionsService,
