@@ -1,13 +1,17 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".cs" #>
-<#  if(ModelInstance.IsFixable && ModelInstance.HasFixableParent) { #>
+<#  if(ModelInstance.HasFixableParent) { #>
         // BIAToolKit - Begin Partial FixedChildrenRepositoryDefinition<#= ModelInstance.ParentName #> <#= ModelInstance.EntityName #>
 
         /// <summary>
         /// The <#= ModelInstance.EntityName.ToCamelCase() #> app repository.
         /// </summary>
+<#  if(!ModelInstance.HasCustomRepository) { #>
         private readonly ITGenericRepository<<#= ModelInstance.EntityName #>, int> <#= ModelInstance.EntityName.ToCamelCase() #>Repository;
+<#  } else { #>
+        private readonly I<#= ModelInstance.EntityName #>Repository <#= ModelInstance.EntityName.ToCamelCase() #>Repository;
+<#  } #>
 
         // BIAToolKit - End Partial FixedChildrenRepositoryDefinition<#= ModelInstance.ParentName #> <#= ModelInstance.EntityName #>
 <# }  #>

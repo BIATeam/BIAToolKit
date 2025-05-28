@@ -21,6 +21,7 @@ namespace TheBIADevCompany.BIADemo.Application.MaintenanceCompanies
     using TheBIADevCompany.BIADemo.Domain.Dto.MaintenanceCompanies;
     using TheBIADevCompany.BIADemo.Domain.MaintenanceCompanies.Entities;
     using TheBIADevCompany.BIADemo.Domain.MaintenanceCompanies.Mappers;
+    using TheBIADevCompany.BIADemo.Domain.RepoContract;
 
     /// <summary>
     /// The application service used for maintenanceTeam.

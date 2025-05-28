@@ -267,6 +267,7 @@
                     .Replace("{Domain}", context.DomainName)
                     .Replace("{Entity}", context.EntityName)
                     .Replace("{EntityPlural}", context.EntityNamePlural)
+                    .Replace("{Parent}", context.ParentName)
             );
         }
 

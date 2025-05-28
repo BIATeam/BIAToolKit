@@ -37,9 +37,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
 <#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Specifications;
 <#  } #>
-<#  if(ModelInstance.HasCustomRepository) { #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.RepoContract;
-<#  } #>
 
     /// <summary>
     /// The application service used for <#= ModelInstance.EntityName.ToCamelCase() #>.
