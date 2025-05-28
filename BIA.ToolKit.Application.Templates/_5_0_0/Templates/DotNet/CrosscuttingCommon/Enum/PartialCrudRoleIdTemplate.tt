@@ -10,12 +10,5 @@
         // TODO after creation of team <#= ModelInstance.EntityName #> : adapt the enum value
         <#= ModelInstance.EntityName #>Admin = 3,
 
-<#  if(ModelInstance.HasParent) { #>
-        /// <summary>
-        /// The <#= ModelInstance.ParentName #>TeamLeader role identifier
-        /// </summary>
-        // TODO after creation of team <#= ModelInstance.EntityName #> : adapt the enum value
-        <#= ModelInstance.ParentName #>TeamLeader = 201,
-<# }  #>
         // BIAToolKit - End Partial RoleId <#= ModelInstance.EntityName #>
 <# }  #>
