@@ -81,7 +81,7 @@
                 HasCustomRepository = true,
                 HasFixableParent = true,
                 CanImport = true,
-                GenerateBack = false,
+                GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };
@@ -150,7 +150,7 @@
                 HasReadOnlyMode = true,
                 IsFixable = true,
                 CanImport = true,
-                GenerateBack = false,
+                GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };
@@ -194,7 +194,7 @@
                 HasAdvancedFilter = true,
                 TeamTypeId = 3,
                 TeamRoleId = 3,
-                GenerateBack = false,
+                GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };
@@ -221,6 +221,23 @@
 
             var properties = new List<PropertyInfo>
             {
+                new("string", "Code", [RoslynHelper.CreateAttributeArgument("Required", false)]),
+                new("bool", "IsActive", [RoslynHelper.CreateAttributeArgument("Required", true)]),
+                new("bool?", "IsApproved", [RoslynHelper.CreateAttributeArgument("Required", false)]),
+                new("DateTime", "FirstOperation", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("Type", "datetime")]),
+                new("DateTime?", "LastOperation", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("Type", "datetime")]),
+                new("DateTime?", "ApprovedDate", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("Type", "date")]),
+                new("DateTime", "NextOperation", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("Type", "date")]),
+                new("string", "MaxTravelDuration", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("Type", "time")]),
+                new("string", "MaxOperationDuration", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("Type", "time")]),
+                new("int", "OperationCount", [RoslynHelper.CreateAttributeArgument("Required", true)]),
+                new("int?", "IncidentCount", [RoslynHelper.CreateAttributeArgument("Required", false)]),
+                new("double", "TotalOperationDuration", [RoslynHelper.CreateAttributeArgument("Required", true)]),
+                new("double?", "AverageOperationDuration", [RoslynHelper.CreateAttributeArgument("Required", false)]),
+                new("float", "TotalTravelDuration", [RoslynHelper.CreateAttributeArgument("Required", true)]),
+                new("float?", "AverageTravelDuration", [RoslynHelper.CreateAttributeArgument("Required", false)]),
+                new("decimal", "TotalOperationCost", [RoslynHelper.CreateAttributeArgument("Required", true)]),
+                new("decimal?", "AverageOperationCost", [RoslynHelper.CreateAttributeArgument("Required", false)]),
                 new("int", "AircraftMaintenanceCompanyId", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("IsParent", true)]),
                 new("OptionDto", "CurrentAirport", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("ItemType", "Airport")]),
                 new("ICollection<OptionDto>", "OperationAirports", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("ItemType", "Airport")]),
@@ -249,7 +266,7 @@
                 HasAdvancedFilter = true,
                 TeamTypeId = 4,
                 TeamRoleId = 4,
-                GenerateBack = false,
+                GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };
