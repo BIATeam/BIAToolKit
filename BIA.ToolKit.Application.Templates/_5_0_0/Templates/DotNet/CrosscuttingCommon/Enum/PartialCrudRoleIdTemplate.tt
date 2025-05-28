@@ -7,8 +7,7 @@
         /// <summary>
         /// The <#= ModelInstance.EntityName #> admin role identifier.
         /// </summary>
-        // TODO after creation of team <#= ModelInstance.EntityName #> : adapt the enum value
-        <#= ModelInstance.EntityName #>Admin = 3,
+        <#= ModelInstance.EntityName #>Admin = <#= ModelInstance.TeamRoleId #>,
 
         // BIAToolKit - End Partial RoleId <#= ModelInstance.EntityName #>
 <# }  #>

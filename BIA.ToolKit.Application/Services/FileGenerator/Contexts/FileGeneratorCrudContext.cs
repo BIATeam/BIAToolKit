@@ -20,5 +20,7 @@
         public bool IsFixable { get; set; }
         public bool HasAdvancedFilter { get; set; }
         public bool CanImport { get; set; }
+        public int TeamTypeId { get; set; }
+        public int TeamRoleId { get; set; }
     }
 }
