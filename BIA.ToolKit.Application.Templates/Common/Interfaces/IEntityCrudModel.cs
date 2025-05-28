@@ -29,5 +29,7 @@
         bool IsFixable { get; set; }
         bool HasAdvancedFilter { get; set; }
         bool CanImport { get; set; }
+        int TeamTypeId { get; set; }
+        int TeamRoleId { get; set; }
     }
 }

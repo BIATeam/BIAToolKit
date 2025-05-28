@@ -13,6 +13,7 @@ import { FeatureMaintenanceTeamsStore } from '../store/maintenance-team.state';
 import { FeatureMaintenanceTeamsActions } from '../store/maintenance-teams-actions';
 import { MaintenanceTeamDas } from './maintenance-team-das.service';
 import { MaintenanceTeamOptionsService } from './maintenance-team-options.service';
+import { AircraftMaintenanceCompanyService } from '../../../services/aircraft-maintenance-company.service';
 
 @Injectable({
   providedIn: 'root',
@@ -26,6 +27,7 @@ export class MaintenanceTeamService extends CrudItemService<MaintenanceTeam> {
     private store: Store<AppState>,
     public dasService: MaintenanceTeamDas,
     public signalRService: CrudItemSignalRService<MaintenanceTeam>,
+    public aircraftMaintenanceCompanyService: AircraftMaintenanceCompanyService,
     protected authService: AuthService,
     public optionsService: MaintenanceTeamOptionsService,
     protected injector: Injector

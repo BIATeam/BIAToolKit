@@ -7,8 +7,7 @@
         /// <summary>
         /// Value for <#= ModelInstance.EntityName #>.
         /// </summary>
-        // TODO after creation of team <#= ModelInstance.EntityName #> : adapt the enum value
-        <#= ModelInstance.EntityName #> = 3,
+        <#= ModelInstance.EntityName #> = <#= ModelInstance.TeamTypeId #>,
 
         // BIAToolKit - End Partial TeamTypeId <#= ModelInstance.EntityName #>
 <# }  #>

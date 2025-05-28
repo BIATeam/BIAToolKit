@@ -8,8 +8,8 @@
                     ],
                 Children = new ImmutableListBuilder<BiaTeamChildrenConfig<Team>>
                 {
-                // BIAToolKit - Begin TeamConfigAircraftMaintenanceCompanyChildren
-                // BIAToolKit - End TeamConfigAircraftMaintenanceCompanyChildren
+                // BIAToolKit - Begin TeamConfigMaintenanceTeamChildren
+                // BIAToolKit - End TeamConfigMaintenanceTeamChildren
                 }.ToImmutable(),
                 Parents = new ImmutableListBuilder<BiaTeamParentConfig<Team>>
                 {

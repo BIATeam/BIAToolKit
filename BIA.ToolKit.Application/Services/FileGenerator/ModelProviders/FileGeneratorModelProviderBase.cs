@@ -58,6 +58,8 @@
             model.IsFixable = crudContext.IsFixable;
             model.HasAdvancedFilter = crudContext.HasAdvancedFilter;
             model.CanImport = crudContext.CanImport;
+            model.TeamRoleId = crudContext.TeamRoleId;
+            model.TeamTypeId = crudContext.TeamTypeId;
 
             model.Properties = crudContext.Properties.Select(x => new TPropertyCrudModel
             {

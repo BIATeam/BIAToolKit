@@ -140,7 +140,7 @@
         },
         {
           "inputPath": "Domain\\Mappers\\PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.tt",
-          "outputPath": "{Project}.Domain\\User\\Bia\\Mappers\\TeamMapper.cs",
+          "outputPath": "{Project}.Domain\\Bia\\User\\Mappers\\TeamMapper.cs",
           "isPartial": true,
           "partialInsertionMarkup": "TeamMapperParentTeamId"
         },
@@ -173,6 +173,36 @@
           "outputPath": "{Project}.Presentation.Api\\Controllers\\Bia\\User\\AuthController.cs",
           "isPartial": true,
           "partialInsertionMarkup": "AuthController"
+        },
+        {
+          "inputPath": "Application\\PartialEntityAppServiceTemplate_FixedChildrenRepositoryConstructorParam.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\{Parent}AppService.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "FixedChildrenRepositoryConstructorParam{Parent}"
+        },
+        {
+          "inputPath": "Application\\PartialEntityAppServiceTemplate_FixedChildrenRepositoryDefinition.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\{Parent}AppService.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "FixedChildrenRepositoryDefinition{Parent}"
+        },
+        {
+          "inputPath": "Application\\PartialEntityAppServiceTemplate_FixedChildrenRepositoryInjection.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\{Parent}AppService.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "FixedChildrenRepositoryInjection{Parent}"
+        },
+        {
+          "inputPath": "Application\\PartialEntityAppServiceTemplate_FixedChildrenRepositorySet.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\{Parent}AppService.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "FixedChildrenRepositorySet{Parent}"
+        },
+        {
+          "inputPath": "Application\\PartialEntityAppServiceTemplate_UpdateFixedChildren.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\{Parent}AppService.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "UpdateFixedChildren{Parent}"
         }
       ],
       "angularTemplates": [

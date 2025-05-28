@@ -12,8 +12,8 @@
                     ],
                 Children = new ImmutableListBuilder<BiaTeamChildrenConfig<Team>>
                 {
-                // BIAToolKit - Begin TeamConfigAircraftMaintenanceCompanyChildren
-                // BIAToolKit - End TeamConfigAircraftMaintenanceCompanyChildren
+                // BIAToolKit - Begin TeamConfig<#= ModelInstance.EntityName #>Children
+                // BIAToolKit - End TeamConfig<#= ModelInstance.EntityName #>Children
                 }.ToImmutable(),
 <#  if(ModelInstance.HasParent) { #>
                 Parents = new ImmutableListBuilder<BiaTeamParentConfig<Team>>

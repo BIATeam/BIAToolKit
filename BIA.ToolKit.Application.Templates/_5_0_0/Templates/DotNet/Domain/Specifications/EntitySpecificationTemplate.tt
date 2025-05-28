@@ -1,7 +1,7 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".cs" #>
-<#  if(ModelInstance.HasParent) { #>
+<#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
 // <copyright file="<#= ModelInstance.EntityName #>Specification.cs" company="<#= ModelInstance.CompanyName #>">
 // Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>

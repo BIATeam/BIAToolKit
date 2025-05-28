@@ -1,0 +1,8 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<#  if(ModelInstance.HasFixableParent) { #>
+        // BIAToolKit - Begin Partial FixedChildrenRepositoryConstructorParam<#= ModelInstance.ParentName #> <#= ModelInstance.EntityName #>
+        /// <param name="<#= ModelInstance.EntityName.ToCamelCase() #>Repository">The <#= ModelInstance.EntityName.ToCamelCase() #> app service.</param>
+        // BIAToolKit - End Partial FixedChildrenRepositoryConstructorParam<#= ModelInstance.ParentName #> <#= ModelInstance.EntityName #>
+<# }  #>
