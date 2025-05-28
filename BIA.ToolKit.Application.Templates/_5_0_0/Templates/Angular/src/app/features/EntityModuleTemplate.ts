@@ -99,7 +99,6 @@ export const ROUTES: Routes = [
       FeatureMaintenanceTeamsStore.reducers
     ),
     EffectsModule.forFeature([MaintenanceTeamsEffects]),
-    // TODO after creation of CRUD MaintenanceTeam : select the optionDto domain module required for link
     // Domain Modules:
     EngineOptionModule,
     PlaneTypeOptionModule,

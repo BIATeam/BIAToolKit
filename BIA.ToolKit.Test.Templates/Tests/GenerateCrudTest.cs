@@ -81,8 +81,8 @@
                 HasCustomRepository = true,
                 HasFixableParent = true,
                 CanImport = true,
-                GenerateBack = true,
-                GenerateFront = false,
+                GenerateBack = false,
+                GenerateFront = true,
                 AngularFront = "Angular",
             };
 
@@ -150,8 +150,8 @@
                 HasReadOnlyMode = true,
                 IsFixable = true,
                 CanImport = true,
-                GenerateBack = true,
-                GenerateFront = false,
+                GenerateBack = false,
+                GenerateFront = true,
                 AngularFront = "Angular",
             };
 
@@ -194,8 +194,8 @@
                 HasAdvancedFilter = true,
                 TeamTypeId = 3,
                 TeamRoleId = 3,
-                GenerateBack = true,
-                GenerateFront = false,
+                GenerateBack = false,
+                GenerateFront = true,
                 AngularFront = "Angular",
             };
 
@@ -249,8 +249,8 @@
                 HasAdvancedFilter = true,
                 TeamTypeId = 4,
                 TeamRoleId = 4,
-                GenerateBack = true,
-                GenerateFront = false,
+                GenerateBack = false,
+                GenerateFront = true,
                 AngularFront = "Angular",
             };
 
