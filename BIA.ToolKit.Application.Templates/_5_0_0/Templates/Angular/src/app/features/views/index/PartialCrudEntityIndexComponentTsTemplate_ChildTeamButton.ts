@@ -1,4 +1,4 @@
-﻿      // Begin Partial AircraftMaintenanceCompanyIndexTsChildTeamButton MaintenanceTeam
+﻿      // BIAToolKit - Begin Partial AircraftMaintenanceCompanyIndexTsChildTeamButton MaintenanceTeam
       new BiaButtonGroupItem(
         this.translateService.instant(
           'aircraftMaintenanceCompany.maintenanceTeams'
@@ -10,4 +10,4 @@
           'aircraftMaintenanceCompany.maintenanceTeams'
         )
       ),
-      // End Partial AircraftMaintenanceCompanyIndexTsChildTeamButton MaintenanceTeam
+      // BIAToolKit - End Partial AircraftMaintenanceCompanyIndexTsChildTeamButton MaintenanceTeam
