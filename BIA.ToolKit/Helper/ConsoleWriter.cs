@@ -22,6 +22,7 @@
         ScrollViewer OutputTextViewer;
         Window WindowOwner;
         List<Message> messages = new List<Message>();
+        List<string> displayedMessages = new List<string>();
 
         public ConsoleWriter()
         {
@@ -67,6 +68,7 @@
                 //}
                 //messages.Clear();
                 AddMsgLine(OutputText, OutputTextViewer, message, color, refreshimediate);
+                displayedMessages.Add(message);
             }
         }
 
@@ -76,6 +78,17 @@
 
             // Display the dialog box and read the response
             bool? result = dialog.ShowDialog((List<Message>)((Run)sender).DataContext);
+        }
+
+        public void Clear()
+        {
+            displayedMessages.Clear();
+            OutputText.Inlines.Clear();
+        }
+
+        public void CopyToClipboard()
+        {
+            Clipboard.SetText(string.Join(Environment.NewLine, displayedMessages));
         }
 
         public static void AddMsgLine(TextBlock OutputText, ScrollViewer OutputTextViewer, string message, string color, bool refreshimediate = true)

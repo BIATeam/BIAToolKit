@@ -432,5 +432,15 @@
                 }
             }
         }
+
+        private void CopyConsoleContentToClipboard_Click(object sender, RoutedEventArgs e)
+        {
+            this.consoleWriter.CopyToClipboard();
+        }
+
+        private void ClearConsole_Click(object sender, RoutedEventArgs e)
+        {
+            this.consoleWriter.Clear();
+        }
     }
 }
