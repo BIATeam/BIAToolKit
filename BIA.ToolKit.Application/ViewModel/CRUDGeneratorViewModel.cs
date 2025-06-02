@@ -231,6 +231,11 @@
                     IsFrontSelected = IsFrontAvailable;
                     UpdateParentPreSelection();
                     UpdateDomainPreSelection();
+
+                    if (!UseFileGenerator)
+                    {
+                        IsTeam = IsTeam || featureNameSelected == "Team";
+                    }
                 }
             }
         }
@@ -512,6 +517,34 @@
 
         public bool IsWebApiAvailable => UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.WebApi));
         public bool IsFrontAvailable => UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.Front));
+
+        private bool _isTeam;
+
+        public bool IsTeam
+        {
+            get => _isTeam;
+            set
+            {
+                _isTeam = value;
+                RaisePropertyChanged(nameof(IsTeam));
+                RaisePropertyChanged(nameof(IsCheckBoxIsTeamEnable));
+            }
+        }
+
+        public bool IsCheckBoxIsTeamEnable
+        {
+            get
+            {
+                if (UseFileGenerator)
+                    return true;
+
+                if (!string.IsNullOrEmpty(FeatureNameSelected) && FeatureNameSelected.Equals("Team"))
+                    return false;
+
+                return IsDtoParsed;
+            }
+        }
+
         #endregion
 
         #region ZipFile

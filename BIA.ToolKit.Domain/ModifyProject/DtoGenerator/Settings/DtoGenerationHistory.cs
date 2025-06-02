@@ -18,6 +18,7 @@
         public string EntityNamespace { get; set; }
         public string Domain { get; set; }
         public string AncestorTeam { get; set; }
+        public bool IsTeam { get; set; }
         public List<DtoGenerationPropertyMapping> PropertyMappings { get; set; } = new();
     }
 

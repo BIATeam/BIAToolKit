@@ -147,6 +147,7 @@
             vm.Domain = null;
             vm.IsDtoParsed = ParseDtoFile();
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
+            vm.IsTeam = vm.DtoEntity?.IsTeam == true;
             var isBackSelected = vm.IsWebApiAvailable;
             var isFrontSelected = vm.IsFrontAvailable;
             
@@ -173,6 +174,7 @@
                         vm.ParentNamePlural = history.ParentNamePlural;
                         vm.Domain = history.Domain;
                         vm.BiaFront = history.BiaFront;
+                        vm.IsTeam = history.IsTeam;
                         history.OptionItems?.ForEach(o =>
                         {
                             OptionItem item = vm.OptionItems.FirstOrDefault(x => x.OptionName == o);
@@ -240,7 +242,7 @@
                     EntityName = vm.CRUDNameSingular,
                     EntityNamePlural = vm.CRUDNamePlural,
                     BaseKeyType = vm.DtoEntity.BaseKeyType,
-                    IsTeam = vm.DtoEntity.IsTeam,
+                    IsTeam = vm.IsTeam,
                     Properties = [.. vm.DtoEntity.Properties],
                     OptionItems = [.. vm.OptionItems.Where(x => x.Check).Select(x => x.OptionName)],
                     HasParent = vm.HasParent,
@@ -502,6 +504,7 @@
                     ParentNamePlural = vm.ParentNamePlural,
                     Domain = vm.Domain,
                     BiaFront = vm.BiaFront,
+                    IsTeam = vm.IsTeam,
 
                     // Create "Mapping" part
                     Mapping = new()

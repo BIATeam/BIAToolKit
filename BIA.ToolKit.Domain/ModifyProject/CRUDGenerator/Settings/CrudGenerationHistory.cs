@@ -24,6 +24,7 @@
         public string ParentNamePlural { get; set; }
         public string Domain { get; set; }
         public string BiaFront { get; set; }
+        public bool IsTeam { get; set; }
     }
 
     public class DtoMapping

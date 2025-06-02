@@ -112,6 +112,8 @@
 
                 RefreshEntityPropertiesTreeView();
                 RemoveAllMappingProperties();
+
+                IsTeam = SelectedEntityInfo.IsTeam;
             }
         }
 
@@ -168,6 +170,17 @@
             {
                 wasAlreadyGenerated = value;
                 RaisePropertyChanged(nameof(WasAlreadyGenerated));
+            }
+        }
+
+        private bool _isTeam;
+        public bool IsTeam
+        {
+            get => _isTeam;
+            set
+            {
+                _isTeam = value;
+                RaisePropertyChanged(nameof(IsTeam));
             }
         }
 

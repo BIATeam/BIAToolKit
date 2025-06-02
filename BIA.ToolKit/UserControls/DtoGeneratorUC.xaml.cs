@@ -144,7 +144,7 @@
                 EntityNamePlural = vm.SelectedEntityInfo.NamePluralized,
                 BaseKeyType = vm.SelectedEntityInfo.BaseKeyType,
                 Properties = [.. vm.MappingEntityProperties],
-                IsTeam = vm.SelectedEntityInfo.IsTeam,
+                IsTeam = vm.IsTeam,
                 AncestorTeamName = vm.AncestorTeam,
                 HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
                 GenerateBack = true
@@ -161,6 +161,7 @@
             generation.EntityNamespace = vm.SelectedEntityInfo.Namespace;
             generation.Domain = vm.EntityDomain;
             generation.AncestorTeam = vm.AncestorTeam;
+            generation.IsTeam = vm.IsTeam;
             generation.PropertyMappings.Clear();
 
             foreach (var property in vm.MappingEntityProperties)
@@ -225,6 +226,7 @@
             vm.WasAlreadyGenerated = true;
             vm.EntityDomain = generation.Domain;
             vm.AncestorTeam = generation.AncestorTeam;
+            vm.IsTeam = generation.IsTeam;
 
             var allEntityProperties = vm.AllEntityPropertiesRecursively.ToList();
             foreach (var property in allEntityProperties)
