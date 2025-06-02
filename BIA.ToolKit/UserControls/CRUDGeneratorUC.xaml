@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
+             xmlns:controls="clr-namespace:BIA.ToolKit.UserControls"
              mc:Ignorable="d" 
              d:DesignHeight="430" d:DesignWidth="1400">
     <UserControl.DataContext>
@@ -25,7 +26,7 @@
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="0.1*"/>
             </Grid.ColumnDefinitions>
-            
+
             <Label Grid.Column="0" Content="Dto file:" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
             <ComboBox Grid.Column="0" ItemsSource="{Binding DtoFiles.Keys}" SelectedValue="{Binding DtoSelected}" Margin="20,25,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Top" SelectionChanged="ModifyDto_SelectionChange" IsEnabled="{Binding IsProjectChosen}"/>
             <Label Grid.Column="0" Name="CrudAlreadyGeneratedLabel" Content="Generation was already done for this Dto file"  Margin="20,42,0,0" VerticalAlignment="Top" Foreground="Yellow" Visibility="Hidden" />
@@ -59,7 +60,7 @@
                 <CheckBox Grid.Column="0"  Content="Has parent" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding HasParent,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsCheckboxParentEnable}"/>
                 <CheckBox Grid.Column="0" Margin="15,0,0,0" Content="Is Team" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsTeam,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsCheckBoxIsTeamEnable}"/>
             </StackPanel>
-            
+
             <Label Grid.Column="0" Content="Generation Type:" Margin="0,55,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
             <CheckBox Grid.Column="0" Margin="120,62,0,0" Content="WebApi" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsWebApiSelected}" IsEnabled="{Binding IsWebApiAvailable}"/>
             <CheckBox Grid.Column="0" Margin="120,82,0,0" Content="Front" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsFrontSelected}" IsEnabled="{Binding IsFrontAvailable}"/>
@@ -81,6 +82,38 @@
 
             <Label Grid.Column="0" Content="Parent name (plural):" Margin="0,295,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
             <TextBox Grid.Column="0" Text="{Binding ParentNamePlural,UpdateSourceTrigger=PropertyChanged}" Margin="20,320,0,0" TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="21" IsEnabled="{Binding HasParent}"/>
+        </Grid>
+
+        <Grid Grid.Column="4" IsEnabled="{Binding UseFileGenerator}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="0.1*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel>
+                <StackPanel.Resources>
+                    <Thickness x:Key="FieldsGap">0,0,0,10</Thickness>
+                    <Style TargetType="{x:Type controls:LabeledField}">
+                        <Setter Property="Margin" Value="{StaticResource FieldsGap}"/>
+                    </Style>
+                </StackPanel.Resources>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="0.1*"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <controls:LabeledField Grid.Column="0" Label="Team Type ID">
+                        <TextBox Height="21"/>
+                    </controls:LabeledField>
+
+                    <controls:LabeledField Grid.Column="2" Label="Team Role ID">
+                        <TextBox Height="21"/>
+                    </controls:LabeledField>
+                </Grid>
+            </StackPanel>
+            
         </Grid>
 
         <Grid Grid.Column="6" Margin="0,0,10,0">

@@ -57,7 +57,16 @@
             }
         }
 
-        public bool UseFileGenerator { get; set; }
+        private bool _useFileGenerator;
+        public bool UseFileGenerator
+        {
+            get => _useFileGenerator;
+            set
+            {
+                _useFileGenerator = value;
+                RaisePropertyChanged(nameof(UseFileGenerator));
+            }
+        }
         #endregion
 
         #region Dto
