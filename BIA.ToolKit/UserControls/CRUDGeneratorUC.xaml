@@ -14,12 +14,12 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="0.05*"/>
+            <ColumnDefinition Width="0.*"/>
             <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="0.05*"/>
+            <ColumnDefinition Width="0.1*"/>
             <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="0.05"/>
-            <ColumnDefinition Width="0.4*"/>
+            <ColumnDefinition Width="0.1*"/>
+            <ColumnDefinition Width="150"/>
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0" Margin="5,0">
             <Grid.ColumnDefinitions>
@@ -51,10 +51,6 @@
         </Grid>
 
         <Grid Grid.Column="2" Margin="5,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="0.1*"/>
-            </Grid.ColumnDefinitions>
 
             <StackPanel Orientation="Horizontal" Margin="0,27,0,0">
                 <CheckBox Grid.Column="0"  Content="Has parent" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding HasParent,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsCheckboxParentEnable}"/>
@@ -85,15 +81,10 @@
         </Grid>
 
         <Grid Grid.Column="4" IsEnabled="{Binding UseFileGenerator}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="0.1*"/>
-            </Grid.ColumnDefinitions>
-
             <StackPanel>
                 <StackPanel.Resources>
                     <Thickness x:Key="FieldsGap">0,0,0,10</Thickness>
-                    <Style TargetType="{x:Type controls:LabeledField}">
+                    <Style TargetType="{x:Type Grid}">
                         <Setter Property="Margin" Value="{StaticResource FieldsGap}"/>
                     </Style>
                 </StackPanel.Resources>
@@ -112,13 +103,65 @@
                         <TextBox Height="21"/>
                     </controls:LabeledField>
                 </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="0.1*"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center" Content="Use HUB client" Foreground="White"/>
+                    <controls:LabeledField Grid.Column="2" Label="Client KEY">
+                        <TextBox Height="21"/>
+                    </controls:LabeledField>
+                </Grid>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel.Resources>
+                            <Thickness x:Key="FieldsGap">0,0,20,0</Thickness>
+                            <Style TargetType="{x:Type CheckBox}">
+                                <Setter Property="Margin" Value="{StaticResource FieldsGap}"/>
+                            </Style>
+                        </StackPanel.Resources>
+
+                        <CheckBox Content="Custom Repository" Foreground="White"/>
+                        <CheckBox Content="Form Read Only Mode" Foreground="White"/>
+                        <CheckBox Content="Import" Foreground="White"/>
+                    </StackPanel>
+                    
+                    <StackPanel Margin="0,10,0,0" Grid.Row="1" Orientation="Horizontal">
+                        <StackPanel.Resources>
+                            <Thickness x:Key="FieldsGap">0,0,50,0</Thickness>
+                            <Style TargetType="{x:Type CheckBox}">
+                                <Setter Property="Margin" Value="{StaticResource FieldsGap}"/>
+                            </Style>
+                        </StackPanel.Resources>
+
+                        <CheckBox Content="Fixable" Foreground="White"/>
+                        <CheckBox Content="Fixable Parent" Foreground="White"/>
+                        <CheckBox Content="Advanced Filter" Foreground="White"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid>
+                    <controls:LabeledField Label="Ancestor Team">
+                        <TextBox Height="21"/>
+                    </controls:LabeledField>
+                </Grid>
             </StackPanel>
-            
+
         </Grid>
 
         <Grid Grid.Column="6" Margin="0,0,10,0">
-            <Button Content="Generate" IsEnabled="{Binding IsButtonGenerateCrudEnable}" Margin="0,30,0,0" x:Name="GenerateCrud" Height="60" HorizontalAlignment="Stretch" VerticalAlignment="Top" Click="Generate_Click"/>
-            <Button Content="Delete previous generation" Margin="0,230,0,0" x:Name="DeleteGeneration" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Top" Click="DeleteLastGeneration_Click" IsEnabled="{Binding IsDtoGenerated}"/>
+            <Button Content="Generate" IsEnabled="{Binding IsButtonGenerateCrudEnable}" Margin="0,25,0,0" x:Name="GenerateCrud" Height="60" HorizontalAlignment="Stretch" VerticalAlignment="Top" Click="Generate_Click"/>
+            <Button Margin="0,230,0,0" x:Name="DeleteGeneration" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Top" Click="DeleteLastGeneration_Click" IsEnabled="{Binding IsDtoGenerated}">
+                <TextBlock Text="Delete previous generation" TextWrapping="Wrap" TextAlignment="Center"/>
+            </Button>
 
             <Label Content="After all generations :" Margin="0,275,0,0" HorizontalAlignment="Center" VerticalAlignment="Top" Foreground="White"/>
             <Button Content="Delete annotations" Margin="0,300,0,0" x:Name="DeleteAnnotations" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Top" Click="DeleteBIAToolkitAnnotations_Click" IsEnabled="{Binding IsProjectChosen}"/>
