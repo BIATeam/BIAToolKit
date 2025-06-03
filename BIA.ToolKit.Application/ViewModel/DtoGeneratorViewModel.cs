@@ -114,6 +114,9 @@
                 RemoveAllMappingProperties();
 
                 IsTeam = SelectedEntityInfo.IsTeam;
+                IsVersioned = SelectedEntityInfo.IsVersioned;
+                IsFixable = SelectedEntityInfo.IsFixable;
+                IsArchivable = SelectedEntityInfo.IsArchivable;
             }
         }
 
@@ -181,6 +184,39 @@
             {
                 _isTeam = value;
                 RaisePropertyChanged(nameof(IsTeam));
+            }
+        }
+
+        private bool _isVersioned;
+        public bool IsVersioned
+        {
+            get => _isVersioned;
+            set
+            {
+                _isVersioned = value;
+                RaisePropertyChanged(nameof(IsVersioned));
+            }
+        }
+
+        private bool _isArchivable;
+        public bool IsArchivable
+        {
+            get => _isArchivable;
+            set
+            {
+                _isArchivable = value;
+                RaisePropertyChanged(nameof(IsArchivable));
+            }
+        }
+
+        private bool _isFixable;
+        public bool IsFixable
+        {
+            get => _isFixable;
+            set
+            {
+                _isFixable = value;
+                RaisePropertyChanged(nameof(IsFixable));
             }
         }
 
