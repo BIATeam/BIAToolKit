@@ -52,6 +52,7 @@
             model.AngularDeepLevel = crudContext.AngularDeepLevel;
             model.OptionItems = crudContext.OptionItems;
             model.UseHubForClient = crudContext.UseHubForClient;
+            model.HubForClientParentKey = crudContext.HubForClientKey;
             model.HasCustomRepository = crudContext.HasCustomRepository;
             model.HasReadOnlyMode = crudContext.HasReadOnlyMode;
             model.HasFixableParent = crudContext.HasFixableParent;

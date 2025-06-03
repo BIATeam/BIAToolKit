@@ -25,6 +25,18 @@
         public string Domain { get; set; }
         public string BiaFront { get; set; }
         public bool IsTeam { get; set; }
+        public int TeamTypeId { get; set; }
+        public int TeamRoleId { get; set; }
+        public bool UseHubClient { get; set; }
+        public string HubClientKey { get; set; }
+        public bool UseCustomRepository { get; set; }
+        public bool HasFormReadOnlyMode { get; set; }
+        public bool UseImport { get; set; }
+        public bool IsFixable { get; set; }
+        public bool HasFixableParent { get; set; }
+        public bool HasAdvancedFilter { get; set; }
+        public string AncestorTeam { get; set; }
+
     }
 
     public class DtoMapping

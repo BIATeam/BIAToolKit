@@ -554,6 +554,91 @@
             }
         }
 
+        private bool _useHubClient;
+
+        public bool UseHubClient
+        {
+            get { return _useHubClient; }
+            set 
+            { 
+                _useHubClient = value; 
+                RaisePropertyChanged(nameof(UseHubClient));
+            }
+        }
+
+        private bool _hasCustomRepository;
+
+        public bool HasCustomRepository
+        {
+            get { return _hasCustomRepository; }
+            set
+            {
+                _hasCustomRepository = value;
+                RaisePropertyChanged(nameof(HasCustomRepository));
+            }
+        }
+
+        private bool _hasFormReadOnlyMode;
+
+        public bool HasFormReadOnlyMode
+        {
+            get { return _hasFormReadOnlyMode; }
+            set
+            {
+                _hasFormReadOnlyMode = value;
+                RaisePropertyChanged(nameof(HasFormReadOnlyMode));
+            }
+        }
+
+        private bool _useImport;
+
+        public bool UseImport
+        {
+            get { return _useImport; }
+            set
+            {
+                _useImport = value;
+                RaisePropertyChanged(nameof(UseImport));
+            }
+        }
+
+        private bool _isFixable;
+
+        public bool IsFixable
+        {
+            get { return _isFixable; }
+            set
+            {
+                _isFixable = value;
+                RaisePropertyChanged(nameof(IsFixable));
+            }
+        }
+
+        private bool _hasFixableParent;
+
+        public bool HasFixableParent
+        {
+            get { return _hasFixableParent; }
+            set
+            {
+                _hasFixableParent = value;
+                RaisePropertyChanged(nameof(HasFixableParent));
+            }
+        }
+
+        private bool _useAdvancedFilter;
+
+        public bool UseAdvancedFilter
+        {
+            get { return _useAdvancedFilter; }
+            set
+            {
+                _useAdvancedFilter = value;
+                RaisePropertyChanged(nameof(UseAdvancedFilter));
+            }
+        }
+
+
         #endregion
 
         #region ZipFile
@@ -603,6 +688,59 @@
                     && ((IsWebApiSelected && !IsFrontSelected) || (IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)) || (!IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)))
                     && !string.IsNullOrEmpty(featureNameSelected)
                     && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural)));
+            }
+        }
+        #endregion
+
+        #region Team
+        private string _ancestorTeam;
+
+        public string AncestorTeam
+        {
+            get { return _ancestorTeam; }
+            set 
+            { 
+                _ancestorTeam = value;
+                RaisePropertyChanged(nameof(AncestorTeam));
+            }
+        }
+
+        private int _teamTypeId;
+
+        public int TeamTypeId
+        {
+            get { return _teamTypeId; }
+            set 
+            { 
+                _teamTypeId = value; 
+                RaisePropertyChanged(nameof(TeamTypeId));
+            }
+        }
+
+        private int _teamRoleId;
+
+        public int TeamRoleId
+        {
+            get { return _teamRoleId; }
+            set
+            {
+                _teamRoleId = value;
+                RaisePropertyChanged(nameof(TeamRoleId));
+            }
+        }
+
+        #endregion
+
+        #region HUB
+        private string _hubClientKey;
+
+        public string HubClientKey
+        {
+            get { return _hubClientKey; }
+            set
+            {
+                _hubClientKey = value;
+                RaisePropertyChanged(nameof(HubClientKey));
             }
         }
         #endregion

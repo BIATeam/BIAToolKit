@@ -56,8 +56,8 @@
         <Grid Grid.Column="2" Margin="5,0">
 
             <StackPanel Orientation="Horizontal" Margin="0,27,0,0">
-                <CheckBox Grid.Column="0"  Content="Has parent" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding HasParent,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsCheckboxParentEnable}"/>
-                <CheckBox Grid.Column="0" Margin="15,0,0,0" Content="Is Team" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsTeam,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsCheckBoxIsTeamEnable}"/>
+                <CheckBox Grid.Column="0"  Content="Team" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding IsTeam,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsCheckBoxIsTeamEnable}"/>
+                <CheckBox Grid.Column="0" Margin="15,0,0,0" Content="Has parent" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" IsChecked="{Binding HasParent,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsCheckboxParentEnable}"/>
             </StackPanel>
 
             <Label Grid.Column="0" Content="Generation Type:" Margin="0,55,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
@@ -99,11 +99,11 @@
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <controls:LabeledField Grid.Column="0" Label="Team Type ID">
-                        <TextBox Height="21"/>
+                        <TextBox Height="21" Text="{Binding TeamTypeId}"/>
                     </controls:LabeledField>
 
                     <controls:LabeledField Grid.Column="2" Label="Team Role ID">
-                        <TextBox Height="21"/>
+                        <TextBox Height="21" Text="{Binding TeamRoleId}"/>
                     </controls:LabeledField>
                 </Grid>
 
@@ -113,9 +113,9 @@
                         <ColumnDefinition Width="0.1*"/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center" Content="Use HUB client" Foreground="White"/>
+                    <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center" Content="Use HUB client" Foreground="White" IsChecked="{Binding UseHubClient}"/>
                     <controls:LabeledField Grid.Column="2" Label="Client KEY">
-                        <TextBox Height="21"/>
+                        <TextBox Height="21" Text="{Binding HubClientKey}"/>
                     </controls:LabeledField>
                 </Grid>
 
@@ -132,9 +132,9 @@
                             </Style>
                         </StackPanel.Resources>
 
-                        <CheckBox Content="Custom Repository" Foreground="White"/>
-                        <CheckBox Content="Form Read Only Mode" Foreground="White"/>
-                        <CheckBox Content="Import" Foreground="White"/>
+                        <CheckBox Content="Custom Repository" Foreground="White" IsChecked="{Binding HasCustomRepository}"/>
+                        <CheckBox Content="Form Read Only Mode" Foreground="White" IsChecked="{Binding HasFormReadOnlyMode}"/>
+                        <CheckBox Content="Import" Foreground="White" IsChecked="{Binding UseImport}"/>
                     </StackPanel>
                     
                     <StackPanel Margin="0,10,0,0" Grid.Row="1" Orientation="Horizontal">
@@ -145,15 +145,15 @@
                             </Style>
                         </StackPanel.Resources>
 
-                        <CheckBox Content="Fixable" Foreground="White"/>
-                        <CheckBox Content="Fixable Parent" Foreground="White"/>
-                        <CheckBox Content="Advanced Filter" Foreground="White"/>
+                        <CheckBox Content="Fixable" Foreground="White" IsChecked="{Binding IsFixable}"/>
+                        <CheckBox Content="Fixable Parent" Foreground="White" IsChecked="{Binding HasFixableParent}"/>
+                        <CheckBox Content="Advanced Filter" Foreground="White" IsChecked="{Binding UseAdvancedFilter}"/>
                     </StackPanel>
                 </Grid>
 
                 <Grid>
                     <controls:LabeledField Label="Ancestor Team">
-                        <TextBox Height="21"/>
+                        <TextBox Height="21" Text="{Binding AncestorTeam}"/>
                     </controls:LabeledField>
                 </Grid>
             </StackPanel>

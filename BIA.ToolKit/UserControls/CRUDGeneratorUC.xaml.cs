@@ -148,6 +148,8 @@
             vm.IsDtoParsed = ParseDtoFile();
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
             vm.IsTeam = vm.DtoEntity?.IsTeam == true;
+            vm.IsFixable = vm.DtoEntity?.IsFixable == true || vm.DtoEntity?.IsArchivable == true;
+            vm.AncestorTeam = vm.DtoEntity?.AncestorTeamName;
             var isBackSelected = vm.IsWebApiAvailable;
             var isFrontSelected = vm.IsFrontAvailable;
             
@@ -175,6 +177,17 @@
                         vm.Domain = history.Domain;
                         vm.BiaFront = history.BiaFront;
                         vm.IsTeam = history.IsTeam;
+                        vm.TeamTypeId = history.TeamTypeId;
+                        vm.TeamRoleId = history.TeamRoleId;
+                        vm.HubClientKey = history.HubClientKey;
+                        vm.UseHubClient = history.UseHubClient;
+                        vm.HasCustomRepository = history.UseCustomRepository;
+                        vm.HasFormReadOnlyMode = history.HasFormReadOnlyMode;
+                        vm.UseImport = history.UseImport;
+                        vm.IsFixable = history.IsFixable;
+                        vm.HasFixableParent = history.HasFixableParent;
+                        vm.UseAdvancedFilter = history.HasAdvancedFilter;
+                        vm.AncestorTeam = history.AncestorTeam;
                         history.OptionItems?.ForEach(o =>
                         {
                             OptionItem item = vm.OptionItems.FirstOrDefault(x => x.OptionName == o);
@@ -248,12 +261,22 @@
                     HasParent = vm.HasParent,
                     ParentName = vm.ParentName,
                     ParentNamePlural = vm.ParentNamePlural,
-                    AncestorTeamName = vm.DtoEntity.AncestorTeamName,
-                    HasAncestorTeam = vm.DtoEntity.HasAncestorTeam,
+                    AncestorTeamName = vm.AncestorTeam,
+                    HasAncestorTeam = !string.IsNullOrWhiteSpace(vm.AncestorTeam),
                     AngularFront = vm.BiaFront,
                     GenerateBack = vm.IsWebApiSelected,
                     GenerateFront = vm.IsFrontSelected,
-                    DisplayItemName = vm.DtoDisplayItemSelected
+                    DisplayItemName = vm.DtoDisplayItemSelected,
+                    TeamTypeId = vm.TeamTypeId,
+                    TeamRoleId = vm.TeamRoleId,
+                    UseHubForClient = vm.UseHubClient,
+                    HubForClientKey = vm.HubClientKey,
+                    HasCustomRepository = vm.HasCustomRepository,
+                    HasReadOnlyMode = vm.HasFormReadOnlyMode,
+                    CanImport = vm.UseImport,
+                    IsFixable = vm.IsFixable,
+                    HasFixableParent = vm.HasFixableParent,
+                    HasAdvancedFilter = vm.UseAdvancedFilter,
                 });
 
                 UpdateCrudGenerationHistory();
@@ -505,7 +528,17 @@
                     Domain = vm.Domain,
                     BiaFront = vm.BiaFront,
                     IsTeam = vm.IsTeam,
-
+                    TeamTypeId = vm.TeamTypeId,
+                    TeamRoleId = vm.TeamRoleId,
+                    HubClientKey = vm.HubClientKey,
+                    UseHubClient = vm.UseHubClient,
+                    UseCustomRepository = vm.HasCustomRepository,
+                    HasFormReadOnlyMode = vm.HasFormReadOnlyMode,
+                    UseImport = vm.UseImport,
+                    IsFixable = vm.IsFixable,
+                    HasFixableParent = vm.HasFixableParent,
+                    HasAdvancedFilter = vm.UseAdvancedFilter,
+                    AncestorTeam = vm.AncestorTeam,
                     // Create "Mapping" part
                     Mapping = new()
                     {

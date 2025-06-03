@@ -21,7 +21,7 @@
         string ParentNamePlural { get; set; }
         List<TPropertyCrudModel> Properties { get; set; }
         bool UseHubForClient { get; set; }
-        string HubForClientParentKey { get; }
+        string HubForClientParentKey { get; set; }
         bool HasHubForClientParentKey { get; }
         bool HasCustomRepository { get; set; }
         bool HasReadOnlyMode { get; set; }
