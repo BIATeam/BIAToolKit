@@ -10,6 +10,9 @@
     <UserControl.DataContext>
         <local:CRUDGeneratorViewModel />
     </UserControl.DataContext>
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+    </UserControl.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -80,7 +83,7 @@
             <TextBox Grid.Column="0" Text="{Binding ParentNamePlural,UpdateSourceTrigger=PropertyChanged}" Margin="20,320,0,0" TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="21" IsEnabled="{Binding HasParent}"/>
         </Grid>
 
-        <Grid Grid.Column="4" IsEnabled="{Binding UseFileGenerator}">
+        <Grid Grid.Column="4" Visibility="{Binding UseFileGenerator, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible">
             <StackPanel>
                 <StackPanel.Resources>
                     <Thickness x:Key="FieldsGap">0,0,0,10</Thickness>
