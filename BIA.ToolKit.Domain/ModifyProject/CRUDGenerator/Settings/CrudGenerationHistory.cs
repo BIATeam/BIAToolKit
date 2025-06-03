@@ -28,7 +28,6 @@
         public int TeamTypeId { get; set; }
         public int TeamRoleId { get; set; }
         public bool UseHubClient { get; set; }
-        public string HubClientKey { get; set; }
         public bool UseCustomRepository { get; set; }
         public bool HasFormReadOnlyMode { get; set; }
         public bool UseImport { get; set; }

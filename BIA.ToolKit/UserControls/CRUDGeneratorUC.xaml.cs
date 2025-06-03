@@ -179,7 +179,6 @@
                         vm.IsTeam = history.IsTeam;
                         vm.TeamTypeId = history.TeamTypeId;
                         vm.TeamRoleId = history.TeamRoleId;
-                        vm.HubClientKey = history.HubClientKey;
                         vm.UseHubClient = history.UseHubClient;
                         vm.HasCustomRepository = history.UseCustomRepository;
                         vm.HasFormReadOnlyMode = history.HasFormReadOnlyMode;
@@ -270,7 +269,6 @@
                     TeamTypeId = vm.TeamTypeId,
                     TeamRoleId = vm.TeamRoleId,
                     UseHubForClient = vm.UseHubClient,
-                    HubForClientKey = vm.HubClientKey,
                     HasCustomRepository = vm.HasCustomRepository,
                     HasReadOnlyMode = vm.HasFormReadOnlyMode,
                     CanImport = vm.UseImport,
@@ -530,7 +528,6 @@
                     IsTeam = vm.IsTeam,
                     TeamTypeId = vm.TeamTypeId,
                     TeamRoleId = vm.TeamRoleId,
-                    HubClientKey = vm.HubClientKey,
                     UseHubClient = vm.UseHubClient,
                     UseCustomRepository = vm.HasCustomRepository,
                     HasFormReadOnlyMode = vm.HasFormReadOnlyMode,

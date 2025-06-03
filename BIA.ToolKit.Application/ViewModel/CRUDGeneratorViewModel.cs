@@ -537,6 +537,7 @@
                 _isTeam = value;
                 RaisePropertyChanged(nameof(IsTeam));
                 RaisePropertyChanged(nameof(IsCheckBoxIsTeamEnable));
+                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
 
@@ -687,7 +688,8 @@
                     && (!string.IsNullOrWhiteSpace(dtoDisplayItemSelected) || ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option))
                     && ((IsWebApiSelected && !IsFrontSelected) || (IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)) || (!IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)))
                     && !string.IsNullOrEmpty(featureNameSelected)
-                    && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural)));
+                    && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural)))
+                    && (!IsTeam || (IsTeam && !UseFileGenerator) || (UseFileGenerator && IsTeam && TeamRoleId > 0 && TeamTypeId > 0));
             }
         }
         #endregion
@@ -714,6 +716,7 @@
             { 
                 _teamTypeId = value; 
                 RaisePropertyChanged(nameof(TeamTypeId));
+                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
 
@@ -726,23 +729,10 @@
             {
                 _teamRoleId = value;
                 RaisePropertyChanged(nameof(TeamRoleId));
+                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
 
-        #endregion
-
-        #region HUB
-        private string _hubClientKey;
-
-        public string HubClientKey
-        {
-            get { return _hubClientKey; }
-            set
-            {
-                _hubClientKey = value;
-                RaisePropertyChanged(nameof(HubClientKey));
-            }
-        }
         #endregion
     }
 
