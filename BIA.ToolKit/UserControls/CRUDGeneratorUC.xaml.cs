@@ -158,6 +158,18 @@
             {
                 optionItem.Check = false;
             }
+            foreach(var property in vm.DtoEntity.Properties.Where(p => p.IsOptionDto))
+            {
+                var optionType = property.Annotations.FirstOrDefault(a => a.Key == "Type").Value;
+                if (string.IsNullOrEmpty(optionType))
+                    continue;
+
+                var optionItem = vm.OptionItems.FirstOrDefault(oi => oi.OptionName == optionType);
+                if (optionItem is null)
+                    continue;
+
+                optionItem.Check = true;
+            }
 
             if (this.crudHistory != null)
             {
@@ -190,11 +202,19 @@
                         vm.UseAdvancedFilter = history.HasAdvancedFilter;
                         vm.AncestorTeam = history.AncestorTeam;
                         vm.SelectedFormReadOnlyMode = history.FormReadOnlyMode;
-                        history.OptionItems?.ForEach(o =>
+                        if (history.OptionItems != null)
                         {
-                            OptionItem item = vm.OptionItems.FirstOrDefault(x => x.OptionName == o);
-                            if (item != null) item.Check = true;
-                        });
+                            foreach(var option in vm.OptionItems)
+                            {
+                                option.Check = false;
+                            }
+
+                            history.OptionItems.ForEach(o =>
+                            {
+                                OptionItem item = vm.OptionItems.FirstOrDefault(x => x.OptionName == o);
+                                if (item != null) item.Check = item != null;
+                            });
+                        }
 
                         isBackSelected = history.Generation.Any(g => g.GenerationType == GenerationType.WebApi.ToString());
                         isFrontSelected = history.Generation.Any(g => g.GenerationType == GenerationType.Front.ToString());
