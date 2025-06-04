@@ -109,30 +109,44 @@
                     </Grid>
                 </TabItem>
                 <TabItem Header="Create project" Selector.Selected="OnTabCreateSelected">
-                    <Grid Margin="10,10,10,10" x:Name="TabCreate">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="1*"/>
-                            <ColumnDefinition Width="1*"/>
-                            <ColumnDefinition Width="1*"/>
-                        </Grid.ColumnDefinitions>
+                    <Grid Margin="10" x:Name="TabCreate">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="0.5*"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
                         <Grid.Background>
                             <ImageBrush ImageSource="/Images/bg-default.jpg"/>
                         </Grid.Background>
-                        <Label Content="Projects parent path" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Foreground="White"/>
-                        <TextBox Text="{Binding Settings_RootProjectsPath}" HorizontalAlignment="Left" Margin="29,25,0,0"  TextWrapping="Wrap" VerticalAlignment="Top" Width="300" Grid.ColumnSpan="2"/>
-                        <Button Content="..." HorizontalAlignment="Left" Margin="340,23,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.429,2.91" Width="35" Click="CreateProjectRootFolderBrowse_Click" Grid.Column="0"/>
-                        <Label Content="Company name" HorizontalAlignment="Left" Margin="24,1,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
-                        <TextBox Text="{Binding Settings.CreateCompanyName}" HorizontalAlignment="Left" Margin="43,26,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" IsEnabled="True" Grid.Column="1"/>
-                        <Label Content="Project name" HorizontalAlignment="Left" Margin="24,51,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
-                        <TextBox Text="" HorizontalAlignment="Left" Margin="43,76,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="310" x:Name="CreateProjectName" IsEnabled="True" Grid.Column="1"/>
 
-                        <uc:VersionAndOptionUserControl x:Name="CreateVersionAndOption" Margin="10,270,10,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                        <Grid Grid.Row="0" Margin="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Projects Parent Path" Text="{Binding Settings_RootProjectsPath}" TextWrapping="Wrap"/>
+                                <Button Grid.Column="1" Margin="5" Content="..." Click="CreateProjectRootFolderBrowse_Click"/>
+                            </Grid>
+                            <Grid Grid.Column="1" Margin="10,0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBox Grid.Row="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Company Name" Text="{Binding Settings.CreateCompanyName}" TextWrapping="Wrap"/>
+                                <TextBox Margin="0,10" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Project Name" Text="" TextWrapping="Wrap" x:Name="CreateProjectName" IsEnabled="True"/>
+                            </Grid>
+                            <Button Grid.Column="2" Height="50" Width="150" Content="Create" HorizontalAlignment="Right" Click="Create_Click" VerticalAlignment="Top"/>
+                        </Grid>
 
-
-
-                        <Button Content="Create" HorizontalAlignment="Right" Margin="0,33,30,0" Width="112" Click="Create_Click" Height="48" VerticalAlignment="Top" Grid.Column="2"/>
-
-
+                        <uc:VersionAndOptionUserControl Grid.Row="1" x:Name="CreateVersionAndOption" Margin="10" Height="auto"/>
                     </Grid>
                 </TabItem>
                 <TabItem Header="Modify existing project" Selector.Selected="OnTabModifySelected">
