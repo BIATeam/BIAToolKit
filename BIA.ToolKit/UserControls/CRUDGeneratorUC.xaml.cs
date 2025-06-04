@@ -171,6 +171,7 @@
                         // Apply last generation values
                         vm.CRUDNameSingular = history.EntityNameSingular;
                         vm.CRUDNamePlural = history.EntityNamePlural;
+                        vm.DtoDisplayItemSelected = history.DisplayItem;
                         vm.FeatureNameSelected = history.Feature;
                         vm.HasParent = history.HasParent;
                         vm.ParentName = history.ParentName;
@@ -720,10 +721,7 @@
                 List<string> displayItems = new();
                 vm.DtoEntity.Properties.ForEach(p => displayItems.Add(p.Name));
                 vm.DtoDisplayItems = displayItems;
-
-                // Set by default previous generation selected value
-                CRUDGenerationHistory history = this.crudHistory?.CRUDGenerationHistory?.FirstOrDefault(gh => (vm.DtoSelected == Path.GetFileName(gh.Mapping.Dto)));
-                vm.DtoDisplayItemSelected = history?.DisplayItem;
+                vm.DtoDisplayItemSelected = vm.DtoEntity.Properties.FirstOrDefault(p => p.Type.StartsWith("string", StringComparison.CurrentCultureIgnoreCase))?.Name;
 
                 return true;
             }
