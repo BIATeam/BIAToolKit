@@ -35,6 +35,8 @@
         /// The name of the project to rename.
         public string? ProjectName { get; set; }
 
+        public bool HasUrlRelease => !string.IsNullOrWhiteSpace(UrlRelease);
+
         [JsonIgnore]
         // The path where is the root repository (it can be LocalFolderPath or in AppFolder is not UseLocalFolder)
         public string? RootFolderPath
