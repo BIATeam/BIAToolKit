@@ -16,7 +16,7 @@
     {
         private IConsoleWriter outPut;
         private GitService gitService;
-        private List<VersionDownload> versionDownloads = new ();
+        private List<VersionDownload> versionDownloads = new();
 
         public RepositoryService(IConsoleWriter outPut, GitService gitService)
         {
@@ -129,7 +129,7 @@
 
                                             UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip, version);
                                         }
-                                        catch(Exception e)
+                                        catch (Exception e)
                                         {
                                             outPut.AddMessageLine("Cannot download release: " + version, "Red");
                                         }
@@ -161,7 +161,7 @@
                     return repository.RootFolderPath;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 outPut.AddMessageLine($"Error: {ex.Message}", "red");
                 return string.Empty;

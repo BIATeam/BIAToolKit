@@ -15,11 +15,12 @@
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     </Window.Resources>
 
-    <Grid Margin="10,11,10,14">
+    <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="0.3*"/>
         </Grid.RowDefinitions>
+
         <Grid Grid.Row="0">
             <Grid.RowDefinitions>
                 <RowDefinition/>
@@ -211,6 +212,11 @@
                 <Button Content="Clear"  Click="ClearConsole_Click" Style="{StaticResource MaterialDesignOutlinedSecondaryDarkButton}"/>
                 <Button Content="Copy to clipboard" Click="CopyConsoleContentToClipboard_Click" Style="{StaticResource MaterialDesignOutlinedSecondaryDarkButton}"/>
             </StackPanel>
+        </Grid>
+
+        <Grid x:Name="Waiter" Visibility="Hidden" d:Visibility="Visible">
+            <Grid Grid.Row="0" Background="#323232" Opacity="0.8" />
+            <Image gif:ImageBehavior.AnimatedSource="Images\spinner_light.gif" Height="200"/>
         </Grid>
     </Grid>
 </Window>

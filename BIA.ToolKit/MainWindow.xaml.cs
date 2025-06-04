@@ -32,6 +32,7 @@
         RepositoryService repositoryService;
         GitService gitService;
         ProjectCreatorService projectCreatorService;
+        private readonly UIEventBroker uiEventBroker;
         private readonly UpdateService updateService;
         GenerateFilesService generateFilesService;
         ConsoleWriter consoleWriter;
@@ -48,14 +49,16 @@
             this.repositoryService = repositoryService;
             this.gitService = gitService;
             this.projectCreatorService = projectCreatorService;
+            this.uiEventBroker = uiEventBroker;
             this.updateService = updateService;
             this.generateFilesService = genFilesService;
 
             uiEventBroker.OnProjectChanged += fileGeneratorService.EventBroker_OnProjectChanged;
+            uiEventBroker.OnActionWithWaiter += async(action) => await ExecuteTaskWithWaiterAsync(action);
 
             InitializeComponent();
 
-            CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, featureSettingService, settingsService);
+            CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, featureSettingService, settingsService, uiEventBroker);
             ModifyProject.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, cSharpParserService,
                 projectCreatorService, zipParserService, crudService, settingsService, featureSettingService, fileGeneratorService, uiEventBroker);
 
@@ -188,41 +191,59 @@
             Properties.Settings.Default.Save();
         }
 
+        private async Task ExecuteTaskWithWaiterAsync(Func<Task> task)
+        {
+            await Dispatcher.InvokeAsync(async () =>
+            {
+                Waiter.Visibility = Visibility.Visible;
+                try
+                {
+                    await task().ConfigureAwait(true);
+                }
+                finally
+                {
+                    Waiter.Visibility = Visibility.Hidden;
+                }
+            }).Task.Unwrap();
+        }
+
         private async void BIATemplateLocalFolderSync_Click(object sender, RoutedEventArgs e)
         {
             if (RefreshBIATemplateConfiguration(true))
             {
-                BIATemplateLocalFolderSync.IsEnabled = false;
-                Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
-
-                if(!_viewModel.Settings.BIATemplateRepository.UseLocalFolder)
+                await ExecuteTaskWithWaiterAsync(async () =>
                 {
-                    repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
-                }
+                    BIATemplateLocalFolderSync.IsEnabled = false;
+                    if (!_viewModel.Settings.BIATemplateRepository.UseLocalFolder)
+                    {
+                        repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
+                    }
 
-                await this.gitService.Synchronize(_viewModel.Settings.BIATemplateRepository);
-
-                Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
-                BIATemplateLocalFolderSync.IsEnabled = true;
+                    await this.gitService.Synchronize(_viewModel.Settings.BIATemplateRepository);
+                    BIATemplateLocalFolderSync.IsEnabled = true;
+                });
             }
         }
 
-        private void BIATemplateLocalCleanRelease_Click(object sender, RoutedEventArgs e)
+        private async void BIATemplateLocalCleanRelease_Click(object sender, RoutedEventArgs e)
         {
-            this.repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
+            await ExecuteTaskWithWaiterAsync(async () =>
+            {
+                await Task.Delay(1000);
+                repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
+            });
         }
 
         private async void CompanyFilesLocalFolderSync_Click(object sender, RoutedEventArgs e)
         {
             if (RefreshCompanyFilesConfiguration(true))
             {
-                CompanyFilesLocalFolderSync.IsEnabled = false;
-                Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
-
-                await this.gitService.Synchronize(_viewModel.Settings.CompanyFiles);
-
-                Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
-                CompanyFilesLocalFolderSync.IsEnabled = true;
+                await ExecuteTaskWithWaiterAsync(async () =>
+                {
+                    CompanyFilesLocalFolderSync.IsEnabled = false;
+                    await this.gitService.Synchronize(_viewModel.Settings.CompanyFiles);
+                    CompanyFilesLocalFolderSync.IsEnabled = true;
+                });
             }
         }
 
@@ -280,28 +301,23 @@
 
         private async Task Create_Run()
         {
-            Enable(false);
             if (string.IsNullOrEmpty(_viewModel.Settings.RootProjectsPath))
             {
-                Enable(true);
                 MessageBox.Show("Please select root path.");
                 return;
             }
             if (string.IsNullOrEmpty(_viewModel.Settings.CreateCompanyName))
             {
-                Enable(true);
                 MessageBox.Show("Please select company name.");
                 return;
             }
             if (string.IsNullOrEmpty(CreateProjectName.Text))
             {
-                Enable(true);
                 MessageBox.Show("Please select project name.");
                 return;
             }
             if (CreateVersionAndOption.vm.WorkTemplate == null)
             {
-                Enable(true);
                 MessageBox.Show("Please select framework version.");
                 return;
             }
@@ -309,22 +325,23 @@
             string projectPath = _viewModel.Settings.RootProjectsPath + "\\" + CreateProjectName.Text;
             if (Directory.Exists(projectPath) && !FileDialog.IsDirectoryEmpty(projectPath))
             {
-                Enable(true);
                 MessageBox.Show("The project path is not empty : " + projectPath);
                 return;
             }
 
-            await this.projectCreatorService.Create(
-                true, 
-                projectPath, 
-                new Domain.Model.ProjectParameters 
-                { 
-                    CompanyName= _viewModel.Settings.CreateCompanyName, 
-                    ProjectName = CreateProjectName.Text,
-                    VersionAndOption = CreateVersionAndOption.vm.VersionAndOption,
-                    AngularFronts = new List<string> { Constants.FolderAngular } 
-                });
-            Enable(true);
+            await ExecuteTaskWithWaiterAsync(async () =>
+            {
+                await this.projectCreatorService.Create(
+                    true,
+                    projectPath,
+                    new Domain.Model.ProjectParameters
+                    {
+                        CompanyName = _viewModel.Settings.CreateCompanyName,
+                        ProjectName = CreateProjectName.Text,
+                        VersionAndOption = CreateVersionAndOption.vm.VersionAndOption,
+                        AngularFronts = new List<string> { Constants.FolderAngular }
+                    });
+            });
         }
 
         private void btnFileGenerator_OpenFolder_Click(object sender, RoutedEventArgs e)
@@ -382,7 +399,7 @@
 
         private void CustomRepoTemplate_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new CustomsRepoTemplateUC(gitService, repositoryService) { Owner = this };
+            var dialog = new CustomsRepoTemplateUC(gitService, repositoryService, uiEventBroker) { Owner = this };
 
             // Display the dialog box and read the response
             bool? result = dialog.ShowDialog(_viewModel.Settings.CustomRepoTemplates);
@@ -391,23 +408,6 @@
             {
                 _viewModel.Settings.CustomRepoTemplates = dialog.vm.RepositoriesSettings.ToList();
             }
-        }
-
-        private void Enable(bool isEnabled)
-        {
-            //Migrate.IsEnabled = false;
-            if (isEnabled)
-            {
-                Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
-            }
-            else
-            {
-                Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
-            }
-            //TODO recabler
-            //MainTab.IsEnabled = isEnabled;
-
-            System.Windows.Forms.Application.DoEvents();
         }
 
         private async void UpdateButton_Click(object sender, RoutedEventArgs e)
@@ -423,7 +423,7 @@
 
                     if (result == MessageBoxResult.Yes)
                     {
-                        await updateService.DownloadUpdateAsync();
+                        await ExecuteTaskWithWaiterAsync(updateService.DownloadUpdateAsync);
                     }
                 }
                 catch (Exception ex)

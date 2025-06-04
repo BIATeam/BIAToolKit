@@ -28,9 +28,7 @@
                   Style="{StaticResource MaterialDesignFilledComboBox}"
                   materialDesign:HintAssist.Hint="Framework Version" VerticalAlignment="Top"/>
 
-        <Image Grid.Column="1" Grid.ColumnSpan="2" gif:ImageBehavior.AnimatedSource="..\Images\spinner_light.gif"  d:Visibility="Visible" Visibility ="{Binding Path=AreFeatureLoading, Converter={StaticResource BoolToVisConverter} }"/>
-
-        <GroupBox Margin="10,0" Grid.Column="1" Header="Feature Settings" Foreground="White" Name="FeatureSettingsGroup" d:Visibility="Visible" Visibility ="{Binding Path=AreFeatureVisible, Converter={StaticResource BoolToVisConverter} }" VerticalAlignment="Top" Background="#323232">
+        <GroupBox Margin="10,0" Grid.Column="1" Header="Feature Settings" Foreground="White" Name="FeatureSettingsGroup" VerticalAlignment="Top" Background="#323232">
             <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="auto">
                 <ItemsControl Margin="0,0,10,0" ItemsSource="{Binding FeatureSettings}">
                     <ItemsControl.ItemTemplate>

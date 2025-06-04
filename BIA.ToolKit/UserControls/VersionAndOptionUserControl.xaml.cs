@@ -32,6 +32,7 @@
         FeatureSettingService featureSettingService;
         private SettingsService settingsService;
         private string currentProjectPath;
+        private UIEventBroker uiEventBroker;
 
         public VersionAndOptionViewModel vm;
 
@@ -42,7 +43,7 @@
         }
 
         public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, FeatureSettingService featureSettingService,
-                    SettingsService settingsService)
+                    SettingsService settingsService, UIEventBroker uiEventBroker)
         {
             this.settings = settings;
             this.gitService = gitService;
@@ -50,6 +51,7 @@
             this.repositoryService = repositoryService;
             this.featureSettingService = featureSettingService;
             this.settingsService = settingsService;
+            this.uiEventBroker = uiEventBroker;
             vm.Inject(repositoryService, consoleWriter);
         }
 
@@ -209,15 +211,18 @@
             WorkTemplates.Sort(new WorkRepository.VersionComparer());
         }
 
-        private async void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            //vm.UseCompanyFiles = vm.WorkTemplate?.RepositorySettings?.Name == "BIATemplate";
-            await this.FillVersionFolderPathAsync();
-            this.LoadfeatureSetting();
-            this.LoadVersionAndOption(false);
+            uiEventBroker.ExecuteTaskWithWaiter(async () =>
+            {
+                //vm.UseCompanyFiles = vm.WorkTemplate?.RepositorySettings?.Name == "BIATemplate";
+                await this.FillVersionFolderPathAsync();
+                this.LoadfeatureSetting();
+                this.LoadVersionAndOption(false);
+            });
         }
 
-        private async void CFVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void CFVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             this.LoadVersionAndOption(false);
         }

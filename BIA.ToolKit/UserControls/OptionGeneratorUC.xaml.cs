@@ -117,11 +117,14 @@
             // Set form enabled
             vm.IsProjectChosen = true;
 
-            // Load BIA settings + history + parse zips
-            InitProject();
+            uiEventBroker.ExecuteTaskWithWaiter(async () =>
+            {
+                // Load BIA settings + history + parse zips
+                InitProject();
 
-            // List Entity files from Entity folder
-            ListEntityFiles();
+                // List Entity files from Entity folder
+                ListEntityFiles();
+            });
         }
 
         /// <summary>
@@ -182,37 +185,41 @@
         /// <summary>
         /// Action linked with "Generate" button.
         /// </summary>
-        private async void Generate_Click(object sender, RoutedEventArgs e)
+        private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            uiEventBroker.ExecuteTaskWithWaiter(async () =>
             {
-                await fileGeneratorService.GenerateOptionAsync(new FileGeneratorOptionContext
+
+                if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
                 {
-                    CompanyName = vm.CurrentProject.CompanyName,
-                    ProjectName = vm.CurrentProject.Name,
-                    DomainName = vm.Domain,
-                    EntityName = vm.Entity.Name,
-                    EntityNamePlural = vm.Entity.NamePluralized,
-                    BaseKeyType = vm.Entity.BaseKeyType,
-                    DisplayName = vm.EntityDisplayItemSelected,
-                    AngularFront = vm.BiaFront,
-                    GenerateFront = true,
-                    GenerateBack = true,
-                });
+                    await fileGeneratorService.GenerateOptionAsync(new FileGeneratorOptionContext
+                    {
+                        CompanyName = vm.CurrentProject.CompanyName,
+                        ProjectName = vm.CurrentProject.Name,
+                        DomainName = vm.Domain,
+                        EntityName = vm.Entity.Name,
+                        EntityNamePlural = vm.Entity.NamePluralized,
+                        BaseKeyType = vm.Entity.BaseKeyType,
+                        DisplayName = vm.EntityDisplayItemSelected,
+                        AngularFront = vm.BiaFront,
+                        GenerateFront = true,
+                        GenerateBack = true,
+                    });
+                    UpdateOptionGenerationHistory();
+                    return;
+                }
+
+                crudService.CrudNames.InitRenameValues(vm.EntitySelected, vm.EntityNamePlural);
+
+                // Generation DotNet + Angular files
+                var featureName = vm.ZipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Option)?.Feature;
+                vm.IsGenerated = crudService.GenerateFiles(vm.Entity, vm.ZipFeatureTypeList, vm.EntityDisplayItemSelected, null, null, FeatureType.Option.ToString(), vm.Domain, vm.BiaFront);
+
+                // Generate generation history file
                 UpdateOptionGenerationHistory();
-                return;
-            }
 
-            crudService.CrudNames.InitRenameValues(vm.EntitySelected, vm.EntityNamePlural);
-
-            // Generation DotNet + Angular files
-            var featureName = vm.ZipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Option)?.Feature;
-            vm.IsGenerated = crudService.GenerateFiles(vm.Entity, vm.ZipFeatureTypeList, vm.EntityDisplayItemSelected, null, null, FeatureType.Option.ToString(), vm.Domain, vm.BiaFront);
-            
-            // Generate generation history file
-            UpdateOptionGenerationHistory();
-
-            consoleWriter.AddMessageLine($"End of '{vm.EntitySelected}' option generation.", "Blue");
+                consoleWriter.AddMessageLine($"End of '{vm.EntitySelected}' option generation.", "Blue");
+            });
         }
 
         /// <summary>
@@ -301,7 +308,6 @@
 
         private void InitProject()
         {
-            Mouse.OverrideCursor = Cursors.Wait;
             try
             {
                 SetGenerationSettings();
@@ -310,10 +316,6 @@
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"Error on intializing project: {ex.Message}", "Red");
-            }
-            finally
-            {
-                Mouse.OverrideCursor = Cursors.Arrow;
             }
         }
 
@@ -363,7 +365,7 @@
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
             string frontSettingsFileName = Path.Combine(vm.CurrentProject.Folder, biaFront, settings.GenerationSettingsFileName);
 
-            if(fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
                 return;
             }
@@ -513,7 +515,7 @@
             }
 
             bool parsed = false;
-            foreach(var zipFeatureType in zipFeatures)
+            foreach (var zipFeatureType in zipFeatures)
             {
                 parsed |= ParseZipFile(zipFeatureType);
             }

@@ -50,8 +50,8 @@
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
-            MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService, settingsService);
-            MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService, settingsService);
+            MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService, settingsService, uiEventBroker);
+            MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService, settingsService, uiEventBroker);
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
@@ -84,7 +84,7 @@
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {
-            _ = Migrate_Run();
+            uiEventBroker.ExecuteTaskWithWaiter(Migrate_Run);
         }
         private async Task Migrate_Run()
         {
@@ -95,23 +95,6 @@
             }
         }
 
-        private void Enable(bool isEnabled)
-        {
-            //Migrate.IsEnabled = false;
-            if (isEnabled)
-            {
-                Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
-            }
-            else
-            {
-                Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
-            }
-            //TODO recabler
-            //MainTab.IsEnabled = isEnabled;
-
-            System.Windows.Forms.Application.DoEvents();
-        }
-
         private void ParameterModifyChange()
         {
             if (MigrateOpenFolder != null) MigrateOpenFolder.IsEnabled = false;
@@ -119,9 +102,9 @@
             if (MigrateMergeRejected != null) MigrateMergeRejected.IsEnabled = false;
         }
 
-        private async void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
+        private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
         {
-            await MigrateGenerateOnly_Run();
+           uiEventBroker.ExecuteTaskWithWaiter(MigrateGenerateOnly_Run);
         }
 
         private async Task<int> MigrateGenerateOnly_Run()
@@ -137,8 +120,6 @@
                 return -1;
             }
 
-            Enable(false);
-
             string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
             MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
 
@@ -146,19 +127,17 @@
 
             MigrateOpenFolder.IsEnabled = true;
             MigrateApplyDiff.IsEnabled = true;
-            Enable(true);
             return 0;
         }
 
         private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
         {
-            MigrateApplyDiff_Run();
+            uiEventBroker.ExecuteTaskWithWaiter(async() => MigrateApplyDiff_Run());
         }
 
         private bool MigrateApplyDiff_Run()
         {
             bool result = false;
-            Enable(false);
 
             string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
             MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
@@ -171,19 +150,16 @@
             result = ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName);
 
             MigrateMergeRejected.IsEnabled = true;
-            Enable(true);
             return result;
         }
 
         private void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
         {
-            MigrateMergeRejected_Run();
+            uiEventBroker.ExecuteTaskWithWaiter(async() => MigrateMergeRejected_Run());
         }
 
         private void MigrateMergeRejected_Run()
         {
-            Enable(false);
-
             MergeRejected(true);
 
             MigrateMergeRejected.IsEnabled = false;
@@ -219,17 +195,11 @@
 
                 File.Copy(fileToCopy, fileToCheck);
             }
-
-            Enable(true);
         }
 
         private void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
         {
-            Enable(false);
-
-            OverwriteBIAFolder(true);
-
-            Enable(true);
+           uiEventBroker.ExecuteTaskWithWaiter(async () => OverwriteBIAFolder(true));
         }
 
         private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion)
@@ -366,9 +336,9 @@
             }
         }
 
-        private async void ResolveUsings_Click(object sender, RoutedEventArgs e)
+        private void ResolveUsings_Click(object sender, RoutedEventArgs e)
         {
-            await ResolveUsings_Run();
+            uiEventBroker.ExecuteTaskWithWaiter(ResolveUsings_Run);
         }
 
         private async Task ResolveUsings_Run()

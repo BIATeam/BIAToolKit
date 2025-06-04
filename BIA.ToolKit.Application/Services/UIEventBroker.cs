@@ -19,9 +19,11 @@ namespace BIA.ToolKit.Application.Services
 
         public delegate void ProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem);
         public delegate void NewVersionAvailable();
+        public delegate void ActionWithWaiterAsync(Func<Task> action);
 
         public event ProjectChanged OnProjectChanged;
         public event NewVersionAvailable OnNewVersionAvailable;
+        public event ActionWithWaiterAsync OnActionWithWaiter;
 
         public TabItemModifyProjectEnum CurrentTabItemModifyProject { get; private set; }
 
@@ -38,6 +40,11 @@ namespace BIA.ToolKit.Application.Services
         public void NotifyNewVersionAvailable()
         {
             OnNewVersionAvailable?.Invoke();
+        }
+
+        public void ExecuteTaskWithWaiter(Func<Task> task)
+        {
+            OnActionWithWaiter?.Invoke(task);
         }
     }
 }

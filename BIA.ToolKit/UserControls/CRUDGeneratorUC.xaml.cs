@@ -121,11 +121,14 @@
             // Set form enabled
             vm.IsProjectChosen = true;
 
-            // Load BIA settings + history + parse zips
-            InitProject();
+            uiEventBroker.ExecuteTaskWithWaiter(async () =>
+            {
+                // Load BIA settings + history + parse zips
+                InitProject();
 
-            // List Dto files from Dto folder
-            ListDtoFiles();
+                // List Dto files from Dto folder
+                ListDtoFiles();
+            });
         }
 
         /// <summary>
@@ -264,65 +267,68 @@
         /// <summary>
         /// Action linked with "Generate CRUD" button.
         /// </summary>
-        private async void Generate_Click(object sender, RoutedEventArgs e)
+        private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            uiEventBroker.ExecuteTaskWithWaiter(async () =>
             {
-                fileGeneratorService.SetPrettierAngularProjectPath(Path.Combine(Path.GetDirectoryName(vm.CurrentProject.SolutionPath), vm.BiaFront));
-                await fileGeneratorService.GenerateCRUDAsync(new FileGeneratorCrudContext
+                if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
                 {
-                    CompanyName = vm.CurrentProject.CompanyName,
-                    ProjectName = vm.CurrentProject.Name,
-                    DomainName = vm.Domain,
-                    EntityName = vm.CRUDNameSingular,
-                    EntityNamePlural = vm.CRUDNamePlural,
-                    BaseKeyType = vm.DtoEntity.BaseKeyType,
-                    IsTeam = vm.IsTeam,
-                    Properties = [.. vm.DtoEntity.Properties],
-                    OptionItems = [.. vm.OptionItems.Where(x => x.Check).Select(x => x.OptionName)],
-                    HasParent = vm.HasParent,
-                    ParentName = vm.ParentName,
-                    ParentNamePlural = vm.ParentNamePlural,
-                    AncestorTeamName = vm.AncestorTeam,
-                    HasAncestorTeam = !string.IsNullOrWhiteSpace(vm.AncestorTeam),
-                    AngularFront = vm.BiaFront,
-                    GenerateBack = vm.IsWebApiSelected,
-                    GenerateFront = vm.IsFrontSelected,
-                    DisplayItemName = vm.DtoDisplayItemSelected,
-                    TeamTypeId = vm.TeamTypeId,
-                    TeamRoleId = vm.TeamRoleId,
-                    UseHubForClient = vm.UseHubClient,
-                    HasCustomRepository = vm.HasCustomRepository,
-                    HasReadOnlyMode = vm.HasFormReadOnlyMode,
-                    CanImport = vm.UseImport,
-                    IsFixable = vm.IsFixable,
-                    HasFixableParent = vm.HasFixableParent,
-                    HasAdvancedFilter = vm.UseAdvancedFilter,
-                    FormReadOnlyMode = vm.SelectedFormReadOnlyMode,
-                });
+                    fileGeneratorService.SetPrettierAngularProjectPath(Path.Combine(Path.GetDirectoryName(vm.CurrentProject.SolutionPath), vm.BiaFront));
+                    await fileGeneratorService.GenerateCRUDAsync(new FileGeneratorCrudContext
+                    {
+                        CompanyName = vm.CurrentProject.CompanyName,
+                        ProjectName = vm.CurrentProject.Name,
+                        DomainName = vm.Domain,
+                        EntityName = vm.CRUDNameSingular,
+                        EntityNamePlural = vm.CRUDNamePlural,
+                        BaseKeyType = vm.DtoEntity.BaseKeyType,
+                        IsTeam = vm.IsTeam,
+                        Properties = [.. vm.DtoEntity.Properties],
+                        OptionItems = [.. vm.OptionItems.Where(x => x.Check).Select(x => x.OptionName)],
+                        HasParent = vm.HasParent,
+                        ParentName = vm.ParentName,
+                        ParentNamePlural = vm.ParentNamePlural,
+                        AncestorTeamName = vm.AncestorTeam,
+                        HasAncestorTeam = !string.IsNullOrWhiteSpace(vm.AncestorTeam),
+                        AngularFront = vm.BiaFront,
+                        GenerateBack = vm.IsWebApiSelected,
+                        GenerateFront = vm.IsFrontSelected,
+                        DisplayItemName = vm.DtoDisplayItemSelected,
+                        TeamTypeId = vm.TeamTypeId,
+                        TeamRoleId = vm.TeamRoleId,
+                        UseHubForClient = vm.UseHubClient,
+                        HasCustomRepository = vm.HasCustomRepository,
+                        HasReadOnlyMode = vm.HasFormReadOnlyMode,
+                        CanImport = vm.UseImport,
+                        IsFixable = vm.IsFixable,
+                        HasFixableParent = vm.HasFixableParent,
+                        HasAdvancedFilter = vm.UseAdvancedFilter,
+                        FormReadOnlyMode = vm.SelectedFormReadOnlyMode,
+                    });
 
+                    UpdateCrudGenerationHistory();
+                    return;
+                }
+
+                var crudParent = new CrudParent
+                {
+                    Exists = vm.HasParent,
+                    Name = vm.ParentName,
+                    NamePlural = vm.ParentNamePlural,
+                    Domain = vm.Domain
+                };
+
+                crudService.CrudNames.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural);
+
+                // Generation DotNet + Angular files
+                List<string> optionsItems = vm.OptionItems.Any() ? vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
+                vm.IsDtoGenerated = crudService.GenerateFiles(vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, crudParent, vm.FeatureNameSelected, vm.Domain, vm.BiaFront);
+
+                // Generate generation history file
                 UpdateCrudGenerationHistory();
-                return;
-            }
 
-            var crudParent = new CrudParent
-            {
-                Exists = vm.HasParent,
-                Name = vm.ParentName,
-                NamePlural = vm.ParentNamePlural,
-                Domain = vm.Domain
-            };
-
-            crudService.CrudNames.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural);
-
-            // Generation DotNet + Angular files
-            List<string> optionsItems = vm.OptionItems.Any() ? vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
-            vm.IsDtoGenerated = crudService.GenerateFiles(vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, crudParent, vm.FeatureNameSelected, vm.Domain, vm.BiaFront);
-            
-            // Generate generation history file
-            UpdateCrudGenerationHistory();
-
-            consoleWriter.AddMessageLine($"End of '{vm.CRUDNameSingular}' generation.", "Blue");
+                consoleWriter.AddMessageLine($"End of '{vm.CRUDNameSingular}' generation.", "Blue");
+            });
         }
 
         /// <summary>
@@ -415,7 +421,6 @@
 
         private void InitProject(string biaFront = null)
         {
-            Mouse.OverrideCursor = Cursors.Wait;
             try
             {
                 SetGenerationSettings(biaFront);
@@ -424,10 +429,6 @@
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"Error on intializing project: {ex.Message}", "Red");
-            }
-            finally
-            {
-                Mouse.OverrideCursor = Cursors.Arrow;
             }
         }
 
