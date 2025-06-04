@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.Templates.Common.Interfaces
 {
     using System.Collections.Generic;
+    using BIA.ToolKit.Application.Templates.Common.Enum;
 
     public interface IEntityCrudModel<TPropertyCrudModel> : IEntityModel
         where TPropertyCrudModel : class, IPropertyCrudModel
@@ -31,5 +32,6 @@
         bool CanImport { get; set; }
         int TeamTypeId { get; set; }
         int TeamRoleId { get; set; }
+        string FormReadOnlyMode { get; set; }
     }
 }

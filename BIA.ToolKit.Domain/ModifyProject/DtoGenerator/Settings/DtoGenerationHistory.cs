@@ -19,6 +19,9 @@
         public string Domain { get; set; }
         public string AncestorTeam { get; set; }
         public bool IsTeam { get; set; }
+        public bool IsVersioned { get; set; }
+        public bool IsFixable { get; set; }
+        public bool IsArchivable { get; set; }
         public List<DtoGenerationPropertyMapping> PropertyMappings { get; set; } = new();
     }
 

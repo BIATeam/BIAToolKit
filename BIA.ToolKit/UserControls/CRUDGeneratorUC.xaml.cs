@@ -5,6 +5,7 @@
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
+    using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -148,12 +149,26 @@
             vm.IsDtoParsed = ParseDtoFile();
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
             vm.IsTeam = vm.DtoEntity?.IsTeam == true;
+            vm.IsFixable = vm.DtoEntity?.IsFixable == true || vm.DtoEntity?.IsArchivable == true;
+            vm.AncestorTeam = vm.DtoEntity?.AncestorTeamName;
             var isBackSelected = vm.IsWebApiAvailable;
             var isFrontSelected = vm.IsFrontAvailable;
             
             foreach(var optionItem in vm.OptionItems)
             {
                 optionItem.Check = false;
+            }
+            foreach(var property in vm.DtoEntity.Properties.Where(p => p.IsOptionDto))
+            {
+                var optionType = property.Annotations.FirstOrDefault(a => a.Key == "Type").Value;
+                if (string.IsNullOrEmpty(optionType))
+                    continue;
+
+                var optionItem = vm.OptionItems.FirstOrDefault(oi => oi.OptionName == optionType);
+                if (optionItem is null)
+                    continue;
+
+                optionItem.Check = true;
             }
 
             if (this.crudHistory != null)
@@ -168,6 +183,7 @@
                         // Apply last generation values
                         vm.CRUDNameSingular = history.EntityNameSingular;
                         vm.CRUDNamePlural = history.EntityNamePlural;
+                        vm.DtoDisplayItemSelected = history.DisplayItem;
                         vm.FeatureNameSelected = history.Feature;
                         vm.HasParent = history.HasParent;
                         vm.ParentName = history.ParentName;
@@ -175,11 +191,30 @@
                         vm.Domain = history.Domain;
                         vm.BiaFront = history.BiaFront;
                         vm.IsTeam = history.IsTeam;
-                        history.OptionItems?.ForEach(o =>
+                        vm.TeamTypeId = history.TeamTypeId;
+                        vm.TeamRoleId = history.TeamRoleId;
+                        vm.UseHubClient = history.UseHubClient;
+                        vm.HasCustomRepository = history.UseCustomRepository;
+                        vm.HasFormReadOnlyMode = history.HasFormReadOnlyMode;
+                        vm.UseImport = history.UseImport;
+                        vm.IsFixable = history.IsFixable;
+                        vm.HasFixableParent = history.HasFixableParent;
+                        vm.UseAdvancedFilter = history.HasAdvancedFilter;
+                        vm.AncestorTeam = history.AncestorTeam;
+                        vm.SelectedFormReadOnlyMode = history.FormReadOnlyMode;
+                        if (history.OptionItems != null)
                         {
-                            OptionItem item = vm.OptionItems.FirstOrDefault(x => x.OptionName == o);
-                            if (item != null) item.Check = true;
-                        });
+                            foreach(var option in vm.OptionItems)
+                            {
+                                option.Check = false;
+                            }
+
+                            history.OptionItems.ForEach(o =>
+                            {
+                                OptionItem item = vm.OptionItems.FirstOrDefault(x => x.OptionName == o);
+                                if (item != null) item.Check = item != null;
+                            });
+                        }
 
                         isBackSelected = history.Generation.Any(g => g.GenerationType == GenerationType.WebApi.ToString());
                         isFrontSelected = history.Generation.Any(g => g.GenerationType == GenerationType.Front.ToString());
@@ -248,12 +283,22 @@
                     HasParent = vm.HasParent,
                     ParentName = vm.ParentName,
                     ParentNamePlural = vm.ParentNamePlural,
-                    AncestorTeamName = vm.DtoEntity.AncestorTeamName,
-                    HasAncestorTeam = vm.DtoEntity.HasAncestorTeam,
+                    AncestorTeamName = vm.AncestorTeam,
+                    HasAncestorTeam = !string.IsNullOrWhiteSpace(vm.AncestorTeam),
                     AngularFront = vm.BiaFront,
                     GenerateBack = vm.IsWebApiSelected,
                     GenerateFront = vm.IsFrontSelected,
-                    DisplayItemName = vm.DtoDisplayItemSelected
+                    DisplayItemName = vm.DtoDisplayItemSelected,
+                    TeamTypeId = vm.TeamTypeId,
+                    TeamRoleId = vm.TeamRoleId,
+                    UseHubForClient = vm.UseHubClient,
+                    HasCustomRepository = vm.HasCustomRepository,
+                    HasReadOnlyMode = vm.HasFormReadOnlyMode,
+                    CanImport = vm.UseImport,
+                    IsFixable = vm.IsFixable,
+                    HasFixableParent = vm.HasFixableParent,
+                    HasAdvancedFilter = vm.UseAdvancedFilter,
+                    FormReadOnlyMode = vm.SelectedFormReadOnlyMode,
                 });
 
                 UpdateCrudGenerationHistory();
@@ -505,7 +550,17 @@
                     Domain = vm.Domain,
                     BiaFront = vm.BiaFront,
                     IsTeam = vm.IsTeam,
-
+                    TeamTypeId = vm.TeamTypeId,
+                    TeamRoleId = vm.TeamRoleId,
+                    UseHubClient = vm.UseHubClient,
+                    UseCustomRepository = vm.HasCustomRepository,
+                    HasFormReadOnlyMode = vm.HasFormReadOnlyMode,
+                    UseImport = vm.UseImport,
+                    IsFixable = vm.IsFixable,
+                    HasFixableParent = vm.HasFixableParent,
+                    HasAdvancedFilter = vm.UseAdvancedFilter,
+                    AncestorTeam = vm.AncestorTeam,
+                    FormReadOnlyMode = vm.SelectedFormReadOnlyMode,
                     // Create "Mapping" part
                     Mapping = new()
                     {
@@ -686,10 +741,7 @@
                 List<string> displayItems = new();
                 vm.DtoEntity.Properties.ForEach(p => displayItems.Add(p.Name));
                 vm.DtoDisplayItems = displayItems;
-
-                // Set by default previous generation selected value
-                CRUDGenerationHistory history = this.crudHistory?.CRUDGenerationHistory?.FirstOrDefault(gh => (vm.DtoSelected == Path.GetFileName(gh.Mapping.Dto)));
-                vm.DtoDisplayItemSelected = history?.DisplayItem;
+                vm.DtoDisplayItemSelected = vm.DtoEntity.Properties.FirstOrDefault(p => p.Type.StartsWith("string", StringComparison.CurrentCultureIgnoreCase))?.Name;
 
                 return true;
             }

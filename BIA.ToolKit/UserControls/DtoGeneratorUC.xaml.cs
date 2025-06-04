@@ -145,6 +145,9 @@
                 BaseKeyType = vm.SelectedEntityInfo.BaseKeyType,
                 Properties = [.. vm.MappingEntityProperties],
                 IsTeam = vm.IsTeam,
+                IsVersioned = vm.IsVersioned,
+                IsArchivable = vm.IsArchivable,
+                IsFixable = vm.IsFixable,
                 AncestorTeamName = vm.AncestorTeam,
                 HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
                 GenerateBack = true
@@ -162,6 +165,9 @@
             generation.Domain = vm.EntityDomain;
             generation.AncestorTeam = vm.AncestorTeam;
             generation.IsTeam = vm.IsTeam;
+            generation.IsVersioned = vm.IsVersioned;
+            generation.IsArchivable = vm.IsArchivable;
+            generation.IsFixable = vm.IsFixable;
             generation.PropertyMappings.Clear();
 
             foreach (var property in vm.MappingEntityProperties)
@@ -227,6 +233,9 @@
             vm.EntityDomain = generation.Domain;
             vm.AncestorTeam = generation.AncestorTeam;
             vm.IsTeam = generation.IsTeam;
+            vm.IsVersioned = generation.IsVersioned;
+            vm.IsFixable = generation.IsFixable;
+            vm.IsArchivable = generation.IsArchivable;
 
             var allEntityProperties = vm.AllEntityPropertiesRecursively.ToList();
             foreach (var property in allEntityProperties)

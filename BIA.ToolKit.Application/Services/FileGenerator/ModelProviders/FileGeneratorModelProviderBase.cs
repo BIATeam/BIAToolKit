@@ -60,6 +60,7 @@
             model.CanImport = crudContext.CanImport;
             model.TeamRoleId = crudContext.TeamRoleId;
             model.TeamTypeId = crudContext.TeamTypeId;
+            model.FormReadOnlyMode = crudContext.FormReadOnlyMode;
 
             model.Properties = crudContext.Properties.Select(x => new TPropertyCrudModel
             {

@@ -57,6 +57,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\Enum\FormReadOnlyMode.cs" />
     <Compile Include="Common\Models\DotNetModel.cs" />
     <Compile Include="Common\Models\EntityModel.cs" />
     <Compile Include="Common\Interfaces\IEntityCrudModel.cs" />
@@ -346,8 +347,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="_5_0_0\Templates\Angular\src\app\features\EntityConstantsTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityConstantsTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>EntityConstantsTemplate.ts</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="_5_0_0\Templates\Angular\src\app\features\model\EntityTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -723,13 +724,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="_5_0_0\Templates\Angular\src\app\features\EntityConstantsTemplate.ts">
-      <DependentUpon>EntityConstantsTemplate.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="_5_0_0\Templates\Angular\src\app\features\model\EntityTemplate.ts">
       <DependentUpon>EntityTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -994,6 +988,13 @@
       <LastGenOutput>PartialEntityAppServiceTemplate_FixedChildrenRepositorySet.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\features\EntityConstantsTemplate.ts">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityConstantsTemplate.tt</DependentUpon>
+    </TypeScriptCompile>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
