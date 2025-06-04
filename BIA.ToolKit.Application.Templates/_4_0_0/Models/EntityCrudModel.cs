@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.Templates._4_0_0.Models
 {
     using System.Collections.Generic;
+    using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
     public class EntityCrudModel<TPropertyCrudModel> : Common.Models.EntityModel, IEntityCrudModel<TPropertyCrudModel>
@@ -38,5 +39,6 @@
         public bool CanImport { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         public int TeamTypeId { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         public int TeamRoleId { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public string FormReadOnlyMode { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
     }
 }

@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
     public class EntityCrudModel<TPropertyCrudModel> : Common.Models.EntityModel, IEntityCrudModel<TPropertyCrudModel>
@@ -61,5 +62,6 @@
         public bool CanImport { get; set; }
         public int TeamTypeId { get; set; }
         public int TeamRoleId { get; set; }
+        public string FormReadOnlyMode { get; set; }
     }
 }

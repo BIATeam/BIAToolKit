@@ -5,6 +5,7 @@
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
+    using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -187,6 +188,7 @@
                         vm.HasFixableParent = history.HasFixableParent;
                         vm.UseAdvancedFilter = history.HasAdvancedFilter;
                         vm.AncestorTeam = history.AncestorTeam;
+                        vm.SelectedFormReadOnlyMode = history.FormReadOnlyMode;
                         history.OptionItems?.ForEach(o =>
                         {
                             OptionItem item = vm.OptionItems.FirstOrDefault(x => x.OptionName == o);
@@ -275,6 +277,7 @@
                     IsFixable = vm.IsFixable,
                     HasFixableParent = vm.HasFixableParent,
                     HasAdvancedFilter = vm.UseAdvancedFilter,
+                    FormReadOnlyMode = vm.SelectedFormReadOnlyMode,
                 });
 
                 UpdateCrudGenerationHistory();
@@ -536,6 +539,7 @@
                     HasFixableParent = vm.HasFixableParent,
                     HasAdvancedFilter = vm.UseAdvancedFilter,
                     AncestorTeam = vm.AncestorTeam,
+                    FormReadOnlyMode = vm.SelectedFormReadOnlyMode,
                     // Create "Mapping" part
                     Mapping = new()
                     {

@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Settings;
+    using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -588,6 +589,7 @@
             {
                 _hasFormReadOnlyMode = value;
                 RaisePropertyChanged(nameof(HasFormReadOnlyMode));
+                SelectedFormReadOnlyMode = value ? FormReadOnlyModes.First() : string.Empty;
             }
         }
 
@@ -733,6 +735,31 @@
             }
         }
 
+        #endregion
+
+        #region FormReadOnly
+        private List<string> _formReadOnlyModes;
+
+        public List<string> FormReadOnlyModes
+        {
+            get
+            {
+                _formReadOnlyModes ??= new List<string>(Enum.GetNames(typeof(FormReadOnlyMode)));
+                return _formReadOnlyModes;
+            }
+        }
+
+        private string _selectedFormReadOnlyMode;
+
+        public string SelectedFormReadOnlyMode
+        {
+            get { return _selectedFormReadOnlyMode; }
+            set 
+            { 
+                _selectedFormReadOnlyMode = value; 
+                RaisePropertyChanged(nameof(SelectedFormReadOnlyMode));
+            }
+        }
         #endregion
     }
 

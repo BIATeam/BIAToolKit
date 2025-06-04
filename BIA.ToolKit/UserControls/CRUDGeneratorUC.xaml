@@ -115,6 +115,19 @@
                 </Grid>
 
                 <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <CheckBox VerticalAlignment="Center" HorizontalAlignment="Center" Content="Use Form Read Only" Foreground="White" IsChecked="{Binding HasFormReadOnlyMode}"/>
+                    <uc:LabeledField Grid.Column="1" Label="Form Read Only Mode">
+                        <ComboBox Height="21" IsEnabled="{Binding HasFormReadOnlyMode}" ItemsSource="{Binding FormReadOnlyModes}" SelectedValue="{Binding SelectedFormReadOnlyMode}"/>
+                    </uc:LabeledField>
+
+                </Grid>
+
+                <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition/>
@@ -128,7 +141,6 @@
                         </StackPanel.Resources>
 
                         <CheckBox Content="Custom Repository" Foreground="White" IsChecked="{Binding HasCustomRepository}"/>
-                        <CheckBox Content="Form Read Only Mode" Foreground="White" IsChecked="{Binding HasFormReadOnlyMode}"/>
                         <CheckBox Content="Import" Foreground="White" IsChecked="{Binding UseImport}"/>
                     </StackPanel>
 

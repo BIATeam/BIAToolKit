@@ -35,6 +35,7 @@
         public bool HasFixableParent { get; set; }
         public bool HasAdvancedFilter { get; set; }
         public string AncestorTeam { get; set; }
+        public string FormReadOnlyMode { get; set; }
 
     }
 

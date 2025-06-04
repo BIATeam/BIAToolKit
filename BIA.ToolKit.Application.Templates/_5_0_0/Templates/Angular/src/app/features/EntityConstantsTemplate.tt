@@ -23,7 +23,7 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration: Cru
   fieldsConfig: <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration,
   formLayoutConfig: <#= ModelInstance.EntityName.ToCamelCase() #>FormLayoutConfiguration,
 <#  if(ModelInstance.HasReadOnlyMode) { #>
-  formEditReadOnlyMode: FormReadOnlyMode.off,
+  formEditReadOnlyMode: FormReadOnlyMode.<#= ModelInstance.FormReadOnlyMode.ToCamelCase() #>,
 <#  } #>
 <#  if(ModelInstance.IsFixable || ModelInstance.HasFixableParent) { #>
   isFixable: true,
