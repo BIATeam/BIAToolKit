@@ -5,8 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
              xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
-             d:DesignHeight="640" Width="1400">
+             d:Height="480" d:Width="1280">
     <UserControl.DataContext>
         <!-- Declaratively create an instance of our SongViewModel -->
         <!--<local:ModifyProjectViewModel RootProjectsPath="{Binding DataContext.RootProjectsPath, ElementName=mainWindow}" />-->
@@ -15,27 +16,29 @@
     <Grid x:Name="TabModify">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition/>
         </Grid.RowDefinitions>
         <TabControl x:Name="TabActions" Grid.Row="1" Background="Transparent" SelectionChanged="TabActions_SelectionChanged">
             <TabItem x:Name="TabMigration" Header="0 - Migration" Margin="5,0,-5,0">
-                <Grid Background="Transparent" VerticalAlignment="Top" Margin="5">
+                <Grid VerticalAlignment="Top" Margin="5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1*"/>
                         <ColumnDefinition Width="0.15*"/>
                     </Grid.ColumnDefinitions>
-                    <Grid Background="Transparent" VerticalAlignment="Top">
-                        <Grid.RowDefinitions>
-                            <RowDefinition/>
-                            <RowDefinition/>
-                        </Grid.RowDefinitions>
-                        <GroupBox Header="Original" Margin="0,0,0,0" Foreground="White" BorderBrush="White" x:Name="CompanyFileGroup" Visibility="Visible" Grid.Row="0">
-                            <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption"/>
-                        </GroupBox>
-                        <GroupBox Header="Target" Margin="0,0,0,0" Foreground="White" BorderBrush="White" Visibility="Visible" Grid.Row="1">
-                            <uc:VersionAndOptionUserControl x:Name="MigrateTargetVersionAndOption"/>
-                        </GroupBox>
-                    </Grid>
+                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="auto">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <GroupBox Header="Original" Margin="10" Foreground="White" x:Name="CompanyFileGroup" Grid.Row="0" Style="{StaticResource MaterialDesignGroupBox}" materialDesign:ColorZoneAssist.Mode="Custom" materialDesign:ColorZoneAssist.Background="#608000" materialDesign:ColorZoneAssist.Foreground="White">
+                                <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption"/>
+                            </GroupBox>
+                            <GroupBox Margin="10" Header="Target"  Foreground="White" Grid.Row="1" Style="{StaticResource MaterialDesignGroupBox}" materialDesign:ColorZoneAssist.Mode="Custom" materialDesign:ColorZoneAssist.Background="#608000" materialDesign:ColorZoneAssist.Foreground="White">
+                                <uc:VersionAndOptionUserControl x:Name="MigrateTargetVersionAndOption"/>
+                            </GroupBox>
+                        </Grid>
+                    </ScrollViewer>
                     <Grid Background="Transparent" VerticalAlignment="Top" Grid.Column="1">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="32"/>
@@ -95,7 +98,7 @@
         <Button x:Name="RefreshDtoList" Margin="556,22,0,0" Width="24" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshProjectFolderList_Click" ToolTip="Refresh project folder list">
             <Image Source="/Images/rafraichir-32.png" />
         </Button>
-        <Grid HorizontalAlignment="Right" Margin="5">
+        <!--<Grid HorizontalAlignment="Right" Margin="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
@@ -113,9 +116,9 @@
             <Label Content="Company detected : " Grid.Column="0" Grid.Row="2"  VerticalAlignment="Top" Foreground="White" Padding="5,0,0,0"/>
             <Label Content="{Binding CompanyName}" Grid.Column="1" Grid.Row="2" VerticalAlignment="Top" Foreground="White" Padding="5,0,0,0"/>
             <Label Content="BIA front folders : " Grid.Column="0" Grid.Row="3" VerticalAlignment="Top" Foreground="White" Padding="5,0,0,0"/>
-            <Label Content="{Binding BIAFronts}" Grid.Column="1" Grid.Row="3" VerticalAlignment="Top" Foreground="White" Padding="5,0,0,0"/>        
-        </Grid>
-        
+            <Label Content="{Binding BIAFronts}" Grid.Column="1" Grid.Row="3" VerticalAlignment="Top" Foreground="White" Padding="5,0,0,0"/>
+        </Grid>-->
+
     </Grid>
 
 </UserControl>

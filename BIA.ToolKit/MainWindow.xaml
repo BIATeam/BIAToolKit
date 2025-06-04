@@ -155,7 +155,8 @@
                         <Grid.Background>
                             <ImageBrush ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
                         </Grid.Background>
-                        <uc:ModifyProjectUC x:Name="ModifyProject" Width="auto" Height="auto"/>
+                        <Grid Background="Black" Opacity="0.5"/>
+                        <uc:ModifyProjectUC x:Name="ModifyProject"/>
                     </Grid>
                 </TabItem>
                 <TabItem Header="File Generator" Visibility="Collapsed">

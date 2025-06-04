@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
              xmlns:gif="http://wpfanimatedgif.codeplex.com"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             mc:Ignorable="d" d:DesignWidth="800" Height="250">
+             mc:Ignorable="d" d:DesignWidth="800" MaxHeight="250">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     </UserControl.Resources>
