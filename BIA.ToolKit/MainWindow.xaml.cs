@@ -199,7 +199,6 @@
                 try
                 {
                     Waiter.Visibility = Visibility.Visible;
-                    await Task.Delay(100);
                     await task().ConfigureAwait(true);
                 }
                 finally

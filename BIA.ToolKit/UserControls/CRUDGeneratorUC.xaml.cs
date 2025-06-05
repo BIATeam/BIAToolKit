@@ -161,17 +161,20 @@
             {
                 optionItem.Check = false;
             }
-            foreach(var property in vm.DtoEntity.Properties.Where(p => p.IsOptionDto))
+            if (vm.DtoEntity != null)
             {
-                var optionType = property.Annotations.FirstOrDefault(a => a.Key == "Type").Value;
-                if (string.IsNullOrEmpty(optionType))
-                    continue;
+                foreach (var property in vm.DtoEntity.Properties.Where(p => p.IsOptionDto))
+                {
+                    var optionType = property.Annotations.FirstOrDefault(a => a.Key == "Type").Value;
+                    if (string.IsNullOrEmpty(optionType))
+                        continue;
 
-                var optionItem = vm.OptionItems.FirstOrDefault(oi => oi.OptionName == optionType);
-                if (optionItem is null)
-                    continue;
+                    var optionItem = vm.OptionItems.FirstOrDefault(oi => oi.OptionName == optionType);
+                    if (optionItem is null)
+                        continue;
 
-                optionItem.Check = true;
+                    optionItem.Check = true;
+                }
             }
 
             if (this.crudHistory != null)
