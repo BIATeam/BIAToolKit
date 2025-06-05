@@ -153,7 +153,7 @@
                 <TabItem Header="Modify existing project" Selector.Selected="OnTabModifySelected">
                     <Grid Margin="10">
                         <Grid.Background>
-                            <ImageBrush Opacity="0.4" ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
+                            <ImageBrush Opacity="0.3" ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
                         </Grid.Background>
                         <uc:ModifyProjectUC x:Name="ModifyProject"/>
                     </Grid>

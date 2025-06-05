@@ -15,7 +15,7 @@
             modelProviders.Add(new FileGeneratorModelProvider_5_0_0(consoleWriter));
         }
 
-        public IFileGeneratorModelProvider GetFileGeneratorVersion(Version version)
+        public IFileGeneratorModelProvider GetModelProvider(Version version)
         {
             return modelProviders.FirstOrDefault(x => x.CompatibleBiaFrameworkVersions.Any(y => y.Matches(version)));
         }

@@ -23,21 +23,24 @@
             SynchronizeSettings.AddCallBack("RootProjectsPath", DelegateSetRootProjectsPath);
         }
 
-        public void Inject(FileGeneratorService fileGeneratorService, UIEventBroker eventBroker)
+        public void Inject(FileGeneratorService fileGeneratorService)
         {
             this.fileGeneratorService = fileGeneratorService;
-            eventBroker.OnProjectChanged += EventBroker_OnProjectChanged;
-        }
-
-        private void EventBroker_OnProjectChanged(Project project, UIEventBroker.TabItemModifyProjectEnum currentTabItem)
-        {
-            RaisePropertyChanged(nameof(IsFileGeneratorServiceInit));
         }
 
         //public IProductRepository Repository { get; set; }
         public ModifyProject ModifyProject { get; set; }
 
-        public bool IsFileGeneratorServiceInit => fileGeneratorService?.IsInit == true;
+        private bool _isFileGeneratorServiceInit;
+        public bool IsFileGeneratorServiceInit
+        {
+            get => _isFileGeneratorServiceInit;
+            set
+            {
+                _isFileGeneratorServiceInit = value;
+                RaisePropertyChanged(nameof(IsFileGeneratorServiceInit));
+            }
+        }
 
         public List<string> Projects
         {
@@ -210,8 +213,8 @@
             get { return String.IsNullOrEmpty(ModifyProject.CurrentProject?.Name) ? "???" : ModifyProject.CurrentProject.Name; }
         }
 
-        public string BIAFronts => ModifyProject.CurrentProject?.BIAFronts != null && ModifyProject.CurrentProject?.BIAFronts.Count > 0 ? 
-            string.Join(", ", ModifyProject.CurrentProject.BIAFronts) : 
+        public string BIAFronts => ModifyProject.CurrentProject?.BIAFronts != null && ModifyProject.CurrentProject?.BIAFronts.Count > 0 ?
+            string.Join(", ", ModifyProject.CurrentProject.BIAFronts) :
             "???";
 
         public Project CurrentProject
@@ -236,6 +239,6 @@
             get; set;
         }
 
-        public bool IsProjectSelected => CurrentProject != null; 
+        public bool IsProjectSelected => CurrentProject != null;
     }
 }

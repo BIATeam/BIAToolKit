@@ -32,6 +32,7 @@
         CRUDSettings crudSettings;
         UIEventBroker uiEventBroker;
         SettingsService settingsService;
+        FileGeneratorService fileGeneratorService;
 
         public ModifyProjectUC()
         {
@@ -57,8 +58,9 @@
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
             this.crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
-            _viewModel.Inject(fileGeneratorService, uiEventBroker);
+            _viewModel.Inject(fileGeneratorService);
             this.settingsService = settingsService;
+            this.fileGeneratorService = fileGeneratorService;
         }
 
         public void RefreshConfiguration()
@@ -74,7 +76,7 @@
 
         private void ModifyProject_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
+            OnProjectChanged();
 
             ParameterModifyChange();
             MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
@@ -322,18 +324,28 @@
                         break;
                     case TabItem_OptionGenerator:
                         uiEventBroker.SetCurrentTabItemModifyProject(UIEventBroker.TabItemModifyProjectEnum.OptionGenerator);
-                        uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
+                        OnProjectChanged();
                         break;
                     case TabItem_CrudGenerator:
                         uiEventBroker.SetCurrentTabItemModifyProject(UIEventBroker.TabItemModifyProjectEnum.CrudGenerator);
-                        uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
+                        OnProjectChanged();
                         break;
                     case TabItem_DtoGenerator:
                         uiEventBroker.SetCurrentTabItemModifyProject(UIEventBroker.TabItemModifyProjectEnum.DtoGenerator);
-                        uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
+                        OnProjectChanged();
                         break;
                 }
             }
+        }
+
+        private void OnProjectChanged()
+        {
+            uiEventBroker.ExecuteTaskWithWaiter(async () =>
+            {
+                await fileGeneratorService.Init(_viewModel.CurrentProject);
+                _viewModel.IsFileGeneratorServiceInit = fileGeneratorService.IsInit;
+                uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
+            });
         }
 
         private void ResolveUsings_Click(object sender, RoutedEventArgs e)

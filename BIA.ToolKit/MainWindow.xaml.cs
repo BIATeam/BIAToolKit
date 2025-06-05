@@ -32,6 +32,7 @@
         RepositoryService repositoryService;
         GitService gitService;
         ProjectCreatorService projectCreatorService;
+        private readonly FileGeneratorService fileGeneratorService;
         private readonly UIEventBroker uiEventBroker;
         private readonly UpdateService updateService;
         GenerateFilesService generateFilesService;
@@ -49,11 +50,11 @@
             this.repositoryService = repositoryService;
             this.gitService = gitService;
             this.projectCreatorService = projectCreatorService;
+            this.fileGeneratorService = fileGeneratorService;
             this.uiEventBroker = uiEventBroker;
             this.updateService = updateService;
             this.generateFilesService = genFilesService;
 
-            uiEventBroker.OnProjectChanged += fileGeneratorService.EventBroker_OnProjectChanged;
             uiEventBroker.OnActionWithWaiter += async (action) => await ExecuteTaskWithWaiterAsync(action);
 
             InitializeComponent();

@@ -53,80 +53,102 @@
             LoadTemplatesManifests();
         }
 
-        public void EventBroker_OnProjectChanged(Project project, UIEventBroker.TabItemModifyProjectEnum currentTabItem)
+        public async Task Init(Project project)
         {
-            if(project is null)
+            if (project is null)
             {
                 IsInit = false;
                 currentProject = null;
                 return;
             }
 
-            if (project.Folder != currentProject?.Folder)
-            {
-                Init(project);
-            }
-        }
+            if (project.Folder == currentProject?.Folder)
+                return;
 
-        public void Init(Project project)
-        {
             IsInit = false;
             currentProject = project;
 
-            // Parse version of project
-            if (!Version.TryParse(project.FrameworkVersion, out Version projectVersion))
+            try
             {
-                consoleWriter.AddMessageLine($"File generator : invalid project version", "red");
-                return;
+                await Task.Run(() =>
+                {
+                    // Parse version of project
+                    ParseProjectVersion(project, out Version projectVersion);
+                    // Stop init for projects under version 4.0.0
+                    if (projectVersion < new Version(4, 0))
+                    {
+                        return;
+                    }
+
+                    // Load compatible model provider
+                    LoadModelProvider(projectVersion);
+                    // Parse file generator version number (_X_Y_Z)
+                    var modelProviderVersion = ParseModelProviderVersion();
+                    // Search templates path based on file generator version (_X_Y_Z)
+                    FindTemplatesPath(modelProviderVersion);
+                    // Search template manifest based on file generator version transofmred (_X_Y_Z -> X.Y.Z)
+                    SetCurrentManifest(modelProviderVersion);
+
+                    // Init template generator
+                    templateGenerator = new VersionedTemplateGenerator(modelProviderVersion);
+                    // Add reference to assembly of Manifest class to the template generator
+                    templateGenerator.Refs.Add(typeof(Manifest).Assembly.Location);
+                });
+            }
+            catch(Exception ex)
+            {
+                consoleWriter.AddMessageLine($"File generator : {ex.Message}", "red");
             }
 
-            // Stop init for projects under version 4.0.0
-            if(projectVersion < new Version(4, 0))
+            IsInit = true;
+        }
+
+        private void SetCurrentManifest(string modelProviderVersion)
+        {
+            var manifestVersion = modelProviderVersion.Replace("_", ".")[1..modelProviderVersion.Length];
+            currentManifest = manifests.FirstOrDefault(m => m.Version.ToString() == manifestVersion);
+            if (currentManifest is null)
             {
+                consoleWriter.AddMessageLine($"no manifest for version {manifestVersion}", "red");
                 return;
             }
+        }
 
-            // Get compatible file generator version
-            modelProvider = modelProviderFactory.GetFileGeneratorVersion(projectVersion);
-            if (modelProvider is null)
+        private void FindTemplatesPath(string modelProviderVersion)
+        {
+            templatesPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), modelProviderVersion, "Templates");
+            if (!Directory.Exists(templatesPath))
             {
-                consoleWriter.AddMessageLine($"File generator : incompatible project version {projectVersion}", "red");
-                return;
+                throw new Exception($"no templates found for version {modelProviderVersion}");
             }
+        }
 
-            // Parse file generator version number (_X_Y_Z)
+        private string ParseModelProviderVersion()
+        {
             var regex = new Regex(@"(_[0-9]+(?:_[0-9]+){0,2})[^0-9]*");
             var match = regex.Match(modelProvider.GetType().Name);
             if (!match.Success)
             {
-                consoleWriter.AddMessageLine($"File generator : invalid file generator version", "red");
-                return;
+                throw new Exception($"invalid model provider version");
             }
-            var fileGeneratorVersion = match.Groups[1].Value;
+            return match.Groups[1].Value;
+        }
 
-            // Search templates path based on file generator version (_X_Y_Z)
-            templatesPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), fileGeneratorVersion, "Templates");
-            if (!Directory.Exists(templatesPath))
+        private void LoadModelProvider(Version projectVersion)
+        {
+            modelProvider = modelProviderFactory.GetModelProvider(projectVersion);
+            if (modelProvider is null)
             {
-                consoleWriter.AddMessageLine($"File generator : no templates found for version {fileGeneratorVersion}", "red");
-                return;
+                throw new Exception($"incompatible project version {projectVersion}");
             }
+        }
 
-            // Search template manifest based on file generator version transofmred (_X_Y_Z -> X.Y.Z)
-            var manifestVersion = fileGeneratorVersion.Replace("_", ".")[1..fileGeneratorVersion.Length];
-            currentManifest = manifests.FirstOrDefault(m => m.Version.ToString() == manifestVersion);
-            if (currentManifest is null)
+        private static void ParseProjectVersion(Project project, out Version projectVersion)
+        {
+            if (!Version.TryParse(project.FrameworkVersion, out projectVersion))
             {
-                consoleWriter.AddMessageLine($"File generator : no manifest for version {manifestVersion}", "red");
-                return;
+                throw new Exception($"invalid project version");
             }
-
-            // Init template generator
-            templateGenerator = new VersionedTemplateGenerator(fileGeneratorVersion);
-            // Add reference to assembly of Manifest class to the template generator
-            templateGenerator.Refs.Add(typeof(Manifest).Assembly.Location);
-
-            IsInit = true;
         }
 
         /// <summary>
@@ -229,7 +251,7 @@
         {
             var jsonSerializersettings = new JsonSerializerSettings
             {
-                Converters = { new StringEnumConverter() }, 
+                Converters = { new StringEnumConverter() },
                 MissingMemberHandling = MissingMemberHandling.Error
             };
             var manifestsFiles = Directory.EnumerateFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "manifest.json", System.IO.SearchOption.AllDirectories).ToList();
@@ -261,7 +283,7 @@
         public static string GetDotNetTemplateOutputPath(string templateOutputPath, FileGeneratorContext context, string projectFolder)
         {
             return Path.Combine(
-                Path.Combine(projectFolder, Constants.FolderDotNet), 
+                Path.Combine(projectFolder, Constants.FolderDotNet),
                 templateOutputPath
                     .Replace("{Project}", $"{context.CompanyName}.{context.ProjectName}")
                     .Replace("{Domain}", context.DomainName)
@@ -325,7 +347,7 @@
                 await process.WaitForExitAsync(cts.Token);
                 consoleWriter.AddMessageLine($"Prettier succeed !");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"prettier failed ({ex.Message})", "red");
                 process.Kill();
