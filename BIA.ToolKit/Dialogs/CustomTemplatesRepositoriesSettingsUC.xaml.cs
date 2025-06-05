@@ -96,7 +96,7 @@
                 {
                     if (!vm.RepositorySettings.UseLocalFolder)
                     {
-                        this.repositoryService.CleanVersionFolder(vm.RepositorySettings);
+                        await this.repositoryService.CleanVersionFolder(vm.RepositorySettings);
                     }
                     await gitService.Synchronize(vm.RepositorySettings);
                 }

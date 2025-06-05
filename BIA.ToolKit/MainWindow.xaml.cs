@@ -54,7 +54,7 @@
             this.generateFilesService = genFilesService;
 
             uiEventBroker.OnProjectChanged += fileGeneratorService.EventBroker_OnProjectChanged;
-            uiEventBroker.OnActionWithWaiter += async(action) => await ExecuteTaskWithWaiterAsync(action);
+            uiEventBroker.OnActionWithWaiter += async (action) => await ExecuteTaskWithWaiterAsync(action);
 
             InitializeComponent();
 
@@ -195,9 +195,10 @@
         {
             await Dispatcher.InvokeAsync(async () =>
             {
-                Waiter.Visibility = Visibility.Visible;
                 try
                 {
+                    Waiter.Visibility = Visibility.Visible;
+                    await Task.Delay(100);
                     await task().ConfigureAwait(true);
                 }
                 finally
@@ -216,7 +217,7 @@
                     BIATemplateLocalFolderSync.IsEnabled = false;
                     if (!_viewModel.Settings.BIATemplateRepository.UseLocalFolder)
                     {
-                        repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
+                        await repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
                     }
 
                     await this.gitService.Synchronize(_viewModel.Settings.BIATemplateRepository);
@@ -229,8 +230,7 @@
         {
             await ExecuteTaskWithWaiterAsync(async () =>
             {
-                await Task.Delay(1000);
-                repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
+                await repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
             });
         }
 

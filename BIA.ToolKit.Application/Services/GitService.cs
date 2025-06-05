@@ -37,7 +37,7 @@
         public async Task Synchronize(string repoName, string localPath)
         {
             outPut.AddMessageLine("Synchronize " + repoName + " local folder...", "Pink");
-            if (RunScript("git", "pull", localPath).Result == 0)
+            if (await RunScript("git", "pull", localPath) == 0)
             {
                 outPut.AddMessageLine("Synchronize " + repoName + " local folder finished", "Green");
             }
