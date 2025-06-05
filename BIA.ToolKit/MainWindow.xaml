@@ -116,7 +116,7 @@
                             <RowDefinition/>
                         </Grid.RowDefinitions>
                         <Grid.Background>
-                            <ImageBrush ImageSource="/Images/bg-default.jpg"/>
+                            <ImageBrush Opacity="0.5" ImageSource="/Images/bg-default.jpg"/>
                         </Grid.Background>
 
                         <Grid Grid.Row="0" Margin="10">
@@ -153,9 +153,8 @@
                 <TabItem Header="Modify existing project" Selector.Selected="OnTabModifySelected">
                     <Grid Margin="10">
                         <Grid.Background>
-                            <ImageBrush ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
+                            <ImageBrush Opacity="0.4" ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
                         </Grid.Background>
-                        <Grid Background="Black" Opacity="0.5"/>
                         <uc:ModifyProjectUC x:Name="ModifyProject"/>
                     </Grid>
                 </TabItem>
