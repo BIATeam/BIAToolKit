@@ -127,7 +127,7 @@
 
             vm.IsEntityParsed = false;
             vm.EntityDisplayItems.Clear();
-            Visibility msgVisibility = Visibility.Hidden;
+            Visibility msgVisibility = Visibility.Collapsed;
 
             vm.Domain = null;
             vm.EntityNamePlural = null;

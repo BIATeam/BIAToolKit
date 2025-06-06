@@ -112,26 +112,26 @@
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="TabOptionGenerator" Header="Option Generator">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
-                        <Grid Background="Transparent" Margin="5">
-                            <Grid Background="Black" Margin="-5" Opacity="0.2" Grid.ColumnSpan="2"/>
-                            <uc:OptionGeneratorUC x:Name="OptionGenerator" />
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <Grid>
+                            <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
+                            <uc:OptionGeneratorUC x:Name="OptionGenerator" Margin="10" />
                         </Grid>
                     </ScrollViewer>
                 </TabItem>
                 <TabItem x:Name="TabDtoGenerator" Header="DTO Generator" IsEnabled="{Binding IsFileGeneratorServiceInit, Mode=OneWay}">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
-                        <Grid Background="Transparent" Margin="5">
-                            <Grid Background="Black" Margin="-5" Opacity="0.2" Grid.ColumnSpan="2"/>
-                            <uc:DtoGeneratorUC x:Name="DtoGenerator" />
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <Grid>
+                            <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
+                            <uc:DtoGeneratorUC x:Name="DtoGenerator" Margin="10"/>
                         </Grid>
                     </ScrollViewer>
                 </TabItem>
                 <TabItem x:Name="TabCrudGenerator" Header="CRUD Generator">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
-                        <Grid Background="Transparent" Margin="5">
-                            <Grid Background="Black" Margin="-5" Opacity="0.2" Grid.ColumnSpan="2"/>
-                            <uc:CRUDGeneratorUC x:Name="CRUDGenerator" />
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <Grid>
+                            <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
+                            <uc:CRUDGeneratorUC x:Name="CRUDGenerator" Margin="10"/>
                         </Grid>
                     </ScrollViewer>
                 </TabItem>
