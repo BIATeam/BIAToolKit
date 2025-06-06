@@ -105,7 +105,7 @@
 
         private void RefreshEntitiesList_Click(object sender, RoutedEventArgs e)
         {
-            ListEntities();
+            uiEventBroker.ExecuteTaskWithWaiter(async() => ListEntities());
         }
 
         private void SelectProperties_Click(object sender, RoutedEventArgs e)

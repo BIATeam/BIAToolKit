@@ -113,10 +113,10 @@
                 RefreshEntityPropertiesTreeView();
                 RemoveAllMappingProperties();
 
-                IsTeam = SelectedEntityInfo.IsTeam;
-                IsVersioned = SelectedEntityInfo.IsVersioned;
-                IsFixable = SelectedEntityInfo.IsFixable;
-                IsArchivable = SelectedEntityInfo.IsArchivable;
+                IsTeam = SelectedEntityInfo?.IsTeam == true;
+                IsVersioned = SelectedEntityInfo?.IsVersioned == true;
+                IsFixable = SelectedEntityInfo?.IsFixable == true;
+                IsArchivable = SelectedEntityInfo?.IsArchivable == true;
             }
         }
 

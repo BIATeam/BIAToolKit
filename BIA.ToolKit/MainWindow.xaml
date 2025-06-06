@@ -145,7 +145,7 @@
                                 <TextBox Grid.Row="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Company Name" Text="{Binding Settings.CreateCompanyName}" TextWrapping="Wrap"/>
                                 <TextBox Margin="0,10" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Project Name" Text="" TextWrapping="Wrap" x:Name="CreateProjectName" IsEnabled="True"/>
                             </Grid>
-                            <Button Grid.Column="2" Height="50" Width="150" Content="Create" HorizontalAlignment="Right" Click="Create_Click" VerticalAlignment="Top"/>
+                            <Button Grid.Column="2" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Height="50" Width="150" Content="Create" HorizontalAlignment="Right" Click="Create_Click" VerticalAlignment="Top"/>
                         </Grid>
 
                         <uc:VersionAndOptionUserControl Grid.Row="1" x:Name="CreateVersionAndOption" Margin="10" Height="auto"/>
