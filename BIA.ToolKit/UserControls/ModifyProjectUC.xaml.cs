@@ -92,9 +92,10 @@
         private async Task Migrate_Run()
         {
             var generated = await MigrateGenerateOnly_Run();
-            if (generated == 0 && MigrateApplyDiff_Run() == true)
+            var applyDiff = await MigrateApplyDiff_Run();
+            if (generated == 0 && applyDiff)
             {
-                MigrateMergeRejected_Run();
+                await MigrateMergeRejected_Run();
             }
         }
 
@@ -135,10 +136,10 @@
 
         private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(async () => MigrateApplyDiff_Run());
+            uiEventBroker.ExecuteTaskWithWaiter(MigrateApplyDiff_Run);
         }
 
-        private bool MigrateApplyDiff_Run()
+        private async Task<bool> MigrateApplyDiff_Run()
         {
             bool result = false;
 
@@ -147,10 +148,10 @@
 
             if (_viewModel.OverwriteBIAFromOriginal == true)
             {
-                projectCreatorService.OverwriteBIAFolder(projectOriginPath, _viewModel.ModifyProject.CurrentProject.Folder, false);
+                await projectCreatorService.OverwriteBIAFolder(projectOriginPath, _viewModel.ModifyProject.CurrentProject.Folder, false);
             }
 
-            result = ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName);
+            result = await ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName);
 
             MigrateMergeRejected.IsEnabled = true;
             return result;
@@ -158,51 +159,54 @@
 
         private void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(async () => MigrateMergeRejected_Run());
+            uiEventBroker.ExecuteTaskWithWaiter(MigrateMergeRejected_Run);
         }
 
-        private void MigrateMergeRejected_Run()
+        private async Task MigrateMergeRejected_Run()
         {
-            MergeRejected(true);
+            await MergeRejected(true);
 
             MigrateMergeRejected.IsEnabled = false;
 
-            // delete PACKAGE_LOCK_FILE
-            foreach (var biaFront in _viewModel.ModifyProject.CurrentProject.BIAFronts)
+            await Task.Run(() =>
             {
-                string path = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, biaFront, crudSettings.PackageLockFileName);
-                if (new FileInfo(path).Exists)
+                // delete PACKAGE_LOCK_FILE
+                foreach (var biaFront in _viewModel.ModifyProject.CurrentProject.BIAFronts)
                 {
-                    File.Delete(path);
+                    string path = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, biaFront, crudSettings.PackageLockFileName);
+                    if (new FileInfo(path).Exists)
+                    {
+                        File.Delete(path);
+                    }
                 }
-            }
 
-            string rootBiaFolder = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, Constants.FolderBia);
-            if (!Directory.Exists(rootBiaFolder))
-            {
-                Directory.CreateDirectory(rootBiaFolder);
-            }
+                string rootBiaFolder = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, Constants.FolderBia);
+                if (!Directory.Exists(rootBiaFolder))
+                {
+                    Directory.CreateDirectory(rootBiaFolder);
+                }
 
-            var fileToSuppress = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, FeatureSettingService.fileName);
-            if (File.Exists(fileToSuppress))
-            {
-                File.Delete(fileToSuppress);
-            }
+                var fileToSuppress = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, FeatureSettingService.fileName);
+                if (File.Exists(fileToSuppress))
+                {
+                    File.Delete(fileToSuppress);
+                }
 
-            var fileToCheck = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
-            if (!File.Exists(fileToCheck))
-            {
-                string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
-                MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
-                var fileToCopy = Path.Combine(projectTargetPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
+                var fileToCheck = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
+                if (!File.Exists(fileToCheck))
+                {
+                    string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
+                    MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
+                    var fileToCopy = Path.Combine(projectTargetPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
 
-                File.Copy(fileToCopy, fileToCheck);
-            }
+                    File.Copy(fileToCopy, fileToCheck);
+                }
+            });
         }
 
         private void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(async () => OverwriteBIAFolder(true));
+            uiEventBroker.ExecuteTaskWithWaiter(async () => await OverwriteBIAFolder(true));
         }
 
         private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion)
@@ -221,7 +225,7 @@
             // Create project at original version.
             if (Directory.Exists(projectOriginPath))
             {
-                FileTransform.ForceDeleteDirectory(projectOriginPath);
+               await Task.Run(() => FileTransform.ForceDeleteDirectory(projectOriginPath));
             }
 
             await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, _viewModel.CurrentProject.BIAFronts);
@@ -229,7 +233,7 @@
             // Create project at target version.
             if (Directory.Exists(projectTargetPath))
             {
-                FileTransform.ForceDeleteDirectory(projectTargetPath);
+                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectTargetPath));
             }
             await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, _viewModel.CurrentProject.BIAFronts);
 
@@ -257,24 +261,24 @@
             Process.Start("explorer.exe", AppSettings.TmpFolderPath);
         }
 
-        private bool ApplyDiff(bool actionFinishedAtEnd, string projectOriginalFolderName, string projectTargetFolderName)
+        private async Task<bool> ApplyDiff(bool actionFinishedAtEnd, string projectOriginalFolderName, string projectTargetFolderName)
         {
             // Make the differential
             string migrateFilePath = GenerateMigrationPatchFilePath(projectOriginalFolderName, projectTargetFolderName);
-            if (!gitService.DiffFolder(false, AppSettings.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath))
+            if (!await gitService.DiffFolder(false, AppSettings.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath))
             {
                 return false;
             }
             //Apply the differential
-            return gitService.ApplyDiff(actionFinishedAtEnd, _viewModel.ModifyProject.CurrentProject.Folder, migrateFilePath);
+            return await gitService.ApplyDiff(actionFinishedAtEnd, _viewModel.ModifyProject.CurrentProject.Folder, migrateFilePath);
         }
 
-        private void MergeRejected(bool actionFinishedAtEnd)
+        private async Task MergeRejected(bool actionFinishedAtEnd)
         {
             string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
             MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
 
-            gitService.MergeRejeted(actionFinishedAtEnd, new GitService.MergeParameter()
+            await gitService.MergeRejected(actionFinishedAtEnd, new GitService.MergeParameter()
             {
                 ProjectPath = _viewModel.ModifyProject.CurrentProject.Folder,
                 ProjectOriginPath = projectOriginPath,
@@ -290,13 +294,12 @@
             return AppSettings.TmpFolderPath + $"Migration_{projectOriginalFolderName}-{projectTargetFolderName}.patch";
         }
 
-        private void OverwriteBIAFolder(bool actionFinishedAtEnd)
+        private async Task OverwriteBIAFolder(bool actionFinishedAtEnd)
         {
             string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
             MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
 
-            projectCreatorService.OverwriteBIAFolder(projectTargetPath, _viewModel.ModifyProject.CurrentProject.Folder, actionFinishedAtEnd);
-
+            await projectCreatorService.OverwriteBIAFolder(projectTargetPath, _viewModel.ModifyProject.CurrentProject.Folder, actionFinishedAtEnd);
         }
 
         private void ModifyProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)

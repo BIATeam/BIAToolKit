@@ -76,12 +76,12 @@
         }
 
 
-        public void CheckoutTag(RepositorySettings repoSettings, string tag)
+        public async Task CheckoutTag(RepositorySettings repoSettings, string tag)
         {
             // git checkout tags/1.1.4
             outPut.AddMessageLine("Checkout Tag " + tag + "  for repo : " + repoSettings.Name + ".", "Pink");
 
-            if (RunScript("git", $"checkout tags/" + tag, repoSettings.RootFolderPath).Result == 0)
+            if (await RunScript("git", $"checkout tags/" + tag, repoSettings.RootFolderPath) == 0)
             {
                 outPut.AddMessageLine("Checkout Tag " + tag + "  for repo : " + repoSettings.Name + "finished", "Green");
             }
@@ -92,14 +92,14 @@
         }
 
 
-        public bool DiffFolder(bool actionFinishedAtEnd, string rootPath, string name1, string name2, string migrateFilePath)
+        public async Task<bool> DiffFolder(bool actionFinishedAtEnd, string rootPath, string name1, string name2, string migrateFilePath)
         {
             outPut.AddMessageLine($"Diff {name1} <> {name2}", "Pink");
 
 
             // git diff --no-index V3.3.3 V3.4.0 > .\\Migration\\CF_3.3.3-3.4.0.patch
             //await RunScript($"cd {rootPath} \r\n git diff --no-index --binary {name1} {name2} > {migrateFilePath}");
-            int result = RunScript("git", $"diff --ignore-blank-lines --no-index --binary {name1} {name2} --output={migrateFilePath}", rootPath).Result;
+            int result = await RunScript("git", $"diff --ignore-blank-lines --no-index --binary {name1} {name2} --output={migrateFilePath}", rootPath);
             if (result == 0)
             {
                 outPut.AddMessageLine("Error durring diff folder: No difference found ", "Red");
@@ -107,19 +107,22 @@
             }
             else if (result == 1)
             {
-                // Replace a/{name1}/ by a/
-                FileTransform.ReplaceInFile(migrateFilePath, $"a/{name1}/", "a/");
-                FileTransform.ReplaceInFile(migrateFilePath, $"a/{name2}/", "a/");
+                await Task.Run(() =>
+                {
+                    // Replace a/{name1}/ by a/
+                    FileTransform.ReplaceInFile(migrateFilePath, $"a/{name1}/", "a/");
+                    FileTransform.ReplaceInFile(migrateFilePath, $"a/{name2}/", "a/");
 
-                FileTransform.ReplaceInFile(migrateFilePath, $"rename from {name1}/", "rename from ");
+                    FileTransform.ReplaceInFile(migrateFilePath, $"rename from {name1}/", "rename from ");
 
-                // Replace b/{name2}/ by b/
-                FileTransform.ReplaceInFile(migrateFilePath, $"b/{name2}/", "b/");
-                FileTransform.ReplaceInFile(migrateFilePath, $"b/{name1}/", "b/");
+                    // Replace b/{name2}/ by b/
+                    FileTransform.ReplaceInFile(migrateFilePath, $"b/{name2}/", "b/");
+                    FileTransform.ReplaceInFile(migrateFilePath, $"b/{name1}/", "b/");
 
-                FileTransform.ReplaceInFile(migrateFilePath, $"rename to {name2}/", "rename to ");
+                    FileTransform.ReplaceInFile(migrateFilePath, $"rename to {name2}/", "rename to ");
 
-                FileTransform.ReplaceInFile(migrateFilePath, $"\r\n", "\n");
+                    FileTransform.ReplaceInFile(migrateFilePath, $"\r\n", "\n");
+                });
 
                 outPut.AddMessageLine("Diff folder finished", actionFinishedAtEnd ? "Green" : "Blue");
                 return true;
@@ -131,12 +134,12 @@
             }
         }
 
-        public bool ApplyDiff(bool actionFinishedAtEnd, string projectPath, string migrateFilePath)
+        public async Task<bool> ApplyDiff(bool actionFinishedAtEnd, string projectPath, string migrateFilePath)
         {
             outPut.AddMessageLine($"Apply diff", "Pink");
             outPut.AddMessageLine($"On project : {projectPath}", "Pink");
             // cd "...\\YourProject" git apply --reject --whitespace=fix "3.2.2-3.3.0.patch" \
-            int result = RunScript("git", $"apply --reject --unsafe-paths --whitespace=fix {migrateFilePath}", projectPath).Result;
+            int result = await RunScript("git", $"apply --reject --unsafe-paths --whitespace=fix {migrateFilePath}", projectPath);
             if (result == 0)
             {
                 outPut.AddMessageLine("Apply diff finished", actionFinishedAtEnd ? "Green" : "Blue");
@@ -170,32 +173,32 @@
             public string MigrationPatchFilePath { get; set; }
         }
 
-        public void MergeRejeted(bool actionFinishedAtEnd, MergeParameter param)
+        public async Task MergeRejected(bool actionFinishedAtEnd, MergeParameter param)
         {
             outPut.AddMessageLine($"Apply merge on rejected", "Pink");
 
-            MergeRejetedDirectory(param.ProjectPath, param);
+            await MergeRejectedDirectory(param.ProjectPath, param);
 
             outPut.AddMessageLine("Apply merge on rejected", actionFinishedAtEnd ? "Green" : "Blue");
         }
 
         // Process all files in the directory passed in, recurse on any directories
         // that are found, and process the files they contain.
-        public void MergeRejetedDirectory(string targetDirectory, MergeParameter param)
+        public async Task MergeRejectedDirectory(string targetDirectory, MergeParameter param)
         {
             // Process the list of files found in the directory.
             string[] fileEntries = Directory.GetFiles(targetDirectory, "*.rej");
             foreach (string fileName in fileEntries)
-                MergeRejetedFileAsync(fileName, param);
+               await MergeRejectedFileAsync(fileName, param);
 
             // Recurse into subdirectories of this directory.
             string[] subdirectoryEntries = Directory.GetDirectories(targetDirectory);
             foreach (string subdirectory in subdirectoryEntries)
-                MergeRejetedDirectory(subdirectory, param);
+                await MergeRejectedDirectory(subdirectory, param);
         }
 
         // Insert logic for processing found files here.
-        public void MergeRejetedFileAsync(string rejectedFilePath, MergeParameter param)
+        public async Task MergeRejectedFileAsync(string rejectedFilePath, MergeParameter param)
         {
             outPut.AddMessageLine("Merge file '" + rejectedFilePath + "'.", "White");
 
@@ -227,7 +230,7 @@
                 return;
             }
 
-            int result = RunScript("git", $"merge-file -L Src -L {param.ProjectOriginVersion} -L {param.ProjectTargetVersion} \"{finalProjectFile}\" \"{originalProjectFile}\" \"{targetProjectFile}\"").Result;
+            int result = await RunScript("git", $"merge-file -L Src -L {param.ProjectOriginVersion} -L {param.ProjectTargetVersion} \"{finalProjectFile}\" \"{originalProjectFile}\" \"{targetProjectFile}\"");
             if (result == 0)
             {
                 File.Delete(rejectedFilePath);

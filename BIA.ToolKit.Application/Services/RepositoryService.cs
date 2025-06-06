@@ -169,7 +169,7 @@
                 }
                 else
                 {
-                    this.gitService.CheckoutTag(repository, version);
+                    await this.gitService.CheckoutTag(repository, version);
                     return repository.RootFolderPath;
                 }
             }
