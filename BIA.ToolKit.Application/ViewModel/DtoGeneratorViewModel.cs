@@ -403,23 +403,21 @@
                         var optionEntity = domainEntities.FirstOrDefault(x => x.Name == mappingEntityProperty.OptionType);
                         if (optionEntity != null)
                         {
-                            var optionBaseKeyType = optionEntity.BaseKeyType;
-                            if(string.IsNullOrEmpty(optionBaseKeyType))
-                            {
-                                consoleWriter.AddMessageLine($"Unable to find base key type of related entity {optionEntity.Name}, the mapping for this property has been ignored.", "orange");
-                                continue;
-                            }
-
                             mappingEntityProperty.OptionDisplayProperties.AddRange(optionEntity.Properties.Select(x => x.Name));
                             mappingEntityProperty.OptionDisplayProperty = mappingEntityProperty.OptionDisplayProperties.Where(x => !x.Equals("id", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
 
-                            mappingEntityProperty.OptionIdProperties.AddRange(optionEntity.Properties.Where(x => x.Type.Equals(optionBaseKeyType, StringComparison.InvariantCultureIgnoreCase)).Select(x => x.Name));
-                            mappingEntityProperty.OptionIdProperty = mappingEntityProperty.OptionIdProperties.FirstOrDefault(x => x.Equals("id", StringComparison.InvariantCultureIgnoreCase));
-
-                            var entityProperty = AllEntityPropertiesRecursively.First(x => x.CompositeName == mappingEntityProperty.EntityCompositeName);
-
                             if (mappingEntityProperty.IsOption)
                             {
+                                var optionBaseKeyType = optionEntity.BaseKeyType;
+                                if (string.IsNullOrEmpty(optionBaseKeyType))
+                                {
+                                    consoleWriter.AddMessageLine($"Unable to find base key type of related entity {optionEntity.Name}, the mapping for this property has been ignored.", "orange");
+                                    continue;
+                                }
+
+                                mappingEntityProperty.OptionIdProperties.AddRange(optionEntity.Properties.Where(x => x.Type.Equals(optionBaseKeyType, StringComparison.InvariantCultureIgnoreCase)).Select(x => x.Name));
+                                mappingEntityProperty.OptionIdProperty = mappingEntityProperty.OptionIdProperties.FirstOrDefault(x => x.Equals("id", StringComparison.InvariantCultureIgnoreCase));
+
                                 mappingEntityProperty.OptionEntityIdProperties.AddRange(
                                     entityProperties
                                     .Where(x => x.Type.Replace("?", string.Empty).Equals(optionBaseKeyType, StringComparison.InvariantCultureIgnoreCase) && !x.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase))
@@ -428,7 +426,7 @@
                                 if(!mappingEntityProperty.OptionEntityIdProperties.Any())
                                 {
                                     consoleWriter.AddMessageLine($"Unable to find {optionBaseKeyType} ID property related to {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
-                                    entityProperty.IsSelected = false;
+                                    selectedEntityProperty.IsSelected = false;
                                     continue;
                                 }
 
@@ -453,7 +451,7 @@
                                 if (entityInfo is null)
                                 {
                                     consoleWriter.AddMessageLine($"Unable to find relation's entity between types {optionRelationFirstType} and {optionRelationSecondType} to map {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
-                                    entityProperty.IsSelected = false;
+                                    selectedEntityProperty.IsSelected = false;
                                     continue;
                                 }
 
@@ -464,7 +462,7 @@
                                 if(string.IsNullOrWhiteSpace(mappingEntityProperty.OptionRelationFirstIdProperty))
                                 {
                                     consoleWriter.AddMessageLine($"Unable to find matching relation property {optionRelationFirstIdPropertyName} in the entity {entityInfo.Name} to map {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
-                                    entityProperty.IsSelected = false;
+                                    selectedEntityProperty.IsSelected = false;
                                     continue;
                                 }
 
@@ -473,9 +471,12 @@
                                 if (string.IsNullOrWhiteSpace(mappingEntityProperty.OptionRelationSecondIdProperty))
                                 {
                                     consoleWriter.AddMessageLine($"Unable to find matching relation property {optionRelationSecondIdPropertyName} in the entity {entityInfo.Name} to map {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
-                                    entityProperty.IsSelected = false;
+                                    selectedEntityProperty.IsSelected = false;
                                     continue;
                                 }
+
+                                mappingEntityProperty.OptionIdProperties.AddRange(optionEntity.Properties.Select(x => x.Name));
+                                mappingEntityProperty.OptionIdProperty = mappingEntityProperty.OptionIdProperties.FirstOrDefault(x => x.Equals("id", StringComparison.InvariantCultureIgnoreCase));
                             }
                         }
                     }
