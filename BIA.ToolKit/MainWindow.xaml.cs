@@ -20,6 +20,7 @@
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using System.Reflection;
+    using System.Threading;
 
 
     /// <summary>
@@ -192,8 +193,10 @@
             Properties.Settings.Default.Save();
         }
 
+        private readonly SemaphoreSlim semaphore = new(1, 1);
         private async Task ExecuteTaskWithWaiterAsync(Func<Task> task)
         {
+            await semaphore.WaitAsync();
             await Dispatcher.InvokeAsync(async () =>
             {
                 try
@@ -206,6 +209,7 @@
                     Waiter.Visibility = Visibility.Hidden;
                 }
             }).Task.Unwrap();
+            semaphore.Release();
         }
 
         private async void BIATemplateLocalFolderSync_Click(object sender, RoutedEventArgs e)

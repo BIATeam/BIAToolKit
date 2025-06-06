@@ -41,7 +41,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Project Folder" ItemsSource="{Binding Projects}" SelectedValue="{Binding Folder}" SelectionChanged="ModifyProject_SelectionChanged"/>
+                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Project Folder" ItemsSource="{Binding Projects}" SelectedValue="{Binding Folder}"/>
                 <Button Grid.Column="1" x:Name="RefreshDtoList" Click="RefreshProjectFolderList_Click" ToolTip="Refresh project folder list" Padding="5" Margin="5,0">
                     <Image Source="/Images/rafraichir-32.png" />
                 </Button>
@@ -66,7 +66,7 @@
                 </Grid>
             </Grid>
         </Grid>
-        <TabControl x:Name="TabActions" Grid.Row="1" SelectionChanged="TabActions_SelectionChanged">
+        <TabControl x:Name="TabActions" Grid.Row="1">
             <TabItem x:Name="TabMigration" Header="Migration">
                 <Grid Margin="5">
                     <Grid.ColumnDefinitions>
@@ -116,7 +116,7 @@
                     </Grid>
                 </ScrollViewer>
             </TabItem>
-            <TabItem x:Name="TabDtoGenerator" Header="DTO Generator" IsEnabled="{Binding IsFileGeneratorServiceInit}">
+            <TabItem x:Name="TabDtoGenerator" Header="DTO Generator" IsEnabled="{Binding IsFileGeneratorServiceInit, Mode=OneWay}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
                     <Grid Background="Transparent" Margin="5">
                         <uc:DtoGeneratorUC x:Name="DtoGenerator" />

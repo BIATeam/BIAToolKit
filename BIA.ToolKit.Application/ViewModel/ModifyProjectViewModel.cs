@@ -12,10 +12,14 @@
     using System.IO;
     using System.Linq;
     using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
 
     public class ModifyProjectViewModel : ObservableObject
     {
+        private UIEventBroker eventBroker;
         private FileGeneratorService fileGeneratorService;
+        private IConsoleWriter consoleWriter;
+
         public ModifyProjectViewModel()
         {
             ModifyProject = new ModifyProject();
@@ -23,9 +27,11 @@
             SynchronizeSettings.AddCallBack("RootProjectsPath", DelegateSetRootProjectsPath);
         }
 
-        public void Inject(FileGeneratorService fileGeneratorService)
+        public void Inject(UIEventBroker eventBroker, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter)
         {
+            this.eventBroker = eventBroker;
             this.fileGeneratorService = fileGeneratorService;
+            this.consoleWriter = consoleWriter;
         }
 
         //public IProductRepository Repository { get; set; }
@@ -161,38 +167,51 @@
             get { return ModifyProject.CurrentProject?.Folder; }
             set
             {
-                Project currentProject = null;
-
-                if (value != null)
+                IsFileGeneratorServiceInit = false;
+                eventBroker.ExecuteTaskWithWaiter(async () =>
                 {
+                    Project currentProject = null;
 
-                    currentProject = new Domain.ModifyProject.Project();
-
-                    currentProject.Name = value;
-                    currentProject.Folder = RootProjectsPath + "\\" + currentProject.Name;
-                    currentProject.SolutionPath = Directory.GetFiles(currentProject.Folder, $"{currentProject.Name}.sln", SearchOption.AllDirectories).FirstOrDefault();
-
-                    NamesAndVersionResolver nvResolver2 = new NamesAndVersionResolver()
+                    if (value != null)
                     {
-                        ConstantFileRegExpPath = @"\\.*\\(.*)\.(.*)\.Common\\Constants\.cs$",
-                        ConstantFileNameSearchPattern = "Constants.cs",
-                        ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
-                        FrontFileRegExpPath = null,
-                        FrontFileNameSearchPattern = null
-                    };
-                    nvResolver2.ResolveNamesAndVersion(currentProject);
+                        await Task.Run(() =>
+                        {
+                            currentProject = new Domain.ModifyProject.Project();
 
-                    NamesAndVersionResolver nvResolver = new NamesAndVersionResolver()
-                    {
-                        ConstantFileRegExpPath = @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$",
-                        ConstantFileNameSearchPattern = "Constants.cs",
-                        ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
-                        FrontFileRegExpPath = @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$",
-                        FrontFileNameSearchPattern = "bia-core.module.ts"
-                    };
-                    nvResolver.ResolveNamesAndVersion(currentProject);
-                }
-                CurrentProject = currentProject;
+                            currentProject.Name = value;
+                            currentProject.Folder = RootProjectsPath + "\\" + currentProject.Name;
+                            currentProject.SolutionPath = Directory.GetFiles(currentProject.Folder, $"{currentProject.Name}.sln", SearchOption.AllDirectories).FirstOrDefault();
+
+                            NamesAndVersionResolver nvResolver2 = new NamesAndVersionResolver()
+                            {
+                                ConstantFileRegExpPath = @"\\.*\\(.*)\.(.*)\.Common\\Constants\.cs$",
+                                ConstantFileNameSearchPattern = "Constants.cs",
+                                ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
+                                FrontFileRegExpPath = null,
+                                FrontFileNameSearchPattern = null
+                            };
+                            nvResolver2.ResolveNamesAndVersion(currentProject);
+
+                            NamesAndVersionResolver nvResolver = new NamesAndVersionResolver()
+                            {
+                                ConstantFileRegExpPath = @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$",
+                                ConstantFileNameSearchPattern = "Constants.cs",
+                                ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
+                                FrontFileRegExpPath = @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$",
+                                FrontFileNameSearchPattern = "bia-core.module.ts"
+                            };
+                            nvResolver.ResolveNamesAndVersion(currentProject);
+                        });
+
+                        if (currentProject.BIAFronts.Count == 0)
+                        {
+                            consoleWriter.AddMessageLine("Unable to find any BIA front folder for this project", "red");
+                        }
+                    }
+                    await fileGeneratorService.Init(currentProject);
+                    IsFileGeneratorServiceInit = fileGeneratorService.IsInit;
+                    CurrentProject = currentProject;
+                });
             }
         }
 
@@ -230,6 +249,7 @@
                     RaisePropertyChanged(nameof(Name));
                     RaisePropertyChanged(nameof(IsProjectSelected));
                     RaisePropertyChanged(nameof(BIAFronts));
+                    eventBroker.NotifyProjectChanged(value);
                 }
             }
         }

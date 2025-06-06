@@ -93,14 +93,14 @@
                     templateGenerator = new VersionedTemplateGenerator(modelProviderVersion);
                     // Add reference to assembly of Manifest class to the template generator
                     templateGenerator.Refs.Add(typeof(Manifest).Assembly.Location);
+
+                    IsInit = true;
                 });
             }
             catch(Exception ex)
             {
                 consoleWriter.AddMessageLine($"File generator : {ex.Message}", "red");
             }
-
-            IsInit = true;
         }
 
         private void SetCurrentManifest(string modelProviderVersion)

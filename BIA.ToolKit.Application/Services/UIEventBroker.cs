@@ -17,7 +17,7 @@ namespace BIA.ToolKit.Application.Services
             CrudGenerator
         }
 
-        public delegate void ProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem);
+        public delegate void ProjectChanged(Project project);
         public delegate void NewVersionAvailable();
         public delegate void ActionWithWaiterAsync(Func<Task> action);
 
@@ -25,16 +25,9 @@ namespace BIA.ToolKit.Application.Services
         public event NewVersionAvailable OnNewVersionAvailable;
         public event ActionWithWaiterAsync OnActionWithWaiter;
 
-        public TabItemModifyProjectEnum CurrentTabItemModifyProject { get; private set; }
-
         public void NotifyProjectChanged(Project project)
         {
-            OnProjectChanged?.Invoke(project, CurrentTabItemModifyProject);
-        }
-
-        public void SetCurrentTabItemModifyProject(TabItemModifyProjectEnum tabItem)
-        {
-            CurrentTabItemModifyProject = tabItem;
+            OnProjectChanged?.Invoke(project);
         }
 
         public void NotifyNewVersionAvailable()

@@ -69,23 +69,12 @@
             this.crudService = crudService;
             this.settings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
-            this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
+            this.uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
             this.fileGeneratorService = fileGeneratorService;
         }
 
-        private void UiEventBroker_OnBIAFrontFolderChanged()
+        private void UiEventBroker_OnProjectChanged(Project project)
         {
-            if (vm is null || vm.CurrentProject is null || !vm.IsDtoParsed)
-                return;
-
-            ParseFrontDomains();
-        }
-
-        private void UIEventBroker_OnProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem)
-        {
-            if (currentTabItem != TabItemModifyProjectEnum.CrudGenerator)
-                return;
-
             SetCurrentProject(project);
         }
 
@@ -109,14 +98,8 @@
         /// </summary>
         private void CurrentProjectChange()
         {
-            if (vm.CurrentProject is null)
+            if (vm.CurrentProject is null || vm.CurrentProject.BIAFronts.Count == 0)
                 return;
-
-            if (vm.CurrentProject.BIAFronts.Count == 0)
-            {
-                consoleWriter.AddMessageLine("Unable to find any BIA front folder for this project", "red");
-                return;
-            }
 
             // Set form enabled
             vm.IsProjectChosen = true;

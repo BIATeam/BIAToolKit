@@ -33,6 +33,7 @@
         UIEventBroker uiEventBroker;
         SettingsService settingsService;
         FileGeneratorService fileGeneratorService;
+        UIEventBroker.TabItemModifyProjectEnum currentTabItem = UIEventBroker.TabItemModifyProjectEnum.Migration;
 
         public ModifyProjectUC()
         {
@@ -58,9 +59,19 @@
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
             this.crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
-            _viewModel.Inject(fileGeneratorService);
+            _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter);
             this.settingsService = settingsService;
             this.fileGeneratorService = fileGeneratorService;
+
+            uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
+        }
+
+        private void UiEventBroker_OnProjectChanged(Domain.ModifyProject.Project project)
+        {
+            ParameterModifyChange();
+            MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
+            MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, true);
+            MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false);
         }
 
         public void RefreshConfiguration()
@@ -72,16 +83,6 @@
         private void ModifyProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)
         {
             ParameterModifyChange();
-        }
-
-        private void ModifyProject_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            OnProjectChanged();
-
-            ParameterModifyChange();
-            MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
-            MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, true);
-            MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false);
         }
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
@@ -106,7 +107,7 @@
 
         private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
         {
-           uiEventBroker.ExecuteTaskWithWaiter(MigrateGenerateOnly_Run);
+            uiEventBroker.ExecuteTaskWithWaiter(MigrateGenerateOnly_Run);
         }
 
         private async Task<int> MigrateGenerateOnly_Run()
@@ -134,7 +135,7 @@
 
         private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(async() => MigrateApplyDiff_Run());
+            uiEventBroker.ExecuteTaskWithWaiter(async () => MigrateApplyDiff_Run());
         }
 
         private bool MigrateApplyDiff_Run()
@@ -157,7 +158,7 @@
 
         private void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(async() => MigrateMergeRejected_Run());
+            uiEventBroker.ExecuteTaskWithWaiter(async () => MigrateMergeRejected_Run());
         }
 
         private void MigrateMergeRejected_Run()
@@ -176,7 +177,7 @@
                 }
             }
 
-            string rootBiaFolder = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name,  Constants.FolderBia);
+            string rootBiaFolder = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, Constants.FolderBia);
             if (!Directory.Exists(rootBiaFolder))
             {
                 Directory.CreateDirectory(rootBiaFolder);
@@ -201,7 +202,7 @@
 
         private void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
         {
-           uiEventBroker.ExecuteTaskWithWaiter(async () => OverwriteBIAFolder(true));
+            uiEventBroker.ExecuteTaskWithWaiter(async () => OverwriteBIAFolder(true));
         }
 
         private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion)
@@ -239,13 +240,13 @@
         private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, List<string> fronts)
         {
             await this.projectCreatorService.Create(
-                actionFinishedAtEnd, 
+                actionFinishedAtEnd,
                 projectPath,
                 new Domain.Model.ProjectParameters
-                { 
-                    CompanyName = CompanyName, 
-                    ProjectName = ProjectName, 
-                    VersionAndOption = versionAndOption.vm.VersionAndOption, 
+                {
+                    CompanyName = CompanyName,
+                    ProjectName = ProjectName,
+                    VersionAndOption = versionAndOption.vm.VersionAndOption,
                     AngularFronts = fronts
                 }
             );
@@ -306,46 +307,6 @@
         private void RefreshProjectFolderList_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.RefreshProjetsList();
-        }
-
-        private void TabActions_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            const string TabItem_Migration = "TabMigration";
-            const string TabItem_OptionGenerator = "TabOptionGenerator";
-            const string TabItem_CrudGenerator = "TabCrudGenerator";
-            const string TabItem_DtoGenerator = "TabDtoGenerator";
-
-            if (e.AddedItems.Count == 1 && e.AddedItems[0] is TabItem tabItem)
-            {
-                switch(tabItem.Name)
-                {
-                    case TabItem_Migration:
-                        uiEventBroker.SetCurrentTabItemModifyProject(UIEventBroker.TabItemModifyProjectEnum.Migration);
-                        break;
-                    case TabItem_OptionGenerator:
-                        uiEventBroker.SetCurrentTabItemModifyProject(UIEventBroker.TabItemModifyProjectEnum.OptionGenerator);
-                        OnProjectChanged();
-                        break;
-                    case TabItem_CrudGenerator:
-                        uiEventBroker.SetCurrentTabItemModifyProject(UIEventBroker.TabItemModifyProjectEnum.CrudGenerator);
-                        OnProjectChanged();
-                        break;
-                    case TabItem_DtoGenerator:
-                        uiEventBroker.SetCurrentTabItemModifyProject(UIEventBroker.TabItemModifyProjectEnum.DtoGenerator);
-                        OnProjectChanged();
-                        break;
-                }
-            }
-        }
-
-        private void OnProjectChanged()
-        {
-            uiEventBroker.ExecuteTaskWithWaiter(async () =>
-            {
-                await fileGeneratorService.Init(_viewModel.CurrentProject);
-                _viewModel.IsFileGeneratorServiceInit = fileGeneratorService.IsInit;
-                uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
-            });
         }
 
         private void ResolveUsings_Click(object sender, RoutedEventArgs e)

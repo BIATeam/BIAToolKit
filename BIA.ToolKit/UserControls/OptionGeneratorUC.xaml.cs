@@ -77,11 +77,8 @@
             this.fileGeneratorService = fileGeneratorService;
         }
 
-        private void UIEventBroker_OnProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem)
+        private void UIEventBroker_OnProjectChanged(Project project)
         {
-            if (currentTabItem != TabItemModifyProjectEnum.OptionGenerator)
-                return;
-
             SetCurrentProject(project);
         }
 
@@ -105,14 +102,8 @@
         /// </summary>
         private void CurrentProjectChange()
         {
-            if (vm.CurrentProject == null)
+            if (vm.CurrentProject == null || vm.CurrentProject.BIAFronts.Count == 0)
                 return;
-
-            if (vm.CurrentProject.BIAFronts.Count == 0)
-            {
-                consoleWriter.AddMessageLine("Unable to find any BIA front folder for this project", "red");
-                return;
-            }
 
             // Set form enabled
             vm.IsProjectChosen = true;

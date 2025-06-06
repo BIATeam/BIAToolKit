@@ -62,11 +62,8 @@
             vm.Inject(fileGeneratorService, consoleWriter);
         }
 
-        private void UIEventBroker_OnProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem)
+        private void UIEventBroker_OnProjectChanged(Project project)
         {
-            if (currentTabItem != TabItemModifyProjectEnum.DtoGenerator)
-                return;
-
             SetCurrentProject(project);
         }
 
