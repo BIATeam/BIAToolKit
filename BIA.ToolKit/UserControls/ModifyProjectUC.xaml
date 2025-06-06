@@ -66,71 +66,77 @@
                 </Grid>
             </Grid>
         </Grid>
-        <TabControl x:Name="TabActions" Grid.Row="1">
-            <TabItem x:Name="TabMigration" Header="Migration">
-                <Grid Margin="5">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid Background="Black" Opacity="0.2" Margin="-5" Grid.ColumnSpan="2"/>
-                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="auto">
-                        <Grid>
+        <Grid Grid.Row="1" Margin="10,0,10,0">
+            <Grid Background="Black" Opacity="0.2"/>
+            <TabControl x:Name="TabActions">
+                <TabItem x:Name="TabMigration" Header="Migration">
+                    <Grid Margin="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Background="Black" Opacity="0.2" Margin="-5" Grid.ColumnSpan="2"/>
+                        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="auto">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+                                <GroupBox Header="Original" Margin="10" Foreground="White" x:Name="CompanyFileGroup" Grid.Row="0" Style="{StaticResource MaterialDesignGroupBox}" materialDesign:ColorZoneAssist.Mode="Custom" materialDesign:ColorZoneAssist.Background="#608000" materialDesign:ColorZoneAssist.Foreground="White">
+                                    <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption"/>
+                                </GroupBox>
+                                <GroupBox Margin="10" Header="Target"  Foreground="White" Grid.Row="1" Style="{StaticResource MaterialDesignGroupBox}" materialDesign:ColorZoneAssist.Mode="Custom" materialDesign:ColorZoneAssist.Background="#608000" materialDesign:ColorZoneAssist.Foreground="White">
+                                    <uc:VersionAndOptionUserControl x:Name="MigrateTargetVersionAndOption"/>
+                                </GroupBox>
+                            </Grid>
+                        </ScrollViewer>
+                        <Grid Grid.Column="1" Margin="15,0">
                             <Grid.RowDefinitions>
-                                <RowDefinition/>
-                                <RowDefinition/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <GroupBox Header="Original" Margin="10" Foreground="White" x:Name="CompanyFileGroup" Grid.Row="0" Style="{StaticResource MaterialDesignGroupBox}" materialDesign:ColorZoneAssist.Mode="Custom" materialDesign:ColorZoneAssist.Background="#608000" materialDesign:ColorZoneAssist.Foreground="White">
-                                <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption"/>
-                            </GroupBox>
-                            <GroupBox Margin="10" Header="Target"  Foreground="White" Grid.Row="1" Style="{StaticResource MaterialDesignGroupBox}" materialDesign:ColorZoneAssist.Mode="Custom" materialDesign:ColorZoneAssist.Background="#608000" materialDesign:ColorZoneAssist.Foreground="White">
-                                <uc:VersionAndOptionUserControl x:Name="MigrateTargetVersionAndOption"/>
-                            </GroupBox>
+                            <CheckBox Grid.Row="0" Content="Overwrite BIA first" HorizontalAlignment="Center" Foreground="White" Name="CFOverwriteBIAFirst" IsChecked="{Binding Path=OverwriteBIAFromOriginal, Mode=TwoWay}"/>
+                            <Button Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Margin="0,10" Height="50" Grid.Row="1" HorizontalAlignment="Stretch" Content="Migrate" x:Name="Migrate" Click="Migrate_Click" IsEnabled="{Binding IsProjectSelected}"/>
+                            <Label Grid.Row="2" Content="Or by step :" Foreground="White" HorizontalAlignment="Center"/>
+                            <StackPanel Grid.Row="3" Margin="0,10">
+                                <Button Margin="0,3" Content="1 - Generate Only" x:Name="MigrateGenerateOnly" Click="MigrateGenerateOnly_Click" IsEnabled="{Binding IsProjectSelected}"/>
+                                <Button Margin="0,3" Content="2 - Open Folder" x:Name="MigrateOpenFolder" Click="MigrateOpenFolder_Click" IsEnabled="False"/>
+                                <Button Margin="0,3" Content="3 - Apply Diff" x:Name="MigrateApplyDiff" Click="MigrateApplyDiff_Click" IsEnabled="False"/>
+                                <Button Margin="0,3" Content="4 - Merge Rejected" x:Name="MigrateMergeRejected" Click="MigrateMergeRejected_Click" IsEnabled="False"/>
+                                <Button Margin="0,3" Content="5 - Overwrite '\BIA-.*'" x:Name="MigrateOverwriteBIAFolder" Click="MigrateOverwriteBIAFolder_Click" IsEnabled="{Binding IsProjectSelected}"/>
+                                <Button Margin="0,3" Content="6 - Resolve Usings" x:Name="ResolveUsings" Click="ResolveUsings_Click" IsEnabled="{Binding IsProjectSelected}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="TabOptionGenerator" Header="Option Generator">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
+                        <Grid Background="Transparent" Margin="5">
+                            <Grid Background="Black" Margin="-5" Opacity="0.2" Grid.ColumnSpan="2"/>
+                            <uc:OptionGeneratorUC x:Name="OptionGenerator" />
                         </Grid>
                     </ScrollViewer>
-                    <Grid Grid.Column="1" Margin="15,0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <CheckBox Grid.Row="0" Content="Overwrite BIA first" HorizontalAlignment="Center" Foreground="White" Name="CFOverwriteBIAFirst" IsChecked="{Binding Path=OverwriteBIAFromOriginal, Mode=TwoWay}"/>
-                        <Button Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Margin="0,5" Grid.Row="1" HorizontalAlignment="Stretch" Content="Migrate" x:Name="Migrate" Click="Migrate_Click" IsEnabled="{Binding IsProjectSelected}"/>
-                        <Label Grid.Row="2" Content="Or by step :" Foreground="White" HorizontalAlignment="Center"/>
-                        <StackPanel Grid.Row="3">
-                            <Button Margin="0,5,0,0" Content="1 - Generate Only" x:Name="MigrateGenerateOnly" Click="MigrateGenerateOnly_Click" IsEnabled="{Binding IsProjectSelected}"/>
-                            <Button Margin="0,5,0,0" Content="2 - Open Folder" x:Name="MigrateOpenFolder" Click="MigrateOpenFolder_Click" IsEnabled="False"/>
-                            <Button Margin="0,5,0,0" Content="3 - Apply Diff" x:Name="MigrateApplyDiff" Click="MigrateApplyDiff_Click" IsEnabled="False"/>
-                            <Button Margin="0,5,0,0" Content="4 - Merge Rejected" x:Name="MigrateMergeRejected" Click="MigrateMergeRejected_Click" IsEnabled="False"/>
-                            <Button Margin="0,5,0,0" Content="5 - Overwrite '\BIA-.*'" x:Name="MigrateOverwriteBIAFolder" Click="MigrateOverwriteBIAFolder_Click" IsEnabled="{Binding IsProjectSelected}"/>
-                            <Button Margin="0,5,0,0" Content="6 - Resolve Usings" x:Name="ResolveUsings" Click="ResolveUsings_Click" IsEnabled="{Binding IsProjectSelected}"/>
-                        </StackPanel>
-                    </Grid>
-                </Grid>
-            </TabItem>
-            <TabItem x:Name="TabOptionGenerator" Header="Option Generator">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
-                    <Grid Background="Transparent" Margin="5">
-                        <uc:OptionGeneratorUC x:Name="OptionGenerator" />
-                    </Grid>
-                </ScrollViewer>
-            </TabItem>
-            <TabItem x:Name="TabDtoGenerator" Header="DTO Generator" IsEnabled="{Binding IsFileGeneratorServiceInit, Mode=OneWay}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
-                    <Grid Background="Transparent" Margin="5">
-                        <uc:DtoGeneratorUC x:Name="DtoGenerator" />
-                    </Grid>
-                </ScrollViewer>
-            </TabItem>
-            <TabItem x:Name="TabCrudGenerator" Header="CRUD Generator">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
-                    <Grid Background="Transparent" Margin="5">
-                        <uc:CRUDGeneratorUC x:Name="CRUDGenerator" />
-                    </Grid>
-                </ScrollViewer>
-            </TabItem>
-        </TabControl>
+                </TabItem>
+                <TabItem x:Name="TabDtoGenerator" Header="DTO Generator" IsEnabled="{Binding IsFileGeneratorServiceInit, Mode=OneWay}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
+                        <Grid Background="Transparent" Margin="5">
+                            <Grid Background="Black" Margin="-5" Opacity="0.2" Grid.ColumnSpan="2"/>
+                            <uc:DtoGeneratorUC x:Name="DtoGenerator" />
+                        </Grid>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem x:Name="TabCrudGenerator" Header="CRUD Generator">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="auto">
+                        <Grid Background="Transparent" Margin="5">
+                            <Grid Background="Black" Margin="-5" Opacity="0.2" Grid.ColumnSpan="2"/>
+                            <uc:CRUDGeneratorUC x:Name="CRUDGenerator" />
+                        </Grid>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+        </Grid>
     </Grid>
 
 </UserControl>
