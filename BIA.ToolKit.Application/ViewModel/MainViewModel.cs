@@ -11,7 +11,6 @@
         private readonly Version applicationVersion;
 
         public BIATKSettings Settings { get; set; }
-        public VersionAndOptionViewModel VersionAndOptionViewModel { get; set; }
 
         public MainViewModel(Version applicationVersion)
         {

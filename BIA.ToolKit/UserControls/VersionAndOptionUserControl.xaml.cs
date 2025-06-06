@@ -144,15 +144,10 @@
                 vm.WorkTemplate = listWorkTemplates[listWorkTemplates.Count - 2];
             }
 
+            vm.SettingsUseCompanyFiles = settings.UseCompanyFiles;
             vm.UseCompanyFiles = settings.UseCompanyFiles;
             if (settings.UseCompanyFiles)
             {
-                UseCompanyFiles.Visibility = Visibility.Visible;
-                //CompanyFileGroup.Visibility = Visibility.Visible;
-
-                //Warning.Visibility = Visibility.Hidden;
-                //WarningLabel.Visibility = Visibility.Hidden;
-
                 AddTemplatesVersion(listCompanyFiles, settings.CompanyFiles);
                 vm.WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
                 if (listCompanyFiles.Count >= 1)
@@ -160,25 +155,6 @@
                     vm.WorkCompanyFile = listCompanyFiles.FirstOrDefault(companyFile => companyFile.Version == vm.WorkTemplate.Version);
                 }
             }
-            else
-            {
-                UseCompanyFiles.Visibility = Visibility.Hidden;
-                //CompanyFileGroup.Visibility = Visibility.Hidden;
-                //Warning.Visibility = Visibility.Visible;
-                //WarningLabel.Visibility = Visibility.Visible;
-            }
-        }
-
-        private void UseCompanyFile_Checked(object sender, RoutedEventArgs e)
-        {
-            /*if (vm.UseCompanyFiles)
-            {
-                CompanyFileGroup.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                CompanyFileGroup.Visibility = Visibility.Hidden;
-            }*/
         }
 
         private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, RepositorySettings repositorySettings)
