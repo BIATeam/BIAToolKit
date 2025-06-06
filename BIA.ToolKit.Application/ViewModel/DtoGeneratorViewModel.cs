@@ -415,12 +415,12 @@
                             {
                                 mappingEntityProperty.OptionEntityIdProperties.AddRange(
                                     entityProperties
-                                    .Where(x => x.Type.Replace("?", string.Empty).Equals("int", StringComparison.InvariantCultureIgnoreCase) && !x.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase))
+                                    .Where(x => x.Type.Replace("?", string.Empty).Equals(mappingEntityProperty.OptionType, StringComparison.InvariantCultureIgnoreCase) && !x.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase))
                                     .Select(x => x.Name));
 
                                 if(!mappingEntityProperty.OptionEntityIdProperties.Any())
                                 {
-                                    consoleWriter.AddMessageLine($"Unable to find int property related to {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
+                                    consoleWriter.AddMessageLine($"Unable to find {mappingEntityProperty.OptionType} property related to {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
                                     entityProperty.IsSelected = false;
                                     continue;
                                 }
