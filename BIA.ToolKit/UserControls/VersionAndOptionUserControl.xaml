@@ -52,31 +52,33 @@
                         <Label Name="WarningLabel"  Content="Use Company Files is off" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="20"/>
                     </StackPanel>
                     <Grid Visibility="{Binding SettingsUseCompanyFiles, Converter={StaticResource BoolToVisConverter}}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                        </Grid.RowDefinitions>
-                        <CheckBox Grid.Row="0" Margin="0,5" IsChecked="{Binding UseCompanyFiles}" Name="UseCompanyFiles" Content="Use Company Files" Foreground="White" />
-                        <ComboBox Grid.Row="1" Margin="0,5"
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+                            <CheckBox Grid.Row="0" Margin="0,5" IsChecked="{Binding UseCompanyFiles}" Name="UseCompanyFiles" Content="Use Company Files" Foreground="White" />
+                            <ComboBox Grid.Row="1" Margin="0,5"
                                     ItemsSource="{Binding WorkCompanyFiles}" 
                                     DisplayMemberPath="Version"
                                     SelectedItem="{Binding WorkCompanyFile}"
                                     SelectionChanged="CFVersion_SelectionChanged"
                                     Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}"
                                     Style="{StaticResource MaterialDesignFilledComboBox}"
-                                    materialDesign:HintAssist.Hint="Company File Version" />    
+                                    materialDesign:HintAssist.Hint="Company File Version" />
+                            <ComboBox Grid.Row="2" Margin="0,5" ItemsSource="{Binding Profiles}" SelectedItem="{Binding Profile}" 
+                                    Style="{StaticResource MaterialDesignFilledComboBox}"
+                                      Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}"
+                                    materialDesign:HintAssist.Hint="Profile"/>
+                        </Grid>
 
-                        <Grid Grid.Row="2" Margin="0,5,0,0" Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="auto"/>
-                                <RowDefinition Height="auto"/>
-                            </Grid.RowDefinitions>
-                            <ComboBox Grid.Row="0" ItemsSource="{Binding Profiles}" SelectedItem="{Binding Profile}" 
-                          Style="{StaticResource MaterialDesignFilledComboBox}"
-                          materialDesign:HintAssist.Hint="Profile"/>
-
-                            <ItemsControl Margin="0,5" Grid.Row="1" ItemsSource="{Binding Options}">
+                        <Grid Grid.Column="1" Margin="10,0" Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}">
+                            <ItemsControl Grid.Row="1" ItemsSource="{Binding Options}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,5" />
