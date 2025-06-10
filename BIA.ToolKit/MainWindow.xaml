@@ -74,7 +74,7 @@
                                 <RowDefinition/>
                             </Grid.RowDefinitions>
                             <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
-                                <Button x:Name="UpdateButton" ToolTip="New version available !" Background="Transparent" Foreground="Transparent" BorderThickness="0" Cursor="Hand" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisConverter}}" Click="UpdateButton_Click">
+                                <Button Padding="2" x:Name="UpdateButton" ToolTip="New version available !" Background="Transparent" Foreground="Transparent" BorderThickness="0" Cursor="Hand" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisConverter}}" Click="UpdateButton_Click">
                                     <Image Source="/Images/update.png" />
                                 </Button>
                                 <Label Grid.ColumnSpan="2" Content="{Binding ApplicationVersion}" Margin="2" VerticalAlignment="Center" Foreground="#FFF0F0F0" d:Content="V0.0.0.0"/>
