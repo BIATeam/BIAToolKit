@@ -173,8 +173,9 @@
                     consoleWriter.AddMessageLine($"Zip file path '{zipPath}' not exist", "Red");
                     return (tempDir, files);
                 }
-
+#if DEBUG
                 consoleWriter.AddMessageLine($"*** Parse zip file: '{zipPath}' ***", "Green");
+#endif
 
                 // Create working temporary folder
                 tempDir = Path.Combine(Path.GetTempPath(), Constants.FolderCrudGenerationTmp, folderType, Path.GetFileNameWithoutExtension(zipName));
