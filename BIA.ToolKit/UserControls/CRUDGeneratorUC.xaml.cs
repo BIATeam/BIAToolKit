@@ -123,7 +123,7 @@
 
             vm.IsDtoParsed = false;
             vm.DtoDisplayItems = null;
-            Visibility msgVisibility = Visibility.Hidden;
+            Visibility msgVisibility = Visibility.Collapsed;
 
             if (vm.CurrentProject is null)
                 return;
@@ -340,7 +340,7 @@
 
                 // Update history
                 DeleteLastGenerationHistory(history);
-                CrudAlreadyGeneratedLabel.Visibility = Visibility.Hidden;
+                CrudAlreadyGeneratedLabel.Visibility = Visibility.Collapsed;
 
                 consoleWriter.AddMessageLine($"End of '{vm.CRUDNameSingular}' suppression.", "Purple");
             }
