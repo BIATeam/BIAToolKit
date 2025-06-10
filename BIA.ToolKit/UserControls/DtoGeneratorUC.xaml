@@ -212,7 +212,7 @@
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn Header="Is Parent">
+                                <GridViewColumn Header="Parent Identifier">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
                                             <Grid>

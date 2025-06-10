@@ -734,9 +734,9 @@
                 RaisePropertyChanged(nameof(IsParent));
             }
         }
+
         public bool IsVisibleIsParentCheckbox => 
-            MappingType == "int" 
-            && EntityCompositeName.EndsWith("Id") 
+            EntityCompositeName.EndsWith("Id") 
             && !EntityCompositeName.Equals("Id")
             ;
 
