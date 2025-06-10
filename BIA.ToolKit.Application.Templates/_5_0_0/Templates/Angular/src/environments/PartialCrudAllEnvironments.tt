@@ -5,9 +5,6 @@
     // BIAToolKit - Begin Partial AllEnvironment <#= ModelInstance.EntityName #>
     {
       teamTypeId: TeamTypeId.<#= ModelInstance.EntityName #>,
-      roleMode: RoleMode.AllRoles,
-      inHeader: true,
-      displayAlways: true,
       label: '<#= ModelInstance.EntityName.ToCamelCase() #>.headerLabel',
     },
     // BIAToolKit - End Partial AllEnvironment <#= ModelInstance.EntityName #>

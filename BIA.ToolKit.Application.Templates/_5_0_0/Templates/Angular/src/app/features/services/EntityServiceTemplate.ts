@@ -13,6 +13,7 @@ import { FeatureMaintenanceTeamsStore } from '../store/maintenance-team.state';
 import { FeatureMaintenanceTeamsActions } from '../store/maintenance-teams-actions';
 import { MaintenanceTeamDas } from './maintenance-team-das.service';
 import { MaintenanceTeamOptionsService } from './maintenance-team-options.service';
+import { AircraftMaintenanceCompanyService } from '../../../services/aircraft-maintenance-company.service';
 
 @Injectable({
   providedIn: 'root',
@@ -26,6 +27,7 @@ export class MaintenanceTeamService extends CrudItemService<MaintenanceTeam> {
     private store: Store<AppState>,
     public dasService: MaintenanceTeamDas,
     public signalRService: CrudItemSignalRService<MaintenanceTeam>,
+    public aircraftMaintenanceCompanyService: AircraftMaintenanceCompanyService,
     protected authService: AuthService,
     public optionsService: MaintenanceTeamOptionsService,
     protected injector: Injector
@@ -33,13 +35,13 @@ export class MaintenanceTeamService extends CrudItemService<MaintenanceTeam> {
     super(dasService, signalRService, optionsService, injector);
   }
 
-  // Custo for teams
+  // Customization for teams
   public get currentCrudItemId(): any {
-    // should be redifine due to the setter
+    // should be redefine due to the setter
     return super.currentCrudItemId;
   }
 
-  // Custo for teams
+  // Customization for teams
   public set currentCrudItemId(id: any) {
     if (this._currentCrudItemId !== id) {
       this._currentCrudItemId = id;
@@ -52,7 +54,7 @@ export class MaintenanceTeamService extends CrudItemService<MaintenanceTeam> {
   }
 
   public getParentIds(): any[] {
-    // TODO after creation of CRUD MaintenanceTeam : adapt the parent Key to the context. It can be null if root crud
+    // TODO after creation of CRUD Team MaintenanceTeam : adapt the parent Key to the context. It can be null if root crud
     return [ this.authService.getCurrentTeamId(TeamTypeId.Site)];
   }
 
@@ -94,10 +96,6 @@ export class MaintenanceTeamService extends CrudItemService<MaintenanceTeam> {
   public create(crudItem: MaintenanceTeam) {
     crudItem.siteId = this.getParentIds()[0];
     this.store.dispatch(FeatureMaintenanceTeamsActions.create({ maintenanceTeam: crudItem }));
-  }
-  public save(crudItems: MaintenanceTeam[]) {
-    crudItems.map(x => (x.siteId = this.getParentIds()[0]));
-    this.store.dispatch(FeatureMaintenanceTeamsActions.save({ maintenanceTeams: crudItems }));
   }
   public update(crudItem: MaintenanceTeam) {
     this.store.dispatch(FeatureMaintenanceTeamsActions.update({ maintenanceTeam: crudItem }));

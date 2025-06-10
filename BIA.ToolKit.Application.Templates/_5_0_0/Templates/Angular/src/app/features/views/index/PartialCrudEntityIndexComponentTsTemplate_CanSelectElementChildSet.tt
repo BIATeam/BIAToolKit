@@ -2,7 +2,7 @@
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
 <#  if(ModelInstance.HasParent && ModelInstance.IsTeam) { #>
-      // Begin Partial <#= ModelInstance.ParentName #>IndexTsCanSelectElementChildSet <#= ModelInstance.EntityName #>
+      // BIAToolKit - Begin Partial <#= ModelInstance.ParentName #>IndexTsCanSelectElementChildSet <#= ModelInstance.EntityName #>
       this.canView<#= ModelInstance.EntityNamePlural #> ||
-      // End Partial <#= ModelInstance.ParentName #>IndexTsCanSelectElementChildSet <#= ModelInstance.EntityName #>
+      // BIAToolKit - End Partial <#= ModelInstance.ParentName #>IndexTsCanSelectElementChildSet <#= ModelInstance.EntityName #>
 <# }  #>

@@ -2,7 +2,7 @@
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
 <#  if(ModelInstance.HasParent && ModelInstance.IsTeam) { #>
-      // Begin Partial <#= ModelInstance.ParentName #>IndexTsChildTeamButton <#= ModelInstance.EntityName #>
+      // BIAToolKit - Begin Partial <#= ModelInstance.ParentName #>IndexTsChildTeamButton <#= ModelInstance.EntityName #>
       new BiaButtonGroupItem(
         this.translateService.instant(
           '<#= ModelInstance.ParentName.ToCamelCase() #>.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>'
@@ -14,5 +14,5 @@
           '<#= ModelInstance.ParentName.ToCamelCase() #>.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>'
         )
       ),
-      // End Partial <#= ModelInstance.ParentName #>IndexTsChildTeamButton <#= ModelInstance.EntityName #>
+      // BIAToolKit - End Partial <#= ModelInstance.ParentName #>IndexTsChildTeamButton <#= ModelInstance.EntityName #>
 <# }  #>

@@ -20,7 +20,7 @@ import {
 } from 'src/app/shared/bia-shared/model/bia-form-layout-config';
 import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
 
-// TODO after creation of CRUD MaintenanceTeam : adapt the model
+// TODO after creation of CRUD Team MaintenanceTeam : adapt the model
 export class MaintenanceTeam extends BaseTeamDto {
   aircraftMaintenanceCompanyId: number | null;
   msn: string | null;
@@ -33,7 +33,7 @@ export class MaintenanceTeam extends BaseTeamDto {
   similarTypes: OptionDto[] | null;
 }
 
-// TODO after creation of CRUD MaintenanceTeam : adapt the field configuration
+// TODO after creation of CRUD Team MaintenanceTeam : adapt the field configuration
 export const maintenanceTeamFieldsConfiguration: BiaFieldsConfig<MaintenanceTeam> = {
   columns: [
       ...teamFieldsConfigurationColumns,
@@ -74,7 +74,7 @@ export const maintenanceTeamFieldsConfiguration: BiaFieldsConfig<MaintenanceTeam
   ],
 };
 
-// TODO after creation of CRUD MaintenanceTeam : adapt the form layout configuration
+// TODO after creation of CRUD Team MaintenanceTeam : adapt the form layout configuration
 export const maintenanceTeamFormLayoutConfiguration: BiaFormLayoutConfig<MaintenanceTeam> =
   new BiaFormLayoutConfig([
   ]);

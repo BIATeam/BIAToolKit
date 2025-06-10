@@ -62,11 +62,8 @@
             vm.Inject(fileGeneratorService, consoleWriter);
         }
 
-        private void UIEventBroker_OnProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem)
+        private void UIEventBroker_OnProjectChanged(Project project)
         {
-            if (currentTabItem != TabItemModifyProjectEnum.DtoGenerator)
-                return;
-
             SetCurrentProject(project);
         }
 
@@ -77,15 +74,18 @@
 
             vm.IsProjectChosen = false;
             vm.Clear();
-            
+
             if (project is null)
                 return;
 
-            this.project = project;
-            vm.SetProject(project);
+            uiEventBroker.ExecuteTaskWithWaiter(async () =>
+            {
+                this.project = project;
+                vm.SetProject(project);
 
-            ListEntities();
-            InitHistoryFile(project);
+                ListEntities();
+                InitHistoryFile(project);
+            });
         }
 
         private void ListEntities()
@@ -105,7 +105,7 @@
 
         private void RefreshEntitiesList_Click(object sender, RoutedEventArgs e)
         {
-            ListEntities();
+            uiEventBroker.ExecuteTaskWithWaiter(async() => ListEntities());
         }
 
         private void SelectProperties_Click(object sender, RoutedEventArgs e)
@@ -132,22 +132,28 @@
             }
         }
 
-        private async void GenerateButton_Click(object sender, RoutedEventArgs e)
+        private void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
-            UpdateHistoryFile();
-            await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext
+            uiEventBroker.ExecuteTaskWithWaiter(async () =>
             {
-                CompanyName = project.CompanyName,
-                ProjectName = project.Name,
-                DomainName = vm.EntityDomain,
-                EntityName = vm.SelectedEntityInfo.Name,
-                EntityNamePlural = vm.SelectedEntityInfo.NamePluralized,
-                BaseKeyType = vm.SelectedEntityInfo.BaseKeyType,
-                Properties = [.. vm.MappingEntityProperties],
-                IsTeam = vm.SelectedEntityInfo.IsTeam,
-                AncestorTeamName = vm.AncestorTeam,
-                HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
-                GenerateBack = true
+                UpdateHistoryFile();
+                await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext
+                {
+                    CompanyName = project.CompanyName,
+                    ProjectName = project.Name,
+                    DomainName = vm.EntityDomain,
+                    EntityName = vm.SelectedEntityInfo.Name,
+                    EntityNamePlural = vm.SelectedEntityInfo.NamePluralized,
+                    BaseKeyType = vm.SelectedEntityInfo.BaseKeyType,
+                    Properties = [.. vm.MappingEntityProperties],
+                    IsTeam = vm.IsTeam,
+                    IsVersioned = vm.IsVersioned,
+                    IsArchivable = vm.IsArchivable,
+                    IsFixable = vm.IsFixable,
+                    AncestorTeamName = vm.AncestorTeam,
+                    HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
+                    GenerateBack = true
+                });
             });
         }
 
@@ -161,6 +167,10 @@
             generation.EntityNamespace = vm.SelectedEntityInfo.Namespace;
             generation.Domain = vm.EntityDomain;
             generation.AncestorTeam = vm.AncestorTeam;
+            generation.IsTeam = vm.IsTeam;
+            generation.IsVersioned = vm.IsVersioned;
+            generation.IsArchivable = vm.IsArchivable;
+            generation.IsFixable = vm.IsFixable;
             generation.PropertyMappings.Clear();
 
             foreach (var property in vm.MappingEntityProperties)
@@ -198,7 +208,7 @@
 
         private void MappingOptionId_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(processSelectProperties)
+            if (processSelectProperties)
                 return;
 
             vm.ComputePropertiesValidity();
@@ -225,6 +235,10 @@
             vm.WasAlreadyGenerated = true;
             vm.EntityDomain = generation.Domain;
             vm.AncestorTeam = generation.AncestorTeam;
+            vm.IsTeam = generation.IsTeam;
+            vm.IsVersioned = generation.IsVersioned;
+            vm.IsFixable = generation.IsFixable;
+            vm.IsArchivable = generation.IsArchivable;
 
             var allEntityProperties = vm.AllEntityPropertiesRecursively.ToList();
             foreach (var property in allEntityProperties)
@@ -242,7 +256,7 @@
 
             vm.RefreshMappingProperties();
 
-            foreach(var property in generation.PropertyMappings)
+            foreach (var property in generation.PropertyMappings)
             {
                 var mappingProperty = vm.MappingEntityProperties.FirstOrDefault(x => x.EntityCompositeName == property.EntityPropertyCompositeName);
                 if (mappingProperty is null)

@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.Templates.Common.Interfaces
 {
     using System.Collections.Generic;
+    using BIA.ToolKit.Application.Templates.Common.Enum;
 
     public interface IEntityCrudModel<TPropertyCrudModel> : IEntityModel
         where TPropertyCrudModel : class, IPropertyCrudModel
@@ -12,6 +13,7 @@
         IEnumerable<TPropertyCrudModel> BiaFieldConfigProperties { get; }
         string DisplayItemName { get; set; }
         bool HasAncestorTeam { get; set; }
+        bool HasOptionItems { get; }
         bool HasOptions { get; }
         bool HasParent { get; set; }
         bool IsTeam { get; set; }
@@ -20,9 +22,16 @@
         string ParentNamePlural { get; set; }
         List<TPropertyCrudModel> Properties { get; set; }
         bool UseHubForClient { get; set; }
+        string HubForClientParentKey { get; }
+        bool HasHubForClientParentKey { get; }
         bool HasCustomRepository { get; set; }
         bool HasReadOnlyMode { get; set; }
         bool HasFixableParent { get; set; }
         bool IsFixable { get; set; }
+        bool HasAdvancedFilter { get; set; }
+        bool CanImport { get; set; }
+        int TeamTypeId { get; set; }
+        int TeamRoleId { get; set; }
+        string FormReadOnlyMode { get; set; }
     }
 }

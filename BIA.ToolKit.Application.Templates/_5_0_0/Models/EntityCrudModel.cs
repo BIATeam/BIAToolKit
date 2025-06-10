@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
     public class EntityCrudModel<TPropertyCrudModel> : Common.Models.EntityModel, IEntityCrudModel<TPropertyCrudModel>
@@ -19,7 +20,8 @@
         public string AncestorTeamName { get; set; }
         public string DisplayItemName { get; set; }
         public List<string> OptionItems { get; set; }
-        public bool HasOptions => OptionItems?.Count > 0;
+        public bool HasOptionItems => OptionItems != null && OptionItems.Any();
+        public bool HasOptions => Properties.Any(p => p.IsOption);
         public bool HasParent { get; set; }
         public string ParentName { get; set; }
         public string ParentNamePlural { get; set; }
@@ -44,5 +46,22 @@
         public bool HasReadOnlyMode { get; set; }
         public bool HasFixableParent { get; set; }
         public bool IsFixable { get; set; }
+
+        public string HubForClientParentKey => GetHubForClientParentKey();
+        public bool HasHubForClientParentKey => HasParent || HasAncestorTeam || IsTeam;
+
+        public string GetHubForClientParentKey()
+        {
+            var parentKeyName = HasParent ? ParentName 
+                : HasAncestorTeam ? AncestorTeamName 
+                : "ParentTeam";
+            return $"{parentKeyName}Id";
+        }
+
+        public bool HasAdvancedFilter { get; set; }
+        public bool CanImport { get; set; }
+        public int TeamTypeId { get; set; }
+        public int TeamRoleId { get; set; }
+        public string FormReadOnlyMode { get; set; }
     }
 }

@@ -122,51 +122,87 @@
         },
         {
           "inputPath": "InfrastructureData\\ModelBuilders\\PartialCrudUserModelBuilderTemplate_RoleModelBuilder.tt",
-          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\UserModelBuilder.cs",
+          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\Bia\\UserModelBuilder.cs",
           "isPartial": true,
           "partialInsertionMarkup": "RoleModelBuilder"
         },
         {
           "inputPath": "InfrastructureData\\ModelBuilders\\PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.tt",
-          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\UserModelBuilder.cs",
+          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\Bia\\UserModelBuilder.cs",
           "isPartial": true,
           "partialInsertionMarkup": "TeamTypeModelBuilder"
         },
         {
           "inputPath": "InfrastructureData\\ModelBuilders\\PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.tt",
-          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\UserModelBuilder.cs",
+          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\Bia\\UserModelBuilder.cs",
           "isPartial": true,
           "partialInsertionMarkup": "TeamTypeRoleModelBuilder"
         },
         {
           "inputPath": "Domain\\Mappers\\PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.tt",
-          "outputPath": "{Project}.Domain\\User\\Mappers\\TeamMapper.cs",
+          "outputPath": "{Project}.Domain\\Bia\\User\\Mappers\\TeamMapper.cs",
           "isPartial": true,
           "partialInsertionMarkup": "TeamMapperParentTeamId"
         },
         {
           "inputPath": "Domain\\Mappers\\PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.tt",
-          "outputPath": "{Project}.Domain\\User\\Mappers\\TeamMapper.cs",
+          "outputPath": "{Project}.Domain\\Bia\\User\\Mappers\\TeamMapper.cs",
           "isPartial": true,
           "partialInsertionMarkup": "TeamMapperParentTeamTitle"
         },
         {
           "inputPath": "Domain\\Mappers\\PartialCrudTeamMapperTemplate_TeamMapperUsing.tt",
-          "outputPath": "{Project}.Domain\\User\\Mappers\\TeamMapper.cs",
+          "outputPath": "{Project}.Domain\\Bia\\User\\Mappers\\TeamMapper.cs",
           "isPartial": true,
           "partialInsertionMarkup": "TeamMapperUsing"
         },
         {
-          "inputPath": "Domain\\PartialCrudTeamConfigTemplate.tt",
+          "inputPath": "Domain\\PartialCrudTeamConfigTemplate_TeamConfig.tt",
           "outputPath": "{Project}.Domain\\User\\TeamConfig.cs",
           "isPartial": true,
           "partialInsertionMarkup": "TeamConfig"
         },
         {
+          "inputPath": "Domain\\PartialCrudTeamConfigTemplate_TeamConfigChildren.tt",
+          "outputPath": "{Project}.Domain\\User\\TeamConfig.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "TeamConfig{Parent}Children"
+        },
+        {
           "inputPath": "PresentationApi\\Controllers\\PartialCrudAuthControllerTemplate.tt",
-          "outputPath": "{Project}.Presentation.Api\\Controllers\\User\\AuthController.cs",
+          "outputPath": "{Project}.Presentation.Api\\Controllers\\Bia\\User\\AuthController.cs",
           "isPartial": true,
           "partialInsertionMarkup": "AuthController"
+        },
+        {
+          "inputPath": "Application\\PartialEntityAppServiceTemplate_FixedChildrenRepositoryConstructorParam.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\{Parent}AppService.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "FixedChildrenRepositoryConstructorParam{Parent}"
+        },
+        {
+          "inputPath": "Application\\PartialEntityAppServiceTemplate_FixedChildrenRepositoryDefinition.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\{Parent}AppService.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "FixedChildrenRepositoryDefinition{Parent}"
+        },
+        {
+          "inputPath": "Application\\PartialEntityAppServiceTemplate_FixedChildrenRepositoryInjection.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\{Parent}AppService.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "FixedChildrenRepositoryInjection{Parent}"
+        },
+        {
+          "inputPath": "Application\\PartialEntityAppServiceTemplate_FixedChildrenRepositorySet.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\{Parent}AppService.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "FixedChildrenRepositorySet{Parent}"
+        },
+        {
+          "inputPath": "Application\\PartialEntityAppServiceTemplate_UpdateFixedChildren.tt",
+          "outputPath": "{Project}.Application\\{Domain}\\{Parent}AppService.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "UpdateFixedChildren{Parent}"
         }
       ],
       "angularTemplates": [

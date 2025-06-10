@@ -8,7 +8,7 @@ import {
   maintenanceTeamFormLayoutConfiguration,
 } from './model/maintenance-team';
 
-// TODO after creation of CRUD MaintenanceTeam : adapt the global configuration
+// TODO after creation of CRUD Team MaintenanceTeam : adapt the global configuration
 export const maintenanceTeamCRUDConfiguration: CrudConfig<MaintenanceTeam> = new CrudConfig({
   // IMPORTANT: this key should be unique in all the application.
   featureName: 'maintenance-teams',

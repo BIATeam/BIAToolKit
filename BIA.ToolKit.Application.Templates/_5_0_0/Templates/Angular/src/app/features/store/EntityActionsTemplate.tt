@@ -28,10 +28,12 @@ export namespace Feature<#= ModelInstance.EntityNamePlural #>Actions {
     props<{ <#= ModelInstance.EntityName.ToCamelCase() #>: <#= ModelInstance.EntityName #> }>()
   );
 
+<#  if(ModelInstance.CanImport) { #>
   export const save = createAction(
     '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Save',
     props<{ <#= ModelInstance.EntityNamePlural.ToCamelCase() #>: <#= ModelInstance.EntityName #>[] }>()
   );
+<#  } #>
 
   export const remove = createAction(
     '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Remove',
@@ -65,4 +67,11 @@ export namespace Feature<#= ModelInstance.EntityNamePlural #>Actions {
   export const clearCurrent = createAction(
     '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Clear current'
   );
+<#  if(ModelInstance.IsFixable) { #>
+
+  export const updateFixedStatus = createAction(
+    '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Update fixed status',
+    props<{ id: number; isFixed: boolean }>()
+  );
+<#  } #>
 }

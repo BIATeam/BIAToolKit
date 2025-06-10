@@ -5,7 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
              xmlns:gif="http://wpfanimatedgif.codeplex.com"
-             mc:Ignorable="d" d:DesignWidth="800" Height="250">
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" d:DesignWidth="800" MaxHeight="250">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     </UserControl.Resources>
@@ -15,57 +16,77 @@
     </UserControl.DataContext>
     <Grid>
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.4*"/>
+            <ColumnDefinition Width="0.6*"/>
             <ColumnDefinition/>
-            <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
-        <Label Content="Framework version" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Foreground="White" Height="26" Width="110"/>
-        <ComboBox ItemsSource="{Binding WorkTemplates}" 
+
+        <ComboBox Grid.Column="0" ItemsSource="{Binding WorkTemplates}" 
                   DisplayMemberPath="Version"
                   SelectedItem="{Binding WorkTemplate}"
                   SelectionChanged="FrameworkVersion_SelectionChanged"
-                  HorizontalAlignment="Left" Margin="20,25,0,0" VerticalAlignment="Top" Width="120" Height="22"/>
+                  Style="{StaticResource MaterialDesignFilledComboBox}"
+                  materialDesign:HintAssist.Hint="Framework Version" VerticalAlignment="Top"/>
 
-        <Image gif:ImageBehavior.AnimatedSource="..\Images\spinner_light.gif" Height="197" Margin="184,0,419,0" VerticalAlignment="Top" d:Visibility="Visible" Visibility ="{Binding Path=AreFeatureLoading, Converter={StaticResource BoolToVisConverter} }"/>
-
-        <GroupBox Header="Feature Settings" Margin="175,0,419,0" Foreground="White" BorderBrush="White" Name="FeatureSettingsGroup"  d:Visibility="Visible" Visibility ="{Binding Path=AreFeatureVisible, Converter={StaticResource BoolToVisConverter} }" MaxHeight="175" VerticalAlignment="Top">
+        <GroupBox Margin="10,0" Grid.Column="1" Header="Feature Settings" Foreground="White" Name="FeatureSettingsGroup" VerticalAlignment="Top" Background="#323232">
             <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="auto">
-                <ItemsControl ItemsSource="{Binding FeatureSettings}">
+                <ItemsControl Margin="0,0,10,0" ItemsSource="{Binding FeatureSettings}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsSelected}" ToolTip="{Binding Description}" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,5" />
+                            <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsSelected}" ToolTip="{Binding Description}" Foreground="White" Margin="0,5" />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
         </GroupBox>
 
-        <GroupBox Header="Company files" Foreground="White" BorderBrush="White" Name="CompanyFileGroup" HorizontalAlignment="Right" Width="400" Visibility="Visible" MaxHeight="175" VerticalAlignment="Top" Margin="0,0,0,0" Height="175">
-            <Grid Margin="5">
-                <CheckBox IsChecked="{Binding UseCompanyFiles}" Name="UseCompanyFiles" Content="Use Company Files" Foreground="White"  Height="16" VerticalAlignment="Top" Margin="0,1,-210,0" Checked="UseCompanyFile_Checked" Unchecked="UseCompanyFile_Checked" Grid.ColumnSpan="2" />
-                <Image Visibility="{Binding NotUseCompanyFiles, Converter={StaticResource BoolToVisConverter}}" Name="Warning" Source="..\Images\Warning.png" HorizontalAlignment="Left" Height="50" Margin="0,25,0,0" VerticalAlignment="Top" Width="50"/>
-                <Label Visibility="{Binding NotUseCompanyFiles, Converter={StaticResource BoolToVisConverter}}" Name="WarningLabel"  Content="You haven't select Company Files." HorizontalAlignment="Left" Margin="0,75,0,0" VerticalAlignment="Center" Foreground="White" FontSize="20" Grid.ColumnSpan="2" Height="86" Width="434"/>
-                <Label Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}" Content="Company file version" HorizontalAlignment="Left" Margin="0,15,0,0" VerticalAlignment="Top" Foreground="White" Name="CompanyFileVersionLabel"/>
-                <ComboBox 
-                    ItemsSource="{Binding WorkCompanyFiles}" 
-                    DisplayMemberPath="Version"
-                    SelectedItem="{Binding WorkCompanyFile}"
-                    SelectionChanged="CFVersion_SelectionChanged"
-                    Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}"
-                    HorizontalAlignment="Left" Margin="20,40,0,0" VerticalAlignment="Top" Width="120" />
+        <GroupBox Grid.Column="2" Header="Company files" Foreground="White" Name="CompanyFileGroup" Background="#323232" VerticalAlignment="Top">
+            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="auto">
+                <Grid Margin="0,0,10,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Grid.RowSpan="2" Orientation="Horizontal" VerticalAlignment="Center" Visibility="{Binding SettingsNotUseCompanyFiles, Converter={StaticResource BoolToVisConverter}}">
+                        <Image Name="Warning" Source="..\Images\Warning.png" HorizontalAlignment="Left" Height="50"  VerticalAlignment="Top" Width="50"/>
+                        <Label Name="WarningLabel"  Content="Use Company Files is off" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontSize="20"/>
+                    </StackPanel>
+                    <Grid Visibility="{Binding SettingsUseCompanyFiles, Converter={StaticResource BoolToVisConverter}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <CheckBox Grid.Row="0" Margin="0,5" IsChecked="{Binding UseCompanyFiles}" Name="UseCompanyFiles" Content="Use Company Files" Foreground="White" />
+                        <ComboBox Grid.Row="1" Margin="0,5"
+                                    ItemsSource="{Binding WorkCompanyFiles}" 
+                                    DisplayMemberPath="Version"
+                                    SelectedItem="{Binding WorkCompanyFile}"
+                                    SelectionChanged="CFVersion_SelectionChanged"
+                                    Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}"
+                                    Style="{StaticResource MaterialDesignFilledComboBox}"
+                                    materialDesign:HintAssist.Hint="Company File Version" />    
 
-                <Label Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}" Content="Profile" HorizontalAlignment="Left" Margin="0,65,0,0" VerticalAlignment="Top" Foreground="White" Name="CompanyFileProfileLabel"/>
-                <ComboBox Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}" ItemsSource="{Binding Profiles}" SelectedItem="{Binding Profile}" 
-                          HorizontalAlignment="Left" Margin="20,90,0,0" VerticalAlignment="Top" Width="120"/>
-                <ScrollViewer Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="auto" Margin="150,0,0,0">
-                    <ItemsControl ItemsSource="{Binding Options}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,5" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-            </Grid>
+                        <Grid Grid.Row="2" Margin="0,5,0,0" Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+                            <ComboBox Grid.Row="0" ItemsSource="{Binding Profiles}" SelectedItem="{Binding Profile}" 
+                          Style="{StaticResource MaterialDesignFilledComboBox}"
+                          materialDesign:HintAssist.Hint="Profile"/>
+
+                            <ItemsControl Margin="0,5" Grid.Row="1" ItemsSource="{Binding Options}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,5" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </ScrollViewer>
         </GroupBox>
         <Canvas/>
     </Grid>

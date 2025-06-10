@@ -1,0 +1,13 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<#  if(ModelInstance.HasFixableParent) { #>
+                // BIAToolKit - Begin Partial UpdateFixedChildren<#= ModelInstance.ParentName #> <#= ModelInstance.EntityName #>
+                var <#= ModelInstance.EntityNamePlural.ToCamelCase() #> = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Repository.GetAllEntityAsync(filter: x => x.<#= ModelInstance.ParentName #>Id == id);
+                foreach (var <#= ModelInstance.EntityName.ToCamelCase() #> in <#= ModelInstance.EntityNamePlural.ToCamelCase() #>)
+                {
+                    this.engineRepository.UpdateFixedAsync(<#= ModelInstance.EntityName.ToCamelCase() #>, isFixed);
+                }
+
+                // BIAToolKit - End Partial UpdateFixedChildren<#= ModelInstance.ParentName #> <#= ModelInstance.EntityName #>
+<# }  #>

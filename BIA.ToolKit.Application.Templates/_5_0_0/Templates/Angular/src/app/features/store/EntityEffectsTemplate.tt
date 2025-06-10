@@ -141,6 +141,7 @@ export class <#= ModelInstance.EntityNamePlural #>Effects {
     )
   );
 
+<#  if(ModelInstance.CanImport) { #>
   save$ = createEffect(() =>
     this.actions$.pipe(
       ofType(Feature<#= ModelInstance.EntityNamePlural #>Actions.save),
@@ -177,6 +178,7 @@ export class <#= ModelInstance.EntityNamePlural #>Effects {
       })
     )
   );
+<#  } #>
 
   destroy$ = createEffect(() =>
     this.actions$.pipe(
@@ -251,6 +253,39 @@ export class <#= ModelInstance.EntityNamePlural #>Effects {
       })
     )
   );
+  <#  if(ModelInstance.IsFixable) { #>
+  
+  updateFixedStatus$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(Feature<#= ModelInstance.EntityNamePlural #>Actions.updateFixedStatus),
+      map(x => x),
+      concatMap(x =>
+        of(x).pipe(
+          withLatestFrom(
+            this.store.select(Feature<#= ModelInstance.EntityNamePlural #>Store.getLastLazyLoadEvent)
+          )
+        )
+      ),
+      switchMap(([x, event]) => {
+        return this.<#= ModelInstance.EntityName.ToCamelCase() #>Das
+          .updateFixedStatus({ id: x.id, fixed: x.isFixed })
+          .pipe(
+            map(<#= ModelInstance.EntityName.ToCamelCase() #> => {
+              this.biaMessageService.showUpdateSuccess();
+              this.store.dispatch(
+                Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost({ event: event })
+              );
+              return Feature<#= ModelInstance.EntityNamePlural #>Actions.loadSuccess({ <#= ModelInstance.EntityName.ToCamelCase() #> });
+            }),
+            catchError(err => {
+              this.biaMessageService.showErrorHttpResponse(err);
+              return of(Feature<#= ModelInstance.EntityNamePlural #>Actions.failure({ error: err }));
+            })
+          );
+      })
+    )
+  );
+  <#  } #>
 
   constructor(
     private actions$: Actions,

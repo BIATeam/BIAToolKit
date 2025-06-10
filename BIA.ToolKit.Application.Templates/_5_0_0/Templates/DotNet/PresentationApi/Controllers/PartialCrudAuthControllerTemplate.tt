@@ -3,7 +3,10 @@
 <#@ output extension=".cs" #>
 <# if(ModelInstance.IsTeam) { #>
                     // BIAToolKit - Begin Partial AuthController <#= ModelInstance.EntityName #>
-                    new TeamConfigDto() { TeamTypeId = (int)TeamTypeId.<#= ModelInstance.EntityName #>, RoleMode = RoleMode.AllRoles, InHeader = false },
+                    new TeamConfigDto()
+                    {
+                        TeamTypeId = (int)TeamTypeId.<#= ModelInstance.EntityName #>,
+                    },
 
                     // BIAToolKit - End Partial AuthController <#= ModelInstance.EntityName #>
 <# }  #>

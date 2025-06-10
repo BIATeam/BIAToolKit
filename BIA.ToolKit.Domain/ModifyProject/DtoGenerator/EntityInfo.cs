@@ -40,6 +40,9 @@ namespace BIA.ToolKit.Domain.DtoGenerator
         public List<KeyValuePair<string, string>> ClassAnnotations { get; } = new();
         public string BaseKeyType { get; set; }
         public bool IsTeam => BaseList.Contains("Team") || BaseList.Contains("TeamDto");
+        public bool IsVersioned => BaseList.Contains("VersionedTable");
+        public bool IsFixable => BaseList.Any(x => x.StartsWith("IEntityFixable<"));
+        public bool IsArchivable => IsFixable || BaseList.Any(x => x.StartsWith("IEntityArchivable<"));
         public string AncestorTeamName => ClassAnnotations.FirstOrDefault(c => c.Key == CRUDDataUpdateType.AncestorTeam.ToString()).Value;
         public bool HasAncestorTeam => !string.IsNullOrWhiteSpace(AncestorTeamName);
 

@@ -9,7 +9,6 @@ import { AuthService } from 'src/app/core/bia-core/services/auth.service';
 import { FormReadOnlyMode } from 'src/app/shared/bia-shared/feature-templates/crud-items/model/crud-config';
 import { CrudItemReadComponent } from 'src/app/shared/bia-shared/feature-templates/crud-items/views/crud-item-read/crud-item-read.component';
 import { Permission } from 'src/app/shared/permission';
-import { AuthService } from 'src/app/core/bia-core/services/auth.service';
 import { CrudItemReadComponent } from 'src/app/shared/bia-shared/feature-templates/crud-items/views/crud-item-read/crud-item-read.component';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { <#= ModelInstance.EntityName #>FormComponent } from '../../components/<#= ModelInstance.EntityName.ToKebabCase() #>-form/<#= ModelInstance.EntityName.ToKebabCase() #>-form.component';
@@ -25,10 +24,9 @@ import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= Model
 export class <#= ModelInstance.EntityName #>ReadComponent extends CrudItemReadComponent<<#= ModelInstance.EntityName #>> {
   constructor(
     protected injector: Injector,
-    public <#= ModelInstance.EntityName.ToCamelCase() #>Service: <#= ModelInstance.EntityName #>Service,
-    protected authService: AuthService
+    public <#= ModelInstance.EntityName.ToCamelCase() #>Service: <#= ModelInstance.EntityName #>Service
   ) {
-    super(injector, <#= ModelInstance.EntityName.ToCamelCase() #>Service, authService);
+    super(injector, <#= ModelInstance.EntityName.ToCamelCase() #>Service);
     this.crudConfiguration = <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration;
   }
 

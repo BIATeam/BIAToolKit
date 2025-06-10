@@ -16,7 +16,7 @@
     {
         private IConsoleWriter outPut;
         private GitService gitService;
-        private List<VersionDownload> versionDownloads = new ();
+        private List<VersionDownload> versionDownloads = new();
 
         public RepositoryService(IConsoleWriter outPut, GitService gitService)
         {
@@ -45,22 +45,34 @@
             return true;
         }
 
-        public void CleanVersionFolder(RepositorySettings repository)
+        public async Task CleanVersionFolder(RepositorySettings repository)
         {
             if (repository.Versioning == VersioningType.Release)
             {
-                if (Directory.Exists(repository.RootFolderPath))
+                try
                 {
-                    var dirInfo = new DirectoryInfo(repository.RootFolderPath);
-
-                    foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                    outPut.AddMessageLine($"Cleaning release {repository.LocalFolderPath}...", "pink");
+                    await Task.Run(() =>
                     {
-                        file.Attributes = FileAttributes.Normal;
-                    }
+                        if (Directory.Exists(repository.RootFolderPath))
+                        {
+                            var dirInfo = new DirectoryInfo(repository.RootFolderPath);
 
-                    Directory.Delete(repository.RootFolderPath, true);
+                            foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                            {
+                                file.Attributes = FileAttributes.Normal;
+                            }
+
+                            Directory.Delete(repository.RootFolderPath, true);
+                        }
+                    });
+
+                    outPut.AddMessageLine("Release cleaned.", "pink");
                 }
-                outPut.AddMessageLine("Release Cleaned.", "Pink");
+                catch (Exception ex)
+                {
+                    outPut.AddMessageLine($"Error when cleaning release : {ex.Message}", "red");
+                }
             }
         }
 
@@ -127,11 +139,11 @@
 
                                             outPut.AddMessageLine($"-> {version} downloaded", "pink");
 
-                                            UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip, version);
+                                            await UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip, version);
                                         }
-                                        catch(Exception e)
+                                        catch (Exception e)
                                         {
-                                            outPut.AddMessageLine("Cannot download release: " + version, "Red");
+                                            outPut.AddMessageLine("Cannot download release: " + version + $" ({e.Message})", "Red");
                                         }
 
                                         versionDownload.IsDownloading = false;
@@ -157,25 +169,28 @@
                 }
                 else
                 {
-                    this.gitService.CheckoutTag(repository, version);
+                    await this.gitService.CheckoutTag(repository, version);
                     return repository.RootFolderPath;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 outPut.AddMessageLine($"Error: {ex.Message}", "red");
                 return string.Empty;
             }
         }
 
-        private void UnzipIfNotExist(string zipPath, string biaTemplatePathVersionUnzip, string version)
+        private async Task UnzipIfNotExist(string zipPath, string biaTemplatePathVersionUnzip, string version)
         {
             if (!Directory.Exists(biaTemplatePathVersionUnzip))
             {
                 outPut.AddMessageLine($"Unzipping {version}", "pink");
-                ZipFile.ExtractToDirectory(zipPath, biaTemplatePathVersionUnzip);
-                FileTransform.FolderUnix2Dos(biaTemplatePathVersionUnzip);
-                File.Delete(zipPath);
+                await Task.Run(() =>
+                {
+                    ZipFile.ExtractToDirectory(zipPath, biaTemplatePathVersionUnzip);
+                    FileTransform.FolderUnix2Dos(biaTemplatePathVersionUnzip);
+                    File.Delete(zipPath);
+                });
                 outPut.AddMessageLine($"-> {version} unzipped", "pink");
             }
         }

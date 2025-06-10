@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
 
@@ -18,5 +19,10 @@
         public bool HasReadOnlyMode { get; set; }
         public bool HasFixableParent { get; set; }
         public bool IsFixable { get; set; }
+        public bool HasAdvancedFilter { get; set; }
+        public bool CanImport { get; set; }
+        public int TeamTypeId { get; set; }
+        public int TeamRoleId { get; set; }
+        public string FormReadOnlyMode { get; set; }
     }
 }

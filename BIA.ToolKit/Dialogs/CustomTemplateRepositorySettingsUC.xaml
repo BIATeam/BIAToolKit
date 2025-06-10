@@ -6,12 +6,13 @@
         xmlns:settings="clr-namespace:BIA.ToolKit.Domain.Settings;assembly=BIA.ToolKit.Domain"
         xmlns:vm="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
         xmlns:system="clr-namespace:System;assembly=mscorlib"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="Custom template repository settings" Height="Auto" Width="500"
-        SizeToContent="WidthAndHeight"
         ResizeMode="NoResize"
+        SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
-        >
+        Style="{StaticResource MaterialDesignWindow}">
     <Window.DataContext>
         <vm:RepositorySettingsVM />
     </Window.DataContext>
@@ -22,33 +23,10 @@
                 <x:Type TypeName="settings:VersioningType"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     </Window.Resources>
     <Grid>
         <Grid Margin="10">
-            <Grid.Resources>
-                <!-- Default settings for controls -->
-                <Style TargetType="{x:Type Label}">
-                    <Setter Property="Margin" Value="0,3,5,5" />
-                    <Setter Property="Padding" Value="0,0,0,5" />
-                </Style>
-                <Style TargetType="{x:Type TextBox}">
-                    <Setter Property="Margin" Value="0,0,0,5" />
-                </Style>
-                <Style TargetType="{x:Type CheckBox}">
-                    <Setter Property="Margin" Value="0,4,5,3" />
-                </Style>
-                <Style TargetType="{x:Type Button}">
-                    <Setter Property="Width" Value="70" />
-                    <Setter Property="Height" Value="25" />
-                    <Setter Property="Margin" Value="5,0,0,0" />
-                </Style>
-            </Grid.Resources>
-
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -62,26 +40,18 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <Label Grid.Column="0" Grid.Row="0" Content="Name:"/>
-            <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding Name}" />
-            <Label Grid.Column="0" Grid.Row="1" Content="Git repository:"/>
-            <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding UrlRepo}" />
-            <Label Grid.Column="0" Grid.Row="2" Content="Use a local cloned folder:"/>
-            <CheckBox IsChecked="{Binding UseLocalFolder}" Grid.Column="1" Grid.Row="2" />
-            <Label Grid.Column="0" Grid.Row="3" Content="Local cloned folder:"/>
-            <TextBox Grid.Column="1" Grid.Row="3"  Text="{Binding LocalFolderPath}" Name="CompanyFilesLocalFolderText" IsEnabled="{Binding UseFolder}"/>
-            <Label Grid.Column="0" Grid.Row="4" Content="Local cloned folder:"/>
-            <ComboBox Grid.Column="1" Grid.Row="4"  SelectedItem="{Binding Versioning}" ItemsSource="{Binding Source={StaticResource versioningType}}"/>
-            <Label Grid.Column="0" Grid.Row="5" Content="Url for release:"/>
-            <TextBox Grid.Column="1" Grid.Row="5"  Text="{Binding UrlRelease}" Name="CompanyFilesUrlRelease" IsEnabled="{Binding IsEnabledUrlRelease}"/>
-            <Label Grid.Column="0" Grid.Row="6" Content="Company Name (to replace):"/>
-            <TextBox Grid.Column="1" Grid.Row="6"  Text="{Binding CompanyName}"/>
-            <Label Grid.Column="0" Grid.Row="7" Content="Project Name (to replace):"/>
-            <TextBox Grid.Column="1" Grid.Row="7"  Text="{Binding ProjectName}"/>
+            <TextBox Margin="5" Grid.Row="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Name" Text="{Binding Name}" />
+            <TextBox Margin="5" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="GIT Repository" Text="{Binding UrlRepo}" />
+            <CheckBox Margin="5" Grid.Row="2" IsChecked="{Binding UseLocalFolder}" Content="Use a local cloned folder"/>
+            <TextBox Margin="5" Grid.Row="3" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Local Repository" Text="{Binding LocalFolderPath}" Name="CompanyFilesLocalFolderText" IsEnabled="{Binding UseLocalFolder}"/>
+            <ComboBox Margin="5" Grid.Row="4" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Versioning" SelectedItem="{Binding Versioning}" ItemsSource="{Binding Source={StaticResource versioningType}}"/>
+            <TextBox Margin="5" Grid.Row="5" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="URL Release"  Text="{Binding UrlRelease}" Name="CompanyFilesUrlRelease" Visibility="{Binding IsEnabledUrlRelease, Converter={StaticResource BoolToVisConverter}}"/>
+            <TextBox Margin="5" Grid.Row="6" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Company Name" Text="{Binding CompanyName}"/>
+            <TextBox Margin="5" Grid.Row="7" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Project Name" Text="{Binding ProjectName}"/>
             <!-- Accept or Cancel -->
             <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="8" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Name="okButton" Click="okButton_Click" IsDefault="True">OK</Button>
-                <Button Name="cancelButton" IsCancel="True">Cancel</Button>
+                <Button Margin="5" Name="okButton" Click="okButton_Click" IsDefault="True">OK</Button>
+                <Button Margin="5" Name="cancelButton" IsCancel="True">Cancel</Button>
             </StackPanel>
         </Grid >
     </Grid>

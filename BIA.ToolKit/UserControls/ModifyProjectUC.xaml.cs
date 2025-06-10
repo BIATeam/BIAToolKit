@@ -32,6 +32,8 @@
         CRUDSettings crudSettings;
         UIEventBroker uiEventBroker;
         SettingsService settingsService;
+        FileGeneratorService fileGeneratorService;
+        UIEventBroker.TabItemModifyProjectEnum currentTabItem = UIEventBroker.TabItemModifyProjectEnum.Migration;
 
         public ModifyProjectUC()
         {
@@ -50,15 +52,26 @@
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
-            MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService, settingsService);
-            MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService, settingsService);
+            MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService, settingsService, uiEventBroker);
+            MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService, settingsService, uiEventBroker);
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
             this.crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
-            _viewModel.Inject(fileGeneratorService, uiEventBroker);
+            _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter);
             this.settingsService = settingsService;
+            this.fileGeneratorService = fileGeneratorService;
+
+            uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
+        }
+
+        private void UiEventBroker_OnProjectChanged(Domain.ModifyProject.Project project)
+        {
+            ParameterModifyChange();
+            MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
+            MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, true);
+            MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false);
         }
 
         public void RefreshConfiguration()
@@ -72,44 +85,18 @@
             ParameterModifyChange();
         }
 
-        private void ModifyProject_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
-
-            ParameterModifyChange();
-            MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
-            MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, true);
-            MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false);
-        }
-
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {
-            _ = Migrate_Run();
+            uiEventBroker.ExecuteTaskWithWaiter(Migrate_Run);
         }
         private async Task Migrate_Run()
         {
             var generated = await MigrateGenerateOnly_Run();
-            if (generated == 0 && MigrateApplyDiff_Run() == true)
+            var applyDiff = await MigrateApplyDiff_Run();
+            if (generated == 0 && applyDiff)
             {
-                MigrateMergeRejected_Run();
+                await MigrateMergeRejected_Run();
             }
-        }
-
-        private void Enable(bool isEnabled)
-        {
-            //Migrate.IsEnabled = false;
-            if (isEnabled)
-            {
-                Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
-            }
-            else
-            {
-                Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
-            }
-            //TODO recabler
-            //MainTab.IsEnabled = isEnabled;
-
-            System.Windows.Forms.Application.DoEvents();
         }
 
         private void ParameterModifyChange()
@@ -119,9 +106,9 @@
             if (MigrateMergeRejected != null) MigrateMergeRejected.IsEnabled = false;
         }
 
-        private async void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
+        private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
         {
-            await MigrateGenerateOnly_Run();
+            uiEventBroker.ExecuteTaskWithWaiter(MigrateGenerateOnly_Run);
         }
 
         private async Task<int> MigrateGenerateOnly_Run()
@@ -137,8 +124,6 @@
                 return -1;
             }
 
-            Enable(false);
-
             string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
             MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
 
@@ -146,90 +131,82 @@
 
             MigrateOpenFolder.IsEnabled = true;
             MigrateApplyDiff.IsEnabled = true;
-            Enable(true);
             return 0;
         }
 
         private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
         {
-            MigrateApplyDiff_Run();
+            uiEventBroker.ExecuteTaskWithWaiter(MigrateApplyDiff_Run);
         }
 
-        private bool MigrateApplyDiff_Run()
+        private async Task<bool> MigrateApplyDiff_Run()
         {
             bool result = false;
-            Enable(false);
 
             string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
             MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
 
             if (_viewModel.OverwriteBIAFromOriginal == true)
             {
-                projectCreatorService.OverwriteBIAFolder(projectOriginPath, _viewModel.ModifyProject.CurrentProject.Folder, false);
+                await projectCreatorService.OverwriteBIAFolder(projectOriginPath, _viewModel.ModifyProject.CurrentProject.Folder, false);
             }
 
-            result = ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName);
+            result = await ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName);
 
             MigrateMergeRejected.IsEnabled = true;
-            Enable(true);
             return result;
         }
 
         private void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
         {
-            MigrateMergeRejected_Run();
+            uiEventBroker.ExecuteTaskWithWaiter(MigrateMergeRejected_Run);
         }
 
-        private void MigrateMergeRejected_Run()
+        private async Task MigrateMergeRejected_Run()
         {
-            Enable(false);
-
-            MergeRejected(true);
+            await MergeRejected(true);
 
             MigrateMergeRejected.IsEnabled = false;
 
-            // delete PACKAGE_LOCK_FILE
-            foreach (var biaFront in _viewModel.ModifyProject.CurrentProject.BIAFronts)
+            await Task.Run(() =>
             {
-                string path = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, biaFront, crudSettings.PackageLockFileName);
-                if (new FileInfo(path).Exists)
+                // delete PACKAGE_LOCK_FILE
+                foreach (var biaFront in _viewModel.ModifyProject.CurrentProject.BIAFronts)
                 {
-                    File.Delete(path);
+                    string path = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, biaFront, crudSettings.PackageLockFileName);
+                    if (new FileInfo(path).Exists)
+                    {
+                        File.Delete(path);
+                    }
                 }
-            }
 
-            string rootBiaFolder = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name,  Constants.FolderBia);
-            if (!Directory.Exists(rootBiaFolder))
-            {
-                Directory.CreateDirectory(rootBiaFolder);
-            }
+                string rootBiaFolder = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, Constants.FolderBia);
+                if (!Directory.Exists(rootBiaFolder))
+                {
+                    Directory.CreateDirectory(rootBiaFolder);
+                }
 
-            var fileToSuppress = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, FeatureSettingService.fileName);
-            if (File.Exists(fileToSuppress))
-            {
-                File.Delete(fileToSuppress);
-            }
+                var fileToSuppress = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, FeatureSettingService.fileName);
+                if (File.Exists(fileToSuppress))
+                {
+                    File.Delete(fileToSuppress);
+                }
 
-            var fileToCheck = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
-            if (!File.Exists(fileToCheck))
-            {
-                string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
-                MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
-                var fileToCopy = Path.Combine(projectTargetPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
+                var fileToCheck = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
+                if (!File.Exists(fileToCheck))
+                {
+                    string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
+                    MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
+                    var fileToCopy = Path.Combine(projectTargetPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
 
-                File.Copy(fileToCopy, fileToCheck);
-            }
-
-            Enable(true);
+                    File.Copy(fileToCopy, fileToCheck);
+                }
+            });
         }
 
         private void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
         {
-            Enable(false);
-
-            OverwriteBIAFolder(true);
-
-            Enable(true);
+            uiEventBroker.ExecuteTaskWithWaiter(async () => await OverwriteBIAFolder(true));
         }
 
         private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion)
@@ -248,7 +225,7 @@
             // Create project at original version.
             if (Directory.Exists(projectOriginPath))
             {
-                FileTransform.ForceDeleteDirectory(projectOriginPath);
+               await Task.Run(() => FileTransform.ForceDeleteDirectory(projectOriginPath));
             }
 
             await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, _viewModel.CurrentProject.BIAFronts);
@@ -256,7 +233,7 @@
             // Create project at target version.
             if (Directory.Exists(projectTargetPath))
             {
-                FileTransform.ForceDeleteDirectory(projectTargetPath);
+                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectTargetPath));
             }
             await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, _viewModel.CurrentProject.BIAFronts);
 
@@ -267,13 +244,13 @@
         private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, List<string> fronts)
         {
             await this.projectCreatorService.Create(
-                actionFinishedAtEnd, 
+                actionFinishedAtEnd,
                 projectPath,
                 new Domain.Model.ProjectParameters
-                { 
-                    CompanyName = CompanyName, 
-                    ProjectName = ProjectName, 
-                    VersionAndOption = versionAndOption.vm.VersionAndOption, 
+                {
+                    CompanyName = CompanyName,
+                    ProjectName = ProjectName,
+                    VersionAndOption = versionAndOption.vm.VersionAndOption,
                     AngularFronts = fronts
                 }
             );
@@ -284,24 +261,24 @@
             Process.Start("explorer.exe", AppSettings.TmpFolderPath);
         }
 
-        private bool ApplyDiff(bool actionFinishedAtEnd, string projectOriginalFolderName, string projectTargetFolderName)
+        private async Task<bool> ApplyDiff(bool actionFinishedAtEnd, string projectOriginalFolderName, string projectTargetFolderName)
         {
             // Make the differential
             string migrateFilePath = GenerateMigrationPatchFilePath(projectOriginalFolderName, projectTargetFolderName);
-            if (!gitService.DiffFolder(false, AppSettings.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath))
+            if (!await gitService.DiffFolder(false, AppSettings.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath))
             {
                 return false;
             }
             //Apply the differential
-            return gitService.ApplyDiff(actionFinishedAtEnd, _viewModel.ModifyProject.CurrentProject.Folder, migrateFilePath);
+            return await gitService.ApplyDiff(actionFinishedAtEnd, _viewModel.ModifyProject.CurrentProject.Folder, migrateFilePath);
         }
 
-        private void MergeRejected(bool actionFinishedAtEnd)
+        private async Task MergeRejected(bool actionFinishedAtEnd)
         {
             string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
             MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
 
-            gitService.MergeRejeted(actionFinishedAtEnd, new GitService.MergeParameter()
+            await gitService.MergeRejected(actionFinishedAtEnd, new GitService.MergeParameter()
             {
                 ProjectPath = _viewModel.ModifyProject.CurrentProject.Folder,
                 ProjectOriginPath = projectOriginPath,
@@ -317,13 +294,12 @@
             return AppSettings.TmpFolderPath + $"Migration_{projectOriginalFolderName}-{projectTargetFolderName}.patch";
         }
 
-        private void OverwriteBIAFolder(bool actionFinishedAtEnd)
+        private async Task OverwriteBIAFolder(bool actionFinishedAtEnd)
         {
             string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
             MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
 
-            projectCreatorService.OverwriteBIAFolder(projectTargetPath, _viewModel.ModifyProject.CurrentProject.Folder, actionFinishedAtEnd);
-
+            await projectCreatorService.OverwriteBIAFolder(projectTargetPath, _viewModel.ModifyProject.CurrentProject.Folder, actionFinishedAtEnd);
         }
 
         private void ModifyProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
@@ -336,39 +312,9 @@
             _viewModel.RefreshProjetsList();
         }
 
-        private void TabActions_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ResolveUsings_Click(object sender, RoutedEventArgs e)
         {
-            const string TabItem_Migration = "TabMigration";
-            const string TabItem_OptionGenerator = "TabOptionGenerator";
-            const string TabItem_CrudGenerator = "TabCrudGenerator";
-            const string TabItem_DtoGenerator = "TabDtoGenerator";
-
-            if (e.AddedItems.Count == 1 && e.AddedItems[0] is TabItem tabItem)
-            {
-                switch(tabItem.Name)
-                {
-                    case TabItem_Migration:
-                        uiEventBroker.SetCurrentTabItemModifyProject(UIEventBroker.TabItemModifyProjectEnum.Migration);
-                        break;
-                    case TabItem_OptionGenerator:
-                        uiEventBroker.SetCurrentTabItemModifyProject(UIEventBroker.TabItemModifyProjectEnum.OptionGenerator);
-                        uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
-                        break;
-                    case TabItem_CrudGenerator:
-                        uiEventBroker.SetCurrentTabItemModifyProject(UIEventBroker.TabItemModifyProjectEnum.CrudGenerator);
-                        uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
-                        break;
-                    case TabItem_DtoGenerator:
-                        uiEventBroker.SetCurrentTabItemModifyProject(UIEventBroker.TabItemModifyProjectEnum.DtoGenerator);
-                        uiEventBroker.NotifyProjectChanged(_viewModel.CurrentProject);
-                        break;
-                }
-            }
-        }
-
-        private async void ResolveUsings_Click(object sender, RoutedEventArgs e)
-        {
-            await ResolveUsings_Run();
+            uiEventBroker.ExecuteTaskWithWaiter(ResolveUsings_Run);
         }
 
         private async Task ResolveUsings_Run()

@@ -16,18 +16,21 @@ import {
   <#= ModelInstance.EntityName.ToCamelCase() #>FormLayoutConfiguration,
 } from './model/<#= ModelInstance.EntityName.ToKebabCase() #>';
 
-// TODO after creation of CRUD <#= ModelInstance.EntityName #> : adapt the global configuration
+// TODO after creation of CRUD<# if(ModelInstance.IsTeam) {  #> Team<# } #> <#= ModelInstance.EntityName #> : adapt the global configuration
 export const <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration: CrudConfig<<#= ModelInstance.EntityName #>> = new CrudConfig({
   // IMPORTANT: this key should be unique in all the application.
   featureName: '<#= ModelInstance.EntityNamePlural.ToKebabCase() #>',
   fieldsConfig: <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration,
   formLayoutConfig: <#= ModelInstance.EntityName.ToCamelCase() #>FormLayoutConfiguration,
 <#  if(ModelInstance.HasReadOnlyMode) { #>
-  formEditReadOnlyMode: FormReadOnlyMode.off,
+  formEditReadOnlyMode: FormReadOnlyMode.<#= ModelInstance.FormReadOnlyMode.ToCamelCase() #>,
+<#  } #>
+<#  if(ModelInstance.IsFixable || ModelInstance.HasFixableParent) { #>
+  isFixable: true,
 <#  } #>
   useCalcMode: <# if(ModelInstance.IsTeam) { #>false<#  } else { #>true<# } #>,
   useSignalR: false,
-  useView: true,
+  useView: <# if(ModelInstance.HasAncestorTeam) {  #>true<# } else {#>false<# } #>,
 <#  if(ModelInstance.HasAncestorTeam) { #>
   useViewTeamWithTypeId: TeamTypeId.<#= ModelInstance.AncestorTeamName #>, // use to filter view by teams => should know the type of team
 <#  } #>

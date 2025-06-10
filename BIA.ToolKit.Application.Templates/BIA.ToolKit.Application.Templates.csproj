@@ -57,6 +57,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\Enum\FormReadOnlyMode.cs" />
     <Compile Include="Common\Models\DotNetModel.cs" />
     <Compile Include="Common\Models\EntityModel.cs" />
     <Compile Include="Common\Interfaces\IEntityCrudModel.cs" />
@@ -82,6 +83,36 @@
     <Compile Include="Common\Interfaces\IPropertyCrudModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_5_0_0\Models\PropertyDtoModel.cs" />
+    <None Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositorySet.cs">
+      <DependentUpon>PartialEntityAppServiceTemplate_FixedChildrenRepositorySet.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositoryInjection.cs">
+      <DependentUpon>PartialEntityAppServiceTemplate_FixedChildrenRepositoryInjection.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositoryConstructorParam.cs">
+      <DependentUpon>PartialEntityAppServiceTemplate_FixedChildrenRepositoryConstructorParam.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositoryDefinition.cs">
+      <DependentUpon>PartialEntityAppServiceTemplate_FixedChildrenRepositoryDefinition.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_UpdateFixedChildren.cs">
+      <DependentUpon>PartialEntityAppServiceTemplate_UpdateFixedChildren.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate_TeamConfigChildren.cs">
+      <DependentUpon>PartialCrudTeamConfigTemplate_TeamConfigChildren.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="packages.config" />
     <None Include="_4_0_0\Templates\Includes\Template.ttinclude">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -114,8 +145,8 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <None Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate.cs">
-      <DependentUpon>PartialCrudTeamConfigTemplate.tt</DependentUpon>
+    <None Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate_TeamConfig.cs">
+      <DependentUpon>PartialCrudTeamConfigTemplate_TeamConfig.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
@@ -316,8 +347,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="_5_0_0\Templates\Angular\src\app\features\EntityConstantsTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityConstantsTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>EntityConstantsTemplate.ts</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="_5_0_0\Templates\Angular\src\app\features\model\EntityTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -589,9 +620,9 @@
       <LastGenOutput>PartialCrudTeamMapperTemplate_TeamMapperUsing.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate.tt">
+    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate_TeamConfig.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PartialCrudTeamConfigTemplate.cs</LastGenOutput>
+      <LastGenOutput>PartialCrudTeamConfigTemplate_TeamConfig.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="_5_0_0\Templates\DotNet\Domain\Specifications\EntitySpecificationTemplate.tt">
@@ -688,13 +719,6 @@
   <ItemGroup>
     <None Include="_5_0_0\Templates\Angular\src\app\features\PartialCrudEntityModuleTemplate.ts">
       <DependentUpon>PartialCrudEntityModuleTemplate.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="_5_0_0\Templates\Angular\src\app\features\EntityConstantsTemplate.ts">
-      <DependentUpon>EntityConstantsTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
@@ -923,6 +947,54 @@
       <DesignTime>True</DesignTime>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Domain\PartialCrudTeamConfigTemplate_TeamConfigChildren.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudTeamConfigTemplate_TeamConfigChildren.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_UpdateFixedChildren.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialEntityAppServiceTemplate_UpdateFixedChildren.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositoryDefinition.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialEntityAppServiceTemplate_FixedChildrenRepositoryDefinition.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositoryConstructorParam.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialEntityAppServiceTemplate_FixedChildrenRepositoryConstructorParam.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositoryInjection.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialEntityAppServiceTemplate_FixedChildrenRepositoryInjection.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_5_0_0\Templates\DotNet\Application\PartialEntityAppServiceTemplate_FixedChildrenRepositorySet.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialEntityAppServiceTemplate_FixedChildrenRepositorySet.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="_5_0_0\Templates\Angular\src\app\features\EntityConstantsTemplate.ts">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityConstantsTemplate.tt</DependentUpon>
+    </TypeScriptCompile>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

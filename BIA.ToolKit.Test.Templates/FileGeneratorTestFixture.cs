@@ -31,6 +31,7 @@
         private readonly Stopwatch stopwatch = new();
         public Feature CurrentTestFeature { get; private set; }
         public Project TestProject { get; private set; }
+        public List<string> PartialMarkupIdentifiersToIgnore { get; private set; }
 
         public FileGeneratorTestFixture()
         {
@@ -86,7 +87,7 @@
 
             consoleWriter.AddMessageLine($"Init service...");
             FileGeneratorService = new FileGeneratorService(consoleWriter);
-            FileGeneratorService.Init(TestProject);
+            FileGeneratorService.Init(TestProject).Wait();
 
             if (referenceProject.BIAFronts.Count != 0)
             {
@@ -115,44 +116,64 @@
             stopwatch.Stop();
         }
 
-        public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext)
+        public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext, List<string> partialMarkupIdentifiersToIgnore = null)
         {
-            CurrentTestFeature = FileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Dto);
-            InitTestProjectFolder(Feature.FeatureType.Dto, dtoContext);
-            ImportTargetedPartialFiles(dtoContext);
-            await FileGeneratorService.GenerateDtoAsync(dtoContext);
-            GenerationAssertions.AssertAllFilesEquals(this, dtoContext);
+            await RunTestGenerateAllFilesEqualsAsync(
+                dtoContext,
+                Feature.FeatureType.Dto,
+                FileGeneratorService.GenerateDtoAsync,
+                partialMarkupIdentifiersToIgnore);
         }
 
-        public async Task RunTestGenerateOptionAllFilesEqualsAsync(FileGeneratorOptionContext optionContext)
+        public async Task RunTestGenerateOptionAllFilesEqualsAsync(FileGeneratorOptionContext optionContext, List<string> partialMarkupIdentifiersToIgnore = null)
         {
-            CurrentTestFeature = FileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Option);
-            InitTestProjectFolder(Feature.FeatureType.Option, optionContext);
-            ImportTargetedPartialFiles(optionContext);
-            await FileGeneratorService.GenerateOptionAsync(optionContext);
-            GenerationAssertions.AssertAllFilesEquals(this, optionContext);
+            await RunTestGenerateAllFilesEqualsAsync(
+                optionContext,
+                Feature.FeatureType.Option,
+                FileGeneratorService.GenerateOptionAsync,
+                partialMarkupIdentifiersToIgnore);
         }
 
-        public async Task RunTestGenerateCrudAllFilesEqualsAsync(FileGeneratorCrudContext crudContext)
+        public async Task RunTestGenerateCrudAllFilesEqualsAsync(FileGeneratorCrudContext crudContext, List<string> partialMarkupIdentifiersToIgnore = null)
         {
-            CurrentTestFeature = FileGeneratorService.GetCurrentManifestFeature(Feature.FeatureType.Crud);
-            InitTestProjectFolder(Feature.FeatureType.Crud, crudContext);
-            if (crudContext.GenerateFront)
-            {
-                if (crudContext.HasParent)
+            await RunTestGenerateAllFilesEqualsAsync(
+                crudContext,
+                Feature.FeatureType.Crud,
+                FileGeneratorService.GenerateCRUDAsync,
+                partialMarkupIdentifiersToIgnore,
+                context =>
                 {
-                    crudContext.ComputeAngularParentLocation(referenceProjectPath);
-                }
-            }
-            ImportTargetedPartialFiles(crudContext);
-            await FileGeneratorService.GenerateCRUDAsync(crudContext);
-            GenerationAssertions.AssertAllFilesEquals(this, crudContext);
+                    if (context.GenerateFront && context.HasParent)
+                    {
+                        context.ComputeAngularParentLocation(referenceProjectPath);
+                    }
+                });
+        }
+
+        private async Task RunTestGenerateAllFilesEqualsAsync<TContext>(
+            TContext context,
+            Feature.FeatureType featureType,
+            Func<TContext, Task> generateAsync,
+            List<string> partialMarkupIdentifiersToIgnore = null,
+            Action<TContext> preProcess = null)
+            where TContext : FileGeneratorContext
+        {
+            PartialMarkupIdentifiersToIgnore = partialMarkupIdentifiersToIgnore;
+            CurrentTestFeature = FileGeneratorService.GetCurrentManifestFeature(featureType);
+
+            InitTestProjectFolder(featureType, context);
+
+            preProcess?.Invoke(context);
+            ImportTargetedPartialFiles(context);
+
+            await generateAsync(context);
+            GenerationAssertions.AssertAllFilesEquals(this, context);
         }
 
         private void InitTestProjectFolder(Feature.FeatureType featureType, FileGeneratorContext context)
         {
             var generationFolder = Path.Combine(TestProject.Folder, $"{featureType}_{context.EntityName}");
-            if(Directory.Exists(generationFolder))
+            if (Directory.Exists(generationFolder))
             {
                 Directory.Delete(generationFolder, true);
             }

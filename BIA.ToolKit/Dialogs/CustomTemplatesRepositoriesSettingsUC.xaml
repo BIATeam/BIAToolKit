@@ -5,69 +5,78 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BIA.ToolKit.Dialogs"
         xmlns:vm="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="Custom templates repositories settings" Height="200" Width="300"
+        Title="Custom templates repositories settings" Height="500" Width="700"
         MinHeight="500"
-        MinWidth="600"
+        MinWidth="700"
         SizeToContent="WidthAndHeight"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
+        Style="{StaticResource MaterialDesignWindow}"
         >
     <Window.DataContext>
         <vm:RepositoriesSettingsVM />
     </Window.DataContext>
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+    </Window.Resources>
     <Grid>
         <Grid Margin="10">
-            <Grid.Resources>
-                <!-- Default settings for controls -->
-                <Style TargetType="{x:Type Label}">
-                    <Setter Property="Margin" Value="0,3,5,5" />
-                    <Setter Property="Padding" Value="0,0,0,5" />
-                </Style>
-                <Style TargetType="{x:Type TextBox}">
-                    <Setter Property="Margin" Value="0,0,0,5" />
-                </Style>
-                <Style TargetType="{x:Type Button}">
-                    <Setter Property="Width" Value="70" />
-                    <Setter Property="Height" Value="25" />
-                    <Setter Property="Margin" Value="5,0,0,0" />
-                </Style>
-            </Grid.Resources>
-
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="35"/>
+                <RowDefinition />
+                <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
-            <DataGrid AutoGenerateColumns="False" Grid.Column="0" Grid.Row="0" Margin="0,0,0,0" Grid.RowSpan="2" HorizontalAlignment="Left" Width="580" IsReadOnly="True"
+
+            <DataGrid Grid.Row="0" AutoGenerateColumns="False" Width="680" IsReadOnly="True"
                       ItemsSource="{Binding RepositoriesSettings}" SelectedItem="{Binding RepositorySettings}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
-                    <DataGridTextColumn Header="Url Repo" Binding="{Binding UrlRepo}" Width="100" />
-                    <DataGridTextColumn Header="Folder Path" Binding="{Binding LocalFolderPath}" Width="100" />
-                    <DataGridTextColumn Header="Use Folder" Binding="{Binding UseLocalFolder}" />
+                    <DataGridTextColumn Header="Local Repo" Binding="{Binding UseLocalFolder}" />
+                    <DataGridTextColumn Header="Versioning" Binding="{Binding Versioning}" />
+                    <DataGridTextColumn Header="Company Name" Binding="{Binding CompanyName}" />
+                    <DataGridTextColumn Header="Project Name" Binding="{Binding ProjectName}" />
                 </DataGrid.Columns>
                 <DataGrid.RowDetailsTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding UrlRepo}" Margin="10" />
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Orientation="Horizontal" Margin="10">
+                                <Label FontWeight="Bold" Content="URL Repo: "/>
+                                <TextBox Text="{Binding UrlRepo}" IsReadOnly="True"/>
+                            </StackPanel>
+                            <StackPanel Visibility="{Binding UseLocalFolder, Converter={StaticResource BoolToVisConverter}}" Grid.Row="1" Orientation="Horizontal" Margin="10">
+                                <Label FontWeight="Bold" Content="Local Repo: "/>
+                                <TextBox Text="{Binding LocalFolderPath}" IsReadOnly="True"/>
+                            </StackPanel>
+                            <StackPanel Visibility="{Binding HasUrlRelease, Converter={StaticResource BoolToVisConverter}}" Grid.Row="2" Orientation="Horizontal" Margin="10">
+                                <Label FontWeight="Bold" Content="URL Release: "/>
+                                <TextBox Text="{Binding UrlRelease}" IsReadOnly="True"/>
+                            </StackPanel>
+                        </Grid>
                     </DataTemplate>
                 </DataGrid.RowDetailsTemplate>
             </DataGrid>
 
 
             <!-- Accept or Cancel -->
-            <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Name="addButton" Click="addButton_Click">Add</Button>
-                <Button Name="editButton" Click="editButton_Click" IsEnabled="{Binding IsRepoSelected}">Edit</Button>
-                <Button Name="deleteButton" Click="deleteButton_Click" IsEnabled="{Binding IsRepoSelected}">Remove</Button>
+            <Grid Grid.Row="1">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button Margin="5" Style="{StaticResource MaterialDesignOutlinedButton}" Name="addButton" Click="addButton_Click">Add</Button>
+                    <Button Margin="5" Style="{StaticResource MaterialDesignOutlinedButton}" Name="editButton" Click="editButton_Click" IsEnabled="{Binding IsRepoSelected}">Edit</Button>
+                    <Button Margin="5" Style="{StaticResource MaterialDesignOutlinedButton}" Name="deleteButton" Click="deleteButton_Click" IsEnabled="{Binding IsRepoSelected}">Remove</Button>
+                    <Button Margin="5" Style="{StaticResource MaterialDesignPaperDarkButton}" Name="synchronizeButton" Click="synchronizeButton_Click" IsEnabled="{Binding IsRepoSelected}">Synchronize</Button>
+                </StackPanel>
 
-                <Button Name="synchronizeButton" Click="synchronizeButton_Click" IsEnabled="{Binding IsRepoSelected}">Synchronize</Button>
-                <Button Name="okButton" Click="okButton_Click" IsDefault="True">OK</Button>
-                <Button Name="cancelButton" IsCancel="True">Cancel</Button>
-            </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Margin="5" Name="okButton" Click="okButton_Click" IsDefault="True">OK</Button>
+                    <Button Margin="5" Name="cancelButton" IsCancel="True">Cancel</Button>
+                </StackPanel>
+            </Grid>
         </Grid >
 
 

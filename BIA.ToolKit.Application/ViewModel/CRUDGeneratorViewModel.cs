@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Settings;
+    using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -57,7 +58,16 @@
             }
         }
 
-        public bool UseFileGenerator { get; set; }
+        private bool _useFileGenerator;
+        public bool UseFileGenerator
+        {
+            get => _useFileGenerator;
+            set
+            {
+                _useFileGenerator = value;
+                RaisePropertyChanged(nameof(UseFileGenerator));
+            }
+        }
         #endregion
 
         #region Dto
@@ -231,6 +241,11 @@
                     IsFrontSelected = IsFrontAvailable;
                     UpdateParentPreSelection();
                     UpdateDomainPreSelection();
+
+                    if (!UseFileGenerator)
+                    {
+                        IsTeam = IsTeam || featureNameSelected == "Team";
+                    }
                 }
             }
         }
@@ -512,6 +527,121 @@
 
         public bool IsWebApiAvailable => UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.WebApi));
         public bool IsFrontAvailable => UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.Front));
+
+        private bool _isTeam;
+
+        public bool IsTeam
+        {
+            get => _isTeam;
+            set
+            {
+                _isTeam = value;
+                RaisePropertyChanged(nameof(IsTeam));
+                RaisePropertyChanged(nameof(IsCheckBoxIsTeamEnable));
+                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+            }
+        }
+
+        public bool IsCheckBoxIsTeamEnable
+        {
+            get
+            {
+                if (UseFileGenerator)
+                    return true;
+
+                if (!string.IsNullOrEmpty(FeatureNameSelected) && FeatureNameSelected.Equals("Team"))
+                    return false;
+
+                return IsDtoParsed;
+            }
+        }
+
+        private bool _useHubClient;
+
+        public bool UseHubClient
+        {
+            get { return _useHubClient; }
+            set 
+            { 
+                _useHubClient = value; 
+                RaisePropertyChanged(nameof(UseHubClient));
+            }
+        }
+
+        private bool _hasCustomRepository;
+
+        public bool HasCustomRepository
+        {
+            get { return _hasCustomRepository; }
+            set
+            {
+                _hasCustomRepository = value;
+                RaisePropertyChanged(nameof(HasCustomRepository));
+            }
+        }
+
+        private bool _hasFormReadOnlyMode;
+
+        public bool HasFormReadOnlyMode
+        {
+            get { return _hasFormReadOnlyMode; }
+            set
+            {
+                _hasFormReadOnlyMode = value;
+                RaisePropertyChanged(nameof(HasFormReadOnlyMode));
+                SelectedFormReadOnlyMode = value ? FormReadOnlyModes.First() : string.Empty;
+            }
+        }
+
+        private bool _useImport;
+
+        public bool UseImport
+        {
+            get { return _useImport; }
+            set
+            {
+                _useImport = value;
+                RaisePropertyChanged(nameof(UseImport));
+            }
+        }
+
+        private bool _isFixable;
+
+        public bool IsFixable
+        {
+            get { return _isFixable; }
+            set
+            {
+                _isFixable = value;
+                RaisePropertyChanged(nameof(IsFixable));
+            }
+        }
+
+        private bool _hasFixableParent;
+
+        public bool HasFixableParent
+        {
+            get { return _hasFixableParent; }
+            set
+            {
+                _hasFixableParent = value;
+                RaisePropertyChanged(nameof(HasFixableParent));
+            }
+        }
+
+        private bool _useAdvancedFilter;
+
+        public bool UseAdvancedFilter
+        {
+            get { return _useAdvancedFilter; }
+            set
+            {
+                _useAdvancedFilter = value;
+                RaisePropertyChanged(nameof(UseAdvancedFilter));
+            }
+        }
+
+
         #endregion
 
         #region ZipFile
@@ -560,7 +690,74 @@
                     && (!string.IsNullOrWhiteSpace(dtoDisplayItemSelected) || ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option))
                     && ((IsWebApiSelected && !IsFrontSelected) || (IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)) || (!IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)))
                     && !string.IsNullOrEmpty(featureNameSelected)
-                    && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural)));
+                    && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural)))
+                    && (!IsTeam || (IsTeam && !UseFileGenerator) || (UseFileGenerator && IsTeam && TeamRoleId > 0 && TeamTypeId > 0));
+            }
+        }
+        #endregion
+
+        #region Team
+        private string _ancestorTeam;
+
+        public string AncestorTeam
+        {
+            get { return _ancestorTeam; }
+            set 
+            { 
+                _ancestorTeam = value;
+                RaisePropertyChanged(nameof(AncestorTeam));
+            }
+        }
+
+        private int _teamTypeId;
+
+        public int TeamTypeId
+        {
+            get { return _teamTypeId; }
+            set 
+            { 
+                _teamTypeId = value; 
+                RaisePropertyChanged(nameof(TeamTypeId));
+                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+            }
+        }
+
+        private int _teamRoleId;
+
+        public int TeamRoleId
+        {
+            get { return _teamRoleId; }
+            set
+            {
+                _teamRoleId = value;
+                RaisePropertyChanged(nameof(TeamRoleId));
+                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+            }
+        }
+
+        #endregion
+
+        #region FormReadOnly
+        private List<string> _formReadOnlyModes;
+
+        public List<string> FormReadOnlyModes
+        {
+            get
+            {
+                _formReadOnlyModes ??= new List<string>(Enum.GetNames(typeof(FormReadOnlyMode)));
+                return _formReadOnlyModes;
+            }
+        }
+
+        private string _selectedFormReadOnlyMode;
+
+        public string SelectedFormReadOnlyMode
+        {
+            get { return _selectedFormReadOnlyMode; }
+            set 
+            { 
+                _selectedFormReadOnlyMode = value; 
+                RaisePropertyChanged(nameof(SelectedFormReadOnlyMode));
             }
         }
         #endregion

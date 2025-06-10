@@ -5,6 +5,7 @@
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
+    using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -68,23 +69,12 @@
             this.crudService = crudService;
             this.settings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
-            this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
+            this.uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
             this.fileGeneratorService = fileGeneratorService;
         }
 
-        private void UiEventBroker_OnBIAFrontFolderChanged()
+        private void UiEventBroker_OnProjectChanged(Project project)
         {
-            if (vm is null || vm.CurrentProject is null || !vm.IsDtoParsed)
-                return;
-
-            ParseFrontDomains();
-        }
-
-        private void UIEventBroker_OnProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem)
-        {
-            if (currentTabItem != TabItemModifyProjectEnum.CrudGenerator)
-                return;
-
             SetCurrentProject(project);
         }
 
@@ -96,35 +86,28 @@
             if (currentProject == vm.CurrentProject)
                 return;
 
-            ClearAll();
-            vm.CurrentProject = currentProject;
-            CurrentProjectChange();
-            crudService.CurrentProject = currentProject;
+            CurrentProjectChange(currentProject);
         }
 
         #region State change
         /// <summary>
         /// Init data based on current page (from settings).
         /// </summary>
-        private void CurrentProjectChange()
+        private void CurrentProjectChange(Project project)
         {
-            if (vm.CurrentProject is null)
+            if (project is null || project.BIAFronts.Count == 0)
                 return;
 
-            if (vm.CurrentProject.BIAFronts.Count == 0)
+            uiEventBroker.ExecuteTaskWithWaiter(async () =>
             {
-                consoleWriter.AddMessageLine("Unable to find any BIA front folder for this project", "red");
-                return;
-            }
+                ClearAll();
 
-            // Set form enabled
-            vm.IsProjectChosen = true;
+                // Load BIA settings + history + parse zips
+                InitProject(project);
 
-            // Load BIA settings + history + parse zips
-            InitProject();
-
-            // List Dto files from Dto folder
-            ListDtoFiles();
+                // List Dto files from Dto folder
+                ListDtoFiles();
+            });
         }
 
         /// <summary>
@@ -136,7 +119,7 @@
 
             vm.IsDtoParsed = false;
             vm.DtoDisplayItems = null;
-            Visibility msgVisibility = Visibility.Hidden;
+            Visibility msgVisibility = Visibility.Collapsed;
 
             if (vm.CurrentProject is null)
                 return;
@@ -147,12 +130,30 @@
             vm.Domain = null;
             vm.IsDtoParsed = ParseDtoFile();
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
+            vm.IsTeam = vm.DtoEntity?.IsTeam == true;
+            vm.IsFixable = vm.DtoEntity?.IsFixable == true || vm.DtoEntity?.IsArchivable == true;
+            vm.AncestorTeam = vm.DtoEntity?.AncestorTeamName;
             var isBackSelected = vm.IsWebApiAvailable;
             var isFrontSelected = vm.IsFrontAvailable;
-            
-            foreach(var optionItem in vm.OptionItems)
+
+            foreach (var optionItem in vm.OptionItems)
             {
                 optionItem.Check = false;
+            }
+            if (vm.DtoEntity != null)
+            {
+                foreach (var property in vm.DtoEntity.Properties.Where(p => p.IsOptionDto))
+                {
+                    var optionType = property.Annotations.FirstOrDefault(a => a.Key == "Type").Value;
+                    if (string.IsNullOrEmpty(optionType))
+                        continue;
+
+                    var optionItem = vm.OptionItems.FirstOrDefault(oi => oi.OptionName == optionType);
+                    if (optionItem is null)
+                        continue;
+
+                    optionItem.Check = true;
+                }
             }
 
             if (this.crudHistory != null)
@@ -167,17 +168,38 @@
                         // Apply last generation values
                         vm.CRUDNameSingular = history.EntityNameSingular;
                         vm.CRUDNamePlural = history.EntityNamePlural;
+                        vm.DtoDisplayItemSelected = history.DisplayItem;
                         vm.FeatureNameSelected = history.Feature;
                         vm.HasParent = history.HasParent;
                         vm.ParentName = history.ParentName;
                         vm.ParentNamePlural = history.ParentNamePlural;
                         vm.Domain = history.Domain;
                         vm.BiaFront = history.BiaFront;
-                        history.OptionItems?.ForEach(o =>
+                        vm.IsTeam = history.IsTeam;
+                        vm.TeamTypeId = history.TeamTypeId;
+                        vm.TeamRoleId = history.TeamRoleId;
+                        vm.UseHubClient = history.UseHubClient;
+                        vm.HasCustomRepository = history.UseCustomRepository;
+                        vm.HasFormReadOnlyMode = history.HasFormReadOnlyMode;
+                        vm.UseImport = history.UseImport;
+                        vm.IsFixable = history.IsFixable;
+                        vm.HasFixableParent = history.HasFixableParent;
+                        vm.UseAdvancedFilter = history.HasAdvancedFilter;
+                        vm.AncestorTeam = history.AncestorTeam;
+                        vm.SelectedFormReadOnlyMode = history.FormReadOnlyMode;
+                        if (history.OptionItems != null)
                         {
-                            OptionItem item = vm.OptionItems.FirstOrDefault(x => x.OptionName == o);
-                            if (item != null) item.Check = true;
-                        });
+                            foreach (var option in vm.OptionItems)
+                            {
+                                option.Check = false;
+                            }
+
+                            history.OptionItems.ForEach(o =>
+                            {
+                                OptionItem item = vm.OptionItems.FirstOrDefault(x => x.OptionName == o);
+                                if (item != null) item.Check = item != null;
+                            });
+                        }
 
                         isBackSelected = history.Generation.Any(g => g.GenerationType == GenerationType.WebApi.ToString());
                         isFrontSelected = history.Generation.Any(g => g.GenerationType == GenerationType.Front.ToString());
@@ -227,55 +249,68 @@
         /// <summary>
         /// Action linked with "Generate CRUD" button.
         /// </summary>
-        private async void Generate_Click(object sender, RoutedEventArgs e)
+        private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            uiEventBroker.ExecuteTaskWithWaiter(async () =>
             {
-                fileGeneratorService.SetPrettierAngularProjectPath(Path.Combine(Path.GetDirectoryName(vm.CurrentProject.SolutionPath), vm.BiaFront));
-                await fileGeneratorService.GenerateCRUDAsync(new FileGeneratorCrudContext
+                if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
                 {
-                    CompanyName = vm.CurrentProject.CompanyName,
-                    ProjectName = vm.CurrentProject.Name,
-                    DomainName = vm.Domain,
-                    EntityName = vm.CRUDNameSingular,
-                    EntityNamePlural = vm.CRUDNamePlural,
-                    BaseKeyType = vm.DtoEntity.BaseKeyType,
-                    IsTeam = vm.DtoEntity.IsTeam,
-                    Properties = [.. vm.DtoEntity.Properties],
-                    OptionItems = [.. vm.OptionItems.Where(x => x.Check).Select(x => x.OptionName)],
-                    HasParent = vm.HasParent,
-                    ParentName = vm.ParentName,
-                    ParentNamePlural = vm.ParentNamePlural,
-                    AncestorTeamName = vm.DtoEntity.AncestorTeamName,
-                    HasAncestorTeam = vm.DtoEntity.HasAncestorTeam,
-                    AngularFront = vm.BiaFront,
-                    GenerateBack = vm.IsWebApiSelected,
-                    GenerateFront = vm.IsFrontSelected,
-                    DisplayItemName = vm.DtoDisplayItemSelected
-                });
+                    fileGeneratorService.SetPrettierAngularProjectPath(Path.Combine(Path.GetDirectoryName(vm.CurrentProject.SolutionPath), vm.BiaFront));
+                    await fileGeneratorService.GenerateCRUDAsync(new FileGeneratorCrudContext
+                    {
+                        CompanyName = vm.CurrentProject.CompanyName,
+                        ProjectName = vm.CurrentProject.Name,
+                        DomainName = vm.Domain,
+                        EntityName = vm.CRUDNameSingular,
+                        EntityNamePlural = vm.CRUDNamePlural,
+                        BaseKeyType = vm.DtoEntity.BaseKeyType,
+                        IsTeam = vm.IsTeam,
+                        Properties = [.. vm.DtoEntity.Properties],
+                        OptionItems = [.. vm.OptionItems.Where(x => x.Check).Select(x => x.OptionName)],
+                        HasParent = vm.HasParent,
+                        ParentName = vm.ParentName,
+                        ParentNamePlural = vm.ParentNamePlural,
+                        AncestorTeamName = vm.AncestorTeam,
+                        HasAncestorTeam = !string.IsNullOrWhiteSpace(vm.AncestorTeam),
+                        AngularFront = vm.BiaFront,
+                        GenerateBack = vm.IsWebApiSelected,
+                        GenerateFront = vm.IsFrontSelected,
+                        DisplayItemName = vm.DtoDisplayItemSelected,
+                        TeamTypeId = vm.TeamTypeId,
+                        TeamRoleId = vm.TeamRoleId,
+                        UseHubForClient = vm.UseHubClient,
+                        HasCustomRepository = vm.HasCustomRepository,
+                        HasReadOnlyMode = vm.HasFormReadOnlyMode,
+                        CanImport = vm.UseImport,
+                        IsFixable = vm.IsFixable,
+                        HasFixableParent = vm.HasFixableParent,
+                        HasAdvancedFilter = vm.UseAdvancedFilter,
+                        FormReadOnlyMode = vm.SelectedFormReadOnlyMode,
+                    });
 
+                    UpdateCrudGenerationHistory();
+                    return;
+                }
+
+                var crudParent = new CrudParent
+                {
+                    Exists = vm.HasParent,
+                    Name = vm.ParentName,
+                    NamePlural = vm.ParentNamePlural,
+                    Domain = vm.Domain
+                };
+
+                crudService.CrudNames.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural);
+
+                // Generation DotNet + Angular files
+                List<string> optionsItems = vm.OptionItems.Any() ? vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
+                vm.IsDtoGenerated = crudService.GenerateFiles(vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, crudParent, vm.FeatureNameSelected, vm.Domain, vm.BiaFront);
+
+                // Generate generation history file
                 UpdateCrudGenerationHistory();
-                return;
-            }
 
-            var crudParent = new CrudParent
-            {
-                Exists = vm.HasParent,
-                Name = vm.ParentName,
-                NamePlural = vm.ParentNamePlural,
-                Domain = vm.Domain
-            };
-
-            crudService.CrudNames.InitRenameValues(vm.CRUDNameSingular, vm.CRUDNamePlural);
-
-            // Generation DotNet + Angular files
-            List<string> optionsItems = vm.OptionItems.Any() ? vm.OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
-            vm.IsDtoGenerated = crudService.GenerateFiles(vm.DtoEntity, vm.ZipFeatureTypeList, vm.DtoDisplayItemSelected, optionsItems, crudParent, vm.FeatureNameSelected, vm.Domain, vm.BiaFront);
-            
-            // Generate generation history file
-            UpdateCrudGenerationHistory();
-
-            consoleWriter.AddMessageLine($"End of '{vm.CRUDNameSingular}' generation.", "Blue");
+                consoleWriter.AddMessageLine($"End of '{vm.CRUDNameSingular}' generation.", "Blue");
+            });
         }
 
         /// <summary>
@@ -297,11 +332,11 @@
                 List<CRUDGenerationHistory> historyOptions = crudHistory?.CRUDGenerationHistory?.Where(h => h.OptionItems.Contains(vm.CRUDNameSingular)).ToList();
 
                 // Delete last generation
-                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, vm.FeatureNameSelected, new CrudParent {  Exists = history.HasParent, Domain = history.Domain, Name = history.ParentName, NamePlural = history.ParentNamePlural }, historyOptions);
+                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, vm.FeatureNameSelected, new CrudParent { Exists = history.HasParent, Domain = history.Domain, Name = history.ParentName, NamePlural = history.ParentNamePlural }, historyOptions);
 
                 // Update history
                 DeleteLastGenerationHistory(history);
-                CrudAlreadyGeneratedLabel.Visibility = Visibility.Hidden;
+                CrudAlreadyGeneratedLabel.Visibility = Visibility.Collapsed;
 
                 consoleWriter.AddMessageLine($"End of '{vm.CRUDNameSingular}' suppression.", "Purple");
             }
@@ -362,86 +397,91 @@
             vm.FeatureNameSelected = null;
             vm.BiaFronts.Clear();
             vm.BiaFront = null;
+            vm.IsTeam = false;
 
             this.crudHistory = null;
         }
 
-        private void InitProject(string biaFront = null)
+        private void InitProject(Project project)
         {
-            Mouse.OverrideCursor = Cursors.Wait;
             try
             {
-                SetGenerationSettings(biaFront);
-                crudService.CrudNames = new(backSettingsList, frontSettingsList);
+                SetGenerationSettings(project);
             }
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"Error on intializing project: {ex.Message}", "Red");
             }
-            finally
-            {
-                Mouse.OverrideCursor = Cursors.Arrow;
-            }
         }
 
-        private void SetGenerationSettings(string biaFront = null)
+        private void SetGenerationSettings(Project project)
         {
             // Get files/folders name
-            string dotnetBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, Constants.FolderBia);
-            string backSettingsFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, settings.GenerationSettingsFileName);
-            this.crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.CrudGenerationHistoryFileName);
+            string dotnetBiaFolderPath = Path.Combine(project.Folder, Constants.FolderDotNet, Constants.FolderBia);
+            string backSettingsFileName = Path.Combine(project.Folder, Constants.FolderDotNet, settings.GenerationSettingsFileName);
+            this.crudHistoryFileName = Path.Combine(project.Folder, Constants.FolderBia, settings.CrudGenerationHistoryFileName);
 
             // Handle old path of CRUD history file
-            var oldCrudHistoryFilePath = Path.Combine(vm.CurrentProject.Folder, settings.CrudGenerationHistoryFileName);
+            var oldCrudHistoryFilePath = Path.Combine(project.Folder, settings.CrudGenerationHistoryFileName);
             if (File.Exists(oldCrudHistoryFilePath))
             {
                 File.Move(oldCrudHistoryFilePath, this.crudHistoryFileName);
             }
 
-            if(fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
                 vm.UseFileGenerator = true;
                 vm.IsZipParsed = true;
                 vm.FeatureNames.Add("CRUD");
                 vm.FeatureNameSelected = "CRUD";
                 this.crudHistory = CommonTools.DeserializeJsonFile<CRUDGeneration>(this.crudHistoryFileName);
-                return;
             }
-
-            vm.UseFileGenerator = false;
-            // Load BIA settings
-            if (File.Exists(backSettingsFileName))
+            else
             {
-                backSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(backSettingsFileName));
-                if(vm.CurrentProject.FrameworkVersion == "3.9.0")
+                vm.UseFileGenerator = false;
+
+                // Load BIA settings
+                if (File.Exists(backSettingsFileName))
                 {
-                    var crudPlanesFeature = backSettingsList.FirstOrDefault(x => x.Feature == "crud-planes");
-                    if (crudPlanesFeature != null)
+                    backSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(backSettingsFileName));
+                    if (project.FrameworkVersion == "3.9.0")
                     {
-                        crudPlanesFeature.Feature = "planes";
+                        var crudPlanesFeature = backSettingsList.FirstOrDefault(x => x.Feature == "crud-planes");
+                        if (crudPlanesFeature != null)
+                        {
+                            crudPlanesFeature.Feature = "planes";
+                        }
                     }
                 }
+
+                foreach (var setting in backSettingsList)
+                {
+                    var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
+                    if (featureType == FeatureType.Option)
+                        continue;
+
+                    var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths, setting.FeatureDomain);
+                    vm.ZipFeatureTypeList.Add(zipFeatureType);
+                }
+
+                ParseZips(vm.ZipFeatureTypeList, project);
+
+                foreach (var featureName in vm.ZipFeatureTypeList.Select(x => x.Feature).Distinct())
+                {
+                    vm.FeatureNames.Add(featureName);
+                }
+
+                // Load generation history
+                this.crudHistory = CommonTools.DeserializeJsonFile<CRUDGeneration>(this.crudHistoryFileName);
             }
 
-            foreach(var setting in backSettingsList)
-            {
-                var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
-                if (featureType == FeatureType.Option)
-                    continue;
+            vm.CurrentProject = project;
+            vm.IsProjectChosen = true;
 
-                var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths, setting.FeatureDomain);
-                vm.ZipFeatureTypeList.Add(zipFeatureType);
-            }
+            crudService.CurrentProject = project;
+            crudService.CrudNames = new(backSettingsList, frontSettingsList);
 
-            ParseZips(vm.ZipFeatureTypeList);
-
-            foreach (var featureName in vm.ZipFeatureTypeList.Select(x => x.Feature).Distinct())
-            {
-                vm.FeatureNames.Add(featureName);
-            }
-
-            // Load generation history
-            this.crudHistory = CommonTools.DeserializeJsonFile<CRUDGeneration>(this.crudHistoryFileName);
+            vm.IsTeam = vm.IsTeam;
         }
 
         private void SetFrontGenerationSettings(string biaFront)
@@ -452,7 +492,7 @@
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
             string frontSettingsFileName = Path.Combine(vm.CurrentProject.Folder, biaFront, settings.GenerationSettingsFileName);
 
-            if(fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
                 return;
             }
@@ -477,7 +517,7 @@
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
 
-            ParseZips(vm.ZipFeatureTypeList.Where(x => x.GenerationType == GenerationType.Front));
+            ParseZips(vm.ZipFeatureTypeList.Where(x => x.GenerationType == GenerationType.Front), vm.CurrentProject);
         }
 
         /// <summary>
@@ -502,7 +542,18 @@
                     ParentNamePlural = vm.ParentNamePlural,
                     Domain = vm.Domain,
                     BiaFront = vm.BiaFront,
-
+                    IsTeam = vm.IsTeam,
+                    TeamTypeId = vm.TeamTypeId,
+                    TeamRoleId = vm.TeamRoleId,
+                    UseHubClient = vm.UseHubClient,
+                    UseCustomRepository = vm.HasCustomRepository,
+                    HasFormReadOnlyMode = vm.HasFormReadOnlyMode,
+                    UseImport = vm.UseImport,
+                    IsFixable = vm.IsFixable,
+                    HasFixableParent = vm.HasFixableParent,
+                    HasAdvancedFilter = vm.UseAdvancedFilter,
+                    AncestorTeam = vm.AncestorTeam,
+                    FormReadOnlyMode = vm.SelectedFormReadOnlyMode,
                     // Create "Mapping" part
                     Mapping = new()
                     {
@@ -630,14 +681,14 @@
         /// <summary>
         /// Parse all zips.
         /// </summary>
-        private void ParseZips(IEnumerable<ZipFeatureType> zipFeatures)
+        private void ParseZips(IEnumerable<ZipFeatureType> zipFeatures, Project project)
         {
             vm.IsZipParsed = false;
 
             // Verify version to avoid to try to parse zip when ".bia" folders are missing
-            if (!string.IsNullOrEmpty(vm.CurrentProject.FrameworkVersion))
+            if (!string.IsNullOrEmpty(project.FrameworkVersion))
             {
-                string version = vm.CurrentProject.FrameworkVersion.Replace(".", "");
+                string version = project.FrameworkVersion.Replace(".", "");
                 if (int.TryParse(version, out int value))
                 {
                     if (value < FRAMEWORK_VERSION_MINIMUM)
@@ -646,9 +697,9 @@
             }
 
             bool parsed = false;
-            foreach(var zipFeatureType in zipFeatures)
+            foreach (var zipFeatureType in zipFeatures)
             {
-                parsed |= ParseZipFile(zipFeatureType);
+                parsed |= ParseZipFile(zipFeatureType, project);
             }
             vm.IsZipParsed = parsed;
         }
@@ -683,10 +734,7 @@
                 List<string> displayItems = new();
                 vm.DtoEntity.Properties.ForEach(p => displayItems.Add(p.Name));
                 vm.DtoDisplayItems = displayItems;
-
-                // Set by default previous generation selected value
-                CRUDGenerationHistory history = this.crudHistory?.CRUDGenerationHistory?.FirstOrDefault(gh => (vm.DtoSelected == Path.GetFileName(gh.Mapping.Dto)));
-                vm.DtoDisplayItemSelected = history?.DisplayItem;
+                vm.DtoDisplayItemSelected = vm.DtoEntity.Properties.FirstOrDefault(p => p.Type.StartsWith("string", StringComparison.CurrentCultureIgnoreCase))?.Name;
 
                 return true;
             }
@@ -707,7 +755,7 @@
             List<string> foldersName = new();
 
             // List Options folders
-            string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, domainsPath);    
+            string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, domainsPath);
             List<string> folders = Directory.GetDirectories(folderPath, $"*{suffix}", SearchOption.AllDirectories).ToList();
             folders.ForEach(f => foldersName.Add(new DirectoryInfo(f).Name.Replace(suffix, "")));
 
@@ -718,12 +766,12 @@
         /// <summary>
         /// Parse Zip files (WebApi, CRUD, option or team).
         /// </summary>
-        private bool ParseZipFile(ZipFeatureType zipData)
+        private bool ParseZipFile(ZipFeatureType zipData, Project project)
         {
             try
             {
                 string folderName = (zipData.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.BiaFront;
-                string biaFolder = Path.Combine(vm.CurrentProject.Folder, folderName, Constants.FolderBia);
+                string biaFolder = Path.Combine(project.Folder, folderName, Constants.FolderBia);
                 if (!new DirectoryInfo(biaFolder).Exists)
                 {
                     return false;

@@ -38,10 +38,7 @@ export const maintenanceTeamReducers = createReducer<State>(
   on(FeatureMaintenanceTeamsActions.load, state => {
     return { ...state, loadingGet: true };
   }),
-  on(FeatureMaintenanceTeamsActions.save, state => {
-    return { ...state, loadingGetAll: true };
-  }),
-  on(FeatureMaintenanceTeamsActions.loadAllByPostSuccess, (state, { result, event }) => {
+    on(FeatureMaintenanceTeamsActions.loadAllByPostSuccess, (state, { result, event }) => {
     const stateUpdated = maintenanceTeamsAdapter.setAll(result.data, state);
     stateUpdated.totalCount = result.totalCount;
     stateUpdated.lastLazyLoadEvent = event;

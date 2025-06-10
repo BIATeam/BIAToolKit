@@ -153,6 +153,21 @@
             }
         }
 
+        private bool settingsUseCompanyFiles;
+        public bool SettingsUseCompanyFiles
+        {
+            get { return settingsUseCompanyFiles; }
+            set 
+            { 
+                settingsUseCompanyFiles = value;
+                RaisePropertyChanged(nameof(SettingsUseCompanyFiles));
+                RaisePropertyChanged(nameof(SettingsNotUseCompanyFiles));
+            }
+        }
+
+        public bool SettingsNotUseCompanyFiles => !SettingsUseCompanyFiles;
+
+
         public bool UseCompanyFiles
         {
             get { return VersionAndOption.UseCompanyFiles; }

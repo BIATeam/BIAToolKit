@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
@@ -72,37 +73,20 @@
 
             if (template.IsPartial)
             {
-                ExtractPartialContent(ref referencePath, ref generatedPath, context, template);
+                ExtractPartialContent(ref referencePath, ref generatedPath, context, template, testFixture.PartialMarkupIdentifiersToIgnore);
             }
 
-            RemoveBiaDemoCodeExample(testFixture, ref referencePath, isAngularTemplate);
+            RemoveGenerationIgnoreCode(testFixture, ref referencePath, isAngularTemplate);
             CompareFiles(referencePath, generatedPath);
         }
 
-        private static void RemoveBiaDemoCodeExample(FileGeneratorTestFixture testFixture, ref string referencePath, bool isAngularTemplate)
+        private static void RemoveGenerationIgnoreCode(FileGeneratorTestFixture testFixture, ref string referencePath, bool isAngularTemplate)
         {
-            const string biaDemoMarkupBegin = "Begin BIADemo";
-            const string biaDemoMarkupEnd = "End BIADemo";
+            const string biaDemoMarkupBegin = "Begin BIAToolKit Generation Ignore";
+            const string biaDemoMarkupEnd = "End BIAToolKit Generation Ignore";
 
             var referenceLines = File.ReadAllLines(referencePath).ToList();
-
-            var expectedBiaDemoMarkupBeginIndex = referenceLines.FindIndex(l => l.Contains(biaDemoMarkupBegin));
-            var expectedBiaDemoMarkupEndIndex = referenceLines.FindIndex(l => l.Contains(biaDemoMarkupEnd));
-            var areLinesRemoved = false;
-            while (expectedBiaDemoMarkupBeginIndex > -1 && expectedBiaDemoMarkupEndIndex > -1 && expectedBiaDemoMarkupBeginIndex < expectedBiaDemoMarkupEndIndex)
-            {
-                areLinesRemoved = true;
-                if (referenceLines[expectedBiaDemoMarkupBeginIndex - 1].Trim() == string.Empty)
-                {
-                    expectedBiaDemoMarkupBeginIndex--;
-                }
-
-                referenceLines.RemoveRange(expectedBiaDemoMarkupBeginIndex, expectedBiaDemoMarkupEndIndex - expectedBiaDemoMarkupBeginIndex + 1);
-                expectedBiaDemoMarkupBeginIndex = referenceLines.FindIndex(l => l.Contains(biaDemoMarkupBegin));
-                expectedBiaDemoMarkupEndIndex = referenceLines.FindIndex(l => l.Contains(biaDemoMarkupEnd));
-            }
-
-            if (areLinesRemoved)
+            if (RemoveLinesBetweenMarkups(biaDemoMarkupBegin, biaDemoMarkupEnd, referenceLines))
             {
                 referencePath = referencePath.Replace(Path.GetFileName(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Cleaned{Path.GetExtension(referencePath)}");
                 if (File.Exists(referencePath))
@@ -118,7 +102,28 @@
             }
         }
 
-        private static void ExtractPartialContent(ref string referencePath, ref string generatedPath, FileGeneratorContext context, Manifest.Feature.Template template)
+        private static bool RemoveLinesBetweenMarkups(string markupBegin, string markupEnd, List<string> referenceLines)
+        {
+            var expectedBiaDemoMarkupBeginIndex = referenceLines.FindIndex(l => l.Contains(markupBegin));
+            var expectedBiaDemoMarkupEndIndex = referenceLines.FindIndex(l => l.Contains(markupEnd));
+            var areLinesRemoved = false;
+            while (expectedBiaDemoMarkupBeginIndex > -1 && expectedBiaDemoMarkupEndIndex > -1 && expectedBiaDemoMarkupBeginIndex < expectedBiaDemoMarkupEndIndex)
+            {
+                areLinesRemoved = true;
+                if (referenceLines[expectedBiaDemoMarkupBeginIndex - 1].Trim() == string.Empty)
+                {
+                    expectedBiaDemoMarkupBeginIndex--;
+                }
+
+                referenceLines.RemoveRange(expectedBiaDemoMarkupBeginIndex, expectedBiaDemoMarkupEndIndex - expectedBiaDemoMarkupBeginIndex + 1);
+                expectedBiaDemoMarkupBeginIndex = referenceLines.FindIndex(l => l.Contains(markupBegin));
+                expectedBiaDemoMarkupEndIndex = referenceLines.FindIndex(l => l.Contains(markupEnd));
+            }
+
+            return areLinesRemoved;
+        }
+
+        private static void ExtractPartialContent(ref string referencePath, ref string generatedPath, FileGeneratorContext context, Manifest.Feature.Template template, List<string> partialMarkupIdentifiersToIgnore)
         {
             (var partialInsertionMarkupBegin, var partialInsertionMarkupEnd) = FileGeneratorService.GetPartialInsertionMarkups(context, template, template.OutputPath);
             var referenceLines = File.ReadAllLines(referencePath).ToList();
@@ -148,6 +153,24 @@
 
             referenceLines = referenceLines.GetRange(referenceMarkupBeginIndex, referenceMarkupEndIndex - referenceMarkupBeginIndex + 1);
             generatedLines = generatedLines.GetRange(generatedMarkupBeginIndex, generatedMarkupEndIndex - generatedMarkupBeginIndex + 1);
+
+            if(partialMarkupIdentifiersToIgnore is not null)
+            {
+                foreach(var markup in partialMarkupIdentifiersToIgnore)
+                {
+                    var markupSafe = Regex.Escape(markup);
+                    var markupBeginPattern = $@"^\/\/ BIAToolKit - Begin Partial\b.*?\b{markupSafe}$";
+                    var markupEndPattern = $@"^\/\/ BIAToolKit - End Partial\b.*?\b{markupSafe}$";
+
+                    var markupBegin = referenceLines.FirstOrDefault(l => Regex.IsMatch(l.Trim(), markupBeginPattern));
+                    var markupEnd = referenceLines.FirstOrDefault(l => Regex.IsMatch(l.Trim(), markupEndPattern));
+
+                    if (!string.IsNullOrWhiteSpace(markupBegin) && !string.IsNullOrWhiteSpace(markupEnd))
+                    {
+                        RemoveLinesBetweenMarkups(markupBegin, markupEnd, referenceLines);
+                    }
+                }
+            }
 
             referencePath = referencePath
                 .Replace(Path.GetFileNameWithoutExtension(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}")

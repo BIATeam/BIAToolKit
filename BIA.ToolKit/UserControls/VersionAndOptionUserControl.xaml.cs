@@ -32,6 +32,7 @@
         FeatureSettingService featureSettingService;
         private SettingsService settingsService;
         private string currentProjectPath;
+        private UIEventBroker uiEventBroker;
 
         public VersionAndOptionViewModel vm;
 
@@ -42,7 +43,7 @@
         }
 
         public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, FeatureSettingService featureSettingService,
-                    SettingsService settingsService)
+                    SettingsService settingsService, UIEventBroker uiEventBroker)
         {
             this.settings = settings;
             this.gitService = gitService;
@@ -50,6 +51,7 @@
             this.repositoryService = repositoryService;
             this.featureSettingService = featureSettingService;
             this.settingsService = settingsService;
+            this.uiEventBroker = uiEventBroker;
             vm.Inject(repositoryService, consoleWriter);
         }
 
@@ -142,15 +144,10 @@
                 vm.WorkTemplate = listWorkTemplates[listWorkTemplates.Count - 2];
             }
 
+            vm.SettingsUseCompanyFiles = settings.UseCompanyFiles;
             vm.UseCompanyFiles = settings.UseCompanyFiles;
             if (settings.UseCompanyFiles)
             {
-                UseCompanyFiles.Visibility = Visibility.Visible;
-                //CompanyFileGroup.Visibility = Visibility.Visible;
-
-                //Warning.Visibility = Visibility.Hidden;
-                //WarningLabel.Visibility = Visibility.Hidden;
-
                 AddTemplatesVersion(listCompanyFiles, settings.CompanyFiles);
                 vm.WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
                 if (listCompanyFiles.Count >= 1)
@@ -158,25 +155,6 @@
                     vm.WorkCompanyFile = listCompanyFiles.FirstOrDefault(companyFile => companyFile.Version == vm.WorkTemplate.Version);
                 }
             }
-            else
-            {
-                UseCompanyFiles.Visibility = Visibility.Hidden;
-                //CompanyFileGroup.Visibility = Visibility.Hidden;
-                //Warning.Visibility = Visibility.Visible;
-                //WarningLabel.Visibility = Visibility.Visible;
-            }
-        }
-
-        private void UseCompanyFile_Checked(object sender, RoutedEventArgs e)
-        {
-            /*if (vm.UseCompanyFiles)
-            {
-                CompanyFileGroup.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                CompanyFileGroup.Visibility = Visibility.Hidden;
-            }*/
         }
 
         private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, RepositorySettings repositorySettings)
@@ -209,15 +187,18 @@
             WorkTemplates.Sort(new WorkRepository.VersionComparer());
         }
 
-        private async void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            //vm.UseCompanyFiles = vm.WorkTemplate?.RepositorySettings?.Name == "BIATemplate";
-            await this.FillVersionFolderPathAsync();
-            this.LoadfeatureSetting();
-            this.LoadVersionAndOption(false);
+            uiEventBroker.ExecuteTaskWithWaiter(async () =>
+            {
+                //vm.UseCompanyFiles = vm.WorkTemplate?.RepositorySettings?.Name == "BIATemplate";
+                await this.FillVersionFolderPathAsync();
+                this.LoadfeatureSetting();
+                this.LoadVersionAndOption(false);
+            });
         }
 
-        private async void CFVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void CFVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             this.LoadVersionAndOption(false);
         }

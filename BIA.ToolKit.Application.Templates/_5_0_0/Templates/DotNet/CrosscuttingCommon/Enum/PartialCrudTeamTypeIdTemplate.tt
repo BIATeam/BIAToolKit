@@ -5,10 +5,9 @@
         // BIAToolKit - Begin Partial TeamTypeId <#= ModelInstance.EntityName #>
 
         /// <summary>
-        /// Value for Maintenance Team.
+        /// Value for <#= ModelInstance.EntityName #>.
         /// </summary>
-        // TODO after creation of team <#= ModelInstance.EntityName #> : adapt the enum value
-        <#= ModelInstance.EntityName #> = 4,
+        <#= ModelInstance.EntityName #> = <#= ModelInstance.TeamTypeId #>,
 
         // BIAToolKit - End Partial TeamTypeId <#= ModelInstance.EntityName #>
 <# }  #>
