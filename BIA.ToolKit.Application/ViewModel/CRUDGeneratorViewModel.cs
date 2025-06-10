@@ -244,7 +244,7 @@
 
                     if (!UseFileGenerator)
                     {
-                        IsTeam = featureNameSelected == "Team";
+                        IsTeam = IsTeam || featureNameSelected == "Team";
                     }
                 }
             }

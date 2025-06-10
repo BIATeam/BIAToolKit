@@ -86,28 +86,24 @@
             if (currentProject == vm.CurrentProject)
                 return;
 
-            ClearAll();
-            vm.CurrentProject = currentProject;
-            CurrentProjectChange();
-            crudService.CurrentProject = currentProject;
+            CurrentProjectChange(currentProject);
         }
 
         #region State change
         /// <summary>
         /// Init data based on current page (from settings).
         /// </summary>
-        private void CurrentProjectChange()
+        private void CurrentProjectChange(Project project)
         {
-            if (vm.CurrentProject is null || vm.CurrentProject.BIAFronts.Count == 0)
+            if (project is null || project.BIAFronts.Count == 0)
                 return;
-
-            // Set form enabled
-            vm.IsProjectChosen = true;
 
             uiEventBroker.ExecuteTaskWithWaiter(async () =>
             {
+                ClearAll();
+
                 // Load BIA settings + history + parse zips
-                InitProject();
+                InitProject(project);
 
                 // List Dto files from Dto folder
                 ListDtoFiles();
@@ -139,8 +135,8 @@
             vm.AncestorTeam = vm.DtoEntity?.AncestorTeamName;
             var isBackSelected = vm.IsWebApiAvailable;
             var isFrontSelected = vm.IsFrontAvailable;
-            
-            foreach(var optionItem in vm.OptionItems)
+
+            foreach (var optionItem in vm.OptionItems)
             {
                 optionItem.Check = false;
             }
@@ -193,7 +189,7 @@
                         vm.SelectedFormReadOnlyMode = history.FormReadOnlyMode;
                         if (history.OptionItems != null)
                         {
-                            foreach(var option in vm.OptionItems)
+                            foreach (var option in vm.OptionItems)
                             {
                                 option.Check = false;
                             }
@@ -336,7 +332,7 @@
                 List<CRUDGenerationHistory> historyOptions = crudHistory?.CRUDGenerationHistory?.Where(h => h.OptionItems.Contains(vm.CRUDNameSingular)).ToList();
 
                 // Delete last generation
-                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, vm.FeatureNameSelected, new CrudParent {  Exists = history.HasParent, Domain = history.Domain, Name = history.ParentName, NamePlural = history.ParentNamePlural }, historyOptions);
+                crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, vm.FeatureNameSelected, new CrudParent { Exists = history.HasParent, Domain = history.Domain, Name = history.ParentName, NamePlural = history.ParentNamePlural }, historyOptions);
 
                 // Update history
                 DeleteLastGenerationHistory(history);
@@ -401,16 +397,16 @@
             vm.FeatureNameSelected = null;
             vm.BiaFronts.Clear();
             vm.BiaFront = null;
+            vm.IsTeam = false;
 
             this.crudHistory = null;
         }
 
-        private void InitProject(string biaFront = null)
+        private void InitProject(Project project)
         {
             try
             {
-                SetGenerationSettings(biaFront);
-                crudService.CrudNames = new(backSettingsList, frontSettingsList);
+                SetGenerationSettings(project);
             }
             catch (Exception ex)
             {
@@ -418,64 +414,74 @@
             }
         }
 
-        private void SetGenerationSettings(string biaFront = null)
+        private void SetGenerationSettings(Project project)
         {
             // Get files/folders name
-            string dotnetBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, Constants.FolderBia);
-            string backSettingsFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, settings.GenerationSettingsFileName);
-            this.crudHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.CrudGenerationHistoryFileName);
+            string dotnetBiaFolderPath = Path.Combine(project.Folder, Constants.FolderDotNet, Constants.FolderBia);
+            string backSettingsFileName = Path.Combine(project.Folder, Constants.FolderDotNet, settings.GenerationSettingsFileName);
+            this.crudHistoryFileName = Path.Combine(project.Folder, Constants.FolderBia, settings.CrudGenerationHistoryFileName);
 
             // Handle old path of CRUD history file
-            var oldCrudHistoryFilePath = Path.Combine(vm.CurrentProject.Folder, settings.CrudGenerationHistoryFileName);
+            var oldCrudHistoryFilePath = Path.Combine(project.Folder, settings.CrudGenerationHistoryFileName);
             if (File.Exists(oldCrudHistoryFilePath))
             {
                 File.Move(oldCrudHistoryFilePath, this.crudHistoryFileName);
             }
 
-            if(fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
                 vm.UseFileGenerator = true;
                 vm.IsZipParsed = true;
                 vm.FeatureNames.Add("CRUD");
                 vm.FeatureNameSelected = "CRUD";
                 this.crudHistory = CommonTools.DeserializeJsonFile<CRUDGeneration>(this.crudHistoryFileName);
-                return;
             }
-
-            vm.UseFileGenerator = false;
-            // Load BIA settings
-            if (File.Exists(backSettingsFileName))
+            else
             {
-                backSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(backSettingsFileName));
-                if(vm.CurrentProject.FrameworkVersion == "3.9.0")
+                vm.UseFileGenerator = false;
+
+                // Load BIA settings
+                if (File.Exists(backSettingsFileName))
                 {
-                    var crudPlanesFeature = backSettingsList.FirstOrDefault(x => x.Feature == "crud-planes");
-                    if (crudPlanesFeature != null)
+                    backSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(backSettingsFileName));
+                    if (project.FrameworkVersion == "3.9.0")
                     {
-                        crudPlanesFeature.Feature = "planes";
+                        var crudPlanesFeature = backSettingsList.FirstOrDefault(x => x.Feature == "crud-planes");
+                        if (crudPlanesFeature != null)
+                        {
+                            crudPlanesFeature.Feature = "planes";
+                        }
                     }
                 }
+
+                foreach (var setting in backSettingsList)
+                {
+                    var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
+                    if (featureType == FeatureType.Option)
+                        continue;
+
+                    var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths, setting.FeatureDomain);
+                    vm.ZipFeatureTypeList.Add(zipFeatureType);
+                }
+
+                ParseZips(vm.ZipFeatureTypeList);
+
+                foreach (var featureName in vm.ZipFeatureTypeList.Select(x => x.Feature).Distinct())
+                {
+                    vm.FeatureNames.Add(featureName);
+                }
+
+                // Load generation history
+                this.crudHistory = CommonTools.DeserializeJsonFile<CRUDGeneration>(this.crudHistoryFileName);
             }
 
-            foreach(var setting in backSettingsList)
-            {
-                var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
-                if (featureType == FeatureType.Option)
-                    continue;
+            vm.CurrentProject = project;
+            vm.IsProjectChosen = true;
 
-                var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths, setting.FeatureDomain);
-                vm.ZipFeatureTypeList.Add(zipFeatureType);
-            }
+            crudService.CurrentProject = project;
+            crudService.CrudNames = new(backSettingsList, frontSettingsList);
 
-            ParseZips(vm.ZipFeatureTypeList);
-
-            foreach (var featureName in vm.ZipFeatureTypeList.Select(x => x.Feature).Distinct())
-            {
-                vm.FeatureNames.Add(featureName);
-            }
-
-            // Load generation history
-            this.crudHistory = CommonTools.DeserializeJsonFile<CRUDGeneration>(this.crudHistoryFileName);
+            vm.IsTeam = vm.IsTeam;
         }
 
         private void SetFrontGenerationSettings(string biaFront)
@@ -486,7 +492,7 @@
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
             string frontSettingsFileName = Path.Combine(vm.CurrentProject.Folder, biaFront, settings.GenerationSettingsFileName);
 
-            if(fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
                 return;
             }
@@ -691,7 +697,7 @@
             }
 
             bool parsed = false;
-            foreach(var zipFeatureType in zipFeatures)
+            foreach (var zipFeatureType in zipFeatures)
             {
                 parsed |= ParseZipFile(zipFeatureType);
             }
@@ -749,7 +755,7 @@
             List<string> foldersName = new();
 
             // List Options folders
-            string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, domainsPath);    
+            string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, domainsPath);
             List<string> folders = Directory.GetDirectories(folderPath, $"*{suffix}", SearchOption.AllDirectories).ToList();
             folders.ForEach(f => foldersName.Add(new DirectoryInfo(f).Name.Replace(suffix, "")));
 
