@@ -464,7 +464,7 @@
                     vm.ZipFeatureTypeList.Add(zipFeatureType);
                 }
 
-                ParseZips(vm.ZipFeatureTypeList);
+                ParseZips(vm.ZipFeatureTypeList, project);
 
                 foreach (var featureName in vm.ZipFeatureTypeList.Select(x => x.Feature).Distinct())
                 {
@@ -517,7 +517,7 @@
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
 
-            ParseZips(vm.ZipFeatureTypeList.Where(x => x.GenerationType == GenerationType.Front));
+            ParseZips(vm.ZipFeatureTypeList.Where(x => x.GenerationType == GenerationType.Front), vm.CurrentProject);
         }
 
         /// <summary>
@@ -681,14 +681,14 @@
         /// <summary>
         /// Parse all zips.
         /// </summary>
-        private void ParseZips(IEnumerable<ZipFeatureType> zipFeatures)
+        private void ParseZips(IEnumerable<ZipFeatureType> zipFeatures, Project project)
         {
             vm.IsZipParsed = false;
 
             // Verify version to avoid to try to parse zip when ".bia" folders are missing
-            if (!string.IsNullOrEmpty(vm.CurrentProject.FrameworkVersion))
+            if (!string.IsNullOrEmpty(project.FrameworkVersion))
             {
-                string version = vm.CurrentProject.FrameworkVersion.Replace(".", "");
+                string version = project.FrameworkVersion.Replace(".", "");
                 if (int.TryParse(version, out int value))
                 {
                     if (value < FRAMEWORK_VERSION_MINIMUM)
@@ -699,7 +699,7 @@
             bool parsed = false;
             foreach (var zipFeatureType in zipFeatures)
             {
-                parsed |= ParseZipFile(zipFeatureType);
+                parsed |= ParseZipFile(zipFeatureType, project);
             }
             vm.IsZipParsed = parsed;
         }
@@ -766,12 +766,12 @@
         /// <summary>
         /// Parse Zip files (WebApi, CRUD, option or team).
         /// </summary>
-        private bool ParseZipFile(ZipFeatureType zipData)
+        private bool ParseZipFile(ZipFeatureType zipData, Project project)
         {
             try
             {
                 string folderName = (zipData.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.BiaFront;
-                string biaFolder = Path.Combine(vm.CurrentProject.Folder, folderName, Constants.FolderBia);
+                string biaFolder = Path.Combine(project.Folder, folderName, Constants.FolderBia);
                 if (!new DirectoryInfo(biaFolder).Exists)
                 {
                     return false;
