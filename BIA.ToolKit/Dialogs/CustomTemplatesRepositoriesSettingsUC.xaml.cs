@@ -27,13 +27,15 @@
         GitService gitService;
         public RepositoriesSettingsVM vm;
         private RepositoryService repositoryService;
+        private readonly UIEventBroker uiEventBroker;
 
-        public CustomsRepoTemplateUC(GitService gitService, RepositoryService repositoryService)
+        public CustomsRepoTemplateUC(GitService gitService, RepositoryService repositoryService, UIEventBroker uiEventBroker)
         {
             InitializeComponent();
             this.gitService = gitService;
             this.repositoryService = repositoryService;
-            vm = (RepositoriesSettingsVM) base.DataContext;
+            this.uiEventBroker = uiEventBroker;
+            vm = (RepositoriesSettingsVM)base.DataContext;
         }
 
         internal bool? ShowDialog(List<RepositorySettings> customsRepoTemplate)
@@ -57,7 +59,7 @@
 
             if (result == true)
             {
-                vm.RepositoriesSettings.Add(((RepositorySettingsVM) dialog.DataContext).RepositorySettings);
+                vm.RepositoriesSettings.Add(((RepositorySettingsVM)dialog.DataContext).RepositorySettings);
             }
         }
 
@@ -72,7 +74,7 @@
 
                 if (result == true)
                 {
-                    vm.RepositoriesSettings[vm.RepositoriesSettings.IndexOf(vm.RepositorySettings)] = ((RepositorySettingsVM) dialog.DataContext).RepositorySettings;
+                    vm.RepositoriesSettings[vm.RepositoriesSettings.IndexOf(vm.RepositorySettings)] = ((RepositorySettingsVM)dialog.DataContext).RepositorySettings;
                 }
             }
         }
@@ -88,14 +90,17 @@
 
         private void synchronizeButton_Click(object sender, RoutedEventArgs e)
         {
-            if (vm.RepositorySettings != null)
+            uiEventBroker.ExecuteTaskWithWaiter(async () =>
             {
-                if (!vm.RepositorySettings.UseLocalFolder)
+                if (vm.RepositorySettings != null)
                 {
-                    this.repositoryService.CleanVersionFolder(vm.RepositorySettings);
+                    if (!vm.RepositorySettings.UseLocalFolder)
+                    {
+                        await this.repositoryService.CleanVersionFolder(vm.RepositorySettings);
+                    }
+                    await gitService.Synchronize(vm.RepositorySettings);
                 }
-                _ = gitService.Synchronize(vm.RepositorySettings);
-            }
+            });
         }
     }
 }

@@ -62,11 +62,8 @@
             vm.Inject(fileGeneratorService, consoleWriter);
         }
 
-        private void UIEventBroker_OnProjectChanged(Project project, TabItemModifyProjectEnum currentTabItem)
+        private void UIEventBroker_OnProjectChanged(Project project)
         {
-            if (currentTabItem != TabItemModifyProjectEnum.DtoGenerator)
-                return;
-
             SetCurrentProject(project);
         }
 
@@ -77,15 +74,18 @@
 
             vm.IsProjectChosen = false;
             vm.Clear();
-            
+
             if (project is null)
                 return;
 
-            this.project = project;
-            vm.SetProject(project);
+            uiEventBroker.ExecuteTaskWithWaiter(async () =>
+            {
+                this.project = project;
+                vm.SetProject(project);
 
-            ListEntities();
-            InitHistoryFile(project);
+                ListEntities();
+                InitHistoryFile(project);
+            });
         }
 
         private void ListEntities()
@@ -105,7 +105,7 @@
 
         private void RefreshEntitiesList_Click(object sender, RoutedEventArgs e)
         {
-            ListEntities();
+            uiEventBroker.ExecuteTaskWithWaiter(async() => ListEntities());
         }
 
         private void SelectProperties_Click(object sender, RoutedEventArgs e)
@@ -132,25 +132,28 @@
             }
         }
 
-        private async void GenerateButton_Click(object sender, RoutedEventArgs e)
+        private void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
-            UpdateHistoryFile();
-            await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext
+            uiEventBroker.ExecuteTaskWithWaiter(async () =>
             {
-                CompanyName = project.CompanyName,
-                ProjectName = project.Name,
-                DomainName = vm.EntityDomain,
-                EntityName = vm.SelectedEntityInfo.Name,
-                EntityNamePlural = vm.SelectedEntityInfo.NamePluralized,
-                BaseKeyType = vm.SelectedEntityInfo.BaseKeyType,
-                Properties = [.. vm.MappingEntityProperties],
-                IsTeam = vm.IsTeam,
-                IsVersioned = vm.IsVersioned,
-                IsArchivable = vm.IsArchivable,
-                IsFixable = vm.IsFixable,
-                AncestorTeamName = vm.AncestorTeam,
-                HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
-                GenerateBack = true
+                UpdateHistoryFile();
+                await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext
+                {
+                    CompanyName = project.CompanyName,
+                    ProjectName = project.Name,
+                    DomainName = vm.EntityDomain,
+                    EntityName = vm.SelectedEntityInfo.Name,
+                    EntityNamePlural = vm.SelectedEntityInfo.NamePluralized,
+                    BaseKeyType = vm.SelectedEntityInfo.BaseKeyType,
+                    Properties = [.. vm.MappingEntityProperties],
+                    IsTeam = vm.IsTeam,
+                    IsVersioned = vm.IsVersioned,
+                    IsArchivable = vm.IsArchivable,
+                    IsFixable = vm.IsFixable,
+                    AncestorTeamName = vm.AncestorTeam,
+                    HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
+                    GenerateBack = true
+                });
             });
         }
 
@@ -205,7 +208,7 @@
 
         private void MappingOptionId_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(processSelectProperties)
+            if (processSelectProperties)
                 return;
 
             vm.ComputePropertiesValidity();
@@ -253,7 +256,7 @@
 
             vm.RefreshMappingProperties();
 
-            foreach(var property in generation.PropertyMappings)
+            foreach (var property in generation.PropertyMappings)
             {
                 var mappingProperty = vm.MappingEntityProperties.FirstOrDefault(x => x.EntityCompositeName == property.EntityPropertyCompositeName);
                 if (mappingProperty is null)

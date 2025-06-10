@@ -7,6 +7,7 @@
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
              xmlns:behaviors="clr-namespace:BIA.ToolKit.Behaviors"
              xmlns:helpers="clr-namespace:BIA.ToolKit.Helper"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
              d:DesignHeight="1080" d:DesignWidth="1920">
     <UserControl.DataContext>
@@ -14,267 +15,285 @@
     </UserControl.DataContext>
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+        <Thickness x:Key="FormFirstRowMargin">0,0,0,5</Thickness>
+        <Thickness x:Key="FormRowMargin">0,5</Thickness>
     </UserControl.Resources>
-    <Grid IsEnabled="{Binding IsFileGeneratorInit}">
+
+    <Grid Margin="10" IsEnabled="{Binding IsFileGeneratorInit}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="160"/>
-            <RowDefinition Height="1*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition/>
         </Grid.RowDefinitions>
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.5*"/>
-            <ColumnDefinition Width="0.1*"/>
-            <ColumnDefinition Width="1*"/>
-        </Grid.ColumnDefinitions>
-
-        <Grid Grid.Column="0" Grid.Row="0" Margin="5,0">
+        <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition />
                 <ColumnDefinition Width="0.1*"/>
+                <ColumnDefinition />
+                <ColumnDefinition Width="0.1*"/>
+                <ColumnDefinition Width="160"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="{StaticResource FormFirstRowMargin}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <ComboBox Grid.Column="0" Grid.Row="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Entity" x:Name="EntitiesComboBox" ItemsSource="{Binding EntitiesNames}" SelectedValue="{Binding SelectedEntityName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsProjectChosen}" SelectionChanged="EntitiesComboBox_SelectionChanged"/>
+                    <Label Grid.Column="0" Grid.Row="1" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="{Binding WasAlreadyGenerated, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible"/>
+                    <Button Grid.Column="1" Margin="5,0,0,0" IsEnabled="{Binding IsProjectChosen}" x:Name="RefreshDtoList" Click="RefreshEntitiesList_Click" ToolTip="Refresh list">
+                        <Image Source="/Images/rafraichir-32.png" />
+                    </Button>
+                </Grid>
+                <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Domain" Text="{Binding EntityDomain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsEntitySelected}"/>
+                <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Ancestor Team" Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+            </Grid>
+
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <CheckBox Grid.Row="0" Content="Team" Foreground="White" IsChecked="{Binding IsTeam,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
+                <CheckBox Grid.Row="1" Content="Versioned" Foreground="White" IsChecked="{Binding IsVersioned,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
+                <CheckBox Grid.Row="2" Content="Fixable" Foreground="White" IsChecked="{Binding IsFixable,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
+                <CheckBox Grid.Row="3" Content="Archivable" Foreground="White" IsChecked="{Binding IsArchivable,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
+            </Grid>
+
+            <Button VerticalAlignment="Top" Grid.Column="4" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" x:Name="GenerateButton" Content="Generate" Height="50" Click="GenerateButton_Click" IsEnabled="{Binding IsGenerationEnabled}"></Button>
+        </Grid>
+
+        <Grid Grid.Row="1" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.5*"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition/>
             </Grid.ColumnDefinitions>
 
-            <Label Grid.Column="0" Content="Entity:" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-            <ComboBox Grid.Column="0" x:Name="EntitiesComboBox" ItemsSource="{Binding EntitiesNames}" SelectedValue="{Binding SelectedEntityName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="20,25,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Top" IsEnabled="{Binding IsProjectChosen}" SelectionChanged="EntitiesComboBox_SelectionChanged" MinWidth="250"/>
-            <Label Grid.Column="0" Content="Generation was already done for this Entity" Margin="20,42,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Yellow" Visibility="{Binding WasAlreadyGenerated, Converter={StaticResource BoolToVisConverter}}" />
-            <Button Grid.Column="1" IsEnabled="{Binding IsProjectChosen}" Margin="10,24,0,0" Width="24" x:Name="RefreshDtoList" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top" Click="RefreshEntitiesList_Click" ToolTip="Refresh list">
-                <Image Source="/Images/rafraichir-32.png" />
-            </Button>
-
-            <Label Grid.Column="0" Content="Domain:"  Margin="0,55,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-            <TextBox Grid.Column="0" Text="{Binding EntityDomain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Padding="2" Margin="20,80,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Top" IsEnabled="{Binding IsEntitySelected}" MinWidth="250"/>
-
-            <Label Grid.Column="0" Content="Ancestor Team:"  Margin="0,110,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-            <TextBox Grid.Column="0" Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Padding="2" Margin="20,135,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Top" MinWidth="250"/>
-        </Grid>
-
-        <Grid Grid.Column="1" Margin="20,18,0,0">
-            <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
-            <CheckBox Grid.Row="0" Content="Team" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" IsChecked="{Binding IsTeam,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
-            <CheckBox Grid.Row="1" Content="Versioned" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" IsChecked="{Binding IsVersioned,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
-            <CheckBox Grid.Row="2" Content="Fixable" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" IsChecked="{Binding IsFixable,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
-            <CheckBox Grid.Row="3" Content="Archivable" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" IsChecked="{Binding IsArchivable,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
-        </Grid>
-
-        <Label Grid.Row="1" Grid.Column="0" Content="Properties:"  Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-        <TreeView Grid.Row="1"  Name="ClassTreeView" Margin="20,30,0,10" Padding="0,10,10,10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntityProperties}">
-            <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type local:EntityProperty}" ItemsSource="{Binding Properties}">
-                    <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="0,0,5,0"/>
-                        <TextBlock FontWeight="Bold" Text="{Binding Name}" Margin="0,0,5,0" />
-                        <TextBlock Text="{Binding Type, StringFormat=({0})}" />
-                    </StackPanel>
-                </HierarchicalDataTemplate>
-            </TreeView.Resources>
-        </TreeView>
-
-        <Grid Grid.Column="1" Grid.Row="1" Margin="20,0,0,0">
-            <Button Content="Map to ➜" Padding="10,0" x:Name="SelectProperties" Height="24" Margin="0,0,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Center" Click="SelectProperties_Click" ToolTip="Select properties" IsEnabled="{Binding IsEntitySelected}"></Button>
-            <Button Content="Remove all" Margin="0,60,0,0" x:Name="RemoveAllMappingProperties" Height="24" HorizontalAlignment="Stretch" VerticalAlignment="Center" Click="RemoveAllMappingProperties_Click" ToolTip="Select properties" IsEnabled="{Binding HasMappingProperties}"></Button>
-        </Grid>
-
-        <Button Grid.Column="2" x:Name="GenerateButton" HorizontalAlignment="Left" Width="150" VerticalAlignment="Top" Margin="20,30,0,0" Content="Generate" Height="60" Click="GenerateButton_Click" IsEnabled="{Binding IsGenerationEnabled}"></Button>
-
-        <Label Grid.Column="2" Grid.Row="1" Content="Mapping:" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-        <ListView Grid.Column="2" Grid.Row="1" Name="PropertiesListView" Margin="20,30,10,10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding MappingEntityProperties}">
-            <i:Interaction.Behaviors>
-                <behaviors:ListViewDragDropBehavior MoveCommand="{Binding MoveMappedPropertyCommand}" />
-            </i:Interaction.Behaviors>
-            <ListView.Resources>
-                <Style TargetType="GridViewColumnHeader">
-                    <Setter Property="Padding" Value="10,2" />
-                    <Setter Property="FontSize" Value="13" />
-                    <Setter Property="FontWeight" Value="Bold"/>
-                    <Setter Property="Background" Value="White" />
-                    <Setter Property="Foreground" Value="Black" />
-                    <Setter Property="HorizontalContentAlignment" Value="Center" />
-                    <Setter Property="VerticalContentAlignment" Value="Center" />
-                    <Setter Property="Width" Value="Auto"/>
-                </Style>
-            </ListView.Resources>
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                    <Setter Property="VerticalContentAlignment" Value="Center" />
-                    <Setter Property="Height" Value="40"/>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=(helpers:DragDropHelper.IsDropTarget)}" Value="True">
-                            <Setter Property="Background" Value="#FFE0E0E0"/>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </ListView.ItemContainerStyle>
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn>
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button
-                        Width="15"
-                        Padding="3"
-                        BorderThickness="0"
-                        Background="Transparent"
-                        Command="{Binding DataContext.RemoveMappingPropertyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                        CommandParameter="{Binding}">
-                                    <Image Source="/Images/cross.png" RenderOptions.BitmapScalingMode="Fant" />
-                                </Button>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn>
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <Image Source="/Images/drag_icon.png" RenderOptions.BitmapScalingMode="Fant"
-                                       Cursor="SizeNS"
-                                       Width="15"
-                        PreviewMouseLeftButtonDown="DragHandle_PreviewMouseLeftButtonDown"
-                        MouseMove="DragHandle_MouseMove" />
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Entity property">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock FontWeight="Bold" Foreground="Black" Text="{Binding EntityCompositeName}"></TextBlock>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Mapping property">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <StackPanel>
-                                    <TextBox
-                                Padding="2"
-                                Height="auto"
-                                x:Name="MappingPropertyTextBox"
-                                Text="{Binding MappingName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                TextChanged="MappingPropertyTextBox_TextChanged">
-                                        <TextBox.Style>
-                                            <Style TargetType="TextBox">
-                                                <Setter Property="BorderBrush" Value="Black" />
-                                                <Setter Property="BorderThickness" Value="1" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding HasMappingNameError }" Value="True">
-                                                        <Setter Property="BorderBrush" Value="Red" />
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding HasMappingNameError }" Value="False">
-                                                        <Setter Property="BorderBrush" Value="Black" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBox.Style>
-                                    </TextBox>
-                                    <TextBlock Text="{Binding MappingNameError}" Foreground="Red" FontSize="10">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding HasMappingNameError}" Value="True">
-                                                        <Setter Property="Visibility" Value="Visible" />
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding HasMappingNameError}" Value="False">
-                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Content="Properties" FontWeight="Bold"/>
+                <Grid Grid.Row="1" Margin="10,5,10,0">
+                    <Grid Background="#323232" Opacity="0.7"/>
+                    <TreeView Name="ClassTreeView"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntityProperties}">
+                        <TreeView.Resources>
+                            <HierarchicalDataTemplate DataType="{x:Type local:EntityProperty}" ItemsSource="{Binding Properties}">
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="0,0,5,0"/>
+                                    <TextBlock FontWeight="Bold" Text="{Binding Name}" Margin="0,0,5,0" />
+                                    <TextBlock Text="{Binding Type, StringFormat=({0})}" />
                                 </StackPanel>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Required">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsRequired, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></CheckBox>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Parent Identifier">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <CheckBox 
-                                IsChecked="{Binding IsParent, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                Command="{Binding DataContext.SetMappedPropertyIsParentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                CommandParameter="{Binding}"
-                                Visibility="{Binding IsVisibleIsParentCheckbox, Converter={StaticResource BoolToVisConverter}}"></CheckBox>
-                                </Grid>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Date Type">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <ComboBox 
-                                ItemsSource="{Binding MappingDateTypes}" 
-                                SelectedValue="{Binding MappingDateType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                Visibility="{Binding IsVisibleDateTypesComboxBox, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
-                                </Grid>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Option Mapping ID">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <ComboBox 
-                                x:Name="MappingOptionId"
-                                ItemsSource="{Binding OptionEntityIdProperties}" 
-                                SelectedValue="{Binding OptionEntityIdProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                Visibility="{Binding IsOption, Converter={StaticResource BoolToVisConverter}}"
-                                SelectionChanged="MappingOptionId_SelectionChanged"></ComboBox>
-                                </Grid>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Option ID">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <ComboBox 
-                                ItemsSource="{Binding OptionIdProperties}" 
-                                SelectedValue="{Binding OptionIdProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                Visibility="{Binding IsVisibleOptionPropertiesComboBox, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
-                                </Grid>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Option Display">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <ComboBox 
-                                ItemsSource="{Binding OptionDisplayProperties}" 
-                                SelectedValue="{Binding OptionDisplayProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                Visibility="{Binding IsVisibleOptionPropertiesComboBox, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
-                                </Grid>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Entity Type">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Foreground="Black" Text="{Binding EntityType}"></TextBlock>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Mapping Type">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Foreground="Black" Text="{Binding MappingType}"></TextBlock>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                </GridView>
-            </ListView.View>
-        </ListView>
+                            </HierarchicalDataTemplate>
+                        </TreeView.Resources>
+                    </TreeView>
+                </Grid>
+            </Grid>
 
+
+            <Grid Grid.Column="1" Grid.Row="1" Margin="10,50,10,0" VerticalAlignment="Top">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Button Grid.Row="0" Margin="0,0,0,5" Content="Map to ➜" x:Name="SelectProperties"  Click="SelectProperties_Click" ToolTip="Select properties" IsEnabled="{Binding IsEntitySelected}"></Button>
+                <Button Grid.Row="1" Margin="0,5" Content="Remove all" x:Name="RemoveAllMappingProperties" Click="RemoveAllMappingProperties_Click" ToolTip="Select properties" IsEnabled="{Binding HasMappingProperties}"></Button>
+            </Grid>
+
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Content="Mapping" FontWeight="Bold"/>
+                <Grid Margin="10,30,10,0">
+                    <Grid Background="#323232" Opacity="0.7"/>
+                    <ListView Grid.Column="2" Grid.Row="1" Name="PropertiesListView" ItemsSource="{Binding MappingEntityProperties}"  ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                        <i:Interaction.Behaviors>
+                            <behaviors:ListViewDragDropBehavior MoveCommand="{Binding MoveMappedPropertyCommand}" />
+                        </i:Interaction.Behaviors>
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem" BasedOn="{StaticResource MaterialDesignGridViewItem}">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="VerticalContentAlignment" Value="Center" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=(helpers:DragDropHelper.IsDropTarget)}" Value="True">
+                                        <Setter Property="Background" Value="#595959"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn>
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition/>
+                                                    <ColumnDefinition/>
+                                                </Grid.ColumnDefinitions>
+                                                <Button Grid.Column="1" Width="18" Height="18" Padding="5" BorderThickness="0" Command="{Binding DataContext.RemoveMappingPropertyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                                                    <Image Source="/Images/cross.png" RenderOptions.BitmapScalingMode="Fant"/>
+                                                </Button>
+                                                <Image Grid.Column="0" Opacity="0.6" Width="15" Height="15" Source="/Images/drag_icon.png" RenderOptions.BitmapScalingMode="Fant" Cursor="SizeNS" PreviewMouseLeftButtonDown="DragHandle_PreviewMouseLeftButtonDown" MouseMove="DragHandle_MouseMove"  />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="Entity property">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock FontWeight="Bold" Text="{Binding EntityCompositeName}"></TextBlock>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="Mapping property">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel>
+                                                <TextBox
+                                                        Padding="5" MinWidth="100"
+                                                x:Name="MappingPropertyTextBox"
+                                                Text="{Binding MappingName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                TextChanged="MappingPropertyTextBox_TextChanged">
+                                                    <TextBox.Style>
+                                                        <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignFilledTextBox}">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HasMappingNameError }" Value="True">
+                                                                    <Setter Property="BorderBrush" Value="Red" />
+                                                                    <Setter Property="BorderThickness" Value="1" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding HasMappingNameError }" Value="False">
+                                                                    <Setter Property="BorderBrush" Value="Transparent" />
+                                                                    <Setter Property="BorderThickness" Value="0" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBox.Style>
+                                                </TextBox>
+                                                <TextBlock Text="{Binding MappingNameError}" Foreground="Red" FontSize="10">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HasMappingNameError}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding HasMappingNameError}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="Required">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsRequired, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"></CheckBox>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="Parent Identifier">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <CheckBox HorizontalAlignment="Center" 
+                                                IsChecked="{Binding IsParent, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                Command="{Binding DataContext.SetMappedPropertyIsParentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Visibility="{Binding IsVisibleIsParentCheckbox, Converter={StaticResource BoolToVisConverter}}"></CheckBox>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="Date Type">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <ComboBox 
+                                                ItemsSource="{Binding MappingDateTypes}" 
+                                                SelectedValue="{Binding MappingDateType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                Visibility="{Binding IsVisibleDateTypesComboxBox, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="Option Mapping ID">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <ComboBox 
+                                                x:Name="MappingOptionId"
+                                                ItemsSource="{Binding OptionEntityIdProperties}" 
+                                                SelectedValue="{Binding OptionEntityIdProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                Visibility="{Binding IsOption, Converter={StaticResource BoolToVisConverter}}"
+                                                SelectionChanged="MappingOptionId_SelectionChanged"></ComboBox>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="Option ID">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <ComboBox 
+                                                ItemsSource="{Binding OptionIdProperties}" 
+                                                SelectedValue="{Binding OptionIdProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                Visibility="{Binding IsVisibleOptionPropertiesComboBox, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="Option Display">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <ComboBox 
+                                                ItemsSource="{Binding OptionDisplayProperties}" 
+                                                SelectedValue="{Binding OptionDisplayProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                Visibility="{Binding IsVisibleOptionPropertiesComboBox, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="Entity Type">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding EntityType}"></TextBlock>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="Mapping Type">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding MappingType}"></TextBlock>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Grid>
+            </Grid>
+        </Grid>
     </Grid>
 </UserControl>

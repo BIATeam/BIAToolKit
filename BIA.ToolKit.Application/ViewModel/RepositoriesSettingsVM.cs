@@ -25,7 +25,7 @@
             {
                 this.repositoriesSettings.Add(repo);
             }
-            RaisePropertyChanged("RepositoriesSettings");
+            RaisePropertyChanged(nameof(RepositoriesSettings));
         }
 
         private RepositorySettings repositorySettings;
@@ -38,8 +38,8 @@
                 if (repositorySettings != value)
                 {
                     repositorySettings = value;
-                    RaisePropertyChanged("RepositorySettings");
-                    RaisePropertyChanged("IsRepoSelected");
+                    RaisePropertyChanged(nameof(RepositorySettings));
+                    RaisePropertyChanged(nameof(IsRepoSelected));
                 }
             }
         }
