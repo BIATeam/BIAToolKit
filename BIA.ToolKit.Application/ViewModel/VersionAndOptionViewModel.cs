@@ -257,6 +257,7 @@
                     hasFeature = value;
                     RaisePropertyChanged(nameof(HasFeature));
                     RaisePropertyChanged(nameof(AreFeatureVisible));
+                    RaisePropertyChanged(nameof(IsVisibileNoFeature));
                 }
             }
         }
@@ -272,6 +273,7 @@
                     RaisePropertyChanged(nameof(AreFeatureInitialized));
                     RaisePropertyChanged(nameof(AreFeatureVisible));
                     RaisePropertyChanged(nameof(AreFeatureLoading));
+                    RaisePropertyChanged(nameof(IsVisibileNoFeature));
                 }
             }
         }
@@ -285,5 +287,7 @@
         {
             get { return !areFeatureInitialized; }
         }
+
+        public bool IsVisibileNoFeature => !AreFeatureVisible;
     }
 }

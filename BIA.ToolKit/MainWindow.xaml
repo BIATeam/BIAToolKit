@@ -35,7 +35,7 @@
                             <ColumnDefinition/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
-                        <Image gif:ImageBehavior.AnimatedSource="Images/LogoBIA.png" Grid.ColumnSpan="3"/>
+                        <Image gif:ImageBehavior.AnimatedSource="Images/LogoBIA.png" Grid.ColumnSpan="3" Opacity="0.8"/>
 
                         <Grid Grid.Column="0" Margin="10">
                             <Grid.RowDefinitions>
@@ -117,7 +117,7 @@
                             <RowDefinition/>
                         </Grid.RowDefinitions>
                         <Grid.Background>
-                            <ImageBrush Opacity="0.5" ImageSource="/Images/bg-default.jpg"/>
+                            <ImageBrush Opacity="0.7" ImageSource="/Images/bg-default.jpg"/>
                         </Grid.Background>
 
                         <Grid Grid.Row="0" Margin="10">
@@ -148,7 +148,7 @@
                             <Button Grid.Column="2" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Height="50" Width="150" Content="Create" HorizontalAlignment="Right" Click="Create_Click" VerticalAlignment="Top"/>
                         </Grid>
 
-                        <uc:VersionAndOptionUserControl Grid.Row="1" x:Name="CreateVersionAndOption" Margin="10" Height="auto"/>
+                        <uc:VersionAndOptionUserControl Grid.Row="1" VerticalAlignment="Bottom" x:Name="CreateVersionAndOption" Margin="10" Height="auto"/>
                     </Grid>
                 </TabItem>
                 <TabItem Header="MODIFY EXISTING PROJECT" Selector.Selected="OnTabModifySelected">
