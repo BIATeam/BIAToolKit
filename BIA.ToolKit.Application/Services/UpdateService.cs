@@ -41,7 +41,7 @@
             this.currentVersion = version;
         }
 
-        public async Task<Boolean> CheckForUpdatesAsync(bool autoUpdate)
+        public async Task<bool> CheckForUpdatesAsync(bool autoUpdate)
         {
             try
             {

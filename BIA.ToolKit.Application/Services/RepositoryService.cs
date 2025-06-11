@@ -51,7 +51,7 @@
             {
                 try
                 {
-                    outPut.AddMessageLine($"Cleaning release {repository.LocalFolderPath}...", "pink");
+                    outPut.AddMessageLine($"Cleaning release {repository.RootFolderPath}...", "pink");
                     await Task.Run(() =>
                     {
                         if (Directory.Exists(repository.RootFolderPath))

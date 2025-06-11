@@ -10,6 +10,7 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Input;
 
@@ -45,7 +46,7 @@
             services.AddSingleton<UpdateService>();
             services.AddLogging();
         }
-        private async void OnStartup(object sender, StartupEventArgs e)
+        private void OnStartup(object sender, StartupEventArgs e)
         {
             if (ToolKit.Properties.Settings.Default.ApplicationUpdated)
             {
@@ -58,26 +59,35 @@
             var mainWindow = serviceProvider.GetService<MainWindow>();
             mainWindow.Show();
 
-            CSharpParserService.RegisterMSBuild(serviceProvider.GetRequiredService<IConsoleWriter>());
-
-            var autoUpdateSetting = ConfigurationManager.AppSettings["AutoUpdate"];
-            if (bool.TryParse(autoUpdateSetting, out bool autoUpdate))
+            var eventBroker = serviceProvider.GetRequiredService<UIEventBroker>();
+            eventBroker.ExecuteTaskWithWaiter(async () =>
             {
-                var updateService = serviceProvider.GetService<UpdateService>();
-                updateService.SetAppVersion(Assembly.GetExecutingAssembly().GetName().Version);
-                if (await updateService.CheckForUpdatesAsync(autoUpdate))
+                var autoUpdateSetting = ConfigurationManager.AppSettings["AutoUpdate"];
+                if (bool.TryParse(autoUpdateSetting, out bool autoUpdate))
                 {
-                    var result = MessageBox.Show(
-                        $"A new version ({updateService.NewVersion}) of BIAToolKit is available.\nInstall now?",
-                        "Update available",
-                        MessageBoxButton.YesNo, MessageBoxImage.Information);
-
-                    if (result == MessageBoxResult.Yes)
+                    var updateService = serviceProvider.GetService<UpdateService>();
+                    updateService.SetAppVersion(Assembly.GetExecutingAssembly().GetName().Version);
+                    if (await updateService.CheckForUpdatesAsync(autoUpdate))
                     {
-                        await updateService.DownloadUpdateAsync();
+                        var result = MessageBox.Show(
+                            $"A new version ({updateService.NewVersion}) of BIAToolKit is available.\nInstall now?",
+                            "Update available",
+                            MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            await updateService.DownloadUpdateAsync();
+                        }
                     }
                 }
-            }
+
+                await RegisterMSBuild();
+            });
+        }
+
+        private async Task RegisterMSBuild()
+        {
+            await Task.Run(() => CSharpParserService.RegisterMSBuild(serviceProvider.GetRequiredService<IConsoleWriter>()));
         }
     }
 }
