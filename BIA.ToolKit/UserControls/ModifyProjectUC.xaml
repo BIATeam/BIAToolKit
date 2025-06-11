@@ -79,8 +79,8 @@
                         <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="auto">
                             <Grid>
                                 <Grid.RowDefinitions>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
                                 </Grid.RowDefinitions>
                                 <GroupBox Header="Original" Margin="10" Foreground="White" x:Name="CompanyFileGroup" Grid.Row="0" Style="{StaticResource MaterialDesignGroupBox}" materialDesign:ColorZoneAssist.Mode="Custom" materialDesign:ColorZoneAssist.Background="#608000" materialDesign:ColorZoneAssist.Foreground="White">
                                     <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption"/>

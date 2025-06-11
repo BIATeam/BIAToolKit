@@ -76,5 +76,18 @@
                 RaisePropertyChanged(nameof(UpdateAvailable));
             }
         }
+
+        public bool UseTemplateLocalFolder
+        {
+            get { return Settings.BIATemplateRepository.UseLocalFolder; }
+            set 
+            {
+                Settings.BIATemplateRepository.UseLocalFolder = value; 
+                RaisePropertyChanged(nameof(UseTemplateLocalFolder));
+                RaisePropertyChanged(nameof(IsEnableTemplateCleanRelease));
+            }
+        }
+
+        public bool IsEnableTemplateCleanRelease => !UseTemplateLocalFolder;
     }
 }
