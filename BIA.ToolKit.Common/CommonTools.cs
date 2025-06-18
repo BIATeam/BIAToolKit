@@ -194,6 +194,7 @@
         public static void SerializeToJsonFile<T>(T jsonContent, string fileName)
         {
             string jsonString = JsonConvert.SerializeObject(jsonContent, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            Directory.CreateDirectory(Path.GetDirectoryName(fileName));
             File.WriteAllText(fileName, jsonString);
         }
 

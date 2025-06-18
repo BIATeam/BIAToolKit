@@ -204,7 +204,7 @@
 
                 // Generation DotNet + Angular files
                 var featureName = vm.ZipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Option)?.Feature;
-                vm.IsGenerated = crudService.GenerateFiles(vm.Entity, vm.ZipFeatureTypeList, vm.EntityDisplayItemSelected, null, null, FeatureType.Option.ToString(), vm.Domain, vm.BiaFront);
+                vm.IsGenerated = crudService.GenerateFiles(vm.Entity, vm.ZipFeatureTypeList, vm.EntityDisplayItemSelected, null, null, featureName, vm.Domain, vm.BiaFront);
 
                 // Generate generation history file
                 UpdateOptionGenerationHistory();
