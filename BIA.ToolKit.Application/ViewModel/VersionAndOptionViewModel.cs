@@ -106,6 +106,15 @@
             }
         }
 
+        public WorkRepository GetWorkCompanyFile(string version)
+        {
+            var result = WorkCompanyFiles.FirstOrDefault(x => x.Version == version);
+            if (result != null)
+                return result;
+
+            return WorkCompanyFiles.LastOrDefault();
+        }
+
         public WorkRepository WorkCompanyFile
         {
             get { return VersionAndOption.WorkCompanyFile; }
