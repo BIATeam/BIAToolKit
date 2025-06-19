@@ -135,16 +135,13 @@
             if (Directory.Exists(settings.BIATemplateRepository.RootFolderPath))
             {
                 AddTemplatesVersion(listWorkTemplates, settings.BIATemplateRepository);
-                if (settings.BIATemplateRepository.UseLocalFolder)
-                {
-                    listWorkTemplates.Add(new WorkRepository(settings.BIATemplateRepository, "VX.Y.Z"));
-                }
+                listWorkTemplates.Add(new WorkRepository(settings.BIATemplateRepository, "VX.Y.Z"));
             }
 
             vm.WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
-            if (listWorkTemplates.Count != 0)
+            if (listWorkTemplates.Count >= 2)
             {
-                vm.WorkTemplate = settings.BIATemplateRepository.UseLocalFolder ? listWorkTemplates[^2] : listWorkTemplates.LastOrDefault();
+                vm.WorkTemplate = listWorkTemplates[listWorkTemplates.Count - 2];
             }
 
             vm.SettingsUseCompanyFiles = settings.UseCompanyFiles;
