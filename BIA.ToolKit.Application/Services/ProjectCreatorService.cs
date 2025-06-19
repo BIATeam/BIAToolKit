@@ -336,11 +336,11 @@
                 DirectoryHelper.DeleteEmptyDirectories(projectPath);
 
                 List<string> tagToDeletes = featureSettingService.GetBiaFeatureTagToDeletes(featureSettings, "#if ");
-                FileHelper.CleanFilesByTag(projectPath, tagToDeletes, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}", true);
+                FileHelper.CleanFilesByTag(projectPath, tagToDeletes, "#endif", $"*{FileExtensions.DotNetClass}", true);
             }
 
             List<string> tags = featureSettingService.GetAllBiaFeatureTag(featureSettings, "#if ");
-            FileHelper.CleanFilesByTag(projectPath, tags, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}", false);
+            FileHelper.CleanFilesByTag(projectPath, tags, "#endif", $"*{FileExtensions.DotNetClass}", false);
         }
 
         private void CleanBiaToolkitJsonFiles(string projectPath)

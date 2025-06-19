@@ -58,7 +58,7 @@
         public List<string> GetAllBiaFeatureTag(List<FeatureSetting> settings, string prefix = null)
         {
             List<string> tags = settings
-                ?.Where(x => x.Tags?.Any() == true)
+                ?.Where(x => x.Tags?.Any() == true).OrderBy(x => x.Id)
                 .SelectMany(x => x.Tags.Select(tag => $"{prefix}{tag}"))
                 .Distinct().ToList();
             return tags;
