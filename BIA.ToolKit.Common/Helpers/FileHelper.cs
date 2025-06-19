@@ -54,11 +54,30 @@
                         {
                             if (hasRemoveRange)
                             {
-                                lines.RemoveRange(pair.BeginIndex, pair.EndIndex - pair.BeginIndex + 1);
+                                var elseTagIndexes = GetElseTagIndexesInRange(lines, pair.BeginIndex, pair.EndIndex);
+                                if (elseTagIndexes.Any())
+                                {
+                                    lines.RemoveAt(pair.EndIndex);
+                                    var elseTagIndex = elseTagIndexes.First() + pair.BeginIndex;
+                                    lines.RemoveRange(pair.BeginIndex, elseTagIndex - pair.BeginIndex + 1);
+                                }
+                                else
+                                {
+                                    lines.RemoveRange(pair.BeginIndex, pair.EndIndex - pair.BeginIndex + 1);
+                                }
                             }
                             else
                             {
-                                lines.RemoveAt(pair.EndIndex);
+                                var elseTagIndexes = GetElseTagIndexesInRange(lines, pair.BeginIndex, pair.EndIndex);
+                                if (elseTagIndexes.Any())
+                                {
+                                    var elseTagIndex = elseTagIndexes.First() + pair.BeginIndex;
+                                    lines.RemoveRange(elseTagIndex, pair.EndIndex - elseTagIndex + 1);
+                                }
+                                else
+                                {
+                                    lines.RemoveAt(pair.EndIndex);
+                                }
                                 lines.RemoveAt(pair.BeginIndex);
                             }
                         }
@@ -78,6 +97,12 @@
                     .Select(x => x.index)
                     .Distinct()
                     .OrderBy(x => x).ToList();
+                }
+
+                static List<int> GetElseTagIndexesInRange(List<string> lines, int rangeStart, int rangeEnd)
+                {
+                    var rangeLines = lines.Take(new Range(rangeStart, rangeEnd + 1)).ToList();
+                    return GetTagIndexes(new List<string> { "#else" }, rangeLines);
                 }
             });
         }
