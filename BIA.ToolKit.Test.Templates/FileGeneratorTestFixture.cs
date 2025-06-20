@@ -92,8 +92,6 @@
             if (referenceProject.BIAFronts.Count != 0)
             {
                 var referenceProjetAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
-                FileGeneratorService.SetPrettierAngularProjectPath(referenceProjetAngularPath);
-
                 if (doUnzip)
                 {
                     consoleWriter.AddMessageLine("npm i reference project...");

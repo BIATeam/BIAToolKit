@@ -255,7 +255,6 @@
             {
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
                 {
-                    fileGeneratorService.SetPrettierAngularProjectPath(Path.Combine(Path.GetDirectoryName(vm.CurrentProject.SolutionPath), vm.BiaFront));
                     await fileGeneratorService.GenerateCRUDAsync(new FileGeneratorCrudContext
                     {
                         CompanyName = vm.CurrentProject.CompanyName,
