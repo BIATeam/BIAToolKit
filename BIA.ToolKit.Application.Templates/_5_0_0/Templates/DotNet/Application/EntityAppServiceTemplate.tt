@@ -18,26 +18,27 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     using BIA.Net.Core.Domain.Authentication;
 <#  } #>
     using BIA.Net.Core.Domain.Dto.Base;
-<#  if(ModelInstance.HasAncestorTeam) {  #>
-    using BIA.Net.Core.Domain.Dto.User;
-<#  } #>
     using BIA.Net.Core.Domain.RepoContract;
     using BIA.Net.Core.Domain.Service;
     using BIA.Net.Core.Domain.Specification;
-<#  if(ModelInstance.IsTeam) {  #>
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.Bia.User;
+<#  if(ModelInstance.IsTeam) { #>
+    using BIA.Net.Core.Domain.User.Specifications;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.User;
 <#  } #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common.Enum;
-<#  if(ModelInstance.IsTeam) { #>
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Bia.User.Specifications;
-<#  } #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
+<#  if(ModelInstance.HasAncestorTeam) { #>
+    using TheBIADevCompany.BIADemo.Domain.Dto.User;
+<#  } #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers;
 <#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Specifications;
 <#  } #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.RepoContract;
+<#  if(ModelInstance.IsTeam) { #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.User;
+<#  } #>
 
     /// <summary>
     /// The application service used for <#= ModelInstance.EntityName.ToCamelCase() #>.
@@ -108,7 +109,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
 <#  if(ModelInstance.IsTeam) {  #>
             this.FiltersContext.Add(
                 AccessMode.Read,
-                TeamAppService.ReadSpecification<<#= ModelInstance.EntityName #>>(TeamTypeId.<#= ModelInstance.EntityName #>, principal));
+                TeamAppService.ReadSpecification<<#= ModelInstance.EntityName #>>(TeamTypeId.<#= ModelInstance.EntityName #>, principal, TeamConfig.Config));
 
             this.FiltersContext.Add(
                 AccessMode.Update,
@@ -153,16 +154,30 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
             });
         }
 <#  } #>
-<#  if(ModelInstance.HasFixableParent) { #>
+<#  if(ModelInstance.HasAncestorTeam) { #>
 
         /// <inheritdoc/>
         public override async Task<<#= ModelInstance.EntityName #>Dto> AddAsync(<#= ModelInstance.EntityName #>Dto dto, string mapperMode = null)
         {
+<#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
             var <#= ModelInstance.ParentName.ToCamelCase() #>Parent = await this.<#= ModelInstance.ParentName.ToCamelCase() #>Repository.GetEntityAsync(dto.<#= ModelInstance.ParentName #>Id, isReadOnlyMode: true);
+            if (<#= ModelInstance.ParentName.ToCamelCase() #>Parent.SiteId != this.currentAncestorTeamId)
+            {
+                throw new ForbiddenException("Can only add <#= ModelInstance.EntityName #> on current parent Team.");
+            }
+<#  if(ModelInstance.HasFixableParent) { #>
+
             if (<#= ModelInstance.ParentName.ToCamelCase() #>Parent.IsFixed)
             {
                 throw new FrontUserException("<#= ModelInstance.ParentName #> parent is fixed");
             }
+<#  } #>
+<#  } else { #>
+            if (dto.<#= ModelInstance.AncestorTeamName #>Id != this.currentAncestorTeamId)
+            {
+                throw new ForbiddenException("Can only add <#= ModelInstance.EntityName #> on current parent Team.");
+            }
+<#  } #>
 
             return await base.AddAsync(dto, mapperMode);
         }
@@ -195,15 +210,6 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
         {
             specification ??= TeamAdvancedFilterSpecification<<#= ModelInstance.EntityName #>>.Filter(filters);
             return await base.GetRangeAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
-        }
-<#  } #>
-<#  if(ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) {  #>
-
-        /// <inheritdoc/>
-        public override async Task<<#= ModelInstance.EntityName #>Dto> AddAsync(<#= ModelInstance.EntityName #>Dto dto, string mapperMode = null)
-        {
-            dto.<#= ModelInstance.AncestorTeamName #>Id = this.currentAncestorTeamId;
-            return await base.AddAsync(dto, mapperMode);
         }
 <#  } #>
     }
