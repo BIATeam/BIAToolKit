@@ -42,6 +42,7 @@
         private FileGeneratorContext _currentContext;
         private Manifest _currentManifest;
         private string _prettierAngularProjectPath;
+        private bool _fromUnitTest;
 
         public bool IsInit { get; private set; }
 
@@ -53,7 +54,7 @@
             LoadTemplatesManifests();
         }
 
-        public async Task Init(Project project)
+        public async Task Init(Project project, bool fromUnitTest = false)
         {
             if (project is null)
             {
@@ -67,6 +68,7 @@
 
             IsInit = false;
             _currentProject = project;
+            _fromUnitTest = fromUnitTest;
 
             try
             {
@@ -160,13 +162,13 @@
             return Version.TryParse(_currentProject?.FrameworkVersion, out Version projectVersion) && projectVersion >= new Version(5, 0);
         }
 
-        private void SetPrettierAngularProjectPath()
+        public void SetPrettierAngularProjectPath(string path)
         {
-            _prettierAngularProjectPath = Path.Combine(_currentProject.Folder, _currentContext.AngularFront);
-            if(!Directory.Exists(_prettierAngularProjectPath))
+            if(!Directory.Exists(path))
             {
-                throw new Exception($"Unable to init prettier from unexisting front folder {_prettierAngularProjectPath}");
+                throw new Exception($"Unable to init prettier from unexisting front folder {path}");
             }
+            _prettierAngularProjectPath = path;
         }
 
         public async Task GenerateDtoAsync(FileGeneratorDtoContext dtoContext)
@@ -299,7 +301,11 @@
 
         private async Task GenerateAngularTemplates(IEnumerable<Manifest.Feature.Template> templates, object model)
         {
-            SetPrettierAngularProjectPath();
+            if (!_fromUnitTest)
+            {
+                SetPrettierAngularProjectPath(Path.Combine(_currentProject.Folder, _currentContext.AngularFront));
+            }
+
             foreach (var template in templates)
             {
                 var templatePath = Path.Combine(_templatesPath, Constants.FolderAngular, template.InputPath);

@@ -11,6 +11,7 @@
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Templates;
+    using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -149,6 +150,7 @@
                 UseHubForClient = true,
                 HasReadOnlyMode = true,
                 IsFixable = true,
+                FormReadOnlyMode = Enum.GetName(typeof(FormReadOnlyMode), FormReadOnlyMode.Off),
                 CanImport = true,
                 GenerateBack = true,
                 GenerateFront = true,
