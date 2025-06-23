@@ -155,7 +155,7 @@
                 IsFixable = true,
                 FormReadOnlyMode = Enum.GetName(typeof(FormReadOnlyMode), FormReadOnlyMode.Off),
                 CanImport = true,
-                GenerateBack = false,
+                GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };
@@ -199,7 +199,7 @@
                 HasAdvancedFilter = true,
                 TeamTypeId = 3,
                 TeamRoleId = 3,
-                GenerateBack = false,
+                GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };
@@ -272,7 +272,7 @@
                 HasAdvancedFilter = true,
                 TeamTypeId = 4,
                 TeamRoleId = 4,
-                GenerateBack = false,
+                GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };
