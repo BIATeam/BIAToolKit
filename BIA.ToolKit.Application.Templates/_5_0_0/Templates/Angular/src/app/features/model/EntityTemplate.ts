@@ -1,8 +1,4 @@
-﻿import { Validators } from '@angular/forms';
-import {
-  BaseTeamDto,
-  teamFieldsConfigurationColumns,
-} from 'src/app/shared/bia-shared/model/base-team-dto';
+﻿import { BaseDto } from 'src/app/shared/bia-shared/model/dto/base-dto';
 import {
   BiaFieldConfig,
   BiaFieldNumberFormat,
@@ -19,9 +15,14 @@ import {
   BiaFormLayoutConfigRow,
 } from 'src/app/shared/bia-shared/model/bia-form-layout-config';
 import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
+import {
+  TeamDto,
+  teamFieldsConfigurationColumns,
+} from 'src/app/shared/bia-shared/model/dto/team-dto';
 
 // TODO after creation of CRUD Team MaintenanceTeam : adapt the model
-export class MaintenanceTeam extends BaseTeamDto {
+export interface MaintenanceTeam
+  extends BaseDto, TeamDto {
   aircraftMaintenanceCompanyId: number | null;
   msn: string | null;
   isActive: boolean | null;
@@ -64,11 +65,6 @@ export const maintenanceTeamFieldsConfiguration: BiaFieldsConfig<MaintenanceTeam
     }),
     Object.assign(new BiaFieldConfig('similarTypes', 'maintenanceTeam.similarTypes'), {
       type: PropType.ManyToMany,
-    }),
-    Object.assign(new BiaFieldConfig('rowVersion', 'maintenanceTeam.rowVersion'), {
-      isVisible: false,
-      isHideByDefault: true,
-      isVisibleInTable: false,
     }),
     ],
   ],

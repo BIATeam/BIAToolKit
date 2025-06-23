@@ -157,6 +157,8 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
           this.canSave =
             <#= ModelInstance.ParentName.ToCamelCase() #>.isFixed === false &&
             this.authService.hasPermission(Permission.<#= ModelInstance.EntityName #>_Save);
+
+          this.canSelect = this.canDelete;
         })
     );
 <#  } #>

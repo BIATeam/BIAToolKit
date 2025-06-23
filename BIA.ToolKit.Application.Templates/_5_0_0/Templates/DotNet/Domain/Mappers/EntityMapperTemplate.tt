@@ -2,7 +2,7 @@
 <#@ include file="$(T4Includes_5_0_0)\TemplateDto.ttinclude" #>
 <#@ output extension=".cs" #>
 <#
-var baseMapperClass = ModelInstance.IsTeamType ? "TTeamMapper" : "BaseMapper";
+var baseMapperClass = ModelInstance.IsTeamType ? "BaseTeamMapper" : "BaseMapper";
 var baseKeyType = ModelInstance.IsTeamType ? string.Empty : $", {ModelInstance.BaseKeyType}";
 #>
 // <copyright file="<#= ModelInstance.EntityName #>Mapper.cs" company="<#= ModelInstance.CompanyName #>">
@@ -27,7 +27,14 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
    if (ModelInstance.IsTeamType) { 
        ModelInstance.Use("System.Security.Principal");
    }
-   ModelInstance.Use("BIA.Net.Core.Common.Extensions");
+   if(ModelInstance.IsTeamType && ModelInstance.HasAncestorTeam) {
+       ModelInstance.Use("BIA.Net.Core.Common.Enum");
+   }if(ModelInstance.HasAncestorTeam) {
+       ModelInstance.Use("BIA.Net.Core.Common.Exceptions");
+   }
+   if(ModelInstance.Properties.Count() > 0) {
+       ModelInstance.Use("BIA.Net.Core.Common.Extensions");
+   }
    if (ModelInstance.Properties.Count() > 0)  { 
        ModelInstance.Use("BIA.Net.Core.Domain");
    }
@@ -37,14 +44,16 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
    if (ModelInstance.HasOptions) { 
        ModelInstance.Use("BIA.Net.Core.Domain.Dto.Option");
    }
+   if(!ModelInstance.IsTeamType) {
+       ModelInstance.Use("BIA.Net.Core.Domain.Mapper");
+   }
    if (ModelInstance.IsTeamType) { 
+       ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain.Bia.Base.Mappers");
        ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Crosscutting.Common.Enum");
    }
    ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain.Dto." + ModelInstance.DomainName);
    ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain." + ModelInstance.DomainName + ".Entities");
-   if (ModelInstance.IsTeamType) { 
-       ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain.User.Mappers");
-   }#><#= ModelInstance.WritteUsing() #>
+   #><#= ModelInstance.WritteUsing() #>
     /// <summary>
     /// The mapper used for <#= ModelInstance.EntityName #>.
     /// </summary>
@@ -90,17 +99,30 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToEntity"/>
         public override void DtoToEntity(<#= ModelInstance.EntityName #>Dto dto, ref <#= ModelInstance.EntityName #> entity)
         {
+<#  if(ModelInstance.HasParent) { #>
+            var isCreation = entity == null;
+<#  } #>
             base.DtoToEntity(dto, ref entity);
-<# foreach (var property in ModelInstance.PropertiesToGenerate) {
-       if (property.IsParent) { #>
+<#  if(ModelInstance.HasParent) { #>
 
-            // Map parent relationship 1-* : <#= property.MappingName #>
-            if (dto.<#= property.MappingName #> != 0)
+            // Map parent relationship 1-* : <#= ModelInstance.ParentProperty.EntityCompositeName #>
+            if (isCreation)
             {
-                entity.<#= property.EntityCompositeName #> = dto.<#= property.MappingName #>;
+                if (dto.<#= ModelInstance.ParentProperty.MappingName #> == 0)
+                {
+                    throw new BadRequestException("The parent is mandatory.");
+                }
+
+                entity.<#= ModelInstance.ParentProperty.EntityCompositeName #> = dto.<#= ModelInstance.ParentProperty.MappingName #>;
+            }
+            else if (entity.<#= ModelInstance.ParentProperty.EntityCompositeName #> != dto.<#= ModelInstance.ParentProperty.MappingName #> && dto.<#= ModelInstance.ParentProperty.MappingName #> != 0)
+            {
+                throw new ForbiddenException("It is forbidden to change the parent.");
             }
 
-<#     } else if (property.IsOption) { 
+<#  } #>
+<# foreach (var property in ModelInstance.PropertiesToGenerate.Where(p => !p.IsParent)) {
+       if (property.IsOption) { 
            if (property.IsRequired) { #>
 
             // Map relationship 1-* : <#= property.MappingName #>
@@ -189,52 +211,26 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 
                 CanUpdate =
                     this.UserRoleIds.Contains((int)RoleId.<#= ModelInstance.EntityName #>Admin) ||
-                    this.UserRoleIds.Contains((int)RoleId.Admin),
+                    this.UserRoleIds.Contains((int)BiaRoleId.Admin),
 
                 CanMemberListAccess =
-                    this.UserRoleIds.Contains((int)RoleId.Admin) ||
+                    this.UserRoleIds.Contains((int)BiaRoleId.Admin) ||
 <#      if(ModelInstance.HasAncestorTeam) { #>
                     entity.<#= ModelInstance.AncestorTeam #>.Members.Any(m => m.UserId == this.UserId) ||
 <#      } #>
                     entity.Members.Any(m => m.UserId == this.UserId),
-<# } else { #>
-                RowVersion = Convert.ToBase64String(entity.RowVersion),
 <# } #>
-            };
+            });
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToCell"/>
-        public override string DtoToCell(<#= ModelInstance.EntityName #>Dto dto, List<string> headerNames = null)
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToCellMapping"/>
+        public override Dictionary<string, Func<string>> DtoToCellMapping(<#= ModelInstance.EntityName #>Dto dto)
         {
-            return x =>
+            return new Dictionary<string, Func<string>>(base.DtoToCellMapping(dto))
             {
-<# if (ModelInstance.IsTeamType) { #>
-                List<object> records = [.. base.DtoToRecord(headerNames)(x)];
-<# } else { #>
-                List<object> records = [];
+<# foreach (var property in ModelInstance.Properties.Where(p => !p.IsParent)) { #>
+                { HeaderName.<#= property.MappingName #>, () => <#= property.GenerateMapperCSV() #> },
 <# } #>
-
-                if (headerNames != null && headerNames.Count > 0)
-                {
-                    foreach (string headerName in headerNames)
-                    {
-<# var index = 0;  #>
-<# foreach (var property in ModelInstance.Properties) { 
-       index++; 
-       if (!property.IsParent) {#>
-                        if (string.Equals(headerName, HeaderName.<#= property.MappingName #>, StringComparison.OrdinalIgnoreCase))
-                        {
-                            records.Add(<#= property.GenerateMapperCSV() #>);
-                        }
-<#        if(index != ModelInstance.Properties.Count()) {#>
-
-<#        }
-       }
-   } #>
-                    }
-                }
-
-                return [.. records];
             };
         }
 <# if ( ModelInstance.Properties.Any(p => p. IsParent)) {#>
@@ -267,7 +263,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         /// </summary>
         public struct HeaderName
         {
-<# index = 0;  #>
+<# var index = 0;  #>
 <# foreach (var property in ModelInstance.Properties) { #>
             /// <summary>
             /// Header name for <#= property.MappingName.ToLiteral() #>.

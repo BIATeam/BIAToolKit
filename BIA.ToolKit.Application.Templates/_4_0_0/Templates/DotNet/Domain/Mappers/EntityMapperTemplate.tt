@@ -151,15 +151,39 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
             <#= ModelInstance.IsTeamType ? "})" : "}" #>;
         }
 
-        /// <inheritdoc/>
-        public override Func<<#= ModelInstance.EntityName #>Dto, object[]> DtoToRecord(List<string> headerNames = null)
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToCell"/>
+        public override string DtoToCell(<#= ModelInstance.EntityName #>Dto dto, List<string> headerNames = null)
         {
-            return x => (new object[]
+            return x =>
             {
-<# foreach (var property in ModelInstance.Properties.Where(p => !p.IsOption && !p.IsOptionCollection)) { #>
-                <#= property.GenerateMapperCSV() #>,
+<# if (ModelInstance.IsTeamType) { #>
+                List<object> records = [.. base.DtoToRecord(headerNames)(x)];
+<# } else { #>
+                List<object> records = [];
 <# } #>
-            });
+
+                if (headerNames != null && headerNames.Count > 0)
+                {
+                    foreach (string headerName in headerNames)
+                    {
+<# var index = 0;  #>
+<# foreach (var property in ModelInstance.Properties) { 
+       index++; 
+       if (!property.IsParent) {#>
+                        if (string.Equals(headerName, HeaderName.<#= property.MappingName #>, StringComparison.OrdinalIgnoreCase))
+                        {
+                            records.Add(<#= property.GenerateMapperCSV() #>);
+                        }
+<#        if(index != ModelInstance.Properties.Count()) {#>
+
+<#        }
+       }
+   } #>
+                    }
+                }
+
+                return [.. records];
+            };
         }
 
         /// <summary>
@@ -167,7 +191,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         /// </summary>
         private struct HeaderName
         {
-<# var index = 0;  #>
+<# index = 0;  #>
 <# foreach (var property in ModelInstance.Properties) { #>
             /// <summary>
             /// Header Name <#= property.MappingName #>.

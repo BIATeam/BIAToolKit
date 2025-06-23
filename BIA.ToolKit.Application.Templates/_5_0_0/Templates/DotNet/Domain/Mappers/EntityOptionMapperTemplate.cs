@@ -6,8 +6,9 @@ namespace TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Mappers
 {
     using System;
     using System.Linq.Expressions;
-    using BIA.Net.Core.Domain;
+    using BIA.Net.Core.Common.Extensions;
     using BIA.Net.Core.Domain.Dto.Option;
+    using BIA.Net.Core.Domain.Mapper;
     using TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Entities;
 
     /// <summary>
@@ -18,11 +19,10 @@ namespace TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Mappers
         /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
         public override Expression<Func<MyCountry, OptionDto>> EntityToDto()
         {
-            return entity => new OptionDto
+            return base.EntityToDto().CombineMapping(entity => new OptionDto
             {
-                Id = entity.Id,
                 Display = entity.Name,
-            };
+            });
         }
     }
 }

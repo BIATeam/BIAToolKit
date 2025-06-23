@@ -116,6 +116,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Authorize(Roles = Rights.MaintenanceTeams.Create)]
         public async Task<IActionResult> Add([FromBody] MaintenanceTeamDto dto)
@@ -132,6 +133,10 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
             {
                 return this.ValidationProblem();
             }
+            catch (ForbiddenException)
+            {
+                return this.Forbid();
+            }
         }
 
         /// <summary>
@@ -143,6 +148,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -173,6 +179,10 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
             catch (OutdateException)
             {
                 return this.Conflict();
+            }
+            catch (ForbiddenException)
+            {
+                return this.Forbid();
             }
         }
 
@@ -251,6 +261,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
         [HttpPost("save")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -281,6 +292,10 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
             catch (ElementNotFoundException)
             {
                 return this.NotFound();
+            }
+            catch (ForbiddenException)
+            {
+                return this.Forbid();
             }
         }
 

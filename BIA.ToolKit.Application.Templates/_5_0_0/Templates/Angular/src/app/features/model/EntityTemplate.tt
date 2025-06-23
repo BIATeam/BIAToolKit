@@ -1,15 +1,7 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
-import { Validators } from '@angular/forms';
-<#  if(ModelInstance.IsTeam) { #>
-import {
-  BaseTeamDto,
-  teamFieldsConfigurationColumns,
-} from 'src/app/shared/bia-shared/model/base-team-dto';
-<#  } else { #>
-import { BaseDto } from 'src/app/shared/bia-shared/model/base-dto';
-<#  } #>
+import { BaseDto } from 'src/app/shared/bia-shared/model/dto/base-dto';
 import {
   BiaFieldConfig,
   BiaFieldNumberFormat,
@@ -25,12 +17,31 @@ import {
   BiaFormLayoutConfigGroup,
   BiaFormLayoutConfigRow,
 } from 'src/app/shared/bia-shared/model/bia-form-layout-config';
+<#  if(ModelInstance.Properties.Any(x => x.HasAngularValidators)) { #>
+import { Validators } from '@angular/forms';
+<#  } #>
 <#  if(ModelInstance.HasOptions) { #>
 import { OptionDto } from 'src/app/shared/bia-shared/model/option-dto';
 <#  } #>
+<#  if(ModelInstance.IsVersioned) { #>
+import { VersionedDto } from 'src/app/shared/bia-shared/model/dto/versioned-dto';
+<#  } #>
+<#  if(ModelInstance.IsTeam) { #>
+import {
+  TeamDto,
+  teamFieldsConfigurationColumns,
+} from 'src/app/shared/bia-shared/model/dto/team-dto';
+<#  } #>
+<#  if(ModelInstance.IsFixable) { #>
+import { FixableDto } from 'src/app/shared/bia-shared/model/dto/fixable-dto';
+<#  } #>
+<#  if(ModelInstance.IsArchivable) { #>
+import { ArchivableDto } from 'src/app/shared/bia-shared/model/dto/archivable-dto';
+<#  } #>
 
 // TODO after creation of CRUD<# if(ModelInstance.IsTeam) {#> Team<# } #> <#= ModelInstance.EntityName #> : adapt the model
-export class <#= ModelInstance.EntityName #> extends <#  if(ModelInstance.IsTeam) { #>BaseTeamDto<# } else {  #>BaseDto<#  } #> {
+export interface <#= ModelInstance.EntityName #>
+  extends <#=  ModelInstance.AngularModelInterfaceInheritance #> {
 <#  foreach(var property in ModelInstance.Properties) { #>
   <#= property.Name.ToCamelCase() #>: <#= property.AngularType #>;
 <# }  #>
@@ -56,11 +67,13 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration: B
 <#  } #>
     }),
 <# }  #>
+<#  if(ModelInstance.IsVersioned) { #>
     Object.assign(new BiaFieldConfig('rowVersion', '<#= ModelInstance.EntityName.ToCamelCase() #>.rowVersion'), {
       isVisible: false,
       isHideByDefault: true,
       isVisibleInTable: false,
     }),
+<#  } #>
 <#  if(ModelInstance.IsTeam) { #>
     ],
 <#  } #>

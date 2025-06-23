@@ -148,9 +148,6 @@
         {
             var validators = new List<string>();
 
-            if (IsRequired)
-                validators.Add("Validators.required");
-
             return string.Join(", ", validators);
         }
     }

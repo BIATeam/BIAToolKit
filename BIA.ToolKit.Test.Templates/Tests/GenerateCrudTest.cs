@@ -11,6 +11,7 @@
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Templates;
+    using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -71,6 +72,8 @@
                 BaseKeyType = entityInfo.BaseKeyType,
                 HasParent = true,
                 Properties = properties,
+                IsVersioned = true,
+                IsFixable = true,
                 ParentName = "Plane",
                 ParentNamePlural = "Planes",
                 DisplayItemName = "Reference",
@@ -142,6 +145,7 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = properties,
+                IsVersioned = true,
                 DisplayItemName = "Msn",
                 OptionItems = ["PlaneType", "Airport"],
                 HasAncestorTeam = true,
@@ -149,6 +153,7 @@
                 UseHubForClient = true,
                 HasReadOnlyMode = true,
                 IsFixable = true,
+                FormReadOnlyMode = Enum.GetName(typeof(FormReadOnlyMode), FormReadOnlyMode.Off),
                 CanImport = true,
                 GenerateBack = true,
                 GenerateFront = true,
@@ -177,7 +182,6 @@
 
             var properties = new List<PropertyInfo>
             {
-                new("ICollection<OptionDto>", "Admins", [RoslynHelper.CreateAttributeArgument("Required", true)])
             };
 
             var crudContext = new FileGeneratorCrudContext
@@ -189,6 +193,7 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = properties,
+                IsVersioned = true,
                 IsTeam = true,
                 DisplayItemName = "Title",
                 HasAdvancedFilter = true,
@@ -254,6 +259,7 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = properties,
+                IsVersioned = true,
                 IsTeam = true,
                 OptionItems = ["Airport", "Country"],
                 HasParent = true,

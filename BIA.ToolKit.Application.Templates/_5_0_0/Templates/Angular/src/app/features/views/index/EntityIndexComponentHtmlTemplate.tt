@@ -1,8 +1,15 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".html" #>
+<#  if(!ModelInstance.HasAdvancedFilter) { #>
 <div>
   <div [ngClass]="{ 'table-compact': crudConfiguration.useCompactMode }">
+<#  } else { #>
+<div class="flex flex-row bia-page-remove-margin">
+  <div
+    class="flex-grow-1 bia-page-margin"
+    [ngClass]="{ 'table-compact': crudConfiguration.useCompactMode }">
+<#  } #>
     <bia-table-header
       [headerTitle]="'<#= ModelInstance.EntityName.ToCamelCase() #>.listOf' | translate"
 <#  if(ModelInstance.HasParent) { #>

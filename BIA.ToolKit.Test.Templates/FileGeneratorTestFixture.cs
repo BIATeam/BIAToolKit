@@ -87,11 +87,12 @@
 
             consoleWriter.AddMessageLine($"Init service...");
             FileGeneratorService = new FileGeneratorService(consoleWriter);
-            FileGeneratorService.Init(TestProject).Wait();
+            FileGeneratorService.Init(TestProject, true).Wait();
 
             if (referenceProject.BIAFronts.Count != 0)
             {
                 var referenceProjetAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
+                FileGeneratorService.SetPrettierAngularProjectPath(referenceProjetAngularPath);
                 if (doUnzip)
                 {
                     consoleWriter.AddMessageLine("npm i reference project...");
@@ -170,7 +171,7 @@
 
         private void InitTestProjectFolder(Feature.FeatureType featureType, FileGeneratorContext context)
         {
-            var generationFolder = Path.Combine(TestProject.Folder, $"{featureType}_{context.EntityName}");
+            var generationFolder = Path.Combine(testProjectPath, $"{featureType}_{context.EntityName}");
             if (Directory.Exists(generationFolder))
             {
                 Directory.Delete(generationFolder, true);
