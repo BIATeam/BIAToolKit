@@ -20,10 +20,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
                 name: "PlaneType",
-                baseType: "VersionedTable",
-                baseKeyType: null,
+                baseType: null,
+                baseKeyType: "int",
                 arguments: null,
-                baseList: ["IEntity<int>"]);
+                baseList: ["BaseEntityVersioned<int>"]);
 
             var domainName = "Fleet";
 
@@ -72,10 +72,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
                 name: "Plane",
-                baseType: "VersionedTable",
-                baseKeyType: null,
+                baseType: null,
+                baseKeyType: "int",
                 arguments: null,
-                baseList: ["IEntityArchivable<int>"]);
+                baseList: [" BaseEntityVersionedFixableArchivable<int>"]);
 
             var domainName = "Fleet";
             var ancestorTeamName = "Site";
@@ -272,10 +272,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Maintenance.Entities",
                 name: "AircraftMaintenanceCompany",
-                baseType: "Team",
+                baseType: "BaseEntityTeam",
                 baseKeyType: null,
                 arguments: null,
-                baseList: []);
+                baseList: ["BaseEntityTeam"]);
 
             var domainName = "Maintenance";
 
@@ -312,10 +312,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Maintenance.Entities",
                 name: "MaintenanceTeam",
-                baseType: "Team",
+                baseType: "BaseEntityTeamFixableArchivable",
                 baseKeyType: null,
                 arguments: null,
-                baseList: []);
+                baseList: ["BaseEntityTeamFixableArchivable"]);
 
             var domainName = "Maintenance";
             var ancestorTeamName = "AircraftMaintenanceCompany";

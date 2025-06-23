@@ -28,10 +28,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
                 name: "PlaneType",
-                baseType: "VersionedTable",
-                baseKeyType: null,
+                baseType: null,
+                baseKeyType: "int",
                 arguments: null,
-                baseList: ["IEntity<int>"]);
+                baseList: ["BaseEntityVersioned<int>"]);
 
             var domainName = "Fleet";
 
@@ -63,10 +63,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
                 name: "Country",
-                baseType: "VersionedTable",
-                baseKeyType: null,
+                baseType: null,
+                baseKeyType: "int",
                 arguments: null,
-                baseList: ["IEntity<int>"]);
+                baseList: ["BaseEntityVersioned<int>"]);
 
             var domainName = "Maintenance";
 

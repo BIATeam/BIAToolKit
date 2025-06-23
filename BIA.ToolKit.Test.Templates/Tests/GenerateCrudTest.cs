@@ -30,10 +30,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
                 name: "Engine",
-                baseType: "BaseDto",
+                baseType: null,
                 baseKeyType: "int",
                 arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "Site")],
-                baseList: ["BaseDto<int>", "IFixableDto"]);
+                baseList: ["BaseDtoVersionedFixable<int>"]);
 
             var domainName = "Fleet";
 
@@ -102,10 +102,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
                 name: "Plane",
-                baseType: "BaseDto",
+                baseType: null,
                 baseKeyType: "int",
                 arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "Site")],
-                baseList: ["BaseDto<int>", "IArchivableDto"]);
+                baseList: ["BaseDtoVersionedFixableArchivable<int>"]);
 
             var domainName = "Fleet";
 
@@ -173,10 +173,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Maintenance",
                 name: "AircraftMaintenanceCompany",
-                baseType: "TeamDto",
+                baseType: "BaseDtoVersionedTeam",
                 baseKeyType: null,
                 arguments: [],
-                baseList: ["TeamDto"]);
+                baseList: ["BaseDtoVersionedTeam"]);
 
             var domainName = "Maintenance";
 
@@ -217,10 +217,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Maintenance",
                 name: "MaintenanceTeam",
-                baseType: "TeamDto",
+                baseType: "BaseDtoVersionedTeamFixableArchivable",
                 baseKeyType: null,
                 arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "AircraftMaintenanceCompany")],
-                baseList: ["TeamDto"]);
+                baseList: ["BaseDtoVersionedTeamFixableArchivable"]);
 
             var domainName = "Maintenance";
 
