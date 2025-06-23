@@ -151,38 +151,27 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
             <#= ModelInstance.IsTeamType ? "})" : "}" #>;
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToCell"/>
-        public override string DtoToCell(<#= ModelInstance.EntityName #>Dto dto, List<string> headerNames = null)
+        /// <inheritdoc/>
+        public override Func<<#= ModelInstance.EntityName #>Dto, object[]> DtoToRecord(List<string> headerNames = null)
         {
             return x =>
             {
-<# if (ModelInstance.IsTeamType) { #>
-                List<object> records = [.. base.DtoToRecord(headerNames)(x)];
-<# } else { #>
-                List<object> records = [];
-<# } #>
+                List<object> records = new List<object>();
 
-                if (headerNames != null && headerNames.Count > 0)
+                if (headerNames?.Any() == true)
                 {
                     foreach (string headerName in headerNames)
                     {
-<# var index = 0;  #>
-<# foreach (var property in ModelInstance.Properties) { 
-       index++; 
-       if (!property.IsParent) {#>
+<# foreach (var property in ModelInstance.Properties.Where(p => !p.IsParent)) { #>
                         if (string.Equals(headerName, HeaderName.<#= property.MappingName #>, StringComparison.OrdinalIgnoreCase))
                         {
                             records.Add(<#= property.GenerateMapperCSV() #>);
                         }
-<#        if(index != ModelInstance.Properties.Count()) {#>
-
-<#        }
-       }
-   } #>
+<# } #>
                     }
                 }
 
-                return [.. records];
+                return records.ToArray();
             };
         }
 
@@ -191,14 +180,14 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         /// </summary>
         private struct HeaderName
         {
-<# index = 0;  #>
-<# foreach (var property in ModelInstance.Properties) { #>
+<# var index = 0;  #>
+<# foreach (var property in ModelInstance.Properties.Where(p => !p.IsParent)) { #>
             /// <summary>
             /// Header Name <#= property.MappingName #>.
             /// </summary>
             public const string <#= property.MappingName #> = "<#= property.MappingName.ToCamelCase() #>";
 <# index++;  #>
-<# if(index != ModelInstance.Properties.Count()) {#>
+<# if(index != ModelInstance.Properties.Where(p => !p.IsParent).Count()) {#>
 
 <# }#>
 <# } #>

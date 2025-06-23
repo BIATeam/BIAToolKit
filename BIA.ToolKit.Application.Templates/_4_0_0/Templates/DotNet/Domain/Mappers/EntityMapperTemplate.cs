@@ -57,14 +57,14 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
             };
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToCell"/>
-        public override string DtoToCell(PlaneDto dto, List<string> headerNames = null)
+        /// <inheritdoc/>
+        public override Func<PlaneDto, object[]> DtoToRecord(List<string> headerNames = null)
         {
             return x =>
             {
-                List<object> records = [];
+                List<object> records = new List<object>();
 
-                if (headerNames != null && headerNames.Count > 0)
+                if (headerNames?.Any() == true)
                 {
                     foreach (string headerName in headerNames)
                     {
@@ -72,12 +72,10 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
                         {
                             records.Add(CSVNumber(x.Id));
                         }
-
                         if (string.Equals(headerName, HeaderName.Name, StringComparison.OrdinalIgnoreCase))
                         {
                             records.Add(CSVString(x.Name));
                         }
-
                         if (string.Equals(headerName, HeaderName.Option, StringComparison.OrdinalIgnoreCase))
                         {
                             records.Add(CSVString(x.Option?.Display));
@@ -85,7 +83,7 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
                     }
                 }
 
-                return [.. records];
+                return records.ToArray();
             };
         }
 
