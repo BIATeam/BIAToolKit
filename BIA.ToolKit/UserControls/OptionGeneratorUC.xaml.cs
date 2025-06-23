@@ -475,8 +475,15 @@
             var entityFiles = new Dictionary<string, string>();
             var baseTypes = new List<string>(CommonTools.BaseEntityInterfaces)
             {
-                "Team"
+                "Team",
+                "BaseEntity"
             };
+
+            if(vm.ShowAllEntities)
+            {
+                baseTypes = null;
+            }
+
             var entities = service.GetDomainEntities(vm.CurrentProject, settings, new List<string> { "id" }, baseTypes);
             foreach (var entity in entities)
             {
