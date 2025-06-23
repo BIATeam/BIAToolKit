@@ -19,6 +19,8 @@
         public bool HasReadOnlyMode { get; set; }
         public bool HasFixableParent { get; set; }
         public bool IsFixable { get; set; }
+        public bool IsVersioned { get; set; }
+        public bool IsArchivable { get; set; }
         public bool HasAdvancedFilter { get; set; }
         public bool CanImport { get; set; }
         public int TeamTypeId { get; set; }

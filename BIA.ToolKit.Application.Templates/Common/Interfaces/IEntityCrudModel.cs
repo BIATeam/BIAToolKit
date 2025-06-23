@@ -28,6 +28,8 @@
         bool HasReadOnlyMode { get; set; }
         bool HasFixableParent { get; set; }
         bool IsFixable { get; set; }
+        bool IsVersioned { get; set; }
+        bool IsArchivable { get; set; }
         bool HasAdvancedFilter { get; set; }
         bool CanImport { get; set; }
         int TeamTypeId { get; set; }

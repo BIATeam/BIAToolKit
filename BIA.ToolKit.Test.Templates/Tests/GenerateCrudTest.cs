@@ -72,6 +72,8 @@
                 BaseKeyType = entityInfo.BaseKeyType,
                 HasParent = true,
                 Properties = properties,
+                IsVersioned = true,
+                IsFixable = true,
                 ParentName = "Plane",
                 ParentNamePlural = "Planes",
                 DisplayItemName = "Reference",
@@ -143,6 +145,7 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = properties,
+                IsVersioned = true,
                 DisplayItemName = "Msn",
                 OptionItems = ["PlaneType", "Airport"],
                 HasAncestorTeam = true,
@@ -152,7 +155,7 @@
                 IsFixable = true,
                 FormReadOnlyMode = Enum.GetName(typeof(FormReadOnlyMode), FormReadOnlyMode.Off),
                 CanImport = true,
-                GenerateBack = true,
+                GenerateBack = false,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };
@@ -179,7 +182,6 @@
 
             var properties = new List<PropertyInfo>
             {
-                new("ICollection<OptionDto>", "Admins", [RoslynHelper.CreateAttributeArgument("Required", true)])
             };
 
             var crudContext = new FileGeneratorCrudContext
@@ -191,12 +193,13 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = properties,
+                IsVersioned = true,
                 IsTeam = true,
                 DisplayItemName = "Title",
                 HasAdvancedFilter = true,
                 TeamTypeId = 3,
                 TeamRoleId = 3,
-                GenerateBack = true,
+                GenerateBack = false,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };
@@ -256,6 +259,7 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = properties,
+                IsVersioned = true,
                 IsTeam = true,
                 OptionItems = ["Airport", "Country"],
                 HasParent = true,
@@ -268,7 +272,7 @@
                 HasAdvancedFilter = true,
                 TeamTypeId = 4,
                 TeamRoleId = 4,
-                GenerateBack = true,
+                GenerateBack = false,
                 GenerateFront = true,
                 AngularFront = "Angular",
             };
