@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.Templates._5_0_0.Models
 {
     using System.Collections.Generic;
+    using System.Linq;
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
     public class EntityDtoModel<TPropertyDtoModel> : _4_0_0.Models.EntityDtoModel<TPropertyDtoModel>
@@ -28,5 +29,8 @@
 
             return $"BaseDto<{BaseKeyType}>";
         }
+
+        public TPropertyDtoModel ParentProperty => Properties.FirstOrDefault(p => p.IsParent);
+        public bool HasParent => ParentProperty != null;
     }
 }

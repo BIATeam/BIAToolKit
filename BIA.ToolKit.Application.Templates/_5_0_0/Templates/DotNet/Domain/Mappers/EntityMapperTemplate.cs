@@ -58,39 +58,17 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
                     Display = entity.Option.Name,
                 }
                 : null,
-                RowVersion = Convert.ToBase64String(entity.RowVersion),
-            };
+            });
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToCell"/>
-        public override string DtoToCell(PlaneDto dto, List<string> headerNames = null)
+        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToCellMapping"/>
+        public override Dictionary<string, Func<string>> DtoToCellMapping(PlaneDto dto)
         {
-            return x =>
+            return new Dictionary<string, Func<string>>(base.DtoToCellMapping(dto))
             {
-                List<object> records = [];
-
-                if (headerNames != null && headerNames.Count > 0)
-                {
-                    foreach (string headerName in headerNames)
-                    {
-                        if (string.Equals(headerName, HeaderName.Id, StringComparison.OrdinalIgnoreCase))
-                        {
-                            records.Add(CSVNumber(x.Id));
-                        }
-
-                        if (string.Equals(headerName, HeaderName.Name, StringComparison.OrdinalIgnoreCase))
-                        {
-                            records.Add(CSVString(x.Name));
-                        }
-
-                        if (string.Equals(headerName, HeaderName.Option, StringComparison.OrdinalIgnoreCase))
-                        {
-                            records.Add(CSVString(x.Option?.Display));
-                        }
-                    }
-                }
-
-                return [.. records];
+                { HeaderName.Id, () => CSVNumber(dto.Id) },
+                { HeaderName.Name, () => CSVString(dto.Name) },
+                { HeaderName.Option, () => CSVString(dto.Option?.Display) },
             };
         }
 

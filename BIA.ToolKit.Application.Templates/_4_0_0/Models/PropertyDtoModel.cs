@@ -84,7 +84,7 @@
             return string.Join(", ", attributeProperties);
         }
 
-        public string GenerateMapperCSV()
+        public virtual string GenerateMapperCSV()
         {
             string nonNullMappingType = NonNullMappingType;
 
