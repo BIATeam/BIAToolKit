@@ -112,15 +112,6 @@
                     <materialDesign:NumericUpDown Grid.Column="2" Style="{StaticResource MaterialDesignFilledNumericUpDown}" materialDesign:HintAssist.Hint="Team Role Type ID" Value="{Binding TeamRoleId}" IsEnabled="{Binding IsTeam}"/>
                 </Grid>
                 <TextBox Grid.Row="1" Margin="{StaticResource FormGroupFirstRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Ancestor Team" Text="{Binding AncestorTeam}"/>
-                <Grid Grid.Row="2" Margin="{StaticResource FormGroupFirstRowMargin}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="0.1*"/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <CheckBox Grid.Column="0" Content="Fixable" Foreground="White" IsChecked="{Binding IsFixable}"/>
-                    <CheckBox Grid.Column="2" Content="Fixable Parent" Foreground="White" IsChecked="{Binding HasFixableParent}"/>
-                </Grid>
                 <Grid Grid.Row="3" Margin="{StaticResource FormGroupFirstRowMargin}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>
@@ -132,17 +123,37 @@
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Grid.Row="0">
+                        <Grid Grid.Row="0" Margin="{StaticResource FormRowMargin}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition Width="0.1*"/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0" Content="Versioned" Foreground="White" IsChecked="{Binding IsVersioned}"/>
+                            <CheckBox Grid.Column="2" Content="Fixable" Foreground="White" IsChecked="{Binding IsFixable}"/>
+                        </Grid>
+                        <Grid Grid.Row="1" Margin="{StaticResource FormRowMargin}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition Width="0.1*"/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0" Content="Archivable" Foreground="White" IsChecked="{Binding IsArchivable}"/>
+                            <CheckBox Grid.Column="2" Content="Fixable Parent" Foreground="White" IsChecked="{Binding HasFixableParent}"/>
+                        </Grid>
+                        <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
                                 <ColumnDefinition Width="0.1*"/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <CheckBox Grid.Column="0"  Content="Form Read Only" Foreground="White" IsChecked="{Binding HasFormReadOnlyMode}"/>
-                            <ComboBox Grid.Column="2" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Form Read Only Mode" IsEnabled="{Binding HasFormReadOnlyMode}" ItemsSource="{Binding FormReadOnlyModes}" SelectedValue="{Binding SelectedFormReadOnlyMode}"/>
+                            <ComboBox Grid.Column="2" Style="{StaticResource MaterialDesignFilledComboBox}" Height="38" IsEnabled="{Binding HasFormReadOnlyMode}" ItemsSource="{Binding FormReadOnlyModes}" SelectedValue="{Binding SelectedFormReadOnlyMode}"/>
                         </Grid>
-                        <Grid Grid.Row="1" Margin="{StaticResource FormRowMargin}">
+                        <Grid Grid.Row="3" Margin="{StaticResource FormRowMargin}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
                                 <ColumnDefinition Width="0.1*"/>
@@ -151,7 +162,7 @@
                             <CheckBox Grid.Column="0" Content="Custom Repository" Foreground="White" IsChecked="{Binding HasCustomRepository}"/>
                             <CheckBox Grid.Column="2" Content="Import" Foreground="White" IsChecked="{Binding UseImport}"/>
                         </Grid>
-                        <Grid Grid.Row="2" Margin="{StaticResource FormRowMargin}">
+                        <Grid Grid.Row="4" Margin="{StaticResource FormRowMargin}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
                                 <ColumnDefinition Width="0.1*"/>

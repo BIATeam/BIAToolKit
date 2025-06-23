@@ -131,7 +131,9 @@
             vm.IsDtoParsed = ParseDtoFile();
             vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
             vm.IsTeam = vm.DtoEntity?.IsTeam == true;
-            vm.IsFixable = vm.DtoEntity?.IsFixable == true || vm.DtoEntity?.IsArchivable == true;
+            vm.IsVersioned = vm.DtoEntity?.IsVersioned == true;
+            vm.IsFixable = vm.DtoEntity?.IsFixable == true;
+            vm.IsFixable = vm.DtoEntity?.IsArchivable == true;
             vm.AncestorTeam = vm.DtoEntity?.AncestorTeamName;
             var isBackSelected = vm.IsWebApiAvailable;
             var isFrontSelected = vm.IsFrontAvailable;
@@ -187,6 +189,8 @@
                         vm.UseAdvancedFilter = history.HasAdvancedFilter;
                         vm.AncestorTeam = history.AncestorTeam;
                         vm.SelectedFormReadOnlyMode = history.FormReadOnlyMode;
+                        vm.IsVersioned = history.IsVersioned;
+                        vm.IsArchivable = history.IsArchivable;
                         if (history.OptionItems != null)
                         {
                             foreach (var option in vm.OptionItems)
@@ -285,6 +289,8 @@
                         HasFixableParent = vm.HasFixableParent,
                         HasAdvancedFilter = vm.UseAdvancedFilter,
                         FormReadOnlyMode = vm.SelectedFormReadOnlyMode,
+                        IsVersioned = vm.IsVersioned,
+                        IsArchivable = vm.IsArchivable,
                     });
 
                     UpdateCrudGenerationHistory();
@@ -553,6 +559,8 @@
                     HasAdvancedFilter = vm.UseAdvancedFilter,
                     AncestorTeam = vm.AncestorTeam,
                     FormReadOnlyMode = vm.SelectedFormReadOnlyMode,
+                    IsVersioned = vm.IsVersioned,
+                    IsArchivable = vm.IsArchivable,
                     // Create "Mapping" part
                     Mapping = new()
                     {

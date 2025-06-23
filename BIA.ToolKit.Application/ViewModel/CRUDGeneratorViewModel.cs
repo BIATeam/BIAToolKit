@@ -629,6 +629,32 @@
             }
         }
 
+        private bool _isVersioned;
+
+        public bool IsVersioned
+        {
+            get { return _isVersioned; }
+            set
+            {
+                _isVersioned = value;
+                RaisePropertyChanged(nameof(IsVersioned));
+            }
+        }
+
+        private bool _isArchivable;
+
+        public bool IsArchivable
+        {
+            get { return _isArchivable; }
+            set
+            {
+                _isArchivable = value;
+                RaisePropertyChanged(nameof(IsArchivable));
+            }
+        }
+
+
+
         private bool _useAdvancedFilter;
 
         public bool UseAdvancedFilter
