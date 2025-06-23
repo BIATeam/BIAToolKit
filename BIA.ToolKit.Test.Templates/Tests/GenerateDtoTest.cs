@@ -31,12 +31,6 @@
             {
                 new()
                 {
-                    EntityCompositeName = "Id",
-                    EntityType = "int",
-                    MappingName = "Id",
-                },
-                new()
-                {
                     EntityCompositeName = "Title",
                     EntityType = "string",
                     MappingName = "Title",
@@ -60,6 +54,7 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = [.. mappingProperties],
+                IsVersioned = true,
                 GenerateBack = true
             };
 
@@ -93,11 +88,6 @@
                     EntityType = "int",
                     IsRequired = true,
                     IsParent = true,
-                },
-                new()
-                {
-                    EntityCompositeName = "Id",
-                    EntityType = "int",
                 },
                 new()
                 {
@@ -263,6 +253,8 @@
                 Properties = [.. mappingProperties],
                 GenerateBack = true,
                 AncestorTeamName = ancestorTeamName,
+                IsVersioned = true,
+                IsFixable = true,
                 IsArchivable = true,
             };
 
@@ -301,6 +293,7 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = [.. mappingProperties],
+                IsVersioned = true,
                 GenerateBack = true,
             };
 
@@ -495,6 +488,9 @@
                 Properties = [.. mappingProperties],
                 GenerateBack = true,
                 AncestorTeamName = ancestorTeamName,
+                IsVersioned = true,
+                IsFixable = true,
+                IsArchivable = true,
             };
 
             await fixture.RunTestGenerateDtoAllFilesEqualsAsync(dtoContext);
