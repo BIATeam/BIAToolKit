@@ -2,7 +2,7 @@
 <#@ include file="$(T4Includes_5_0_0)\TemplateDto.ttinclude" #>
 <#@ output extension=".cs" #>
 <#
-var baseMapperClass = ModelInstance.IsTeamType ? "TTeamMapper" : "BaseMapper";
+var baseMapperClass = ModelInstance.IsTeamType ? "BaseTeamMapper" : "BaseMapper";
 var baseKeyType = ModelInstance.IsTeamType ? string.Empty : $", {ModelInstance.BaseKeyType}";
 #>
 // <copyright file="<#= ModelInstance.EntityName #>Mapper.cs" company="<#= ModelInstance.CompanyName #>">
@@ -27,7 +27,14 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
    if (ModelInstance.IsTeamType) { 
        ModelInstance.Use("System.Security.Principal");
    }
-   ModelInstance.Use("BIA.Net.Core.Common.Extensions");
+   if(ModelInstance.IsTeamType && ModelInstance.HasAncestorTeam) {
+       ModelInstance.Use("BIA.Net.Core.Common.Enum");
+   }if(ModelInstance.HasAncestorTeam) {
+       ModelInstance.Use("BIA.Net.Core.Common.Exceptions");
+   }
+   if(ModelInstance.Properties.Count() > 0) {
+       ModelInstance.Use("BIA.Net.Core.Common.Extensions");
+   }
    if (ModelInstance.Properties.Count() > 0)  { 
        ModelInstance.Use("BIA.Net.Core.Domain");
    }
@@ -37,14 +44,16 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
    if (ModelInstance.HasOptions) { 
        ModelInstance.Use("BIA.Net.Core.Domain.Dto.Option");
    }
+   if(!ModelInstance.IsTeamType) {
+       ModelInstance.Use("BIA.Net.Core.Domain.Mapper");
+   }
    if (ModelInstance.IsTeamType) { 
+       ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain.Bia.Base.Mappers");
        ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Crosscutting.Common.Enum");
    }
    ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain.Dto." + ModelInstance.DomainName);
    ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain." + ModelInstance.DomainName + ".Entities");
-   if (ModelInstance.IsTeamType) { 
-       ModelInstance.Use(ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain.User.Mappers");
-   }#><#= ModelInstance.WritteUsing() #>
+   #><#= ModelInstance.WritteUsing() #>
     /// <summary>
     /// The mapper used for <#= ModelInstance.EntityName #>.
     /// </summary>
