@@ -241,10 +241,8 @@
         public bool IsEntitySelected => SelectedEntityInfo != null;
         public bool HasMappingProperties => MappingEntityProperties.Count > 0;
         public bool IsGenerationEnabled => 
-            HasMappingProperties 
-            && MappingEntityProperties.All(x => x.IsValid) 
+            ((HasMappingProperties && MappingEntityProperties.All(x => x.IsValid) && MappingEntityProperties.Count == MappingEntityProperties.DistinctBy(x => x.MappingName).Count())  || !HasMappingProperties)
             && !string.IsNullOrWhiteSpace(EntityDomain)
-            && MappingEntityProperties.Count == MappingEntityProperties.DistinctBy(x => x.MappingName).Count()
             && !string.IsNullOrWhiteSpace(SelectedBaseKeyType);
 
         public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>(RemoveMappingProperty);

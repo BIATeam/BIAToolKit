@@ -734,11 +734,6 @@
 
                 // Parse Dto entity file
                 vm.DtoEntity = service.ParseEntity(fileName, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
-                if (vm.DtoEntity == null || vm.DtoEntity.Properties == null || vm.DtoEntity.Properties.Count <= 0)
-                {
-                    consoleWriter.AddMessageLine("No properties found on Dto file.", "Orange");
-                    return false;
-                }
 
                 // Fill display item list
                 List<string> displayItems = new();
