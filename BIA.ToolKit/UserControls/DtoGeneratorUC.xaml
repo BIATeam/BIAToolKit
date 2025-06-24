@@ -31,6 +31,8 @@
                 <ColumnDefinition Width="0.1*"/>
                 <ColumnDefinition />
                 <ColumnDefinition Width="0.1*"/>
+                <ColumnDefinition />
+                <ColumnDefinition Width="0.1*"/>
                 <ColumnDefinition Width="160"/>
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="0">
@@ -65,14 +67,20 @@
                     <RowDefinition/>
                     <RowDefinition/>
                     <RowDefinition/>
+                    <RowDefinition/>
                 </Grid.RowDefinitions>
-                <CheckBox Grid.Row="0" Content="Team" Foreground="White" IsChecked="{Binding IsTeam,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
-                <CheckBox Grid.Row="1" Content="Versioned" Foreground="White" IsChecked="{Binding IsVersioned,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
-                <CheckBox Grid.Row="2" Content="Fixable" Foreground="White" IsChecked="{Binding IsFixable,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
-                <CheckBox Grid.Row="3" Content="Archivable" Foreground="White" IsChecked="{Binding IsArchivable,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <ComboBox Margin="{StaticResource FormFirstRowMargin}" Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Base Key Type"  ItemsSource="{Binding BaseKeyTypeItems}" SelectedValue="{Binding SelectedBaseKeyType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsEntitySelected}"/>
+                <CheckBox Grid.Row="1" Content="Team" Foreground="White" IsChecked="{Binding IsTeam,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
+                <CheckBox Grid.Row="2" Content="Versioned" Foreground="White" IsChecked="{Binding IsVersioned,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
+                <CheckBox Grid.Row="3" Content="Fixable" Foreground="White" IsChecked="{Binding IsFixable,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
+                <CheckBox Grid.Row="4" Content="Archivable" Foreground="White" IsChecked="{Binding IsArchivable,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
             </Grid>
 
-            <Button VerticalAlignment="Top" Grid.Column="4" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" x:Name="GenerateButton" Content="Generate" Height="50" Click="GenerateButton_Click" IsEnabled="{Binding IsGenerationEnabled}"></Button>
+            <Button VerticalAlignment="Top" Grid.Column="6" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" x:Name="GenerateButton" Content="Generate" Height="50" Click="GenerateButton_Click" IsEnabled="{Binding IsGenerationEnabled}"></Button>
         </Grid>
 
         <Grid Grid.Row="1" Margin="0,10,0,0">

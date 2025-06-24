@@ -45,7 +45,6 @@
             "string",
             "DateTime",
             "DateOnly",
-            
             "TimeOnly",
             "byte[]"
         };
@@ -117,6 +116,7 @@
                 IsVersioned = SelectedEntityInfo?.IsVersioned == true;
                 IsFixable = SelectedEntityInfo?.IsFixable == true;
                 IsArchivable = SelectedEntityInfo?.IsArchivable == true;
+                SelectedBaseKeyType = SelectedEntityInfo?.BaseKeyType;
             }
         }
 
@@ -220,6 +220,22 @@
             }
         }
 
+        public IEnumerable<string> BaseKeyTypeItems => Constants.PrimitiveTypes;
+        private string selectedBaseKeyType;
+
+        public string SelectedBaseKeyType
+        {
+            get { return selectedBaseKeyType; }
+            set 
+            { 
+                selectedBaseKeyType = value; 
+                RaisePropertyChanged(nameof(SelectedBaseKeyType));
+                RaisePropertyChanged(nameof(IsGenerationEnabled));
+            }
+        }
+
+
+
         public string ProjectDomainNamespace { get; private set; }
         public EntityInfo SelectedEntityInfo { get; private set; }
         public bool IsEntitySelected => SelectedEntityInfo != null;
@@ -228,7 +244,8 @@
             HasMappingProperties 
             && MappingEntityProperties.All(x => x.IsValid) 
             && !string.IsNullOrWhiteSpace(EntityDomain)
-            && MappingEntityProperties.Count == MappingEntityProperties.DistinctBy(x => x.MappingName).Count();
+            && MappingEntityProperties.Count == MappingEntityProperties.DistinctBy(x => x.MappingName).Count()
+            && !string.IsNullOrWhiteSpace(SelectedBaseKeyType);
 
         public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>(RemoveMappingProperty);
         public ICommand MoveMappedPropertyCommand => new RelayCommand<MoveItemArgs>(x => MoveMappedProperty(x.OldIndex, x.NewIndex));

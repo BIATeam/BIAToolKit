@@ -41,7 +41,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
         public string BaseKeyType { get; set; }
         public bool IsTeam => BaseList.Contains("Team") || BaseList.Contains("TeamDto") || BaseList.Any(x => (x.StartsWith("BaseEntity") || x.StartsWith("BaseDto")) && x.Contains("Team"));
         public bool IsVersioned => IsTeam || BaseList.Contains("VersionedTable") || BaseList.Any(x => (x.StartsWith("BaseEntity") || x.StartsWith("BaseDto")) && x.Contains("Versioned"));
-        public bool IsFixable => IsArchivable || BaseList.Any(x => x.StartsWith("IEntityFixable<")) || BaseList.Any(x => (x.StartsWith("BaseEntity") || x.StartsWith("BaseDto")) && x.Contains("Fixable"));
+        public bool IsFixable => BaseList.Any(x => x.StartsWith("IEntityFixable<")) || BaseList.Any(x => (x.StartsWith("BaseEntity") || x.StartsWith("BaseDto")) && x.Contains("Fixable"));
         public bool IsArchivable => IsFixable || BaseList.Any(x => x.StartsWith("IEntityArchivable<")) || BaseList.Any(x => (x.StartsWith("BaseEntity") || x.StartsWith("BaseDto")) && x.Contains("Archivable"));
         public string AncestorTeamName => ClassAnnotations.FirstOrDefault(c => c.Key == CRUDDataUpdateType.AncestorTeam.ToString()).Value;
         public bool HasAncestorTeam => !string.IsNullOrWhiteSpace(AncestorTeamName);

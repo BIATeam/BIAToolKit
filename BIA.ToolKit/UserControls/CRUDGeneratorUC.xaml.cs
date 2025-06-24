@@ -133,8 +133,9 @@
             vm.IsTeam = vm.DtoEntity?.IsTeam == true;
             vm.IsVersioned = vm.DtoEntity?.IsVersioned == true;
             vm.IsFixable = vm.DtoEntity?.IsFixable == true;
-            vm.IsFixable = vm.DtoEntity?.IsArchivable == true;
+            vm.IsArchivable = vm.DtoEntity?.IsArchivable == true;
             vm.AncestorTeam = vm.DtoEntity?.AncestorTeamName;
+            vm.SelectedBaseKeyType = vm.DtoEntity?.BaseKeyType;
             var isBackSelected = vm.IsWebApiAvailable;
             var isFrontSelected = vm.IsFrontAvailable;
 
@@ -191,6 +192,7 @@
                         vm.SelectedFormReadOnlyMode = history.FormReadOnlyMode;
                         vm.IsVersioned = history.IsVersioned;
                         vm.IsArchivable = history.IsArchivable;
+                        vm.SelectedBaseKeyType = history.EntityBaseKeyType;
                         if (history.OptionItems != null)
                         {
                             foreach (var option in vm.OptionItems)
@@ -266,7 +268,7 @@
                         DomainName = vm.Domain,
                         EntityName = vm.CRUDNameSingular,
                         EntityNamePlural = vm.CRUDNamePlural,
-                        BaseKeyType = vm.DtoEntity.BaseKeyType,
+                        BaseKeyType = vm.SelectedBaseKeyType,
                         IsTeam = vm.IsTeam,
                         Properties = [.. vm.DtoEntity.Properties],
                         OptionItems = [.. vm.OptionItems.Where(x => x.Check).Select(x => x.OptionName)],
@@ -561,6 +563,7 @@
                     FormReadOnlyMode = vm.SelectedFormReadOnlyMode,
                     IsVersioned = vm.IsVersioned,
                     IsArchivable = vm.IsArchivable,
+                    EntityBaseKeyType = vm.SelectedBaseKeyType,
                     // Create "Mapping" part
                     Mapping = new()
                     {

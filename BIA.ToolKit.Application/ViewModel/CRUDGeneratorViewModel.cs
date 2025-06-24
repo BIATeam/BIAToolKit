@@ -3,6 +3,7 @@
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
@@ -170,6 +171,20 @@
                     optionItems = value;
                     RaisePropertyChanged(nameof(OptionItems));
                 }
+            }
+        }
+
+        public IEnumerable<string> BaseKeyTypeItems => Constants.PrimitiveTypes;
+        private string selectedBaseKeyType;
+
+        public string SelectedBaseKeyType
+        {
+            get { return selectedBaseKeyType; }
+            set
+            {
+                selectedBaseKeyType = value;
+                RaisePropertyChanged(nameof(SelectedBaseKeyType));
+                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
 
@@ -717,7 +732,8 @@
                     && ((IsWebApiSelected && !IsFrontSelected) || (IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)) || (!IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)))
                     && !string.IsNullOrEmpty(featureNameSelected)
                     && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural)))
-                    && (!IsTeam || (IsTeam && !UseFileGenerator) || (UseFileGenerator && IsTeam && TeamRoleId > 0 && TeamTypeId > 0));
+                    && (!IsTeam || (IsTeam && !UseFileGenerator) || (UseFileGenerator && IsTeam && TeamRoleId > 0 && TeamTypeId > 0))
+                    && !string.IsNullOrWhiteSpace(SelectedBaseKeyType);
             }
         }
         #endregion

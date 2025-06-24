@@ -144,7 +144,7 @@
                     DomainName = vm.EntityDomain,
                     EntityName = vm.SelectedEntityInfo.Name,
                     EntityNamePlural = vm.SelectedEntityInfo.NamePluralized,
-                    BaseKeyType = vm.SelectedEntityInfo.BaseKeyType,
+                    BaseKeyType = vm.SelectedBaseKeyType,
                     Properties = [.. vm.MappingEntityProperties],
                     IsTeam = vm.IsTeam,
                     IsVersioned = vm.IsVersioned,
@@ -171,6 +171,7 @@
             generation.IsVersioned = vm.IsVersioned;
             generation.IsArchivable = vm.IsArchivable;
             generation.IsFixable = vm.IsFixable;
+            generation.EntityBaseKeyType = vm.SelectedBaseKeyType;
             generation.PropertyMappings.Clear();
 
             foreach (var property in vm.MappingEntityProperties)
@@ -239,6 +240,7 @@
             vm.IsVersioned = generation.IsVersioned;
             vm.IsFixable = generation.IsFixable;
             vm.IsArchivable = generation.IsArchivable;
+            vm.SelectedBaseKeyType = generation.EntityBaseKeyType;
 
             var allEntityProperties = vm.AllEntityPropertiesRecursively.ToList();
             foreach (var property in allEntityProperties)
