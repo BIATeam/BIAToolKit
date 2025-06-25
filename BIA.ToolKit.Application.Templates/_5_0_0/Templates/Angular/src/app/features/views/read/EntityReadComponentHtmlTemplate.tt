@@ -15,9 +15,8 @@
   [canFix]="canFix"
   (cancelled)="onCancelled()"
   (save)="onSubmitted($event)"
-  (fixedChanged)="
-    crudItemService.updateFixedStatus(crudItem.id, $event)
-  "></app-<#= ModelInstance.EntityName.ToKebabCase() #>-form>
+  (fixedChanged)="crudItemService.updateFixedStatus(crudItem.id, $event)"
+  (readOnlyChanged)="onReadOnlyChanged($event)"></app-<#= ModelInstance.EntityName.ToKebabCase() #>-form>
 <bia-spinner
   *ngIf="<#= ModelInstance.EntityName.ToCamelCase() #>Service.loadingGet$ | async"
   [overlay]="true"></bia-spinner>
