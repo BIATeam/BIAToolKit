@@ -18,7 +18,7 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
     /// </summary>
     public class PlaneMapper : BaseMapper<PlaneDto, Plane, int>
     {
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.ExpressionCollection"/>
+        /// <inheritdoc />
         public override ExpressionCollection<Plane> ExpressionCollection
         {
             get
@@ -32,7 +32,21 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
             }
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToEntity"/>
+        /// <inheritdoc />
+        public override ExpressionCollection<Plane> ExpressionCollectionFilterIn
+        {
+            get
+            {
+                return new ExpressionCollection<Plane>(
+                    base.ExpressionCollectionFilterIn,
+                    new ExpressionCollection<Plane>()
+                    {
+                        { HeaderName.Option, plane => plane.Option.Id },
+                    });
+            }
+        }
+
+        /// <inheritdoc />
         public override void DtoToEntity(PlaneDto dto, ref Plane entity)
         {
             base.DtoToEntity(dto, ref entity);
@@ -43,7 +57,7 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
             entity.OptionId = dto.Option?.Id;
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
+        /// <inheritdoc />
         public override Expression<Func<Plane, PlaneDto>> EntityToDto()
         {
             return base.EntityToDto().CombineMapping(entity => new PlaneDto
@@ -61,7 +75,7 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
             });
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToCellMapping"/>
+        /// <inheritdoc />
         public override Dictionary<string, Func<string>> DtoToCellMapping(PlaneDto dto)
         {
             return new Dictionary<string, Func<string>>(base.DtoToCellMapping(dto))
