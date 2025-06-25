@@ -16,7 +16,7 @@ namespace TheBIADevCompany.BIADemo.Domain.AircraftMaintenanceCompany.Mappers
     /// </summary>
     public class MyCountryOptionMapper : BaseMapper<OptionDto, MyCountry, int>
     {
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
+        /// <inheritdoc />
         public override Expression<Func<MyCountry, OptionDto>> EntityToDto()
         {
             return base.EntityToDto().CombineMapping(entity => new OptionDto

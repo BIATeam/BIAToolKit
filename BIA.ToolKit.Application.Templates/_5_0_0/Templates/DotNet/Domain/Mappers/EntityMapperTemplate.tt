@@ -69,13 +69,13 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         {
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToEntity"/>
+        /// <inheritdoc />
         public override int TeamType => (int)TeamTypeId.<#= ModelInstance.EntityName #>;
 <#      if (ModelInstance.Properties.Count() > 0) { #>
 
 <#      }
    } if (ModelInstance.Properties.Count() > 0) { #>
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.ExpressionCollection"/>
+        /// <inheritdoc />
         public override ExpressionCollection<<#= ModelInstance.EntityName #>> ExpressionCollection
         {
             get
@@ -95,8 +95,31 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 } #>                };
             }
         }
+<#  if (ModelInstance.PropertiesToGenerate.Any(property => property.IsOptionCollection || property.IsOption)) { #>
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToEntity"/>
+        /// <inheritdoc />
+        public override ExpressionCollection<<#= ModelInstance.EntityName #>> ExpressionCollectionFilterIn
+        {
+            get
+            {
+                return new ExpressionCollection<<#= ModelInstance.EntityName #>>(
+                    base.ExpressionCollectionFilterIn,
+                    new ExpressionCollection<<#= ModelInstance.EntityName #>>()
+                    {
+<# foreach (var property in ModelInstance.PropertiesToGenerate) { 
+       if (property.IsOptionCollection) { #>
+                        { HeaderName.<#= property.MappingName #>, <#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #>.Select(x => x.<#= property.OptionIdProperty #>) },
+<#     }
+       else if (property.IsOption) { #>
+                        { HeaderName.<#= property.MappingName #>, <#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.EntityCompositeName #>.<#= property.OptionIdProperty #> },
+<#     }
+} #>
+                    });
+            }
+        }
+<#  } #>
+
+        /// <inheritdoc />
         public override void DtoToEntity(<#= ModelInstance.EntityName #>Dto dto, ref <#= ModelInstance.EntityName #> entity)
         {
 <#  if(ModelInstance.HasParent) { #>
@@ -166,7 +189,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 } #>
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
+        /// <inheritdoc />
         public override Expression<Func<<#= ModelInstance.EntityName #>, <#= ModelInstance.EntityName #>Dto>> EntityToDto()
         {
             return base.EntityToDto().CombineMapping(entity => new <#= ModelInstance.EntityName #>Dto
@@ -223,7 +246,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
             });
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToCellMapping"/>
+        /// <inheritdoc />
         public override Dictionary<string, Func<string>> DtoToCellMapping(<#= ModelInstance.EntityName #>Dto dto)
         {
             return new Dictionary<string, Func<string>>(base.DtoToCellMapping(dto))
@@ -246,7 +269,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <# } #>
 <# if ( ModelInstance.Properties.Any(p => p. IsOptionCollection)) {#>
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.IncludesForUpdate"/>
+        /// <inheritdoc />
         public override Expression<Func<<#= ModelInstance.EntityName #>, object>>[] IncludesForUpdate()
         {
             return

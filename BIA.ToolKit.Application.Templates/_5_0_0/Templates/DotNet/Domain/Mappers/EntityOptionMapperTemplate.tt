@@ -19,7 +19,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
     /// </summary>
     public class <#= ModelInstance.EntityName #>OptionMapper : BaseMapper<OptionDto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>>
     {
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
+        /// <inheritdoc />
         public override Expression<Func<<#= ModelInstance.EntityName #>, OptionDto>> EntityToDto()
         {
             return base.EntityToDto().CombineMapping(entity => new OptionDto
