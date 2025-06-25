@@ -16,6 +16,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -491,10 +492,12 @@ using Roslyn.Services;*/
                     if (string.IsNullOrWhiteSpace(message))
                         return string.Empty;
 
+                    var extractTypeRegex = @"'([^']*)'";
+                    var match = Regex.Match(message, extractTypeRegex);
                     var typeName = d.Id switch
                     {
-                        "CS0118" => message.Split('\'')[1],
-                        "CS0246" => message.Split('\'')[2],
+                        "CS0118" => match.Success ? match.Groups[1].Value : string.Empty,
+                        "CS0246" => match.Success ? match.Groups[1].Value : string.Empty,
                         _ => string.Empty
                     };
 
