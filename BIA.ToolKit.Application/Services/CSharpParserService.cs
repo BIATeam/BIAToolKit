@@ -482,7 +482,7 @@ using Roslyn.Services;*/
         private CompilationUnitSyntax AddMissingUsings(Microsoft.CodeAnalysis.Document document, CompilationUnitSyntax syntaxRoot, Compilation compilation, SemanticModel semanticModel)
         {
             var missingUsingDiagnostics = semanticModel.GetDiagnostics()
-                                                .Where(d => d.Id == "CS0246" || d.Id == "CS0118")
+                                                .Where(d => d.Id == "CS0246" || d.Id == "CS0118" || d.Id == "CS0103")
                                                 .ToList();
 
             var typesWithMissingNamespace = missingUsingDiagnostics
@@ -498,6 +498,7 @@ using Roslyn.Services;*/
                     {
                         "CS0118" => match.Success ? match.Groups[1].Value : string.Empty,
                         "CS0246" => match.Success ? match.Groups[1].Value : string.Empty,
+                        "CS0103" => match.Success ? match.Groups[1].Value : string.Empty,
                         _ => string.Empty
                     };
 
