@@ -3,6 +3,8 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
+    using System.Linq;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
@@ -13,6 +15,7 @@
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.Properties;
@@ -270,7 +273,57 @@
                 return false;
             }
             //Apply the differential
-            return await gitService.ApplyDiff(actionFinishedAtEnd, _viewModel.ModifyProject.CurrentProject.Folder, migrateFilePath);
+            if (!await gitService.ApplyDiff(actionFinishedAtEnd, _viewModel.ModifyProject.CurrentProject.Folder, migrateFilePath))
+            {
+                return false;
+            }
+
+            await HandleDeletedFilesFailed(_viewModel.ModifyProject.CurrentProject, migrateFilePath, projectOriginalFolderName, projectTargetFolderName);
+            return true;
+        }
+
+        private async Task HandleDeletedFilesFailed(Project currentProject, string migrateFilePath, string projectOriginalFolder, string projectTargetFolder)
+        {
+            var migrateFileContent = (await File.ReadAllLinesAsync(migrateFilePath)).ToList();
+            var deleteFileInstructionIndexes = new List<int>();
+            for (int i = 0; i < migrateFileContent.Count; i++)
+            {
+                if (migrateFileContent[i].StartsWith("deleted file mode"))
+                    deleteFileInstructionIndexes.Add(i);
+            }
+
+            if (deleteFileInstructionIndexes.Count == 0)
+                return;
+
+            consoleWriter.AddMessageLine("Verify expected deleted files", "pink");
+            var filesToDelete = new List<string>();
+            var pathOfFileRegex = @"\sb/(.+)$";
+            foreach (var index in deleteFileInstructionIndexes)
+            {
+                var diffInstruction = migrateFileContent.ElementAt(index - 1);
+                var match = Regex.Match(diffInstruction, pathOfFileRegex);
+                if(match.Success)
+                {
+                    filesToDelete.Add(Path.Combine(currentProject.Folder, match.Groups[1].Value).Replace("/", "\\"));
+                }
+            }
+
+            var hasNotDeletedFiles = false;
+            foreach (var file in filesToDelete)
+            {
+                if (File.Exists(file))
+                {
+                    var originalFile = Path.Combine(AppSettings.TmpFolderPath, file.Replace(currentProject.Folder, projectOriginalFolder));
+                    consoleWriter.AddMessageLine($"File not deleted : {file}", "orange", false);
+                    consoleWriter.AddMessageLine($"code --diff {originalFile} {file}", "gray", false);
+                    hasNotDeletedFiles = true;
+                }
+            }
+
+            if(hasNotDeletedFiles)
+            {
+                consoleWriter.AddMessageLine("Some files have not been deleted. Check the previous details to launch diff command for each of them. Delete them manually if applicable.", "orange");
+            }
         }
 
         private async Task MergeRejected(bool actionFinishedAtEnd)

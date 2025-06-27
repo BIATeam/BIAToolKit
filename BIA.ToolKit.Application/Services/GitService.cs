@@ -142,7 +142,7 @@
             int result = await RunScript("git", $"apply --reject --unsafe-paths --whitespace=fix {migrateFilePath}", projectPath);
             if (result == 0)
             {
-                outPut.AddMessageLine("Apply diff finished", actionFinishedAtEnd ? "Green" : "Blue");
+                outPut.AddMessageLine("Apply diff finished !", actionFinishedAtEnd ? "Green" : "Blue");
                 return true;
             }
             else
@@ -156,6 +156,7 @@
                 else
                 {
                     outPut.AddMessageLine("Error code " + result + " during apply diff.", "Orange");
+                    outPut.AddMessageLine("Please review the previous details.", "Orange");
                     return true;
                 }
 
