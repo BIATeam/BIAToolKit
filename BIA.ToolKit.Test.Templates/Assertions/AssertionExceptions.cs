@@ -18,7 +18,7 @@
             var builder = new StringBuilder();
             builder.AppendLine($"File: {Path.GetFileName(generatedPath)}");
             builder.AppendLine($"Diff: {modifiedLines} lines modified, {movedLines} lines moved, {addedLines} lines added, {deletedLines} lines deleted");
-            builder.Append($"kdiff3.exe {referencePath} {generatedPath}");
+            builder.Append($"code --diff {referencePath} {generatedPath}");
             return builder.ToString();
         }
     }
