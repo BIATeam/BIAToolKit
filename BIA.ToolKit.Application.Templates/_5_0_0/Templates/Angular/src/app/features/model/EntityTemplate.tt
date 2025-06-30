@@ -70,7 +70,6 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration: B
 <#  if(ModelInstance.IsVersioned) { #>
     Object.assign(new BiaFieldConfig('rowVersion', '<#= ModelInstance.EntityName.ToCamelCase() #>.rowVersion'), {
       isVisible: false,
-      isHideByDefault: true,
       isVisibleInTable: false,
     }),
 <#  } #>
