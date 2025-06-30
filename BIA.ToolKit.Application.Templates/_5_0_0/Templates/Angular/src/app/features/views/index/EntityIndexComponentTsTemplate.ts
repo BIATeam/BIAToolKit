@@ -20,6 +20,7 @@ import {
   BiaButtonGroupComponent,
   BiaButtonGroupItem,
 } from 'src/app/shared/bia-shared/components/bia-button-group/bia-button-group.component';
+import { TeamTypeId } from 'src/app/shared/constants';
 import { MaintenanceTeamOptionsService } from '../../services/maintenance-team-options.service';
 
 @Component({
@@ -63,6 +64,10 @@ export class MaintenanceTeamsIndexComponent extends CrudItemsIndexComponent<Main
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.maintenanceTeamService.aircraftMaintenanceCompanyService.currentCrudItemId =
+      this.authService.getCurrentTeam(
+        TeamTypeId.AircraftMaintenanceCompany
+      )?.teamId;
     this.parentDisplayItemName$ =
       this.maintenanceTeamService.aircraftMaintenanceCompanyService.displayItemName$;
     this.sub.add(

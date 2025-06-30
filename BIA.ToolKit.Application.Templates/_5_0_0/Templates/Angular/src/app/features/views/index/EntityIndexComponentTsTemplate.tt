@@ -27,6 +27,9 @@ import {
   BiaButtonGroupComponent,
   BiaButtonGroupItem,
 } from 'src/app/shared/bia-shared/components/bia-button-group/bia-button-group.component';
+<#  if(ModelInstance.HasAncestorTeam) { #>
+import { TeamTypeId } from 'src/app/shared/constants';
+<#  } #>
 <# } #>
 <#  if(ModelInstance.HasOptionItems) { #>
 import { <#= ModelInstance.EntityName #>OptionsService } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>-options.service';
@@ -94,6 +97,12 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
 
   ngOnInit(): void {
     super.ngOnInit();
+<#  if(ModelInstance.IsTeam && ModelInstance.HasParent) { #>
+    this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.<#= ModelInstance.ParentName.ToCamelCase() #>Service.currentCrudItemId =
+      this.authService.getCurrentTeam(
+        TeamTypeId.<#= ModelInstance.ParentName #>
+      )?.teamId;
+<#  } #>
 <#  if(ModelInstance.HasParent) { #>
     this.parentDisplayItemName$ =
       this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.<#= ModelInstance.ParentName.ToCamelCase() #>Service.displayItemName$;
