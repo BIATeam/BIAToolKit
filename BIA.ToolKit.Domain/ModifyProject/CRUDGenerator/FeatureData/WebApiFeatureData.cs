@@ -14,11 +14,11 @@
         /// <summary>
         /// List of Options to delete.
         /// </summary>
-        public ClassDefinition? ClassFileDefinition { get; set; }
+        public ClassDefinition ClassFileDefinition { get; set; }
 
-        public string? Namespace { get; set; }
+        public string Namespace { get; set; }
 
-        public List<PropertyInfo>? PropertiesInfos { get; set; }
+        public List<PropertyInfo> PropertiesInfos { get; set; }
 
         /// <summary>
         /// Constructor.

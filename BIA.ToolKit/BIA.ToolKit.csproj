@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+		<TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
 		<UseWPF>true</UseWPF>
     <SelfContained>false</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -36,8 +36,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="MaterialDesignThemes" Version="5.2.1" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
-		<PackageReference Include="Microsoft.PowerShell.SDK" Version="7.5.0" />
+		<PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.14.8" ExcludeAssets="runtime" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
 		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="WpfAnimatedGif" Version="2.0.2" />

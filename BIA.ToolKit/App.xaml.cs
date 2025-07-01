@@ -60,7 +60,7 @@
             mainWindow.Show();
 
             var eventBroker = serviceProvider.GetRequiredService<UIEventBroker>();
-            eventBroker.ExecuteTaskWithWaiter(async () =>
+            eventBroker.ExecuteActionWithWaiter(async () =>
             {
                 var autoUpdateSetting = ConfigurationManager.AppSettings["AutoUpdate"];
                 if (bool.TryParse(autoUpdateSetting, out bool autoUpdate))

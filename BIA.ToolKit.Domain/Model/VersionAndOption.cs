@@ -25,12 +25,12 @@
 
         // use as output
         // Framework version
-        public WorkRepository? WorkTemplate { get; set; }
+        public WorkRepository WorkTemplate { get; set; }
 
         public bool UseCompanyFiles { get; set; }
         // CompanyFileVersion
-        public WorkRepository? WorkCompanyFile { get; set; }
+        public WorkRepository WorkCompanyFile { get; set; }
         // Profile selected
-        public string? Profile { get; set; }
+        public string Profile { get; set; }
     }
 }

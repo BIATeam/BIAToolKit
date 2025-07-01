@@ -17,7 +17,7 @@
 
 
         // The selected project in RootProjectPath
-        public Project? CurrentProject { get; set; }
+        public Project CurrentProject { get; set; }
 
         #endregion
     }

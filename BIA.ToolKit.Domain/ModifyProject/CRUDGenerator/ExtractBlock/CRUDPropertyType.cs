@@ -4,8 +4,8 @@
     {
         public string Name { get; }
 
-        private string? type;
-        public string? Type
+        private string type;
+        public string Type
         {
             get { return type; }
             set
@@ -15,7 +15,7 @@
             }
         }
 
-        public string? SimplifiedType { get; private set; }
+        public string SimplifiedType { get; private set; }
 
         public CRUDPropertyType(string name, string type)
         {

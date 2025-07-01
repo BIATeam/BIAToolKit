@@ -25,18 +25,14 @@
     /// </summary>
     public partial class ModifyProjectUC : UserControl
     {
-        BIATKSettings settings;
         ModifyProjectViewModel _viewModel;
         IConsoleWriter consoleWriter;
-        RepositoryService repositoryService;
         GitService gitService;
         CSharpParserService cSharpParserService;
         ProjectCreatorService projectCreatorService;
         CRUDSettings crudSettings;
         UIEventBroker uiEventBroker;
         SettingsService settingsService;
-        FileGeneratorService fileGeneratorService;
-        UIEventBroker.TabItemModifyProjectEnum currentTabItem = UIEventBroker.TabItemModifyProjectEnum.Migration;
 
         public ModifyProjectUC()
         {
@@ -49,8 +45,6 @@
             ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService, FeatureSettingService featureSettingService,
             FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
         {
-            this.settings = settings;
-            this.repositoryService = repositoryService;
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
@@ -64,7 +58,6 @@
             this.uiEventBroker = uiEventBroker;
             _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter);
             this.settingsService = settingsService;
-            this.fileGeneratorService = fileGeneratorService;
 
             uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
         }
@@ -90,7 +83,7 @@
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(Migrate_Run);
+            uiEventBroker.ExecuteActionWithWaiter(Migrate_Run);
         }
         private async Task Migrate_Run()
         {
@@ -111,7 +104,7 @@
 
         private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(MigrateGenerateOnly_Run);
+            uiEventBroker.ExecuteActionWithWaiter(MigrateGenerateOnly_Run);
         }
 
         private async Task<int> MigrateGenerateOnly_Run()
@@ -139,7 +132,7 @@
 
         private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(MigrateApplyDiff_Run);
+            uiEventBroker.ExecuteActionWithWaiter(MigrateApplyDiff_Run);
         }
 
         private async Task<bool> MigrateApplyDiff_Run()
@@ -162,7 +155,7 @@
 
         private void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(MigrateMergeRejected_Run);
+            uiEventBroker.ExecuteActionWithWaiter(MigrateMergeRejected_Run);
         }
 
         private async Task MigrateMergeRejected_Run()
@@ -209,7 +202,7 @@
 
         private void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(async () => await OverwriteBIAFolder(true));
+            uiEventBroker.ExecuteActionWithWaiter(async () => await OverwriteBIAFolder(true));
         }
 
         private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion)
@@ -367,7 +360,7 @@
 
         private void ResolveUsings_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(ResolveUsings_Run);
+            uiEventBroker.ExecuteActionWithWaiter(ResolveUsings_Run);
         }
 
         private async Task ResolveUsings_Run()

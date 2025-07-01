@@ -90,7 +90,7 @@
 
         private void synchronizeButton_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(async () =>
+            uiEventBroker.ExecuteActionWithWaiter(async () =>
             {
                 if (vm.RepositorySettings != null)
                 {

@@ -8,7 +8,7 @@
         public RepositorySettings RepositorySettings { get; private set; }
         public string Version { get; private set; }
         public Version VersionData { get; private set; }
-        public string? VersionFolderPath { get; set; }
+        public string VersionFolderPath { get; set; }
 
         //public string? VersionFolderPath
         //{
@@ -46,7 +46,7 @@
 
         public class VersionComparer : IComparer<WorkRepository>
         {
-            public int Compare(WorkRepository? x, WorkRepository? y)
+            public int Compare(WorkRepository x, WorkRepository y)
             {
                 if (x == null || y == null)
                     throw new ArgumentNullException("Cannot compare null objects.");

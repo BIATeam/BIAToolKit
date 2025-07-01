@@ -22,9 +22,9 @@
         /// </summary>
         public CRUDGeneratorViewModel()
         {
-            OptionItems = new();
-            ZipFeatureTypeList = new();
-            FeatureNames = new();
+            OptionItems = [];
+            ZipFeatureTypeList = [];
+            FeatureNames = [];
         }
 
         #region CurrentProject
@@ -160,7 +160,7 @@
             }
         }
 
-        private ObservableCollection<OptionItem> optionItems = new ObservableCollection<OptionItem>();
+        private ObservableCollection<OptionItem> optionItems = [];
         public ObservableCollection<OptionItem> OptionItems
         {
             get => optionItems;
@@ -174,7 +174,7 @@
             }
         }
 
-        public IEnumerable<string> BaseKeyTypeItems => Constants.PrimitiveTypes;
+        public static IEnumerable<string> BaseKeyTypeItems => Constants.PrimitiveTypes;
         private string selectedBaseKeyType;
 
         public string SelectedBaseKeyType
@@ -468,7 +468,7 @@
         #endregion
 
         #region CheckBox
-        private bool isSelectionChange = false;
+        private readonly bool isSelectionChange = false;
         public bool IsSelectionChange
         {
             get => isSelectionChange;
@@ -529,7 +529,7 @@
             }
         }
 
-        private ObservableCollection<string> _biaFronts = new();
+        private ObservableCollection<string> _biaFronts = [];
         public ObservableCollection<string> BiaFronts
         {
             get => _biaFronts;
@@ -786,7 +786,7 @@
         {
             get
             {
-                _formReadOnlyModes ??= new List<string>(Enum.GetNames(typeof(FormReadOnlyMode)));
+                _formReadOnlyModes ??= new List<string>(Enum.GetNames<FormReadOnlyMode>());
                 return _formReadOnlyModes;
             }
         }
@@ -827,7 +827,10 @@
         }
     }
 
-    public class ZipFeatureType
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    public class ZipFeatureType(FeatureType type, GenerationType generation, string zipName, string zipPath, string feature, List<FeatureParent> parents, bool needParent, List<FeatureAdaptPath> adaptPaths, string domain)
     {
         /// <summary>
         /// Is to generate?
@@ -837,80 +840,58 @@
         /// <summary>
         /// The Feature type.
         /// </summary>
-        public FeatureType FeatureType { get; }
+        public FeatureType FeatureType { get; } = type;
 
         /// <summary>
         /// The Generation type.
         /// </summary>
-        public GenerationType GenerationType { get; }
+        public GenerationType GenerationType { get; } = generation;
 
         /// <summary>
         /// Angular zip file name.
         /// </summary>
-        public string ZipName { get; }
+        public string ZipName { get; } = zipName;
 
         /// <summary>
         /// Angular zip file path.
         /// </summary>
-        public string ZipPath { get; }
+        public string ZipPath { get; } = zipPath;
 
         /// <summary>
         /// Name of the feature associated to the ZIP
         /// </summary>
-        public string Feature { get; }
+        public string Feature { get; } = feature;
 
         public List<FeatureData> FeatureDataList { get; set; }
 
         /// <summary>
         /// Parents of the feature
         /// </summary>
-        public List<FeatureParent> Parents { get; set; }
+        public List<FeatureParent> Parents { get; set; } = parents;
 
         /// <summary>
         /// Indicates if the feature needs a parent
         /// </summary>
-        public bool NeedParent { get; set; }
+        public bool NeedParent { get; set; } = needParent;
 
         /// <summary>
         /// The adapt paths to apply
         /// </summary>
-        public List<FeatureAdaptPath> AdaptPaths { get; set; }
+        public List<FeatureAdaptPath> AdaptPaths { get; set; } = adaptPaths;
 
         /// <summary>
         /// The feature domain
         /// </summary>
-        public string Domain { get; set; }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public ZipFeatureType(FeatureType type, GenerationType generation, string zipName, string zipPath, string feature, List<FeatureParent> parents, bool needParent, List<FeatureAdaptPath> adaptPaths, string domain)
-        {
-            this.FeatureType = type;
-            this.GenerationType = generation;
-            this.ZipName = zipName;
-            this.ZipPath = zipPath;
-            this.Feature = feature;
-            this.Parents = parents;
-            this.NeedParent = needParent;
-            this.AdaptPaths = adaptPaths;
-            this.Domain = domain;
-        }
+        public string Domain { get; set; } = domain;
     }
 
-    public class WebApiNamespace
+    public class WebApiNamespace(WebApiFileType fileType, string crudNamespace)
     {
-        public WebApiFileType FileType { get; }
+        public WebApiFileType FileType { get; } = fileType;
 
-        public string CrudNamespace { get; }
+        public string CrudNamespace { get; } = crudNamespace;
 
         public string CrudNamespaceGenerated { get; set; }
-
-        public WebApiNamespace(WebApiFileType fileType, string crudNamespace)
-        {
-            this.FileType = fileType;
-            this.CrudNamespace = crudNamespace;
-        }
     }
 
     public class CrudParent

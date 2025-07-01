@@ -9,7 +9,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
 
     public class EntityInfo
     {
-        public EntityInfo(string path, string @namespace, string name, string? baseType, string? baseKeyType, List<AttributeArgumentSyntax>? arguments, List<string>? baseList)
+        public EntityInfo(string path, string @namespace, string name, string baseType, string baseKeyType, List<AttributeArgumentSyntax> arguments, List<string> baseList)
         {
             Path = path;
             Namespace = @namespace;
@@ -32,10 +32,10 @@ namespace BIA.ToolKit.Domain.DtoGenerator
         public string Name { get; }
         public string FullNamespace => string.Join(".", Namespace, Name);
         public string NamePluralized => Name.Pluralize();
-        public string? BaseType { get; }
+        public string BaseType { get; }
         public List<string> BaseList { get; }
         public List<PropertyInfo> Properties { get; } = new List<PropertyInfo>();
-        public string? CompositeKeyName { get; set; }
+        public string CompositeKeyName { get; set; }
         public List<PropertyInfo> CompositeKeys { get; } = new List<PropertyInfo>();
         public List<KeyValuePair<string, string>> ClassAnnotations { get; } = new();
         public string BaseKeyType { get; set; }

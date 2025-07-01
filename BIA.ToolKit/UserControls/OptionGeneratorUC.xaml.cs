@@ -44,11 +44,9 @@
         private readonly OptionGeneratorViewModel vm;
         private OptionGeneration optionGenerationHistory;
         private string optionHistoryFileName;
-        private List<FeatureGenerationSettings> backSettingsList;
-        private List<FeatureGenerationSettings> frontSettingsList;
-        private readonly List<string> excludedEntitiesFolders = new List<string> { "bin", "obj" };
-        private readonly List<string> excludedEntitiesFilesSuffixes = new List<string> { "Mapper", "Service", "Repository", "Customizer", "Specification" };
-        private readonly Dictionary<string, EntityInfo> entityInfoFiles = new Dictionary<string, EntityInfo>();
+        private readonly List<FeatureGenerationSettings> backSettingsList;
+        private readonly List<FeatureGenerationSettings> frontSettingsList;
+        private readonly Dictionary<string, EntityInfo> entityInfoFiles = [];
 
         /// <summary>
         /// Constructor
@@ -57,8 +55,8 @@
         {
             InitializeComponent();
             vm = (OptionGeneratorViewModel)DataContext;
-            backSettingsList = new();
-            frontSettingsList = new();
+            backSettingsList = [];
+            frontSettingsList = [];
         }
 
         /// <summary>
@@ -108,14 +106,18 @@
             // Set form enabled
             vm.IsProjectChosen = true;
 
-            uiEventBroker.ExecuteTaskWithWaiter(async () =>
-            {
-                // Load BIA settings + history + parse zips
-                InitProject();
+            uiEventBroker.ExecuteActionWithWaiter(InitProjectTask);
+        }
 
-                // List Entity files from Entity folder
-                ListEntityFiles();
-            });
+        private Task InitProjectTask()
+        {
+            // Load BIA settings + history + parse zips
+            InitProject();
+
+            // List Entity files from Entity folder
+            ListEntityFiles();
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -178,7 +180,7 @@
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(async () =>
+            uiEventBroker.ExecuteActionWithWaiter(async () =>
             {
 
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
@@ -259,10 +261,10 @@
 
                 if (result == MessageBoxResult.OK)
                 {
-                    List<string> folders = new() {
+                    List<string> folders = [
                         Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet),
                         Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, "src",  "app")
-                    };
+                    ];
 
                     await crudService.DeleteBIAToolkitAnnotations(folders);
                 }
@@ -330,7 +332,7 @@
                 backSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(backSettingsFileName));
                 foreach (var setting in backSettingsList)
                 {
-                    var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
+                    var featureType = Enum.Parse<FeatureType>(setting.Type);
                     if (featureType != FeatureType.Option)
                         continue;
 
@@ -366,7 +368,7 @@
                 frontSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(frontSettingsFileName));
                 foreach (var setting in frontSettingsList)
                 {
-                    var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
+                    var featureType = Enum.Parse<FeatureType>(setting.Type);
                     if (featureType != FeatureType.Option)
                         continue;
 
@@ -484,7 +486,7 @@
                 baseTypes = null;
             }
 
-            var entities = service.GetDomainEntities(vm.CurrentProject, settings, new List<string> { "id" }, baseTypes);
+            var entities = service.GetDomainEntities(vm.CurrentProject, settings, ["id"], baseTypes);
             foreach (var entity in entities)
             {
                 entityInfoFiles.Add(entity.Path, entity);
@@ -548,7 +550,7 @@
                     vm.Domain = namespaceParts[domainIndex + 1];
                 }
                 vm.EntityNamePlural = entityInfo.NamePluralized;
-                if (!vm.Entity.Properties.Any())
+                if (vm.Entity.Properties.Count == 0)
                 {
                     consoleWriter.AddMessageLine("No properties found on entity file.", "Orange");
                     return false;

@@ -10,12 +10,12 @@
         /// <summary>
         /// Gets or sets the name.
         /// </summary>
-        public string? DisplayName { get; set; }
+        public string DisplayName { get; set; }
 
         /// <summary>
         /// Gets or sets the description.
         /// </summary>
-        public string? Description { get; set; }
+        public string Description { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this instance is selected.
@@ -25,11 +25,11 @@
         /// <summary>
         /// Gets or sets the tag.
         /// </summary>
-        public List<string>? Tags { get; set; }
+        public List<string> Tags { get; set; }
 
         /// <summary>
         /// Gets or sets the folders to excludes.
         /// </summary>
-        public List<string>? FoldersToExcludes { get; set; }
+        public List<string> FoldersToExcludes { get; set; }
     }
 }
