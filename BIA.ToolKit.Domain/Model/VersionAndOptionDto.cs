@@ -10,7 +10,7 @@
     public class VersionAndOptionDto
     {
         // Framework version
-        public string? FrameworkVersion { get; set; }
+        public string FrameworkVersion { get; set; }
 
 
         // Features settings
@@ -18,12 +18,12 @@
         /// <summary>
         /// Gets or sets the tag.
         /// </summary>
-        public List<string>? Tags { get; set; }
+        public List<string> Tags { get; set; }
 
         /// <summary>
         /// Gets or sets the folders.
         /// </summary>
-        public List<string>? Folders { get; set; }
+        public List<string> Folders { get; set; }
 
 
         // Company Files
@@ -36,16 +36,16 @@
         /// <summary>
         /// Gets or sets the company file version.
         /// </summary>
-        public string? CompanyFileVersion{ get; set; }
+        public string CompanyFileVersion{ get; set; }
 
         /// <summary>
         /// Gets or sets the profile.
         /// </summary>
-        public string? Profile { get; set; }
+        public string Profile { get; set; }
 
         /// <summary>
         /// Gets or sets the Options.
         /// </summary>
-        public List<string?>? Options { get; set; }
+        public List<string> Options { get; set; }
     }
 }

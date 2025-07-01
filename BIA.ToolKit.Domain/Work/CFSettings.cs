@@ -4,7 +4,7 @@
 
     public class CFSettings
     {
-        public IList<string>? Profiles { get; set; }
-        public IList<CFOption>? Options { get; set; }
+        public IList<string> Profiles { get; set; }
+        public IList<CFOption> Options { get; set; }
     }
 }

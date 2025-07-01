@@ -9,8 +9,8 @@
     public static class AppSettings
     {
         // The root folder of the application
-        public static string? AppFolderPath { get; set; }
+        public static string AppFolderPath { get; set; }
 
-        public static string? TmpFolderPath { get; set; }
+        public static string TmpFolderPath { get; set; }
     }
 }

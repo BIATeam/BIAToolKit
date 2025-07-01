@@ -17,7 +17,7 @@
         /// <exception cref="JsonSerializationException">
         /// Thrown if the serialization or deserialization process encounters an error.
         /// </exception>
-        public static T? DeepCopy<T>(this T self)
+        public static T DeepCopy<T>(this T self)
         {
             JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
             {

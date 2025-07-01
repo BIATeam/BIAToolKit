@@ -18,7 +18,7 @@
     {
         internal class ConsoleWriterTest(Stopwatch stopwatch) : IConsoleWriter
         {
-            public void AddMessageLine(string message, string? color = null, bool refreshimediate = true)
+            public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
             {
                 Console.WriteLine($"[{nameof(FileGeneratorTestFixture)} {stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}]\t{message}");
             }

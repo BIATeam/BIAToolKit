@@ -43,7 +43,7 @@
         private readonly CRUDGeneratorViewModel vm;
         private CRUDGeneration crudHistory;
         private string crudHistoryFileName;
-        private List<FeatureGenerationSettings> backSettingsList;
+        private readonly List<FeatureGenerationSettings> backSettingsList;
         private List<FeatureGenerationSettings> frontSettingsList;
 
         /// <summary>
@@ -53,8 +53,8 @@
         {
             InitializeComponent();
             vm = (CRUDGeneratorViewModel)base.DataContext;
-            backSettingsList = new();
-            frontSettingsList = new();
+            backSettingsList = [];
+            frontSettingsList = [];
         }
 
         /// <summary>
@@ -98,16 +98,20 @@
             if (project is null || project.BIAFronts.Count == 0)
                 return;
 
-            uiEventBroker.ExecuteTaskWithWaiter(async () =>
-            {
-                ClearAll();
+            uiEventBroker.ExecuteActionWithWaiter(() => InitProjectTask(project));
+        }
 
-                // Load BIA settings + history + parse zips
-                InitProject(project);
+        private Task InitProjectTask(Project project)
+        {
+            ClearAll();
 
-                // List Dto files from Dto folder
-                ListDtoFiles();
-            });
+            // Load BIA settings + history + parse zips
+            InitProject(project);
+
+            // List Dto files from Dto folder
+            ListDtoFiles();
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -257,7 +261,7 @@
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(async () =>
+            uiEventBroker.ExecuteActionWithWaiter(async () =>
             {
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
                 {
@@ -369,10 +373,10 @@
 
                 if (result == MessageBoxResult.OK)
                 {
-                    List<string> folders = new() {
+                    List<string> folders = [
                         Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet),
                         Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, "src",  "app")
-                    };
+                    ];
 
                     await crudService.DeleteBIAToolkitAnnotations(folders);
                 }
@@ -463,7 +467,7 @@
 
                 foreach (var setting in backSettingsList)
                 {
-                    var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
+                    var featureType = Enum.Parse<FeatureType>(setting.Type);
                     if (featureType == FeatureType.Option)
                         continue;
 
@@ -516,7 +520,7 @@
 
             foreach (var setting in frontSettingsList)
             {
-                var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
+                var featureType = Enum.Parse<FeatureType>(setting.Type);
                 if (featureType == FeatureType.Option)
                     continue;
 
@@ -665,7 +669,7 @@
         /// </summary>
         private void ListDtoFiles()
         {
-            Dictionary<string, string> dtoFiles = new();
+            Dictionary<string, string> dtoFiles = [];
 
             string dtoFolder = $"{vm.CurrentProject.CompanyName}.{vm.CurrentProject.Name}.Domain.Dto";
             string path = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, dtoFolder);
@@ -736,7 +740,7 @@
                 vm.DtoEntity = service.ParseEntity(fileName, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
 
                 // Fill display item list
-                List<string> displayItems = new();
+                List<string> displayItems = [];
                 vm.DtoEntity.Properties.ForEach(p => displayItems.Add(p.Name));
                 vm.DtoDisplayItems = displayItems;
                 vm.DtoDisplayItemSelected = vm.DtoEntity.Properties.FirstOrDefault(p => p.Type.StartsWith("string", StringComparison.CurrentCultureIgnoreCase))?.Name;
@@ -757,11 +761,11 @@
         {
             const string suffix = "-option";
             const string domainsPath = @"src\app\domains";
-            List<string> foldersName = new();
+            List<string> foldersName = [];
 
             // List Options folders
             string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, domainsPath);
-            List<string> folders = Directory.GetDirectories(folderPath, $"*{suffix}", SearchOption.AllDirectories).ToList();
+            List<string> folders = [.. Directory.GetDirectories(folderPath, $"*{suffix}", SearchOption.AllDirectories)];
             folders.ForEach(f => foldersName.Add(new DirectoryInfo(f).Name.Replace(suffix, "")));
 
             // Get Options name
@@ -794,7 +798,7 @@
         /// <summary>
         /// Extract the entity name form Dto file name.
         /// </summary>
-        private string GetEntityNameFromDto(string dtoFileName)
+        private static string GetEntityNameFromDto(string dtoFileName)
         {
             var fileName = Path.GetFileNameWithoutExtension(dtoFileName);
             if (!string.IsNullOrWhiteSpace(fileName) && fileName.ToLower().EndsWith("dto"))

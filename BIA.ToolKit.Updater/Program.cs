@@ -74,10 +74,10 @@
             bool isInstalled = false;
             try
             {
-                InstallUpdate(appPath, zipPath, args);
+                InstallUpdate(appPath, zipPath);
                 isInstalled = true;
             }
-            catch (System.UnauthorizedAccessException e)
+            catch (UnauthorizedAccessException)
             {
                 if (!adminMode)
                 {
@@ -156,7 +156,7 @@
             }
         }
 
-        static void InstallUpdate(string appPath, string zipPath, string[] args)
+        static void InstallUpdate(string appPath, string zipPath)
         {
             foreach (var directory in Directory.GetDirectories(appPath, "*", SearchOption.AllDirectories).ToList())
             {
@@ -192,7 +192,7 @@
 
         static public void ExecuteAsAdmin(string fileName, string appPath, string zipPath)
         {
-            Process proc = new Process();
+            Process proc = new();
             proc.StartInfo.FileName = fileName;
             proc.StartInfo.ArgumentList.Add(appPath);       // First argument          
             proc.StartInfo.ArgumentList.Add(zipPath);       // second argument

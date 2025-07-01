@@ -12,7 +12,7 @@
         public List<KeyValuePair<string, string>> Annotations { get; } = new List<KeyValuePair<string, string>>();
         public bool IsOptionDto => Type.Equals("OptionDto") || Type.Equals("ICollection<OptionDto>");
 
-        public PropertyInfo(string type, string name, List<AttributeArgumentSyntax>? arguments)
+        public PropertyInfo(string type, string name, List<AttributeArgumentSyntax> arguments)
         {
             Type = type;
             Name = name;

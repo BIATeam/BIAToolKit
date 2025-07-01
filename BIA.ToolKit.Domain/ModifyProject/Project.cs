@@ -9,16 +9,16 @@
     public class Project
     {
         /// The folder of the project.
-        public string? Folder { get; set; }
+        public string Folder { get; set; }
 
         /// The name of the project.
-        public string? Name { get; set; }
+        public string Name { get; set; }
 
         /// The name of the project.
-        public string? FrameworkVersion { get; set; }
+        public string FrameworkVersion { get; set; }
 
         /// The Bia framework version of the project.
-        public string? CompanyName { get; set; }
+        public string CompanyName { get; set; }
 
         /// The BIA front folders of the project.
         public List<string> BIAFronts { get; set; } = new List<string>();
@@ -26,6 +26,6 @@
         /// <summary>
         /// Path to the solution of the project
         /// </summary>
-        public string? SolutionPath { get; set; }
+        public string SolutionPath { get; set; }
     }
 }

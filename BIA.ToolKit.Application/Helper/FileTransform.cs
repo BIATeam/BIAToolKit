@@ -202,7 +202,7 @@
             var bom = new byte[4];
             using (var file = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {
-                file.Read(bom, 0, 4);
+                file.ReadExactly(bom, 0, 4);
             }
 
             // Analyze the BOM

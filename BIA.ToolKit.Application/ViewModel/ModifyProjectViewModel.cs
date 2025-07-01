@@ -168,7 +168,7 @@
             set
             {
                 IsFileGeneratorServiceInit = false;
-                eventBroker.ExecuteTaskWithWaiter(async () =>
+                eventBroker.ExecuteActionWithWaiter(async () =>
                 {
                     Project currentProject = null;
 
