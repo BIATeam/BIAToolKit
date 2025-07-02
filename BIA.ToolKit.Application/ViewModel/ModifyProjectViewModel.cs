@@ -48,6 +48,19 @@
             }
         }
 
+        private bool isProjectCompatibleCrudGenerator;
+
+        public bool IsProjectCompatibleCrudGenerator
+        {
+            get { return isProjectCompatibleCrudGenerator; }
+            set 
+            { 
+                isProjectCompatibleCrudGenerator = value; 
+                RaisePropertyChanged(nameof(IsProjectCompatibleCrudGenerator));
+            }
+        }
+
+
         public List<string> Projects
         {
             get { return ModifyProject.Projects; }
@@ -168,6 +181,7 @@
             set
             {
                 IsFileGeneratorServiceInit = false;
+                IsProjectCompatibleCrudGenerator = false;
                 eventBroker.ExecuteActionWithWaiter(async () =>
                 {
                     Project currentProject = null;
@@ -210,6 +224,7 @@
                     }
                     await fileGeneratorService.Init(currentProject);
                     IsFileGeneratorServiceInit = fileGeneratorService.IsInit;
+                    IsProjectCompatibleCrudGenerator = GenerateCrudService.IsProjectCompatible(currentProject);  
                     CurrentProject = currentProject;
                 });
             }

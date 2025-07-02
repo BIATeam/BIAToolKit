@@ -111,7 +111,7 @@
                         </Grid>
                     </Grid>
                 </TabItem>
-                <TabItem x:Name="TabOptionGenerator" Header="Option Generator">
+                <TabItem x:Name="TabOptionGenerator" Header="Option Generator" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <Grid>
                             <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
@@ -127,7 +127,7 @@
                         </Grid>
                     </ScrollViewer>
                 </TabItem>
-                <TabItem x:Name="TabCrudGenerator" Header="CRUD Generator">
+                <TabItem x:Name="TabCrudGenerator" Header="CRUD Generator" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <Grid>
                             <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>

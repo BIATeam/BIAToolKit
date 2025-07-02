@@ -33,7 +33,10 @@
         private const string ATTRIBUTE_TYPE_NOT_MANAGED_TYPE = "YYYTypeYYY";
         private const string IS_REQUIRED_PROPERTY = "isRequired:";
 
+        private const int FRAMEWORK_VERSION_MINIMUM = 390;
+
         private readonly IConsoleWriter consoleWriter;
+        private readonly ZipParserService zipParserService;
 
         public CrudNames CrudNames { get; set; }
         public Project CurrentProject { get; set; }
@@ -49,9 +52,25 @@
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GenerateCrudService(IConsoleWriter consoleWriter)
+        public GenerateCrudService(IConsoleWriter consoleWriter, ZipParserService zipParserService)
         {
             this.consoleWriter = consoleWriter;
+            this.zipParserService = zipParserService;
+        }
+
+        public static bool IsProjectCompatible(Project project)
+        {
+            // Verify version to avoid to try to parse zip when ".bia" folders are missing
+            if (!string.IsNullOrEmpty(project?.FrameworkVersion))
+            {
+                string version = project.FrameworkVersion.Replace(".", "");
+                if (int.TryParse(version, out int value))
+                {
+                    return value >= FRAMEWORK_VERSION_MINIMUM;
+                }
+            }
+
+            return false;
         }
 
         public bool GenerateFiles(EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList,
@@ -134,7 +153,7 @@
                     }
                 }
 
-                CleanBiaFolders();
+                zipParserService.CleanBiaFolders(zipFeatureTypeList, CurrentProject, biaFront);
             }
             catch (Exception ex)
             {
@@ -148,31 +167,6 @@
             }
 
             return true;
-        }
-
-        private void CleanBiaFolders()
-        {
-            const string biaFolder = ".bia";
-
-            var biaFolderBackPath = Path.Combine(DotNetFolderGeneration, biaFolder);
-            var biaFolderFrontPath = Path.Combine(AngularFolderGeneration, biaFolder);
-
-            var biaFolderBackItems = Directory.EnumerateFileSystemEntries(biaFolderBackPath);
-            var biaFolderFrontItems = Directory.EnumerateFileSystemEntries(biaFolderFrontPath);
-            foreach(var item in biaFolderBackItems.Concat(biaFolderFrontItems))
-            {
-                var isRootItem = Path.GetDirectoryName(item) == biaFolderBackPath || Path.GetDirectoryName(item) == biaFolderFrontPath;
-                if (isRootItem && Path.GetExtension(item).Equals(".zip", StringComparison.InvariantCultureIgnoreCase))
-                    continue;
-
-                if(Directory.Exists(item))
-                {
-                    Directory.Delete(item, true);
-                    continue;
-                }
-
-                File.Delete(item);
-            }
         }
 
         public void DeleteLastGeneration(List<ZipFeatureType> zipFeatureTypeList, Project currentProject, GenerationHistory generationHistory, string feature, CrudParent crudParent, List<CRUDGenerationHistory> optionsGenerationHistory = null)

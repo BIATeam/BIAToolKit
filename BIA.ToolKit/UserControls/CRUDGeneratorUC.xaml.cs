@@ -30,7 +30,6 @@
     {
         private const string DOTNET_TYPE = "DotNet";
         private const string ANGULAR_TYPE = "Angular";
-        private const int FRAMEWORK_VERSION_MINIMUM = 390;
 
         private IConsoleWriter consoleWriter;
         private CSharpParserService service;
@@ -303,6 +302,9 @@
                     return;
                 }
 
+                if (!zipService.ParseZips(vm.ZipFeatureTypeList, vm.CurrentProject, vm.BiaFront, settings))
+                    return;
+
                 var crudParent = new CrudParent
                 {
                     Exists = vm.HasParent,
@@ -442,7 +444,6 @@
             if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
                 vm.UseFileGenerator = true;
-                vm.IsZipParsed = true;
                 vm.FeatureNames.Add("CRUD");
                 vm.FeatureNameSelected = "CRUD";
                 this.crudHistory = CommonTools.DeserializeJsonFile<CRUDGeneration>(this.crudHistoryFileName);
@@ -474,8 +475,6 @@
                     var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths, setting.FeatureDomain);
                     vm.ZipFeatureTypeList.Add(zipFeatureType);
                 }
-
-                ParseZips(vm.ZipFeatureTypeList, project);
 
                 foreach (var featureName in vm.ZipFeatureTypeList.Select(x => x.Feature).Distinct())
                 {
@@ -527,8 +526,6 @@
                 var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths, setting.FeatureDomain);
                 vm.ZipFeatureTypeList.Add(zipFeatureType);
             }
-
-            ParseZips(vm.ZipFeatureTypeList.Where(x => x.GenerationType == GenerationType.Front), vm.CurrentProject);
         }
 
         /// <summary>
@@ -693,32 +690,6 @@
         }
 
         /// <summary>
-        /// Parse all zips.
-        /// </summary>
-        private void ParseZips(IEnumerable<ZipFeatureType> zipFeatures, Project project)
-        {
-            vm.IsZipParsed = false;
-
-            // Verify version to avoid to try to parse zip when ".bia" folders are missing
-            if (!string.IsNullOrEmpty(project.FrameworkVersion))
-            {
-                string version = project.FrameworkVersion.Replace(".", "");
-                if (int.TryParse(version, out int value))
-                {
-                    if (value < FRAMEWORK_VERSION_MINIMUM)
-                        return;
-                }
-            }
-
-            bool parsed = false;
-            foreach (var zipFeatureType in zipFeatures)
-            {
-                parsed |= ParseZipFile(zipFeatureType, project);
-            }
-            vm.IsZipParsed = parsed;
-        }
-
-        /// <summary>
         /// Parse the Dto file.
         /// </summary>
         private bool ParseDtoFile()
@@ -772,28 +743,7 @@
             vm.AddOptionItems(foldersName.Select(x => new OptionItem(CommonTools.ConvertKebabToPascalCase(x))));
         }
 
-        /// <summary>
-        /// Parse Zip files (WebApi, CRUD, option or team).
-        /// </summary>
-        private bool ParseZipFile(ZipFeatureType zipData, Project project)
-        {
-            try
-            {
-                string folderName = (zipData.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.BiaFront;
-                string biaFolder = Path.Combine(project.Folder, folderName, Constants.FolderBia);
-                if (!new DirectoryInfo(biaFolder).Exists)
-                {
-                    return false;
-                }
-
-                return zipService.ParseZipFile(zipData, biaFolder, settings.DtoCustomAttributeFieldName);
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine($"Error on parsing '{zipData.FeatureType}' Zip File: {ex.Message}", "Red");
-            }
-            return false;
-        }
+        
 
         /// <summary>
         /// Extract the entity name form Dto file name.

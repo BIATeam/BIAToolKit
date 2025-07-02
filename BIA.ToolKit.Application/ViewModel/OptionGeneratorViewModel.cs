@@ -240,17 +240,6 @@
                 }
             }
         }
-
-        private bool isZipParsed = false;
-        public bool IsZipParsed
-        {
-            get => isZipParsed;
-            set
-            {
-                isZipParsed = value;
-                RaisePropertyChanged(nameof(IsButtonGenerateOptionEnable));
-            }
-        }
         #endregion
 
         #region Button
@@ -258,7 +247,7 @@
         {
             get
             {
-                return IsEntityParsed && IsZipParsed
+                return IsEntityParsed
                     && !string.IsNullOrWhiteSpace(EntityNamePlural)
                     && !string.IsNullOrWhiteSpace(entityDisplayItemSelected)
                     && !string.IsNullOrEmpty(Domain);

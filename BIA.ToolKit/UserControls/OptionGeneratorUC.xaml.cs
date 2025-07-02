@@ -202,6 +202,9 @@
                     return;
                 }
 
+                if (!zipService.ParseZips(vm.ZipFeatureTypeList, vm.CurrentProject, vm.BiaFront, settings))
+                    return;
+
                 crudService.CrudNames.InitRenameValues(vm.EntitySelected, vm.EntityNamePlural);
 
                 // Generation DotNet + Angular files
@@ -321,7 +324,6 @@
 
             if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
-                vm.IsZipParsed = true;
                 this.optionGenerationHistory = CommonTools.DeserializeJsonFile<OptionGeneration>(this.optionHistoryFileName);
                 return;
             }
@@ -343,8 +345,6 @@
                     vm.ZipFeatureTypeList.Add(zipFeatureType);
                 }
             }
-
-            ParseZips(vm.ZipFeatureTypeList);
 
             // Load generation history
             this.optionGenerationHistory = CommonTools.DeserializeJsonFile<OptionGeneration>(this.optionHistoryFileName);
@@ -380,8 +380,6 @@
                     vm.ZipFeatureTypeList.Add(zipFeatureType);
                 }
             }
-
-            ParseZips(vm.ZipFeatureTypeList.Where(x => x.GenerationType == GenerationType.Front));
         }
 
         /// <summary>
@@ -497,32 +495,6 @@
         }
 
         /// <summary>
-        /// Parse all zips.
-        /// </summary>
-        private void ParseZips(IEnumerable<ZipFeatureType> zipFeatures)
-        {
-            vm.IsZipParsed = false;
-
-            // Verify version to avoid to try to parse zip when ".bia" folders are missing
-            if (!string.IsNullOrEmpty(vm.CurrentProject.FrameworkVersion))
-            {
-                string version = vm.CurrentProject.FrameworkVersion.Replace(".", "");
-                if (int.TryParse(version, out int value))
-                {
-                    if (value < FRAMEWORK_VERSION_MINIMUM)
-                        return;
-                }
-            }
-
-            bool parsed = false;
-            foreach (var zipFeatureType in zipFeatures)
-            {
-                parsed |= ParseZipFile(zipFeatureType);
-            }
-            vm.IsZipParsed = parsed;
-        }
-
-        /// <summary>
         /// Parse the Entity file.
         /// </summary>
         private bool ParseEntityFile()
@@ -568,29 +540,6 @@
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"Error on parsing Entity File: {ex.Message}", "Red");
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Parse Zip feature files.
-        /// </summary>
-        private bool ParseZipFile(ZipFeatureType zipData)
-        {
-            try
-            {
-                string folderName = (zipData.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.BiaFront;
-                string biaFolder = Path.Combine(vm.CurrentProject.Folder, folderName, Constants.FolderBia);
-                if (!new DirectoryInfo(biaFolder).Exists)
-                {
-                    return false;
-                }
-
-                return zipService.ParseZipFile(zipData, biaFolder, settings.DtoCustomAttributeFieldName);
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine($"Error on parsing '{zipData.FeatureType}' Zip File: {ex.Message}", "Red");
             }
             return false;
         }
