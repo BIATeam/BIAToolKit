@@ -183,7 +183,6 @@
                     CommonTools.SerializeToJsonFile(versionAndOptionDto, projectGenerationFile);
                 });
 
-                consoleWriter.AddMessageLine("Remove biatookit.json from BIA folders.", "Pink");
                 CleanBiaToolkitJsonFiles(projectPath);
 
                 consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd ? "Green" : "Blue");
@@ -346,6 +345,8 @@
         private void CleanBiaToolkitJsonFiles(string projectPath)
         {
             const string biatoolkitFilename = "biatoolkit.json";
+
+            consoleWriter.AddMessageLine("Remove biatookit.json from BIA folders.", "Pink");
             CleanFiles(Path.Combine(projectPath, Constants.FolderDotNet, Constants.FolderBia), biatoolkitFilename);
             CleanFiles(Path.Combine(projectPath, Constants.FolderAngular, Constants.FolderBia), biatoolkitFilename);
         }
@@ -354,7 +355,6 @@
         {
             if (!Directory.Exists(rootDirectory))
             {
-                consoleWriter.AddMessageLine($"-> Folder {rootDirectory} does not exists", "red");
                 return;
             }
 
