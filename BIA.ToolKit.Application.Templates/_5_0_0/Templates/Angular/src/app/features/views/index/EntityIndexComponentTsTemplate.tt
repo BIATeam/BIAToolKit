@@ -97,15 +97,21 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
 
   ngOnInit(): void {
     super.ngOnInit();
-<#  if(ModelInstance.IsTeam && ModelInstance.HasParent) { #>
-    this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.<#= ModelInstance.ParentName.ToCamelCase() #>Service.currentCrudItemId =
-      this.authService.getCurrentTeam(
-        TeamTypeId.<#= ModelInstance.ParentName #>
-      )?.teamId;
-<#  } #>
 <#  if(ModelInstance.HasParent) { #>
+<#  if(ModelInstance.IsTeam) { #>
+
+    const <#= ModelInstance.ParentName.ToCamelCase() #>Id = this.authService.getCurrentTeam(
+      TeamTypeId.<#= ModelInstance.ParentName #>
+    )?.teamId;
+    if (<#= ModelInstance.ParentName.ToCamelCase() #>Id) {
+      this.maintenanceTeamService.<#= ModelInstance.ParentName.ToCamelCase() #>Service.currentCrudItemId =
+        <#= ModelInstance.ParentName.ToCamelCase() #>Id;
+<#  } #>
     this.parentDisplayItemName$ =
       this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.<#= ModelInstance.ParentName.ToCamelCase() #>Service.displayItemName$;
+<#  if(ModelInstance.IsTeam) { #>
+    }
+<#  } #>
 <#  } #>
 <#  if(ModelInstance.HasOptionItems) { #>
     this.sub.add(

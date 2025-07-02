@@ -64,12 +64,16 @@ export class MaintenanceTeamsIndexComponent extends CrudItemsIndexComponent<Main
 
   ngOnInit(): void {
     super.ngOnInit();
-    this.maintenanceTeamService.aircraftMaintenanceCompanyService.currentCrudItemId =
-      this.authService.getCurrentTeam(
-        TeamTypeId.AircraftMaintenanceCompany
-      )?.teamId;
+
+    const aircraftMaintenanceCompanyId = this.authService.getCurrentTeam(
+      TeamTypeId.AircraftMaintenanceCompany
+    )?.teamId;
+    if (aircraftMaintenanceCompanyId) {
+      this.maintenanceTeamService.aircraftMaintenanceCompanyService.currentCrudItemId =
+        aircraftMaintenanceCompanyId;
     this.parentDisplayItemName$ =
       this.maintenanceTeamService.aircraftMaintenanceCompanyService.displayItemName$;
+    }
     this.sub.add(
       this.biaTranslationService.currentCulture$.subscribe(() => {
         this.maintenanceTeamOptionsService.loadAllOptions();
