@@ -38,7 +38,7 @@
             var consoleWriter = new ConsoleWriterTest(stopwatch);
             stopwatch.Start();
 
-            var biaDemoZipPath = "..\\..\\..\\..\\BIADemoVersions\\BIADemo_5.0.0.zip";
+            var biaDemoZipPath = "..\\..\\..\\..\\BIADemoVersions\\BIADemo_5.0.1.zip";
             var currentDir = Directory.GetCurrentDirectory();
             referenceProjectPath = NormalisePath(Path.Combine(currentDir, "..\\..\\..\\..\\BIADemoVersions\\", Path.GetFileNameWithoutExtension(biaDemoZipPath)));
             testProjectPath = Path.Combine(Path.GetTempPath(), "BIAToolKitTestTemplatesGenerated");
@@ -73,7 +73,7 @@
                 Name = "BIADemo",
                 CompanyName = "TheBIADevCompany",
                 BIAFronts = ["Angular"],
-                FrameworkVersion = "5.0.0"
+                FrameworkVersion = "5.0.1"
             };
 
             TestProject = new Project
