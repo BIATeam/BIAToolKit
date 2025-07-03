@@ -21,13 +21,4 @@ export class MaintenanceTeamNewComponent extends CrudItemNewComponent<Maintenanc
     super(injector, maintenanceTeamService);
     this.crudConfiguration = maintenanceTeamCRUDConfiguration;
   }
-
-  ngOnInit(): void {
-    super.ngOnInit();
-    this.sub.add(
-      this.biaTranslationService.currentCulture$.subscribe(() => {
-        this.maintenanceTeamOptionsService.loadAllOptions();
-      })
-    );
-  }
 }

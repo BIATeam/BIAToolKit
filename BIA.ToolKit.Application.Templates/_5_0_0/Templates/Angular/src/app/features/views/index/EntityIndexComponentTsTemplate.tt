@@ -95,9 +95,9 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
     this.crudConfiguration = <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration;
   }
 
+<#  if(ModelInstance.HasParent) { #>
   ngOnInit(): void {
     super.ngOnInit();
-<#  if(ModelInstance.HasParent) { #>
 <#  if(ModelInstance.IsTeam) { #>
 
     const <#= ModelInstance.ParentName.ToCamelCase() #>Id = this.authService.getCurrentTeam(
@@ -112,15 +112,8 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
 <#  if(ModelInstance.IsTeam) { #>
     }
 <#  } #>
-<#  } #>
-<#  if(ModelInstance.HasOptionItems) { #>
-    this.sub.add(
-      this.biaTranslationService.currentCulture$.subscribe(() => {
-        this.<#= ModelInstance.EntityName.ToCamelCase() #>OptionsService.loadAllOptions();
-      })
-    );
-<#  } #>
   }
+<#  } #>
 
   protected setPermissions() {
 <#  if(!ModelInstance.HasFixableParent) { #>

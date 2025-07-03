@@ -33,17 +33,6 @@ export class <#= ModelInstance.EntityName #>EditComponent extends CrudItemEditCo
     this.crudConfiguration = <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration;
   }
 
-  ngOnInit(): void {
-    super.ngOnInit();
-<#  if(ModelInstance.HasOptionItems) { #>
-    this.sub.add(
-      this.biaTranslationService.currentCulture$.subscribe(() => {
-        this.<#= ModelInstance.EntityName.ToCamelCase() #>OptionsService.loadAllOptions();
-      })
-    );
-<#  } #>
-  }
-
 <#  if(ModelInstance.HasFixableParent) { #>
   protected setPermissions(): void {
     super.setPermissions();

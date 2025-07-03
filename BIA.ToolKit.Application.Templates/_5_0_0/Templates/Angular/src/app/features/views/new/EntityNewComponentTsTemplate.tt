@@ -28,15 +28,4 @@ export class <#= ModelInstance.EntityName #>NewComponent extends CrudItemNewComp
     super(injector, <#= ModelInstance.EntityName.ToCamelCase() #>Service);
     this.crudConfiguration = <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration;
   }
-
-  ngOnInit(): void {
-    super.ngOnInit();
-<#  if(ModelInstance.HasOptionItems) { #>
-    this.sub.add(
-      this.biaTranslationService.currentCulture$.subscribe(() => {
-        this.<#= ModelInstance.EntityName.ToCamelCase() #>OptionsService.loadAllOptions();
-      })
-    );
-<#  } #>
-  }
 }

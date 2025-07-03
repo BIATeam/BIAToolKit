@@ -26,13 +26,4 @@ export class MaintenanceTeamEditComponent extends CrudItemEditComponent<Maintena
     this.crudConfiguration = maintenanceTeamCRUDConfiguration;
   }
 
-  ngOnInit(): void {
-    super.ngOnInit();
-    this.sub.add(
-      this.biaTranslationService.currentCulture$.subscribe(() => {
-        this.maintenanceTeamOptionsService.loadAllOptions();
-      })
-    );
-  }
-
 }
