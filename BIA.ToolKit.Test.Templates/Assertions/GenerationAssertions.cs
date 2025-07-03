@@ -97,7 +97,7 @@
 
                 if (isAngularTemplate)
                 {
-                    testFixture.FileGeneratorService.ApplyPrettierToGeneratedAngularFileAsync(referencePath).Wait();
+                    testFixture.FileGeneratorService.RunPrettierAsync(referencePath).Wait();
                 }
             }
         }

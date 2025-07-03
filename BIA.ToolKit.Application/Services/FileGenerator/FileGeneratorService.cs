@@ -36,7 +36,7 @@
         private readonly IConsoleWriter _consoleWriter;
         private readonly List<Manifest> _manifests = [];
         private IFileGeneratorModelProvider _modelProvider;
-        private VersionedTemplateGenerator _templateGenerator;
+        private string _modelProviderVersion;
         private string _templatesPath;
         private Project _currentProject;
         private FileGeneratorContext _currentContext;
@@ -85,16 +85,11 @@
                     // Load compatible model provider
                     LoadModelProvider(projectVersion);
                     // Parse file generator version number (_X_Y_Z)
-                    var modelProviderVersion = ParseModelProviderVersion();
+                    _modelProviderVersion = ParseModelProviderVersion();
                     // Search templates path based on file generator version (_X_Y_Z)
-                    FindTemplatesPath(modelProviderVersion);
+                    FindTemplatesPath(_modelProviderVersion);
                     // Search template manifest based on file generator version transofmred (_X_Y_Z -> X.Y.Z)
-                    SetCurrentManifest(modelProviderVersion);
-
-                    // Init template generator
-                    _templateGenerator = new VersionedTemplateGenerator(modelProviderVersion);
-                    // Add reference to assembly of Manifest class to the template generator
-                    _templateGenerator.Refs.Add(typeof(Manifest).Assembly.Location);
+                    SetCurrentManifest(_modelProviderVersion);
 
                     IsInit = true;
                 });
@@ -266,24 +261,39 @@
 
         private async Task GenerateTemplatesFromManifestFeatureAsync(Manifest.Feature manifestFeature, object model)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            _consoleWriter.AddMessageLine("Please wait...", "darkgray");
+
+            var generateAngularTemplatesTask = Task.CompletedTask;
+            var generateDotNetTemplatesTask = Task.CompletedTask;
+
             if (_currentContext.GenerateFront)
             {
-                await GenerateAngularTemplates(manifestFeature.AngularTemplates, model);
+                generateAngularTemplatesTask = GenerateAngularTemplates(manifestFeature.AngularTemplates, model);
             }
 
             if (_currentContext.GenerateBack)
             {
-                await GenerateDotNetTemplatesAsync(manifestFeature.DotNetTemplates, model);
+                generateDotNetTemplatesTask = GenerateDotNetTemplatesAsync(manifestFeature.DotNetTemplates, model);
             }
+
+            await Task.WhenAll(generateAngularTemplatesTask, generateDotNetTemplatesTask);
+
+            stopwatch.Stop();
+            _consoleWriter.AddMessageLine($"[Generated in {stopwatch.Elapsed.Minutes:D2}:{stopwatch.Elapsed.Seconds:D2}min]", "darkgray");
         }
 
         private async Task GenerateDotNetTemplatesAsync(IEnumerable<Manifest.Feature.Template> templates, object model)
         {
-            foreach (var template in templates)
-            {
-                var templatePath = Path.Combine(_templatesPath, Constants.FolderDotNet, template.InputPath);
-                await GenerateFromTemplateAsync(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder));
-            }
+            await RunGenerateTemplatesAsync(templates, model, GenerateDotNetTemplateAsync);
+        }
+
+        private async Task GenerateDotNetTemplateAsync(Manifest.Feature.Template template, object model)
+        {
+            var templatePath = Path.Combine(_templatesPath, Constants.FolderDotNet, template.InputPath);
+            await GenerateFromTemplateAsync(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder));
         }
 
         public static string GetDotNetTemplateOutputPath(string templateOutputPath, FileGeneratorContext context, string projectFolder)
@@ -301,21 +311,44 @@
 
         private async Task GenerateAngularTemplates(IEnumerable<Manifest.Feature.Template> templates, object model)
         {
+            var angularProjectFolder = Path.Combine(_currentProject.Folder, _currentContext.AngularFront);
+            
             if (!_fromUnitTest)
             {
-                SetPrettierAngularProjectPath(Path.Combine(_currentProject.Folder, _currentContext.AngularFront));
+                SetPrettierAngularProjectPath(angularProjectFolder);
             }
 
-            foreach (var template in templates)
+            await RunGenerateTemplatesAsync(templates, model, GenerateAngularTemplateAsync);
+            await RunPrettierAsync(angularProjectFolder);
+        }
+
+        private async Task GenerateAngularTemplateAsync(Manifest.Feature.Template template, object model)
+        {
+            var templatePath = Path.Combine(_templatesPath, Constants.FolderAngular, template.InputPath);
+            var outputPath = GetAngularTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder);
+            await GenerateFromTemplateAsync(template, templatePath, model, outputPath);
+        }
+
+        private static async Task RunGenerateTemplatesAsync(IEnumerable<Manifest.Feature.Template> templates, object model, Func<Manifest.Feature.Template, object, Task> generateTemplateTask)
+        {
+            var groupTemplates = templates.GroupBy(t => t.OutputPath).Where(g => g.Count() > 1).ToList();
+            var uniqueTemplates = templates.Where(t => !groupTemplates.Any(gt => gt.Key == t.OutputPath)).ToList();
+
+            var uniqueTemplatesGenerationTasks = uniqueTemplates.Select(async (template) =>
             {
-                var templatePath = Path.Combine(_templatesPath, Constants.FolderAngular, template.InputPath);
-                var outputPath = GetAngularTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder);
-                await GenerateFromTemplateAsync(template, templatePath, model, outputPath);
-                if (_currentContext.GenerationReport.TemplatesGenerated.Contains(template))
+                await generateTemplateTask(template, model);
+            });
+
+            var groupTemplatesGenerationTasks = groupTemplates.Select(async (templates) =>
+            {
+                foreach (var template in templates)
                 {
-                    await ApplyPrettierToGeneratedAngularFileAsync(outputPath);
+                    await generateTemplateTask(template, model);
                 }
-            }
+            });
+
+            var generationTasks = uniqueTemplatesGenerationTasks.Concat(groupTemplatesGenerationTasks).ToList();
+            await Task.WhenAll(generationTasks);
         }
 
         public static string GetAngularTemplateOutputPath(string templateOutputPath, FileGeneratorContext context, string projectFolder)
@@ -334,22 +367,22 @@
             return outputPath;
         }
 
-        public async Task ApplyPrettierToGeneratedAngularFileAsync(string filePath)
+        public async Task RunPrettierAsync(string path)
         {
             var cts = new CancellationTokenSource();
 
             var process = new Process();
             process.StartInfo.WorkingDirectory = _prettierAngularProjectPath;
             process.StartInfo.FileName = "cmd.exe";
-            process.StartInfo.Arguments = $"/C npx prettier --write {filePath} --plugin=prettier-plugin-organize-imports --config \"{Path.Combine(_prettierAngularProjectPath, ".prettierrc")}\"";
+            process.StartInfo.Arguments = $"/C npx prettier --write {path} --plugin=prettier-plugin-organize-imports --config \"{Path.Combine(_prettierAngularProjectPath, ".prettierrc")}\"";
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
             process.Start();
-            _consoleWriter.AddMessageLine($"Prettier generated file...", "gray");
+            _consoleWriter.AddMessageLine($"Prettier {path}...", "gray");
 
             try
             {
-                cts.CancelAfter(5000);
+                cts.CancelAfter(30000);
                 await process.WaitForExitAsync(cts.Token);
                 _consoleWriter.AddMessageLine($"Prettier succeed !", "lightgreen");
             }
@@ -366,29 +399,34 @@
 
         private async Task GenerateFromTemplateAsync(Manifest.Feature.Template template, string templatePath, object model, string outputPath)
         {
+            var relativeOutputPath = outputPath.Replace(_currentProject.Folder, string.Empty);
+            var relativeTemplatePath = templatePath.Replace(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), string.Empty);
+            var logMessagePrefix = $"Generation of {(template.IsPartial ? $"partial content '{template.PartialInsertionMarkup}' into" : "file")} '{relativeOutputPath}'" ;
+#if DEBUG
+            logMessagePrefix += $" from template file '{relativeTemplatePath}'";
+#endif
+
             try
             {
-                var relativeOutputPath = outputPath.Replace(_currentProject.Folder, string.Empty);
-                _consoleWriter.AddMessageLine($"Generating {(template.IsPartial ? "partial content into" : "file")} {relativeOutputPath} ...");
-                var relativeTemplatePath = templatePath.Replace(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), string.Empty);
-                _consoleWriter.AddMessageLine($"Using template file {relativeTemplatePath}", color: "darkgray");
-
                 var generationTemplatePath = Path.GetTempFileName();
                 var templateContent = await File.ReadAllTextAsync(templatePath);
                 await File.WriteAllTextAsync(generationTemplatePath, templateContent);
 
+                // Init template generator
+                var templateGenerator = new VersionedTemplateGenerator(_modelProviderVersion);
+                // Add reference to assembly of Manifest class to the template generator
+                templateGenerator.Refs.Add(typeof(Manifest).Assembly.Location);
                 // Inject Model parameter for template generation
-                _templateGenerator.ClearSession();
-                var templateGeneratorSession = _templateGenerator.GetOrCreateSession();
+                var templateGeneratorSession = templateGenerator.GetOrCreateSession();
                 templateGeneratorSession.Add("Model", model);
 
                 // Generate content from template into temp file
                 var generatedTemplatePath = Path.Combine(Path.GetTempPath(), Path.GetFileName(outputPath));
-                var success = await _templateGenerator.ProcessTemplateAsync(generationTemplatePath, generatedTemplatePath);
+                var success = await templateGenerator.ProcessTemplateAsync(generationTemplatePath, generatedTemplatePath);
                 File.Delete(generationTemplatePath);
                 if (!success)
                 {
-                    throw new Exception(JsonConvert.SerializeObject(_templateGenerator.Errors));
+                    throw new Exception(JsonConvert.SerializeObject(templateGenerator.Errors));
                 }
 
                 // Check if generated content has any line
@@ -396,7 +434,9 @@
                 File.Delete(generatedTemplatePath);
                 if (generatedTemplateContent.Count == 0)
                 {
-                    _consoleWriter.AddMessageLine("Ignored : generated content is empty", "orange");
+#if DEBUG
+                    _consoleWriter.AddMessageLine($"{logMessagePrefix} : [IGNORED]", "orange");
+#endif
                     _currentContext.GenerationReport.TemplatesIgnored.Add(template);
                     return;
                 }
@@ -411,12 +451,12 @@
                     await File.WriteAllLinesAsync(outputPath, generatedTemplateContent);
                 }
 
-                _consoleWriter.AddMessageLine($"Success !", "lightgreen");
+                _consoleWriter.AddMessageLine($"{logMessagePrefix} : [SUCCESS]", "lightgreen");
                 _currentContext.GenerationReport.TemplatesGenerated.Add(template);
             }
             catch (Exception ex)
             {
-                _consoleWriter.AddMessageLine($"Generate from template failed : {ex}", color: "red");
+                _consoleWriter.AddMessageLine($"{logMessagePrefix} : [ERROR] -> {ex}", color: "red");
                 _currentContext.GenerationReport.TemplatesFailed.Add(template);
             }
         }
