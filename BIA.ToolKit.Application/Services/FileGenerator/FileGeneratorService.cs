@@ -293,7 +293,7 @@
             await RunGenerateTemplatesAsync(templates, model, GenerateDotNetTemplateAsync);
             if (!_fromUnitTest)
             {
-                await parserService.ResolveUsings(_currentProject.SolutionPath, _currentContext.GenerationReport.TemplatesGenerated.Select(x => GetDotNetTemplateOutputPath(x.OutputPath, _currentContext, _currentProject.Folder)));
+                await parserService.FixUsings(_currentProject.SolutionPath, _currentContext.GenerationReport.TemplatesGenerated.Select(x => GetDotNetTemplateOutputPath(x.OutputPath, _currentContext, _currentProject.Folder)));
             }
         }
 

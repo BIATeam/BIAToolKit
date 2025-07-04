@@ -187,7 +187,7 @@
                 });
 
                 CleanBiaToolkitJsonFiles(projectPath);
-                await parserService.ResolveUsings(Path.Combine(projectPath, FolderDotNet, $"{projectParameters.ProjectName}.sln"));
+                await parserService.FixUsings(Path.Combine(projectPath, FolderDotNet, $"{projectParameters.ProjectName}.sln"));
 
                 consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd ? "Green" : "Blue");
             }

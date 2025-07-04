@@ -358,18 +358,14 @@
             _viewModel.RefreshProjetsList();
         }
 
-        private void ResolveUsings_Click(object sender, RoutedEventArgs e)
+        private void FixUsings_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteActionWithWaiter(ResolveUsings_Run);
+            uiEventBroker.ExecuteActionWithWaiter(FixUsings_Run);
         }
 
-        private async Task ResolveUsings_Run()
+        private async Task FixUsings_Run()
         {
-            var result = MessageBox.Show("Make sure all Nuget packages have been restored in your solution before running the automatic resolve of usings statement.", "Resolve usings", MessageBoxButton.OKCancel, MessageBoxImage.Information);
-            if (result == MessageBoxResult.OK)
-            {
-                await cSharpParserService.ResolveUsings(_viewModel.CurrentProject.SolutionPath);
-            }
+            await cSharpParserService.FixUsings(_viewModel.CurrentProject.SolutionPath, forceRestore: true);
         }
     }
 }

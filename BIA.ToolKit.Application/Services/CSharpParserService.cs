@@ -389,9 +389,9 @@ using Roslyn.Services;*/
             }
         }
 
-        public async Task ResolveUsings(string solutionPath, IEnumerable<string> filteredDocumentsPath = null)
+        public async Task FixUsings(string solutionPath, IEnumerable<string> filteredDocumentsPath = null, bool forceRestore = false)
         {
-            consoleWriter.AddMessageLine("Start resolve usings", "pink");
+            consoleWriter.AddMessageLine("Start fix usings", "pink");
 
             try
             {
@@ -402,7 +402,7 @@ using Roslyn.Services;*/
                     return;
                 }
 
-                if (!await RestoreSolution(solutionPath))
+                if (!await RestoreSolution(solutionPath, forceRestore))
                     return;
 
                 consoleWriter.AddMessageLine("Opening solution...", "darkgray");
@@ -486,13 +486,13 @@ using Roslyn.Services;*/
             }
             finally
             {
-                consoleWriter.AddMessageLine("End resolve usings", "pink");
+                consoleWriter.AddMessageLine("End fix usings", "pink");
             }
         }
 
-        private async Task<bool> RestoreSolution(string solutionPath)
+        private async Task<bool> RestoreSolution(string solutionPath, bool forceRestore)
         {
-            if (IsSolutionRestored(solutionPath))
+            if (!forceRestore && IsSolutionRestored(solutionPath))
                 return true;
 
             consoleWriter.AddMessageLine("Restore solution...", "darkgray");

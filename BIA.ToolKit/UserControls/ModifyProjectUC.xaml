@@ -7,7 +7,7 @@
              xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
-             d:Height="480" d:Width="1280">
+             d:Height="550" d:Width="1280">
     <UserControl.DataContext>
         <local:ModifyProjectViewModel/>
     </UserControl.DataContext>
@@ -106,7 +106,7 @@
                                 <Button Margin="0,3" Content="3 - Apply Diff" x:Name="MigrateApplyDiff" Click="MigrateApplyDiff_Click" IsEnabled="False"/>
                                 <Button Margin="0,3" Content="4 - Merge Rejected" x:Name="MigrateMergeRejected" Click="MigrateMergeRejected_Click" IsEnabled="False"/>
                                 <Button Margin="0,3" Content="5 - Overwrite '\BIA-.*'" x:Name="MigrateOverwriteBIAFolder" Click="MigrateOverwriteBIAFolder_Click" IsEnabled="{Binding IsProjectSelected}"/>
-                                <Button Margin="0,3" Content="6 - Resolve Usings" x:Name="ResolveUsings" Click="ResolveUsings_Click" IsEnabled="{Binding IsProjectSelected}"/>
+                                <Button Margin="0,3" Content="6 - Fix Usings" x:Name="FixUsings" Click="FixUsings_Click" IsEnabled="{Binding IsProjectSelected}"/>
                             </StackPanel>
                         </Grid>
                     </Grid>
