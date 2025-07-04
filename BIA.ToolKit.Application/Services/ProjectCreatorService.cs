@@ -22,17 +22,20 @@
         private readonly IConsoleWriter consoleWriter;
         private readonly RepositoryService repositoryService;
         private readonly FeatureSettingService featureSettingService;
+        private readonly CSharpParserService parserService;
         private readonly SettingsService settingsService;
 
 
         public ProjectCreatorService(IConsoleWriter consoleWriter,
             RepositoryService repositoryService,
             SettingsService settingsService,
-            FeatureSettingService featureSettingService)
+            FeatureSettingService featureSettingService,
+            CSharpParserService parserService)
         {
             this.consoleWriter = consoleWriter;
             this.repositoryService = repositoryService;
             this.featureSettingService = featureSettingService;
+            this.parserService = parserService;
             this.settingsService = settingsService;
         }
 
@@ -184,6 +187,7 @@
                 });
 
                 CleanBiaToolkitJsonFiles(projectPath);
+                await parserService.ResolveUsings(Path.Combine(projectPath, FolderDotNet, $"{projectParameters.ProjectName}.sln"));
 
                 consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd ? "Green" : "Blue");
             }

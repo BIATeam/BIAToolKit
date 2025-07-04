@@ -24,6 +24,7 @@
     using Newtonsoft.Json.Converters;
     using System.Diagnostics;
     using System.Threading;
+    using static BIA.ToolKit.Application.Templates.Manifest.Feature;
 
     public class FileGeneratorService
     {
@@ -34,6 +35,7 @@
 
         private readonly FileGeneratorModelProviderFactory _modelProviderFactory;
         private readonly IConsoleWriter _consoleWriter;
+        private readonly CSharpParserService parserService;
         private readonly List<Manifest> _manifests = [];
         private IFileGeneratorModelProvider _modelProvider;
         private string _modelProviderVersion;
@@ -49,6 +51,7 @@
         public FileGeneratorService(IConsoleWriter consoleWriter)
         {
             this._consoleWriter = consoleWriter;
+            this.parserService = new CSharpParserService(consoleWriter);
             _modelProviderFactory = new FileGeneratorModelProviderFactory(consoleWriter);
 
             LoadTemplatesManifests();
@@ -288,6 +291,10 @@
         private async Task GenerateDotNetTemplatesAsync(IEnumerable<Manifest.Feature.Template> templates, object model)
         {
             await RunGenerateTemplatesAsync(templates, model, GenerateDotNetTemplateAsync);
+            if (!_fromUnitTest)
+            {
+                await parserService.ResolveUsings(_currentProject.SolutionPath, _currentContext.GenerationReport.TemplatesGenerated.Select(x => GetDotNetTemplateOutputPath(x.OutputPath, _currentContext, _currentProject.Folder)));
+            }
         }
 
         private async Task GenerateDotNetTemplateAsync(Manifest.Feature.Template template, object model)
