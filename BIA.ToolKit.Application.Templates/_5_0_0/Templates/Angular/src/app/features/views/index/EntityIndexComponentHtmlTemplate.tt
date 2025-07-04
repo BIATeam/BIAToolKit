@@ -5,7 +5,7 @@
 <div>
   <div [ngClass]="{ 'table-compact': crudConfiguration.useCompactMode }">
 <#  } else { #>
-<div class="flex flex-row bia-page-remove-margin">
+<div class="flex flex-row bia-page-remove-margin bia-responsive-flex-row">
   <div
     class="flex-grow-1 bia-page-margin"
     [ngClass]="{ 'table-compact': crudConfiguration.useCompactMode }">
