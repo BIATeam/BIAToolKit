@@ -13,16 +13,15 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 {
 <# if (ModelInstance.Properties.Count() > 0) { #>
     using System;
-    using System.Linq.Expressions;
-    using BIA.Net.Core.Common.Extensions;
-    using BIA.Net.Core.Domain;
 <#  } #>
 <#  if (ModelInstance.HasCollectionOptions) {  #>
     using System.Collections.Generic;
-    using BIA.Net.Core.Domain.Dto.Base;
 <#  } #>
 <#  if (ModelInstance.HasTimeSpanProperty) {  #>
     using System.Globalization;
+<#  } #>
+<# if (ModelInstance.Properties.Count() > 0) { #>
+    using System.Linq.Expressions;
 <#  } #>
 <# if (ModelInstance.IsTeamType) {  #>
     using System.Security.Principal;
@@ -33,14 +32,22 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <# if(ModelInstance.HasAncestorTeam) { #>
     using BIA.Net.Core.Common.Exceptions;
 <#  } #>
+<# if (ModelInstance.Properties.Count() > 0) { #>
+    using BIA.Net.Core.Common.Extensions;
+    using BIA.Net.Core.Domain;
+<#  } #>
+<#  if (ModelInstance.HasCollectionOptions) {  #>
+    using BIA.Net.Core.Domain.Dto.Base;
+<#  } #>
 <# if (ModelInstance.HasOptions) {  #>
     using BIA.Net.Core.Domain.Dto.Option;
 <#  } #>
 <# if(!ModelInstance.IsTeamType) { #>
     using BIA.Net.Core.Domain.Mapper;
-<# } else {  #>
-    using <#= ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain.Bia.Base.Mappers" #>;
+<# } #>
+<# if(ModelInstance.IsTeamType) {  #>
     using <#= ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Crosscutting.Common.Enum" #>;
+    using <#= ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain.Bia.Base.Mappers" #>;
 <#  } #>
     using <#= ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain.Dto." + ModelInstance.DomainName #>;
     using <#= ModelInstance.CompanyName + "." + ModelInstance.ProjectName + ".Domain." + ModelInstance.DomainName + ".Entities" #>;

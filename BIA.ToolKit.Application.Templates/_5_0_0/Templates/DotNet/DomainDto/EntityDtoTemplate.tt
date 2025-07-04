@@ -6,21 +6,21 @@
 // </copyright>
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>
-{<#
-    ModelInstance.ClearUse();
-    ModelInstance.Use("BIA.Net.Core.Domain.Dto.Base"); 
-    if (ModelInstance.Properties.Count() > 0) { 
-        ModelInstance.Use("System");   
-    }
-    if(ModelInstance.HasCollectionOptions) { 
-        ModelInstance.Use("System.Collections.Generic");   
-    }
-    if (ModelInstance.Properties.Count() > 0) { 
-        ModelInstance.Use("BIA.Net.Core.Domain.Dto.CustomAttribute");   
-    }
-    if(ModelInstance.HasOptions) { 
-        ModelInstance.Use("BIA.Net.Core.Domain.Dto.Option");   
-    } #><#= ModelInstance.WritteUsing() #>
+{
+<# if (ModelInstance.Properties.Count() > 0) { #>
+    using System;
+<# } #>
+<# if(ModelInstance.HasCollectionOptions) { #>
+    using System.Collections.Generic;
+<# } #>
+    using BIA.Net.Core.Domain.Dto.Base;
+<# if (ModelInstance.Properties.Count() > 0) { #>
+    using BIA.Net.Core.Domain.Dto.CustomAttribute;
+<# } #>
+<# if(ModelInstance.HasOptions) { #>
+    using BIA.Net.Core.Domain.Dto.Option;
+<# } #>
+
     /// <summary>
     /// The DTO used to represent <#= ModelInstance.EntityNameArticle #> <#= ModelInstance.EntityName.ToLiteral() #>.
     /// </summary>
