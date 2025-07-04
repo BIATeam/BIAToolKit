@@ -14,6 +14,7 @@
     using Microsoft.CodeAnalysis.MSBuild;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Text.RegularExpressions;
@@ -388,9 +389,9 @@ using Roslyn.Services;*/
             }
         }
 
-        public async Task ResolveUsings(string solutionPath)
+        public async Task FixUsings(string solutionPath, IEnumerable<string> filteredDocumentsPath = null, bool forceRestore = false)
         {
-            consoleWriter.AddMessageLine("Start resolve usings", "pink");
+            consoleWriter.AddMessageLine("Start fix usings", "pink");
 
             try
             {
@@ -400,6 +401,9 @@ using Roslyn.Services;*/
                     consoleWriter.AddMessageLine("Error: Workspace could not be created.", "red");
                     return;
                 }
+
+                if (!await RestoreSolution(solutionPath, forceRestore))
+                    return;
 
                 consoleWriter.AddMessageLine("Opening solution...", "darkgray");
                 var solution = await workspace.OpenSolutionAsync(solutionPath);
@@ -420,6 +424,11 @@ using Roslyn.Services;*/
 
                         foreach (var document in project.Documents)
                         {
+                            if(filteredDocumentsPath != null && !filteredDocumentsPath.Any(path => path.Equals(document.FilePath)))
+                            {
+                                continue;
+                            }
+
                             try
                             {
                                 if (await document.GetSyntaxRootAsync() is not CompilationUnitSyntax syntaxRoot)
@@ -450,9 +459,11 @@ using Roslyn.Services;*/
                                 }
 
                                 // Handle missing usings
-                                var updatedRoot = AddMissingUsings(document, syntaxRoot, compilation, semanticModel);
+                                var updatedRoot = AddMissingUsings(document.Name, syntaxRoot, compilation, semanticModel);
                                 // Handle obsolete usings
                                 updatedRoot = RemoveObsoleteUsings(semanticModel, document.Name, updatedRoot);
+                                // Handle order usings
+                                updatedRoot = OrderUsings(updatedRoot, document.Name);
 
                                 var formattedRoot = Microsoft.CodeAnalysis.Formatting.Formatter.Format(updatedRoot, workspace);
                                 File.WriteAllText(document.FilePath!, formattedRoot.ToFullString());
@@ -475,11 +486,65 @@ using Roslyn.Services;*/
             }
             finally
             {
-                consoleWriter.AddMessageLine("End resolve usings", "pink");
+                consoleWriter.AddMessageLine("End fix usings", "pink");
             }
         }
 
-        private CompilationUnitSyntax AddMissingUsings(Microsoft.CodeAnalysis.Document document, CompilationUnitSyntax syntaxRoot, Compilation compilation, SemanticModel semanticModel)
+        private async Task<bool> RestoreSolution(string solutionPath, bool forceRestore)
+        {
+            if (!forceRestore && IsSolutionRestored(solutionPath))
+                return true;
+
+            consoleWriter.AddMessageLine("Restore solution...", "darkgray");
+
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "dotnet",
+                    Arguments = $"restore \"{solutionPath}\"",
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = false
+                }
+            };
+
+            process.Start();
+            var error = process.StandardError.ReadToEnd();
+            await process.WaitForExitAsync();
+
+            if (process.ExitCode != 0)
+            {
+                consoleWriter.AddMessageLine($"Restore failed: {error}", "red");
+                return false;
+            }
+            
+            consoleWriter.AddMessageLine($"Restore succeed", "lightgreen");
+            return true;
+        }
+
+        private static bool IsSolutionRestored(string solutionPath)
+        {
+            var solutionDir = Path.GetDirectoryName(solutionPath)!;
+            var csprojFiles = Directory.GetFiles(solutionDir, "*.csproj", SearchOption.AllDirectories);
+
+            foreach (var proj in csprojFiles)
+            {
+                if (!IsProjectRestored(proj))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static bool IsProjectRestored(string projectFilePath)
+        {
+            var projectDir = Path.GetDirectoryName(projectFilePath);
+            var assetsFile = Path.Combine(projectDir!, "obj", "project.assets.json");
+            return File.Exists(assetsFile);
+        }
+
+        private CompilationUnitSyntax AddMissingUsings(string documentName, CompilationUnitSyntax syntaxRoot, Compilation compilation, SemanticModel semanticModel)
         {
             var missingUsingDiagnostics = semanticModel.GetDiagnostics()
                                                 .Where(d => d.Id == "CS0246" || d.Id == "CS0118" || d.Id == "CS0103")
@@ -526,9 +591,9 @@ using Roslyn.Services;*/
             }
 
             if (typesWithMultipleNamespaces.Count != 0)
-                consoleWriter.AddMessageLine($"-> {document.Name} : Multiple namespaces candidates to resolve using for types {string.Join(", ", typesWithMultipleNamespaces)}", "orange");
+                consoleWriter.AddMessageLine($"-> {documentName} : Multiple namespaces candidates to resolve using for types {string.Join(", ", typesWithMultipleNamespaces)}", "orange");
             if (typesWithoutNamespaces.Count != 0)
-                consoleWriter.AddMessageLine($"-> {document.Name} : Unable to resolve usings namespace for types {string.Join(", ", typesWithoutNamespaces)}", "orange");
+                consoleWriter.AddMessageLine($"-> {documentName} : Unable to resolve usings namespace for types {string.Join(", ", typesWithoutNamespaces)}", "orange");
 
             var updatedRoot = syntaxRoot;
 
@@ -557,7 +622,7 @@ using Roslyn.Services;*/
                 syntaxRoot.ReplaceNode(lastUsing, new[] { lastUsing }.Concat(newUsings)) :
                 syntaxRoot.AddUsings(newUsings.ToArray());
 
-            consoleWriter.AddMessageLine($"-> {document.Name} : {missingNamespaces.Count} missing using added", "lightgreen");
+            consoleWriter.AddMessageLine($"-> {documentName} : {missingNamespaces.Count} missing using added", "lightgreen");
 
             return updatedRoot;
         }
@@ -606,6 +671,49 @@ using Roslyn.Services;*/
             }
 
             return updatedRoot;
+        }
+
+        private CompilationUnitSyntax OrderUsings(CompilationUnitSyntax syntaxRoot, string documentName)
+        {
+            var updatedRoot = syntaxRoot;
+
+            if (syntaxRoot.Usings.Any())
+            {
+                var ordered = OrderUsingsList(syntaxRoot.Usings);
+                updatedRoot = updatedRoot.WithUsings(ordered);
+            }
+
+            var namespaceNodes = updatedRoot.DescendantNodes()
+                                            .OfType<NamespaceDeclarationSyntax>()
+                                            .ToList();
+
+            updatedRoot = updatedRoot.ReplaceNodes(namespaceNodes, (oldNs, _) =>
+            {
+                if (!oldNs.Usings.Any())
+                    return oldNs;
+
+                var ordered = OrderUsingsList(oldNs.Usings);
+                return oldNs.WithUsings(ordered);
+            });
+
+            if (!syntaxRoot.IsEquivalentTo(updatedRoot))
+            {
+                consoleWriter.AddMessageLine($"-> {documentName} : usings sorted", "lightgreen");
+            }
+
+            return updatedRoot;
+        }
+
+        private static SyntaxList<UsingDirectiveSyntax> OrderUsingsList(SyntaxList<UsingDirectiveSyntax> usings)
+        {
+            var systemUsings = usings.Where(u => u.Name is IdentifierNameSyntax id && id.Identifier.Text.StartsWith("System") ||
+                                                  u.Name is QualifiedNameSyntax qn && qn.ToString().StartsWith("System"))
+                                      .OrderBy(u => u.Name.ToString(), StringComparer.OrdinalIgnoreCase);
+
+            var otherUsings = usings.Except(systemUsings)
+                                    .OrderBy(u => u.Name.ToString(), StringComparer.OrdinalIgnoreCase);
+
+            return SyntaxFactory.List(systemUsings.Concat(otherUsings));
         }
 
         private static string ExtractTypeName(string typeName) => typeName.Contains('<') ? typeName[..typeName.IndexOf('<')] : typeName;
