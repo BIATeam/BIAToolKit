@@ -144,7 +144,7 @@
 
                 if (projectParameters.VersionAndOption.WorkTemplate.Version.Equals("VX.Y.Z") || Version.TryParse(projectParameters.VersionAndOption.WorkTemplate.Version.Replace("V", ""), out Version projectVersion) && projectVersion >= new Version("3.10.0"))
                 {
-                    await Task.Run(() => FileTransform.OrderUsing(projectPath));
+                    await Task.Run(() => FileTransform.OrderUsingFromFolder(projectPath));
                 }
 
                 await Task.Run(() =>

@@ -291,9 +291,16 @@
         private async Task GenerateDotNetTemplatesAsync(IEnumerable<Manifest.Feature.Template> templates, object model)
         {
             await RunGenerateTemplatesAsync(templates, model, GenerateDotNetTemplateAsync);
-            if (!_fromUnitTest)
+            var csharpFiles = _currentContext.GenerationReport.TemplatesGenerated
+                .Select(x => GetDotNetTemplateOutputPath(x.OutputPath, _currentContext, _currentProject.Folder))
+                .Where(x => Path.GetExtension(x).Equals(".cs"));
+            
+            foreach(var file in csharpFiles)
             {
-                await parserService.FixUsings(_currentProject.SolutionPath, _currentContext.GenerationReport.TemplatesGenerated.Select(x => GetDotNetTemplateOutputPath(x.OutputPath, _currentContext, _currentProject.Folder)));
+                if(FileTransform.OrderUsingFromFile(file))
+                {
+                    _consoleWriter.AddMessageLine($"-> Usings ordered in {file}", "green");
+                }
             }
         }
 
