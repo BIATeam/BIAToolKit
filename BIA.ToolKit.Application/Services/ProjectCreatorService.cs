@@ -142,7 +142,7 @@
                 consoleWriter.AddMessageLine("Start remove BIATemplate only.", "Pink");
                 await Task.Run(() => FileTransform.RemoveTemplateOnly(projectPath, "# Begin BIATemplate only", "# End BIATemplate only", new List<string>() { ".gitignore" }));
 
-                if (Version.TryParse(projectParameters.VersionAndOption.WorkTemplate.Version.Replace("V", ""), out Version projectVersion) && projectVersion >= new Version("3.10.0"))
+                if (projectParameters.VersionAndOption.WorkTemplate.Version.Equals("VX.Y.Z") || Version.TryParse(projectParameters.VersionAndOption.WorkTemplate.Version.Replace("V", ""), out Version projectVersion) && projectVersion >= new Version("3.10.0"))
                 {
                     await Task.Run(() => FileTransform.OrderUsing(projectPath));
                 }
@@ -187,7 +187,6 @@
                 });
 
                 CleanBiaToolkitJsonFiles(projectPath);
-                await parserService.FixUsings(Path.Combine(projectPath, FolderDotNet, $"{projectParameters.ProjectName}.sln"));
 
                 consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd ? "Green" : "Blue");
             }
