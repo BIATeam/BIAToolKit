@@ -368,6 +368,10 @@
 
             // Generate new file
             CommonTools.GenerateFile(dest, fileLinesContent);
+            if (Path.GetExtension(dest).Equals(".cs"))
+            {
+                FileTransform.OrderUsingFromFile(dest);
+            }
         }
 
         private (string, string) GetDotNetFilesPath(Project currentProject, WebApiFeatureData featureData, ClassDefinition dtoClassDefiniton, string feature, FeatureType type, List<FeatureAdaptPath> adaptPaths)
@@ -611,6 +615,10 @@
 
             // Generate file with new content
             CommonTools.GenerateFile(partialFile, newContent);
+            if (Path.GetExtension(partialFile).Equals(".cs"))
+            {
+                FileTransform.OrderUsingFromFile(partialFile);
+            }
         }
         #endregion
 
