@@ -11,17 +11,18 @@ namespace TheBIADevCompany.BIADemo.Application.MaintenanceCompanies
     using BIA.Net.Core.Common.Exceptions;
     using BIA.Net.Core.Domain.Authentication;
     using BIA.Net.Core.Domain.Dto.Base;
-    using BIA.Net.Core.Domain.Dto.User;
     using BIA.Net.Core.Domain.RepoContract;
     using BIA.Net.Core.Domain.Service;
     using BIA.Net.Core.Domain.Specification;
-    using TheBIADevCompany.BIADemo.Application.Bia.User;
+    using BIA.Net.Core.Domain.User.Specifications;
+    using TheBIADevCompany.BIADemo.Application.User;
     using TheBIADevCompany.BIADemo.Crosscutting.Common.Enum;
-    using TheBIADevCompany.BIADemo.Domain.Bia.User.Specifications;
     using TheBIADevCompany.BIADemo.Domain.Dto.MaintenanceCompanies;
+    using TheBIADevCompany.BIADemo.Domain.Dto.User;
     using TheBIADevCompany.BIADemo.Domain.MaintenanceCompanies.Entities;
     using TheBIADevCompany.BIADemo.Domain.MaintenanceCompanies.Mappers;
     using TheBIADevCompany.BIADemo.Domain.RepoContract;
+    using TheBIADevCompany.BIADemo.Domain.User;
 
     /// <summary>
     /// The application service used for maintenanceTeam.
@@ -45,7 +46,7 @@ namespace TheBIADevCompany.BIADemo.Application.MaintenanceCompanies
         {
             this.FiltersContext.Add(
                 AccessMode.Read,
-                TeamAppService.ReadSpecification<MaintenanceTeam>(TeamTypeId.MaintenanceTeam, principal));
+                TeamAppService.ReadSpecification<MaintenanceTeam>(TeamTypeId.MaintenanceTeam, principal, TeamConfig.Config));
 
             this.FiltersContext.Add(
                 AccessMode.Update,
@@ -55,19 +56,23 @@ namespace TheBIADevCompany.BIADemo.Application.MaintenanceCompanies
         }
 
         /// <inheritdoc/>
+        public override async Task<MaintenanceTeamDto> AddAsync(MaintenanceTeamDto dto, string mapperMode = null)
+        {
+            if (dto.SiteId != this.currentAncestorTeamId)
+            {
+                throw new ForbiddenException("Can only add MaintenanceTeam on current parent Team.");
+            }
+
+            return await base.AddAsync(dto, mapperMode);
+        }
+
+        /// <inheritdoc/>
 #pragma warning disable S1006 // Method overrides should not change parameter defaults
         public override async Task<(IEnumerable<MaintenanceTeamDto> Results, int Total)> GetRangeAsync(PagingFilterFormatDto filters = null, int id = default, Specification<MaintenanceTeam> specification = null, Expression<Func<MaintenanceTeam, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
 #pragma warning restore S1006 // Method overrides should not change parameter defaults
         {
             specification ??= TeamAdvancedFilterSpecification<MaintenanceTeam>.Filter(filters);
             return await base.GetRangeAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
-        }
-
-        /// <inheritdoc/>
-        public override async Task<MaintenanceTeamDto> AddAsync(MaintenanceTeamDto dto, string mapperMode = null)
-        {
-            dto.SiteId = this.currentAncestorTeamId;
-            return await base.AddAsync(dto, mapperMode);
         }
     }
 }

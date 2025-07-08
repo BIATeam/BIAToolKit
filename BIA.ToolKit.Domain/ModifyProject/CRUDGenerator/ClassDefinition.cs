@@ -9,14 +9,14 @@
     {
         public string FileName { get; set; }
 
-        public string? EntityName { get; set; }
+        public string EntityName { get; set; }
 
-        public string? CompagnyName { get; private set; }
+        public string CompagnyName { get; private set; }
 
-        public string? ProjectName { get; private set; }
+        public string ProjectName { get; private set; }
 
-        private NamespaceDeclarationSyntax? namespaceSyntax;
-        public NamespaceDeclarationSyntax? NamespaceSyntax
+        private NamespaceDeclarationSyntax namespaceSyntax;
+        public NamespaceDeclarationSyntax NamespaceSyntax
         {
             get { return namespaceSyntax; }
             set
@@ -36,7 +36,7 @@
 
         public SyntaxToken Name { get; set; }
 
-        public BaseListSyntax? BaseList { get; set; }
+        public BaseListSyntax BaseList { get; set; }
 
         public List<PropertyDeclarationSyntax> PropertyList { get; set; }
 

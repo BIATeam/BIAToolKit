@@ -25,29 +25,34 @@
         /// <param name="sourceDir">source folder.</param>
         /// <param name="oldString">old string.</param>
         /// <param name="newString">new string.</param>
-        static public void OrderUsing(string sourceDir)
+        static public void OrderUsingFromFolder(string sourceDir)
         {
             string[] filesToOrder = Directory.GetFiles(sourceDir, "*.cs", SearchOption.AllDirectories);
             foreach (string file in filesToOrder)
             {
-                string oldFile = File.ReadAllText(file);
-                string endOfLine = Environment.NewLine;
-                Match endOfLineMatch = Regex.Match(oldFile, @"([\r\n]+)");
-                if (endOfLineMatch.Success)
-                {
-                    endOfLine = endOfLineMatch.Value;
-                }
-                string[] lines = File.ReadAllLines(file);
-                OrderUsingInLines(lines);
-                string newFile = string.Join(endOfLine, lines);
-                Match match = Regex.Match(oldFile, @"([\r\n]+\Z)");
-                if (match.Success)
-                {
-                    newFile += match.Value;
-                }
-                File.WriteAllText(file, newFile);
+                OrderUsingFromFile(file);
             }
+        }
 
+        static public bool OrderUsingFromFile(string path)
+        {
+            string oldContent = File.ReadAllText(path);
+            string endOfLine = Environment.NewLine;
+            Match endOfLineMatch = Regex.Match(oldContent, @"([\r\n]+)");
+            if (endOfLineMatch.Success)
+            {
+                endOfLine = endOfLineMatch.Value;
+            }
+            string[] lines = File.ReadAllLines(path);
+            OrderUsingInLines(lines);
+            string newContent = string.Join(endOfLine, lines);
+            Match match = Regex.Match(oldContent, @"([\r\n]+\Z)");
+            if (match.Success)
+            {
+                newContent += match.Value;
+            }
+            File.WriteAllText(path, newContent);
+            return oldContent != newContent;
         }
 
         private static void OrderUsingInLines(string[] lines)
@@ -202,7 +207,7 @@
             var bom = new byte[4];
             using (var file = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {
-                file.Read(bom, 0, 4);
+                file.ReadExactly(bom, 0, 4);
             }
 
             // Analyze the BOM

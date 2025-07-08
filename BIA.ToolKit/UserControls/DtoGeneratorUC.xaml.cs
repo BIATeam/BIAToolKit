@@ -29,14 +29,13 @@
     {
         private readonly DtoGeneratorViewModel vm;
 
-        private IConsoleWriter consoleWriter;
         private CSharpParserService parserService;
         private FileGeneratorService fileGeneratorService;
         private CRUDSettings settings;
         private Project project;
         private UIEventBroker uiEventBroker;
         private string dtoGenerationHistoryFile;
-        private DtoGenerationHistory generationHistory = new DtoGenerationHistory();
+        private DtoGenerationHistory generationHistory = new();
         private DtoGeneration generation;
         private bool processSelectProperties;
 
@@ -52,7 +51,6 @@
         public void Inject(CSharpParserService parserService, SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
             UIEventBroker uiEventBroker)
         {
-            this.consoleWriter = consoleWriter;
             this.parserService = parserService;
             this.settings = new(settingsService);
             this.fileGeneratorService = fileGeneratorService;
@@ -78,20 +76,25 @@
             if (project is null)
                 return;
 
-            uiEventBroker.ExecuteTaskWithWaiter(async () =>
-            {
-                this.project = project;
-                vm.SetProject(project);
-
-                ListEntities();
-                InitHistoryFile(project);
-            });
+            uiEventBroker.ExecuteActionWithWaiter(() => InitProjectTask(project));
         }
 
-        private void ListEntities()
+        private Task InitProjectTask(Project project)
+        {
+            this.project = project;
+            vm.SetProject(project);
+
+            ListEntities();
+            InitHistoryFile(project);
+
+            return Task.CompletedTask;
+        }
+
+        private Task ListEntities()
         {
             var domainEntities = parserService.GetDomainEntities(project, settings);
             vm.SetEntities(domainEntities);
+            return Task.CompletedTask;
         }
 
         private void InitHistoryFile(Project project)
@@ -105,7 +108,7 @@
 
         private void RefreshEntitiesList_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(async() => ListEntities());
+            uiEventBroker.ExecuteActionWithWaiter(ListEntities);
         }
 
         private void SelectProperties_Click(object sender, RoutedEventArgs e)
@@ -134,7 +137,7 @@
 
         private void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(async () =>
+            uiEventBroker.ExecuteActionWithWaiter(async () =>
             {
                 UpdateHistoryFile();
                 await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext
@@ -144,7 +147,7 @@
                     DomainName = vm.EntityDomain,
                     EntityName = vm.SelectedEntityInfo.Name,
                     EntityNamePlural = vm.SelectedEntityInfo.NamePluralized,
-                    BaseKeyType = vm.SelectedEntityInfo.BaseKeyType,
+                    BaseKeyType = vm.SelectedBaseKeyType,
                     Properties = [.. vm.MappingEntityProperties],
                     IsTeam = vm.IsTeam,
                     IsVersioned = vm.IsVersioned,
@@ -171,6 +174,7 @@
             generation.IsVersioned = vm.IsVersioned;
             generation.IsArchivable = vm.IsArchivable;
             generation.IsFixable = vm.IsFixable;
+            generation.EntityBaseKeyType = vm.SelectedBaseKeyType;
             generation.PropertyMappings.Clear();
 
             foreach (var property in vm.MappingEntityProperties)
@@ -239,6 +243,7 @@
             vm.IsVersioned = generation.IsVersioned;
             vm.IsFixable = generation.IsFixable;
             vm.IsArchivable = generation.IsArchivable;
+            vm.SelectedBaseKeyType = generation.EntityBaseKeyType;
 
             var allEntityProperties = vm.AllEntityPropertiesRecursively.ToList();
             foreach (var property in allEntityProperties)

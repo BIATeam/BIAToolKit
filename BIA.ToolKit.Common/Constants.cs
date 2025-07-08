@@ -4,6 +4,9 @@
 
 namespace BIA.ToolKit.Common
 {
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     /// Application contants
     /// </summary>
@@ -65,6 +68,22 @@ namespace BIA.ToolKit.Common
         public const string PartialFileSuffix = ".partial";
 
         public const char PropertySeparator = ':';
+
+        private static readonly List<string> primitiveTypes = new List<string>
+        {
+            "char",
+            "decimal",
+            "double",
+            "float",
+            "int",
+            "uint",
+            "long",
+            "ulong",
+            "short",
+            "ushort",
+            "string",
+        };
+        public static IEnumerable<string> PrimitiveTypes => primitiveTypes.OrderBy(x => x);
 
         /// <summary>
         /// File Extensions.

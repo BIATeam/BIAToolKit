@@ -19,7 +19,7 @@
             // Company Files
             if (mapCompanyFileVersion)
             {
-                vm.WorkCompanyFile = vm.WorkCompanyFiles?.FirstOrDefault(w => w.Version == dto.CompanyFileVersion);
+                vm.WorkCompanyFile = vm.GetWorkCompanyFile(dto.CompanyFileVersion);
             }
 
             if (vm.Profiles.Any(p => p == dto.Profile))

@@ -22,17 +22,20 @@
         private readonly IConsoleWriter consoleWriter;
         private readonly RepositoryService repositoryService;
         private readonly FeatureSettingService featureSettingService;
+        private readonly CSharpParserService parserService;
         private readonly SettingsService settingsService;
 
 
         public ProjectCreatorService(IConsoleWriter consoleWriter,
             RepositoryService repositoryService,
             SettingsService settingsService,
-            FeatureSettingService featureSettingService)
+            FeatureSettingService featureSettingService,
+            CSharpParserService parserService)
         {
             this.consoleWriter = consoleWriter;
             this.repositoryService = repositoryService;
             this.featureSettingService = featureSettingService;
+            this.parserService = parserService;
             this.settingsService = settingsService;
         }
 
@@ -139,9 +142,9 @@
                 consoleWriter.AddMessageLine("Start remove BIATemplate only.", "Pink");
                 await Task.Run(() => FileTransform.RemoveTemplateOnly(projectPath, "# Begin BIATemplate only", "# End BIATemplate only", new List<string>() { ".gitignore" }));
 
-                if (Version.TryParse(projectParameters.VersionAndOption.WorkTemplate.Version.Replace("V", ""), out Version projectVersion) && projectVersion >= new Version("3.10.0"))
+                if (projectParameters.VersionAndOption.WorkTemplate.Version.Equals("VX.Y.Z") || Version.TryParse(projectParameters.VersionAndOption.WorkTemplate.Version.Replace("V", ""), out Version projectVersion) && projectVersion >= new Version("3.10.0"))
                 {
-                    await Task.Run(() => FileTransform.OrderUsing(projectPath));
+                    await Task.Run(() => FileTransform.OrderUsingFromFolder(projectPath));
                 }
 
                 await Task.Run(() =>
@@ -183,7 +186,6 @@
                     CommonTools.SerializeToJsonFile(versionAndOptionDto, projectGenerationFile);
                 });
 
-                consoleWriter.AddMessageLine("Remove biatookit.json from BIA folders.", "Pink");
                 CleanBiaToolkitJsonFiles(projectPath);
 
                 consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd ? "Green" : "Blue");
@@ -336,16 +338,18 @@
                 DirectoryHelper.DeleteEmptyDirectories(projectPath);
 
                 List<string> tagToDeletes = featureSettingService.GetBiaFeatureTagToDeletes(featureSettings, "#if ");
-                FileHelper.CleanFilesByTag(projectPath, tagToDeletes, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}", true);
+                FileHelper.CleanFilesByTag(projectPath, tagToDeletes, "#endif", $"*{FileExtensions.DotNetClass}", true);
             }
 
             List<string> tags = featureSettingService.GetAllBiaFeatureTag(featureSettings, "#if ");
-            FileHelper.CleanFilesByTag(projectPath, tags, new List<string>() { "#endif" }, $"*{FileExtensions.DotNetClass}", false);
+            FileHelper.CleanFilesByTag(projectPath, tags, "#endif", $"*{FileExtensions.DotNetClass}", false);
         }
 
         private void CleanBiaToolkitJsonFiles(string projectPath)
         {
             const string biatoolkitFilename = "biatoolkit.json";
+
+            consoleWriter.AddMessageLine("Remove biatookit.json from BIA folders.", "Pink");
             CleanFiles(Path.Combine(projectPath, Constants.FolderDotNet, Constants.FolderBia), biatoolkitFilename);
             CleanFiles(Path.Combine(projectPath, Constants.FolderAngular, Constants.FolderBia), biatoolkitFilename);
         }
@@ -354,7 +358,6 @@
         {
             if (!Directory.Exists(rootDirectory))
             {
-                consoleWriter.AddMessageLine($"-> Folder {rootDirectory} does not exists", "red");
                 return;
             }
 

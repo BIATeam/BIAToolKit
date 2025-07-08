@@ -6,26 +6,21 @@
 // </copyright>
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>
-{<#
-    ModelInstance.ClearUse();
-    if (ModelInstance.Properties.Count() > 0) { 
-        ModelInstance.Use("System");   
-    }
-    if(ModelInstance.HasCollectionOptions) { 
-        ModelInstance.Use("System.Collections.Generic");   
-    }
-    if(!ModelInstance.IsTeamType) { 
-        ModelInstance.Use("BIA.Net.Core.Domain.Dto.Base");   
-    }
-    if (ModelInstance.Properties.Count() > 0) { 
-        ModelInstance.Use("BIA.Net.Core.Domain.Dto.CustomAttribute");   
-    }
-    if(ModelInstance.HasOptions) { 
-        ModelInstance.Use("BIA.Net.Core.Domain.Dto.Option");   
-    }
-    if(ModelInstance.IsTeamType) { 
-        ModelInstance.Use("BIA.Net.Core.Domain.Dto.User");   
-    } #><#= ModelInstance.WritteUsing() #>
+{
+<# if (ModelInstance.Properties.Count() > 0) { #>
+    using System;
+<# } #>
+<# if(ModelInstance.HasCollectionOptions) { #>
+    using System.Collections.Generic;
+<# } #>
+    using BIA.Net.Core.Domain.Dto.Base;
+<# if (ModelInstance.Properties.Count() > 0) { #>
+    using BIA.Net.Core.Domain.Dto.CustomAttribute;
+<# } #>
+<# if(ModelInstance.HasOptions) { #>
+    using BIA.Net.Core.Domain.Dto.Option;
+<# } #>
+
     /// <summary>
     /// The DTO used to represent <#= ModelInstance.EntityNameArticle #> <#= ModelInstance.EntityName.ToLiteral() #>.
     /// </summary>
@@ -52,27 +47,5 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 
 <# }#>
 <# } #>
-<#  if(ModelInstance.IsArchivable) { #>
-
-        /// <summary>
-        /// Gets or sets the is fixed.
-        /// </summary>
-        public bool IsFixed { get; set; }
-
-        /// <summary>
-        /// Gets or sets the fixed date.
-        /// </summary>
-        public DateTime? FixedDate { get; set; }
-
-        /// <summary>
-        /// Gets or sets the is archived.
-        /// </summary>
-        public bool IsArchived { get; set; }
-
-        /// <summary>
-        /// Gets or sets the archived date.
-        /// </summary>
-        public DateTime? ArchivedDate { get; set; }
-<#  } #>
     }
 }

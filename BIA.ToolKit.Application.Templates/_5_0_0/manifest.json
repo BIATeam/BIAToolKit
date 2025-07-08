@@ -122,37 +122,37 @@
         },
         {
           "inputPath": "InfrastructureData\\ModelBuilders\\PartialCrudUserModelBuilderTemplate_RoleModelBuilder.tt",
-          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\Bia\\UserModelBuilder.cs",
+          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\UserModelBuilder.cs",
           "isPartial": true,
           "partialInsertionMarkup": "RoleModelBuilder"
         },
         {
           "inputPath": "InfrastructureData\\ModelBuilders\\PartialCrudUserModelBuilderTemplate_TeamTypeModelBuilder.tt",
-          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\Bia\\UserModelBuilder.cs",
+          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\UserModelBuilder.cs",
           "isPartial": true,
           "partialInsertionMarkup": "TeamTypeModelBuilder"
         },
         {
           "inputPath": "InfrastructureData\\ModelBuilders\\PartialCrudUserModelBuilderTemplate_TeamTypeRoleModelBuilder.tt",
-          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\Bia\\UserModelBuilder.cs",
+          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\UserModelBuilder.cs",
           "isPartial": true,
           "partialInsertionMarkup": "TeamTypeRoleModelBuilder"
         },
         {
           "inputPath": "Domain\\Mappers\\PartialCrudTeamMapperTemplate_TeamMapperParentTeamId.tt",
-          "outputPath": "{Project}.Domain\\Bia\\User\\Mappers\\TeamMapper.cs",
+          "outputPath": "{Project}.Domain\\User\\Mappers\\TeamMapper.cs",
           "isPartial": true,
           "partialInsertionMarkup": "TeamMapperParentTeamId"
         },
         {
           "inputPath": "Domain\\Mappers\\PartialCrudTeamMapperTemplate_TeamMapperParentTeamTitle.tt",
-          "outputPath": "{Project}.Domain\\Bia\\User\\Mappers\\TeamMapper.cs",
+          "outputPath": "{Project}.Domain\\User\\Mappers\\TeamMapper.cs",
           "isPartial": true,
           "partialInsertionMarkup": "TeamMapperParentTeamTitle"
         },
         {
           "inputPath": "Domain\\Mappers\\PartialCrudTeamMapperTemplate_TeamMapperUsing.tt",
-          "outputPath": "{Project}.Domain\\Bia\\User\\Mappers\\TeamMapper.cs",
+          "outputPath": "{Project}.Domain\\User\\Mappers\\TeamMapper.cs",
           "isPartial": true,
           "partialInsertionMarkup": "TeamMapperUsing"
         },

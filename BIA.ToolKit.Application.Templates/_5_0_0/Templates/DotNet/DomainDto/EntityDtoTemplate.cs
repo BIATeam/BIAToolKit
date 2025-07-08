@@ -15,6 +15,12 @@ namespace TheBIADevCompany.BIADemo.Domain.Dto.Fleet
     public class PlaneDto : BaseDto<int>
     {
         /// <summary>
+        /// Gets or sets the id.
+        /// </summary>
+        [BiaDtoField(Required = true)]
+        public int Id { get; set; }
+
+        /// <summary>
         /// Gets or sets the name.
         /// </summary>
         [BiaDtoField(Required = true)]

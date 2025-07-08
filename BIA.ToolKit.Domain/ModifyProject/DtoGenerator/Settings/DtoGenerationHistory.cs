@@ -22,6 +22,7 @@
         public bool IsVersioned { get; set; }
         public bool IsFixable { get; set; }
         public bool IsArchivable { get; set; }
+        public string EntityBaseKeyType { get; set; }
         public List<DtoGenerationPropertyMapping> PropertyMappings { get; set; } = new();
     }
 

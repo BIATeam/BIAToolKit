@@ -40,5 +40,7 @@
         public int TeamTypeId { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         public int TeamRoleId { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         public string FormReadOnlyMode { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public bool IsVersioned { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public bool IsArchivable { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
     }
 }

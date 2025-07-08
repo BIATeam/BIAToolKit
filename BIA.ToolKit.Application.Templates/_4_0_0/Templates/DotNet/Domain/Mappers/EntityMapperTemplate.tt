@@ -154,12 +154,25 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         /// <inheritdoc/>
         public override Func<<#= ModelInstance.EntityName #>Dto, object[]> DtoToRecord(List<string> headerNames = null)
         {
-            return x => (new object[]
+            return x =>
             {
-<# foreach (var property in ModelInstance.Properties.Where(p => !p.IsOption && !p.IsOptionCollection)) { #>
-                <#= property.GenerateMapperCSV() #>,
+                List<object> records = new List<object>();
+
+                if (headerNames?.Any() == true)
+                {
+                    foreach (string headerName in headerNames)
+                    {
+<# foreach (var property in ModelInstance.Properties.Where(p => !p.IsParent)) { #>
+                        if (string.Equals(headerName, HeaderName.<#= property.MappingName #>, StringComparison.OrdinalIgnoreCase))
+                        {
+                            records.Add(<#= property.GenerateMapperCSV() #>);
+                        }
 <# } #>
-            });
+                    }
+                }
+
+                return records.ToArray();
+            };
         }
 
         /// <summary>
@@ -168,13 +181,13 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         private struct HeaderName
         {
 <# var index = 0;  #>
-<# foreach (var property in ModelInstance.Properties) { #>
+<# foreach (var property in ModelInstance.Properties.Where(p => !p.IsParent)) { #>
             /// <summary>
             /// Header Name <#= property.MappingName #>.
             /// </summary>
             public const string <#= property.MappingName #> = "<#= property.MappingName.ToCamelCase() #>";
 <# index++;  #>
-<# if(index != ModelInstance.Properties.Count()) {#>
+<# if(index != ModelInstance.Properties.Where(p => !p.IsParent).Count()) {#>
 
 <# }#>
 <# } #>

@@ -3,6 +3,8 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
+    using System.Linq;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
@@ -13,6 +15,7 @@
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.Properties;
@@ -22,18 +25,14 @@
     /// </summary>
     public partial class ModifyProjectUC : UserControl
     {
-        BIATKSettings settings;
         ModifyProjectViewModel _viewModel;
         IConsoleWriter consoleWriter;
-        RepositoryService repositoryService;
         GitService gitService;
         CSharpParserService cSharpParserService;
         ProjectCreatorService projectCreatorService;
         CRUDSettings crudSettings;
         UIEventBroker uiEventBroker;
         SettingsService settingsService;
-        FileGeneratorService fileGeneratorService;
-        UIEventBroker.TabItemModifyProjectEnum currentTabItem = UIEventBroker.TabItemModifyProjectEnum.Migration;
 
         public ModifyProjectUC()
         {
@@ -46,8 +45,6 @@
             ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService, FeatureSettingService featureSettingService,
             FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
         {
-            this.settings = settings;
-            this.repositoryService = repositoryService;
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
@@ -61,7 +58,6 @@
             this.uiEventBroker = uiEventBroker;
             _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter);
             this.settingsService = settingsService;
-            this.fileGeneratorService = fileGeneratorService;
 
             uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
         }
@@ -87,7 +83,7 @@
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(Migrate_Run);
+            uiEventBroker.ExecuteActionWithWaiter(Migrate_Run);
         }
         private async Task Migrate_Run()
         {
@@ -108,7 +104,7 @@
 
         private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(MigrateGenerateOnly_Run);
+            uiEventBroker.ExecuteActionWithWaiter(MigrateGenerateOnly_Run);
         }
 
         private async Task<int> MigrateGenerateOnly_Run()
@@ -136,7 +132,7 @@
 
         private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(MigrateApplyDiff_Run);
+            uiEventBroker.ExecuteActionWithWaiter(MigrateApplyDiff_Run);
         }
 
         private async Task<bool> MigrateApplyDiff_Run()
@@ -159,7 +155,7 @@
 
         private void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(MigrateMergeRejected_Run);
+            uiEventBroker.ExecuteActionWithWaiter(MigrateMergeRejected_Run);
         }
 
         private async Task MigrateMergeRejected_Run()
@@ -206,7 +202,7 @@
 
         private void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(async () => await OverwriteBIAFolder(true));
+            uiEventBroker.ExecuteActionWithWaiter(async () => await OverwriteBIAFolder(true));
         }
 
         private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion)
@@ -270,7 +266,57 @@
                 return false;
             }
             //Apply the differential
-            return await gitService.ApplyDiff(actionFinishedAtEnd, _viewModel.ModifyProject.CurrentProject.Folder, migrateFilePath);
+            if (!await gitService.ApplyDiff(actionFinishedAtEnd, _viewModel.ModifyProject.CurrentProject.Folder, migrateFilePath))
+            {
+                return false;
+            }
+
+            await HandleDeletedFilesFailed(_viewModel.ModifyProject.CurrentProject, migrateFilePath, projectOriginalFolderName, projectTargetFolderName);
+            return true;
+        }
+
+        private async Task HandleDeletedFilesFailed(Project currentProject, string migrateFilePath, string projectOriginalFolder, string projectTargetFolder)
+        {
+            var migrateFileContent = (await File.ReadAllLinesAsync(migrateFilePath)).ToList();
+            var deleteFileInstructionIndexes = new List<int>();
+            for (int i = 0; i < migrateFileContent.Count; i++)
+            {
+                if (migrateFileContent[i].StartsWith("deleted file mode"))
+                    deleteFileInstructionIndexes.Add(i);
+            }
+
+            if (deleteFileInstructionIndexes.Count == 0)
+                return;
+
+            consoleWriter.AddMessageLine("Verify expected deleted files", "pink");
+            var filesToDelete = new List<string>();
+            var pathOfFileRegex = @"\sb/(.+)$";
+            foreach (var index in deleteFileInstructionIndexes)
+            {
+                var diffInstruction = migrateFileContent.ElementAt(index - 1);
+                var match = Regex.Match(diffInstruction, pathOfFileRegex);
+                if(match.Success)
+                {
+                    filesToDelete.Add(Path.Combine(currentProject.Folder, match.Groups[1].Value).Replace("/", "\\"));
+                }
+            }
+
+            var hasNotDeletedFiles = false;
+            foreach (var file in filesToDelete)
+            {
+                if (File.Exists(file))
+                {
+                    var originalFile = Path.Combine(AppSettings.TmpFolderPath, file.Replace(currentProject.Folder, projectOriginalFolder));
+                    consoleWriter.AddMessageLine($"File not deleted : {file}", "orange", false);
+                    consoleWriter.AddMessageLine($"code --diff {originalFile} {file}", "gray", false);
+                    hasNotDeletedFiles = true;
+                }
+            }
+
+            if(hasNotDeletedFiles)
+            {
+                consoleWriter.AddMessageLine("Some files have not been deleted. Check the previous details to launch diff command for each of them. Delete them manually if applicable.", "orange");
+            }
         }
 
         private async Task MergeRejected(bool actionFinishedAtEnd)
@@ -312,18 +358,14 @@
             _viewModel.RefreshProjetsList();
         }
 
-        private void ResolveUsings_Click(object sender, RoutedEventArgs e)
+        private void FixUsings_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(ResolveUsings_Run);
+            uiEventBroker.ExecuteActionWithWaiter(FixUsings_Run);
         }
 
-        private async Task ResolveUsings_Run()
+        private async Task FixUsings_Run()
         {
-            var result = MessageBox.Show("Make sure all Nuget packages have been restored in your solution before running the automatic resolve of usings statement.", "Resolve usings", MessageBoxButton.OKCancel, MessageBoxImage.Information);
-            if (result == MessageBoxResult.OK)
-            {
-                await cSharpParserService.ResolveUsings(_viewModel.CurrentProject.SolutionPath);
-            }
+            await cSharpParserService.FixUsings(_viewModel.CurrentProject.SolutionPath, forceRestore: true);
         }
     }
 }

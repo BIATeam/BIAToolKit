@@ -11,8 +11,7 @@
     {
         protected readonly List<string> excludedPropertiesForBiaFieldConfigColumns = new List<string>
         {
-            "Id",
-            "IsFixed"
+            "Id"
         };
 
         public bool IsTeam { get; set; }
@@ -46,6 +45,8 @@
         public bool HasReadOnlyMode { get; set; }
         public bool HasFixableParent { get; set; }
         public bool IsFixable { get; set; }
+        public bool IsVersioned { get; set; }
+        public bool IsArchivable { get; set; }
 
         public string HubForClientParentKey => GetHubForClientParentKey();
         public bool HasHubForClientParentKey => HasParent || HasAncestorTeam || IsTeam;
@@ -63,5 +64,21 @@
         public int TeamTypeId { get; set; }
         public int TeamRoleId { get; set; }
         public string FormReadOnlyMode { get; set; }
+        public string AngularModelInterfaceInheritance
+        {
+            get
+            {
+                var interfaces = new List<string> { "BaseDto" };
+                if (IsVersioned)
+                    interfaces.Add("VersionedDto");
+                if (IsTeam)
+                    interfaces.Add("TeamDto");
+                if (IsFixable)
+                    interfaces.Add("FixableDto");
+                if (IsArchivable)
+                    interfaces.Add("ArchivableDto");
+                return string.Join(", ", interfaces);
+            }
+        }
     }
 }

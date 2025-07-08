@@ -27,6 +27,9 @@ import {
   BiaButtonGroupComponent,
   BiaButtonGroupItem,
 } from 'src/app/shared/bia-shared/components/bia-button-group/bia-button-group.component';
+<#  if(ModelInstance.HasAncestorTeam) { #>
+import { TeamTypeId } from 'src/app/shared/constants';
+<#  } #>
 <# } #>
 <#  if(ModelInstance.HasOptionItems) { #>
 import { <#= ModelInstance.EntityName #>OptionsService } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>-options.service';
@@ -92,20 +95,25 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
     this.crudConfiguration = <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration;
   }
 
+<#  if(ModelInstance.HasParent) { #>
   ngOnInit(): void {
     super.ngOnInit();
-<#  if(ModelInstance.HasParent) { #>
+<#  if(ModelInstance.IsTeam) { #>
+
+    const <#= ModelInstance.ParentName.ToCamelCase() #>Id = this.authService.getCurrentTeam(
+      TeamTypeId.<#= ModelInstance.ParentName #>
+    )?.teamId;
+    if (<#= ModelInstance.ParentName.ToCamelCase() #>Id) {
+      this.maintenanceTeamService.<#= ModelInstance.ParentName.ToCamelCase() #>Service.currentCrudItemId =
+        <#= ModelInstance.ParentName.ToCamelCase() #>Id;
+<#  } #>
     this.parentDisplayItemName$ =
       this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.<#= ModelInstance.ParentName.ToCamelCase() #>Service.displayItemName$;
-<#  } #>
-<#  if(ModelInstance.HasOptionItems) { #>
-    this.sub.add(
-      this.biaTranslationService.currentCulture$.subscribe(() => {
-        this.<#= ModelInstance.EntityName.ToCamelCase() #>OptionsService.loadAllOptions();
-      })
-    );
+<#  if(ModelInstance.IsTeam) { #>
+    }
 <#  } #>
   }
+<#  } #>
 
   protected setPermissions() {
 <#  if(!ModelInstance.HasFixableParent) { #>
@@ -157,6 +165,8 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
           this.canSave =
             <#= ModelInstance.ParentName.ToCamelCase() #>.isFixed === false &&
             this.authService.hasPermission(Permission.<#= ModelInstance.EntityName #>_Save);
+
+          this.canSelect = this.canDelete;
         })
     );
 <#  } #>

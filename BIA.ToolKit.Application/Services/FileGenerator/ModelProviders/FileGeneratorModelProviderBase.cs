@@ -44,6 +44,7 @@
             model.DisplayItemName = crudContext.DisplayItemName;
             model.HasAncestorTeam = crudContext.HasAncestorTeam;
             model.AncestorTeamName = crudContext.AncestorTeamName;
+            model.IsVersioned = crudContext.IsVersioned;
             model.IsTeam = crudContext.IsTeam;
             model.HasParent = crudContext.HasParent;
             model.ParentName = crudContext.ParentName;
@@ -56,6 +57,7 @@
             model.HasReadOnlyMode = crudContext.HasReadOnlyMode;
             model.HasFixableParent = crudContext.HasFixableParent;
             model.IsFixable = crudContext.IsFixable;
+            model.IsArchivable = crudContext.IsArchivable;
             model.HasAdvancedFilter = crudContext.HasAdvancedFilter;
             model.CanImport = crudContext.CanImport;
             model.TeamRoleId = crudContext.TeamRoleId;

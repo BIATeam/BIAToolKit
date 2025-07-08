@@ -7,6 +7,11 @@ import { PermissionGuard } from 'src/app/core/bia-core/guards/permission.guard';
 import { Permission } from 'src/app/shared/permission';
 import { <#= ModelInstance.EntityName #>ItemComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-item/<#= ModelInstance.EntityName.ToKebabCase() #>-item.component';
 import { <#= ModelInstance.EntityNamePlural #>IndexComponent } from './views/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-index/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-index.component';
+<#  if(ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) { #>
+import { <#= ModelInstance.ParentName.ToCamelCase() #>CRUDConfiguration } from '../../<#= ModelInstance.ParentName.ToKebabCase() #>.constants';
+import { <#= ModelInstance.ParentNamePlural #>Effects } from '../../store/<#= ModelInstance.ParentNamePlural.ToKebabCase() #>-effects';
+import { Feature<#= ModelInstance.ParentNamePlural #>Store } from '../../store/<#= ModelInstance.ParentName.ToKebabCase() #>.state';
+<#  } #>
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>
 import { <#= optionItem #>OptionModule } from 'src/app/domains/<#= optionItem.ToKebabCase() #>-option/<#= optionItem.ToKebabCase() #>-option.module';
 <#  } #>
@@ -140,7 +145,14 @@ export const ROUTES: Routes = [
       <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey,
       Feature<#= ModelInstance.EntityNamePlural #>Store.reducers
     ),
-    EffectsModule.forFeature([<#= ModelInstance.EntityNamePlural #>Effects]),
+<#  if(ModelInstance.IsTeam && ModelInstance.HasParent) { #>
+    // Team Parent Store:
+    StoreModule.forFeature(
+      <#= ModelInstance.ParentName.ToCamelCase() #>CRUDConfiguration.storeKey,
+      Feature<#= ModelInstance.ParentNamePlural #>Store.reducers
+    ),
+<#  } #>
+    EffectsModule.forFeature([<#= ModelInstance.EntityNamePlural #>Effects<# if(ModelInstance.IsTeam && ModelInstance.HasParent) { #>, <#= ModelInstance.ParentNamePlural #>Effects<# } #>]),
     // Domain Modules:
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>
     <#= optionItem #>OptionModule,

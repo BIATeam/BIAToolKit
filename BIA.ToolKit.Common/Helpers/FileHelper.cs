@@ -26,58 +26,77 @@
             return files.ToList();
         }
 
-        public static void CleanFilesByTag(string path, List<string> beginTags, List<string> endTags, string extension, bool hasRemoveRange)
+        public static void CleanFilesByTag(string path, List<string> beginTags, string endTag, string extension, bool hasRemoveRange)
         {
             string[] files = Directory.GetFiles(path, extension, SearchOption.AllDirectories);
 
             Parallel.ForEach(files, file =>
             {
-                List<string> lines = File.ReadLines(file).ToList();
+                var lines = File.ReadLines(file).ToList();
 
-                List<int> beginTagIndexes = GetTagIndexes(beginTags, lines);
-
-                if (beginTagIndexes.Any())
+                foreach (var beginTag in beginTags)
                 {
-                    List<int> endTagIndexes = GetTagIndexes(endTags, lines);
+                    var beginTagIndexes = GetTagIndexes(beginTag, lines);
+                    if (!beginTagIndexes.Any())
+                        continue;
 
-                    if (endTagIndexes.Count >= beginTagIndexes.Count)
+                    var endTagIndexes = GetTagIndexes(endTag, lines);
+                    var indexPairs = beginTagIndexes
+                    .Select(beginTagIndex => new
                     {
-                        var indexPairs = beginTagIndexes
-                        .Select(beginTagIndex => new
-                        {
-                            BeginIndex = beginTagIndex,
-                            EndIndex = endTagIndexes.First(endTagIndex => endTagIndex > beginTagIndex)
-                        })
-                        .OrderByDescending(x => x.BeginIndex).ToList();
+                        BeginIndex = beginTagIndex,
+                        EndIndex = endTagIndexes.First(endTagIndex => endTagIndex > beginTagIndex)
+                    })
+                    .OrderByDescending(x => x.BeginIndex).ToList();
 
-                        foreach (var pair in indexPairs)
+                    foreach (var pair in indexPairs)
+                    {
+                        if (hasRemoveRange)
                         {
-                            if (hasRemoveRange)
+                            var elseTagIndexes = GetElseTagIndexesInRange(lines, pair.BeginIndex, pair.EndIndex);
+                            if (elseTagIndexes.Any())
+                            {
+                                lines.RemoveAt(pair.EndIndex);
+                                var elseTagIndex = elseTagIndexes.First() + pair.BeginIndex;
+                                lines.RemoveRange(pair.BeginIndex, elseTagIndex - pair.BeginIndex + 1);
+                            }
+                            else
                             {
                                 lines.RemoveRange(pair.BeginIndex, pair.EndIndex - pair.BeginIndex + 1);
+                            }
+                        }
+                        else
+                        {
+                            var elseTagIndexes = GetElseTagIndexesInRange(lines, pair.BeginIndex, pair.EndIndex);
+                            if (elseTagIndexes.Any())
+                            {
+                                var elseTagIndex = elseTagIndexes.First() + pair.BeginIndex;
+                                lines.RemoveRange(elseTagIndex, pair.EndIndex - elseTagIndex + 1);
                             }
                             else
                             {
                                 lines.RemoveAt(pair.EndIndex);
-                                lines.RemoveAt(pair.BeginIndex);
                             }
+                            lines.RemoveAt(pair.BeginIndex);
                         }
+                    }
 
-                        File.WriteAllLines(file, lines);
-                    }
-                    else
-                    {
-                        throw new Exception("CleanFilesByTag endTagIndexes < beginTagIndexes");
-                    }
+                    File.WriteAllLines(file, lines);
                 }
 
-                static List<int> GetTagIndexes(List<string> tags, List<string> lines)
+                static List<int> GetTagIndexes(string tag, List<string> lines)
                 {
                     return lines.Select((line, index) => new { line, index })
-                    .Where(x => tags.Exists(tag => x.line.Contains(tag)))
+                    .Where(x => x.line.Contains(tag))
                     .Select(x => x.index)
                     .Distinct()
                     .OrderBy(x => x).ToList();
+                }
+
+                static List<int> GetElseTagIndexesInRange(List<string> lines, int rangeStart, int rangeEnd)
+                {
+                    var rangeLines = lines.Take(new Range(rangeStart, rangeEnd + 1)).ToList();
+                    return GetTagIndexes("#else", rangeLines);
                 }
             });
         }

@@ -24,6 +24,7 @@
     using Newtonsoft.Json.Converters;
     using System.Diagnostics;
     using System.Threading;
+    using static BIA.ToolKit.Application.Templates.Manifest.Feature;
 
     public class FileGeneratorService
     {
@@ -32,41 +33,45 @@
         const string BiaToolKitMarkupPartialBeginPattern = "// BIAToolKit - Begin Partial {0} {1}";
         const string BiaToolKitMarkupPartialEndPattern = "// BIAToolKit - End Partial {0} {1}";
 
-        private readonly FileGeneratorModelProviderFactory modelProviderFactory;
-        private readonly IConsoleWriter consoleWriter;
-        private readonly List<Manifest> manifests = [];
-        private IFileGeneratorModelProvider modelProvider;
-        private VersionedTemplateGenerator templateGenerator;
-        private string templatesPath;
-        private Project currentProject;
-        private FileGeneratorContext currentContext;
-        private Manifest currentManifest;
-        private string prettierAngularProjectPath;
+        private readonly FileGeneratorModelProviderFactory _modelProviderFactory;
+        private readonly IConsoleWriter _consoleWriter;
+        private readonly CSharpParserService parserService;
+        private readonly List<Manifest> _manifests = [];
+        private IFileGeneratorModelProvider _modelProvider;
+        private string _modelProviderVersion;
+        private string _templatesPath;
+        private Project _currentProject;
+        private FileGeneratorContext _currentContext;
+        private Manifest _currentManifest;
+        private string _prettierAngularProjectPath;
+        private bool _fromUnitTest;
 
         public bool IsInit { get; private set; }
 
         public FileGeneratorService(IConsoleWriter consoleWriter)
         {
-            this.consoleWriter = consoleWriter;
-            modelProviderFactory = new FileGeneratorModelProviderFactory(consoleWriter);
+            this._consoleWriter = consoleWriter;
+            this.parserService = new CSharpParserService(consoleWriter);
+            _modelProviderFactory = new FileGeneratorModelProviderFactory(consoleWriter);
 
             LoadTemplatesManifests();
         }
 
-        public async Task Init(Project project)
+        public async Task Init(Project project, bool fromUnitTest = false)
         {
             if (project is null)
             {
                 IsInit = false;
-                currentProject = null;
+                _currentProject = null;
                 return;
             }
 
-            if (project.Folder == currentProject?.Folder)
+            if (project.Folder == _currentProject?.Folder)
                 return;
 
             IsInit = false;
-            currentProject = project;
+            _currentProject = project;
+            _fromUnitTest = fromUnitTest;
 
             try
             {
@@ -83,41 +88,36 @@
                     // Load compatible model provider
                     LoadModelProvider(projectVersion);
                     // Parse file generator version number (_X_Y_Z)
-                    var modelProviderVersion = ParseModelProviderVersion();
+                    _modelProviderVersion = ParseModelProviderVersion();
                     // Search templates path based on file generator version (_X_Y_Z)
-                    FindTemplatesPath(modelProviderVersion);
+                    FindTemplatesPath(_modelProviderVersion);
                     // Search template manifest based on file generator version transofmred (_X_Y_Z -> X.Y.Z)
-                    SetCurrentManifest(modelProviderVersion);
-
-                    // Init template generator
-                    templateGenerator = new VersionedTemplateGenerator(modelProviderVersion);
-                    // Add reference to assembly of Manifest class to the template generator
-                    templateGenerator.Refs.Add(typeof(Manifest).Assembly.Location);
+                    SetCurrentManifest(_modelProviderVersion);
 
                     IsInit = true;
                 });
             }
             catch(Exception ex)
             {
-                consoleWriter.AddMessageLine($"File generator : {ex.Message}", "red");
+                _consoleWriter.AddMessageLine($"File generator : {ex.Message}", "red");
             }
         }
 
         private void SetCurrentManifest(string modelProviderVersion)
         {
             var manifestVersion = modelProviderVersion.Replace("_", ".")[1..modelProviderVersion.Length];
-            currentManifest = manifests.FirstOrDefault(m => m.Version.ToString() == manifestVersion);
-            if (currentManifest is null)
+            _currentManifest = _manifests.FirstOrDefault(m => m.Version.ToString() == manifestVersion);
+            if (_currentManifest is null)
             {
-                consoleWriter.AddMessageLine($"no manifest for version {manifestVersion}", "red");
+                _consoleWriter.AddMessageLine($"no manifest for version {manifestVersion}", "red");
                 return;
             }
         }
 
         private void FindTemplatesPath(string modelProviderVersion)
         {
-            templatesPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), modelProviderVersion, "Templates");
-            if (!Directory.Exists(templatesPath))
+            _templatesPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), modelProviderVersion, "Templates");
+            if (!Directory.Exists(_templatesPath))
             {
                 throw new Exception($"no templates found for version {modelProviderVersion}");
             }
@@ -126,7 +126,7 @@
         private string ParseModelProviderVersion()
         {
             var regex = new Regex(@"(_[0-9]+(?:_[0-9]+){0,2})[^0-9]*");
-            var match = regex.Match(modelProvider.GetType().Name);
+            var match = regex.Match(_modelProvider.GetType().Name);
             if (!match.Success)
             {
                 throw new Exception($"invalid model provider version");
@@ -136,8 +136,8 @@
 
         private void LoadModelProvider(Version projectVersion)
         {
-            modelProvider = modelProviderFactory.GetModelProvider(projectVersion);
-            if (modelProvider is null)
+            _modelProvider = _modelProviderFactory.GetModelProvider(projectVersion);
+            if (_modelProvider is null)
             {
                 throw new Exception($"incompatible project version {projectVersion}");
             }
@@ -157,34 +157,38 @@
         /// <returns></returns>
         public bool IsProjectCompatibleForCrudOrOptionFeature()
         {
-            return Version.TryParse(currentProject?.FrameworkVersion, out Version projectVersion) && projectVersion >= new Version(5, 0);
+            return Version.TryParse(_currentProject?.FrameworkVersion, out Version projectVersion) && projectVersion >= new Version(5, 0);
         }
 
-        public void SetPrettierAngularProjectPath(string projectPath)
+        public void SetPrettierAngularProjectPath(string path)
         {
-            prettierAngularProjectPath = projectPath;
+            if(!Directory.Exists(path))
+            {
+                throw new Exception($"Unable to init prettier from unexisting front folder {path}");
+            }
+            _prettierAngularProjectPath = path;
         }
 
         public async Task GenerateDtoAsync(FileGeneratorDtoContext dtoContext)
         {
             try
             {
-                consoleWriter.AddMessageLine($"=== GENERATE DTO ===", color: "lightblue");
+                _consoleWriter.AddMessageLine($"=== GENERATE DTO ===", color: "lightblue");
 
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
 
-                var templateModel = modelProvider.GetDtoTemplateModel(dtoContext);
+                var templateModel = _modelProvider.GetDtoTemplateModel(dtoContext);
                 var dtoFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Dto);
 
-                currentContext = dtoContext;
+                _currentContext = dtoContext;
 
                 await GenerateTemplatesFromManifestFeatureAsync(dtoFeature, templateModel);
-                consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
+                _consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"DTO generation failed : {ex}", color: "red");
+                _consoleWriter.AddMessageLine($"DTO generation failed : {ex}", color: "red");
             }
         }
 
@@ -192,23 +196,23 @@
         {
             try
             {
-                consoleWriter.AddMessageLine($"=== GENERATE OPTION ===", color: "lightblue");
+                _consoleWriter.AddMessageLine($"=== GENERATE OPTION ===", color: "lightblue");
 
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
 
-                var templateModel = modelProvider.GetOptionTemplateModel(optionContext);
+                var templateModel = _modelProvider.GetOptionTemplateModel(optionContext);
                 var optionFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Option);
 
-                currentContext = optionContext;
+                _currentContext = optionContext;
 
                 await GenerateTemplatesFromManifestFeatureAsync(optionFeature, templateModel);
 
-                consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
+                _consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"Option generation failed : {ex}", color: "red");
+                _consoleWriter.AddMessageLine($"Option generation failed : {ex}", color: "red");
             }
         }
 
@@ -216,35 +220,35 @@
         {
             try
             {
-                consoleWriter.AddMessageLine($"=== GENERATE CRUD ===", color: "lightblue");
+                _consoleWriter.AddMessageLine($"=== GENERATE CRUD ===", color: "lightblue");
 
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
 
                 if (crudContext.GenerateFront && crudContext.HasParent)
                 {
-                    crudContext.ComputeAngularParentLocation(currentProject.Folder);
+                    crudContext.ComputeAngularParentLocation(_currentProject.Folder);
                 }
 
-                var templateModel = modelProvider.GetCrudTemplateModel(crudContext);
+                var templateModel = _modelProvider.GetCrudTemplateModel(crudContext);
                 var crudFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Crud);
 
-                currentContext = crudContext;
+                _currentContext = crudContext;
 
                 await GenerateTemplatesFromManifestFeatureAsync(crudFeature, templateModel);
 
-                consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
+                _consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"CRUD generation failed : {ex}", color: "red");
+                _consoleWriter.AddMessageLine($"CRUD generation failed : {ex}", color: "red");
             }
         }
 
         public Manifest.Feature GetCurrentManifestFeature(Manifest.Feature.FeatureType featureType)
         {
-            return currentManifest.Features.SingleOrDefault(f => f.Type == featureType)
-                    ?? throw new KeyNotFoundException($"no {featureType} feature for template manifest {currentManifest.Version}");
+            return _currentManifest.Features.SingleOrDefault(f => f.Type == featureType)
+                    ?? throw new KeyNotFoundException($"no {featureType} feature for template manifest {_currentManifest.Version}");
         }
 
         private void LoadTemplatesManifests()
@@ -255,29 +259,55 @@
                 MissingMemberHandling = MissingMemberHandling.Error
             };
             var manifestsFiles = Directory.EnumerateFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "manifest.json", System.IO.SearchOption.AllDirectories).ToList();
-            manifestsFiles.ForEach(m => manifests.Add(JsonConvert.DeserializeObject<Manifest>(File.ReadAllText(m), jsonSerializersettings)));
+            manifestsFiles.ForEach(m => _manifests.Add(JsonConvert.DeserializeObject<Manifest>(File.ReadAllText(m), jsonSerializersettings)));
         }
 
         private async Task GenerateTemplatesFromManifestFeatureAsync(Manifest.Feature manifestFeature, object model)
         {
-            if (currentContext.GenerateFront)
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            _consoleWriter.AddMessageLine("Please wait...", "darkgray");
+
+            var generateAngularTemplatesTask = Task.CompletedTask;
+            var generateDotNetTemplatesTask = Task.CompletedTask;
+
+            if (_currentContext.GenerateFront)
             {
-                await GenerateAngularTemplates(manifestFeature.AngularTemplates, model);
+                generateAngularTemplatesTask = GenerateAngularTemplates(manifestFeature.AngularTemplates, model);
             }
 
-            if (currentContext.GenerateBack)
+            if (_currentContext.GenerateBack)
             {
-                await GenerateDotNetTemplatesAsync(manifestFeature.DotNetTemplates, model);
+                generateDotNetTemplatesTask = GenerateDotNetTemplatesAsync(manifestFeature.DotNetTemplates, model);
             }
+
+            await Task.WhenAll(generateAngularTemplatesTask, generateDotNetTemplatesTask);
+
+            stopwatch.Stop();
+            _consoleWriter.AddMessageLine($"[Generated in {stopwatch.Elapsed.Minutes:D2}:{stopwatch.Elapsed.Seconds:D2}min]", "darkgray");
         }
 
         private async Task GenerateDotNetTemplatesAsync(IEnumerable<Manifest.Feature.Template> templates, object model)
         {
-            foreach (var template in templates)
+            await RunGenerateTemplatesAsync(templates, model, GenerateDotNetTemplateAsync);
+            var csharpFiles = _currentContext.GenerationReport.TemplatesGenerated
+                .Select(x => GetDotNetTemplateOutputPath(x.OutputPath, _currentContext, _currentProject.Folder))
+                .Where(x => Path.GetExtension(x).Equals(".cs"));
+            
+            foreach(var file in csharpFiles)
             {
-                var templatePath = Path.Combine(templatesPath, Constants.FolderDotNet, template.InputPath);
-                await GenerateFromTemplateAsync(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, currentContext, currentProject.Folder));
+                if(FileTransform.OrderUsingFromFile(file))
+                {
+                    _consoleWriter.AddMessageLine($"-> Usings ordered in {file}", "green");
+                }
             }
+        }
+
+        private async Task GenerateDotNetTemplateAsync(Manifest.Feature.Template template, object model)
+        {
+            var templatePath = Path.Combine(_templatesPath, Constants.FolderDotNet, template.InputPath);
+            await GenerateFromTemplateAsync(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder));
         }
 
         public static string GetDotNetTemplateOutputPath(string templateOutputPath, FileGeneratorContext context, string projectFolder)
@@ -295,21 +325,44 @@
 
         private async Task GenerateAngularTemplates(IEnumerable<Manifest.Feature.Template> templates, object model)
         {
-            if (string.IsNullOrWhiteSpace(prettierAngularProjectPath))
+            var angularProjectFolder = Path.Combine(_currentProject.Folder, _currentContext.AngularFront);
+            
+            if (!_fromUnitTest)
             {
-                throw new Exception("no path set for Angular project with Prettier");
+                SetPrettierAngularProjectPath(angularProjectFolder);
             }
 
-            foreach (var template in templates)
+            await RunGenerateTemplatesAsync(templates, model, GenerateAngularTemplateAsync);
+            await RunPrettierAsync(angularProjectFolder);
+        }
+
+        private async Task GenerateAngularTemplateAsync(Manifest.Feature.Template template, object model)
+        {
+            var templatePath = Path.Combine(_templatesPath, Constants.FolderAngular, template.InputPath);
+            var outputPath = GetAngularTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder);
+            await GenerateFromTemplateAsync(template, templatePath, model, outputPath);
+        }
+
+        private static async Task RunGenerateTemplatesAsync(IEnumerable<Manifest.Feature.Template> templates, object model, Func<Manifest.Feature.Template, object, Task> generateTemplateTask)
+        {
+            var groupTemplates = templates.GroupBy(t => t.OutputPath).Where(g => g.Count() > 1).ToList();
+            var uniqueTemplates = templates.Where(t => !groupTemplates.Any(gt => gt.Key == t.OutputPath)).ToList();
+
+            var uniqueTemplatesGenerationTasks = uniqueTemplates.Select(async (template) =>
             {
-                var templatePath = Path.Combine(templatesPath, Constants.FolderAngular, template.InputPath);
-                var outputPath = GetAngularTemplateOutputPath(template.OutputPath, currentContext, currentProject.Folder);
-                await GenerateFromTemplateAsync(template, templatePath, model, outputPath);
-                if (currentContext.GenerationReport.TemplatesGenerated.Contains(template))
+                await generateTemplateTask(template, model);
+            });
+
+            var groupTemplatesGenerationTasks = groupTemplates.Select(async (templates) =>
+            {
+                foreach (var template in templates)
                 {
-                    await ApplyPrettierToGeneratedAngularFileAsync(outputPath);
+                    await generateTemplateTask(template, model);
                 }
-            }
+            });
+
+            var generationTasks = uniqueTemplatesGenerationTasks.Concat(groupTemplatesGenerationTasks).ToList();
+            await Task.WhenAll(generationTasks);
         }
 
         public static string GetAngularTemplateOutputPath(string templateOutputPath, FileGeneratorContext context, string projectFolder)
@@ -328,28 +381,28 @@
             return outputPath;
         }
 
-        public async Task ApplyPrettierToGeneratedAngularFileAsync(string filePath)
+        public async Task RunPrettierAsync(string path)
         {
             var cts = new CancellationTokenSource();
 
             var process = new Process();
-            process.StartInfo.WorkingDirectory = prettierAngularProjectPath;
+            process.StartInfo.WorkingDirectory = _prettierAngularProjectPath;
             process.StartInfo.FileName = "cmd.exe";
-            process.StartInfo.Arguments = $"/C npx prettier --write {filePath} --plugin=prettier-plugin-organize-imports --config \"{Path.Combine(prettierAngularProjectPath, ".prettierrc")}\"";
+            process.StartInfo.Arguments = $"/C npx prettier --write {path} --plugin=prettier-plugin-organize-imports --config \"{Path.Combine(_prettierAngularProjectPath, ".prettierrc")}\"";
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
             process.Start();
-            consoleWriter.AddMessageLine($"Prettier generated file... (PID:{process.Id})");
+            _consoleWriter.AddMessageLine($"Prettier {path}...", "gray");
 
             try
             {
-                cts.CancelAfter(5000);
+                cts.CancelAfter(30000);
                 await process.WaitForExitAsync(cts.Token);
-                consoleWriter.AddMessageLine($"Prettier succeed !");
+                _consoleWriter.AddMessageLine($"Prettier succeed !", "lightgreen");
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"prettier failed ({ex.Message})", "red");
+                _consoleWriter.AddMessageLine($"prettier failed ({ex.Message})", "red");
                 process.Kill();
             }
             finally
@@ -360,19 +413,24 @@
 
         private async Task GenerateFromTemplateAsync(Manifest.Feature.Template template, string templatePath, object model, string outputPath)
         {
+            var relativeOutputPath = outputPath.Replace(_currentProject.Folder, string.Empty);
+            var relativeTemplatePath = templatePath.Replace(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), string.Empty);
+            var logMessagePrefix = $"Generation of {(template.IsPartial ? $"partial content '{template.PartialInsertionMarkup}' into" : "file")} '{relativeOutputPath}'" ;
+#if DEBUG
+            logMessagePrefix += $" from template file '{relativeTemplatePath}'";
+#endif
+
             try
             {
-                var relativeOutputPath = outputPath.Replace(currentProject.Folder, string.Empty);
-                consoleWriter.AddMessageLine($"Generating {(template.IsPartial ? "partial content into" : "file")} {relativeOutputPath} ...");
-                var relativeTemplatePath = templatePath.Replace(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), string.Empty);
-                consoleWriter.AddMessageLine($"Using template file {relativeTemplatePath}", color: "darkgray");
-
                 var generationTemplatePath = Path.GetTempFileName();
                 var templateContent = await File.ReadAllTextAsync(templatePath);
                 await File.WriteAllTextAsync(generationTemplatePath, templateContent);
 
+                // Init template generator
+                var templateGenerator = new VersionedTemplateGenerator(_modelProviderVersion);
+                // Add reference to assembly of Manifest class to the template generator
+                templateGenerator.Refs.Add(typeof(Manifest).Assembly.Location);
                 // Inject Model parameter for template generation
-                templateGenerator.ClearSession();
                 var templateGeneratorSession = templateGenerator.GetOrCreateSession();
                 templateGeneratorSession.Add("Model", model);
 
@@ -390,8 +448,10 @@
                 File.Delete(generatedTemplatePath);
                 if (generatedTemplateContent.Count == 0)
                 {
-                    consoleWriter.AddMessageLine("Ignored : generated content is empty", "orange");
-                    currentContext.GenerationReport.TemplatesIgnored.Add(template);
+#if DEBUG
+                    _consoleWriter.AddMessageLine($"{logMessagePrefix} : [IGNORED]", "orange");
+#endif
+                    _currentContext.GenerationReport.TemplatesIgnored.Add(template);
                     return;
                 }
 
@@ -405,19 +465,19 @@
                     await File.WriteAllLinesAsync(outputPath, generatedTemplateContent);
                 }
 
-                consoleWriter.AddMessageLine($"Success !", "lightgreen");
-                currentContext.GenerationReport.TemplatesGenerated.Add(template);
+                _consoleWriter.AddMessageLine($"{logMessagePrefix} : [SUCCESS]", "lightgreen");
+                _currentContext.GenerationReport.TemplatesGenerated.Add(template);
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"Generate from template failed : {ex}", color: "red");
-                currentContext.GenerationReport.TemplatesFailed.Add(template);
+                _consoleWriter.AddMessageLine($"{logMessagePrefix} : [ERROR] -> {ex}", color: "red");
+                _currentContext.GenerationReport.TemplatesFailed.Add(template);
             }
         }
 
         private async Task WritePartialContentAsync(Manifest.Feature.Template template, string outputPath, string relativeOutputPath, List<string> generatedTemplateContent)
         {
-            var insertionMarkup = GetInsertionMarkup(template, currentContext);
+            var insertionMarkup = GetInsertionMarkup(template, _currentContext);
 
             var outputContent = (await File.ReadAllLinesAsync(outputPath)).ToList();
             var insertionMarkupBegin = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupBeginPattern, insertionMarkup), outputPath);
@@ -427,7 +487,7 @@
                 throw new Exception($"Unable to find insertion markup {insertionMarkup} into {relativeOutputPath}");
             }
 
-            (var partialInsertionMarkupBegin, var partialInsertionMarkupEnd) = GetPartialInsertionMarkups(currentContext, template, outputPath);
+            (var partialInsertionMarkupBegin, var partialInsertionMarkupEnd) = GetPartialInsertionMarkups(_currentContext, template, outputPath);
             // Partial content already exists
             if (outputContent.Any(line => line.Trim().Equals(partialInsertionMarkupBegin)) && outputContent.Any(line => line.Trim().Equals(partialInsertionMarkupEnd)))
             {

@@ -9,6 +9,7 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
     using BIA.Net.Core.Common.Extensions;
     using BIA.Net.Core.Domain;
     using BIA.Net.Core.Domain.Dto.Option;
+    using BIA.Net.Core.Domain.Mapper;
     using TheBIADevCompany.BIADemo.Domain.Dto.Fleet;
     using TheBIADevCompany.BIADemo.Domain.Fleet.Entities;
 
@@ -17,34 +18,51 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
     /// </summary>
     public class PlaneMapper : BaseMapper<PlaneDto, Plane, int>
     {
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.ExpressionCollection"/>
+        /// <inheritdoc />
         public override ExpressionCollection<Plane> ExpressionCollection
         {
             get
             {
                 return new ExpressionCollection<Plane>(base.ExpressionCollection)
                 {
+                    { HeaderName.Id, plane => plane.Id },
                     { HeaderName.Name, plane => plane.Name },
                     { HeaderName.Option, plane => plane.Option != null ? plane.Option.Name : null },
                 };
             }
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToEntity"/>
+        /// <inheritdoc />
+        public override ExpressionCollection<Plane> ExpressionCollectionFilterIn
+        {
+            get
+            {
+                return new ExpressionCollection<Plane>(
+                    base.ExpressionCollectionFilterIn,
+                    new ExpressionCollection<Plane>()
+                    {
+                        { HeaderName.Option, plane => plane.Option.Id },
+                    });
+            }
+        }
+
+        /// <inheritdoc />
         public override void DtoToEntity(PlaneDto dto, ref Plane entity)
         {
             base.DtoToEntity(dto, ref entity);
+            entity.Id = dto.Id;
             entity.Name = dto.Name;
 
             // Map relationship 0..1-* : Option
             entity.OptionId = dto.Option?.Id;
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
+        /// <inheritdoc />
         public override Expression<Func<Plane, PlaneDto>> EntityToDto()
         {
             return base.EntityToDto().CombineMapping(entity => new PlaneDto
             {
+                Id = entity.Id,
                 Name = entity.Name,
 
                 // Map relationship 0..1-* : Option
@@ -54,39 +72,17 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
                     Display = entity.Option.Name,
                 }
                 : null,
-                RowVersion = Convert.ToBase64String(entity.RowVersion),
-            };
+            });
         }
 
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.DtoToCell"/>
-        public override string DtoToCell(PlaneDto dto, List<string> headerNames = null)
+        /// <inheritdoc />
+        public override Dictionary<string, Func<string>> DtoToCellMapping(PlaneDto dto)
         {
-            return x =>
+            return new Dictionary<string, Func<string>>(base.DtoToCellMapping(dto))
             {
-                List<object> records = [];
-
-                if (headerNames != null && headerNames.Count > 0)
-                {
-                    foreach (string headerName in headerNames)
-                    {
-                        if (string.Equals(headerName, HeaderName.Id, StringComparison.OrdinalIgnoreCase))
-                        {
-                            records.Add(CSVNumber(x.Id));
-                        }
-
-                        if (string.Equals(headerName, HeaderName.Name, StringComparison.OrdinalIgnoreCase))
-                        {
-                            records.Add(CSVString(x.Name));
-                        }
-
-                        if (string.Equals(headerName, HeaderName.Option, StringComparison.OrdinalIgnoreCase))
-                        {
-                            records.Add(CSVString(x.Option?.Display));
-                        }
-                    }
-                }
-
-                return [.. records];
+                { HeaderName.Id, () => CSVNumber(dto.Id) },
+                { HeaderName.Name, () => CSVString(dto.Name) },
+                { HeaderName.Option, () => CSVString(dto.Option?.Display) },
             };
         }
 

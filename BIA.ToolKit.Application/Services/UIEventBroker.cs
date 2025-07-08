@@ -35,7 +35,7 @@ namespace BIA.ToolKit.Application.Services
             OnNewVersionAvailable?.Invoke();
         }
 
-        public void ExecuteTaskWithWaiter(Func<Task> task)
+        public void ExecuteActionWithWaiter(Func<Task> task)
         {
             OnActionWithWaiter?.Invoke(task);
         }

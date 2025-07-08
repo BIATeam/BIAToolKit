@@ -11,6 +11,7 @@
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Templates;
+    using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,10 +30,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
                 name: "Engine",
-                baseType: "BaseDto",
+                baseType: null,
                 baseKeyType: "int",
                 arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "Site")],
-                baseList: ["BaseDto<int>", "IFixableDto"]);
+                baseList: ["BaseDtoVersionedFixable<int>"]);
 
             var domainName = "Fleet";
 
@@ -71,6 +72,8 @@
                 BaseKeyType = entityInfo.BaseKeyType,
                 HasParent = true,
                 Properties = properties,
+                IsVersioned = true,
+                IsFixable = true,
                 ParentName = "Plane",
                 ParentNamePlural = "Planes",
                 DisplayItemName = "Reference",
@@ -99,10 +102,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
                 name: "Plane",
-                baseType: "BaseDto",
+                baseType: null,
                 baseKeyType: "int",
                 arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "Site")],
-                baseList: ["BaseDto<int>", "IArchivableDto"]);
+                baseList: ["BaseDtoVersionedFixableArchivable<int>"]);
 
             var domainName = "Fleet";
 
@@ -117,8 +120,8 @@
                 new("DateTime?", "LastFlightDate", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("Type", "datetime")]),
                 new("DateTime?", "DeliveryDate", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("Type", "date")]),
                 new("DateTime", "NextMaintenanceDate", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("Type", "date")]),
-                new("string", "SyncTime", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("Type", "time")]),
-                new("string?", "SyncFlightDataTime", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("Type", "time")]),
+                new("string?", "SyncTime", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("Type", "time")]),
+                new("string", "SyncFlightDataTime", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("Type", "time")]),
                 new("int", "Capacity", [RoslynHelper.CreateAttributeArgument("Required", true)]),
                 new("int?", "MotorsCount", [RoslynHelper.CreateAttributeArgument("Required", false)]),
                 new("double", "TotalFlightHours", [RoslynHelper.CreateAttributeArgument("Required", true)]),
@@ -142,6 +145,7 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = properties,
+                IsVersioned = true,
                 DisplayItemName = "Msn",
                 OptionItems = ["PlaneType", "Airport"],
                 HasAncestorTeam = true,
@@ -149,6 +153,7 @@
                 UseHubForClient = true,
                 HasReadOnlyMode = true,
                 IsFixable = true,
+                FormReadOnlyMode = Enum.GetName(typeof(FormReadOnlyMode), FormReadOnlyMode.Off),
                 CanImport = true,
                 GenerateBack = true,
                 GenerateFront = true,
@@ -168,16 +173,15 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Maintenance",
                 name: "AircraftMaintenanceCompany",
-                baseType: "TeamDto",
+                baseType: "BaseDtoVersionedTeam",
                 baseKeyType: null,
                 arguments: [],
-                baseList: ["TeamDto"]);
+                baseList: ["BaseDtoVersionedTeam"]);
 
             var domainName = "Maintenance";
 
             var properties = new List<PropertyInfo>
             {
-                new("ICollection<OptionDto>", "Admins", [RoslynHelper.CreateAttributeArgument("Required", true)])
             };
 
             var crudContext = new FileGeneratorCrudContext
@@ -189,6 +193,7 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = properties,
+                IsVersioned = true,
                 IsTeam = true,
                 DisplayItemName = "Title",
                 HasAdvancedFilter = true,
@@ -212,10 +217,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Maintenance",
                 name: "MaintenanceTeam",
-                baseType: "TeamDto",
+                baseType: "BaseDtoVersionedTeamFixableArchivable",
                 baseKeyType: null,
                 arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "AircraftMaintenanceCompany")],
-                baseList: ["TeamDto"]);
+                baseList: ["BaseDtoVersionedTeamFixableArchivable"]);
 
             var domainName = "Maintenance";
 
@@ -254,6 +259,7 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = properties,
+                IsVersioned = true,
                 IsTeam = true,
                 OptionItems = ["Airport", "Country"],
                 HasParent = true,

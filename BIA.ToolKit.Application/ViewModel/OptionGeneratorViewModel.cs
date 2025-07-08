@@ -91,6 +91,19 @@
             }
         }
 
+        private bool showAllEntities;
+
+        public bool ShowAllEntities
+        {
+            get { return showAllEntities; }
+            set 
+            { 
+                showAllEntities = value; 
+                RaisePropertyChanged(nameof(ShowAllEntities));
+            }
+        }
+
+
         private Dictionary<string, string> entityFiles;
         public Dictionary<string, string> EntityFiles
         {
@@ -227,17 +240,6 @@
                 }
             }
         }
-
-        private bool isZipParsed = false;
-        public bool IsZipParsed
-        {
-            get => isZipParsed;
-            set
-            {
-                isZipParsed = value;
-                RaisePropertyChanged(nameof(IsButtonGenerateOptionEnable));
-            }
-        }
         #endregion
 
         #region Button
@@ -245,7 +247,7 @@
         {
             get
             {
-                return IsEntityParsed && IsZipParsed
+                return IsEntityParsed
                     && !string.IsNullOrWhiteSpace(EntityNamePlural)
                     && !string.IsNullOrWhiteSpace(entityDisplayItemSelected)
                     && !string.IsNullOrEmpty(Domain);

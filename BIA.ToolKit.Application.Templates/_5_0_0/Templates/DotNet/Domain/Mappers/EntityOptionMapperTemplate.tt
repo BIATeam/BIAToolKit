@@ -9,8 +9,9 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 {
     using System;
     using System.Linq.Expressions;
-    using BIA.Net.Core.Domain;
+    using BIA.Net.Core.Common.Extensions;
     using BIA.Net.Core.Domain.Dto.Option;
+    using BIA.Net.Core.Domain.Mapper;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
 
     /// <summary>
@@ -18,14 +19,13 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
     /// </summary>
     public class <#= ModelInstance.EntityName #>OptionMapper : BaseMapper<OptionDto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>>
     {
-        /// <inheritdoc cref="BaseMapper{TDto,TEntity}.EntityToDto"/>
+        /// <inheritdoc />
         public override Expression<Func<<#= ModelInstance.EntityName #>, OptionDto>> EntityToDto()
         {
-            return entity => new OptionDto
+            return base.EntityToDto().CombineMapping(entity => new OptionDto
             {
-                Id = entity.Id,
                 Display = entity.<#= ModelInstance.OptionDisplayName #>,
-            };
+            });
         }
     }
 }

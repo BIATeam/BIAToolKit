@@ -36,7 +36,9 @@
         public bool HasAdvancedFilter { get; set; }
         public string AncestorTeam { get; set; }
         public string FormReadOnlyMode { get; set; }
-
+        public bool IsVersioned { get; set; }
+        public bool IsArchivable { get; set; }
+        public string EntityBaseKeyType { get; set; }
     }
 
     public class DtoMapping

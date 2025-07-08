@@ -20,21 +20,15 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
                 name: "PlaneType",
-                baseType: "VersionedTable",
-                baseKeyType: null,
+                baseType: null,
+                baseKeyType: "int",
                 arguments: null,
-                baseList: ["IEntity<int>"]);
+                baseList: ["BaseEntityVersioned<int>"]);
 
             var domainName = "Fleet";
 
             var mappingProperties = new List<MappingEntityProperty>
             {
-                new()
-                {
-                    EntityCompositeName = "Id",
-                    EntityType = "int",
-                    MappingName = "Id",
-                },
                 new()
                 {
                     EntityCompositeName = "Title",
@@ -60,6 +54,7 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = [.. mappingProperties],
+                IsVersioned = true,
                 GenerateBack = true
             };
 
@@ -77,10 +72,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
                 name: "Plane",
-                baseType: "VersionedTable",
-                baseKeyType: null,
+                baseType: null,
+                baseKeyType: "int",
                 arguments: null,
-                baseList: ["IEntityArchivable<int>"]);
+                baseList: [" BaseEntityVersionedFixableArchivable<int>"]);
 
             var domainName = "Fleet";
             var ancestorTeamName = "Site";
@@ -93,11 +88,6 @@
                     EntityType = "int",
                     IsRequired = true,
                     IsParent = true,
-                },
-                new()
-                {
-                    EntityCompositeName = "Id",
-                    EntityType = "int",
                 },
                 new()
                 {
@@ -263,6 +253,8 @@
                 Properties = [.. mappingProperties],
                 GenerateBack = true,
                 AncestorTeamName = ancestorTeamName,
+                IsVersioned = true,
+                IsFixable = true,
                 IsArchivable = true,
             };
 
@@ -280,10 +272,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Maintenance.Entities",
                 name: "AircraftMaintenanceCompany",
-                baseType: "Team",
+                baseType: "BaseEntityTeam",
                 baseKeyType: null,
                 arguments: null,
-                baseList: []);
+                baseList: ["BaseEntityTeam"]);
 
             var domainName = "Maintenance";
 
@@ -301,6 +293,7 @@
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
                 Properties = [.. mappingProperties],
+                IsVersioned = true,
                 GenerateBack = true,
             };
 
@@ -319,10 +312,10 @@
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Maintenance.Entities",
                 name: "MaintenanceTeam",
-                baseType: "Team",
+                baseType: "BaseEntityTeamFixableArchivable",
                 baseKeyType: null,
                 arguments: null,
-                baseList: []);
+                baseList: ["BaseEntityTeamFixableArchivable"]);
 
             var domainName = "Maintenance";
             var ancestorTeamName = "AircraftMaintenanceCompany";
@@ -495,6 +488,9 @@
                 Properties = [.. mappingProperties],
                 GenerateBack = true,
                 AncestorTeamName = ancestorTeamName,
+                IsVersioned = true,
+                IsFixable = true,
+                IsArchivable = true,
             };
 
             await fixture.RunTestGenerateDtoAllFilesEqualsAsync(dtoContext);

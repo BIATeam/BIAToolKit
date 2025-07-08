@@ -18,7 +18,7 @@
     {
         internal class ConsoleWriterTest(Stopwatch stopwatch) : IConsoleWriter
         {
-            public void AddMessageLine(string message, string? color = null, bool refreshimediate = true)
+            public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
             {
                 Console.WriteLine($"[{nameof(FileGeneratorTestFixture)} {stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}]\t{message}");
             }
@@ -38,7 +38,7 @@
             var consoleWriter = new ConsoleWriterTest(stopwatch);
             stopwatch.Start();
 
-            var biaDemoZipPath = "..\\..\\..\\..\\BIADemoVersions\\BIADemo_5.0.0-alpha.zip";
+            var biaDemoZipPath = "..\\..\\..\\..\\BIADemoVersions\\BIADemo_5.0.1.zip";
             var currentDir = Directory.GetCurrentDirectory();
             referenceProjectPath = NormalisePath(Path.Combine(currentDir, "..\\..\\..\\..\\BIADemoVersions\\", Path.GetFileNameWithoutExtension(biaDemoZipPath)));
             testProjectPath = Path.Combine(Path.GetTempPath(), "BIAToolKitTestTemplatesGenerated");
@@ -73,7 +73,7 @@
                 Name = "BIADemo",
                 CompanyName = "TheBIADevCompany",
                 BIAFronts = ["Angular"],
-                FrameworkVersion = "5.0.0"
+                FrameworkVersion = "5.0.1"
             };
 
             TestProject = new Project
@@ -87,13 +87,12 @@
 
             consoleWriter.AddMessageLine($"Init service...");
             FileGeneratorService = new FileGeneratorService(consoleWriter);
-            FileGeneratorService.Init(TestProject).Wait();
+            FileGeneratorService.Init(TestProject, true).Wait();
 
             if (referenceProject.BIAFronts.Count != 0)
             {
                 var referenceProjetAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
                 FileGeneratorService.SetPrettierAngularProjectPath(referenceProjetAngularPath);
-
                 if (doUnzip)
                 {
                     consoleWriter.AddMessageLine("npm i reference project...");
@@ -172,7 +171,7 @@
 
         private void InitTestProjectFolder(Feature.FeatureType featureType, FileGeneratorContext context)
         {
-            var generationFolder = Path.Combine(TestProject.Folder, $"{featureType}_{context.EntityName}");
+            var generationFolder = Path.Combine(testProjectPath, $"{featureType}_{context.EntityName}");
             if (Directory.Exists(generationFolder))
             {
                 Directory.Delete(generationFolder, true);

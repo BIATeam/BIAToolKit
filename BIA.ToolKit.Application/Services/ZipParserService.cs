@@ -1,9 +1,11 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
+    using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.ExtractBlock;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
@@ -40,9 +42,49 @@
         }
 
         /// <summary>
+        /// Parse all zips.
+        /// </summary>
+        public bool ParseZips(IEnumerable<ZipFeatureType> zipFeatures, Project project, string biaFront, CRUDSettings settings)
+        {
+            var parsed = false;
+            foreach (var zipFeatureType in zipFeatures)
+            {
+                parsed |= ParseZipFile(zipFeatureType, project, biaFront, settings);
+            }
+
+            if(!parsed)
+                CleanBiaFolders(zipFeatures, project, biaFront);
+
+            return parsed;
+        }
+
+        /// <summary>
+        /// Parse Zip files (WebApi, CRUD, option or team).
+        /// </summary>
+        private bool ParseZipFile(ZipFeatureType zipData, Project project, string biaFront, CRUDSettings settings)
+        {
+            try
+            {
+                string folderName = (zipData.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : biaFront;
+                string biaFolder = Path.Combine(project.Folder, folderName, Constants.FolderBia);
+                if (!new DirectoryInfo(biaFolder).Exists)
+                {
+                    return false;
+                }
+
+                return ParseZipFile(zipData, biaFolder, settings.DtoCustomAttributeFieldName);
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error on parsing '{zipData.FeatureType}' Zip File: {ex.Message}", "Red");
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Unzip archive on temp local folder and analyze files.
         /// </summary>
-        public bool ParseZipFile(ZipFeatureType zipData, string folderName, string dtoCustomAttributeName)
+        private bool ParseZipFile(ZipFeatureType zipData, string folderName, string dtoCustomAttributeName)
         {
             if (string.IsNullOrWhiteSpace(zipData.ZipName))
             {
@@ -124,6 +166,30 @@
             }
 
             return true;
+        }
+
+        public void CleanBiaFolders(IEnumerable<ZipFeatureType> zipFeatures, Project project, string biaFront)
+        {
+            foreach (var zipFeatureType in zipFeatures)
+            {
+                string folderName = (zipFeatureType.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : biaFront;
+                string biaFolder = Path.Combine(project.Folder, folderName, Constants.FolderBia);
+
+                foreach (var item in Directory.EnumerateFileSystemEntries(biaFolder))
+                {
+                    var isRootItem = Path.GetDirectoryName(item) == biaFolder;
+                    if (isRootItem && Path.GetExtension(item).Equals(".zip", StringComparison.InvariantCultureIgnoreCase))
+                        continue;
+
+                    if (Directory.Exists(item))
+                    {
+                        Directory.Delete(item, true);
+                        continue;
+                    }
+
+                    File.Delete(item);
+                }
+            }
         }
 
         /// <summary>

@@ -44,11 +44,9 @@
         private readonly OptionGeneratorViewModel vm;
         private OptionGeneration optionGenerationHistory;
         private string optionHistoryFileName;
-        private List<FeatureGenerationSettings> backSettingsList;
-        private List<FeatureGenerationSettings> frontSettingsList;
-        private readonly List<string> excludedEntitiesFolders = new List<string> { "bin", "obj" };
-        private readonly List<string> excludedEntitiesFilesSuffixes = new List<string> { "Mapper", "Service", "Repository", "Customizer", "Specification" };
-        private readonly Dictionary<string, EntityInfo> entityInfoFiles = new Dictionary<string, EntityInfo>();
+        private readonly List<FeatureGenerationSettings> backSettingsList;
+        private readonly List<FeatureGenerationSettings> frontSettingsList;
+        private readonly Dictionary<string, EntityInfo> entityInfoFiles = [];
 
         /// <summary>
         /// Constructor
@@ -57,8 +55,8 @@
         {
             InitializeComponent();
             vm = (OptionGeneratorViewModel)DataContext;
-            backSettingsList = new();
-            frontSettingsList = new();
+            backSettingsList = [];
+            frontSettingsList = [];
         }
 
         /// <summary>
@@ -108,14 +106,18 @@
             // Set form enabled
             vm.IsProjectChosen = true;
 
-            uiEventBroker.ExecuteTaskWithWaiter(async () =>
-            {
-                // Load BIA settings + history + parse zips
-                InitProject();
+            uiEventBroker.ExecuteActionWithWaiter(InitProjectTask);
+        }
 
-                // List Entity files from Entity folder
-                ListEntityFiles();
-            });
+        private Task InitProjectTask()
+        {
+            // Load BIA settings + history + parse zips
+            InitProject();
+
+            // List Entity files from Entity folder
+            ListEntityFiles();
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -178,7 +180,7 @@
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteTaskWithWaiter(async () =>
+            uiEventBroker.ExecuteActionWithWaiter(async () =>
             {
 
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
@@ -200,11 +202,14 @@
                     return;
                 }
 
+                if (!zipService.ParseZips(vm.ZipFeatureTypeList, vm.CurrentProject, vm.BiaFront, settings))
+                    return;
+
                 crudService.CrudNames.InitRenameValues(vm.EntitySelected, vm.EntityNamePlural);
 
                 // Generation DotNet + Angular files
                 var featureName = vm.ZipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Option)?.Feature;
-                vm.IsGenerated = crudService.GenerateFiles(vm.Entity, vm.ZipFeatureTypeList, vm.EntityDisplayItemSelected, null, null, FeatureType.Option.ToString(), vm.Domain, vm.BiaFront);
+                vm.IsGenerated = crudService.GenerateFiles(vm.Entity, vm.ZipFeatureTypeList, vm.EntityDisplayItemSelected, null, null, featureName, vm.Domain, vm.BiaFront);
 
                 // Generate generation history file
                 UpdateOptionGenerationHistory();
@@ -259,10 +264,10 @@
 
                 if (result == MessageBoxResult.OK)
                 {
-                    List<string> folders = new() {
+                    List<string> folders = [
                         Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet),
                         Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, "src",  "app")
-                    };
+                    ];
 
                     await crudService.DeleteBIAToolkitAnnotations(folders);
                 }
@@ -319,7 +324,6 @@
 
             if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
-                vm.IsZipParsed = true;
                 this.optionGenerationHistory = CommonTools.DeserializeJsonFile<OptionGeneration>(this.optionHistoryFileName);
                 return;
             }
@@ -330,7 +334,7 @@
                 backSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(backSettingsFileName));
                 foreach (var setting in backSettingsList)
                 {
-                    var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
+                    var featureType = Enum.Parse<FeatureType>(setting.Type);
                     if (featureType != FeatureType.Option)
                         continue;
 
@@ -341,8 +345,6 @@
                     vm.ZipFeatureTypeList.Add(zipFeatureType);
                 }
             }
-
-            ParseZips(vm.ZipFeatureTypeList);
 
             // Load generation history
             this.optionGenerationHistory = CommonTools.DeserializeJsonFile<OptionGeneration>(this.optionHistoryFileName);
@@ -366,7 +368,7 @@
                 frontSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(frontSettingsFileName));
                 foreach (var setting in frontSettingsList)
                 {
-                    var featureType = (FeatureType)Enum.Parse(typeof(FeatureType), setting.Type);
+                    var featureType = Enum.Parse<FeatureType>(setting.Type);
                     if (featureType != FeatureType.Option)
                         continue;
 
@@ -378,8 +380,6 @@
                     vm.ZipFeatureTypeList.Add(zipFeatureType);
                 }
             }
-
-            ParseZips(vm.ZipFeatureTypeList.Where(x => x.GenerationType == GenerationType.Front));
         }
 
         /// <summary>
@@ -475,9 +475,16 @@
             var entityFiles = new Dictionary<string, string>();
             var baseTypes = new List<string>(CommonTools.BaseEntityInterfaces)
             {
-                "Team"
+                "Team",
+                "BaseEntity"
             };
-            var entities = service.GetDomainEntities(vm.CurrentProject, settings, new List<string> { "id" }, baseTypes);
+
+            if(vm.ShowAllEntities)
+            {
+                baseTypes = null;
+            }
+
+            var entities = service.GetDomainEntities(vm.CurrentProject, settings, ["id"], baseTypes);
             foreach (var entity in entities)
             {
                 entityInfoFiles.Add(entity.Path, entity);
@@ -485,32 +492,6 @@
             }
 
             vm.EntityFiles = entityFiles;
-        }
-
-        /// <summary>
-        /// Parse all zips.
-        /// </summary>
-        private void ParseZips(IEnumerable<ZipFeatureType> zipFeatures)
-        {
-            vm.IsZipParsed = false;
-
-            // Verify version to avoid to try to parse zip when ".bia" folders are missing
-            if (!string.IsNullOrEmpty(vm.CurrentProject.FrameworkVersion))
-            {
-                string version = vm.CurrentProject.FrameworkVersion.Replace(".", "");
-                if (int.TryParse(version, out int value))
-                {
-                    if (value < FRAMEWORK_VERSION_MINIMUM)
-                        return;
-                }
-            }
-
-            bool parsed = false;
-            foreach (var zipFeatureType in zipFeatures)
-            {
-                parsed |= ParseZipFile(zipFeatureType);
-            }
-            vm.IsZipParsed = parsed;
         }
 
         /// <summary>
@@ -541,7 +522,7 @@
                     vm.Domain = namespaceParts[domainIndex + 1];
                 }
                 vm.EntityNamePlural = entityInfo.NamePluralized;
-                if (!vm.Entity.Properties.Any())
+                if (vm.Entity.Properties.Count == 0)
                 {
                     consoleWriter.AddMessageLine("No properties found on entity file.", "Orange");
                     return false;
@@ -559,29 +540,6 @@
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"Error on parsing Entity File: {ex.Message}", "Red");
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Parse Zip feature files.
-        /// </summary>
-        private bool ParseZipFile(ZipFeatureType zipData)
-        {
-            try
-            {
-                string folderName = (zipData.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : vm.BiaFront;
-                string biaFolder = Path.Combine(vm.CurrentProject.Folder, folderName, Constants.FolderBia);
-                if (!new DirectoryInfo(biaFolder).Exists)
-                {
-                    return false;
-                }
-
-                return zipService.ParseZipFile(zipData, biaFolder, settings.DtoCustomAttributeFieldName);
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine($"Error on parsing '{zipData.FeatureType}' Zip File: {ex.Message}", "Red");
             }
             return false;
         }

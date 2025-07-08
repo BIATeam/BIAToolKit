@@ -4,6 +4,9 @@ import { PermissionGuard } from 'src/app/core/bia-core/guards/permission.guard';
 import { Permission } from 'src/app/shared/permission';
 import { MaintenanceTeamItemComponent } from './views/maintenance-team-item/maintenance-team-item.component';
 import { MaintenanceTeamsIndexComponent } from './views/maintenance-teams-index/maintenance-teams-index.component';
+import { aircraftMaintenanceCompanyCRUDConfiguration } from '../../aircraft-maintenance-company.constants';
+import { AircraftMaintenanceCompaniesEffects } from '../../store/aircraft-maintenance-companies-effects';
+import { FeatureAircraftMaintenanceCompaniesStore } from '../../store/aircraft-maintenance-company.state';
 import { EngineOptionModule } from 'src/app/domains/engine-option/engine-option.module';
 import { PlaneTypeOptionModule } from 'src/app/domains/plane-type-option/plane-type-option.module';
 import { EffectsModule } from '@ngrx/effects';
@@ -98,7 +101,12 @@ export const ROUTES: Routes = [
       maintenanceTeamCRUDConfiguration.storeKey,
       FeatureMaintenanceTeamsStore.reducers
     ),
-    EffectsModule.forFeature([MaintenanceTeamsEffects]),
+    // Team Parent Store:
+    StoreModule.forFeature(
+      aircraftMaintenanceCompanyCRUDConfiguration.storeKey,
+      FeatureAircraftMaintenanceCompaniesStore.reducers
+    ),
+    EffectsModule.forFeature([MaintenanceTeamsEffects, AircraftMaintenanceCompaniesEffects]),
     // Domain Modules:
     EngineOptionModule,
     PlaneTypeOptionModule,

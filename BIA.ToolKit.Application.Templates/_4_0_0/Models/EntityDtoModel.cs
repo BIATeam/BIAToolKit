@@ -11,14 +11,14 @@
         public const string OptionDto = "OptionDto";
         public const string CollectionOptionDto = "ICollection<" + OptionDto + ">";
 
-        protected readonly List<string> excludedPropertiesToGenerate = new List<string>
+        protected virtual List<string> ExcludedPropertiesToGenerate => new List<string>
         {
             "Id",
             "IsFixed"
         };
 
         public List<TPropertyDtoModel> Properties { get; set; } = new List<TPropertyDtoModel>();
-        public IEnumerable<TPropertyDtoModel> PropertiesToGenerate => Properties.Where(p => !excludedPropertiesToGenerate.Contains(p.MappingName));
+        public IEnumerable<TPropertyDtoModel> PropertiesToGenerate => Properties.Where(p => !ExcludedPropertiesToGenerate.Contains(p.MappingName));
         public bool HasCollectionOptions => Properties.Any(p => p.MappingType.Equals(CollectionOptionDto));
         public bool HasTimeSpanProperty => Properties.Any(p => p.EntityType.Equals("TimeSpan") || p.EntityType.Equals("TimeSpan?"));
 
@@ -30,7 +30,7 @@
         public bool IsFixable { get; set; }
         public bool IsVersioned { get; set; }
 
-        public string GetClassInheritance()
+        public virtual string GetClassInheritance()
         {
             var types = new List<string>();
             if(IsTeamType)
@@ -42,7 +42,12 @@
                 types.Add($"BaseDto<{BaseKeyType}>");
             }
 
-            if(IsArchivable)
+            if (IsFixable)
+            {
+                types.Add("IFixableDto");
+            }
+
+            if (IsArchivable)
             {
                 types.Add("IArchivableDto");
             }

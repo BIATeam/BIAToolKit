@@ -33,7 +33,10 @@
         private const string ATTRIBUTE_TYPE_NOT_MANAGED_TYPE = "YYYTypeYYY";
         private const string IS_REQUIRED_PROPERTY = "isRequired:";
 
+        private const int FRAMEWORK_VERSION_MINIMUM = 390;
+
         private readonly IConsoleWriter consoleWriter;
+        private readonly ZipParserService zipParserService;
 
         public CrudNames CrudNames { get; set; }
         public Project CurrentProject { get; set; }
@@ -49,9 +52,25 @@
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GenerateCrudService(IConsoleWriter consoleWriter)
+        public GenerateCrudService(IConsoleWriter consoleWriter, ZipParserService zipParserService)
         {
             this.consoleWriter = consoleWriter;
+            this.zipParserService = zipParserService;
+        }
+
+        public static bool IsProjectCompatible(Project project)
+        {
+            // Verify version to avoid to try to parse zip when ".bia" folders are missing
+            if (!string.IsNullOrEmpty(project?.FrameworkVersion))
+            {
+                string version = project.FrameworkVersion.Replace(".", "");
+                if (int.TryParse(version, out int value))
+                {
+                    return value >= FRAMEWORK_VERSION_MINIMUM;
+                }
+            }
+
+            return false;
         }
 
         public bool GenerateFiles(EntityInfo crudDtoEntity, List<ZipFeatureType> zipFeatureTypeList,
@@ -134,6 +153,7 @@
                     }
                 }
 
+                zipParserService.CleanBiaFolders(zipFeatureTypeList, CurrentProject, biaFront);
             }
             catch (Exception ex)
             {
@@ -348,6 +368,10 @@
 
             // Generate new file
             CommonTools.GenerateFile(dest, fileLinesContent);
+            if (Path.GetExtension(dest).Equals(".cs"))
+            {
+                FileTransform.OrderUsingFromFile(dest);
+            }
         }
 
         private (string, string) GetDotNetFilesPath(Project currentProject, WebApiFeatureData featureData, ClassDefinition dtoClassDefiniton, string feature, FeatureType type, List<FeatureAdaptPath> adaptPaths)
@@ -591,6 +615,10 @@
 
             // Generate file with new content
             CommonTools.GenerateFile(partialFile, newContent);
+            if (Path.GetExtension(partialFile).Equals(".cs"))
+            {
+                FileTransform.OrderUsingFromFile(partialFile);
+            }
         }
         #endregion
 

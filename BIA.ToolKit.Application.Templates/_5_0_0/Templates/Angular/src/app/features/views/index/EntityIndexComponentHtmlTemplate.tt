@@ -1,8 +1,15 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_5_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".html" #>
+<#  if(!ModelInstance.HasAdvancedFilter) { #>
 <div>
   <div [ngClass]="{ 'table-compact': crudConfiguration.useCompactMode }">
+<#  } else { #>
+<div class="flex flex-row bia-page-remove-margin bia-responsive-flex-row">
+  <div
+    class="flex-grow-1 bia-page-margin"
+    [ngClass]="{ 'table-compact': crudConfiguration.useCompactMode }">
+<#  } #>
     <bia-table-header
       [headerTitle]="'<#= ModelInstance.EntityName.ToCamelCase() #>.listOf' | translate"
 <#  if(ModelInstance.HasParent) { #>
@@ -107,14 +114,19 @@
       [pageSize]="pageSize"
       (pageSizeChange)="onPageSizeChange($event)"
       [configuration]="crudConfiguration.fieldsConfig"
-      [showColSearch]="showColSearch"
+      [(showColSearch)]="showColSearch"
       [globalSearchValue]="globalSearchValue"
 <#  if(!ModelInstance.IsTeam) { #>
-      [canClickRow]="canEdit"
+      [canClickRow]="canEdit<# if(ModelInstance.HasReadOnlyMode) { #> || crudConfiguration.hasReadView <# } #>"
 <#  } else { #>
       [canClickRow]="canViewMembers"
 <#  } #>
       [canSelectElement]="canSelect"
+<#  if(ModelInstance.IsTeam) { #>
+      [canSelectMultipleElement]="false"
+<#  } else {#>
+      [canSelectMultipleElement]="canDelete"
+<#  } #>
       [loading]="(loading$ | async) ?? false"
 <#  if(!ModelInstance.IsTeam) { #>
       (clickRowId)="onClickRow($event)"
@@ -127,9 +139,6 @@
       (selectedElementsChanged)="onSelectedElementsChanged($event)"
       [sortFieldValue]="sortFieldValue"
       (stateSave)="onStateSave($event)"
-<#  if(ModelInstance.IsTeam) { #>
-      [canSelectMultipleElement]="false"
-<#  } #>
       [scrollHeightValue]="getFillScrollHeightValue()"
       [frozeSelectColumn]="true"
       [virtualScroll]="crudConfiguration.useVirtualScroll"
@@ -155,7 +164,7 @@
       [pageSize]="pageSize"
       (pageSizeChange)="onPageSizeChange($event)"
       [configuration]="crudConfiguration.fieldsConfig"
-      [showColSearch]="showColSearch"
+      [(showColSearch)]="showColSearch"
       [globalSearchValue]="globalSearchValue"
       [canEdit]="canEdit"
       [canAdd]="canAdd"
