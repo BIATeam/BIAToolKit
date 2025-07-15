@@ -4,6 +4,7 @@
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
     using System;
     using System.Collections.Generic;
@@ -126,6 +127,8 @@
             public string ConstantFileNameSearchPattern { get; set; }
             // RegExp to determine de Framewprkversion in the file: It is the Param 1
             public string ConstantFileRegExpVersion { get; set; }
+            // RegExp to determine the namespace of the constant file. Param1 in Path is the Company, Param2 in Path is the ProjectName
+            public string ConstantFileNamespace { get; set; }
 
             // RegExp for path of an unique file in Front 
             public string FrontFileRegExpPath { get; set; }
@@ -140,13 +143,19 @@
                     string file = Directory.GetFiles(currentProject.Folder, ConstantFileNameSearchPattern, SearchOption.AllDirectories)?.Where(path => reg.IsMatch(path))?.FirstOrDefault();
                     if (file != null)
                     {
-                        var match = reg.Match(file);
-                        currentProject.CompanyName = match.Groups[1].Value;
-                        currentProject.Name = match.Groups[2].Value;
-                        Regex regVersion = new Regex(ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)(-.*)?""[\s]*;[\s]*$");
+                        Regex regProjectName = new Regex(ConstantFileNamespace);
+                        Regex regVersion = new Regex(ConstantFileRegExpVersion);
 
                         foreach (var line in File.ReadAllLines(file))
                         {
+                            var matchNamespace = regProjectName.Match(line);
+                            if (matchNamespace.Success)
+                            {
+                                currentProject.CompanyName = matchNamespace.Groups[1].Value;
+                                currentProject.Name = matchNamespace.Groups[2].Value;
+                                continue;
+                            }
+
                             var matchVersion = regVersion.Match(line);
                             if (matchVersion.Success)
                             {
@@ -190,16 +199,16 @@
                     {
                         await Task.Run(() =>
                         {
-                            currentProject = new Domain.ModifyProject.Project();
+                            currentProject = new Project();
 
                             currentProject.Name = value;
                             currentProject.Folder = RootProjectsPath + "\\" + currentProject.Name;
-                            currentProject.SolutionPath = Directory.GetFiles(currentProject.Folder, $"{currentProject.Name}.sln", SearchOption.AllDirectories).FirstOrDefault();
 
                             NamesAndVersionResolver nvResolver2 = new NamesAndVersionResolver()
                             {
                                 ConstantFileRegExpPath = @"\\.*\\(.*)\.(.*)\.Common\\Constants\.cs$",
                                 ConstantFileNameSearchPattern = "Constants.cs",
+                                ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
                                 ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
                                 FrontFileRegExpPath = null,
                                 FrontFileNameSearchPattern = null
@@ -210,11 +219,14 @@
                             {
                                 ConstantFileRegExpPath = @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$",
                                 ConstantFileNameSearchPattern = "Constants.cs",
+                                ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
                                 ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
                                 FrontFileRegExpPath = @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$",
                                 FrontFileNameSearchPattern = "bia-core.module.ts"
                             };
                             nvResolver.ResolveNamesAndVersion(currentProject);
+
+                            currentProject.SolutionPath = Directory.GetFiles(currentProject.Folder, $"{currentProject.Name}.sln", SearchOption.AllDirectories).FirstOrDefault();
                         });
 
                         if (currentProject.BIAFronts.Count == 0)

@@ -46,7 +46,8 @@
             "DateTime",
             "DateOnly",
             "TimeOnly",
-            "byte[]"
+            "byte[]",
+            "Guid"
         };
         private readonly Dictionary<string, string> specialdTypeToRemap = new()
         {
@@ -98,9 +99,16 @@
                 if (selectedEntityName != null)
                 {
                     var regexMatches = Regex.Match(selectedEntityName, @"\(([^)]*)\)");
-                    var entityEndNamespace = $"{regexMatches.Groups[1].Value}.{selectedEntityName.Replace(regexMatches.Groups[0].Value, string.Empty).Trim()}";
-                    SelectedEntityInfo = domainEntities.First(e => e.FullNamespace.EndsWith(entityEndNamespace));
-                    EntityDomain = entityEndNamespace.Split(".").First();
+                    if (regexMatches.Success)
+                    {
+                        var entityEndNamespace = $"{regexMatches.Groups[1].Value}.{selectedEntityName.Replace(regexMatches.Groups[0].Value, string.Empty).Trim()}";
+                        SelectedEntityInfo = domainEntities.First(e => e.FullNamespace.EndsWith(entityEndNamespace));
+                        EntityDomain = entityEndNamespace.Split(".").First();
+                    }
+                    else
+                    {
+                        SelectedEntityInfo = null;
+                    }
                 }
                 else
                 {
