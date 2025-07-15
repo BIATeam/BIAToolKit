@@ -75,13 +75,14 @@ namespace BIA.ToolKit.Common
             "decimal",
             "double",
             "float",
+            "Guid",
             "int",
-            "uint",
             "long",
-            "ulong",
             "short",
-            "ushort",
             "string",
+            "uint",
+            "ulong",
+            "ushort",
         };
         public static IEnumerable<string> PrimitiveTypes => primitiveTypes.OrderBy(x => x);
 
