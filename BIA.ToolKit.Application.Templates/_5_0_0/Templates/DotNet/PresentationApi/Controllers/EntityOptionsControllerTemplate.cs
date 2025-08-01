@@ -5,7 +5,7 @@
 namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.AircraftMaintenanceCompany
 {
     using System.Threading.Tasks;
-    using BIA.Net.Presentation.Api.Controllers.Base;
+    using BIA.Net.Core.Presentation.Api.Controller.Base;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
