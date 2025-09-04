@@ -43,6 +43,7 @@
             services.AddSingleton<SettingsService>();
             services.AddSingleton<FeatureSettingService>();
             services.AddSingleton<FileGeneratorService>();
+            services.AddSingleton<LocalReleaseRepositoryService>();
             services.AddSingleton<UpdateService>();
             services.AddLogging();
         }
@@ -55,6 +56,11 @@
                 ToolKit.Properties.Settings.Default.ApplicationUpdated = false;
                 ToolKit.Properties.Settings.Default.Save();
             }
+
+
+            serviceProvider.GetService<LocalReleaseRepositoryService>().Init(
+                bool.TryParse(ConfigurationManager.AppSettings["UseLocalReleaseRepository"], out bool result) && result,
+                ConfigurationManager.AppSettings["LocalReleaseRepository"]);
 
             var mainWindow = serviceProvider.GetService<MainWindow>();
             mainWindow.Show();
