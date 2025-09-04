@@ -16,12 +16,14 @@
     {
         private IConsoleWriter outPut;
         private GitService gitService;
+        private readonly LocalReleaseRepositoryService localReleaseRepositoryService;
         private List<VersionDownload> versionDownloads = new();
 
-        public RepositoryService(IConsoleWriter outPut, GitService gitService)
+        public RepositoryService(IConsoleWriter outPut, GitService gitService, LocalReleaseRepositoryService localReleaseRepositoryService)
         {
             this.outPut = outPut;
             this.gitService = gitService;
+            this.localReleaseRepositoryService = localReleaseRepositoryService;
         }
 
         public bool CheckRepoFolder(RepositorySettings repository, bool inSync)
@@ -110,34 +112,37 @@
                                         versionDownload.IsDownloading = true;
                                         try
                                         {
-                                            outPut.AddMessageLine("Begin downloading " + tag.CanonicalName + ".zip", "Pink");
-                                            var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
-                                            if (File.Exists(zipPath))
+                                            outPut.AddMessageLine($"Begin downloading release {tag.FriendlyName}", "Pink");
+                                            if (localReleaseRepositoryService.UseLocalReleaseRepository)
                                             {
-                                                File.Delete(zipPath);
+                                                outPut.AddMessageLine("Using local release repository", "gray");
+                                                var localReleaseZipPath = localReleaseRepositoryService.GetBiaTemplateReleaseArchivePath(tag.FriendlyName);
+                                                File.Copy(localReleaseZipPath, zipPath, true);
                                             }
-                                            HttpClientHandler httpClientHandler = new HttpClientHandler
+                                            else
                                             {
-                                                DefaultProxyCredentials = CredentialCache.DefaultCredentials,
-                                            };
-                                            using (var httpClient = new HttpClient(httpClientHandler))
-                                            {
-                                                var response = await httpClient.GetAsync(zipUrl);
-                                                using (var fs = new FileStream(
-                                                    zipPath,
-                                                    FileMode.CreateNew))
+                                                var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
+                                                if (File.Exists(zipPath))
                                                 {
-                                                    await response.Content.CopyToAsync(fs);
+                                                    File.Delete(zipPath);
                                                 }
+                                                HttpClientHandler httpClientHandler = new()
+                                                {
+                                                    DefaultProxyCredentials = CredentialCache.DefaultCredentials,
+                                                };
+                                                using var httpClient = new HttpClient(httpClientHandler);
+                                                var response = await httpClient.GetAsync(zipUrl);
+                                                using var fs = new FileStream(zipPath,FileMode.CreateNew);
+                                                await response.Content.CopyToAsync(fs);
                                             }
 
                                             if (!File.Exists(zipPath))
                                             {
-                                                outPut.AddMessageLine("Cannot download release: " + version, "Red");
+                                                outPut.AddMessageLine($"Release {version} not downloaded", "Red");
                                                 break;
                                             }
 
-                                            outPut.AddMessageLine($"-> {version} downloaded", "pink");
+                                            outPut.AddMessageLine($"-> Release {version} downloaded", "pink");
 
                                             await UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip, version);
                                         }
