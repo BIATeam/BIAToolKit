@@ -25,7 +25,7 @@
 
         public string GetBiaTemplateReleaseArchivePath(string version)
         {
-            return Path.Combine(this.localReleaseRepositoryFolder, BiaTemplateReleasesFolderName, version, $"{version}.zip");
+            return Path.Combine(this.localReleaseRepositoryFolder, BiaTemplateReleasesFolderName, $"{version}.zip");
         }
 
         public string GetBiaToolkitUpdaterReleaseArchivePath(string version)
