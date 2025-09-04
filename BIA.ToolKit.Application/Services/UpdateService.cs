@@ -66,9 +66,7 @@
                                 this.lastRelease = lastRelease;
                                 eventBroker.NotifyNewVersionAvailable();
 
-                                if (autoUpdate
-                                    //&& !Debugger.IsAttached
-                                    )
+                                if (autoUpdate && !Debugger.IsAttached)
                                 {
                                     return true;
                                 }
@@ -108,7 +106,6 @@
                 await DownloadLastRelease(ReleaseKind.Updater);
                 await DownloadLastRelease(ReleaseKind.Toolkit);
 
-                return;
                 Process.Start(
                     Path.Combine(tempPath, "BIAToolKitUpdater", UpdaterName),
                     [
