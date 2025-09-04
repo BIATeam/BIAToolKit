@@ -21,19 +21,21 @@
         private readonly string tempPath;
         private readonly UIEventBroker eventBroker;
         private readonly IConsoleWriter consoleWriter;
+        private readonly LocalReleaseRepositoryService localReleaseRepositoryService;
         private Version currentVersion;
+        private Release lastRelease;
         public Version NewVersion
         {
             get; private set;
         }
-        Release LastRelease;
 
-        public UpdateService(UIEventBroker eventBroker, IConsoleWriter consoleWriter)
+        public UpdateService(UIEventBroker eventBroker, IConsoleWriter consoleWriter, LocalReleaseRepositoryService localReleaseRepositoryService)
         {
             applicationPath = AppDomain.CurrentDomain.BaseDirectory;
             tempPath = Path.GetTempPath() + "\\BIAToolkit";
             this.eventBroker = eventBroker;
             this.consoleWriter = consoleWriter;
+            this.localReleaseRepositoryService = localReleaseRepositoryService;
         }
 
         public void SetAppVersion(Version version)
@@ -52,17 +54,16 @@
                 var releases = await github.Repository.Release.GetAll(owner, repoName);
                 if (releases.Count > 0)
                 {
-                    foreach(Release release in releases)
+                    foreach (Release release in releases)
                     {
                         var lastRelease = releases[0];
-                        if (lastRelease.TagName.StartsWith("V"))
+                        if (lastRelease.TagName.StartsWith('V') && Version.TryParse(lastRelease.TagName[1..], out Version updateVersion))
                         {
-                             Version.TryParse(lastRelease.TagName.Substring(1), out Version updateVersion);
                             if (updateVersion > this.currentVersion)
                             {
                                 consoleWriter.AddMessageLine($"A new version of BIAToolKit is available: {lastRelease.TagName}", "Yellow");
                                 NewVersion = updateVersion;
-                                LastRelease = lastRelease;
+                                this.lastRelease = lastRelease;
                                 eventBroker.NotifyNewVersionAvailable();
 
                                 if (autoUpdate && !Debugger.IsAttached)
@@ -92,77 +93,129 @@
 
         public async Task DownloadUpdateAsync()
         {
-
-            if (!Directory.Exists(tempPath))
-                Directory.CreateDirectory(tempPath);
-
-            var updaterSourceDir = Path.Combine(tempPath, "BIAToolKitUpdater");
-            var updaterSource = Path.Combine(updaterSourceDir, UpdaterName);
-            var updaterZipName = "BIAToolKitUpdater.zip";
-            var updaterFilePath = Path.Combine(tempPath, updaterZipName);
-
-            await DownloadFromRelease(updaterSourceDir, updaterZipName, updaterFilePath);
-            if (!File.Exists(updaterSource))
-                throw new FileNotFoundException($"Unable to find {updaterZipName} in last release.");
-
-            var toolkitSourceDir = Path.Combine(tempPath, "BIAToolKit");
-            var toolkitZipName = "BIAToolKit.zip";
-            var toolkitFilePath = Path.Combine(tempPath, toolkitZipName);
-            await DownloadFromRelease(toolkitSourceDir, toolkitZipName, toolkitFilePath);
-
-            if (!File.Exists(toolkitFilePath))
-                throw new FileNotFoundException($"Unable to find {toolkitZipName} in last release.");
-
-            var updaterTarget = Path.Combine(updaterSourceDir, UpdaterName);
-
-            /*await Task.Run(() =>
+            try
             {
-                foreach (var file in Directory.GetFiles(updaterSourceDir))
-                    File.Copy(file, Path.Combine(applicationPath, Path.GetFileName(file)),true);
-            });*/
+                if (!Directory.Exists(tempPath))
+                    Directory.CreateDirectory(tempPath);
 
-            Process.Start(updaterTarget, [$"\"{AppDomain.CurrentDomain.BaseDirectory}\"", $"\"{toolkitFilePath}\""]);
+                if(localReleaseRepositoryService.UseLocalReleaseRepository)
+                {
+                    consoleWriter.AddMessageLine("Using local release repository", "gray");
+                }
+
+                await DownloadLastRelease(ReleaseKind.Updater);
+                await DownloadLastRelease(ReleaseKind.Toolkit);
+
+                Process.Start(
+                    Path.Combine(tempPath, "BIAToolKitUpdater", UpdaterName),
+                    [
+                        $"\"{AppDomain.CurrentDomain.BaseDirectory}\"",
+                    $"\"{Path.Combine(tempPath, "BIAToolKit.zip")}\""
+                    ]
+                );
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Download update failure : {ex.Message}", "red");
+            }
         }
 
-        private async Task DownloadFromRelease(string sourceDir, string zipName,string filePath)
+        private enum ReleaseKind
         {
-            consoleWriter.AddMessageLine($"Start download from release: {zipName}", "Pink");
-            var asset = LastRelease.Assets.FirstOrDefault(a => a.Name == zipName);
-            if (asset != null)
+            Updater,
+            Toolkit
+        }
+
+        private async Task DownloadLastRelease(ReleaseKind releaseKind)
+        {
+            consoleWriter.AddMessageLine($"Start download {releaseKind} from release {lastRelease.TagName}", "Pink");
+
+            var zipName = string.Empty;
+            var destDir = string.Empty;
+            switch (releaseKind)
             {
-                HttpClientHandler httpClientHandler = new HttpClientHandler
+                case ReleaseKind.Updater:
+                    destDir = Path.Combine(tempPath, "BIAToolKitUpdater");
+                    zipName = "BIAToolKitUpdater.zip";
+                    break;
+                case ReleaseKind.Toolkit:
+                    destDir = Path.Combine(tempPath, "BIAToolKit");
+                    zipName = "BIAToolKit.zip";
+                    break;
+                default:
+                    throw new NotImplementedException($"Unknown release kind {releaseKind}");
+            }
+            var destZipPath = Path.Combine(tempPath, zipName);
+
+            if (localReleaseRepositoryService.UseLocalReleaseRepository)
+            {
+                var localReleaseZipPath = releaseKind switch
+                {
+                    ReleaseKind.Updater => localReleaseRepositoryService.GetBiaToolkitUpdaterReleaseArchivePath(lastRelease.TagName),
+                    ReleaseKind.Toolkit => localReleaseRepositoryService.GetBiaToolkitReleaseArchivePath(lastRelease.TagName),
+                    _ => throw new NotImplementedException($"Unknown release kind {releaseKind}"),
+                };
+
+                if (!File.Exists(localReleaseZipPath))
+                {
+                    throw new FileNotFoundException($"File {localReleaseZipPath} not found");
+                }
+
+                if (File.Exists(destZipPath))
+                {
+                    File.Delete(destZipPath);
+                }
+
+                File.Copy(localReleaseZipPath, destZipPath, true);
+
+                if (new FileInfo(destZipPath).Length != new FileInfo(localReleaseZipPath).Length)
+                {
+                    throw new Exception($"Downloaded file {destZipPath} has not the same size as origin file");
+                }
+            }
+            else
+            {
+                var asset = lastRelease.Assets.FirstOrDefault(a => a.Name == zipName) 
+                    ?? throw new FileNotFoundException($"Asset {zipName} not found for release {lastRelease.TagName}");
+                
+                HttpClientHandler httpClientHandler = new()
                 {
                     DefaultProxyCredentials = CredentialCache.DefaultCredentials,
                 };
-                using (var httpClient = new HttpClient(httpClientHandler))
+
+                using var httpClient = new HttpClient(httpClientHandler);
+                var response = await httpClient.GetAsync(asset.BrowserDownloadUrl);
+                if (!response.IsSuccessStatusCode)
                 {
-                    var response = await httpClient.GetAsync(asset.BrowserDownloadUrl);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        if (File.Exists(filePath))
-                        {
-                            File.Delete(filePath);
-                        }
-
-                        using (var fileStream = new FileStream(filePath, System.IO.FileMode.Create, FileAccess.Write))
-                        {
-                            await response.Content.CopyToAsync(fileStream);
-                        }
-                        consoleWriter.AddMessageLine($"File downloaded: {zipName}", "Green");
-
-                        if (Directory.Exists(sourceDir))
-                        {
-                            Directory.Delete(sourceDir,true);
-                        }
-                        ZipFile.ExtractToDirectory(filePath, sourceDir);
-
-                        consoleWriter.AddMessageLine($"File extarcted: {zipName}", "Green");
-                    }
-                    else
-                    {
-                        consoleWriter.AddMessageLine("Fail to download updater.", "Red");
-                    }
+                    throw new Exception($"Fail to download {zipName}: {response.ReasonPhrase}");
                 }
+
+                if (File.Exists(destZipPath))
+                {
+                    File.Delete(destZipPath);
+                }
+
+                using (var fileStream = new FileStream(destZipPath, System.IO.FileMode.Create, FileAccess.Write))
+                {
+                    await response.Content.CopyToAsync(fileStream);
+                }
+
+                if (new FileInfo(destZipPath).Length != asset.Size)
+                {
+                    throw new Exception($"Downloaded file {destZipPath} has not the same size as origin asset");
+                }
+            }
+
+            consoleWriter.AddMessageLine($"File {zipName} downloaded successfuly", "Green");
+
+            if (releaseKind == ReleaseKind.Updater)
+            {
+                if (Directory.Exists(destDir))
+                {
+                    Directory.Delete(destDir, true);
+                }
+                ZipFile.ExtractToDirectory(destZipPath, destDir);
+                consoleWriter.AddMessageLine($"{zipName} extracted", "Green");
             }
         }
     }
