@@ -3,63 +3,152 @@
     using System;
     using System.Reflection;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.Settings;
 
     public class MainViewModel : ObservableObject
     {
         private readonly Version applicationVersion;
+        private readonly SettingsService settingsService;
 
-        public BIATKSettings Settings { get; set; }
-
-        public MainViewModel(Version applicationVersion)
+        public MainViewModel(Version applicationVersion, UIEventBroker eventBroker, SettingsService settingsService)
         {
-            Settings = new BIATKSettings();
-            // Because the RootProjects is in 2 VM (create and modify)
-            SynchronizeSettings.AddCallBack("RootProjectsPath", DelegateSetRootProjectsPath);
             this.applicationVersion = applicationVersion;
+            this.settingsService = settingsService;
+            eventBroker.OnSettingsUpdated += EventBroker_OnSettingsUpdated;
         }
 
-        public void DelegateSetRootProjectsPath(string value)
+        private void EventBroker_OnSettingsUpdated(IBIATKSettings settings)
         {
-            Settings_RootProjectsPath = value;
+            RaisePropertyChanged(nameof(Settings_RootProjectsPath));
+            RaisePropertyChanged(nameof(Settings_CreateCompanyName));
+            RaisePropertyChanged(nameof(Settings_BIATemplateRepository_UrlRepository));
+            RaisePropertyChanged(nameof(Settings_BIATemplateRepository_UseLocalFolder));
+            RaisePropertyChanged(nameof(Settings_BIATemplateRepository_LocalFolderPath));
+            RaisePropertyChanged(nameof(Settings_UseCompanyFiles));
+            RaisePropertyChanged(nameof(Settings_CompanyFilesRepository_UrlRepository));
+            RaisePropertyChanged(nameof(Settings_CompanyFilesRepository_UseLocalFolder));
+            RaisePropertyChanged(nameof(Settings_CompanyFilesRepository_LocalFolderPath));
+            RaisePropertyChanged(nameof(Settings_AutoUpdate));
         }
 
         public string Settings_RootProjectsPath
         {
-            get { return Settings.RootProjectsPath; }
+            get { return settingsService.Settings.CreateProjectRootProjectsPath; }
+            set 
+            {
+                if (settingsService.Settings.CreateProjectRootProjectsPath != value)
+                {
+                    settingsService.SetCreateProjectRootProjectPath(value);
+                }
+            }
+        }
+
+        public string Settings_CreateCompanyName
+        {
+            get { return settingsService.Settings.CreateCompanyName; }
             set
             {
-                if (Settings.RootProjectsPath != value)
+                if (settingsService.Settings.CreateCompanyName != value)
                 {
-                    Settings.RootProjectsPath = value;
-                    RaisePropertyChanged(nameof(Settings_RootProjectsPath));
+                    settingsService.SetCreateCompanyName(value);
+                }
+            }
+        }
+
+        public string Settings_BIATemplateRepository_UrlRepository
+        {
+            get { return settingsService.Settings.BIATemplateRepository.UrlRepo; }
+            set
+            {
+                if (settingsService.Settings.BIATemplateRepository.UrlRepo != value)
+                {
+                    settingsService.SetBIATemplateRepositoryUrlRepository(value);
+                }
+            }
+        }
+
+        public bool Settings_BIATemplateRepository_UseLocalFolder
+        {
+            get { return settingsService.Settings.BIATemplateRepository.UseLocalFolder; }
+            set
+            {
+                if (settingsService.Settings.BIATemplateRepository.UseLocalFolder != value)
+                {
+                    settingsService.SetUseBIATemplateRepositoryLocalFolder(value);
                 }
             }
         }
 
         public string Settings_BIATemplateRepository_LocalFolderPath
         {
-            get { return Settings.BIATemplateRepository.LocalFolderPath; }
+            get { return settingsService.Settings.BIATemplateRepository.LocalFolderPath; }
             set
             {
-                if (Settings.BIATemplateRepository.LocalFolderPath != value)
+                if (settingsService.Settings.BIATemplateRepository.LocalFolderPath != value)
                 {
-                    Settings.BIATemplateRepository.LocalFolderPath = value;
-                    RaisePropertyChanged(nameof(Settings_BIATemplateRepository_LocalFolderPath));
+                    settingsService.SetBIATemplateRepositoryLocalFolderPath(value);
                 }
             }
         }
 
-        public string Settings_CompanyFiles_LocalFolderPath
+        public bool Settings_UseCompanyFiles
         {
-            get { return Settings.CompanyFiles.LocalFolderPath; }
+            get { return settingsService.Settings.UseCompanyFiles; }
             set
             {
-                if (Settings.CompanyFiles.LocalFolderPath != value)
+                if (settingsService.Settings.UseCompanyFiles != value)
                 {
-                    Settings.CompanyFiles.LocalFolderPath = value;
-                    RaisePropertyChanged(nameof(Settings_CompanyFiles_LocalFolderPath));
+                    settingsService.SetUseCompanyFiles(value);
+                }
+            }
+        }
+
+        public string Settings_CompanyFilesRepository_UrlRepository
+        {
+            get { return settingsService.Settings.CompanyFilesRepository.UrlRepo; }
+            set
+            {
+                if (settingsService.Settings.CompanyFilesRepository.UrlRepo != value)
+                {
+                    settingsService.SetCompanyFileseRepositoryUrlRepository(value);
+                }
+            }
+        }
+
+        public bool Settings_CompanyFilesRepository_UseLocalFolder
+        {
+            get { return settingsService.Settings.CompanyFilesRepository.UseLocalFolder; }
+            set
+            {
+                if (settingsService.Settings.CompanyFilesRepository.UseLocalFolder != value)
+                {
+                    settingsService.SetUseCompanyFilesRepositoryLocalFolder(value);
+                }
+            }
+        }
+
+        public string Settings_CompanyFilesRepository_LocalFolderPath
+        {
+            get { return settingsService.Settings.CompanyFilesRepository.LocalFolderPath; }
+            set
+            {
+                if (settingsService.Settings.CompanyFilesRepository.LocalFolderPath != value)
+                {
+                    settingsService.SetCompanyFilesRepositoryLocalFolderPath(value);
+                }
+            }
+        }
+
+        public bool Settings_AutoUpdate
+        {
+            get => settingsService.Settings.AutoUpdate;
+            set
+            {
+                if (settingsService.Settings.AutoUpdate != value)
+                {
+                    settingsService.SetAutoUpdate(value);
                 }
             }
         }
@@ -74,26 +163,6 @@
             {
                 _updateAvailable = value;
                 RaisePropertyChanged(nameof(UpdateAvailable));
-            }
-        }
-
-        public bool UseTemplateLocalFolder
-        {
-            get { return Settings.BIATemplateRepository.UseLocalFolder; }
-            set 
-            {
-                Settings.BIATemplateRepository.UseLocalFolder = value; 
-                RaisePropertyChanged(nameof(UseTemplateLocalFolder));
-            }
-        }
-
-        public bool AutoUpdate
-        {
-            get => Settings.AutoUpdate;
-            set
-            {
-                Settings.AutoUpdate = value;
-                RaisePropertyChanged(nameof(AutoUpdate));
             }
         }
     }

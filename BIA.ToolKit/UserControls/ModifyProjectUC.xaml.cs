@@ -38,10 +38,9 @@
         {
             InitializeComponent();
             _viewModel = (ModifyProjectViewModel)base.DataContext;
-            _viewModel.RootProjectsPath = Settings.Default.CreateProjectRootFolderText;
         }
 
-        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
+        public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService, FeatureSettingService featureSettingService,
             FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
         {
@@ -49,15 +48,15 @@
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
-            MigrateOriginVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService, settingsService, uiEventBroker);
-            MigrateTargetVersionAndOption.Inject(settings, repositoryService, gitService, consoleWriter, featureSettingService, settingsService, uiEventBroker);
+            MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, featureSettingService, settingsService, uiEventBroker);
+            MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, featureSettingService, settingsService, uiEventBroker);
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
             this.crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
-            _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter);
             this.settingsService = settingsService;
+            _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService);
 
             uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
         }
@@ -169,20 +168,20 @@
                 // delete PACKAGE_LOCK_FILE
                 foreach (var biaFront in _viewModel.ModifyProject.CurrentProject.BIAFronts)
                 {
-                    string path = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, biaFront, crudSettings.PackageLockFileName);
+                    string path = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, biaFront, crudSettings.PackageLockFileName);
                     if (new FileInfo(path).Exists)
                     {
                         File.Delete(path);
                     }
                 }
 
-                string rootBiaFolder = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, Constants.FolderBia);
+                string rootBiaFolder = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, Constants.FolderBia);
                 if (!Directory.Exists(rootBiaFolder))
                 {
                     Directory.CreateDirectory(rootBiaFolder);
                 }
 
-                var fileToSuppress = Path.Combine(_viewModel.ModifyProject.RootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, FeatureSettingService.fileName);
+                var fileToSuppress = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, FeatureSettingService.fileName);
                 if (File.Exists(fileToSuppress))
                 {
                     File.Delete(fileToSuppress);

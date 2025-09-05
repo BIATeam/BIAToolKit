@@ -6,27 +6,17 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public class BIATKSettings
+    public class BIATKSettings : IBIATKSettings
     {
-        public RepositorySettings BIATemplateRepository  { get; set; }
+        public IRepositorySettings BIATemplateRepository { get; set; } = new RepositorySettings();
         public bool UseCompanyFiles { get; set; }
-        public RepositorySettings CompanyFiles { get; set; }
-        public List<RepositorySettings> CustomRepoTemplates { get; set; }
-
-        public string RootProjectsPath { get; set; }
+        public IRepositorySettings CompanyFilesRepository { get; set; } = new RepositorySettings();
+        public IReadOnlyList<IRepositorySettings> CustomRepoTemplates { get; set; } = [];
+        public string CreateProjectRootProjectsPath { get; set; }
+        public string ModifyProjectRootProjectsPath { get; set; }
         public string CreateCompanyName { get; set; }
-
         public bool AutoUpdate { get; set; }
         public bool UseLocalReleaseRepository { get; set; }
         public string LocalReleaseRepositoryPath { get; set; }
-
-        public BIATKSettings()
-        {
-            RootProjectsPath = "D:\\...\\MyRootProjectPath";
-            CreateCompanyName = "";
-            BIATemplateRepository  = new RepositorySettings();
-            CustomRepoTemplates = new List<RepositorySettings>();
-            CompanyFiles = new RepositorySettings();
-        }
     }
 }

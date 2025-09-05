@@ -5,36 +5,36 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.Settings;
 
     public class LocalReleaseRepositorySettingsViewModel : ObservableObject
     {
-        private BIATKSettings settings;
-
-        public void LoadSettings(BIATKSettings settings)
+        public void LoadSettings(IBIATKSettings settings)
         {
-            this.settings = settings;
-            RaisePropertyChanged(nameof(UseLocalReleaseRepository));
-            RaisePropertyChanged(nameof(LocalReleaseRepositoryPath));
+            UseLocalReleaseRepository = settings.UseLocalReleaseRepository;
+            LocalReleaseRepositoryPath = settings.LocalReleaseRepositoryPath;
         }
 
-        public bool? UseLocalReleaseRepository
+        private bool useLocalReleaseRepository;
+        public bool UseLocalReleaseRepository
         {
-            get => settings?.UseLocalReleaseRepository;
+            get => useLocalReleaseRepository;
             set 
-            { 
-                settings.UseLocalReleaseRepository = value.GetValueOrDefault(); 
+            {
+                useLocalReleaseRepository = value; 
                 RaisePropertyChanged(nameof(UseLocalReleaseRepository));
             }
         }
 
+        private string localReleaseRepositoryPath;
         public string LocalReleaseRepositoryPath
         {
-            get => settings?.LocalReleaseRepositoryPath;
+            get => localReleaseRepositoryPath;
             set
             {
-                settings.LocalReleaseRepositoryPath = value;
+                localReleaseRepositoryPath = value;
                 RaisePropertyChanged(nameof(LocalReleaseRepositoryPath));
             }
         }

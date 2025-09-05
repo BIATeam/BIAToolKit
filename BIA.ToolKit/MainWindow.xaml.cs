@@ -28,30 +28,33 @@
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainViewModel _viewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version);
+        public MainViewModel ViewModel { get; private set; }
 
-        RepositoryService repositoryService;
-        GitService gitService;
-        ProjectCreatorService projectCreatorService;
+        private readonly RepositoryService repositoryService;
+        private readonly GitService gitService;
+        private readonly ProjectCreatorService projectCreatorService;
+        private readonly SettingsService settingsService;
         private readonly FileGeneratorService fileGeneratorService;
         private readonly UIEventBroker uiEventBroker;
         private readonly UpdateService updateService;
         private readonly LocalReleaseRepositoryService localReleaseRepositoryService;
-        GenerateFilesService generateFilesService;
-        ConsoleWriter consoleWriter;
-        bool isCreateTabInitialized = false;
-        bool isModifyTabInitialized = false;
+        private readonly GenerateFilesService generateFilesService;
+        private readonly ConsoleWriter consoleWriter;
+        private bool isCreateTabInitialized = false;
+        private bool isModifyTabInitialized = false;
 
         public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
             IConsoleWriter consoleWriter, FeatureSettingService featureSettingService, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService, LocalReleaseRepositoryService localReleaseRepositoryService)
         {
+            
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
 
             this.repositoryService = repositoryService;
             this.gitService = gitService;
             this.projectCreatorService = projectCreatorService;
+            this.settingsService = settingsService;
             this.fileGeneratorService = fileGeneratorService;
             this.uiEventBroker = uiEventBroker;
             this.updateService = updateService;
@@ -62,57 +65,88 @@
 
             InitializeComponent();
 
-            CreateVersionAndOption.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, featureSettingService, settingsService, uiEventBroker);
-            ModifyProject.Inject(_viewModel.Settings, this.repositoryService, gitService, consoleWriter, cSharpParserService,
+            CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, featureSettingService, settingsService, uiEventBroker);
+            ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
                 projectCreatorService, zipParserService, crudService, settingsService, featureSettingService, fileGeneratorService, uiEventBroker);
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
 
-            _viewModel.Settings.BIATemplateRepository.Name = "BIATemplate";
-            _viewModel.Settings.BIATemplateRepository.Versioning = VersioningType.Release;
-            _viewModel.Settings.BIATemplateRepository.UrlRelease = Constants.BIATemplateReleaseUrl;
-            _viewModel.Settings.BIATemplateRepository.UrlRepo = Constants.BIATemplateRepoUrl;
-            _viewModel.Settings.BIATemplateRepository.CompanyName = "TheBIADevCompany";
-            _viewModel.Settings.BIATemplateRepository.ProjectName = "BIATemplate";
+            txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
 
-            _viewModel.Settings.BIATemplateRepository.UseLocalFolder = Properties.Settings.Default.BIATemplateLocalFolder;
-            _viewModel.Settings.BIATemplateRepository.LocalFolderPath = Properties.Settings.Default.BIATemplateLocalFolderText;
+            ViewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version, uiEventBroker, settingsService);
+            DataContext = ViewModel;
+            InitSettings();
 
+            uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
+            uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
+        }
 
-            _viewModel.Settings.UseCompanyFiles = Properties.Settings.Default.UseCompanyFile;
-            _viewModel.Settings.CompanyFiles.Name = "BIACompanyFiles";
-            _viewModel.Settings.CompanyFiles.Versioning = VersioningType.Folder;
-            _viewModel.Settings.CompanyFiles.CompanyName = "TheBIADevCompany";
-            _viewModel.Settings.CompanyFiles.ProjectName = "BIATemplate";
-            _viewModel.Settings.CompanyFiles.UseLocalFolder = Properties.Settings.Default.CompanyFilesLocalFolder;
-            _viewModel.Settings.CompanyFiles.UrlRepo = Properties.Settings.Default.CompanyFilesGitRepo;
-            _viewModel.Settings.CompanyFiles.LocalFolderPath = Properties.Settings.Default.CompanyFilesLocalFolderText;
-
-            _viewModel.Settings.RootProjectsPath = Properties.Settings.Default.CreateProjectRootFolderText;
-            _viewModel.Settings.CreateCompanyName = Properties.Settings.Default.CreateCompanyName;
-
-            _viewModel.Settings.AutoUpdate = Properties.Settings.Default.AutoUpdate;
-            _viewModel.Settings.UseLocalReleaseRepository = Properties.Settings.Default.UseLocalReleaseRepository;
-            _viewModel.Settings.LocalReleaseRepositoryPath = Properties.Settings.Default.LocalReleaseRepositoryPath;
+        private void InitSettings()
+        {
+            var settings = new BIATKSettings
+            {
+                BIATemplateRepository = new RepositorySettings
+                {
+                    Name = "BIATemplate",
+                    Versioning = VersioningType.Release,
+                    UrlRelease = Constants.BIATemplateReleaseUrl,
+                    UrlRepo = Constants.BIATemplateRepoUrl,
+                    CompanyName = "TheBIADevCompany",
+                    ProjectName = "BIATemplate",
+                    UseLocalFolder = Properties.Settings.Default.BIATemplateLocalFolder,
+                    LocalFolderPath = Properties.Settings.Default.BIATemplateLocalFolderText
+                },
+                UseCompanyFiles = Properties.Settings.Default.UseCompanyFile,
+                CompanyFilesRepository = new RepositorySettings
+                {
+                    Name = "BIACompanyFiles",
+                    Versioning = VersioningType.Folder,
+                    CompanyName = "TheBIADevCompany",
+                    ProjectName = "BIATemplate",
+                    UseLocalFolder = Properties.Settings.Default.CompanyFilesLocalFolder,
+                    UrlRepo = Properties.Settings.Default.CompanyFilesGitRepo,
+                    LocalFolderPath = Properties.Settings.Default.CompanyFilesLocalFolderText
+                },
+                CreateProjectRootProjectsPath = Properties.Settings.Default.CreateProjectRootFolderText,
+                ModifyProjectRootProjectsPath = Properties.Settings.Default.ModifyProjectRootFolderText,
+                CreateCompanyName = Properties.Settings.Default.CreateCompanyName,
+                AutoUpdate = Properties.Settings.Default.AutoUpdate,
+                UseLocalReleaseRepository = Properties.Settings.Default.UseLocalReleaseRepository,
+                LocalReleaseRepositoryPath = Properties.Settings.Default.LocalReleaseRepositoryPath
+            };
 
             if (!string.IsNullOrEmpty(Properties.Settings.Default.CustomTemplates))
             {
-                _viewModel.Settings.CustomRepoTemplates = JsonSerializer.Deserialize<List<RepositorySettings>>(Properties.Settings.Default.CustomTemplates);
+                settings.CustomRepoTemplates = JsonSerializer.Deserialize<List<RepositorySettings>>(Properties.Settings.Default.CustomTemplates);
             }
 
-            txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
+            settingsService.Init(settings);
+        }
 
-            DataContext = _viewModel;
+        private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
+        {
+            Properties.Settings.Default.BIATemplateLocalFolder = settings.BIATemplateRepository.UseLocalFolder;
+            Properties.Settings.Default.BIATemplateLocalFolderText = settings.BIATemplateRepository.LocalFolderPath;
+            Properties.Settings.Default.UseCompanyFile = settings.UseCompanyFiles;
+            Properties.Settings.Default.CompanyFilesLocalFolder = settings.CompanyFilesRepository.UseLocalFolder;
+            Properties.Settings.Default.CompanyFilesGitRepo = settings.CompanyFilesRepository.UrlRepo;
+            Properties.Settings.Default.CompanyFilesLocalFolderText = settings.CompanyFilesRepository.LocalFolderPath;
+            Properties.Settings.Default.CreateProjectRootFolderText = settings.CreateProjectRootProjectsPath;
+            Properties.Settings.Default.ModifyProjectRootFolderText = settings.ModifyProjectRootProjectsPath;
+            Properties.Settings.Default.CreateCompanyName = settings.CreateCompanyName;
+            Properties.Settings.Default.AutoUpdate = settings.AutoUpdate;
+            Properties.Settings.Default.UseLocalReleaseRepository = settings.UseLocalReleaseRepository;
+            Properties.Settings.Default.LocalReleaseRepositoryPath = settings.LocalReleaseRepositoryPath;
+            Properties.Settings.Default.CustomTemplates = JsonSerializer.Serialize(settings.CustomRepoTemplates);
+            Properties.Settings.Default.Save();
 
-            uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
-
-            AutoUpdateCheckbox.IsChecked = Properties.Settings.Default.AutoUpdate;
+            localReleaseRepositoryService.Set(Properties.Settings.Default.UseLocalReleaseRepository, Properties.Settings.Default.LocalReleaseRepositoryPath);
         }
 
         private void UiEventBroker_OnNewVersionAvailable()
         {
-            _viewModel.UpdateAvailable = true;
+            ViewModel.UpdateAvailable = true;
         }
 
         public bool RefreshConfiguration()
@@ -127,7 +161,7 @@
         public bool RefreshBIATemplateConfiguration(bool inSync)
         {
             Configurationchange();
-            if (!CheckBIATemplate(_viewModel.Settings, inSync))
+            if (!CheckBIATemplate(settingsService.Settings, inSync))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
                 return false;
@@ -148,7 +182,7 @@
         public bool RefreshCompanyFilesConfiguration(bool inSync)
         {
             Configurationchange();
-            if (!CheckCompanyFiles(_viewModel.Settings, inSync))
+            if (!CheckCompanyFiles(settingsService.Settings, inSync))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
                 return false;
@@ -156,7 +190,7 @@
             return true;
         }
 
-        public bool CheckBIATemplate(BIATKSettings biaTKsettings, bool inSync)
+        public bool CheckBIATemplate(IBIATKSettings biaTKsettings, bool inSync)
         {
             if (!repositoryService.CheckRepoFolder(biaTKsettings.BIATemplateRepository, inSync))
             {
@@ -174,36 +208,13 @@
             return true;
         }
 
-        public bool CheckCompanyFiles(BIATKSettings biaTKsettings, bool inSync)
+        public bool CheckCompanyFiles(IBIATKSettings biaTKsettings, bool inSync)
         {
             if (biaTKsettings.UseCompanyFiles)
             {
-                return repositoryService.CheckRepoFolder(biaTKsettings.CompanyFiles, inSync);
+                return repositoryService.CheckRepoFolder(biaTKsettings.CompanyFilesRepository, inSync);
             }
             return true;
-        }
-
-        private void SaveSettings_Click(object sender, RoutedEventArgs e)
-        {
-            Properties.Settings.Default.BIATemplateLocalFolder = _viewModel.Settings.BIATemplateRepository.UseLocalFolder;
-            Properties.Settings.Default.BIATemplateLocalFolderText = _viewModel.Settings.BIATemplateRepository.LocalFolderPath;
-
-            Properties.Settings.Default.UseCompanyFile = _viewModel.Settings.UseCompanyFiles;
-            Properties.Settings.Default.CompanyFilesLocalFolder = _viewModel.Settings.CompanyFiles.UseLocalFolder;
-            Properties.Settings.Default.CompanyFilesGitRepo = _viewModel.Settings.CompanyFiles.UrlRepo;
-            Properties.Settings.Default.CompanyFilesLocalFolderText = _viewModel.Settings.CompanyFiles.LocalFolderPath;
-
-            Properties.Settings.Default.CreateProjectRootFolderText = _viewModel.Settings.RootProjectsPath;
-            Properties.Settings.Default.CreateCompanyName = _viewModel.Settings.CreateCompanyName;
-
-            Properties.Settings.Default.CustomTemplates = JsonSerializer.Serialize(_viewModel.Settings.CustomRepoTemplates);
-
-            Properties.Settings.Default.AutoUpdate = _viewModel.Settings.AutoUpdate;
-            Properties.Settings.Default.UseLocalReleaseRepository = _viewModel.Settings.UseLocalReleaseRepository;
-            Properties.Settings.Default.LocalReleaseRepositoryPath = _viewModel.Settings.LocalReleaseRepositoryPath;
-
-            Properties.Settings.Default.Save();
-            localReleaseRepositoryService.Set(Properties.Settings.Default.UseLocalReleaseRepository, Properties.Settings.Default.LocalReleaseRepositoryPath);
         }
 
         private readonly SemaphoreSlim semaphore = new(1, 1);
@@ -232,12 +243,12 @@
                 await ExecuteTaskWithWaiterAsync(async () =>
                 {
                     BIATemplateLocalFolderSync.IsEnabled = false;
-                    if (!_viewModel.Settings.BIATemplateRepository.UseLocalFolder)
+                    if (!settingsService.Settings.BIATemplateRepository.UseLocalFolder)
                     {
-                        await repositoryService.CleanRepository(_viewModel.Settings.BIATemplateRepository);
+                        await repositoryService.CleanRepository(settingsService.Settings.BIATemplateRepository);
                     }
 
-                    await this.gitService.Synchronize(_viewModel.Settings.BIATemplateRepository);
+                    await this.gitService.Synchronize(settingsService.Settings.BIATemplateRepository);
                     BIATemplateLocalFolderSync.IsEnabled = true;
                 });
             }
@@ -247,7 +258,7 @@
         {
             await ExecuteTaskWithWaiterAsync(async () =>
             {
-                await repositoryService.CleanReleases(_viewModel.Settings.BIATemplateRepository);
+                await repositoryService.CleanReleases(settingsService.Settings.BIATemplateRepository);
             });
         }
 
@@ -258,12 +269,12 @@
                 await ExecuteTaskWithWaiterAsync(async () =>
                 {
                     CompanyFilesLocalFolderSync.IsEnabled = false;
-                    if (!_viewModel.Settings.CompanyFiles.UseLocalFolder)
+                    if (!settingsService.Settings.CompanyFilesRepository.UseLocalFolder)
                     {
-                        await repositoryService.CleanRepository(_viewModel.Settings.CompanyFiles);
+                        await repositoryService.CleanRepository(settingsService.Settings.CompanyFilesRepository);
                     }
 
-                    await this.gitService.Synchronize(_viewModel.Settings.CompanyFiles);
+                    await this.gitService.Synchronize(settingsService.Settings.CompanyFilesRepository);
                     CompanyFilesLocalFolderSync.IsEnabled = true;
                 });
             }
@@ -271,17 +282,17 @@
 
         private void BIATemplateLocalFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.Settings_BIATemplateRepository_LocalFolderPath = FileDialog.BrowseFolder(_viewModel.Settings.BIATemplateRepository.LocalFolderPath);
+            ViewModel.Settings_BIATemplateRepository_LocalFolderPath = FileDialog.BrowseFolder(ViewModel.Settings_BIATemplateRepository_LocalFolderPath);
         }
 
         private void CompanyFilesLocalFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.Settings_CompanyFiles_LocalFolderPath = FileDialog.BrowseFolder(_viewModel.Settings.CompanyFiles.LocalFolderPath);
+            ViewModel.Settings_CompanyFilesRepository_LocalFolderPath = FileDialog.BrowseFolder(ViewModel.Settings_CompanyFilesRepository_LocalFolderPath);
         }
 
         private void CreateProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.Settings_RootProjectsPath = FileDialog.BrowseFolder(_viewModel.Settings.RootProjectsPath);
+            ViewModel.Settings_RootProjectsPath = FileDialog.BrowseFolder(ViewModel.Settings_RootProjectsPath);
         }
 
         private void OnTabModifySelected(object sender, RoutedEventArgs e)
@@ -323,12 +334,12 @@
 
         private async Task Create_Run()
         {
-            if (string.IsNullOrEmpty(_viewModel.Settings.RootProjectsPath))
+            if (string.IsNullOrEmpty(settingsService.Settings.CreateProjectRootProjectsPath))
             {
                 MessageBox.Show("Please select root path.");
                 return;
             }
-            if (string.IsNullOrEmpty(_viewModel.Settings.CreateCompanyName))
+            if (string.IsNullOrEmpty(settingsService.Settings.CreateCompanyName))
             {
                 MessageBox.Show("Please select company name.");
                 return;
@@ -344,7 +355,7 @@
                 return;
             }
 
-            string projectPath = _viewModel.Settings.RootProjectsPath + "\\" + CreateProjectName.Text;
+            string projectPath = settingsService.Settings.CreateProjectRootProjectsPath + "\\" + CreateProjectName.Text;
             if (Directory.Exists(projectPath) && !FileDialog.IsDirectoryEmpty(projectPath))
             {
                 MessageBox.Show("The project path is not empty : " + projectPath);
@@ -358,7 +369,7 @@
                     projectPath,
                     new Domain.Model.ProjectParameters
                     {
-                        CompanyName = _viewModel.Settings.CreateCompanyName,
+                        CompanyName = settingsService.Settings.CreateCompanyName,
                         ProjectName = CreateProjectName.Text,
                         VersionAndOption = CreateVersionAndOption.vm.VersionAndOption,
                         AngularFronts = new List<string> { Constants.FolderAngular }
@@ -422,13 +433,9 @@
         private void CustomRepoTemplate_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new CustomsRepoTemplateUC(gitService, repositoryService, uiEventBroker) { Owner = this };
-
-            // Display the dialog box and read the response
-            bool? result = dialog.ShowDialog(_viewModel.Settings.CustomRepoTemplates);
-
-            if (result == true)
+            if (dialog.ShowDialog(settingsService.Settings.CustomRepoTemplates) == true)
             {
-                _viewModel.Settings.CustomRepoTemplates = dialog.vm.RepositoriesSettings.ToList();
+                settingsService.SetCustomRepositories([.. dialog.vm.RepositoriesSettings.Cast<RepositorySettings>()]);
             }
         }
 
@@ -468,7 +475,11 @@
         private void EditLocalReleaseRepositorySettings_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new LocalReleaseRepositorySettingsUC() { Owner = this };
-            dialog.ShowDialog(_viewModel.Settings);
+            if(dialog.ShowDialog(settingsService.Settings) == true)
+            {
+                settingsService.SetUseLocalReleaseRepository(dialog.ViewModel.UseLocalReleaseRepository);
+                settingsService.SetLocalReleaseRepositoryPath(dialog.ViewModel.LocalReleaseRepositoryPath);
+            }
         }
     }
 }

@@ -6,6 +6,7 @@
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
+    using BIA.ToolKit.Domain.Settings;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -20,19 +21,27 @@
         private UIEventBroker eventBroker;
         private FileGeneratorService fileGeneratorService;
         private IConsoleWriter consoleWriter;
+        private SettingsService settingsService;
 
         public ModifyProjectViewModel()
         {
             ModifyProject = new ModifyProject();
             OverwriteBIAFromOriginal = true;
-            SynchronizeSettings.AddCallBack("RootProjectsPath", DelegateSetRootProjectsPath);
         }
 
-        public void Inject(UIEventBroker eventBroker, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter)
+        public void Inject(UIEventBroker eventBroker, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService)
         {
             this.eventBroker = eventBroker;
             this.fileGeneratorService = fileGeneratorService;
             this.consoleWriter = consoleWriter;
+            this.settingsService = settingsService;
+
+            eventBroker.OnSettingsUpdated += EventBroker_OnSettingsUpdated;
+        }
+
+        private void EventBroker_OnSettingsUpdated(IBIATKSettings settings)
+        {
+            RaisePropertyChanged(nameof(RootProjectsPath));
         }
 
         //public IProductRepository Repository { get; set; }
@@ -78,11 +87,10 @@
         public void RefreshProjetsList()
         {
             List<string> projectList = null;
-            string projectPath = ModifyProject.RootProjectsPath;
 
-            if (Directory.Exists(projectPath))
+            if (Directory.Exists(RootProjectsPath))
             {
-                DirectoryInfo di = new(projectPath);
+                DirectoryInfo di = new(RootProjectsPath);
                 // Create an array representing the files in the current directory.
                 DirectoryInfo[] versionDirectories = di.GetDirectories("*", SearchOption.TopDirectoryOnly);
 
@@ -97,24 +105,14 @@
             Projects = projectList;
         }
 
-        public void DelegateSetRootProjectsPath(string value)
-        {
-            ModifyProject.RootProjectsPath = value;
-            CurrentProject = null;
-
-            RefreshProjetsList();
-
-            RaisePropertyChanged(nameof(RootProjectsPath));
-        }
-
         public string RootProjectsPath
         {
-            get { return ModifyProject.RootProjectsPath; }
+            get => settingsService?.Settings?.ModifyProjectRootProjectsPath;
             set
             {
-                if (ModifyProject.RootProjectsPath != value)
+                if (settingsService.Settings.ModifyProjectRootProjectsPath != value)
                 {
-                    SynchronizeSettings.SettingChange("RootProjectsPath", value);
+                    settingsService.SetModifyProjectRootProjectPath(value);
                 }
             }
         }

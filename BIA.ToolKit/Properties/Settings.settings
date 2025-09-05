@@ -47,5 +47,8 @@
     <Setting Name="AutoUpdate" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
+    <Setting Name="ModifyProjectRootFolderText" Type="System.String" Scope="User">
+      <Value Profile="(Default)">D:\...\MyRootProjectPath</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

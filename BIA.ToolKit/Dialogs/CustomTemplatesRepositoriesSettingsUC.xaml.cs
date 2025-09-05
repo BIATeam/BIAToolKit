@@ -38,7 +38,7 @@
             vm = (RepositoriesSettingsVM)base.DataContext;
         }
 
-        internal bool? ShowDialog(List<RepositorySettings> customsRepoTemplate)
+        internal bool? ShowDialog(IReadOnlyList<IRepositorySettings> customsRepoTemplate)
         {
             vm.LoadSettings(customsRepoTemplate);
             return ShowDialog();

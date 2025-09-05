@@ -5,7 +5,7 @@
 
     public class WorkRepository
     {
-        public RepositorySettings RepositorySettings { get; private set; }
+        public IRepositorySettings RepositorySettings { get; private set; }
         public string Version { get; private set; }
         public Version VersionData { get; private set; }
         public string VersionFolderPath { get; set; }
@@ -25,7 +25,7 @@
         //    }
         //}
 
-        public WorkRepository(RepositorySettings template, string version)
+        public WorkRepository(IRepositorySettings template, string version)
         {
             RepositorySettings = template;
             Version = version;

@@ -25,10 +25,8 @@
     /// </summary>
     public partial class VersionAndOptionUserControl : UserControl
     {
-        BIATKSettings settings;
         GitService gitService;
         RepositoryService repositoryService;
-        IConsoleWriter consoleWriter;
         FeatureSettingService featureSettingService;
         private SettingsService settingsService;
         private string currentProjectPath;
@@ -42,12 +40,10 @@
             vm = (VersionAndOptionViewModel)base.DataContext;
         }
 
-        public void Inject(BIATKSettings settings, RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, FeatureSettingService featureSettingService,
+        public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, FeatureSettingService featureSettingService,
                     SettingsService settingsService, UIEventBroker uiEventBroker)
         {
-            this.settings = settings;
             this.gitService = gitService;
-            this.consoleWriter = consoleWriter;
             this.repositoryService = repositoryService;
             this.featureSettingService = featureSettingService;
             this.settingsService = settingsService;
@@ -124,18 +120,18 @@
             var listWorkTemplates = new List<WorkRepository>();
 
 
-            if (settings.CustomRepoTemplates?.Count > 0)
+            if (settingsService.Settings.CustomRepoTemplates?.Count > 0)
             {
-                foreach (var repositorySettings in settings.CustomRepoTemplates)
+                foreach (var repositorySettings in settingsService.Settings.CustomRepoTemplates)
                 {
                     AddTemplatesVersion(listWorkTemplates, repositorySettings);
                 }
             }
 
-            if (Directory.Exists(settings.BIATemplateRepository.RootFolderPath))
+            if (Directory.Exists(settingsService.Settings.BIATemplateRepository.RootFolderPath))
             {
-                AddTemplatesVersion(listWorkTemplates, settings.BIATemplateRepository);
-                listWorkTemplates.Add(new WorkRepository(settings.BIATemplateRepository, "VX.Y.Z"));
+                AddTemplatesVersion(listWorkTemplates, settingsService.Settings.BIATemplateRepository);
+                listWorkTemplates.Add(new WorkRepository(settingsService.Settings.BIATemplateRepository, "VX.Y.Z"));
             }
 
             vm.WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
@@ -144,11 +140,11 @@
                 vm.WorkTemplate = listWorkTemplates[listWorkTemplates.Count - 2];
             }
 
-            vm.SettingsUseCompanyFiles = settings.UseCompanyFiles;
-            vm.UseCompanyFiles = settings.UseCompanyFiles;
-            if (settings.UseCompanyFiles)
+            vm.SettingsUseCompanyFiles = settingsService.Settings.UseCompanyFiles;
+            vm.UseCompanyFiles = settingsService.Settings.UseCompanyFiles;
+            if (settingsService.Settings.UseCompanyFiles)
             {
-                AddTemplatesVersion(listCompanyFiles, settings.CompanyFiles);
+                AddTemplatesVersion(listCompanyFiles, settingsService.Settings.CompanyFilesRepository);
                 vm.WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
                 if (vm.WorkCompanyFiles.Count >= 1)
                 {
@@ -157,7 +153,7 @@
             }
         }
 
-        private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, RepositorySettings repositorySettings)
+        private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, IRepositorySettings repositorySettings)
         {
             if (repositorySettings.Versioning == VersioningType.Folder)
             {
