@@ -57,10 +57,9 @@
                 ToolKit.Properties.Settings.Default.Save();
             }
 
-
             serviceProvider.GetService<LocalReleaseRepositoryService>().Init(
-                bool.TryParse(ConfigurationManager.AppSettings["UseLocalReleaseRepository"], out bool result) && result,
-                ConfigurationManager.AppSettings["LocalReleaseRepository"]);
+                ToolKit.Properties.Settings.Default.UseLocalReleaseRepository,
+                ToolKit.Properties.Settings.Default.LocalReleaseRepositoryPath);
 
             var mainWindow = serviceProvider.GetService<MainWindow>();
             mainWindow.Show();
@@ -68,12 +67,11 @@
             var eventBroker = serviceProvider.GetRequiredService<UIEventBroker>();
             eventBroker.ExecuteActionWithWaiter(async () =>
             {
-                var autoUpdateSetting = ConfigurationManager.AppSettings["AutoUpdate"];
-                if (bool.TryParse(autoUpdateSetting, out bool autoUpdate))
+                if (ToolKit.Properties.Settings.Default.AutoUpdate)
                 {
                     var updateService = serviceProvider.GetService<UpdateService>();
                     updateService.SetAppVersion(Assembly.GetExecutingAssembly().GetName().Version);
-                    if (await updateService.CheckForUpdatesAsync(autoUpdate))
+                    if (await updateService.CheckForUpdatesAsync(ToolKit.Properties.Settings.Default.AutoUpdate))
                     {
                         var result = MessageBox.Show(
                             $"A new version ({updateService.NewVersion}) of BIAToolKit is available.\nInstall now?",
