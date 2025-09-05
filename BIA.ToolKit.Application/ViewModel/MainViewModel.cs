@@ -84,11 +84,8 @@
             {
                 Settings.BIATemplateRepository.UseLocalFolder = value; 
                 RaisePropertyChanged(nameof(UseTemplateLocalFolder));
-                RaisePropertyChanged(nameof(IsEnableTemplateCleanRelease));
             }
         }
-
-        public bool IsEnableTemplateCleanRelease => !UseTemplateLocalFolder;
 
         public bool AutoUpdate
         {

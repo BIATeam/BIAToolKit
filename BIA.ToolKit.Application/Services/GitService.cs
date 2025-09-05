@@ -23,7 +23,7 @@
 
         public async Task Synchronize(Domain.Settings.RepositorySettings repository)
         {
-            if (!Directory.Exists(repository.RootFolderPath))
+            if (!repository.UseLocalFolder && !Directory.Exists(repository.RootFolderPath))
             {
                 await this.Clone(repository.Name, repository.UrlRepo, repository.RootFolderPath);
             }
@@ -36,30 +36,28 @@
 
         public async Task Synchronize(string repoName, string localPath)
         {
-            outPut.AddMessageLine("Synchronize " + repoName + " local folder...", "Pink");
+            outPut.AddMessageLine($"Synchronize {repoName} into {localPath}...", "Pink");
             if (await RunScript("git", "pull", localPath) == 0)
             {
-                outPut.AddMessageLine("Synchronize " + repoName + " local folder finished", "Green");
+                outPut.AddMessageLine($"Synchronize {repoName} finished", "Green");
             }
             else
             {
-                outPut.AddMessageLine("Error durring synchronize " + repoName + " local folder", "Red");
+                outPut.AddMessageLine($"Error durring synchronize {repoName}", "Red");
             }
         }
 
         public async Task Clone(string repoName, string url, string localPath)
         {
-            //var cloneOptions = new CloneOptions { BranchName = "master", Checkout = true };
-            //var cloneResult = Repository.Clone(url, localPath);
-            outPut.AddMessageLine("Clone " + repoName + " local folder...", "Pink");
+            outPut.AddMessageLine($"Clone {repoName} into {localPath}...", "Pink");
 
             if (await RunScript("git", $"clone \"" + url + "\" \"" + localPath + "\"") == 0)
             {
-                outPut.AddMessageLine("Clone BIADemo local folder finished", "Green");
+                outPut.AddMessageLine($"Clone {repoName} finished", "Green");
             }
             else
             {
-                outPut.AddMessageLine("Error durring clone BIADemo local folder.", "Red");
+                outPut.AddMessageLine($"Error durring clone {repoName}", "Red");
             }
         }
 

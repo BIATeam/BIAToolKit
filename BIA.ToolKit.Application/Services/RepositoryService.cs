@@ -47,33 +47,69 @@
             return true;
         }
 
-        public async Task CleanVersionFolder(RepositorySettings repository)
+        public async Task CleanRepository(RepositorySettings repository)
+        {
+            try
+            {
+                outPut.AddMessageLine($"Cleaning repository {repository.RootFolderPath}...", "pink");
+                await Task.Run(() =>
+                {
+                    if (Directory.Exists(repository.RootFolderPath))
+                    {
+                        var dirInfo = new DirectoryInfo(repository.RootFolderPath);
+
+                        foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                        {
+                            file.Attributes = FileAttributes.Normal;
+                        }
+
+                        Directory.Delete(repository.RootFolderPath, true);
+                    }
+                });
+
+                outPut.AddMessageLine("Repository cleaned.", "green");
+            }
+            catch (Exception ex)
+            {
+                outPut.AddMessageLine($"Error when cleaning repository : {ex.Message}", "red");
+            }
+        }
+
+        public async Task CleanReleases(RepositorySettings repository)
         {
             if (repository.Versioning == VersioningType.Release)
             {
                 try
                 {
-                    outPut.AddMessageLine($"Cleaning release {repository.RootFolderPath}...", "pink");
+                    var releasesFolderPath = Path.Combine(AppSettings.AppFolderPath, repository.Name);
+                    outPut.AddMessageLine($"Cleaning releases in {releasesFolderPath}...", "pink");
                     await Task.Run(() =>
                     {
-                        if (Directory.Exists(repository.RootFolderPath))
+                        if (Directory.Exists(releasesFolderPath))
                         {
-                            var dirInfo = new DirectoryInfo(repository.RootFolderPath);
+                            var dirInfo = new DirectoryInfo(releasesFolderPath);
 
                             foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
                             {
                                 file.Attributes = FileAttributes.Normal;
+                                File.Delete(file.FullName);
                             }
 
-                            Directory.Delete(repository.RootFolderPath, true);
+                            foreach (var innerDirectory in dirInfo.GetDirectories("*"))
+                            {
+                                if (innerDirectory.Name.Equals(Path.GetFileName(repository.RootFolderPath)))
+                                    continue;
+
+                                Directory.Delete(innerDirectory.FullName, true);
+                            }
                         }
                     });
 
-                    outPut.AddMessageLine("Release cleaned.", "pink");
+                    outPut.AddMessageLine("Releases cleaned.", "green");
                 }
                 catch (Exception ex)
                 {
-                    outPut.AddMessageLine($"Error when cleaning release : {ex.Message}", "red");
+                    outPut.AddMessageLine($"Error when cleaning releases : {ex.Message}", "red");
                 }
             }
         }
@@ -112,7 +148,7 @@
                                         versionDownload.IsDownloading = true;
                                         try
                                         {
-                                            outPut.AddMessageLine($"Begin downloading release {tag.FriendlyName}", "Pink");
+                                            outPut.AddMessageLine($"Downloading release {tag.FriendlyName}...", "Pink");
                                             if (localReleaseRepositoryService.UseLocalReleaseRepository)
                                             {
                                                 outPut.AddMessageLine("Using local release repository", "gray");
@@ -132,7 +168,7 @@
                                                 };
                                                 using var httpClient = new HttpClient(httpClientHandler);
                                                 var response = await httpClient.GetAsync(zipUrl);
-                                                using var fs = new FileStream(zipPath,FileMode.CreateNew);
+                                                using var fs = new FileStream(zipPath, FileMode.CreateNew);
                                                 await response.Content.CopyToAsync(fs);
                                             }
 
@@ -142,7 +178,7 @@
                                                 break;
                                             }
 
-                                            outPut.AddMessageLine($"-> Release {version} downloaded", "pink");
+                                            outPut.AddMessageLine($"Release {version} downloaded", "green");
 
                                             await UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip, version);
                                         }
@@ -189,14 +225,14 @@
         {
             if (!Directory.Exists(biaTemplatePathVersionUnzip))
             {
-                outPut.AddMessageLine($"Unzipping {version}", "pink");
+                outPut.AddMessageLine($"Unzipping {version}...", "pink");
                 await Task.Run(() =>
                 {
                     ZipFile.ExtractToDirectory(zipPath, biaTemplatePathVersionUnzip);
                     FileTransform.FolderUnix2Dos(biaTemplatePathVersionUnzip);
                     File.Delete(zipPath);
                 });
-                outPut.AddMessageLine($"-> {version} unzipped", "pink");
+                outPut.AddMessageLine($"{version} unzipped", "green");
             }
         }
 

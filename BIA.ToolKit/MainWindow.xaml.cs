@@ -234,7 +234,7 @@
                     BIATemplateLocalFolderSync.IsEnabled = false;
                     if (!_viewModel.Settings.BIATemplateRepository.UseLocalFolder)
                     {
-                        await repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
+                        await repositoryService.CleanRepository(_viewModel.Settings.BIATemplateRepository);
                     }
 
                     await this.gitService.Synchronize(_viewModel.Settings.BIATemplateRepository);
@@ -243,11 +243,11 @@
             }
         }
 
-        private async void BIATemplateLocalCleanRelease_Click(object sender, RoutedEventArgs e)
+        private async void BIATemplateCleanReleases_Click(object sender, RoutedEventArgs e)
         {
             await ExecuteTaskWithWaiterAsync(async () =>
             {
-                await repositoryService.CleanVersionFolder(_viewModel.Settings.BIATemplateRepository);
+                await repositoryService.CleanReleases(_viewModel.Settings.BIATemplateRepository);
             });
         }
 
@@ -258,6 +258,11 @@
                 await ExecuteTaskWithWaiterAsync(async () =>
                 {
                     CompanyFilesLocalFolderSync.IsEnabled = false;
+                    if (!_viewModel.Settings.CompanyFiles.UseLocalFolder)
+                    {
+                        await repositoryService.CleanRepository(_viewModel.Settings.CompanyFiles);
+                    }
+
                     await this.gitService.Synchronize(_viewModel.Settings.CompanyFiles);
                     CompanyFilesLocalFolderSync.IsEnabled = true;
                 });

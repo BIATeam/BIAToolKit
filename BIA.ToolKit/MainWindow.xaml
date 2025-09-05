@@ -66,7 +66,7 @@
                                         <ColumnDefinition Width="auto"/>
                                         <ColumnDefinition Width="auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <Button Margin="5,0" Grid.Column="0" IsEnabled="{Binding IsEnableTemplateCleanRelease}" Content="Clean Release" HorizontalAlignment="Center" Name="BIATemplateLocalCleanRelease" Click="BIATemplateLocalCleanRelease_Click" VerticalAlignment="top"/>
+                                    <Button Margin="5,0" Grid.Column="0" Style="{StaticResource MaterialDesignOutlinedButton}" Content="Clean Releases" HorizontalAlignment="Center" Name="BIATemplateCleanReleases" Click="BIATemplateCleanReleases_Click" VerticalAlignment="top"/>
                                     <Button Margin="5,0" Grid.Column="1" Content="Synchronize" HorizontalAlignment="Center" Name="BIATemplateLocalFolderSync" Click="BIATemplateLocalFolderSync_Click" VerticalAlignment="Top"/>
                                 </Grid>
                             </Grid>
