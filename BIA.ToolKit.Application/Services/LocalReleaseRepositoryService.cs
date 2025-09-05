@@ -17,9 +17,9 @@
         private string localReleaseRepositoryFolder;
         public bool UseLocalReleaseRepository { get; private set; }
 
-        public void Init(bool useLocalReleaseRepository, string localReleaseRepositoryFolder)
+        public void Set(bool useLocalReleaseRepository, string localReleaseRepositoryFolder)
         {
-            this.UseLocalReleaseRepository = useLocalReleaseRepository;
+            UseLocalReleaseRepository = useLocalReleaseRepository;
             this.localReleaseRepositoryFolder = localReleaseRepositoryFolder;
         }
 

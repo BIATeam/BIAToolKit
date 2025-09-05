@@ -57,7 +57,7 @@
                 ToolKit.Properties.Settings.Default.Save();
             }
 
-            serviceProvider.GetService<LocalReleaseRepositoryService>().Init(
+            serviceProvider.GetService<LocalReleaseRepositoryService>().Set(
                 ToolKit.Properties.Settings.Default.UseLocalReleaseRepository,
                 ToolKit.Properties.Settings.Default.LocalReleaseRepositoryPath);
 
