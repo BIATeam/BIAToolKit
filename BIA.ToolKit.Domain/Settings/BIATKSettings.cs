@@ -16,6 +16,10 @@
         public string RootProjectsPath { get; set; }
         public string CreateCompanyName { get; set; }
 
+        public bool AutoUpdate { get; set; }
+        public bool UseLocalReleaseRepository { get; set; }
+        public string LocalReleaseRepositoryPath { get; set; }
+
         public BIATKSettings()
         {
             RootProjectsPath = "D:\\...\\MyRootProjectPath";

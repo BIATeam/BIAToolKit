@@ -89,5 +89,15 @@
         }
 
         public bool IsEnableTemplateCleanRelease => !UseTemplateLocalFolder;
+
+        public bool AutoUpdate
+        {
+            get => Settings.AutoUpdate;
+            set
+            {
+                Settings.AutoUpdate = value;
+                RaisePropertyChanged(nameof(AutoUpdate));
+            }
+        }
     }
 }

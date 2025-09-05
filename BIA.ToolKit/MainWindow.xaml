@@ -78,12 +78,23 @@
                                 <RowDefinition Height="auto"/>
                                 <RowDefinition/>
                             </Grid.RowDefinitions>
-                            <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
-                                <Button Padding="5" x:Name="UpdateButton" ToolTip="New version available !" Background="Transparent" Foreground="Transparent" BorderThickness="0" Cursor="Hand" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisConverter}}" Click="UpdateButton_Click">
-                                    <Image Source="/Images/update.png" />
-                                </Button>
-                                <Label Grid.ColumnSpan="2" Content="{Binding ApplicationVersion}" VerticalAlignment="Center" Foreground="#FFF0F0F0" d:Content="V0.0.0.0"/>
-                            </StackPanel>
+                            <Grid Grid.Row="0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
+                                    <Button Padding="5" x:Name="UpdateButton" ToolTip="New version available !" Background="Transparent" Foreground="Transparent" BorderThickness="0" Cursor="Hand" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisConverter}}" Click="UpdateButton_Click">
+                                        <Image Source="/Images/update.png" />
+                                    </Button>
+                                    <Label Grid.ColumnSpan="2" Content="{Binding ApplicationVersion}" VerticalAlignment="Center" Foreground="#FFF0F0F0" d:Content="V0.0.0.0"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <CheckBox Name="AutoUpdateCheckbox" IsChecked="{Binding Settings.AutoUpdate}"/>
+                                    <Label VerticalAlignment="Center" Foreground="White" Content="Auto update" FontSize="12" FontWeight="Bold"/>
+                                </StackPanel>
+                            </Grid>
 
                             <Grid Grid.Row="1" VerticalAlignment="Bottom">
                                 <Grid.RowDefinitions>
@@ -91,8 +102,8 @@
                                     <RowDefinition Height="auto"/>
                                 </Grid.RowDefinitions>
                                 <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <CheckBox Margin="0,0,0,7" IsChecked="{Binding Settings.UseCompanyFiles}" Checked="ConfigurationChange" Unchecked="ConfigurationChange"/>
-                                    <Label VerticalAlignment="Center" Foreground="White" Content="Use Company Files" FontSize="20" FontWeight="Bold" Height="37"/>
+                                    <CheckBox IsChecked="{Binding Settings.UseCompanyFiles}" Checked="ConfigurationChange" Unchecked="ConfigurationChange"/>
+                                    <Label VerticalAlignment="Center" Foreground="White" Content="Use Company Files" FontSize="20" FontWeight="Bold"/>
                                 </StackPanel>
                                 <Grid Grid.Row="1" IsEnabled="{Binding Settings.UseCompanyFiles}">
                                     <Grid.ColumnDefinitions>
@@ -198,8 +209,11 @@
 
             </TabControl>
 
-            <Grid Grid.Row="1">
-                <Button Style="{StaticResource MaterialDesignPaperSecondaryButton}" Content="Save settings" HorizontalAlignment="Right" x:Name="SaveSettings" Click="SaveSettings_Click"/>
+            <Grid Grid.Row="1" Margin="5,0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Name="EditLocalReleaseRepositorySettings" Style="{StaticResource MaterialDesignOutlinedSecondaryButton}" Content="Local release repository settings" Click="EditLocalReleaseRepositorySettings_Click"/>
+                    <Button Margin="5,0,0,0" Style="{StaticResource MaterialDesignPaperSecondaryButton}" Content="Save settings" x:Name="SaveSettings" Click="SaveSettings_Click"/>
+                </StackPanel>
             </Grid>
         </Grid>
 
