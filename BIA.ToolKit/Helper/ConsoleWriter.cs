@@ -52,8 +52,8 @@
             {
                 if (messages.Count >0)
                 {
-                    Run run = new Run(@"(...details...)" + "\r\n");
-                    run.Foreground = Brushes.Red;
+                    Run run = new Run(@"[🔍 OPEN LOG DETAIL]" + "\r\n");
+                    run.Foreground = Brushes.YellowGreen;
                     run.Cursor = Cursors.Hand;
                     run.TextDecorations = TextDecorations.Underline;
                     run.MouseDown += new MouseButtonEventHandler(OpenDetail);
