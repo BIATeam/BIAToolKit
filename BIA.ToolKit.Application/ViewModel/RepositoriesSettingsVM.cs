@@ -7,18 +7,18 @@
 
     public class RepositoriesSettingsVM : ObservableObject
     {
-        ObservableCollection<RepositorySettings> repositoriesSettings;
+        ObservableCollection<IRepositorySettings> repositoriesSettings;
 
         public RepositoriesSettingsVM()
         {
-            repositoriesSettings = new ObservableCollection<RepositorySettings>();
+            repositoriesSettings = new ObservableCollection<IRepositorySettings>();
         }
 
-        public ObservableCollection<RepositorySettings> RepositoriesSettings {
+        public ObservableCollection<IRepositorySettings> RepositoriesSettings {
             get { return repositoriesSettings; }
         }
 
-        public void LoadSettings(List<RepositorySettings> repositoriesSettings)
+        public void LoadSettings(IReadOnlyList<IRepositorySettings> repositoriesSettings)
         {
             this.repositoriesSettings.Clear();
             foreach(var repo in repositoriesSettings)

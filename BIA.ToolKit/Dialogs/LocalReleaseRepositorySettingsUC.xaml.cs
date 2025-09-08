@@ -21,16 +21,17 @@
     /// </summary>
     public partial class LocalReleaseRepositorySettingsUC : Window
     {
-        private readonly LocalReleaseRepositorySettingsViewModel viewModel;
+        public LocalReleaseRepositorySettingsViewModel ViewModel { get; private set; }
+
         public LocalReleaseRepositorySettingsUC()
         {
             InitializeComponent();
-            viewModel = (LocalReleaseRepositorySettingsViewModel)DataContext;
+            ViewModel = (LocalReleaseRepositorySettingsViewModel)DataContext;
         }
 
-        internal new bool? ShowDialog(BIATKSettings settings)
+        internal bool? ShowDialog(IBIATKSettings settings)
         {
-            viewModel.LoadSettings(settings);
+            ViewModel.LoadSettings(settings);
             return ShowDialog();
         }
 

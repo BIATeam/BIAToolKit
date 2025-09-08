@@ -9,7 +9,7 @@
         Release
     }
 
-    public class RepositorySettings
+    public class RepositorySettings : IRepositorySettings
     {
         /// The folder of the repository.
         public string Name { get; set; }
@@ -47,7 +47,7 @@
                 {
                     return LocalFolderPath;
                 }
-                else 
+                else
                 {
                     return AppSettings.AppFolderPath + "\\" + Name + "\\Repo";
                 }

@@ -26,7 +26,7 @@
             this.localReleaseRepositoryService = localReleaseRepositoryService;
         }
 
-        public bool CheckRepoFolder(RepositorySettings repository, bool inSync)
+        public bool CheckRepoFolder(IRepositorySettings repository, bool inSync)
         {
             if (string.IsNullOrEmpty(repository.RootFolderPath))
             {
@@ -47,7 +47,7 @@
             return true;
         }
 
-        public async Task CleanRepository(RepositorySettings repository)
+        public async Task CleanRepository(IRepositorySettings repository)
         {
             try
             {
@@ -75,7 +75,7 @@
             }
         }
 
-        public async Task CleanReleases(RepositorySettings repository)
+        public async Task CleanReleases(IRepositorySettings repository)
         {
             if (repository.Versioning == VersioningType.Release)
             {
@@ -114,7 +114,7 @@
             }
         }
 
-        public async Task<string> PrepareVersionFolder(RepositorySettings repository, string version)
+        public async Task<string> PrepareVersionFolder(IRepositorySettings repository, string version)
         {
             try
             {

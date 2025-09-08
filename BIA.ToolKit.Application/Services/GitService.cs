@@ -21,7 +21,7 @@
             this.outPut = outPut;
         }
 
-        public async Task Synchronize(Domain.Settings.RepositorySettings repository)
+        public async Task Synchronize(IRepositorySettings repository)
         {
             if (!repository.UseLocalFolder && !Directory.Exists(repository.RootFolderPath))
             {
@@ -74,7 +74,7 @@
         }
 
 
-        public async Task CheckoutTag(RepositorySettings repoSettings, string tag)
+        public async Task CheckoutTag(IRepositorySettings repoSettings, string tag)
         {
             // git checkout tags/1.1.4
             outPut.AddMessageLine("Checkout Tag " + tag + "  for repo : " + repoSettings.Name + ".", "Pink");

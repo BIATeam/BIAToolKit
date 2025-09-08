@@ -202,5 +202,17 @@ namespace BIA.ToolKit.Properties {
                 this["AutoUpdate"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("D:\\...\\MyRootProjectPath")]
+        public string ModifyProjectRootFolderText {
+            get {
+                return ((string)(this["ModifyProjectRootFolderText"]));
+            }
+            set {
+                this["ModifyProjectRootFolderText"] = value;
+            }
+        }
     }
 }

@@ -24,7 +24,7 @@
         <Grid Grid.Row="0">
             <Grid.RowDefinitions>
                 <RowDefinition/>
-                <RowDefinition Height="auto"/>
+                <RowDefinition Height="0.02*"/>
             </Grid.RowDefinitions>
             <Grid Background="Black" Opacity="0.2"/>
             <TabControl Grid.Row="0" Name="MainTab">
@@ -57,10 +57,10 @@
                                     <RowDefinition Height="auto"/>
                                 </Grid.RowDefinitions>
 
-                                <TextBox Grid.Row="0" Grid.ColumnSpan="2" Margin="0,5" IsReadOnly="True" Text="https://github.com/BIATeam/BIATemplate.git" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="GIT Repository" />
-                                <CheckBox Margin="0,5" Grid.Row="1" Grid.ColumnSpan="2" IsChecked="{Binding UseTemplateLocalFolder}" Foreground="White" Content="Use a local cloned repository" Checked="ConfigurationChange" Unchecked="ConfigurationChange"/>
-                                <TextBox Margin="0,5" Grid.Row="2" Text="{Binding Settings_BIATemplateRepository_LocalFolderPath}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Local Repository Path" HorizontalAlignment="Stretch" TextWrapping="Wrap" IsEnabled="{Binding UseTemplateLocalFolder}" TextChanged="ConfigurationChange" />
-                                <Button Margin="5" Grid.Row="2" Grid.Column="1" Content="..." Name="BIATemplateLocalFolderBrowse" IsEnabled="{Binding UseTemplateLocalFolder}" Click="BIATemplateLocalFolderBrowse_Click"/>
+                                <TextBox Grid.Row="0" Grid.ColumnSpan="2" Margin="0,5" IsReadOnly="True" Text="{Binding Settings_BIATemplateRepository_UrlRepository}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="GIT Repository" />
+                                <CheckBox Margin="0,5" Grid.Row="1" Grid.ColumnSpan="2" IsChecked="{Binding Settings_BIATemplateRepository_UseLocalFolder}" Foreground="White" Content="Use a local cloned repository" Checked="ConfigurationChange" Unchecked="ConfigurationChange"/>
+                                <TextBox Margin="0,5" Grid.Row="2" Text="{Binding Settings_BIATemplateRepository_LocalFolderPath}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Local Repository Path" HorizontalAlignment="Stretch" TextWrapping="Wrap" IsEnabled="{Binding Settings_BIATemplateRepository_UseLocalFolder}" TextChanged="ConfigurationChange" />
+                                <Button Margin="5" Grid.Row="2" Grid.Column="1" Content="..." Name="BIATemplateLocalFolderBrowse" IsEnabled="{Binding Settings_BIATemplateRepository_UseLocalFolder}" Click="BIATemplateLocalFolderBrowse_Click"/>
                                 <Grid Grid.Row="3" Grid.ColumnSpan="2" Margin="0,10" HorizontalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="auto"/>
@@ -70,7 +70,14 @@
                                     <Button Margin="5,0" Grid.Column="1" Content="Synchronize" HorizontalAlignment="Center" Name="BIATemplateLocalFolderSync" Click="BIATemplateLocalFolderSync_Click" VerticalAlignment="Top"/>
                                 </Grid>
                             </Grid>
-                            <Button Grid.Row="2" Grid.ColumnSpan="2" Margin="0,10" Content="Custom templates repositories settings" Click="CustomRepoTemplate_Click" HorizontalAlignment="Center"/>
+                            <Grid Grid.Row="2" HorizontalAlignment="Center" Margin="0,10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+                                <Button Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,10" Content="Custom templates repositories settings" Click="CustomRepoTemplate_Click" />
+                                <Button Grid.Row="1" Name="EditLocalReleaseRepositorySettings" Content="Local release repository settings"  Click="EditLocalReleaseRepositorySettings_Click"/>
+                            </Grid>
                         </Grid>
 
                         <Grid Grid.Column="2" Margin="10">
@@ -85,14 +92,17 @@
                                 </Grid.RowDefinitions>
 
                                 <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
-                                    <Button Padding="5" x:Name="UpdateButton" ToolTip="New version available !" Background="Transparent" Foreground="Transparent" BorderThickness="0" Cursor="Hand" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisConverter}}" Click="UpdateButton_Click">
+                                    <Button Height="20" Padding="0" x:Name="UpdateButton" VerticalAlignment="Center" ToolTip="New version available !" Background="Transparent" Foreground="Transparent" BorderThickness="0" Cursor="Hand" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisConverter}}" Click="UpdateButton_Click">
                                         <Image Source="/Images/update.png" />
                                     </Button>
                                     <Label Grid.ColumnSpan="2" Content="{Binding ApplicationVersion}" VerticalAlignment="Center" Foreground="#FFF0F0F0" d:Content="V0.0.0.0"/>
+                                    <Button Height="18" x:Name="CheckUpdateButton" VerticalAlignment="Center" ToolTip="Check for update" Padding="1" Margin="2,0" Click="CheckUpdateButton_Click">
+                                        <Image Source="/Images/rafraichir-32.png" Cursor="Hand" RenderOptions.BitmapScalingMode="Fant" />
+                                    </Button>
                                 </StackPanel>
-                                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <CheckBox Name="AutoUpdateCheckbox" IsChecked="{Binding Settings.AutoUpdate}"/>
-                                    <Label VerticalAlignment="Center" Foreground="White" Content="Auto update" FontSize="12" FontWeight="Bold"/>
+                                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <CheckBox Name="AutoUpdateCheckbox" IsChecked="{Binding Settings_AutoUpdate}"/>
+                                    <Label VerticalAlignment="Center" Foreground="White" Content="Auto update" FontSize="10" Margin="0,1,0,0"/>
                                 </StackPanel>
                             </Grid>
 
@@ -102,10 +112,10 @@
                                     <RowDefinition Height="auto"/>
                                 </Grid.RowDefinitions>
                                 <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <CheckBox IsChecked="{Binding Settings.UseCompanyFiles}" Checked="ConfigurationChange" Unchecked="ConfigurationChange"/>
+                                    <CheckBox IsChecked="{Binding Settings_UseCompanyFiles}" Checked="ConfigurationChange" Unchecked="ConfigurationChange"/>
                                     <Label VerticalAlignment="Center" Foreground="White" Content="Use Company Files" FontSize="20" FontWeight="Bold"/>
                                 </StackPanel>
-                                <Grid Grid.Row="1" IsEnabled="{Binding Settings.UseCompanyFiles}">
+                                <Grid Grid.Row="1" IsEnabled="{Binding Settings_UseCompanyFiles}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition/>
                                         <ColumnDefinition Width="auto"/>
@@ -116,10 +126,10 @@
                                         <RowDefinition Height="auto"/>
                                         <RowDefinition Height="auto"/>
                                     </Grid.RowDefinitions>
-                                    <TextBox Grid.Row="0" Grid.ColumnSpan="2" Margin="0,5" Text="{Binding Settings.CompanyFiles.UrlRepo}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="GIT Repository" HorizontalAlignment="Stretch" TextWrapping="Wrap" Name="CompanyFilesGitRepo"/>
-                                    <CheckBox Grid.Row="1" Grid.ColumnSpan="2" Margin="0,5" IsChecked="{Binding Settings.CompanyFiles.UseLocalFolder}" Foreground="White" Content="Use a local cloned repository" Checked="ConfigurationChange" Unchecked="ConfigurationChange"/>
-                                    <TextBox Grid.Row="2" Margin="0,5" Text="{Binding Settings_CompanyFiles_LocalFolderPath}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Local Repository Path" IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Stretch" TextWrapping="Wrap"/>
-                                    <Button Grid.Row="2" Margin="5,5,0,5" Grid.Column="1" Content="..." IsEnabled="{Binding Settings.CompanyFiles.UseLocalFolder}" HorizontalAlignment="Stretch" Click="CompanyFilesLocalFolderBrowse_Click"/>
+                                    <TextBox Grid.Row="0" Grid.ColumnSpan="2" Margin="0,5" Text="{Binding Settings_CompanyFilesRepository_UrlRepository}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="GIT Repository" HorizontalAlignment="Stretch" TextWrapping="Wrap" Name="CompanyFilesGitRepo"/>
+                                    <CheckBox Grid.Row="1" Grid.ColumnSpan="2" Margin="0,5" IsChecked="{Binding Settings_CompanyFilesRepository_UseLocalFolder}" Foreground="White" Content="Use a local cloned repository" Checked="ConfigurationChange" Unchecked="ConfigurationChange"/>
+                                    <TextBox Grid.Row="2" Margin="0,5" Text="{Binding Settings_CompanyFilesRepository_LocalFolderPath}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Local Repository Path" IsEnabled="{Binding Settings_CompanyFilesRepository_UseLocalFolder}" HorizontalAlignment="Stretch" TextWrapping="Wrap"/>
+                                    <Button Grid.Row="2" Margin="5,5,0,5" Grid.Column="1" Content="..." IsEnabled="{Binding Settings_CompanyFilesRepository_UseLocalFolder}" HorizontalAlignment="Stretch" Click="CompanyFilesLocalFolderBrowse_Click"/>
                                     <Button Margin="0,10" Grid.Row="3" Grid.ColumnSpan="2" Content="Synchronize" HorizontalAlignment="Center" Name="CompanyFilesLocalFolderSync" Click="CompanyFilesLocalFolderSync_Click"/>
                                 </Grid>
                             </Grid>
@@ -158,7 +168,7 @@
                                     <RowDefinition Height="auto"/>
                                     <RowDefinition Height="auto"/>
                                 </Grid.RowDefinitions>
-                                <TextBox Grid.Row="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Company Name" Text="{Binding Settings.CreateCompanyName}" TextWrapping="Wrap"/>
+                                <TextBox Grid.Row="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Company Name" Text="{Binding Settings_CreateCompanyName}" TextWrapping="Wrap"/>
                                 <TextBox Margin="0,10" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Project Name" Text="" TextWrapping="Wrap" x:Name="CreateProjectName" IsEnabled="True"/>
                             </Grid>
                             <Button Grid.Column="2" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Height="50" Width="150" Content="Create" HorizontalAlignment="Right" Click="Create_Click" VerticalAlignment="Top"/>
@@ -208,13 +218,6 @@
                 </TabItem>
 
             </TabControl>
-
-            <Grid Grid.Row="1" Margin="5,0">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Name="EditLocalReleaseRepositorySettings" Style="{StaticResource MaterialDesignOutlinedSecondaryButton}" Content="Local release repository settings" Click="EditLocalReleaseRepositorySettings_Click"/>
-                    <Button Margin="5,0,0,0" Style="{StaticResource MaterialDesignPaperSecondaryButton}" Content="Save settings" x:Name="SaveSettings" Click="SaveSettings_Click"/>
-                </StackPanel>
-            </Grid>
         </Grid>
 
         <Grid Grid.Row="1" Margin="10,0,10,10">

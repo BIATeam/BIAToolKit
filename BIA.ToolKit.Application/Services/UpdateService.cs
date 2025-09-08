@@ -28,6 +28,7 @@
         {
             get; private set;
         }
+        public bool HasNewVersion { get; private set; }
 
         public UpdateService(UIEventBroker eventBroker, IConsoleWriter consoleWriter, LocalReleaseRepositoryService localReleaseRepositoryService)
         {
@@ -43,7 +44,7 @@
             this.currentVersion = version;
         }
 
-        public async Task<bool> CheckForUpdatesAsync(bool autoUpdate)
+        public async Task CheckForUpdatesAsync()
         {
             try
             {
@@ -62,21 +63,15 @@
                             if (updateVersion > this.currentVersion)
                             {
                                 consoleWriter.AddMessageLine($"A new version of BIAToolKit is available: {lastRelease.TagName}", "Yellow");
+                                HasNewVersion = true;
                                 NewVersion = updateVersion;
                                 this.lastRelease = lastRelease;
                                 eventBroker.NotifyNewVersionAvailable();
-
-                                if (autoUpdate && !Debugger.IsAttached)
-                                {
-                                    return true;
-                                }
-                                else
-                                {
-                                    return false;
-                                }
+                                return;
                             }
                         }
                     }
+                    HasNewVersion = false;
                 }
                 else
                 {
@@ -88,11 +83,13 @@
             {
                 consoleWriter.AddMessageLine($"Check For Updates failure : {ex.Message}", "Red");
             }
-            return false;
         }
 
         public async Task DownloadUpdateAsync()
         {
+            if (Debugger.IsAttached)
+                return;
+
             try
             {
                 if (!Directory.Exists(tempPath))
