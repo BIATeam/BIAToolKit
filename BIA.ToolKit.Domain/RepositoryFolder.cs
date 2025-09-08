@@ -1,0 +1,30 @@
+﻿namespace BIA.ToolKit.Domain
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+
+    public class RepositoryFolder(string name, string companyName, string projectName, string path) : Repository(name, RepositoryType.Folder, companyName, projectName)
+    {
+        public override string LocalPath => path;
+
+        public override Task FillReleases()
+        {
+            if(!Directory.Exists(LocalPath))
+            {
+                throw new DirectoryNotFoundException(LocalPath);
+            }
+
+            var releases = Directory
+                .EnumerateDirectories(LocalPath)
+                .Select(directoryPath => new ReleaseFolder(Path.GetFileName(directoryPath), directoryPath, Name));
+
+            Releases.Clear();
+            Releases.AddRange(releases);
+
+            return Task.CompletedTask;
+        }
+    }
+}

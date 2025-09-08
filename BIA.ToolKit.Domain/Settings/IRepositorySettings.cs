@@ -2,10 +2,9 @@
 {
     public interface IRepositorySettings
     {
-        string CompanyName { get;}
-        bool HasUrlRelease { get; }
-        string LocalFolderPath { get;}
         string Name { get;}
+        string CompanyName { get;}
+        string LocalFolderPath { get;}
         string ProjectName { get;}
         string RootFolderPath { get; }
         string UrlRelease { get;}

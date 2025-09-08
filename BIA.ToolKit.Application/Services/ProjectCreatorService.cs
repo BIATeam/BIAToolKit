@@ -61,11 +61,6 @@
             else
             {
                 projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath = await this.repositoryService.PrepareVersionFolder(projectParameters.VersionAndOption.WorkTemplate.RepositorySettings, projectParameters.VersionAndOption.WorkTemplate.Version);
-
-                if (projectParameters.VersionAndOption.WorkTemplate.RepositorySettings.Versioning == VersioningType.Tag)
-                {
-                    localFilesToExcludes = new List<string>() { "^\\.git$", "^\\.vs$", "\\.csproj\\.user$", "^bin$", "^obj$", "^node_modules$", "^dist$" };
-                }
             }
 
             if (!Directory.Exists(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath))
