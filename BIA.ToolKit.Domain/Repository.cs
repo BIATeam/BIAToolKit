@@ -16,10 +16,10 @@
 
     public abstract class Repository(string name, RepositoryType repositoryType, string companyName = null, string projectName = null)
     {
-        public string Name { get; init; } = name;
-        public RepositoryType RepositoryType { get; init; } = repositoryType;
-        public string CompanyName { get; init; } = companyName;
-        public string ProjectName { get; init; } = projectName;
+        public string Name { get; } = name;
+        public RepositoryType RepositoryType { get; } = repositoryType;
+        public string CompanyName { get; } = companyName;
+        public string ProjectName { get; } = projectName;
         public abstract string LocalPath { get; }
         public List<Release> Releases { get; } = [];
 

@@ -5,45 +5,47 @@
     using System.Linq;
     using System.Net.Http.Headers;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using BIA.ToolKit.Domain.Settings;
     using Octokit;
 
     public class RepositoryGit : Repository
     {
-        public string Url { get; init; }
-        public string GitRepositoryName { get; init; }
-        public string Product { get; init; }
-        public string Owner { get; init; }
-        public bool UseLocalClonedFolder { get; init; }
-        public string LocalClonedFolderPath { get; init; }
-        public ReleaseType ReleaseType { get; init; }
+        private readonly bool useLocalClonedFolder;
+        private readonly ReleaseType releaseType;
+        private readonly string localClonedFolderPath;
+        private readonly string gitRepositoryName;
+        private readonly string product;
+        private readonly string owner;
+        private readonly Regex releasesFolderPrefixRegex;
 
-        public override string LocalPath => UseLocalClonedFolder ? LocalClonedFolderPath : Path.Combine(AppSettings.AppFolderPath, Name, "Repo");
+        public string Url { get; set; }
+        public override string LocalPath => useLocalClonedFolder ? localClonedFolderPath : Path.Combine(AppSettings.AppFolderPath, Name, "Repo");
 
-        private RepositoryGit(string name, string url, bool useLocalClonedFolder, ReleaseType releaseType, string companyName, string projectName, string localClonedFolder) : base(name, RepositoryType.Git, companyName, projectName)
+        private RepositoryGit(string name, string url, bool useLocalClonedFolder, ReleaseType releaseType, string companyName, string projectName, string localClonedFolderPath) : base(name, RepositoryType.Git, companyName, projectName)
         {
             Url = url;
-            UseLocalClonedFolder = useLocalClonedFolder;
-            ReleaseType = releaseType;
-            LocalClonedFolderPath = localClonedFolder;
+            this.useLocalClonedFolder = useLocalClonedFolder;
+            this.releaseType = releaseType;
+            this.localClonedFolderPath = localClonedFolderPath;
         }
 
-        public RepositoryGit(string name, string url, bool useLocalClonedFolder, string companyName = null, string projectName = null, string localClonedFolder = null) : this(name, url, useLocalClonedFolder, ReleaseType.Folder, companyName, projectName, localClonedFolder)
+        public RepositoryGit(string name, string url, bool useLocalClonedFolder, string releasesFolderRegexPattern, string companyName = null, string projectName = null, string localClonedFolderPath = null) : this(name, url, useLocalClonedFolder, ReleaseType.Folder, companyName, projectName, localClonedFolderPath)
         {
-            
+            releasesFolderPrefixRegex = new Regex(releasesFolderRegexPattern);
         }
 
-        public RepositoryGit(string name, string url, string gitRepositoryName, string product, string owner, bool useLocalClonedFolder, string companyName = null, string projectName = null, string localClonedFolder = null) : this(name, url, useLocalClonedFolder, ReleaseType.Git, companyName, projectName, localClonedFolder)
+        public RepositoryGit(string name, string url, string gitRepositoryName, string product, string owner, bool useLocalClonedFolder, string companyName = null, string projectName = null, string localClonedFolderPath = null) : this(name, url, useLocalClonedFolder, ReleaseType.Git, companyName, projectName, localClonedFolderPath)
         {
-            GitRepositoryName = gitRepositoryName;
-            Product = product;
-            Owner = owner;
+            this.gitRepositoryName = gitRepositoryName;
+            this.product = product;
+            this.owner = owner;
         }
 
         public override async Task FillReleases()
         {
-            switch (ReleaseType)
+            switch (releaseType)
             {
                 case ReleaseType.Git:
                     await FillReleasesGit();
@@ -58,8 +60,8 @@
 
         private async Task FillReleasesGit()
         {
-            var github = new GitHubClient(new Octokit.ProductHeaderValue(Product));
-            var repositoryReleases = await github.Repository.Release.GetAll(Owner, GitRepositoryName);
+            var github = new GitHubClient(new Octokit.ProductHeaderValue(product));
+            var repositoryReleases = await github.Repository.Release.GetAll(owner, gitRepositoryName);
 
             Releases.Clear();
             foreach (var release in repositoryReleases)
@@ -77,6 +79,7 @@
 
             var releases = Directory
                 .EnumerateDirectories(LocalPath)
+                .Where(directoryPath => releasesFolderPrefixRegex.IsMatch(Path.GetFileName(directoryPath)))
                 .Select(directoryPath => new ReleaseFolder(Path.GetFileName(directoryPath), directoryPath, Name));
 
             Releases.Clear();

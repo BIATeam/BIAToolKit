@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public class RepositoryFolder(string name, string companyName, string projectName, string path) : Repository(name, RepositoryType.Folder, companyName, projectName)
+    public class RepositoryFolder(string name, string path, string companyName = null, string projectName = null) : Repository(name, RepositoryType.Folder, companyName, projectName)
     {
         public override string LocalPath => path;
 
