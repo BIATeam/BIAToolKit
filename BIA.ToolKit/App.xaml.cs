@@ -65,24 +65,14 @@
             mainWindow.Show();
 
             var eventBroker = serviceProvider.GetRequiredService<UIEventBroker>();
+            var updateService = serviceProvider.GetService<UpdateService>();
+            updateService.SetAppVersion(Assembly.GetExecutingAssembly().GetName().Version);
+
             eventBroker.ExecuteActionWithWaiter(async () =>
             {
                 if (ToolKit.Properties.Settings.Default.AutoUpdate)
                 {
-                    var updateService = serviceProvider.GetService<UpdateService>();
-                    updateService.SetAppVersion(Assembly.GetExecutingAssembly().GetName().Version);
-                    if (await updateService.CheckForUpdatesAsync(ToolKit.Properties.Settings.Default.AutoUpdate))
-                    {
-                        var result = MessageBox.Show(
-                            $"A new version ({updateService.NewVersion}) of BIAToolKit is available.\nInstall now?",
-                            "Update available",
-                            MessageBoxButton.YesNo, MessageBoxImage.Information);
-
-                        if (result == MessageBoxResult.Yes)
-                        {
-                            await updateService.DownloadUpdateAsync();
-                        }
-                    }
+                    await updateService.CheckForUpdatesAsync();
                 }
 
                 await RegisterMSBuild();

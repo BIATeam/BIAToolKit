@@ -47,7 +47,7 @@
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
             IConsoleWriter consoleWriter, FeatureSettingService featureSettingService, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService, LocalReleaseRepositoryService localReleaseRepositoryService)
         {
-            
+
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
 
@@ -144,9 +144,11 @@
             localReleaseRepositoryService.Set(Properties.Settings.Default.UseLocalReleaseRepository, Properties.Settings.Default.LocalReleaseRepositoryPath);
         }
 
-        private void UiEventBroker_OnNewVersionAvailable()
+        private async void UiEventBroker_OnNewVersionAvailable()
         {
             ViewModel.UpdateAvailable = true;
+            CheckUpdateButton.IsEnabled = false;
+            await OnUpdateAvailable();
         }
 
         public bool RefreshConfiguration()
@@ -441,24 +443,26 @@
 
         private async void UpdateButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!Debugger.IsAttached)
-            {
-                try
-                {
-                    var result = MessageBox.Show(
-                                        $"A new version ({updateService.NewVersion}) of BIAToolKit is available.\nInstall now?",
-                                        "Update available",
-                                        MessageBoxButton.YesNo, MessageBoxImage.Information);
+            await OnUpdateAvailable();
+        }
 
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        await ExecuteTaskWithWaiterAsync(updateService.DownloadUpdateAsync);
-                    }
-                }
-                catch (Exception ex)
+        private async Task OnUpdateAvailable()
+        {
+            try
+            {
+                var result = MessageBox.Show(
+                                    $"A new version ({updateService.NewVersion}) of BIAToolKit is available.\nInstall now?",
+                                    "Update available",
+                                    MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                if (result == MessageBoxResult.Yes)
                 {
-                    MessageBox.Show($"Update failure : {ex.Message}", "Update failure", MessageBoxButton.OK, MessageBoxImage.Error);
+                    await ExecuteTaskWithWaiterAsync(updateService.DownloadUpdateAsync);
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Update failure : {ex.Message}", "Update failure", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -475,11 +479,16 @@
         private void EditLocalReleaseRepositorySettings_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new LocalReleaseRepositorySettingsUC() { Owner = this };
-            if(dialog.ShowDialog(settingsService.Settings) == true)
+            if (dialog.ShowDialog(settingsService.Settings) == true)
             {
                 settingsService.SetUseLocalReleaseRepository(dialog.ViewModel.UseLocalReleaseRepository);
                 settingsService.SetLocalReleaseRepositoryPath(dialog.ViewModel.LocalReleaseRepositoryPath);
             }
+        }
+
+        private async void CheckUpdateButton_Click(object sender, RoutedEventArgs e)
+        {
+            await ExecuteTaskWithWaiterAsync(updateService.CheckForUpdatesAsync);
         }
     }
 }
