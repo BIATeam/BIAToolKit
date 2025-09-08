@@ -29,12 +29,12 @@
             LocalClonedFolderPath = localClonedFolder;
         }
 
-        public RepositoryGit(string name, string url, bool useLocalClonedFolder, string companyName = null, string projectName = null, string localClonedFolder = null) : this(name, companyName, projectName, url, useLocalClonedFolder, ReleaseType.Folder, localClonedFolder)
+        public RepositoryGit(string name, string url, bool useLocalClonedFolder, string companyName = null, string projectName = null, string localClonedFolder = null) : this(name, url, useLocalClonedFolder, ReleaseType.Folder, companyName, projectName, localClonedFolder)
         {
             
         }
 
-        public RepositoryGit(string name, string companyName, string projectName, string url, string gitRepositoryName, string product, string owner, bool useLocalClonedFolder, string localClonedFolder = null) : this(name, companyName, projectName, url, useLocalClonedFolder, ReleaseType.Git, localClonedFolder)
+        public RepositoryGit(string name, string url, string gitRepositoryName, string product, string owner, bool useLocalClonedFolder, string companyName = null, string projectName = null, string localClonedFolder = null) : this(name, url, useLocalClonedFolder, ReleaseType.Git, companyName, projectName, localClonedFolder)
         {
             GitRepositoryName = gitRepositoryName;
             Product = product;
@@ -59,11 +59,12 @@
         private async Task FillReleasesGit()
         {
             var github = new GitHubClient(new Octokit.ProductHeaderValue(Product));
-            var repositoryReleases = await github.Repository.Release.GetAll(Owner, Name);
+            var repositoryReleases = await github.Repository.Release.GetAll(Owner, GitRepositoryName);
+
             Releases.Clear();
             foreach (var release in repositoryReleases)
             {
-                Releases.Add(new ReleaseGit(release.Name, release.Url, Name, ReleaseType.Git, release.Assets));
+                Releases.Add(new ReleaseGit(release.TagName, release.HtmlUrl, Name, ReleaseType.Git, release.Assets));
             }
         }
 
