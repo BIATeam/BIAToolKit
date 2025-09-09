@@ -105,7 +105,8 @@
             var releases = Directory
                 .EnumerateDirectories(LocalPath)
                 .Where(directoryPath => releasesFolderRegex.IsMatch(Path.GetFileName(directoryPath)))
-                .Select(directoryPath => new ReleaseFolder(Path.GetFileName(directoryPath), directoryPath, Name));
+                .Select(directoryPath => new ReleaseFolder(Path.GetFileName(directoryPath), directoryPath, Name))
+                .OrderByDescending(r => r.Name);
 
             Releases.Clear();
             Releases.AddRange(releases);
