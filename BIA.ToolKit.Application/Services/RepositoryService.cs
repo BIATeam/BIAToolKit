@@ -94,7 +94,7 @@
             }
         }
 
-        public async Task<string> PrepareVersionFolder(Domain.Repository repository, string version)
+        public async Task<string> PrepareVersionFolder(Domain.IRepository repository, string version)
         {
             try
             {

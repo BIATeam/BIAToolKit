@@ -121,13 +121,10 @@
             var listWorkTemplates = new List<WorkRepository>();
 
 
-            //if (settingsService.Settings.CustomRepoTemplates?.Count > 0)
-            //{
-            //    foreach (var repositorySettings in settingsService.Settings.CustomRepoTemplates)
-            //    {
-            //        AddTemplatesVersion(listWorkTemplates, repositorySettings);
-            //    }
-            //}
+            foreach (var repository in settingsService.Settings.TemplateRepositories)
+            {
+                AddTemplatesVersion(listWorkTemplates, repository);
+            }
 
             //if (Directory.Exists(settingsService.Settings.BIATemplateRepository.RootFolderPath))
             //{
@@ -135,11 +132,11 @@
             //    listWorkTemplates.Add(new WorkRepository(settingsService.Settings.BIATemplateRepository, "VX.Y.Z"));
             //}
 
-            //vm.WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
-            //if (listWorkTemplates.Count >= 2)
-            //{
-            //    vm.WorkTemplate = listWorkTemplates[listWorkTemplates.Count - 2];
-            //}
+            vm.WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
+            if (listWorkTemplates.Count >= 1)
+            {
+                vm.WorkTemplate = listWorkTemplates[^1];
+            }
 
             //vm.SettingsUseCompanyFiles = settingsService.Settings.UseCompanyFiles;
             //vm.UseCompanyFiles = settingsService.Settings.UseCompanyFiles;
@@ -154,9 +151,9 @@
             //}
         }
 
-        private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, Repository repository)
+        private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, IRepository repository)
         {
-            foreach(var release in  repository.Releases)
+            foreach(var release in repository.Releases)
             {
                 WorkTemplates.Add(new WorkRepository(repository, release.Name));
             }

@@ -5,7 +5,7 @@
 
     public class WorkRepository
     {
-        public Repository Repository { get; private set; }
+        public IRepository Repository { get; private set; }
         public string Version { get; private set; }
         public Version VersionData { get; private set; }
         public string VersionFolderPath { get; set; }
@@ -25,7 +25,7 @@
         //    }
         //}
 
-        public WorkRepository(Repository template, string version)
+        public WorkRepository(IRepository template, string version)
         {
             Repository = template;
             Version = version;

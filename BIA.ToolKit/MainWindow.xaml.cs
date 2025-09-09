@@ -107,11 +107,13 @@
 
                 // TODO: remove when UI available
                 var templateRepository = settingsService.Settings.TemplateRepositories[0];
-                if (templateRepository.RepositoryType == RepositoryType.Git && templateRepository is IRepositoryGit repoGit && !Directory.Exists(repoGit.LocalPath))
+                if (templateRepository.RepositoryType == RepositoryType.Git && templateRepository is IRepositoryGit repoGit)
                 {
                     await gitService.Synchronize(repoGit);
                 }
+                consoleWriter.AddMessageLine($"Getting releases data from repository {templateRepository.Name}...", "pink");
                 await templateRepository.FillReleasesAsync();
+                consoleWriter.AddMessageLine($"Releses data get successfully", "green");
             });
         }
 
