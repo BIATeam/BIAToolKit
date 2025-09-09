@@ -107,13 +107,11 @@
 
                 // TODO: remove when UI available
                 var templateRepository = settingsService.Settings.TemplateRepositories[0];
-                if (templateRepository.RepositoryType == RepositoryType.Git && templateRepository is IRepositoryGit repoGit)
+                if (templateRepository.RepositoryType == RepositoryType.Git && templateRepository is IRepositoryGit repoGit && !Directory.Exists(repoGit.LocalPath))
                 {
                     await gitService.Synchronize(repoGit);
                 }
                 await templateRepository.FillReleasesAsync();
-                var lastRelease = templateRepository.Releases[0];
-                await lastRelease.DownloadAsync();
             });
         }
 
@@ -154,7 +152,11 @@
                             useLocalClonedFolder: false,
                             companyName: "TheBIADevCompany",
                             projectName: "BIATemplate"
-                        )
+                        ),
+                        //new RepositoryFolder(
+                        //    name: "BIATemplate Folder",
+                        //    path: "\\\\share.bia.safran\\BIAToolKit\\Releases\\BiaTemplate"
+                        //),
                     ],
 
                 CompanyFilesRepositories = !string.IsNullOrEmpty(Properties.Settings.Default.CompanyFilesRepositories) ?
