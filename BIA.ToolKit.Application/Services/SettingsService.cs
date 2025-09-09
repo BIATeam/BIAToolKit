@@ -10,7 +10,7 @@
     {
         private readonly IConsoleWriter consoleWriter;
         private readonly UIEventBroker eventBroker;
-        private BIATKSettings settings;
+        private BIATKSettings settings = new();
         public IBIATKSettings Settings => settings;
 
         /// <summary>
@@ -45,54 +45,14 @@
             eventBroker.NotifySettingsUpdated(settings);
         }
 
-        public void SetBIATemplateRepositoryUrlRepository(string url)
-        {
-            ExecuteAndNotifySettingsUpdated(() => ((RepositorySettings)settings.BIATemplateRepository).UrlRepo = url);
-        }
-
-        public void SetUseBIATemplateRepositoryLocalFolder(bool use)
-        {
-            ExecuteAndNotifySettingsUpdated(() => ((RepositorySettings)settings.BIATemplateRepository).UseLocalFolder = use);
-        }
-
-        public void SetBIATemplateRepositoryLocalFolderPath(string path)
-        {
-            ExecuteAndNotifySettingsUpdated(() => ((RepositorySettings)settings.BIATemplateRepository).LocalFolderPath = path);
-        }
-
         public void SetUseCompanyFiles(bool use)
         {
             ExecuteAndNotifySettingsUpdated(() => settings.UseCompanyFiles = use);
         }
 
-        public void SetCompanyFileseRepositoryUrlRepository(string url)
-        {
-            ExecuteAndNotifySettingsUpdated(() => ((RepositorySettings)settings.CompanyFilesRepository).UrlRepo = url);
-        }
-
-        public void SetUseCompanyFilesRepositoryLocalFolder(bool use)
-        {
-            ExecuteAndNotifySettingsUpdated(() => ((RepositorySettings)settings.CompanyFilesRepository).UseLocalFolder = use);
-        }
-
-        public void SetCompanyFilesRepositoryLocalFolderPath(string path)
-        {
-            ExecuteAndNotifySettingsUpdated(() => ((RepositorySettings)settings.CompanyFilesRepository).LocalFolderPath = path);
-        }
-
-        public void SetCustomRepositories(List<RepositorySettings> repositoriesSettings)
-        {
-            ExecuteAndNotifySettingsUpdated(() => settings.CustomRepoTemplates = repositoriesSettings);
-        }
-
         public void SetAutoUpdate(bool autoUpdate)
         {
             ExecuteAndNotifySettingsUpdated(() => settings.AutoUpdate = autoUpdate);
-        }
-
-        public void SetUseLocalReleaseRepository(bool use)
-        {
-            ExecuteAndNotifySettingsUpdated(() => settings.UseLocalReleaseRepository = use);
         }
 
         public void SetCreateProjectRootProjectPath(string path)
@@ -103,11 +63,6 @@
         public void SetModifyProjectRootProjectPath(string path)
         {
             ExecuteAndNotifySettingsUpdated(() => settings.ModifyProjectRootProjectsPath = path);
-        }
-
-        public void SetLocalReleaseRepositoryPath(string path)
-        {
-            ExecuteAndNotifySettingsUpdated(() => settings.LocalReleaseRepositoryPath = path);
         }
 
         public void SetCreateCompanyName(string name)

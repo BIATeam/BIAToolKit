@@ -39,7 +39,6 @@
         private readonly FileGeneratorService fileGeneratorService;
         private readonly UIEventBroker uiEventBroker;
         private readonly UpdateService updateService;
-        private readonly LocalReleaseRepositoryService localReleaseRepositoryService;
         private readonly GenerateFilesService generateFilesService;
         private readonly ConsoleWriter consoleWriter;
         private bool isCreateTabInitialized = false;
@@ -47,7 +46,7 @@
 
         public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, FeatureSettingService featureSettingService, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService, LocalReleaseRepositoryService localReleaseRepositoryService)
+            IConsoleWriter consoleWriter, FeatureSettingService featureSettingService, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService)
         {
 
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
@@ -60,7 +59,6 @@
             this.fileGeneratorService = fileGeneratorService;
             this.uiEventBroker = uiEventBroker;
             this.updateService = updateService;
-            this.localReleaseRepositoryService = localReleaseRepositoryService;
             this.generateFilesService = genFilesService;
 
             uiEventBroker.OnActionWithWaiter += async (action) => await ExecuteTaskWithWaiterAsync(action);
@@ -213,14 +211,9 @@
 
         public bool CheckBIATemplate(IBIATKSettings biaTKsettings, bool inSync)
         {
-            if (!repositoryService.CheckRepoFolder(biaTKsettings.BIATemplateRepository, inSync))
+            foreach(var repository in biaTKsettings.TemplateRepositories)
             {
-                return false;
-            }
-            foreach (var customRepo in
-                biaTKsettings.CustomRepoTemplates)
-            {
-                if (!repositoryService.CheckRepoFolder(customRepo, inSync))
+                if (!repositoryService.CheckRepoFolder(repository, inSync))
                 {
                     return false;
                 }
@@ -233,7 +226,13 @@
         {
             if (biaTKsettings.UseCompanyFiles)
             {
-                return repositoryService.CheckRepoFolder(biaTKsettings.CompanyFilesRepository, inSync);
+                foreach (var repository in biaTKsettings.CompanyFilesRepositories)
+                {
+                    if (!repositoryService.CheckRepoFolder(repository, inSync))
+                    {
+                        return false;
+                    }
+                }
             }
             return true;
         }
@@ -259,56 +258,56 @@
 
         private async void BIATemplateLocalFolderSync_Click(object sender, RoutedEventArgs e)
         {
-            if (RefreshBIATemplateConfiguration(true))
-            {
-                await ExecuteTaskWithWaiterAsync(async () =>
-                {
-                    BIATemplateLocalFolderSync.IsEnabled = false;
-                    if (!settingsService.Settings.BIATemplateRepository.UseLocalFolder)
-                    {
-                        await repositoryService.CleanRepository(settingsService.Settings.BIATemplateRepository);
-                    }
+            //if (RefreshBIATemplateConfiguration(true))
+            //{
+            //    await ExecuteTaskWithWaiterAsync(async () =>
+            //    {
+            //        BIATemplateLocalFolderSync.IsEnabled = false;
+            //        if (!settingsService.Settings.BIATemplateRepository.UseLocalFolder)
+            //        {
+            //            await repositoryService.CleanRepository(settingsService.Settings.BIATemplateRepository);
+            //        }
 
-                    await this.gitService.Synchronize(settingsService.Settings.BIATemplateRepository);
-                    BIATemplateLocalFolderSync.IsEnabled = true;
-                });
-            }
+            //        await this.gitService.Synchronize(settingsService.Settings.BIATemplateRepository);
+            //        BIATemplateLocalFolderSync.IsEnabled = true;
+            //    });
+            //}
         }
 
         private async void BIATemplateCleanReleases_Click(object sender, RoutedEventArgs e)
         {
-            await ExecuteTaskWithWaiterAsync(async () =>
-            {
-                await repositoryService.CleanReleases(settingsService.Settings.BIATemplateRepository);
-            });
+            //await ExecuteTaskWithWaiterAsync(async () =>
+            //{
+            //    await repositoryService.CleanReleases(settingsService.Settings.BIATemplateRepository);
+            //});
         }
 
         private async void CompanyFilesLocalFolderSync_Click(object sender, RoutedEventArgs e)
         {
-            if (RefreshCompanyFilesConfiguration(true))
-            {
-                await ExecuteTaskWithWaiterAsync(async () =>
-                {
-                    CompanyFilesLocalFolderSync.IsEnabled = false;
-                    if (!settingsService.Settings.CompanyFilesRepository.UseLocalFolder)
-                    {
-                        await repositoryService.CleanRepository(settingsService.Settings.CompanyFilesRepository);
-                    }
+            //if (RefreshCompanyFilesConfiguration(true))
+            //{
+            //    await ExecuteTaskWithWaiterAsync(async () =>
+            //    {
+            //        CompanyFilesLocalFolderSync.IsEnabled = false;
+            //        if (!settingsService.Settings.CompanyFilesRepository.UseLocalFolder)
+            //        {
+            //            await repositoryService.CleanRepository(settingsService.Settings.CompanyFilesRepository);
+            //        }
 
-                    await this.gitService.Synchronize(settingsService.Settings.CompanyFilesRepository);
-                    CompanyFilesLocalFolderSync.IsEnabled = true;
-                });
-            }
+            //        await this.gitService.Synchronize(settingsService.Settings.CompanyFilesRepository);
+            //        CompanyFilesLocalFolderSync.IsEnabled = true;
+            //    });
+            //}
         }
 
         private void BIATemplateLocalFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Settings_BIATemplateRepository_LocalFolderPath = FileDialog.BrowseFolder(ViewModel.Settings_BIATemplateRepository_LocalFolderPath);
+            //ViewModel.Settings_BIATemplateRepository_LocalFolderPath = FileDialog.BrowseFolder(ViewModel.Settings_BIATemplateRepository_LocalFolderPath);
         }
 
         private void CompanyFilesLocalFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Settings_CompanyFilesRepository_LocalFolderPath = FileDialog.BrowseFolder(ViewModel.Settings_CompanyFilesRepository_LocalFolderPath);
+            //ViewModel.Settings_CompanyFilesRepository_LocalFolderPath = FileDialog.BrowseFolder(ViewModel.Settings_CompanyFilesRepository_LocalFolderPath);
         }
 
         private void CreateProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
@@ -453,11 +452,11 @@
 
         private void CustomRepoTemplate_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new CustomsRepoTemplateUC(gitService, repositoryService, uiEventBroker) { Owner = this };
-            if (dialog.ShowDialog(settingsService.Settings.CustomRepoTemplates) == true)
-            {
-                settingsService.SetCustomRepositories([.. dialog.vm.RepositoriesSettings.Cast<RepositorySettings>()]);
-            }
+            //var dialog = new CustomsRepoTemplateUC(gitService, repositoryService, uiEventBroker) { Owner = this };
+            //if (dialog.ShowDialog(settingsService.Settings.CustomRepoTemplates) == true)
+            //{
+            //    settingsService.SetCustomRepositories([.. dialog.vm.RepositoriesSettings.Cast<RepositorySettings>()]);
+            //}
         }
 
         private async void UpdateButton_Click(object sender, RoutedEventArgs e)
@@ -497,12 +496,12 @@
 
         private void EditLocalReleaseRepositorySettings_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new LocalReleaseRepositorySettingsUC() { Owner = this };
-            if (dialog.ShowDialog(settingsService.Settings) == true)
-            {
-                settingsService.SetUseLocalReleaseRepository(dialog.ViewModel.UseLocalReleaseRepository);
-                settingsService.SetLocalReleaseRepositoryPath(dialog.ViewModel.LocalReleaseRepositoryPath);
-            }
+            //var dialog = new LocalReleaseRepositorySettingsUC() { Owner = this };
+            //if (dialog.ShowDialog(settingsService.Settings) == true)
+            //{
+            //    //settingsService.SetUseLocalReleaseRepository(dialog.ViewModel.UseLocalReleaseRepository);
+            //    //settingsService.SetLocalReleaseRepositoryPath(dialog.ViewModel.LocalReleaseRepositoryPath);
+            //}
         }
 
         private async void CheckUpdateButton_Click(object sender, RoutedEventArgs e)

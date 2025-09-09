@@ -43,7 +43,6 @@
             services.AddSingleton<SettingsService>();
             services.AddSingleton<FeatureSettingService>();
             services.AddSingleton<FileGeneratorService>();
-            services.AddSingleton<LocalReleaseRepositoryService>();
             services.AddSingleton<UpdateService>();
             services.AddLogging();
         }

@@ -38,11 +38,11 @@
             vm = (RepositoriesSettingsVM)base.DataContext;
         }
 
-        internal bool? ShowDialog(IReadOnlyList<IRepositorySettings> customsRepoTemplate)
-        {
-            vm.LoadSettings(customsRepoTemplate);
-            return ShowDialog();
-        }
+        //internal bool? ShowDialog(IReadOnlyList<IRepositorySettings> customsRepoTemplate)
+        //{
+        //    vm.LoadSettings(customsRepoTemplate);
+        //    return ShowDialog();
+        //}
 
         private void okButton_Click(object sender, RoutedEventArgs e) =>
             DialogResult = true;
@@ -59,48 +59,48 @@
 
             if (result == true)
             {
-                vm.RepositoriesSettings.Add(((RepositorySettingsVM)dialog.DataContext).RepositorySettings);
+                //vm.RepositoriesSettings.Add(((RepositorySettingsVM)dialog.DataContext).RepositorySettings);
             }
         }
 
         private void editButton_Click(object sender, RoutedEventArgs e)
         {
-            if (vm.RepositorySettings != null)
-            {
-                RepositorySettings clonedSelectedItem = JsonSerializer.Deserialize<RepositorySettings>(JsonSerializer.Serialize(vm.RepositorySettings));
-                var dialog = new CustomRepoTemplateUC { Owner = this };
-                // Display the dialog box and read the response
-                bool? result = dialog.ShowDialog((RepositorySettings)clonedSelectedItem);
+            //if (vm.RepositorySettings != null)
+            //{
+            //    RepositorySettings clonedSelectedItem = JsonSerializer.Deserialize<RepositorySettings>(JsonSerializer.Serialize(vm.RepositorySettings));
+            //    var dialog = new CustomRepoTemplateUC { Owner = this };
+            //    // Display the dialog box and read the response
+            //    bool? result = dialog.ShowDialog((RepositorySettings)clonedSelectedItem);
 
-                if (result == true)
-                {
-                    vm.RepositoriesSettings[vm.RepositoriesSettings.IndexOf(vm.RepositorySettings)] = ((RepositorySettingsVM)dialog.DataContext).RepositorySettings;
-                }
-            }
+            //    if (result == true)
+            //    {
+            //        vm.RepositoriesSettings[vm.RepositoriesSettings.IndexOf(vm.RepositorySettings)] = ((RepositorySettingsVM)dialog.DataContext).RepositorySettings;
+            //    }
+            //}
         }
 
         private void deleteButton_Click(object sender, RoutedEventArgs e)
         {
-            if (vm.RepositorySettings != null)
-            {
-                vm.RepositoriesSettings.Remove(vm.RepositorySettings);
-            }
+            //if (vm.RepositorySettings != null)
+            //{
+            //    vm.RepositoriesSettings.Remove(vm.RepositorySettings);
+            //}
         }
 
 
         private void synchronizeButton_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteActionWithWaiter(async () =>
-            {
-                if (vm.RepositorySettings != null)
-                {
-                    if (!vm.RepositorySettings.UseLocalFolder)
-                    {
-                        await this.repositoryService.CleanRepository(vm.RepositorySettings);
-                    }
-                    await gitService.Synchronize(vm.RepositorySettings);
-                }
-            });
+            //uiEventBroker.ExecuteActionWithWaiter(async () =>
+            //{
+            //    if (vm.RepositorySettings != null)
+            //    {
+            //        if (!vm.RepositorySettings.UseLocalFolder)
+            //        {
+            //            await this.repositoryService.CleanRepository(vm.RepositorySettings);
+            //        }
+            //        await gitService.Synchronize(vm.RepositorySettings);
+            //    }
+            //});
         }
     }
 }

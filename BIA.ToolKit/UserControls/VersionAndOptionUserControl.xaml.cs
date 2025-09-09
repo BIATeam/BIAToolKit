@@ -121,37 +121,37 @@
             var listWorkTemplates = new List<WorkRepository>();
 
 
-            if (settingsService.Settings.CustomRepoTemplates?.Count > 0)
-            {
-                foreach (var repositorySettings in settingsService.Settings.CustomRepoTemplates)
-                {
-                    AddTemplatesVersion(listWorkTemplates, repositorySettings);
-                }
-            }
+            //if (settingsService.Settings.CustomRepoTemplates?.Count > 0)
+            //{
+            //    foreach (var repositorySettings in settingsService.Settings.CustomRepoTemplates)
+            //    {
+            //        AddTemplatesVersion(listWorkTemplates, repositorySettings);
+            //    }
+            //}
 
-            if (Directory.Exists(settingsService.Settings.BIATemplateRepository.RootFolderPath))
-            {
-                AddTemplatesVersion(listWorkTemplates, settingsService.Settings.BIATemplateRepository);
-                listWorkTemplates.Add(new WorkRepository(settingsService.Settings.BIATemplateRepository, "VX.Y.Z"));
-            }
+            //if (Directory.Exists(settingsService.Settings.BIATemplateRepository.RootFolderPath))
+            //{
+            //    AddTemplatesVersion(listWorkTemplates, settingsService.Settings.BIATemplateRepository);
+            //    listWorkTemplates.Add(new WorkRepository(settingsService.Settings.BIATemplateRepository, "VX.Y.Z"));
+            //}
 
-            vm.WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
-            if (listWorkTemplates.Count >= 2)
-            {
-                vm.WorkTemplate = listWorkTemplates[listWorkTemplates.Count - 2];
-            }
+            //vm.WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
+            //if (listWorkTemplates.Count >= 2)
+            //{
+            //    vm.WorkTemplate = listWorkTemplates[listWorkTemplates.Count - 2];
+            //}
 
-            vm.SettingsUseCompanyFiles = settingsService.Settings.UseCompanyFiles;
-            vm.UseCompanyFiles = settingsService.Settings.UseCompanyFiles;
-            if (settingsService.Settings.UseCompanyFiles)
-            {
-                AddTemplatesVersion(listCompanyFiles, settingsService.Settings.CompanyFilesRepository);
-                vm.WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
-                if (vm.WorkCompanyFiles.Count >= 1)
-                {
-                    vm.WorkCompanyFile = vm.GetWorkCompanyFile(vm.WorkTemplate.Version);
-                }
-            }
+            //vm.SettingsUseCompanyFiles = settingsService.Settings.UseCompanyFiles;
+            //vm.UseCompanyFiles = settingsService.Settings.UseCompanyFiles;
+            //if (settingsService.Settings.UseCompanyFiles)
+            //{
+            //    AddTemplatesVersion(listCompanyFiles, settingsService.Settings.CompanyFilesRepository);
+            //    vm.WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
+            //    if (vm.WorkCompanyFiles.Count >= 1)
+            //    {
+            //        vm.WorkCompanyFile = vm.GetWorkCompanyFile(vm.WorkTemplate.Version);
+            //    }
+            //}
         }
 
         private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, Repository repository)
