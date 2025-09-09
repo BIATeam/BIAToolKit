@@ -104,6 +104,16 @@
                 }
 
                 await Task.Run(() => CSharpParserService.RegisterMSBuild(consoleWriter));
+
+                // TODO: remove when UI available
+                var templateRepository = settingsService.Settings.TemplateRepositories[0];
+                if (templateRepository.RepositoryType == RepositoryType.Git && templateRepository is IRepositoryGit repoGit)
+                {
+                    await gitService.Synchronize(repoGit);
+                }
+                await templateRepository.FillReleasesAsync();
+                var lastRelease = templateRepository.Releases[0];
+                await lastRelease.DownloadAsync();
             });
         }
 
@@ -139,7 +149,7 @@
                         new RepositoryGit(
                             name: "BIATemplate GIT",
                             url: "https://github.com/BIATeam/BIADemo",
-                            gitRepositoryName: "BIAToolKit",
+                            gitRepositoryName: "BIATemplate",
                             owner: "BIATeam",
                             useLocalClonedFolder: false,
                             companyName: "TheBIADevCompany",

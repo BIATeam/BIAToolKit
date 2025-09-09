@@ -22,7 +22,7 @@
             this.outPut = outPut;
         }
 
-        public async Task Synchronize(RepositoryGit repository)
+        public async Task Synchronize(IRepositoryGit repository)
         {
             if (!repository.UseLocalClonedFolder && !Directory.Exists(repository.LocalPath))
             {

@@ -8,10 +8,10 @@
     using System.Threading.Tasks;
     using Octokit;
 
-    public class ReleaseGit(string name, string url, string repositoryName, IReadOnlyList<ReleaseAsset> assets) : Release(name, url, repositoryName)
+    public class ReleaseGit(string name, string url, string repositoryName, IReadOnlyList<ReleaseGitAsset> assets) : Release(name, url, repositoryName)
     {
         public override ReleaseType ReleaseType => ReleaseType.Git;
-        public IReadOnlyList<ReleaseAsset> Assets { get; } = assets;
+        public IReadOnlyList<ReleaseGitAsset> Assets { get; } = assets;
 
         public override async Task DownloadAsync()
         {
@@ -28,12 +28,12 @@
             foreach (var asset in Assets)
             {
                 var fileName = string.IsNullOrWhiteSpace(asset.Name)
-                    ? Path.GetFileName(asset.BrowserDownloadUrl)
+                    ? Path.GetFileName(asset.DownloadUrl)
                     : asset.Name;
 
                 var targetPath = Path.Combine(LocalPath, fileName);
 
-                using var resp = await httpClient.GetAsync(asset.BrowserDownloadUrl);
+                using var resp = await httpClient.GetAsync(asset.DownloadUrl);
                 resp.EnsureSuccessStatusCode();
 
                 Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
@@ -42,7 +42,7 @@
 
                 await input.CopyToAsync(output);
 
-                if (output.Length != asset.Size)
+                if (asset.HasSize && asset.Size != output.Length)
                 {
                     throw new Exception($"Downloaded file {output.Length} has not the same size as origin asset");
                 }

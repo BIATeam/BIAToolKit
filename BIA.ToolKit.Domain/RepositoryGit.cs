@@ -9,6 +9,7 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Domain.Settings;
     using Octokit;
+    using static System.Net.WebRequestMethods;
 
     public class RepositoryGit : Repository, IRepositoryGit
     {
@@ -91,7 +92,11 @@
             Releases.Clear();
             foreach (var release in repositoryReleases)
             {
-                Releases.Add(new ReleaseGit(release.TagName, release.HtmlUrl, Name, release.Assets));
+                var assets = release.Assets.Any() ? 
+                    release.Assets.Select(a => new ReleaseGitAsset(a.Name, a.BrowserDownloadUrl, a.Size)).ToList() :
+                    [new ReleaseGitAsset($"{release.TagName}.zip", $"{Url}/archive/refs/tags/{release.TagName}.zip")];
+
+                Releases.Add(new ReleaseGit(release.TagName, release.HtmlUrl, Name, assets));
             }
         }
 
