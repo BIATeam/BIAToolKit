@@ -63,9 +63,9 @@
         public bool IsProjectCompatibleCrudGenerator
         {
             get { return isProjectCompatibleCrudGenerator; }
-            set 
-            { 
-                isProjectCompatibleCrudGenerator = value; 
+            set
+            {
+                isProjectCompatibleCrudGenerator = value;
                 RaisePropertyChanged(nameof(IsProjectCompatibleCrudGenerator));
             }
         }
@@ -129,7 +129,11 @@
             public string ConstantFileNamespace { get; set; }
 
             // RegExp for path of an unique file in Front 
-            public string FrontFileRegExpPath { get; set; }
+            public string[] FrontFileRegExpPath { get; set; }
+            // RegExp for path of the package.json file
+            public string FrontFileUsingBiaNg { get; set; }
+            // RegExp for findind import of bia-ng in package.json file
+            public string FrontFileBiaNgImportRegExp { get; set; }
             // Pattern corresponding to the name of the file unique file in Front.
             public string FrontFileNameSearchPattern { get; set; }
 
@@ -165,17 +169,44 @@
                 }
                 if (!string.IsNullOrEmpty(FrontFileNameSearchPattern))
                 {
-                    Regex reg2 = new Regex(currentProject.Folder.Replace("\\", "\\\\") + FrontFileRegExpPath, RegexOptions.IgnoreCase);
-                    List<string> filesFront = Directory.GetFiles(currentProject.Folder, FrontFileNameSearchPattern, SearchOption.AllDirectories)?.Where(path => reg2.IsMatch(path)).ToList();
                     currentProject.BIAFronts.Clear();
-                    if (filesFront != null)
+                    Regex regPackageJson = new Regex(currentProject.Folder.Replace("\\", "\\\\") + FrontFileUsingBiaNg, RegexOptions.IgnoreCase);
+                    List<string> packagesJsonFiles = Directory.GetFiles(currentProject.Folder, "package.json", SearchOption.AllDirectories)?.Where(path => regPackageJson.IsMatch(path)).ToList();
+                    if (packagesJsonFiles != null)
                     {
-                        foreach (var fileFront in filesFront)
+                        foreach (var fileFront in packagesJsonFiles)
                         {
-                            var match = reg2.Match(fileFront);
-                            currentProject.BIAFronts.Add(match.Groups[1].Value);
+                            string fileContent = File.ReadAllText(fileFront);
+                            if (fileContent.Contains(FrontFileBiaNgImportRegExp))
+                            {
+                                var match = regPackageJson.Match(fileFront);
+                                if (!currentProject.BIAFronts.Contains(match.Groups[1].Value))
+                                {
+                                    currentProject.BIAFronts.Add(match.Groups[1].Value);
+                                }
+                            }
                         }
                     }
+
+
+                    foreach (string regex in FrontFileRegExpPath)
+                    {
+                        Regex reg2 = new Regex(currentProject.Folder.Replace("\\", "\\\\") + regex, RegexOptions.IgnoreCase);
+                        List<string> filesFront = Directory.GetFiles(currentProject.Folder, FrontFileNameSearchPattern, SearchOption.AllDirectories)?.Where(path => reg2.IsMatch(path)).ToList();
+
+                        if (filesFront != null)
+                        {
+                            foreach (var fileFront in filesFront)
+                            {
+                                var match = reg2.Match(fileFront);
+                                if (!currentProject.BIAFronts.Contains(match.Groups[1].Value))
+                                {
+                                    currentProject.BIAFronts.Add(match.Groups[1].Value);
+                                }
+                            }
+                        }
+                    }
+
                 }
             }
         }
@@ -209,6 +240,8 @@
                                 ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
                                 ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
                                 FrontFileRegExpPath = null,
+                                FrontFileUsingBiaNg = null,
+                                FrontFileBiaNgImportRegExp = null,
                                 FrontFileNameSearchPattern = null
                             };
                             nvResolver2.ResolveNamesAndVersion(currentProject);
@@ -219,7 +252,11 @@
                                 ConstantFileNameSearchPattern = "Constants.cs",
                                 ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
                                 ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
-                                FrontFileRegExpPath = @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$",
+                                FrontFileRegExpPath = [
+                                    @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$",
+                                    @"\\(.*)\\packages\\bia-ng\\core\\bia-core.module\.ts$"],
+                                FrontFileUsingBiaNg = @"\\(?!.*(?:\\node_modules\\|\\dist\\|\\\.angular\\))(.*)\\package\.json$",
+                                FrontFileBiaNgImportRegExp = "\"bia-ng\":",
                                 FrontFileNameSearchPattern = "bia-core.module.ts"
                             };
                             nvResolver.ResolveNamesAndVersion(currentProject);
@@ -234,7 +271,7 @@
                     }
                     await fileGeneratorService.Init(currentProject);
                     IsFileGeneratorServiceInit = fileGeneratorService.IsInit;
-                    IsProjectCompatibleCrudGenerator = GenerateCrudService.IsProjectCompatible(currentProject);  
+                    IsProjectCompatibleCrudGenerator = GenerateCrudService.IsProjectCompatible(currentProject);
                     CurrentProject = currentProject;
                 });
             }
