@@ -36,6 +36,7 @@
                 using var resp = await httpClient.GetAsync(asset.BrowserDownloadUrl);
                 resp.EnsureSuccessStatusCode();
 
+                Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
                 await using var input = await resp.Content.ReadAsStreamAsync();
                 await using var output = File.Create(targetPath);
 

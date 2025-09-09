@@ -10,8 +10,10 @@
     using BIA.ToolKit.Domain.Settings;
     using Octokit;
 
-    public class RepositoryGit : Repository
+    public class RepositoryGit : Repository, IRepositoryGit
     {
+        private readonly Regex releasesFolderRegex;
+
         public override string LocalPath => UseLocalClonedFolder ? LocalClonedFolderPath : Path.Combine(AppSettings.AppFolderPath, Name, "Repo");
         public string Url { get; }
         public bool UseLocalClonedFolder { get; }
@@ -19,7 +21,7 @@
         public string LocalClonedFolderPath { get; }
         public string GitRepositoryName { get; }
         public string Owner { get; }
-        public Regex ReleasesFolderPrefixRegex { get; }
+        public string ReleasesFolderRegexPattern { get; }
 
         private RepositoryGit(string name, string url, bool useLocalClonedFolder, ReleaseType releaseType, string companyName, string projectName, string localClonedFolderPath)
             : base(name, RepositoryType.Git, companyName, projectName)
@@ -43,7 +45,8 @@
         public RepositoryGit(string name, string url, bool useLocalClonedFolder, string releasesFolderRegexPattern, string companyName = null, string projectName = null, string localClonedFolderPath = null)
             : this(name, url, useLocalClonedFolder, ReleaseType.Folder, companyName, projectName, localClonedFolderPath)
         {
-            ReleasesFolderPrefixRegex = new Regex(releasesFolderRegexPattern);
+            ReleasesFolderRegexPattern = releasesFolderRegexPattern;
+            releasesFolderRegex = new Regex(releasesFolderRegexPattern);
         }
 
         /// <summary>
@@ -101,7 +104,7 @@
 
             var releases = Directory
                 .EnumerateDirectories(LocalPath)
-                .Where(directoryPath => ReleasesFolderPrefixRegex.IsMatch(Path.GetFileName(directoryPath)))
+                .Where(directoryPath => releasesFolderRegex.IsMatch(Path.GetFileName(directoryPath)))
                 .Select(directoryPath => new ReleaseFolder(Path.GetFileName(directoryPath), directoryPath, Name));
 
             Releases.Clear();

@@ -23,6 +23,7 @@
     using System.Threading;
     using BIA.ToolKit.Domain;
     using Microsoft.Extensions.DependencyInjection;
+    using Newtonsoft.Json;
 
 
     /// <summary>
@@ -117,7 +118,7 @@
                 AutoUpdate = Properties.Settings.Default.AutoUpdate,
 
                 ToolkitRepository = !string.IsNullOrEmpty(Properties.Settings.Default.ToolkitRepository) ?
-                    JsonSerializer.Deserialize<Repository>(Properties.Settings.Default.ToolkitRepository) :
+                    ConvertRepository(JsonConvert.DeserializeObject<RepositoryUserConfig>(Properties.Settings.Default.ToolkitRepository)) :
                     new RepositoryGit(
                         name: "BIAToolkit GIT",
                         url: "https://github.com/BIATeam/BIAToolKit",
@@ -127,7 +128,9 @@
                     ),
 
                 TemplateRepositories = !string.IsNullOrEmpty(Properties.Settings.Default.TemplateRepositories) ?
-                    JsonSerializer.Deserialize<List<Repository>>(Properties.Settings.Default.TemplateRepositories) :
+                    JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.TemplateRepositories)
+                    .Select(ConvertRepository)
+                    .ToList() :
                     [
                         new RepositoryGit(
                             name: "BIATemplate GIT",
@@ -141,11 +144,49 @@
                     ],
 
                 CompanyFilesRepositories = !string.IsNullOrEmpty(Properties.Settings.Default.CompanyFilesRepositories) ?
-                    JsonSerializer.Deserialize<List<Repository>>(Properties.Settings.Default.CompanyFilesRepositories) :
+                    JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.CompanyFilesRepositories)
+                    .Select(ConvertRepository)
+                    .ToList() :
                     []
             };
 
             settingsService.Init(settings);
+        }
+
+        private IRepository ConvertRepository(RepositoryUserConfig repositoryUserConfig)
+        {
+            return repositoryUserConfig.RepositoryType switch
+            {
+                RepositoryType.Git => repositoryUserConfig.ReleaseType switch
+                {
+                    ReleaseType.Git => new RepositoryGit(
+                        name: repositoryUserConfig.Name,
+                        url: repositoryUserConfig.Url,
+                        gitRepositoryName: repositoryUserConfig.GitRepositoryName,
+                        owner: repositoryUserConfig.Owner,
+                        useLocalClonedFolder: repositoryUserConfig.UseLocalClonedFolder,
+                        companyName: repositoryUserConfig.CompanyName,
+                        projectName: repositoryUserConfig.ProjectName,
+                        localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath
+                    ),
+                    ReleaseType.Folder => new RepositoryGit(
+                        name: repositoryUserConfig.Name,
+                        url: repositoryUserConfig.Url,
+                        useLocalClonedFolder: repositoryUserConfig.UseLocalClonedFolder,
+                        releasesFolderRegexPattern: repositoryUserConfig.ReleasesFolderRegexPattern,
+                        companyName: repositoryUserConfig.CompanyName,
+                        projectName: repositoryUserConfig.ProjectName,
+                        localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath
+                    ),
+                    _ => throw new NotImplementedException(),
+                },
+                RepositoryType.Folder => new RepositoryFolder(
+                    name: repositoryUserConfig.Name,
+                    path: repositoryUserConfig.LocalPath,
+                    companyName: repositoryUserConfig.CompanyName,
+                    projectName: repositoryUserConfig.ProjectName),
+                _ => throw new NotImplementedException(),
+            };
         }
 
         private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
@@ -155,9 +196,9 @@
             Properties.Settings.Default.ModifyProjectRootFolderText = settings.ModifyProjectRootProjectsPath;
             Properties.Settings.Default.CreateCompanyName = settings.CreateCompanyName;
             Properties.Settings.Default.AutoUpdate = settings.AutoUpdate;
-            Properties.Settings.Default.ToolkitRepository = JsonSerializer.Serialize(settings.ToolkitRepository);
-            Properties.Settings.Default.TemplateRepositories = JsonSerializer.Serialize(settings.TemplateRepositories);
-            Properties.Settings.Default.CompanyFilesRepositories = JsonSerializer.Serialize(settings.CompanyFilesRepositories);
+            Properties.Settings.Default.ToolkitRepository = JsonConvert.SerializeObject(settings.ToolkitRepository);
+            Properties.Settings.Default.TemplateRepositories = JsonConvert.SerializeObject(settings.TemplateRepositories);
+            Properties.Settings.Default.CompanyFilesRepositories = JsonConvert.SerializeObject(settings.CompanyFilesRepositories);
             Properties.Settings.Default.Save();
         }
 

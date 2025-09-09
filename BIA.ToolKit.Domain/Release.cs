@@ -41,13 +41,8 @@
             IsDownloaded = false;
         }
 
-        protected void InitDownload()
+        protected virtual void InitDownload()
         {
-            if (!Directory.Exists(OriginPath))
-            {
-                throw new DirectoryNotFoundException(OriginPath);
-            }
-
             if (Directory.Exists(LocalPath))
             {
                 Directory.Delete(LocalPath, true);

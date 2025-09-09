@@ -22,7 +22,7 @@
             this.outPut = outPut;
         }
 
-        public bool CheckRepoFolder(Domain.Repository repository, bool inSync)
+        public bool CheckRepoFolder(Domain.IRepository repository, bool inSync)
         {
             if (string.IsNullOrEmpty(repository.LocalPath))
             {
@@ -43,7 +43,7 @@
             return true;
         }
 
-        public async Task CleanRepository(Domain.Repository repository)
+        public async Task CleanRepository(Domain.IRepository repository)
         {
             try
             {

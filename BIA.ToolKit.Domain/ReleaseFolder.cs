@@ -25,5 +25,15 @@
             IsDownloaded = true;
             return Task.CompletedTask;
         }
+
+        protected override void InitDownload()
+        {
+            if (!Directory.Exists(OriginPath))
+            {
+                throw new DirectoryNotFoundException(OriginPath);
+            }
+
+            base.InitDownload();
+        }
     }
 }

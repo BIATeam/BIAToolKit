@@ -15,10 +15,10 @@
 
     public class UpdateService
     {
+        private const string UpdateArchiveName = "BIAToolKit.zip";
+        private const string UpdaterArchiveName = "BIAToolKitUpdater.zip";
         private const string UpdaterName = "BIA.ToolKit.Updater.exe";
 
-        private readonly string applicationPath;
-        private readonly string tempPath;
         private readonly UIEventBroker eventBroker;
         private readonly IConsoleWriter consoleWriter;
         private readonly SettingsService settingsService;
@@ -32,8 +32,6 @@
 
         public UpdateService(UIEventBroker eventBroker, IConsoleWriter consoleWriter, SettingsService settingsService)
         {
-            applicationPath = AppDomain.CurrentDomain.BaseDirectory;
-            tempPath = Path.GetTempPath() + "\\BIAToolkit";
             this.eventBroker = eventBroker;
             this.consoleWriter = consoleWriter;
             this.settingsService = settingsService;
@@ -82,8 +80,8 @@
 
         public async Task DownloadUpdateAsync()
         {
-            if (Debugger.IsAttached)
-                return;
+            //if (Debugger.IsAttached)
+            //    return;
 
             try
             {
@@ -91,65 +89,30 @@
                 await lastRelease.DownloadAsync();
                 consoleWriter.AddMessageLine($"Assets downloaded successfully", "green");
 
-                Directory.CreateDirectory(tempPath);
-                await CopyRelease(ReleaseKind.Updater);
-                await CopyRelease(ReleaseKind.Toolkit);
+                var updateArchivePath = Path.Combine(lastRelease.LocalPath, UpdateArchiveName);
+                if (!File.Exists(updateArchivePath))
+                    throw new FileNotFoundException(updateArchivePath);
 
+                var updaterArchivePath = Path.Combine(lastRelease.LocalPath, UpdaterArchiveName);
+                if (!File.Exists(updaterArchivePath))
+                    throw new FileNotFoundException(updaterArchivePath);
+
+                var updaterFolderPath = Path.Combine(lastRelease.LocalPath, Path.GetFileNameWithoutExtension(UpdaterArchiveName));
+                ZipFile.ExtractToDirectory(updaterArchivePath, updaterFolderPath);
+                consoleWriter.AddMessageLine($"{UpdaterArchiveName} extracted", "Gray");
+
+                consoleWriter.AddMessageLine($"Launching update...", "yellow");
                 Process.Start(
-                    Path.Combine(tempPath, "BIAToolKitUpdater", UpdaterName),
+                    Path.Combine(updaterFolderPath, UpdaterName),
                     [
                         $"\"{AppDomain.CurrentDomain.BaseDirectory}\"",
-                    $"\"{Path.Combine(tempPath, "BIAToolKit.zip")}\""
+                    $"\"{updateArchivePath}\""
                     ]
                 );
             }
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"Download update failure : {ex.Message}", "red");
-            }
-        }
-
-        private enum ReleaseKind
-        {
-            Updater,
-            Toolkit
-        }
-
-        private async Task CopyRelease(ReleaseKind releaseKind)
-        {
-            var zipName = string.Empty;
-            var destDir = string.Empty;
-            switch (releaseKind)
-            {
-                case ReleaseKind.Updater:
-                    destDir = Path.Combine(tempPath, "BIAToolKitUpdater");
-                    zipName = "BIAToolKitUpdater.zip";
-                    break;
-                case ReleaseKind.Toolkit:
-                    destDir = Path.Combine(tempPath, "BIAToolKit");
-                    zipName = "BIAToolKit.zip";
-                    break;
-                default:
-                    throw new NotImplementedException($"Unknown release kind {releaseKind}");
-            }
-            var destZipPath = Path.Combine(tempPath, zipName);
-
-            var assetFile = Path.Combine(lastRelease.LocalPath, zipName);
-            if(!File.Exists(assetFile))
-            {
-                throw new FileNotFoundException(assetFile);
-            }
-
-            File.Copy(assetFile, destZipPath, true);
-
-            if (releaseKind == ReleaseKind.Updater)
-            {
-                if (Directory.Exists(destDir))
-                {
-                    Directory.Delete(destDir, true);
-                }
-                ZipFile.ExtractToDirectory(destZipPath, destDir);
-                consoleWriter.AddMessageLine($"{zipName} extracted", "Green");
             }
         }
     }

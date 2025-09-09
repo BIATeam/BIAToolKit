@@ -9,9 +9,9 @@
     public class BIATKSettings : IBIATKSettings
     {
         public bool UseCompanyFiles { get; set; }
-        public Repository ToolkitRepository { get; set; }
-        public IReadOnlyList<Repository> TemplateRepositories { get; set; }
-        public IReadOnlyList<Repository> CompanyFilesRepositories { get; set; }
+        public IRepository ToolkitRepository { get; set; }
+        public IReadOnlyList<IRepository> TemplateRepositories { get; set; }
+        public IReadOnlyList<IRepository> CompanyFilesRepositories { get; set; }
         public string CreateProjectRootProjectsPath { get; set; }
         public string ModifyProjectRootProjectsPath { get; set; }
         public string CreateCompanyName { get; set; }
