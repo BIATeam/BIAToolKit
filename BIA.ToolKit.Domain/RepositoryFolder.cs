@@ -21,8 +21,7 @@
                 .EnumerateDirectories(LocalPath)
                 .Select(directoryPath => new ReleaseFolder(Path.GetFileName(directoryPath), directoryPath, Name));
 
-            Releases.Clear();
-            Releases.AddRange(releases);
+            Releases = [.. releases.OrderByDescending(r => r.Name)];
 
             return Task.CompletedTask;
         }

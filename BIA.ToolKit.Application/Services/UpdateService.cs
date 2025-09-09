@@ -80,8 +80,8 @@
 
         public async Task DownloadUpdateAsync()
         {
-            //if (Debugger.IsAttached)
-            //    return;
+            if (Debugger.IsAttached)
+                return;
 
             try
             {

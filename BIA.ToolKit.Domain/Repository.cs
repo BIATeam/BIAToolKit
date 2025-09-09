@@ -23,7 +23,7 @@
         public string ProjectName { get; } = projectName;
         public abstract string LocalPath { get; }
         [JsonIgnore]
-        public List<Release> Releases { get; } = [];
+        public List<Release> Releases { get; protected set; } = [];
 
         public abstract Task FillReleasesAsync();
     }
