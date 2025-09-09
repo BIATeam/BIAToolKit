@@ -119,17 +119,17 @@
 
                 ToolkitRepository = !string.IsNullOrEmpty(Properties.Settings.Default.ToolkitRepository) ?
                     ConvertRepository(JsonConvert.DeserializeObject<RepositoryUserConfig>(Properties.Settings.Default.ToolkitRepository)) :
-                    //new RepositoryGit(
-                    //    name: "BIAToolkit GIT",
-                    //    url: "https://github.com/BIATeam/BIAToolKit",
-                    //    gitRepositoryName: "BIAToolKit",
-                    //    owner: "BIATeam",
-                    //    useLocalClonedFolder: false
-                    //),
-                    new RepositoryFolder(
-                        name: "BIAToolkit Folder",
-                        path: "\\\\share.bia.safran\\BIAToolKit\\Releases\\BiaToolkit"
+                    new RepositoryGit(
+                        name: "BIAToolkit GIT",
+                        url: "https://github.com/BIATeam/BIAToolKit",
+                        gitRepositoryName: "BIAToolKit",
+                        owner: "BIATeam",
+                        useLocalClonedFolder: false
                     ),
+                //new RepositoryFolder(
+                //        name: "BIAToolkit Folder",
+                //        path: "\\\\share.bia.safran\\BIAToolKit\\Releases\\BiaToolkit"
+                //    ),
 
                 TemplateRepositories = !string.IsNullOrEmpty(Properties.Settings.Default.TemplateRepositories) ?
                     JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.TemplateRepositories)
