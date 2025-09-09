@@ -55,12 +55,12 @@
             if (projectParameters.VersionAndOption.WorkTemplate.Version == "VX.Y.Z")
             {
                 // Copy from local folder
-                projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath = projectParameters.VersionAndOption.WorkTemplate.RepositorySettings.RootFolderPath;
+                projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath = projectParameters.VersionAndOption.WorkTemplate.Repository.LocalPath;
                 localFilesToExcludes = new List<string>() { "^\\.git$", "^\\.vs$", "\\.csproj\\.user$", "^bin$", "^obj$", "^node_modules$", "^dist$" };
             }
             else
             {
-                projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath = await this.repositoryService.PrepareVersionFolder(projectParameters.VersionAndOption.WorkTemplate.RepositorySettings, projectParameters.VersionAndOption.WorkTemplate.Version);
+                projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath = await this.repositoryService.PrepareVersionFolder(projectParameters.VersionAndOption.WorkTemplate.Repository, projectParameters.VersionAndOption.WorkTemplate.Version);
             }
 
             if (!Directory.Exists(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath))
@@ -126,10 +126,10 @@
                 consoleWriter.AddMessageLine("Start rename.", "Pink");
                 await Task.Run(() =>
                 {
-                    FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.RepositorySettings.CompanyName, projectParameters.CompanyName, FileTransform.projectFileExtensions);
-                    FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.RepositorySettings.ProjectName, projectParameters.ProjectName, FileTransform.projectFileExtensions);
-                    FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.RepositorySettings.CompanyName.ToLower(), projectParameters.CompanyName.ToLower(), FileTransform.projectFileExtensions);
-                    FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.RepositorySettings.ProjectName.ToLower(), projectParameters.ProjectName.ToLower(), FileTransform.projectFileExtensions);
+                    FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.CompanyName, projectParameters.CompanyName, FileTransform.projectFileExtensions);
+                    FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.ProjectName, projectParameters.ProjectName, FileTransform.projectFileExtensions);
+                    FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.CompanyName.ToLower(), projectParameters.CompanyName.ToLower(), FileTransform.projectFileExtensions);
+                    FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.ProjectName.ToLower(), projectParameters.ProjectName.ToLower(), FileTransform.projectFileExtensions);
                 });
 
                 await ReplaceInFileFromConfig(projectPath, projectParameters);

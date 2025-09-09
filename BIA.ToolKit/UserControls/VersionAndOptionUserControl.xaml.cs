@@ -15,6 +15,7 @@
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Domain.Work;
@@ -101,15 +102,15 @@
 
         public async Task FillVersionFolderPathAsync()
         {
-            if (vm?.WorkTemplate?.RepositorySettings != null)
+            if (vm?.WorkTemplate?.Repository != null)
             {
                 if (vm.WorkTemplate.Version == "VX.Y.Z")
                 {
-                    vm.WorkTemplate.VersionFolderPath = vm.WorkTemplate.RepositorySettings.RootFolderPath;
+                    vm.WorkTemplate.VersionFolderPath = vm.WorkTemplate.Repository.LocalPath;
                 }
                 else
                 {
-                    vm.WorkTemplate.VersionFolderPath = await this.repositoryService.PrepareVersionFolder(vm.WorkTemplate.RepositorySettings, vm.WorkTemplate.Version);
+                    vm.WorkTemplate.VersionFolderPath = await this.repositoryService.PrepareVersionFolder(vm.WorkTemplate.Repository, vm.WorkTemplate.Version);
                 }
             }
         }
@@ -153,31 +154,11 @@
             }
         }
 
-        private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, IRepositorySettings repositorySettings)
+        private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, Repository repository)
         {
-            if (repositorySettings.Versioning == VersioningType.Folder)
+            foreach(var release in  repository.Releases)
             {
-                if (Directory.Exists(repositorySettings.RootFolderPath))
-                {
-                    DirectoryInfo di = new DirectoryInfo(repositorySettings.RootFolderPath);
-                    //  an array representing the files in the current directory.
-                    DirectoryInfo[] versionDirectories = di.GetDirectories("V*.*.*", SearchOption.TopDirectoryOnly);
-                    // Print out the names of the files in the current directory.
-                    foreach (DirectoryInfo dir in versionDirectories)
-                    {
-                        //Add and select the last added
-                        WorkTemplates.Add(new WorkRepository(repositorySettings, dir.Name));
-                    }
-                }
-            }
-            else
-            {
-                List<string> versions = gitService.GetTags(repositorySettings.RootFolderPath).OrderBy(q => q).ToList();
-
-                foreach (string version in versions)
-                {
-                    WorkTemplates.Add(new WorkRepository(repositorySettings, version));
-                }
+                WorkTemplates.Add(new WorkRepository(repository, release.Name));
             }
 
             WorkTemplates.Sort(new WorkRepository.VersionComparer());

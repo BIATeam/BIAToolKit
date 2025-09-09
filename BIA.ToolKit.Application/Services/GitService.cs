@@ -12,6 +12,7 @@
     using BIA.ToolKit.Domain.Settings;
     using System.Diagnostics.CodeAnalysis;
     using System.Text.RegularExpressions;
+    using BIA.ToolKit.Domain;
 
     public class GitService
     {
@@ -21,16 +22,15 @@
             this.outPut = outPut;
         }
 
-        public async Task Synchronize(IRepositorySettings repository)
+        public async Task Synchronize(RepositoryGit repository)
         {
-            if (!repository.UseLocalFolder && !Directory.Exists(repository.RootFolderPath))
+            if (!repository.UseLocalClonedFolder && !Directory.Exists(repository.LocalPath))
             {
-                await this.Clone(repository.Name, repository.UrlRepo, repository.RootFolderPath);
+                await Clone(repository.Name, repository.Url, repository.LocalPath);
+                return;
             }
-            else
-            {
-                await this.Synchronize(repository.Name, repository.RootFolderPath);
-            }
+            
+            await Synchronize(repository.Name, repository.LocalPath);
         }
 
 
@@ -60,35 +60,6 @@
                 outPut.AddMessageLine($"Error durring clone {repoName}", "Red");
             }
         }
-
-        public List<string> GetTags(string localPath)
-        {
-            List<string> release = new List<string>();
-
-            using (var repo = new Repository(localPath))
-            {
-                release = repo.Tags.Select(t => t.FriendlyName).ToList();
-            }
-
-            return release;
-        }
-
-
-        public async Task CheckoutTag(IRepositorySettings repoSettings, string tag)
-        {
-            // git checkout tags/1.1.4
-            outPut.AddMessageLine("Checkout Tag " + tag + "  for repo : " + repoSettings.Name + ".", "Pink");
-
-            if (await RunScript("git", $"checkout tags/" + tag, repoSettings.RootFolderPath) == 0)
-            {
-                outPut.AddMessageLine("Checkout Tag " + tag + "  for repo : " + repoSettings.Name + "finished", "Green");
-            }
-            else
-            {
-                outPut.AddMessageLine("Error durring Checkout Tag " + tag + "  for repo : " + repoSettings.Name, "Red");
-            }
-        }
-
 
         public async Task<bool> DiffFolder(bool actionFinishedAtEnd, string rootPath, string name1, string name2, string migrateFilePath)
         {

@@ -6,6 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using BIA.ToolKit.Domain.Settings;
+    using Octokit;
 
     public enum ReleaseType
     {
@@ -23,6 +24,22 @@
         public string LocalPath => Path.Combine(AppSettings.AppFolderPath, RepositoryName, Name);
 
         public abstract Task DownloadAsync();
+
+        public void Clean()
+        {
+            if (!IsDownloaded)
+                return;
+
+            var dirInfo = new DirectoryInfo(LocalPath);
+            foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+            {
+                file.Attributes = FileAttributes.Normal;
+                File.Delete(file.FullName);
+            }
+
+            Directory.Delete(LocalPath, true);
+            IsDownloaded = false;
+        }
 
         protected void InitDownload()
         {

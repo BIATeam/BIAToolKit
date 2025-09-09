@@ -126,7 +126,7 @@
                     
                     if (WorkCompanyFile != null)
                     {
-                        WorkCompanyFile.VersionFolderPath = repositoryService.PrepareVersionFolder(WorkCompanyFile.RepositorySettings, WorkCompanyFile.Version).Result;
+                        WorkCompanyFile.VersionFolderPath = repositoryService.PrepareVersionFolder(WorkCompanyFile.Repository, WorkCompanyFile.Version).Result;
                         string fileName = WorkCompanyFile.VersionFolderPath + "\\biaCompanyFiles.json";
 
                         try
