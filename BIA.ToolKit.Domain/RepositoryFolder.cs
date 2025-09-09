@@ -10,7 +10,7 @@
     {
         public override string LocalPath => path;
 
-        public override Task FillReleases()
+        public override Task FillReleasesAsync()
         {
             if(!Directory.Exists(LocalPath))
             {

@@ -23,6 +23,6 @@
         public abstract string LocalPath { get; }
         public List<Release> Releases { get; } = [];
 
-        public abstract Task FillReleases();
+        public abstract Task FillReleasesAsync();
     }
 }

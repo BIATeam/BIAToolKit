@@ -12,43 +12,67 @@
 
     public class RepositoryGit : Repository
     {
-        private readonly bool useLocalClonedFolder;
-        private readonly ReleaseType releaseType;
-        private readonly string localClonedFolderPath;
-        private readonly string gitRepositoryName;
-        private readonly string product;
-        private readonly string owner;
-        private readonly Regex releasesFolderPrefixRegex;
+        public override string LocalPath => UseLocalClonedFolder ? LocalClonedFolderPath : Path.Combine(AppSettings.AppFolderPath, Name, "Repo");
+        public string Url { get; }
+        public bool UseLocalClonedFolder { get; }
+        public ReleaseType ReleaseType { get; }
+        public string LocalClonedFolderPath { get; }
+        public string GitRepositoryName { get; }
+        public string Product { get; }
+        public string Owner { get; }
+        public Regex ReleasesFolderPrefixRegex { get; }
 
-        public string Url { get; set; }
-        public override string LocalPath => useLocalClonedFolder ? localClonedFolderPath : Path.Combine(AppSettings.AppFolderPath, Name, "Repo");
-
-        private RepositoryGit(string name, string url, bool useLocalClonedFolder, ReleaseType releaseType, string companyName, string projectName, string localClonedFolderPath) : base(name, RepositoryType.Git, companyName, projectName)
+        private RepositoryGit(string name, string url, bool useLocalClonedFolder, ReleaseType releaseType, string companyName, string projectName, string localClonedFolderPath)
+            : base(name, RepositoryType.Git, companyName, projectName)
         {
             Url = url;
-            this.useLocalClonedFolder = useLocalClonedFolder;
-            this.releaseType = releaseType;
-            this.localClonedFolderPath = localClonedFolderPath;
+            this.UseLocalClonedFolder = useLocalClonedFolder;
+            this.ReleaseType = releaseType;
+            this.LocalClonedFolderPath = localClonedFolderPath;
         }
 
-        public RepositoryGit(string name, string url, bool useLocalClonedFolder, string releasesFolderRegexPattern, string companyName = null, string projectName = null, string localClonedFolderPath = null) : this(name, url, useLocalClonedFolder, ReleaseType.Folder, companyName, projectName, localClonedFolderPath)
+        /// <summary>
+        /// Constructor for <see cref="RepositoryGit"/> with <see cref="ReleaseType.Folder"/>.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="url"></param>
+        /// <param name="useLocalClonedFolder"></param>
+        /// <param name="releasesFolderRegexPattern"></param>
+        /// <param name="companyName"></param>
+        /// <param name="projectName"></param>
+        /// <param name="localClonedFolderPath"></param>
+        public RepositoryGit(string name, string url, bool useLocalClonedFolder, string releasesFolderRegexPattern, string companyName = null, string projectName = null, string localClonedFolderPath = null)
+            : this(name, url, useLocalClonedFolder, ReleaseType.Folder, companyName, projectName, localClonedFolderPath)
         {
-            releasesFolderPrefixRegex = new Regex(releasesFolderRegexPattern);
+            ReleasesFolderPrefixRegex = new Regex(releasesFolderRegexPattern);
         }
 
-        public RepositoryGit(string name, string url, string gitRepositoryName, string product, string owner, bool useLocalClonedFolder, string companyName = null, string projectName = null, string localClonedFolderPath = null) : this(name, url, useLocalClonedFolder, ReleaseType.Git, companyName, projectName, localClonedFolderPath)
+        /// <summary>
+        /// Constructor for <see cref="RepositoryGit"/> with <see cref="ReleaseType.Git"/>.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="url"></param>
+        /// <param name="gitRepositoryName"></param>
+        /// <param name="product"></param>
+        /// <param name="owner"></param>
+        /// <param name="useLocalClonedFolder"></param>
+        /// <param name="companyName"></param>
+        /// <param name="projectName"></param>
+        /// <param name="localClonedFolderPath"></param>
+        public RepositoryGit(string name, string url, string gitRepositoryName, string product, string owner, bool useLocalClonedFolder, string companyName = null, string projectName = null, string localClonedFolderPath = null)
+            : this(name, url, useLocalClonedFolder, ReleaseType.Git, companyName, projectName, localClonedFolderPath)
         {
-            this.gitRepositoryName = gitRepositoryName;
-            this.product = product;
-            this.owner = owner;
+            this.GitRepositoryName = gitRepositoryName;
+            this.Product = product;
+            this.Owner = owner;
         }
 
-        public override async Task FillReleases()
+        public override async Task FillReleasesAsync()
         {
-            switch (releaseType)
+            switch (ReleaseType)
             {
                 case ReleaseType.Git:
-                    await FillReleasesGit();
+                    await FillReleasesGitAsync();
                     break;
                 case ReleaseType.Folder:
                     FillReleasesFolder();
@@ -58,15 +82,15 @@
             }
         }
 
-        private async Task FillReleasesGit()
+        private async Task FillReleasesGitAsync()
         {
-            var github = new GitHubClient(new Octokit.ProductHeaderValue(product));
-            var repositoryReleases = await github.Repository.Release.GetAll(owner, gitRepositoryName);
+            var github = new GitHubClient(new Octokit.ProductHeaderValue(Product));
+            var repositoryReleases = await github.Repository.Release.GetAll(Owner, GitRepositoryName);
 
             Releases.Clear();
             foreach (var release in repositoryReleases)
             {
-                Releases.Add(new ReleaseGit(release.TagName, release.HtmlUrl, Name, ReleaseType.Git, release.Assets));
+                Releases.Add(new ReleaseGit(release.TagName, release.HtmlUrl, Name, release.Assets));
             }
         }
 
@@ -79,7 +103,7 @@
 
             var releases = Directory
                 .EnumerateDirectories(LocalPath)
-                .Where(directoryPath => releasesFolderPrefixRegex.IsMatch(Path.GetFileName(directoryPath)))
+                .Where(directoryPath => ReleasesFolderPrefixRegex.IsMatch(Path.GetFileName(directoryPath)))
                 .Select(directoryPath => new ReleaseFolder(Path.GetFileName(directoryPath), directoryPath, Name));
 
             Releases.Clear();

@@ -16,11 +16,25 @@
     public abstract class Release(string name, string originPath, string repositoryName)
     {
         public abstract ReleaseType ReleaseType { get; }
-
-        public string Name { get; init; } = name;
-        public string OriginPath { get; init; } = originPath;
-        public string RepositoryName { get; init; } = repositoryName;
-        public bool IsDownloaded { get; private set; }
+        public string Name { get; } = name;
+        public string OriginPath { get;} = originPath;
+        public string RepositoryName { get; } = repositoryName;
+        public bool IsDownloaded { get; protected set; }
         public string LocalPath => Path.Combine(AppSettings.AppFolderPath, RepositoryName, Name);
+
+        public abstract Task DownloadAsync();
+
+        protected void InitDownload()
+        {
+            if (!Directory.Exists(OriginPath))
+            {
+                throw new DirectoryNotFoundException(OriginPath);
+            }
+
+            if (Directory.Exists(LocalPath))
+            {
+                Directory.Delete(LocalPath, true);
+            }
+        }
     }
 }
