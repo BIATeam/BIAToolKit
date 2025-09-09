@@ -18,7 +18,6 @@
         public ReleaseType ReleaseType { get; }
         public string LocalClonedFolderPath { get; }
         public string GitRepositoryName { get; }
-        public string Product { get; }
         public string Owner { get; }
         public Regex ReleasesFolderPrefixRegex { get; }
 
@@ -26,9 +25,9 @@
             : base(name, RepositoryType.Git, companyName, projectName)
         {
             Url = url;
-            this.UseLocalClonedFolder = useLocalClonedFolder;
-            this.ReleaseType = releaseType;
-            this.LocalClonedFolderPath = localClonedFolderPath;
+            UseLocalClonedFolder = useLocalClonedFolder;
+            ReleaseType = releaseType;
+            LocalClonedFolderPath = localClonedFolderPath;
         }
 
         /// <summary>
@@ -59,12 +58,11 @@
         /// <param name="companyName"></param>
         /// <param name="projectName"></param>
         /// <param name="localClonedFolderPath"></param>
-        public RepositoryGit(string name, string url, string gitRepositoryName, string product, string owner, bool useLocalClonedFolder, string companyName = null, string projectName = null, string localClonedFolderPath = null)
+        public RepositoryGit(string name, string url, string gitRepositoryName, string owner, bool useLocalClonedFolder, string companyName = null, string projectName = null, string localClonedFolderPath = null)
             : this(name, url, useLocalClonedFolder, ReleaseType.Git, companyName, projectName, localClonedFolderPath)
         {
-            this.GitRepositoryName = gitRepositoryName;
-            this.Product = product;
-            this.Owner = owner;
+            GitRepositoryName = gitRepositoryName;
+            Owner = owner;
         }
 
         public override async Task FillReleasesAsync()
@@ -84,7 +82,7 @@
 
         private async Task FillReleasesGitAsync()
         {
-            var github = new GitHubClient(new Octokit.ProductHeaderValue(Product));
+            var github = new GitHubClient(new Octokit.ProductHeaderValue("BIAToolKit"));
             var repositoryReleases = await github.Repository.Release.GetAll(Owner, GitRepositoryName);
 
             Releases.Clear();

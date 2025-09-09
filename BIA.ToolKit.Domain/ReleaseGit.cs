@@ -40,6 +40,11 @@
                 await using var output = File.Create(targetPath);
 
                 await input.CopyToAsync(output);
+
+                if (output.Length != asset.Size)
+                {
+                    throw new Exception($"Downloaded file {output.Length} has not the same size as origin asset");
+                }
             }
 
             IsDownloaded = true;

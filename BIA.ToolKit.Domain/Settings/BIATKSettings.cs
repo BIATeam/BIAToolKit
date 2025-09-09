@@ -8,15 +8,13 @@
 
     public class BIATKSettings : IBIATKSettings
     {
-        public IRepositorySettings BIATemplateRepository { get; set; } = new RepositorySettings();
         public bool UseCompanyFiles { get; set; }
-        public IRepositorySettings CompanyFilesRepository { get; set; } = new RepositorySettings();
-        public IReadOnlyList<IRepositorySettings> CustomRepoTemplates { get; set; } = [];
+        public Repository ToolkitRepository { get; set; }
+        public IReadOnlyList<Repository> TemplateRepositories { get; set; }
+        public IReadOnlyList<Repository> CompanyFilesRepositories { get; set; }
         public string CreateProjectRootProjectsPath { get; set; }
         public string ModifyProjectRootProjectsPath { get; set; }
         public string CreateCompanyName { get; set; }
         public bool AutoUpdate { get; set; }
-        public bool UseLocalReleaseRepository { get; set; }
-        public string LocalReleaseRepositoryPath { get; set; }
     }
 }

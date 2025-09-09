@@ -5,14 +5,12 @@
     public interface IBIATKSettings
     {
         bool AutoUpdate { get;}
-        IRepositorySettings BIATemplateRepository { get;}
-        IRepositorySettings CompanyFilesRepository { get;}
+        Repository ToolkitRepository { get;}
+        IReadOnlyList<Repository> TemplateRepositories { get;}
+        IReadOnlyList<Repository> CompanyFilesRepositories { get;}
         string CreateCompanyName { get;}
-        IReadOnlyList<IRepositorySettings> CustomRepoTemplates { get;}
-        string LocalReleaseRepositoryPath { get;}
         string CreateProjectRootProjectsPath { get; }
         string ModifyProjectRootProjectsPath { get; }
         bool UseCompanyFiles { get;}
-        bool UseLocalReleaseRepository { get;}
     }
 }

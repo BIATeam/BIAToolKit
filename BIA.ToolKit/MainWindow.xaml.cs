@@ -21,6 +21,8 @@
     using BIA.ToolKit.Application.Services.FileGenerator;
     using System.Reflection;
     using System.Threading;
+    using BIA.ToolKit.Domain;
+    using Microsoft.Extensions.DependencyInjection;
 
 
     /// <summary>
@@ -76,72 +78,89 @@
 
             ViewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version, uiEventBroker, settingsService);
             DataContext = ViewModel;
-            InitSettings();
 
             uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
+        }
+
+        public async Task Init()
+        {
+            await ExecuteTaskWithWaiterAsync(async () =>
+            {
+                InitSettings();
+
+                if (Properties.Settings.Default.ApplicationUpdated)
+                {
+                    Properties.Settings.Default.Upgrade();
+
+                    Properties.Settings.Default.ApplicationUpdated = false;
+                    Properties.Settings.Default.Save();
+                }
+
+                updateService.SetAppVersion(Assembly.GetExecutingAssembly().GetName().Version);
+
+                if (Properties.Settings.Default.AutoUpdate)
+                {
+                    await updateService.CheckForUpdatesAsync();
+                }
+
+                await Task.Run(() => CSharpParserService.RegisterMSBuild(consoleWriter));
+            });
         }
 
         private void InitSettings()
         {
             var settings = new BIATKSettings
             {
-                BIATemplateRepository = new RepositorySettings
-                {
-                    Name = "BIATemplate",
-                    Versioning = VersioningType.Release,
-                    UrlRelease = Constants.BIATemplateReleaseUrl,
-                    UrlRepo = Constants.BIATemplateRepoUrl,
-                    CompanyName = "TheBIADevCompany",
-                    ProjectName = "BIATemplate",
-                    UseLocalFolder = Properties.Settings.Default.BIATemplateLocalFolder,
-                    LocalFolderPath = Properties.Settings.Default.BIATemplateLocalFolderText
-                },
                 UseCompanyFiles = Properties.Settings.Default.UseCompanyFile,
-                CompanyFilesRepository = new RepositorySettings
-                {
-                    Name = "BIACompanyFiles",
-                    Versioning = VersioningType.Folder,
-                    CompanyName = "TheBIADevCompany",
-                    ProjectName = "BIATemplate",
-                    UseLocalFolder = Properties.Settings.Default.CompanyFilesLocalFolder,
-                    UrlRepo = Properties.Settings.Default.CompanyFilesGitRepo,
-                    LocalFolderPath = Properties.Settings.Default.CompanyFilesLocalFolderText
-                },
                 CreateProjectRootProjectsPath = Properties.Settings.Default.CreateProjectRootFolderText,
-                ModifyProjectRootProjectsPath = Properties.Settings.Default.ModifyProjectRootFolderText,
                 CreateCompanyName = Properties.Settings.Default.CreateCompanyName,
+                ModifyProjectRootProjectsPath = Properties.Settings.Default.ModifyProjectRootFolderText,
                 AutoUpdate = Properties.Settings.Default.AutoUpdate,
-                UseLocalReleaseRepository = Properties.Settings.Default.UseLocalReleaseRepository,
-                LocalReleaseRepositoryPath = Properties.Settings.Default.LocalReleaseRepositoryPath
-            };
 
-            if (!string.IsNullOrEmpty(Properties.Settings.Default.CustomTemplates))
-            {
-                settings.CustomRepoTemplates = JsonSerializer.Deserialize<List<RepositorySettings>>(Properties.Settings.Default.CustomTemplates);
-            }
+                ToolkitRepository = !string.IsNullOrEmpty(Properties.Settings.Default.ToolkitRepository) ?
+                    JsonSerializer.Deserialize<Repository>(Properties.Settings.Default.ToolkitRepository) :
+                    new RepositoryGit(
+                        name: "BIAToolkit GIT",
+                        url: "https://github.com/BIATeam/BIAToolKit",
+                        gitRepositoryName: "BIAToolKit",
+                        owner: "BIATeam",
+                        useLocalClonedFolder: false
+                    ),
+
+                TemplateRepositories = !string.IsNullOrEmpty(Properties.Settings.Default.TemplateRepositories) ?
+                    JsonSerializer.Deserialize<List<Repository>>(Properties.Settings.Default.TemplateRepositories) :
+                    [
+                        new RepositoryGit(
+                            name: "BIATemplate GIT",
+                            url: "https://github.com/BIATeam/BIADemo",
+                            gitRepositoryName: "BIAToolKit",
+                            owner: "BIATeam",
+                            useLocalClonedFolder: false,
+                            companyName: "TheBIADevCompany",
+                            projectName: "BIATemplate"
+                        )
+                    ],
+
+                CompanyFilesRepositories = !string.IsNullOrEmpty(Properties.Settings.Default.CompanyFilesRepositories) ?
+                    JsonSerializer.Deserialize<List<Repository>>(Properties.Settings.Default.CompanyFilesRepositories) :
+                    []
+            };
 
             settingsService.Init(settings);
         }
 
         private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
         {
-            Properties.Settings.Default.BIATemplateLocalFolder = settings.BIATemplateRepository.UseLocalFolder;
-            Properties.Settings.Default.BIATemplateLocalFolderText = settings.BIATemplateRepository.LocalFolderPath;
             Properties.Settings.Default.UseCompanyFile = settings.UseCompanyFiles;
-            Properties.Settings.Default.CompanyFilesLocalFolder = settings.CompanyFilesRepository.UseLocalFolder;
-            Properties.Settings.Default.CompanyFilesGitRepo = settings.CompanyFilesRepository.UrlRepo;
-            Properties.Settings.Default.CompanyFilesLocalFolderText = settings.CompanyFilesRepository.LocalFolderPath;
             Properties.Settings.Default.CreateProjectRootFolderText = settings.CreateProjectRootProjectsPath;
             Properties.Settings.Default.ModifyProjectRootFolderText = settings.ModifyProjectRootProjectsPath;
             Properties.Settings.Default.CreateCompanyName = settings.CreateCompanyName;
             Properties.Settings.Default.AutoUpdate = settings.AutoUpdate;
-            Properties.Settings.Default.UseLocalReleaseRepository = settings.UseLocalReleaseRepository;
-            Properties.Settings.Default.LocalReleaseRepositoryPath = settings.LocalReleaseRepositoryPath;
-            Properties.Settings.Default.CustomTemplates = JsonSerializer.Serialize(settings.CustomRepoTemplates);
+            Properties.Settings.Default.ToolkitRepository = JsonSerializer.Serialize(settings.ToolkitRepository);
+            Properties.Settings.Default.TemplateRepositories = JsonSerializer.Serialize(settings.TemplateRepositories);
+            Properties.Settings.Default.CompanyFilesRepositories = JsonSerializer.Serialize(settings.CompanyFilesRepositories);
             Properties.Settings.Default.Save();
-
-            localReleaseRepositoryService.Set(Properties.Settings.Default.UseLocalReleaseRepository, Properties.Settings.Default.LocalReleaseRepositoryPath);
         }
 
         private async void UiEventBroker_OnNewVersionAvailable()

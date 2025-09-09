@@ -47,41 +47,11 @@
             services.AddSingleton<UpdateService>();
             services.AddLogging();
         }
-        private void OnStartup(object sender, StartupEventArgs e)
+        private async void OnStartup(object sender, StartupEventArgs e)
         {
-            if (ToolKit.Properties.Settings.Default.ApplicationUpdated)
-            {
-                ToolKit.Properties.Settings.Default.Upgrade();
-
-                ToolKit.Properties.Settings.Default.ApplicationUpdated = false;
-                ToolKit.Properties.Settings.Default.Save();
-            }
-
-            serviceProvider.GetService<LocalReleaseRepositoryService>().Set(
-                ToolKit.Properties.Settings.Default.UseLocalReleaseRepository,
-                ToolKit.Properties.Settings.Default.LocalReleaseRepositoryPath);
-
             var mainWindow = serviceProvider.GetService<MainWindow>();
             mainWindow.Show();
-
-            var eventBroker = serviceProvider.GetRequiredService<UIEventBroker>();
-            var updateService = serviceProvider.GetService<UpdateService>();
-            updateService.SetAppVersion(Assembly.GetExecutingAssembly().GetName().Version);
-
-            eventBroker.ExecuteActionWithWaiter(async () =>
-            {
-                if (ToolKit.Properties.Settings.Default.AutoUpdate)
-                {
-                    await updateService.CheckForUpdatesAsync();
-                }
-
-                await RegisterMSBuild();
-            });
-        }
-
-        private async Task RegisterMSBuild()
-        {
-            await Task.Run(() => CSharpParserService.RegisterMSBuild(serviceProvider.GetRequiredService<IConsoleWriter>()));
+            await mainWindow.Init();
         }
     }
 }
