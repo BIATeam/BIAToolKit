@@ -78,6 +78,7 @@
                 default:
                     throw new NotImplementedException();
             }
+            EnsureReleasesDownloaded();
         }
 
         private async Task FillReleasesGitAsync()

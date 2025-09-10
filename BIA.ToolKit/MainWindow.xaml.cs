@@ -106,14 +106,18 @@
                 await Task.Run(() => CSharpParserService.RegisterMSBuild(consoleWriter));
 
                 // TODO: remove when UI available
-                var templateRepository = settingsService.Settings.TemplateRepositories[0];
-                if (templateRepository.RepositoryType == RepositoryType.Git && templateRepository is IRepositoryGit repoGit)
+                foreach (var templateRepository in settingsService.Settings.TemplateRepositories)
                 {
-                    await gitService.Synchronize(repoGit);
+                    if (templateRepository.RepositoryType == RepositoryType.Git && templateRepository is IRepositoryGit repoGit)
+                    {
+                        consoleWriter.AddMessageLine($"Synching repository {templateRepository.Name}...", "pink");
+                        await gitService.Synchronize(repoGit);
+                        consoleWriter.AddMessageLine($"Synched repository {templateRepository.Name}", "green");
+                    }
+                    consoleWriter.AddMessageLine($"Getting releases data from repository {templateRepository.Name}...", "pink");
+                    await templateRepository.FillReleasesAsync();
+                    consoleWriter.AddMessageLine($"Releases data got successfully", "green");
                 }
-                consoleWriter.AddMessageLine($"Getting releases data from repository {templateRepository.Name}...", "pink");
-                await templateRepository.FillReleasesAsync();
-                consoleWriter.AddMessageLine($"Releses data get successfully", "green");
             });
         }
 

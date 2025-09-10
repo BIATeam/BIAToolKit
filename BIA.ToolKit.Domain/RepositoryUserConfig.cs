@@ -43,6 +43,11 @@
 
         public string UrlRelease { get; set; }
 
+        public void CleanReleases()
+        {
+            throw new NotImplementedException();
+        }
+
         public Task FillReleasesAsync()
         {
             throw new NotImplementedException();

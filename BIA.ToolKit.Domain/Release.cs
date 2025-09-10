@@ -41,6 +41,11 @@
             IsDownloaded = false;
         }
 
+        public void EnsureDownloaded()
+        {
+            IsDownloaded = Directory.Exists(LocalPath);
+        }
+
         protected virtual void InitDownload()
         {
             if (Directory.Exists(LocalPath))

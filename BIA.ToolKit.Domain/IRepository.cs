@@ -14,5 +14,6 @@
         RepositoryType RepositoryType { get; }
 
         Task FillReleasesAsync();
+        void CleanReleases();
     }
 }

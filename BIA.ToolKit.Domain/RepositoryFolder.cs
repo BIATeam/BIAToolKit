@@ -33,6 +33,7 @@
 
             Releases.Clear();
             Releases.AddRange(releases);
+            EnsureReleasesDownloaded();
 
             return Task.CompletedTask;
         }

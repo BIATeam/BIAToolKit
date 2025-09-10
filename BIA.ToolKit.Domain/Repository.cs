@@ -26,5 +26,15 @@
         public List<Release> Releases { get; } = [];
 
         public abstract Task FillReleasesAsync();
+
+        protected void EnsureReleasesDownloaded()
+        {
+            Releases.ForEach(r => r.EnsureDownloaded());
+        }
+
+        public void CleanReleases()
+        {
+            Releases.ForEach(r => r.Clean());
+        }
     }
 }
