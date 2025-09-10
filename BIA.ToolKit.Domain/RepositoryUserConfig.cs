@@ -37,6 +37,12 @@
 
         public bool UseLocalClonedFolder { get; set; }
 
+        public string ReleaseFolderRegexPattern { get; set; }
+
+        public RepositoryGitKind RepositoryGitKind { get; set; }
+
+        public string UrlRelease { get; set; }
+
         public Task FillReleasesAsync()
         {
             throw new NotImplementedException();

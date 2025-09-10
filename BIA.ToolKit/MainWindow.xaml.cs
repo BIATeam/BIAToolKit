@@ -131,16 +131,16 @@
                     ConvertRepository(JsonConvert.DeserializeObject<RepositoryUserConfig>(Properties.Settings.Default.ToolkitRepository)) :
                     new RepositoryGit(
                         name: "BIAToolkit GIT",
-                        repositoryKind: RepositoryGitKind.Github,
+                        repositoryGitKind: RepositoryGitKind.Github,
                         url: "https://github.com/BIATeam/BIAToolKit",
                         gitRepositoryName: "BIAToolKit",
                         owner: "BIATeam",
                         useLocalClonedFolder: false
                     ),
-                //new RepositoryFolder(
-                //        name: "BIAToolkit Folder",
-                //        path: "\\\\share.bia.safran\\BIAToolKit\\Releases\\BiaToolkit"
-                //    ),
+                    //new RepositoryFolder(
+                    //    name: "BIAToolkit Folder",
+                    //    path: "\\\\share.bia.safran\\BIAToolKit\\Releases\\BiaToolkit"
+                    //),
 
                 TemplateRepositories = !string.IsNullOrEmpty(Properties.Settings.Default.TemplateRepositories) ?
                     JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.TemplateRepositories)
@@ -149,11 +149,11 @@
                     [
                         new RepositoryGit(
                             name: "BIATemplate GIT",
-                            repositoryKind: RepositoryGitKind.Github,
+                            repositoryGitKind: RepositoryGitKind.Github,
                             url: "https://github.com/BIATeam/BIADemo",
+                            urlRelease: "https://github.com/BIATeam/BIATemplate/archive/refs/tags/",
                             gitRepositoryName: "BIATemplate",
                             owner: "BIATeam",
-                            useLocalClonedFolder: false,
                             companyName: "TheBIADevCompany",
                             projectName: "BIATemplate"
                         ),
@@ -167,7 +167,14 @@
                     JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.CompanyFilesRepositories)
                     .Select(ConvertRepository)
                     .ToList() :
-                    []
+                    [
+                        new RepositoryGit(
+                            name: "BIACompanyFiles Folder",
+                            url: "https://azure.devops.safran/SafranElectricalAndPower/Digital%20Manufacturing/_git/BIACompanyFiles",
+                            releasesFolderRegexPattern: "^V\\d+\\.\\d+\\.\\d+(?:\\.\\d+)?$",
+                            companyName: "TheBIADevCompany",
+                            projectName: "BIATemplate")
+                    ]
             };
 
             settingsService.Init(settings);
@@ -181,7 +188,9 @@
                 {
                     ReleaseType.Git => new RepositoryGit(
                         name: repositoryUserConfig.Name,
+                        repositoryGitKind: repositoryUserConfig.RepositoryGitKind,
                         url: repositoryUserConfig.Url,
+                        urlRelease: repositoryUserConfig.UrlRelease,
                         gitRepositoryName: repositoryUserConfig.GitRepositoryName,
                         owner: repositoryUserConfig.Owner,
                         useLocalClonedFolder: repositoryUserConfig.UseLocalClonedFolder,
@@ -203,6 +212,7 @@
                 RepositoryType.Folder => new RepositoryFolder(
                     name: repositoryUserConfig.Name,
                     path: repositoryUserConfig.LocalPath,
+                    releaseFolderRegexPattern: repositoryUserConfig.ReleaseFolderRegexPattern,
                     companyName: repositoryUserConfig.CompanyName,
                     projectName: repositoryUserConfig.ProjectName),
                 _ => throw new NotImplementedException(),

@@ -50,7 +50,7 @@
         /// <param name="companyName"></param>
         /// <param name="projectName"></param>
         /// <param name="localClonedFolderPath"></param>
-        public RepositoryGit(string name, string url, bool useLocalClonedFolder, string releasesFolderRegexPattern, string companyName = null, string projectName = null, string localClonedFolderPath = null)
+        public RepositoryGit(string name, string url, string releasesFolderRegexPattern, bool useLocalClonedFolder = false, string companyName = null, string projectName = null, string localClonedFolderPath = null)
             : this(name, url, useLocalClonedFolder, ReleaseType.Folder, companyName, projectName, localClonedFolderPath)
         {
             ReleasesFolderRegexPattern = releasesFolderRegexPattern;
@@ -69,13 +69,13 @@
         /// <param name="companyName"></param>
         /// <param name="projectName"></param>
         /// <param name="localClonedFolderPath"></param>
-        public RepositoryGit(string name, RepositoryGitKind repositoryKind, string url, string gitRepositoryName, string owner, bool useLocalClonedFolder, string urlRelease = null, string companyName = null, string projectName = null, string localClonedFolderPath = null)
+        public RepositoryGit(string name, RepositoryGitKind repositoryGitKind, string url, string gitRepositoryName, string owner, bool useLocalClonedFolder = false, string urlRelease = null, string companyName = null, string projectName = null, string localClonedFolderPath = null)
             : this(name, url, useLocalClonedFolder, ReleaseType.Git, companyName, projectName, localClonedFolderPath)
         {
             GitRepositoryName = gitRepositoryName;
             Owner = owner;
             UrlRelease = urlRelease;
-            RepositoryGitKind = repositoryKind;
+            RepositoryGitKind = repositoryGitKind;
         }
 
         public override async Task FillReleasesAsync()

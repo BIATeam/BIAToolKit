@@ -11,5 +11,7 @@
         ReleaseType ReleaseType { get; }
         string Url { get; }
         bool UseLocalClonedFolder { get; }
+        RepositoryGitKind RepositoryGitKind { get; }
+        string UrlRelease { get; }
     }
 }
