@@ -102,18 +102,19 @@
             foreach (var release in repositoryReleases)
             {
                 var assets = new List<ReleaseGitAsset>();
-                if(release.Assets.Any())
+                var releaseArchive = $"{release.TagName}.zip";
+
+                if (release.Assets.Any())
                 {
                     assets.AddRange(release.Assets.Select(a => new ReleaseGitAsset(a.Name, a.BrowserDownloadUrl, a.Size)));
                 }
+                else if (!string.IsNullOrWhiteSpace(UrlRelease))
+                {
+                    assets.Add(new ReleaseGitAsset(releaseArchive, $"{UrlRelease}/{releaseArchive}"));
+                }
                 else
                 {
-                    if(string.IsNullOrWhiteSpace(UrlRelease))
-                    {
-                        throw new Exception($"Release URL not provided");
-                    }
-                    var releaseArchive = $"{release.TagName}.zip";
-                    assets.Add(new ReleaseGitAsset(releaseArchive, $"{UrlRelease}/{releaseArchive}"));
+                    assets.Add(new ReleaseGitAsset(releaseArchive, $"{release.ZipballUrl}"));
                 }
 
                 Releases.Add(new ReleaseGit(release.TagName, Name, assets));

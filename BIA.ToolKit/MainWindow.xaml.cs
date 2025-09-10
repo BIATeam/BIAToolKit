@@ -137,7 +137,6 @@
                         name: "BIAToolkit GIT",
                         repositoryGitKind: RepositoryGitKind.Github,
                         url: "https://github.com/BIATeam/BIAToolKit",
-                        urlRelease: "https://github.com/BIATeam/BIAToolKit/archive/refs/tags",
                         gitRepositoryName: "BIAToolKit",
                         owner: "BIATeam"
                     ),
@@ -155,7 +154,6 @@
                             name: "BIATemplate GIT",
                             repositoryGitKind: RepositoryGitKind.Github,
                             url: "https://github.com/BIATeam/BIADemo",
-                            urlRelease: "https://github.com/BIATeam/BIATemplate/archive/refs/tags",
                             gitRepositoryName: "BIATemplate",
                             owner: "BIATeam",
                             companyName: "TheBIADevCompany",

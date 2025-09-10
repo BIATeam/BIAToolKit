@@ -21,9 +21,10 @@
                 new HttpClientHandler
                 {
                     UseProxy = true,
-                    DefaultProxyCredentials = CredentialCache.DefaultCredentials
+                    DefaultProxyCredentials = CredentialCache.DefaultCredentials,
                 },
                 disposeHandler: true);
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "BiaToolKit");
 
             foreach (var asset in Assets)
             {
