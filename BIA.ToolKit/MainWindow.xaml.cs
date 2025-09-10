@@ -257,23 +257,20 @@
 
         public bool RefreshConfiguration()
         {
-            if (RefreshBIATemplateConfiguration(false))
-            {
-                return RefreshCompanyFilesConfiguration(false);
-            }
-            return false;
+            return RefreshBIATemplateConfiguration() && RefreshCompanyFilesConfiguration();
         }
 
-        public bool RefreshBIATemplateConfiguration(bool inSync)
+        public bool RefreshBIATemplateConfiguration()
         {
             Configurationchange();
-            if (!CheckBIATemplate(settingsService.Settings, inSync))
+            if (!CheckBIATemplate(settingsService.Settings))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
                 return false;
             }
             return true;
         }
+
         public void ConfigurationChange(object sender, RoutedEventArgs e)
         {
             Configurationchange();
@@ -285,10 +282,10 @@
             isModifyTabInitialized = false;
         }
 
-        public bool RefreshCompanyFilesConfiguration(bool inSync)
+        public bool RefreshCompanyFilesConfiguration()
         {
             Configurationchange();
-            if (!CheckCompanyFiles(settingsService.Settings, inSync))
+            if (!CheckCompanyFiles(settingsService.Settings))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
                 return false;
@@ -296,11 +293,11 @@
             return true;
         }
 
-        public bool CheckBIATemplate(IBIATKSettings biaTKsettings, bool inSync)
+        public bool CheckBIATemplate(IBIATKSettings biaTKsettings)
         {
             foreach (var repository in biaTKsettings.TemplateRepositories)
             {
-                if (!repositoryService.CheckRepoFolder(repository, inSync))
+                if (!repositoryService.CheckRepoFolder(repository))
                 {
                     return false;
                 }
@@ -309,13 +306,13 @@
             return true;
         }
 
-        public bool CheckCompanyFiles(IBIATKSettings biaTKsettings, bool inSync)
+        public bool CheckCompanyFiles(IBIATKSettings biaTKsettings)
         {
             if (biaTKsettings.UseCompanyFiles)
             {
                 foreach (var repository in biaTKsettings.CompanyFilesRepositories)
                 {
-                    if (!repositoryService.CheckRepoFolder(repository, inSync))
+                    if (!repositoryService.CheckRepoFolder(repository))
                     {
                         return false;
                     }

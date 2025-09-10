@@ -22,25 +22,14 @@
             this.outPut = outPut;
         }
 
-        public bool CheckRepoFolder(Domain.IRepository repository, bool inSync)
+        public bool CheckRepoFolder(Domain.IRepository repository)
         {
-            if (string.IsNullOrEmpty(repository.LocalPath))
+            var localFolderExists = Directory.Exists(repository.LocalPath);
+            if(!localFolderExists)
             {
-                outPut.AddMessageLine("Error on " + repository.Name + " local folder :\r\nThe path is not define.\r\n Correct it in config tab.", "Red");
+                outPut.AddMessageLine($"Local repository {repository.Name} not found at {repository.LocalPath}");
             }
-            if (repository is RepositoryGit repositoryGit && !inSync && !Directory.Exists(repository.LocalPath))
-            {
-                if (repositoryGit.UseLocalClonedFolder)
-                {
-                    outPut.AddMessageLine("Error on " + repository.Name + " local folder :\r\nThe path " + repository.LocalPath + " do not exist.\r\n Correct it in config tab.", "Red");
-                }
-                else
-                {
-                    outPut.AddMessageLine("Error on " + repository.Name + " :\r\nThe path " + repository.LocalPath + " do not exist.\r\n Please synchronize the repository.", "Red");
-                }
-                return false;
-            }
-            return true;
+            return localFolderExists;
         }
 
         public async Task CleanRepository(Domain.IRepository repository)
@@ -71,7 +60,7 @@
             }
         }
 
-        public async Task CleanReleases(Domain.Repository repository)
+        public async Task CleanReleases(Domain.IRepository repository)
         {
             try
             {
@@ -79,11 +68,7 @@
 
                 await Task.Run(() =>
                 {
-                    foreach (var release in repository.Releases.Where(r => r.IsDownloaded))
-                    {
-                        release.Clean();
-                        outPut.AddMessageLine($"Release {release.Name} cleaned", "green");
-                    }
+                    repository.CleanReleases();
                 });
 
                 outPut.AddMessageLine($"Releases of repository {repository.Name} cleaned", "green");
@@ -103,40 +88,7 @@
 
                 if (!release.IsDownloaded)
                 {
-                    outPut.AddMessageLine($"Downloading release {version}...", "pink");
-                    await release.DownloadAsync();
-                    outPut.AddMessageLine($"Release {version} downloaded", "green");
-
-                    if (repository.RepositoryType == RepositoryType.Git && repository is RepositoryGit repositoryGit && repositoryGit.ReleaseType == ReleaseType.Git)
-                    {
-                        var assetArchivePath = Path.Combine(release.LocalPath, $"{release.Name}.zip");
-                        if (!File.Exists(assetArchivePath))
-                        {
-                            throw new FileNotFoundException(assetArchivePath);
-                        }
-
-                        outPut.AddMessageLine($"Unzipping {Path.GetFileName(assetArchivePath)}...", "pink");
-                        await Task.Run(() =>
-                        {
-                            ZipFile.ExtractToDirectory(assetArchivePath, release.LocalPath);
-                            FileTransform.FolderUnix2Dos(release.LocalPath);
-                            File.Delete(assetArchivePath);
-
-                            var contentDirectories = Directory.GetDirectories(release.LocalPath, "*.*", SearchOption.TopDirectoryOnly);
-                            if (contentDirectories.Length == 1)
-                            {
-                                var contentDirectory = contentDirectories[0];
-                                foreach(var file in Directory.EnumerateFiles(contentDirectory, "*", SearchOption.AllDirectories))
-                                {
-                                    var dest = file.Replace(contentDirectory, release.LocalPath);
-                                    Directory.CreateDirectory(Path.GetDirectoryName(dest));
-                                    File.Copy(file, dest);
-                                }
-                                Directory.Delete(contentDirectory, true);
-                            }
-                        });
-                        outPut.AddMessageLine($"{Path.GetFileName(assetArchivePath)} unzipped", "green");
-                    }
+                    await DownloadReleaseAsync(repository, release);
                 }
 
                 return release.LocalPath;
@@ -148,10 +100,47 @@
             }
         }
 
-        private class VersionDownload
+        private async Task DownloadReleaseAsync(Domain.IRepository repository, Release release)
         {
-            public string Version { get; set; }
-            public bool IsDownloading { get; set; }
+            outPut.AddMessageLine($"Downloading release {release.Name}...", "pink");
+            await release.DownloadAsync();
+            outPut.AddMessageLine($"Release {release.Name} downloaded", "green");
+
+            if (repository.RepositoryType == RepositoryType.Git && repository is RepositoryGit repositoryGit && repositoryGit.ReleaseType == ReleaseType.Git)
+            {
+                await UnzipReleaseGitAsset(release);
+            }
+        }
+
+        private async Task UnzipReleaseGitAsset(Release release)
+        {
+            var assetArchivePath = Path.Combine(release.LocalPath, $"{release.Name}.zip");
+            if (!File.Exists(assetArchivePath))
+            {
+                throw new FileNotFoundException(assetArchivePath);
+            }
+
+            outPut.AddMessageLine($"Unzipping {Path.GetFileName(assetArchivePath)}...", "pink");
+            await Task.Run(() =>
+            {
+                ZipFile.ExtractToDirectory(assetArchivePath, release.LocalPath);
+                FileTransform.FolderUnix2Dos(release.LocalPath);
+                File.Delete(assetArchivePath);
+
+                var contentDirectories = Directory.GetDirectories(release.LocalPath, "*.*", SearchOption.TopDirectoryOnly);
+                if (contentDirectories.Length == 1)
+                {
+                    var contentDirectory = contentDirectories[0];
+                    foreach (var file in Directory.EnumerateFiles(contentDirectory, "*", SearchOption.AllDirectories))
+                    {
+                        var dest = file.Replace(contentDirectory, release.LocalPath);
+                        Directory.CreateDirectory(Path.GetDirectoryName(dest));
+                        File.Copy(file, dest);
+                    }
+                    Directory.Delete(contentDirectory, true);
+                }
+            });
+            outPut.AddMessageLine($"{Path.GetFileName(assetArchivePath)} unzipped", "green");
         }
     }
 }
