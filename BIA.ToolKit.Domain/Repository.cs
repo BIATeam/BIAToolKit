@@ -17,10 +17,10 @@
 
     public abstract class Repository(string name, RepositoryType repositoryType, string companyName = null, string projectName = null) : IRepository
     {
-        public string Name { get; } = name;
-        public RepositoryType RepositoryType { get; } = repositoryType;
-        public string CompanyName { get; } = companyName;
-        public string ProjectName { get; } = projectName;
+        public string Name { get; set; } = name;
+        public RepositoryType RepositoryType { get; set; } = repositoryType;
+        public string CompanyName { get; set; } = companyName;
+        public string ProjectName { get; set; } = projectName;
         public abstract string LocalPath { get; }
         [JsonIgnore]
         public List<Release> Releases { get; } = [];

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Net.Http.Headers;
     using System.Text;
@@ -19,15 +20,15 @@
     public class RepositoryGit : Repository, IRepositoryGit
     {
         public override string LocalPath => UseLocalClonedFolder ? LocalClonedFolderPath : Path.Combine(AppSettings.AppFolderPath, Name, "Repo");
-        public string Url { get; }
-        public bool UseLocalClonedFolder { get; }
-        public ReleaseType ReleaseType { get; }
-        public string LocalClonedFolderPath { get; }
-        public string GitRepositoryName { get; private set; }
-        public string Owner { get; private set; }
-        public string ReleasesFolderRegexPattern { get; private set; }
-        public RepositoryGitKind RepositoryGitKind { get; private set; }
-        public string UrlRelease { get; private set; }
+        public string Url { get; set; }
+        public bool UseLocalClonedFolder { get; set; }
+        public ReleaseType ReleaseType { get; set; }
+        public string LocalClonedFolderPath { get; set; }
+        public string GitRepositoryName { get; set; }
+        public string Owner { get; set; }
+        public string ReleasesFolderRegexPattern { get; set; }
+        public RepositoryGitKind RepositoryGitKind { get; set; }
+        public string UrlRelease { get; set; }
 
         private RepositoryGit(string name, string url, bool useLocalClonedFolder, ReleaseType releaseType, string companyName, string projectName, string localClonedFolderPath)
             : base(name, RepositoryType.Git, companyName, projectName)

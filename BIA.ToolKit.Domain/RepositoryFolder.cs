@@ -9,8 +9,9 @@
 
     public class RepositoryFolder(string name, string path, string releaseFolderRegexPattern = null, string companyName = null, string projectName = null) : Repository(name, RepositoryType.Folder, companyName, projectName), IRepositoryFolder
     {
-        public override string LocalPath => path;
-        public string ReleaseFolderRegexPattern { get; } = releaseFolderRegexPattern;
+        public override string LocalPath => Path;
+        public string Path { get; set; } = path;
+        public string ReleaseFolderRegexPattern { get; set; } = releaseFolderRegexPattern;
 
         public override Task FillReleasesAsync()
         {
@@ -21,14 +22,14 @@
 
             var repositoryFolders = Directory.EnumerateDirectories(LocalPath);
 
-            if(!string.IsNullOrWhiteSpace(ReleaseFolderRegexPattern))
+            if (!string.IsNullOrWhiteSpace(ReleaseFolderRegexPattern))
             {
                 var regex = new Regex(ReleaseFolderRegexPattern);
-                repositoryFolders = repositoryFolders.Where(dir => regex.IsMatch(Path.GetFileName(dir)));
+                repositoryFolders = repositoryFolders.Where(dir => regex.IsMatch(System.IO.Path.GetFileName(dir)));
             }
 
             var releases = repositoryFolders
-                .Select(directoryPath => new ReleaseFolder(Path.GetFileName(directoryPath), directoryPath, Name))
+                .Select(directoryPath => new ReleaseFolder(System.IO.Path.GetFileName(directoryPath), directoryPath, Name))
                 .OrderByDescending(r => r.Name);
 
             Releases.Clear();

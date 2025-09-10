@@ -12,6 +12,7 @@
     {
         public string CompanyName { get; set; }
 
+        [JsonIgnore]
         public string LocalPath { get; set; }
 
         public string Name { get; set; }
@@ -43,12 +44,19 @@
 
         public string UrlRelease { get; set; }
 
+        public string Path { get; set; }
+
         public void CleanReleases()
         {
             throw new NotImplementedException();
         }
 
         public Task FillReleasesAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Update(IRepository repository)
         {
             throw new NotImplementedException();
         }

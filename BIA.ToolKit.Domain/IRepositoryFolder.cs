@@ -4,6 +4,7 @@
 
     public interface IRepositoryFolder : IRepository
     {
+        string Path { get; }
         string ReleaseFolderRegexPattern { get; }
     }
 }
