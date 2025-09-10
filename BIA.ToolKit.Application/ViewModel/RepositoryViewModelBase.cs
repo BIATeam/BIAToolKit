@@ -10,10 +10,10 @@
     {
         private readonly Repository repository;
 
-        protected RepositoryViewModelBase(IRepository repository)
+        protected RepositoryViewModelBase(Repository repository)
         {
             ArgumentNullException.ThrowIfNull(repository, nameof(repository));
-            this.repository = repository as Repository;
+            this.repository = repository;
             foreach(var release in repository.Releases)
             {
                 Releases.Add(new ReleaseViewModel(release));
