@@ -133,9 +133,9 @@
                         name: "BIAToolkit GIT",
                         repositoryGitKind: RepositoryGitKind.Github,
                         url: "https://github.com/BIATeam/BIAToolKit",
+                        urlRelease: "https://github.com/BIATeam/BIAToolKit/archive/refs/tags",
                         gitRepositoryName: "BIAToolKit",
-                        owner: "BIATeam",
-                        useLocalClonedFolder: false
+                        owner: "BIATeam"
                     ),
                     //new RepositoryFolder(
                     //    name: "BIAToolkit Folder",
@@ -151,7 +151,7 @@
                         //    name: "BIATemplate GIT",
                         //    repositoryGitKind: RepositoryGitKind.Github,
                         //    url: "https://github.com/BIATeam/BIADemo",
-                        //    urlRelease: "https://github.com/BIATeam/BIATemplate/archive/refs/tags/",
+                        //    urlRelease: "https://github.com/BIATeam/BIATemplate/archive/refs/tags",
                         //    gitRepositoryName: "BIATemplate",
                         //    owner: "BIATeam",
                         //    companyName: "TheBIADevCompany",
@@ -209,6 +209,14 @@
                         url: repositoryUserConfig.Url,
                         useLocalClonedFolder: repositoryUserConfig.UseLocalClonedFolder,
                         releasesFolderRegexPattern: repositoryUserConfig.ReleasesFolderRegexPattern,
+                        companyName: repositoryUserConfig.CompanyName,
+                        projectName: repositoryUserConfig.ProjectName,
+                        localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath
+                    ),
+                    ReleaseType.Tag => new RepositoryGit(
+                        name: repositoryUserConfig.Name,
+                        url: repositoryUserConfig.Url,
+                        useLocalClonedFolder: repositoryUserConfig.UseLocalClonedFolder,
                         companyName: repositoryUserConfig.CompanyName,
                         projectName: repositoryUserConfig.ProjectName,
                         localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath
