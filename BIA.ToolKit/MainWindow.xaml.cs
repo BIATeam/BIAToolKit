@@ -147,13 +147,19 @@
                     .Select(ConvertRepository)
                     .ToList() :
                     [
+                        //new RepositoryGit(
+                        //    name: "BIATemplate GIT",
+                        //    repositoryGitKind: RepositoryGitKind.Github,
+                        //    url: "https://github.com/BIATeam/BIADemo",
+                        //    urlRelease: "https://github.com/BIATeam/BIATemplate/archive/refs/tags/",
+                        //    gitRepositoryName: "BIATemplate",
+                        //    owner: "BIATeam",
+                        //    companyName: "TheBIADevCompany",
+                        //    projectName: "BIATemplate"
+                        //),
                         new RepositoryGit(
-                            name: "BIATemplate GIT",
-                            repositoryGitKind: RepositoryGitKind.Github,
-                            url: "https://github.com/BIATeam/BIADemo",
-                            urlRelease: "https://github.com/BIATeam/BIATemplate/archive/refs/tags/",
-                            gitRepositoryName: "BIATemplate",
-                            owner: "BIATeam",
+                            name: "BIATemplateV2 GIT",
+                            url: "https://azure.devops.safran/SafranElectricalAndPower/Digital%20Manufacturing/_git/BIATemplateV2",
                             companyName: "TheBIADevCompany",
                             projectName: "BIATemplate"
                         ),
@@ -169,7 +175,7 @@
                     .ToList() :
                     [
                         new RepositoryGit(
-                            name: "BIACompanyFiles Folder",
+                            name: "BIACompanyFiles GIT",
                             url: "https://azure.devops.safran/SafranElectricalAndPower/Digital%20Manufacturing/_git/BIACompanyFiles",
                             releasesFolderRegexPattern: "^V\\d+\\.\\d+\\.\\d+(?:\\.\\d+)?$",
                             companyName: "TheBIADevCompany",

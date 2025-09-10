@@ -78,6 +78,24 @@
             RepositoryGitKind = repositoryGitKind;
         }
 
+        /// <summary>
+        /// Constructor for <see cref="RepositoryGit"/> with <see cref="ReleaseType.Tag"/>.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="url"></param>
+        /// <param name="gitRepositoryName"></param>
+        /// <param name="product"></param>
+        /// <param name="owner"></param>
+        /// <param name="useLocalClonedFolder"></param>
+        /// <param name="companyName"></param>
+        /// <param name="projectName"></param>
+        /// <param name="localClonedFolderPath"></param>
+        public RepositoryGit(string name, string url, bool useLocalClonedFolder = false, string companyName = null, string projectName = null, string localClonedFolderPath = null)
+            : this(name, url, useLocalClonedFolder, ReleaseType.Tag, companyName, projectName, localClonedFolderPath)
+        {
+            
+        }
+
         public override async Task FillReleasesAsync()
         {
             switch (ReleaseType)
@@ -87,6 +105,9 @@
                     break;
                 case ReleaseType.Folder:
                     FillReleasesFolder();
+                    break;
+                case ReleaseType.Tag:
+                    FillReleasesTag();
                     break;
                 default:
                     throw new NotImplementedException();
@@ -128,7 +149,7 @@
                     assets.Add(new ReleaseGitAsset(releaseArchive, $"{UrlRelease}/{releaseArchive}"));
                 }
 
-                Releases.Add(new ReleaseGit(release.TagName, release.HtmlUrl, Name, assets));
+                Releases.Add(new ReleaseGit(release.TagName, Name, assets));
             }
         }
 
@@ -145,6 +166,15 @@
                 .Select(directoryPath => new ReleaseFolder(Path.GetFileName(directoryPath), directoryPath, Name))
                 .OrderByDescending(r => r.Name);
 
+            Releases.Clear();
+            Releases.AddRange(releases);
+        }
+
+        private void FillReleasesTag()
+        {
+            using var gitRepo = new LibGit2Sharp.Repository(LocalPath);
+            var releases = gitRepo.Tags.Select(t => new ReleaseTag(t.FriendlyName, this));
+            
             Releases.Clear();
             Releases.AddRange(releases);
         }

@@ -11,14 +11,14 @@
     public enum ReleaseType
     {
         Git,
-        Folder
+        Folder,
+        Tag
     }
 
-    public abstract class Release(string name, string originPath, string repositoryName)
+    public abstract class Release(string name, string repositoryName)
     {
         public abstract ReleaseType ReleaseType { get; }
         public string Name { get; } = name;
-        public string OriginPath { get;} = originPath;
         public string RepositoryName { get; } = repositoryName;
         public bool IsDownloaded { get; protected set; }
         public string LocalPath => Path.Combine(AppSettings.AppFolderPath, RepositoryName, Name);

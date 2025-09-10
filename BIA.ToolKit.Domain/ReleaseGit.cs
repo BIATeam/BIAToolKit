@@ -8,7 +8,7 @@
     using System.Threading.Tasks;
     using Octokit;
 
-    public class ReleaseGit(string name, string url, string repositoryName, IReadOnlyList<ReleaseGitAsset> assets) : Release(name, url, repositoryName)
+    public class ReleaseGit(string name, string repositoryName, IReadOnlyList<ReleaseGitAsset> assets) : Release(name, repositoryName)
     {
         public override ReleaseType ReleaseType => ReleaseType.Git;
         public IReadOnlyList<ReleaseGitAsset> Assets { get; } = assets;

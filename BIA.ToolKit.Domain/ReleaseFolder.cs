@@ -7,7 +7,7 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Domain.Settings;
 
-    public class ReleaseFolder(string name, string originPath, string repositoryName) : Release(name, originPath, repositoryName)
+    public class ReleaseFolder(string name, string originPath, string repositoryName) : Release(name, repositoryName)
     {
         public override ReleaseType ReleaseType => ReleaseType.Folder;
 
@@ -17,9 +17,9 @@
 
             await Task.Run(() =>
             {
-                foreach (var source in Directory.GetFiles(OriginPath, "*", SearchOption.AllDirectories))
+                foreach (var source in Directory.GetFiles(originPath, "*", SearchOption.AllDirectories))
                 {
-                    var dest = source.Replace(OriginPath, LocalPath);
+                    var dest = source.Replace(originPath, LocalPath);
                     Directory.CreateDirectory(Path.GetDirectoryName(dest));
                     File.Copy(source, dest, true);
                 }
@@ -30,9 +30,9 @@
 
         protected override void InitDownload()
         {
-            if (!Directory.Exists(OriginPath))
+            if (!Directory.Exists(originPath))
             {
-                throw new DirectoryNotFoundException(OriginPath);
+                throw new DirectoryNotFoundException(originPath);
             }
 
             base.InitDownload();

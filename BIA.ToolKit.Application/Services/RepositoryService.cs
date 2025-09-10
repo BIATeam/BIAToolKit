@@ -107,7 +107,7 @@
                     await release.DownloadAsync();
                     outPut.AddMessageLine($"Release {version} downloaded", "green");
 
-                    if (repository.RepositoryType == RepositoryType.Git)
+                    if (repository.RepositoryType == RepositoryType.Git && repository is RepositoryGit repositoryGit && repositoryGit.ReleaseType == ReleaseType.Git)
                     {
                         var assetArchivePath = Path.Combine(release.LocalPath, $"{release.Name}.zip");
                         if (!File.Exists(assetArchivePath))
