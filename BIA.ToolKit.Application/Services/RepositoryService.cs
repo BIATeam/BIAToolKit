@@ -121,6 +121,19 @@
                             ZipFile.ExtractToDirectory(assetArchivePath, release.LocalPath);
                             FileTransform.FolderUnix2Dos(release.LocalPath);
                             File.Delete(assetArchivePath);
+
+                            var contentDirectories = Directory.GetDirectories(release.LocalPath, "*.*", SearchOption.TopDirectoryOnly);
+                            if (contentDirectories.Length == 1)
+                            {
+                                var contentDirectory = contentDirectories[0];
+                                foreach(var file in Directory.EnumerateFiles(contentDirectory, "*", SearchOption.AllDirectories))
+                                {
+                                    var dest = file.Replace(contentDirectory, release.LocalPath);
+                                    Directory.CreateDirectory(Path.GetDirectoryName(dest));
+                                    File.Copy(file, dest);
+                                }
+                                Directory.Delete(contentDirectory, true);
+                            }
                         });
                         outPut.AddMessageLine($"{Path.GetFileName(assetArchivePath)} unzipped", "green");
                     }
