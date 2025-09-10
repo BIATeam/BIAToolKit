@@ -129,7 +129,7 @@
 
                 ToolkitRepository = !string.IsNullOrEmpty(Properties.Settings.Default.ToolkitRepository) ?
                     ConvertRepository(JsonConvert.DeserializeObject<RepositoryUserConfig>(Properties.Settings.Default.ToolkitRepository)) :
-                    new RepositoryGit(
+                    RepositoryGit.CreateWithReleaseTypeGit(
                         name: "BIAToolkit GIT",
                         repositoryGitKind: RepositoryGitKind.Github,
                         url: "https://github.com/BIATeam/BIAToolKit",
@@ -137,27 +137,27 @@
                         gitRepositoryName: "BIAToolKit",
                         owner: "BIATeam"
                     ),
-                    //new RepositoryFolder(
-                    //    name: "BIAToolkit Folder",
-                    //    path: "\\\\share.bia.safran\\BIAToolKit\\Releases\\BiaToolkit"
-                    //),
+                //new RepositoryFolder(
+                //    name: "BIAToolkit Folder",
+                //    path: "\\\\share.bia.safran\\BIAToolKit\\Releases\\BiaToolkit"
+                //),
 
                 TemplateRepositories = !string.IsNullOrEmpty(Properties.Settings.Default.TemplateRepositories) ?
                     JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.TemplateRepositories)
                     .Select(ConvertRepository)
                     .ToList() :
                     [
-                        //new RepositoryGit(
-                        //    name: "BIATemplate GIT",
-                        //    repositoryGitKind: RepositoryGitKind.Github,
-                        //    url: "https://github.com/BIATeam/BIADemo",
-                        //    urlRelease: "https://github.com/BIATeam/BIATemplate/archive/refs/tags",
-                        //    gitRepositoryName: "BIATemplate",
-                        //    owner: "BIATeam",
-                        //    companyName: "TheBIADevCompany",
-                        //    projectName: "BIATemplate"
-                        //),
-                        new RepositoryGit(
+                        RepositoryGit.CreateWithReleaseTypeGit(
+                            name: "BIATemplate GIT",
+                            repositoryGitKind: RepositoryGitKind.Github,
+                            url: "https://github.com/BIATeam/BIADemo",
+                            urlRelease: "https://github.com/BIATeam/BIATemplate/archive/refs/tags",
+                            gitRepositoryName: "BIATemplate",
+                            owner: "BIATeam",
+                            companyName: "TheBIADevCompany",
+                            projectName: "BIATemplate"
+                        ),
+                        RepositoryGit.CreateWithReleaseTypeTag(
                             name: "BIATemplateV2 GIT",
                             url: "https://azure.devops.safran/SafranElectricalAndPower/Digital%20Manufacturing/_git/BIATemplateV2",
                             companyName: "TheBIADevCompany",
@@ -174,7 +174,7 @@
                     .Select(ConvertRepository)
                     .ToList() :
                     [
-                        new RepositoryGit(
+                        RepositoryGit.CreateWithReleaseTypeFolder(
                             name: "BIACompanyFiles GIT",
                             url: "https://azure.devops.safran/SafranElectricalAndPower/Digital%20Manufacturing/_git/BIACompanyFiles",
                             releasesFolderRegexPattern: "^V\\d+\\.\\d+\\.\\d+(?:\\.\\d+)?$",
@@ -192,7 +192,7 @@
             {
                 RepositoryType.Git => repositoryUserConfig.ReleaseType switch
                 {
-                    ReleaseType.Git => new RepositoryGit(
+                    ReleaseType.Git => RepositoryGit.CreateWithReleaseTypeGit(
                         name: repositoryUserConfig.Name,
                         repositoryGitKind: repositoryUserConfig.RepositoryGitKind,
                         url: repositoryUserConfig.Url,
@@ -204,7 +204,7 @@
                         projectName: repositoryUserConfig.ProjectName,
                         localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath
                     ),
-                    ReleaseType.Folder => new RepositoryGit(
+                    ReleaseType.Folder => RepositoryGit.CreateWithReleaseTypeFolder(
                         name: repositoryUserConfig.Name,
                         url: repositoryUserConfig.Url,
                         useLocalClonedFolder: repositoryUserConfig.UseLocalClonedFolder,
@@ -213,7 +213,7 @@
                         projectName: repositoryUserConfig.ProjectName,
                         localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath
                     ),
-                    ReleaseType.Tag => new RepositoryGit(
+                    ReleaseType.Tag => RepositoryGit.CreateWithReleaseTypeTag(
                         name: repositoryUserConfig.Name,
                         url: repositoryUserConfig.Url,
                         useLocalClonedFolder: repositoryUserConfig.UseLocalClonedFolder,
