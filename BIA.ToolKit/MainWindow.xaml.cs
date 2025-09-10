@@ -131,6 +131,7 @@
                     ConvertRepository(JsonConvert.DeserializeObject<RepositoryUserConfig>(Properties.Settings.Default.ToolkitRepository)) :
                     new RepositoryGit(
                         name: "BIAToolkit GIT",
+                        repositoryKind: RepositoryGitKind.Github,
                         url: "https://github.com/BIATeam/BIAToolKit",
                         gitRepositoryName: "BIAToolKit",
                         owner: "BIATeam",
@@ -148,6 +149,7 @@
                     [
                         new RepositoryGit(
                             name: "BIATemplate GIT",
+                            repositoryKind: RepositoryGitKind.Github,
                             url: "https://github.com/BIATeam/BIADemo",
                             gitRepositoryName: "BIATemplate",
                             owner: "BIATeam",

@@ -11,6 +11,11 @@
     using Octokit;
     using static System.Net.WebRequestMethods;
 
+    public enum RepositoryGitKind
+    {
+        Github
+    }
+
     public class RepositoryGit : Repository, IRepositoryGit
     {
         private readonly Regex releasesFolderRegex;
@@ -23,6 +28,8 @@
         public string GitRepositoryName { get; }
         public string Owner { get; }
         public string ReleasesFolderRegexPattern { get; }
+        public RepositoryGitKind RepositoryGitKind { get; }
+        public string UrlRelease { get; }
 
         private RepositoryGit(string name, string url, bool useLocalClonedFolder, ReleaseType releaseType, string companyName, string projectName, string localClonedFolderPath)
             : base(name, RepositoryType.Git, companyName, projectName)
@@ -62,11 +69,13 @@
         /// <param name="companyName"></param>
         /// <param name="projectName"></param>
         /// <param name="localClonedFolderPath"></param>
-        public RepositoryGit(string name, string url, string gitRepositoryName, string owner, bool useLocalClonedFolder, string companyName = null, string projectName = null, string localClonedFolderPath = null)
+        public RepositoryGit(string name, RepositoryGitKind repositoryKind, string url, string gitRepositoryName, string owner, bool useLocalClonedFolder, string urlRelease = null, string companyName = null, string projectName = null, string localClonedFolderPath = null)
             : this(name, url, useLocalClonedFolder, ReleaseType.Git, companyName, projectName, localClonedFolderPath)
         {
             GitRepositoryName = gitRepositoryName;
             Owner = owner;
+            UrlRelease = urlRelease;
+            RepositoryGitKind = repositoryKind;
         }
 
         public override async Task FillReleasesAsync()
@@ -86,15 +95,38 @@
 
         private async Task FillReleasesGitAsync()
         {
+            switch (RepositoryGitKind)
+            {
+                case RepositoryGitKind.Github:
+                    await FillReleasesGithubAsync();
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        private async Task FillReleasesGithubAsync()
+        {
             var github = new GitHubClient(new Octokit.ProductHeaderValue("BIAToolKit"));
             var repositoryReleases = await github.Repository.Release.GetAll(Owner, GitRepositoryName);
 
             Releases.Clear();
             foreach (var release in repositoryReleases)
             {
-                var assets = release.Assets.Any() ? 
-                    release.Assets.Select(a => new ReleaseGitAsset(a.Name, a.BrowserDownloadUrl, a.Size)).ToList() :
-                    [new ReleaseGitAsset($"{release.TagName}.zip", $"{Url}/archive/refs/tags/{release.TagName}.zip")];
+                var assets = new List<ReleaseGitAsset>();
+                if(release.Assets.Any())
+                {
+                    assets.AddRange(release.Assets.Select(a => new ReleaseGitAsset(a.Name, a.BrowserDownloadUrl, a.Size)));
+                }
+                else
+                {
+                    if(string.IsNullOrWhiteSpace(UrlRelease))
+                    {
+                        throw new Exception($"Release URL not provided");
+                    }
+                    var releaseArchive = $"{release.TagName}.zip";
+                    assets.Add(new ReleaseGitAsset(releaseArchive, $"{UrlRelease}/{releaseArchive}"));
+                }
 
                 Releases.Add(new ReleaseGit(release.TagName, release.HtmlUrl, Name, assets));
             }
