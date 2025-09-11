@@ -1,0 +1,30 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateOption.ttinclude" #>
+<#@ output extension=".cs" #>
+// <copyright file="<#= ModelInstance.EntityName #>OptionAppService.cs" company="<#= ModelInstance.CompanyName #>">
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.DomainName #>
+{
+    using BIA.Net.Core.Application.Services;
+    using BIA.Net.Core.Domain.Dto.Option;
+    using BIA.Net.Core.Domain.RepoContract;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers;
+
+    /// <summary>
+    /// The application service used for <#= ModelInstance.EntityName.ToLiteral() #> option.
+    /// </summary>
+    public class <#= ModelInstance.EntityName #>OptionAppService : OptionAppServiceBase<OptionDto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, <#= ModelInstance.EntityName #>OptionMapper>, I<#= ModelInstance.EntityName #>OptionAppService
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>OptionAppService"/> class.
+        /// </summary>
+        /// <param name="repository">The repository.</param>
+        public <#= ModelInstance.EntityName #>OptionAppService(ITGenericRepository<<#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>> repository)
+            : base(repository)
+        {
+        }
+    }
+}

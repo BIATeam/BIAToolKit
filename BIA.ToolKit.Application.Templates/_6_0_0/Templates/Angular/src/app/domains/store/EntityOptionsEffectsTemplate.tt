@@ -1,0 +1,63 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateOption.ttinclude" #>
+<#@ output extension=".ts" #>
+import { Injectable } from '@angular/core';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
+import {
+  BiaMessageService,
+  BiaOnlineOfflineService,
+} from 'bia-ng/core';
+import { of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
+import { <#= ModelInstance.EntityName #>OptionDas } from '../services/<#= ModelInstance.EntityName.ToKebabCase() #>-option-das.service';
+import { Domain<#= ModelInstance.EntityName #>OptionsActions } from './<#= ModelInstance.EntityName.ToKebabCase() #>-options-actions';
+/**
+ * Effects file is for isolating and managing side effects of the application in one place
+ * Http requests, Sockets, Routing, LocalStorage, etc
+ */
+
+@Injectable()
+export class <#= ModelInstance.EntityName #>OptionsEffects {
+  loadAll$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(
+        Domain<#= ModelInstance.EntityName #>OptionsActions.loadAll
+      ) /* When action is dispatched */,
+      /* startWith(loadAll()), */
+      /* Hit the <#= ModelInstance.EntityNamePlural #> Index endpoint of our REST API */
+      /* Dispatch LoadAllSuccess action to the central store with id list returned by the backend as id*/
+      /* '<#= ModelInstance.EntityNamePlural #> Reducers' will take care of the rest */
+      switchMap(() =>
+        this.<#= ModelInstance.EntityName.ToCamelCase() #>OptionDas
+          .getList({
+            endpoint: 'allOptions',
+            offlineMode: BiaOnlineOfflineService.isModeEnabled,
+          })
+          .pipe(
+            map(<#= ModelInstance.EntityNamePlural.ToCamelCase() #> =>
+              Domain<#= ModelInstance.EntityName #>OptionsActions.loadAllSuccess({
+                <#= ModelInstance.EntityNamePlural.ToCamelCase() #>: <#= ModelInstance.EntityNamePlural.ToCamelCase() #>?.sort((a, b) =>
+                  a.display.localeCompare(b.display)
+                ),
+              })
+            ),
+            catchError(err => {
+              if (
+                BiaOnlineOfflineService.isModeEnabled !== true ||
+                BiaOnlineOfflineService.isServerAvailable(err) === true
+              ) {
+                this.biaMessageService.showErrorHttpResponse(err);
+              }
+              return of(Domain<#= ModelInstance.EntityName #>OptionsActions.failure({ error: err }));
+            })
+          )
+      )
+    )
+  );
+
+  constructor(
+    private actions$: Actions,
+    private <#= ModelInstance.EntityName.ToCamelCase() #>OptionDas: <#= ModelInstance.EntityName #>OptionDas,
+    private biaMessageService: BiaMessageService
+  ) {}
+}

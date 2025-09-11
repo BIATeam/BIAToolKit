@@ -1,0 +1,164 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+import { Injectable, Injector } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AuthService } from 'bia-ng/core';
+import { CrudItemService, CrudItemSignalRService } from 'bia-ng/shared';
+import { TableLazyLoadEvent } from 'primeng/table';
+import { map, Observable } from 'rxjs';
+<#  if(ModelInstance.IsTeam || ModelInstance.HasAncestorTeam) {#>
+import { TeamTypeId } from 'src/app/shared/constants';
+<#  } #>
+import { AppState } from 'src/app/store/state';
+import { <#= ModelInstance.EntityName #> } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
+import { Feature<#= ModelInstance.EntityNamePlural #>Store } from '../store/<#= ModelInstance.EntityName.ToKebabCase() #>.state';
+import { Feature<#= ModelInstance.EntityNamePlural #>Actions } from '../store/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-actions';
+import { <#= ModelInstance.EntityName #>Das } from './<#= ModelInstance.EntityName.ToKebabCase() #>-das.service';
+import { <#= ModelInstance.EntityName #>OptionsService } from './<#= ModelInstance.EntityName.ToKebabCase() #>-options.service';
+<#  if(ModelInstance.HasParent) {#>
+import { <#= ModelInstance.ParentName #>Service } from '../../../services/<#= ModelInstance.ParentName.ToKebabCase() #>.service';
+<#  } #>
+
+@Injectable({
+  providedIn: 'root',
+})
+export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= ModelInstance.EntityName #>> {
+  _updateSuccessActionType = Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost.type;
+  _createSuccessActionType = Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost.type;
+  _updateFailureActionType = Feature<#= ModelInstance.EntityNamePlural #>Actions.failure.type;
+
+  constructor(
+    private store: Store<AppState>,
+    public dasService: <#= ModelInstance.EntityName #>Das,
+    public signalRService: CrudItemSignalRService<<#= ModelInstance.EntityName #>>,
+<#  if(ModelInstance.HasParent) { #>
+    public <#=  ModelInstance.ParentName.ToCamelCase() #>Service: <#=  ModelInstance.ParentName #>Service,
+<#  } #>
+<# if (ModelInstance.IsTeam || (!ModelInstance.HasParent && ModelInstance.HasAncestorTeam)) {#>
+    protected authService: AuthService,
+<#  } #>
+    public optionsService: <#= ModelInstance.EntityName #>OptionsService,
+    protected injector: Injector
+  ) {
+    super(dasService, signalRService, optionsService, injector);
+  }
+<#  if(ModelInstance.IsTeam) { #>
+
+  // Customization for teams
+  public get currentCrudItemId(): any {
+    // should be redefine due to the setter
+    return super.currentCrudItemId;
+  }
+
+  // Customization for teams
+  public set currentCrudItemId(id: any) {
+    if (this._currentCrudItemId !== id) {
+      this._currentCrudItemId = id;
+      this.authService.changeCurrentTeamId(
+        TeamTypeId.<#= ModelInstance.EntityName #>,
+        id
+      );
+    }
+    this.load(id);
+  }
+<#  } #>
+
+  public getParentIds(): any[] {
+    // TODO after creation of CRUD<# if(ModelInstance.IsTeam) {#> Team<# } #> <#= ModelInstance.EntityName #> : adapt the parent Key to the context. It can be null if root crud
+<#  if (ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
+    // For child : set the Id of the Parent
+    return [this.<#= ModelInstance.ParentName.ToCamelCase()  #>Service.currentCrudItemId];
+<#  } else if (ModelInstance.HasAncestorTeam) { #>
+    return [ this.authService.getCurrentTeamId(TeamTypeId.<#= ModelInstance.AncestorTeamName #>)];
+<#  } else { #>
+    return [];
+<#  } #>
+  }
+
+  public getFeatureName() {
+    return <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.featureName;
+  }
+
+  public crudItems$: Observable<<#= ModelInstance.EntityName #>[]> = this.store.select(
+    Feature<#= ModelInstance.EntityNamePlural #>Store.getAll<#= ModelInstance.EntityNamePlural #>
+  );
+  public totalCount$: Observable<number> = this.store.select(
+    Feature<#= ModelInstance.EntityNamePlural #>Store.get<#= ModelInstance.EntityNamePlural #>TotalCount
+  );
+  public loadingGetAll$: Observable<boolean> = this.store.select(
+    Feature<#= ModelInstance.EntityNamePlural #>Store.get<#= ModelInstance.EntityName #>LoadingGetAll
+  );
+  public lastLazyLoadEvent$: Observable<TableLazyLoadEvent> = this.store.select(
+    Feature<#= ModelInstance.EntityNamePlural #>Store.getLastLazyLoadEvent
+  );
+
+  public crudItem$: Observable<<#= ModelInstance.EntityName #>> = this.store.select(
+    Feature<#= ModelInstance.EntityNamePlural #>Store.getCurrent<#= ModelInstance.EntityName #>
+  );
+
+  public displayItemName$: Observable<string> = this.crudItem$.pipe(
+    map(<#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>?.<#= ModelInstance.DisplayItemName.ToCamelCase() #>?.toString() ?? '')
+  );
+
+  public loadingGet$: Observable<boolean> = this.store.select(
+    Feature<#= ModelInstance.EntityNamePlural #>Store.get<#= ModelInstance.EntityName #>LoadingGet
+  );
+
+  public load(id: any) {
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.load({ id }));
+  }
+  public loadAllByPost(event: TableLazyLoadEvent) {
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost({ event }));
+  }
+  public create(crudItem: <#= ModelInstance.EntityName #>) {
+<#  if(ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
+    // TODO after creation of CRUD <#= ModelInstance.EntityName #> : map parent Key on the corresponding field
+    crudItem.<#= ModelInstance.ParentName.ToCamelCase() #>Id = this.getParentIds()[0];
+<#  } else if (ModelInstance.HasAncestorTeam) {#>
+    crudItem.<#= ModelInstance.AncestorTeamName.ToCamelCase() #>Id = this.getParentIds()[0];
+<#  } #>
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.create({ <#= ModelInstance.EntityName.ToCamelCase() #>: crudItem }));
+  }
+<#  if(ModelInstance.CanImport) { #>
+  public save(crudItems: <#= ModelInstance.EntityName #>[]) {
+<#  if(ModelInstance.HasParent) { #>
+    // TODO after creation of CRUD <#= ModelInstance.EntityName #> : map parent Key on the corresponding field
+    crudItems.map(x => (x.<#= ModelInstance.ParentName.ToCamelCase() #>Id = this.getParentIds()[0]));
+<#  } else if (ModelInstance.HasAncestorTeam) {#>
+    crudItems.map(x => (x.<#= ModelInstance.AncestorTeamName.ToCamelCase() #>Id = this.getParentIds()[0]));
+<#  } #>
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.save({ <#= ModelInstance.EntityNamePlural.ToCamelCase() #>: crudItems }));
+  }
+<#  } #>
+  public update(crudItem: <#= ModelInstance.EntityName #>) {
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.update({ <#= ModelInstance.EntityName.ToCamelCase() #>: crudItem }));
+  }
+  public remove(id: any) {
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.remove({ id }));
+  }
+  public multiRemove(ids: any[]) {
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.multiRemove({ ids }));
+  }
+  public clearAll() {
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.clearAll());
+  }
+  public clearCurrent() {
+<#  if(ModelInstance.BaseKeyType == "string" || ModelInstance.BaseKeyType == "Guid") { #>
+    this._currentCrudItem = <<#= ModelInstance.EntityName #>>{ id: '' };
+    this._currentCrudItemId = '';
+<#  } else { #>
+    this._currentCrudItem = <<#= ModelInstance.EntityName #>>{};
+    this._currentCrudItemId = 0;
+<#  } #>
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.clearCurrent());
+  }
+<#  if(ModelInstance.IsFixable) { #>
+  public updateFixedStatus(id: any, isFixed: boolean): void {
+    this.store.dispatch(
+      Feature<#= ModelInstance.EntityNamePlural #>Actions.updateFixedStatus({ id: id, isFixed: isFixed })
+    );
+  }
+<#  } #>
+}

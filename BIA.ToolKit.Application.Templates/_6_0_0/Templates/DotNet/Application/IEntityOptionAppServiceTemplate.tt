@@ -1,0 +1,19 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateOption.ttinclude" #>
+<#@ output extension=".cs" #>
+// <copyright file="I<#= ModelInstance.EntityName #>OptionAppService.cs" company="<#= ModelInstance.CompanyName #>">
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.DomainName #>
+{
+    using BIA.Net.Core.Application.Services;
+    using BIA.Net.Core.Domain.Dto.Option;
+
+    /// <summary>
+    /// The interface defining the application service for <#= ModelInstance.EntityName.ToLiteral() #> option.
+    /// </summary>
+    public interface I<#= ModelInstance.EntityName #>OptionAppService : IOptionAppServiceBase<OptionDto, <#= ModelInstance.BaseKeyType #>>
+    {
+    }
+}

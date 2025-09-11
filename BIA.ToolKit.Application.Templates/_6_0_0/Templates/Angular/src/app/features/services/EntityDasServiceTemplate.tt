@@ -1,0 +1,15 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+import { Injectable, Injector } from '@angular/core';
+import { AbstractDas } from 'bia-ng/core';
+import { <#= ModelInstance.EntityName #> } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class <#= ModelInstance.EntityName #>Das extends AbstractDas<<#= ModelInstance.EntityName #>> {
+  constructor(injector: Injector) {
+    super(injector, '<#= ModelInstance.EntityNamePlural #>');
+  }
+}

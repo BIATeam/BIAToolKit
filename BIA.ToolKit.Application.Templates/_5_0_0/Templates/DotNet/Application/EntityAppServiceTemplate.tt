@@ -28,7 +28,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common.Enum;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
 <#  if(ModelInstance.HasAncestorTeam) { #>
-    using TheBIADevCompany.BIADemo.Domain.Dto.User;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.User;
 <#  } #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers;

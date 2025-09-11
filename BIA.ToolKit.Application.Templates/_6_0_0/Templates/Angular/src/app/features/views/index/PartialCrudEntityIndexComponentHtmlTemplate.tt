@@ -1,0 +1,16 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".html" #>
+<#  if(ModelInstance.HasParent && !ModelInstance.IsTeam) { #>
+      <!-- BIAToolKit - Begin Partial <#= ModelInstance.ParentName #>IndexHtml <#= ModelInstance.EntityName #> -->
+      <ng-template pTemplate="actionOnSelected">
+        <button
+          *ngIf="canView<#= ModelInstance.EntityNamePlural #>"
+          pButton
+          [disabled]="selectedCrudItems.length !== 1"
+          class="p-button-outlined"
+          label="{{ '<#= ModelInstance.ParentName.ToCamelCase() #>.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>' | translate }}"
+          (click)="onView<#= ModelInstance.EntityNamePlural #>(selectedCrudItems[0].id)"></button>
+      </ng-template>
+      <!-- BIAToolKit - End Partial <#= ModelInstance.ParentName #>IndexHtml <#= ModelInstance.EntityName #> -->
+<# }  #>

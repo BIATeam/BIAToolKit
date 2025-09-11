@@ -1,0 +1,44 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(ModelInstance.IsTeam) { #>
+import { AsyncPipe, NgIf } from '@angular/common';
+import { Component, Injector, OnInit } from '@angular/core';
+import {
+  MemberEditComponent,
+  MemberFormEditComponent,
+  MemberModule,
+  SpinnerComponent,
+} from 'bia-ng/shared';
+import { TeamTypeId } from 'src/app/shared/constants';
+import { <#= ModelInstance.EntityName #>Service } from '../../../../services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
+
+@Component({
+  selector: 'app-<#= ModelInstance.EntityName.ToKebabCase() #>-member-edit',
+  templateUrl:
+    '../../../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/bia-ng/templates/feature-templates/members/views/member-edit/member-edit.component.html',
+  imports: [
+    MemberModule,
+    NgIf,
+    AsyncPipe,
+    SpinnerComponent,
+    MemberFormEditComponent,
+  ],
+})
+export class <#= ModelInstance.EntityName #>MemberEditComponent
+  extends MemberEditComponent
+  implements OnInit
+{
+  constructor(
+    injector: Injector,
+    public <#= ModelInstance.EntityName.ToCamelCase() #>Service: <#= ModelInstance.EntityName #>Service
+  ) {
+    super(injector);
+  }
+
+  ngOnInit() {
+    this.teamTypeId = TeamTypeId.<#= ModelInstance.EntityName #>;
+    super.ngOnInit();
+  }
+}
+<#  } #>

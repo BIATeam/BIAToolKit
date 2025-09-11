@@ -2,20 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Data;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
-    using BIA.ToolKit.Application.Templates;
     using BIA.ToolKit.Application.Templates.Common.Enum;
-    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using Newtonsoft.Json;
 
     [Collection("FileGeneratorTestCollection")]
     public class GenerateCrudTest(FileGeneratorTestFixture fixture)
@@ -151,6 +142,108 @@
                 HasAncestorTeam = true,
                 AncestorTeamName = "Site",
                 UseHubForClient = true,
+                HasReadOnlyMode = true,
+                IsFixable = true,
+                FormReadOnlyMode = Enum.GetName(typeof(FormReadOnlyMode), FormReadOnlyMode.Off),
+                CanImport = true,
+                GenerateBack = true,
+                GenerateFront = true,
+                AngularFront = "Angular",
+            };
+
+            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);
+        }
+
+        /// <summary>
+        /// Generates the CRUD's files for Plane.
+        /// </summary>
+        [Fact]
+        public async Task GeneratePilot_BIADemoConfiguration_AllFilesEquals()
+        {
+            var entityInfo = new EntityInfo(
+                path: string.Empty,
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
+                name: "Pilot",
+                baseType: null,
+                baseKeyType: "Guid",
+                arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "Site")],
+                baseList: ["BaseDtoVersionedFixableArchivable<Guid>"]);
+
+            var domainName = "Fleet";
+
+            var properties = new List<PropertyInfo>
+            {
+                new("int", "SiteId", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("IsParent", true)]),
+                new("string", "IdentificationNumber", [RoslynHelper.CreateAttributeArgument("Required", true)]),
+                new("int?", "FlightHours", [RoslynHelper.CreateAttributeArgument("Required", false)]),
+            };
+
+            var crudContext = new FileGeneratorCrudContext
+            {
+                CompanyName = fixture.TestProject.CompanyName,
+                ProjectName = fixture.TestProject.Name,
+                DomainName = domainName,
+                EntityName = entityInfo.Name,
+                EntityNamePlural = entityInfo.NamePluralized,
+                BaseKeyType = entityInfo.BaseKeyType,
+                Properties = properties,
+                IsVersioned = true,
+                DisplayItemName = "IdentificationNumber",
+                OptionItems = [],
+                HasAncestorTeam = true,
+                AncestorTeamName = "Site",
+                UseHubForClient = false,
+                HasReadOnlyMode = true,
+                IsFixable = true,
+                FormReadOnlyMode = Enum.GetName(typeof(FormReadOnlyMode), FormReadOnlyMode.Off),
+                CanImport = true,
+                GenerateBack = true,
+                GenerateFront = true,
+                AngularFront = "Angular",
+            };
+
+            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);
+        }
+
+        /// <summary>
+        /// Generates the CRUD's files for Plane.
+        /// </summary>
+        [Fact]
+        public async Task GenerateFlight_BIADemoConfiguration_AllFilesEquals()
+        {
+            var entityInfo = new EntityInfo(
+                path: string.Empty,
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
+                name: "Flight",
+                baseType: null,
+                baseKeyType: "string",
+                arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "Site")],
+                baseList: ["BaseDtoVersionedFixableArchivable<string>"]);
+
+            var domainName = "Fleet";
+
+            var properties = new List<PropertyInfo>
+            {
+                new("int", "SiteId", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("IsParent", true)]),
+                new("OptionDto", "DepartureAirport", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("ItemType", "Airport")]),
+                new("OptionDto", "ArrivalAirport", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("ItemType", "Airport")]),
+            };
+
+            var crudContext = new FileGeneratorCrudContext
+            {
+                CompanyName = fixture.TestProject.CompanyName,
+                ProjectName = fixture.TestProject.Name,
+                DomainName = domainName,
+                EntityName = entityInfo.Name,
+                EntityNamePlural = entityInfo.NamePluralized,
+                BaseKeyType = entityInfo.BaseKeyType,
+                Properties = properties,
+                IsVersioned = true,
+                DisplayItemName = "Id",
+                OptionItems = ["Airport"],
+                HasAncestorTeam = true,
+                AncestorTeamName = "Site",
+                UseHubForClient = false,
                 HasReadOnlyMode = true,
                 IsFixable = true,
                 FormReadOnlyMode = Enum.GetName(typeof(FormReadOnlyMode), FormReadOnlyMode.Off),

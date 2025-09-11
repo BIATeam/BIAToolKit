@@ -1,0 +1,77 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+import { createAction, props } from '@ngrx/store';
+import { DataResult } from 'bia-ng/models';
+import { TableLazyLoadEvent } from 'primeng/table';
+import { <#= ModelInstance.EntityName #> } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
+
+export namespace Feature<#= ModelInstance.EntityNamePlural #>Actions {
+  export const loadAllByPost = createAction(
+    '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Load all by post',
+    props<{ event: TableLazyLoadEvent }>()
+  );
+
+  export const load = createAction(
+    '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Load',
+    props<{ id: number }>()
+  );
+
+  export const create = createAction(
+    '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Create',
+    props<{ <#= ModelInstance.EntityName.ToCamelCase() #>: <#= ModelInstance.EntityName #> }>()
+  );
+
+  export const update = createAction(
+    '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Update',
+    props<{ <#= ModelInstance.EntityName.ToCamelCase() #>: <#= ModelInstance.EntityName #> }>()
+  );
+
+<#  if(ModelInstance.CanImport) { #>
+  export const save = createAction(
+    '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Save',
+    props<{ <#= ModelInstance.EntityNamePlural.ToCamelCase() #>: <#= ModelInstance.EntityName #>[] }>()
+  );
+<#  } #>
+
+  export const remove = createAction(
+    '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Remove',
+    props<{ id: number }>()
+  );
+
+  export const multiRemove = createAction(
+    '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Multi Remove',
+    props<{ ids: number[] }>()
+  );
+
+  export const loadAllByPostSuccess = createAction(
+    '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Load all by post success',
+    props<{ result: DataResult<<#= ModelInstance.EntityName #>[]>; event: TableLazyLoadEvent }>()
+  );
+
+  export const loadSuccess = createAction(
+    '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Load success',
+    props<{ <#= ModelInstance.EntityName.ToCamelCase() #>: <#= ModelInstance.EntityName #> }>()
+  );
+
+  export const failure = createAction(
+    '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Failure',
+    props<{ error: any }>()
+  );
+
+  export const clearAll = createAction(
+    '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Clear all in state'
+  );
+
+  export const clearCurrent = createAction(
+    '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Clear current'
+  );
+<#  if(ModelInstance.IsFixable) { #>
+
+  export const updateFixedStatus = createAction(
+    '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Update fixed status',
+    props<{ id: number; isFixed: boolean }>()
+  );
+<#  } #>
+}

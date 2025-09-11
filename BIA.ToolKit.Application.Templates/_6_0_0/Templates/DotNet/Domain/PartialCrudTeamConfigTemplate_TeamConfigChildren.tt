@@ -1,0 +1,13 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<# if(ModelInstance.IsTeam && ModelInstance.HasParent) { #>
+                // BIAToolKit - Begin Partial TeamConfig<#= ModelInstance.ParentName #>Children <#= ModelInstance.EntityName #>
+                    new ()
+                    {
+                        TeamTypeId = (int)TeamTypeId.<#= ModelInstance.EntityName #>,
+                        GetChilds = team => (team as <#= ModelInstance.DomainName #>.Entities.<#= ModelInstance.ParentName #>).<#= ModelInstance.EntityNamePlural #>,
+                    },
+
+                // BIAToolKit - End Partial TeamConfig<#= ModelInstance.ParentName #>Children <#= ModelInstance.EntityName #>
+<# }  #>

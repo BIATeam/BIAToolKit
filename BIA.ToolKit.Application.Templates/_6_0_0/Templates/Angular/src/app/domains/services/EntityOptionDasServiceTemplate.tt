@@ -1,0 +1,15 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateOption.ttinclude" #>
+<#@ output extension=".ts" #>
+import { Injectable, Injector } from '@angular/core';
+import { AbstractDas } from 'bia-ng/core';
+import { OptionDto } from 'bia-ng/models';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class <#= ModelInstance.EntityName #>OptionDas extends AbstractDas<OptionDto> {
+  constructor(injector: Injector) {
+    super(injector, '<#= ModelInstance.EntityName #>Options');
+  }
+}

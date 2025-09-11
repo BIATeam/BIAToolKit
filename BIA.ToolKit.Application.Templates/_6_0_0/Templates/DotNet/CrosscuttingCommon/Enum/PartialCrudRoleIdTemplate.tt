@@ -1,0 +1,13 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<# if(ModelInstance.IsTeam) { #>
+        // BIAToolKit - Begin Partial RoleId <#= ModelInstance.EntityName #>
+
+        /// <summary>
+        /// The <#= ModelInstance.EntityName #> admin role identifier.
+        /// </summary>
+        <#= ModelInstance.EntityName #>Admin = <#= ModelInstance.TeamRoleId #>,
+
+        // BIAToolKit - End Partial RoleId <#= ModelInstance.EntityName #>
+<# }  #>

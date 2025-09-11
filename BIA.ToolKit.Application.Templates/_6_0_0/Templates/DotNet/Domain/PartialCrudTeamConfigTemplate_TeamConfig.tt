@@ -1,0 +1,33 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<# if(ModelInstance.IsTeam) { #>
+            // BIAToolKit - Begin Partial TeamConfig <#= ModelInstance.EntityName #>
+            new ()
+            {
+                TeamTypeId = (int)TeamTypeId.<#= ModelInstance.EntityName #>,
+                RightPrefix = "<#= ModelInstance.EntityName #>",
+                AdminRoleIds = [
+                    (int)RoleId.<#= ModelInstance.EntityName #>Admin
+                    ],
+                Children = new ImmutableListBuilder<BiaTeamChildrenConfig<BaseEntityTeam>>
+                {
+                // BIAToolKit - Begin TeamConfig<#= ModelInstance.EntityName #>Children
+                // BIAToolKit - End TeamConfig<#= ModelInstance.EntityName #>Children
+                }.ToImmutable(),
+<#  if(ModelInstance.HasParent) { #>
+                Parents = new ImmutableListBuilder<BiaTeamParentConfig<BaseEntityTeam>>
+                {
+                    new ()
+                    {
+                        TeamTypeId = (int)TeamTypeId.<#= ModelInstance.ParentName #>,
+                        GetParent = team => (team as <#= ModelInstance.DomainName #>.Entities.<#= ModelInstance.EntityName #>).<#= ModelInstance.ParentName #>,
+                    },
+                }
+                .ToImmutable(),
+<#  } #>
+                Label = "<#= ModelInstance.EntityName.ToCamelCase() #>.headerLabel",
+            },
+
+            // BIAToolKit - End Partial TeamConfig <#= ModelInstance.EntityName #>
+<# }  #>
