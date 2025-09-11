@@ -9,7 +9,7 @@
     using BIA.ToolKit.Domain.Settings;
     using LibGit2Sharp;
 
-    public class ReleaseTag(string name, IRepository repository) : Release(name, repository.Name)
+    public sealed class ReleaseTag(string name, IRepository repository) : Release(name, repository.Name)
     {
         public override ReleaseType ReleaseType => ReleaseType.Tag;
 

@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public class ReleaseGitAsset(string name, string downloadUrl, long? size = null)
+    public sealed class ReleaseGitAsset(string name, string downloadUrl, long? size = null)
     {
         public string Name { get; } = name;
         public string DownloadUrl { get; } = downloadUrl;

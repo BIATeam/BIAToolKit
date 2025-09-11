@@ -17,7 +17,7 @@
         Github
     }
 
-    public class RepositoryGit : Repository, IRepositoryGit
+    public sealed class RepositoryGit : Repository, IRepositoryGit
     {
         public override string LocalPath => UseLocalClonedFolder ? LocalClonedFolderPath : Path.Combine(AppSettings.AppFolderPath, Name, "Repo");
         public string Url { get; set; }

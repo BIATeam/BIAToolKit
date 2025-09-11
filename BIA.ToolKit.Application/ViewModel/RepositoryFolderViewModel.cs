@@ -3,10 +3,11 @@
     using System;
     using System.Collections.ObjectModel;
     using System.Linq;
+    using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
 
-    public sealed class RepositoryFolderViewModel(RepositoryFolder repositoryFolder) : RepositoryViewModelBase(repositoryFolder)
+    public sealed class RepositoryFolderViewModel(RepositoryFolder repositoryFolder, GitService gitService) : RepositoryViewModelBase(repositoryFolder, gitService)
     {
         public string Path
         {

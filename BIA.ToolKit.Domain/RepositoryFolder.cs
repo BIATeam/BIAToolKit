@@ -7,7 +7,7 @@
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
-    public class RepositoryFolder(string name, string path, string releaseFolderRegexPattern = null, string companyName = null, string projectName = null) : Repository(name, RepositoryType.Folder, companyName, projectName), IRepositoryFolder
+    public sealed class RepositoryFolder(string name, string path, string releaseFolderRegexPattern = null, string companyName = null, string projectName = null) : Repository(name, RepositoryType.Folder, companyName, projectName), IRepositoryFolder
     {
         public override string LocalPath => Path;
         public string Path { get; set; } = path;

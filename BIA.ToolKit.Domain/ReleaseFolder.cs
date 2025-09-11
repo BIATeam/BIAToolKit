@@ -7,7 +7,7 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Domain.Settings;
 
-    public class ReleaseFolder(string name, string originPath, string repositoryName) : Release(name, repositoryName)
+    public sealed class ReleaseFolder(string name, string originPath, string repositoryName) : Release(name, repositoryName)
     {
         public override ReleaseType ReleaseType => ReleaseType.Folder;
 
