@@ -20,7 +20,7 @@
         public string ProjectName { get; set; }
 
         [JsonIgnore]
-        public List<Release> Releases { get; set; }
+        public IReadOnlyList<Release> Releases { get; }
 
         public RepositoryType RepositoryType { get; set; }
 
@@ -52,11 +52,6 @@
         }
 
         public Task FillReleasesAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Update(IRepository repository)
         {
             throw new NotImplementedException();
         }

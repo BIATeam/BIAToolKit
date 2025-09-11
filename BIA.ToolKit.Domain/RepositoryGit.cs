@@ -99,7 +99,7 @@
             var github = new GitHubClient(new Octokit.ProductHeaderValue("BIAToolKit"));
             var repositoryReleases = await github.Repository.Release.GetAll(Owner, GitRepositoryName);
 
-            Releases.Clear();
+            releases.Clear();
             foreach (var release in repositoryReleases)
             {
                 var assets = new List<ReleaseGitAsset>();
@@ -118,7 +118,7 @@
                     assets.Add(new ReleaseGitAsset(releaseArchive, $"{release.ZipballUrl}"));
                 }
 
-                Releases.Add(new ReleaseGit(release.TagName, Name, assets));
+                releases.Add(new ReleaseGit(release.TagName, Name, assets));
             }
         }
 
@@ -136,8 +136,8 @@
                 .Select(directoryPath => new ReleaseFolder(Path.GetFileName(directoryPath), directoryPath, Name))
                 .OrderByDescending(r => r.Name);
 
-            Releases.Clear();
-            Releases.AddRange(releases);
+            this.releases.Clear();
+            this.releases.AddRange(releases);
         }
 
         private void FillReleasesTag()
@@ -145,8 +145,8 @@
             using var gitRepo = new LibGit2Sharp.Repository(LocalPath);
             var releases = gitRepo.Tags.Select(t => new ReleaseTag(t.FriendlyName, this));
             
-            Releases.Clear();
-            Releases.AddRange(releases);
+            this.releases.Clear();
+            this.releases.AddRange(releases);
         }
     }
 }

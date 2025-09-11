@@ -32,8 +32,8 @@
                 .Select(directoryPath => new ReleaseFolder(System.IO.Path.GetFileName(directoryPath), directoryPath, Name))
                 .OrderByDescending(r => r.Name);
 
-            Releases.Clear();
-            Releases.AddRange(releases);
+            this.releases.Clear();
+            this.releases.AddRange(releases);
             EnsureReleasesDownloaded();
 
             return Task.CompletedTask;

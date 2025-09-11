@@ -10,7 +10,7 @@
         string LocalPath { get; }
         string Name { get; }
         string ProjectName { get; }
-        List<Release> Releases { get; }
+        IReadOnlyList<Release> Releases { get; }
         RepositoryType RepositoryType { get; }
 
         Task FillReleasesAsync();

@@ -22,19 +22,21 @@
         public string CompanyName { get; set; } = companyName;
         public string ProjectName { get; set; } = projectName;
         public abstract string LocalPath { get; }
+
+        protected List<Release> releases = [];
         [JsonIgnore]
-        public List<Release> Releases { get; } = [];
+        public IReadOnlyList<Release> Releases => releases;
 
         public abstract Task FillReleasesAsync();
 
         protected void EnsureReleasesDownloaded()
         {
-            Releases.ForEach(r => r.EnsureDownloaded());
+            releases.ForEach(r => r.EnsureDownloaded());
         }
 
         public void CleanReleases()
         {
-            Releases.ForEach(r => r.Clean());
+            releases.ForEach(r => r.Clean());
         }
     }
 }

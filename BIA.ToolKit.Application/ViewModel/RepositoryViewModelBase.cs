@@ -14,15 +14,10 @@
         {
             ArgumentNullException.ThrowIfNull(repository, nameof(repository));
             this.repository = repository;
-            foreach(var release in repository.Releases)
-            {
-                Releases.Add(new ReleaseViewModel(release));
-            }
         }
 
         public bool IsGitRepository => RepositoryType == RepositoryType.Git;
         public bool IsFolderRepository => RepositoryType == RepositoryType.Folder;
-        public ObservableCollection<ReleaseViewModel> Releases { get; } = [];
 
         public string CompanyName
         {
