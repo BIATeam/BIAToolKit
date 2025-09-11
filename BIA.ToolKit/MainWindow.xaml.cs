@@ -75,7 +75,7 @@
 
             txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
 
-            ViewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version, uiEventBroker, settingsService, gitService);
+            ViewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version, uiEventBroker, settingsService, gitService, consoleWriter);
             DataContext = ViewModel;
 
             uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
@@ -86,7 +86,7 @@
         {
             await ExecuteTaskWithWaiterAsync(async () =>
             {
-                InitSettings();
+                await InitSettings();
 
                 if (Properties.Settings.Default.ApplicationUpdated)
                 {
@@ -104,24 +104,10 @@
                 }
 
                 await Task.Run(() => CSharpParserService.RegisterMSBuild(consoleWriter));
-
-                // TODO: remove when UI available
-                foreach (var templateRepository in settingsService.Settings.TemplateRepositories)
-                {
-                    if (templateRepository.RepositoryType == RepositoryType.Git && templateRepository is IRepositoryGit repoGit)
-                    {
-                        consoleWriter.AddMessageLine($"Synching repository {templateRepository.Name}...", "pink");
-                        await gitService.Synchronize(repoGit);
-                        consoleWriter.AddMessageLine($"Synched repository {templateRepository.Name}", "green");
-                    }
-                    consoleWriter.AddMessageLine($"Getting releases data from repository {templateRepository.Name}...", "pink");
-                    await templateRepository.FillReleasesAsync();
-                    consoleWriter.AddMessageLine($"Releases data got successfully", "green");
-                }
             });
         }
 
-        private void InitSettings()
+        private async Task InitSettings()
         {
             var settings = new BIATKSettings
             {
@@ -184,6 +170,21 @@
                             projectName: "BIATemplate")
                     ]
             };
+
+            var fillReleasesTasks = settings.TemplateRepositories.Concat(settings.CompanyFilesRepositories).Select(async (r) =>
+            {
+                try
+                {
+                    consoleWriter.AddMessageLine($"Getting releases data for repository {r.Name}...", "pink");
+                    await r.FillReleasesAsync();
+                    consoleWriter.AddMessageLine($"Releases data got successfully for repository {r.Name}", "green");
+                }
+                catch(Exception ex)
+                {
+                    consoleWriter.AddMessageLine($"Error while getting releases data for repository {r.Name} : {ex.Message}", "red");
+                }
+            });
+            await Task.WhenAll(fillReleasesTasks);
 
             settingsService.Init(settings);
         }
@@ -340,60 +341,6 @@
             semaphore.Release();
         }
 
-        private async void BIATemplateLocalFolderSync_Click(object sender, RoutedEventArgs e)
-        {
-            //if (RefreshBIATemplateConfiguration(true))
-            //{
-            //    await ExecuteTaskWithWaiterAsync(async () =>
-            //    {
-            //        BIATemplateLocalFolderSync.IsEnabled = false;
-            //        if (!settingsService.Settings.BIATemplateRepository.UseLocalFolder)
-            //        {
-            //            await repositoryService.CleanRepository(settingsService.Settings.BIATemplateRepository);
-            //        }
-
-            //        await this.gitService.Synchronize(settingsService.Settings.BIATemplateRepository);
-            //        BIATemplateLocalFolderSync.IsEnabled = true;
-            //    });
-            //}
-        }
-
-        private async void BIATemplateCleanReleases_Click(object sender, RoutedEventArgs e)
-        {
-            //await ExecuteTaskWithWaiterAsync(async () =>
-            //{
-            //    await repositoryService.CleanReleases(settingsService.Settings.BIATemplateRepository);
-            //});
-        }
-
-        private async void CompanyFilesLocalFolderSync_Click(object sender, RoutedEventArgs e)
-        {
-            //if (RefreshCompanyFilesConfiguration(true))
-            //{
-            //    await ExecuteTaskWithWaiterAsync(async () =>
-            //    {
-            //        CompanyFilesLocalFolderSync.IsEnabled = false;
-            //        if (!settingsService.Settings.CompanyFilesRepository.UseLocalFolder)
-            //        {
-            //            await repositoryService.CleanRepository(settingsService.Settings.CompanyFilesRepository);
-            //        }
-
-            //        await this.gitService.Synchronize(settingsService.Settings.CompanyFilesRepository);
-            //        CompanyFilesLocalFolderSync.IsEnabled = true;
-            //    });
-            //}
-        }
-
-        private void BIATemplateLocalFolderBrowse_Click(object sender, RoutedEventArgs e)
-        {
-            //ViewModel.Settings_BIATemplateRepository_LocalFolderPath = FileDialog.BrowseFolder(ViewModel.Settings_BIATemplateRepository_LocalFolderPath);
-        }
-
-        private void CompanyFilesLocalFolderBrowse_Click(object sender, RoutedEventArgs e)
-        {
-            //ViewModel.Settings_CompanyFilesRepository_LocalFolderPath = FileDialog.BrowseFolder(ViewModel.Settings_CompanyFilesRepository_LocalFolderPath);
-        }
-
         private void CreateProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.Settings_RootProjectsPath = FileDialog.BrowseFolder(ViewModel.Settings_RootProjectsPath);
@@ -534,15 +481,6 @@
             }
         }
 
-        private void CustomRepoTemplate_Click(object sender, RoutedEventArgs e)
-        {
-            //var dialog = new CustomsRepoTemplateUC(gitService, repositoryService, uiEventBroker) { Owner = this };
-            //if (dialog.ShowDialog(settingsService.Settings.CustomRepoTemplates) == true)
-            //{
-            //    settingsService.SetCustomRepositories([.. dialog.vm.RepositoriesSettings.Cast<RepositorySettings>()]);
-            //}
-        }
-
         private async void UpdateButton_Click(object sender, RoutedEventArgs e)
         {
             await OnUpdateAvailable();
@@ -576,16 +514,6 @@
         private void ClearConsole_Click(object sender, RoutedEventArgs e)
         {
             this.consoleWriter.Clear();
-        }
-
-        private void EditLocalReleaseRepositorySettings_Click(object sender, RoutedEventArgs e)
-        {
-            //var dialog = new LocalReleaseRepositorySettingsUC() { Owner = this };
-            //if (dialog.ShowDialog(settingsService.Settings) == true)
-            //{
-            //    //settingsService.SetUseLocalReleaseRepository(dialog.ViewModel.UseLocalReleaseRepository);
-            //    //settingsService.SetLocalReleaseRepositoryPath(dialog.ViewModel.LocalReleaseRepositoryPath);
-            //}
         }
 
         private async void CheckUpdateButton_Click(object sender, RoutedEventArgs e)

@@ -17,22 +17,37 @@
     public class GitService
     {
         private IConsoleWriter outPut;
-        public GitService(IConsoleWriter outPut)
+        private readonly UIEventBroker eventBroker;
+
+        public GitService(IConsoleWriter outPut, UIEventBroker eventBroker)
         {
             this.outPut = outPut;
+            this.eventBroker = eventBroker;
         }
 
         public async Task Synchronize(IRepositoryGit repository)
         {
-            if (!repository.UseLocalClonedFolder && !Directory.Exists(repository.LocalPath))
+            if (!repository.UseLocalClonedFolder)
             {
+                if (Directory.Exists(repository.LocalPath))
+                {
+                    var dirInfo = new DirectoryInfo(repository.LocalPath);
+                    foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                    {
+                        file.Attributes = FileAttributes.Normal;
+                        File.Delete(file.FullName);
+                    }
+                }
+                Directory.Delete(repository.LocalPath, true);
+
+                Directory.CreateDirectory(repository.LocalPath);
+
                 await Clone(repository.Name, repository.Url, repository.LocalPath);
                 return;
             }
             
             await Synchronize(repository.Name, repository.LocalPath);
         }
-
 
         public async Task Synchronize(string repoName, string localPath)
         {

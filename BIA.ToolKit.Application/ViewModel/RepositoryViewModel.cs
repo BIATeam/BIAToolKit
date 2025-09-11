@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using System.Windows.Input;
+    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
@@ -13,18 +14,22 @@
     {
         private readonly Repository repository;
         protected readonly GitService gitService;
+        protected readonly UIEventBroker eventBroker;
+        protected readonly IConsoleWriter consoleWriter;
 
-        protected RepositoryViewModel(Repository repository, GitService gitService)
+        protected RepositoryViewModel(Repository repository, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
         {
             ArgumentNullException.ThrowIfNull(repository, nameof(repository));
             this.repository = repository;
             this.gitService = gitService;
+            this.eventBroker = eventBroker;
+            this.consoleWriter = consoleWriter;
         }
 
         public IRepository Model => repository;
-        public bool IsGitRepository => RepositoryType == RepositoryType.Git;
-        public bool IsFolderRepository => RepositoryType == RepositoryType.Folder;
-        public ICommand SynchronizeCommand => new RelayCommand(async (_) => await Synchronize());
+        public bool IsGitRepository => repository.RepositoryType == Domain.RepositoryType.Git;
+        public bool IsFolderRepository => repository.RepositoryType == Domain.RepositoryType.Folder;
+        public ICommand SynchronizeCommand => new RelayCommand((_) => Synchronize());
         public ICommand CleanReleasesCommand => new RelayCommand((_) => CleanReleases());
 
         public string CompanyName
@@ -57,30 +62,60 @@
             }
         }
 
-        public RepositoryType RepositoryType
+        public ReadOnlySpan<string> RepositoryTypes => Enum.GetNames<RepositoryType>();
+
+        public string RepositoryType
         {
-            get => repository.RepositoryType;
+            get => $"{repository.RepositoryType}";
             set
             {
-                repository.RepositoryType = value;
+                repository.RepositoryType = Enum.Parse<RepositoryType>(value);
                 RaisePropertyChanged(nameof(RepositoryType));
                 RaisePropertyChanged(nameof(IsGitRepository));
                 RaisePropertyChanged(nameof(IsFolderRepository));
             }
         }
 
-        private async Task Synchronize()
+        public string Resource
         {
-            if (IsGitRepository && repository is RepositoryGit repositoryGit)
+            get
             {
-                await gitService.Synchronize(repositoryGit);
+                return repository switch
+                {
+                    RepositoryGit repositoryGit => repositoryGit.Url,
+                    RepositoryFolder repositoryFolder => repositoryFolder.Path,
+                    _ => throw new NotImplementedException()
+                };
             }
-            await repository.FillReleasesAsync();
+        }
+
+        private void Synchronize()
+        {
+            eventBroker.ExecuteActionWithWaiter(async () =>
+            {
+                if (IsGitRepository && repository is RepositoryGit repositoryGit)
+                {
+                    await gitService.Synchronize(repositoryGit);
+                }
+                await repository.FillReleasesAsync();
+            });
         }
 
         private void CleanReleases()
         {
-            repository.CleanReleases();
+            eventBroker.ExecuteActionWithWaiter(async () =>
+            {
+                try
+                {
+                    consoleWriter.AddMessageLine($"Cleaning releases of repository {Name}...", "pink");
+                    await Task.Run(repository.CleanReleases);
+                    consoleWriter.AddMessageLine($"Releases cleaned", "green");
+                }
+                catch(Exception ex)
+                {
+                    consoleWriter.AddMessageLine($"Failed to clean releases : {ex.Message}");
+                }
+            });
         }
     }
 }

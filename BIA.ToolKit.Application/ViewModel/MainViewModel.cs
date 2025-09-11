@@ -14,15 +14,19 @@
     public class MainViewModel : ObservableObject
     {
         private readonly Version applicationVersion;
+        private readonly UIEventBroker eventBroker;
         private readonly SettingsService settingsService;
         private readonly GitService gitService;
+        private readonly IConsoleWriter consoleWriter;
         private bool firstTimeSettingsUpdated = true;
 
-        public MainViewModel(Version applicationVersion, UIEventBroker eventBroker, SettingsService settingsService, GitService gitService)
+        public MainViewModel(Version applicationVersion, UIEventBroker eventBroker, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter)
         {
             this.applicationVersion = applicationVersion;
+            this.eventBroker = eventBroker;
             this.settingsService = settingsService;
             this.gitService = gitService;
+            this.consoleWriter = consoleWriter;
             eventBroker.OnSettingsUpdated += EventBroker_OnSettingsUpdated;
         }
 
@@ -132,12 +136,12 @@
                 {
                     if (repository is RepositoryGit repositoryGit)
                     {
-                        TemplateRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService));
+                        TemplateRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter));
                     }
 
                     if (repository is RepositoryFolder repositoryFolder)
                     {
-                        TemplateRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService));
+                        TemplateRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter));
                     }
                 }
 
@@ -145,19 +149,19 @@
                 {
                     if (repository is RepositoryGit repositoryGit)
                     {
-                        CompanyFilesRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService));
+                        CompanyFilesRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter));
                     }
 
                     if (repository is RepositoryFolder repositoryFolder)
                     {
-                        CompanyFilesRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService));
+                        CompanyFilesRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter));
                     }
                 }
 
                 ToolkitRepository = settings.ToolkitRepository switch
                 {
-                    RepositoryGit repositoryGit => new RepositoryGitViewModel(repositoryGit, gitService),
-                    RepositoryFolder repositoryFolder => new RepositoryFolderViewModel(repositoryFolder, gitService),
+                    RepositoryGit repositoryGit => new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter),
+                    RepositoryFolder repositoryFolder => new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter),
                     _ => throw new NotImplementedException()
                 };
 

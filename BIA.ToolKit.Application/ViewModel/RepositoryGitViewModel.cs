@@ -3,11 +3,13 @@
     using System;
     using System.Collections.ObjectModel;
     using System.Linq;
+    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
 
-    public sealed class RepositoryGitViewModel(RepositoryGit repositoryGit, GitService gitService) : RepositoryViewModel(repositoryGit, gitService)
+    public sealed class RepositoryGitViewModel(RepositoryGit repositoryGit, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
+        : RepositoryViewModel(repositoryGit, gitService, eventBroker, consoleWriter)
     {
         public string GitRepositoryName
         {
