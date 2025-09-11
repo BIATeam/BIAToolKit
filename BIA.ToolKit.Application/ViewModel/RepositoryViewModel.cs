@@ -89,6 +89,17 @@
             }
         }
 
+        public bool UseRepository
+        {
+            get => repository.UseRepository;
+            set
+            {
+                repository.UseRepository = value;
+                RaisePropertyChanged(nameof(UseRepository));
+                eventBroker.NotifyRepositoryChanged(repository);
+            }
+        }
+
         private void Synchronize()
         {
             eventBroker.ExecuteActionWithWaiter(async () =>

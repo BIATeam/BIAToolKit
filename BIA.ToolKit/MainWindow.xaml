@@ -71,18 +71,16 @@
                                         <RowDefinition/>
                                     </Grid.RowDefinitions>
 
+                                    <Grid Grid.RowSpan="2" Background="Black" Opacity="0.4"/>
                                     <Label Grid.Row="0" Content="TEMPLATES REPOSITORIES" Foreground="White" FontWeight="Bold" FontSize="20" HorizontalAlignment="Center"/>
-                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible">
-                                        <Grid>
-                                            <Grid Background="Black" Opacity="0.4"/>
-                                            <ItemsControl ItemsSource="{Binding TemplateRepositories}" VerticalAlignment="Top">
+                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" Margin="10,0,0,0">
+                                        <ItemsControl ItemsSource="{Binding TemplateRepositories}" VerticalAlignment="Top">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate DataType="{x:Type local:RepositoryViewModel}">
                                                     <uc:RepositoryResumeUC Margin="0,0,0,10" DataContext="{Binding}"/>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
-                                        </Grid>
                                     </ScrollViewer>
                                 </Grid>
 
@@ -93,18 +91,16 @@
                                         <RowDefinition/>
                                     </Grid.RowDefinitions>
 
+                                    <Grid Grid.RowSpan="2" Background="Black" Opacity="0.4"/>
                                     <Label Grid.Row="0" Content="COMPANY FILES REPOSITORIES" Foreground="White" FontWeight="Bold" FontSize="20" HorizontalAlignment="Center"/>
-                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible">
-                                        <Grid>
-                                            <Grid Background="Black" Opacity="0.4"/>
-                                            <ItemsControl ItemsSource="{Binding CompanyFilesRepositories}" VerticalAlignment="Top">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate DataType="{x:Type local:RepositoryViewModel}">
-                                                        <uc:RepositoryResumeUC Margin="0,0,0,10" DataContext="{Binding}"/>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </Grid>
+                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" Margin="10,0,0,0">
+                                        <ItemsControl ItemsSource="{Binding CompanyFilesRepositories}" VerticalAlignment="Top">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type local:RepositoryViewModel}">
+                                                    <uc:RepositoryResumeUC Margin="0,0,0,10" DataContext="{Binding}"/>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
                                     </ScrollViewer>
                                 </Grid>
                             </Grid>

@@ -15,12 +15,13 @@
         Folder
     }
 
-    public abstract class Repository(string name, RepositoryType repositoryType, string companyName = null, string projectName = null) : IRepository
+    public abstract class Repository(string name, RepositoryType repositoryType, string companyName, string projectName, bool useRepository) : IRepository
     {
         public string Name { get; set; } = name;
         public RepositoryType RepositoryType { get; set; } = repositoryType;
         public string CompanyName { get; set; } = companyName;
         public string ProjectName { get; set; } = projectName;
+        public bool UseRepository { get; set; } = useRepository;
         public abstract string LocalPath { get; }
 
         protected List<Release> releases = [];

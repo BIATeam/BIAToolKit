@@ -30,8 +30,8 @@
         public RepositoryGitKind RepositoryGitKind { get; set; }
         public string UrlRelease { get; set; }
 
-        private RepositoryGit(string name, string url, bool useLocalClonedFolder, ReleaseType releaseType, string companyName, string projectName, string localClonedFolderPath)
-            : base(name, RepositoryType.Git, companyName, projectName)
+        private RepositoryGit(string name, string url, bool useLocalClonedFolder, ReleaseType releaseType, string companyName, string projectName, string localClonedFolderPath, bool useRepository)
+            : base(name, RepositoryType.Git, companyName, projectName, useRepository)
         {
             Url = url;
             UseLocalClonedFolder = useLocalClonedFolder;
@@ -41,20 +41,20 @@
 
         public static RepositoryGit CreateEmpty()
         {
-            return new RepositoryGit(string.Empty, string.Empty, false, ReleaseType.Git, string.Empty, string.Empty, string.Empty);
+            return new RepositoryGit(string.Empty, string.Empty, false, ReleaseType.Git, string.Empty, string.Empty, string.Empty, true);
         }
 
-        public static RepositoryGit CreateWithReleaseTypeFolder(string name, string url, string releasesFolderRegexPattern, bool useLocalClonedFolder = false, string companyName = null, string projectName = null, string localClonedFolderPath = null)
+        public static RepositoryGit CreateWithReleaseTypeFolder(string name, string url, string releasesFolderRegexPattern, bool useLocalClonedFolder = false, string companyName = null, string projectName = null, string localClonedFolderPath = null, bool useRepository = false)
         {
-            return new RepositoryGit(name, url, useLocalClonedFolder, ReleaseType.Folder, companyName, projectName, localClonedFolderPath)
+            return new RepositoryGit(name, url, useLocalClonedFolder, ReleaseType.Folder, companyName, projectName, localClonedFolderPath, useRepository)
             {
                 ReleasesFolderRegexPattern = releasesFolderRegexPattern
             };
         }
 
-        public static RepositoryGit CreateWithReleaseTypeGit (string name, RepositoryGitKind repositoryGitKind, string url, string gitRepositoryName, string owner, bool useLocalClonedFolder = false, string urlRelease = null, string companyName = null, string projectName = null, string localClonedFolderPath = null)
+        public static RepositoryGit CreateWithReleaseTypeGit (string name, RepositoryGitKind repositoryGitKind, string url, string gitRepositoryName, string owner, bool useLocalClonedFolder = false, string urlRelease = null, string companyName = null, string projectName = null, string localClonedFolderPath = null, bool useRepository = false)
         {
-            return new RepositoryGit(name, url, useLocalClonedFolder, ReleaseType.Git, companyName, projectName, localClonedFolderPath)
+            return new RepositoryGit(name, url, useLocalClonedFolder, ReleaseType.Git, companyName, projectName, localClonedFolderPath, useRepository)
             {
                 GitRepositoryName = gitRepositoryName,
                 Owner = owner,
@@ -63,9 +63,9 @@
             };
         }
 
-        public static RepositoryGit CreateWithReleaseTypeTag(string name, string url, bool useLocalClonedFolder = false, string companyName = null, string projectName = null, string localClonedFolderPath = null)
+        public static RepositoryGit CreateWithReleaseTypeTag(string name, string url, bool useLocalClonedFolder = false, string companyName = null, string projectName = null, string localClonedFolderPath = null, bool useRepository = false)
         {
-            return new RepositoryGit(name, url, useLocalClonedFolder, ReleaseType.Tag, companyName, projectName, localClonedFolderPath);
+            return new RepositoryGit(name, url, useLocalClonedFolder, ReleaseType.Tag, companyName, projectName, localClonedFolderPath, useRepository);
         }
 
         public override async Task FillReleasesAsync()

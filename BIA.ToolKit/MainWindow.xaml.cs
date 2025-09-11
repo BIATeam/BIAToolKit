@@ -80,6 +80,12 @@
 
             uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
+            uiEventBroker.OnRepositoryChanged += UiEventBroker_OnRepositoryChanged;
+        }
+
+        private void UiEventBroker_OnRepositoryChanged(IRepository repository)
+        {
+            UiEventBroker_OnSettingsUpdated(settingsService.Settings);
         }
 
         public async Task Init()
@@ -124,7 +130,8 @@
                         repositoryGitKind: RepositoryGitKind.Github,
                         url: "https://github.com/BIATeam/BIAToolKit",
                         gitRepositoryName: "BIAToolKit",
-                        owner: "BIATeam"
+                        owner: "BIATeam",
+                        useRepository: true
                     ),
                 //new RepositoryFolder(
                 //    name: "BIAToolkit Folder",
@@ -143,7 +150,8 @@
                             gitRepositoryName: "BIATemplate",
                             owner: "BIATeam",
                             companyName: "TheBIADevCompany",
-                            projectName: "BIATemplate"
+                            projectName: "BIATemplate",
+                            useRepository: true
                         ),
                         RepositoryGit.CreateWithReleaseTypeTag(
                             name: "BIATemplateV2 GIT",
@@ -205,7 +213,8 @@
                         useLocalClonedFolder: repositoryUserConfig.UseLocalClonedFolder,
                         companyName: repositoryUserConfig.CompanyName,
                         projectName: repositoryUserConfig.ProjectName,
-                        localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath
+                        localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath,
+                        useRepository: repositoryUserConfig.UseRepository
                     ),
                     ReleaseType.Folder => RepositoryGit.CreateWithReleaseTypeFolder(
                         name: repositoryUserConfig.Name,
@@ -214,7 +223,8 @@
                         releasesFolderRegexPattern: repositoryUserConfig.ReleasesFolderRegexPattern,
                         companyName: repositoryUserConfig.CompanyName,
                         projectName: repositoryUserConfig.ProjectName,
-                        localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath
+                        localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath,
+                        useRepository: repositoryUserConfig.UseRepository
                     ),
                     ReleaseType.Tag => RepositoryGit.CreateWithReleaseTypeTag(
                         name: repositoryUserConfig.Name,
@@ -222,7 +232,8 @@
                         useLocalClonedFolder: repositoryUserConfig.UseLocalClonedFolder,
                         companyName: repositoryUserConfig.CompanyName,
                         projectName: repositoryUserConfig.ProjectName,
-                        localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath
+                        localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath,
+                        useRepository: repositoryUserConfig.UseRepository
                     ),
                     _ => throw new NotImplementedException(),
                 },
@@ -231,7 +242,8 @@
                     path: repositoryUserConfig.Path,
                     releaseFolderRegexPattern: repositoryUserConfig.ReleaseFolderRegexPattern,
                     companyName: repositoryUserConfig.CompanyName,
-                    projectName: repositoryUserConfig.ProjectName),
+                    projectName: repositoryUserConfig.ProjectName,
+                    useRepository: repositoryUserConfig.UseRepository),
                 _ => throw new NotImplementedException(),
             };
         }

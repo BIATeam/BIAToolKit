@@ -12,6 +12,7 @@
         string ProjectName { get; }
         IReadOnlyList<Release> Releases { get; }
         RepositoryType RepositoryType { get; }
+        bool UseRepository { get; }
 
         Task FillReleasesAsync();
         void CleanReleases();

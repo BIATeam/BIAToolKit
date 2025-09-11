@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BIA.ToolKit.Domain;
 using BIA.ToolKit.Domain.ModifyProject;
 using BIA.ToolKit.Domain.Settings;
 
@@ -24,11 +25,13 @@ namespace BIA.ToolKit.Application.Services
         public delegate void NewVersionAvailable();
         public delegate void ActionWithWaiterAsync(Func<Task> action);
         public delegate void SettingsUpdated(IBIATKSettings settings);
+        public delegate void RepositoryChanged(IRepository repository);
 
         public event ProjectChanged OnProjectChanged;
         public event NewVersionAvailable OnNewVersionAvailable;
         public event ActionWithWaiterAsync OnActionWithWaiter;
         public event SettingsUpdated OnSettingsUpdated;
+        public event RepositoryChanged OnRepositoryChanged;
 
         public void NotifyProjectChanged(Project project)
         {
@@ -48,6 +51,11 @@ namespace BIA.ToolKit.Application.Services
         public void NotifySettingsUpdated(IBIATKSettings settings)
         {
             OnSettingsUpdated?.Invoke(settings);
+        }
+
+        public void NotifyRepositoryChanged(IRepository repository)
+        { 
+            OnRepositoryChanged?.Invoke(repository); 
         }
     }
 }

@@ -46,6 +46,8 @@
 
         public string Path { get; set; }
 
+        public bool UseRepository { get; set; }
+
         public void CleanReleases()
         {
             throw new NotImplementedException();

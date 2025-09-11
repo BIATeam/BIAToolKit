@@ -7,10 +7,11 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:viewModel="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
              mc:Ignorable="d"
-             d:DataContext="{d:DesignInstance Type=viewModel:RepositoryViewModel, IsDesignTimeCreatable=False}" Height="auto">
+             d:DataContext="{d:DesignInstance Type=viewModel:RepositoryViewModel, IsDesignTimeCreatable=False}" Height="auto" d:Width="500">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+        <materialDesign:InvertBooleanConverter x:Key="InvertBoolConverter"/>
         <Thickness x:Key="FormFirstRowMargin">0,0,0,5</Thickness>
         <Thickness x:Key="FormRowMargin">0,5</Thickness>
     </UserControl.Resources>
@@ -26,15 +27,27 @@
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
-                    <RowDefinition/>
                 </Grid.RowDefinitions>
 
-                <TextBox Grid.Row="0" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Repository Name" Text="{Binding Name}" TextWrapping="Wrap" IsReadOnly="true"/>
-                <TextBox Grid.Row="1" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Repository Type" Text="{Binding RepositoryType}" TextWrapping="Wrap" IsReadOnly="true"/>
-                <TextBox Grid.Row="2" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Resource" Text="{Binding Resource, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="true"/>
+                <Grid Grid.Row="0" Margin="0,0,0,5">
+                    <StackPanel Orientation="Horizontal">
+                        <ToggleButton Margin="0,0,10,0" Style="{StaticResource MaterialDesignSwitchToggleButton}" IsChecked="{Binding UseRepository}"/>
+                        <Label VerticalAlignment="Center" Content="{Binding Name}" Foreground="White" FontWeight="Bold" FontSize="15" d:Content="REPOSITORY NAME" IsEnabled="{Binding UseRepository}"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="1" IsEnabled="{Binding UseRepository}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+                    <TextBox Grid.Row="0" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Repository Type" Text="{Binding RepositoryType}" TextWrapping="Wrap" IsReadOnly="true"/>
+                    <TextBox Grid.Row="1" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Resource" Text="{Binding Resource, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="true"/>
+                </Grid>
             </Grid>
 
-            <StackPanel Grid.Column="1" Margin="15,5,5,5">
+            <StackPanel Grid.Column="1" Margin="10,0,0,0" IsEnabled="{Binding UseRepository}">
                 <Button Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Padding="5,0" Command="{Binding SynchronizeCommand}">
                     <materialDesign:PackIcon Kind="Sync" Height="25" Width="25" />
                 </Button>
