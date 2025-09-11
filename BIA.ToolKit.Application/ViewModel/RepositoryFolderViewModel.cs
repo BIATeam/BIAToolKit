@@ -7,7 +7,7 @@
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
 
-    public sealed class RepositoryFolderViewModel(RepositoryFolder repositoryFolder, GitService gitService) : RepositoryViewModelBase(repositoryFolder, gitService)
+    public sealed class RepositoryFolderViewModel(RepositoryFolder repositoryFolder, GitService gitService) : RepositoryViewModel(repositoryFolder, gitService)
     {
         public string Path
         {

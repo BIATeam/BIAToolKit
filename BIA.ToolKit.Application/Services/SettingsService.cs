@@ -1,10 +1,12 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Settings;
     using System;
     using System.Collections.Generic;
     using System.Configuration;
+    using System.Xml.Linq;
 
     public class SettingsService
     {
@@ -68,6 +70,21 @@
         public void SetCreateCompanyName(string name)
         {
             ExecuteAndNotifySettingsUpdated(() => settings.CreateCompanyName = name);
+        }
+
+        public void SetToolkitRepository(IRepository repository)
+        {
+            ExecuteAndNotifySettingsUpdated(() => settings.ToolkitRepository = repository);
+        }
+
+        public void SetTemplateRepositories(IReadOnlyList<IRepository> repositories)
+        {
+            ExecuteAndNotifySettingsUpdated(() => settings.TemplateRepositories = repositories);
+        }
+
+        public void SetCompanyFilesRepositories(IReadOnlyList<IRepository> repositories)
+        {
+            ExecuteAndNotifySettingsUpdated(() => settings.CompanyFilesRepositories = repositories);
         }
 
         private void ExecuteAndNotifySettingsUpdated(Action action)

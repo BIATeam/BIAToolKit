@@ -75,7 +75,7 @@
 
             txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
 
-            ViewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version, uiEventBroker, settingsService);
+            ViewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version, uiEventBroker, settingsService, gitService);
             DataContext = ViewModel;
 
             uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;

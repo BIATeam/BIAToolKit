@@ -7,7 +7,7 @@
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
 
-    public sealed class RepositoryGitViewModel(RepositoryGit repositoryGit, GitService gitService) : RepositoryViewModelBase(repositoryGit, gitService)
+    public sealed class RepositoryGitViewModel(RepositoryGit repositoryGit, GitService gitService) : RepositoryViewModel(repositoryGit, gitService)
     {
         public string GitRepositoryName
         {

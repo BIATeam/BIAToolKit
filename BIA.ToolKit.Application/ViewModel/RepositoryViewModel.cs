@@ -9,18 +9,19 @@
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
 
-    public abstract class RepositoryViewModelBase : ObservableObject
+    public abstract class RepositoryViewModel : ObservableObject
     {
         private readonly Repository repository;
         protected readonly GitService gitService;
 
-        protected RepositoryViewModelBase(Repository repository, GitService gitService)
+        protected RepositoryViewModel(Repository repository, GitService gitService)
         {
             ArgumentNullException.ThrowIfNull(repository, nameof(repository));
             this.repository = repository;
             this.gitService = gitService;
         }
 
+        public IRepository Model => repository;
         public bool IsGitRepository => RepositoryType == RepositoryType.Git;
         public bool IsFolderRepository => RepositoryType == RepositoryType.Folder;
         public ICommand SynchronizeCommand => new RelayCommand(async (_) => await Synchronize());

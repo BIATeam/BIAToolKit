@@ -39,6 +39,11 @@
             LocalClonedFolderPath = localClonedFolderPath;
         }
 
+        public static RepositoryGit CreateEmpty()
+        {
+            return new RepositoryGit(string.Empty, string.Empty, false, ReleaseType.Git, string.Empty, string.Empty, string.Empty);
+        }
+
         public static RepositoryGit CreateWithReleaseTypeFolder(string name, string url, string releasesFolderRegexPattern, bool useLocalClonedFolder = false, string companyName = null, string projectName = null, string localClonedFolderPath = null)
         {
             return new RepositoryGit(name, url, useLocalClonedFolder, ReleaseType.Folder, companyName, projectName, localClonedFolderPath)
