@@ -62,7 +62,7 @@
             this.updateService = updateService;
             this.generateFilesService = genFilesService;
 
-            uiEventBroker.OnActionWithWaiter += async (action) => await ExecuteTaskWithWaiterAsync(action);
+            uiEventBroker.OnExecuteActionWithWaiterAsyncRequest += async (action) => await ExecuteTaskWithWaiterAsync(action);
 
             InitializeComponent();
 
@@ -80,8 +80,8 @@
 
             uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
-            uiEventBroker.OnRepositoryChanged += UiEventBroker_OnRepositoryChanged;
-            uiEventBroker.OnRepositoryFormOpened += UiEventBroker_OnRepositoryFormOpened;
+            uiEventBroker.OnRepositoriesUpdated += UiEventBroker_OnRepositoriesUpdated;
+            uiEventBroker.OnOpenRepositoryFormRequest += UiEventBroker_OnRepositoryFormOpened;
         }
 
         private void UiEventBroker_OnRepositoryFormOpened(RepositoryViewModel repository)
@@ -89,11 +89,11 @@
             var form = new RepositoryFormUC(repository, gitService, uiEventBroker, consoleWriter) { Owner = this };
             if(form.ShowDialog() == true)
             {
-                UiEventBroker_OnRepositoryChanged(repository.Model);
+                uiEventBroker.NotifyRepositoryViewModelChanged(repository, form.ViewModel.Repository);
             }
         }
 
-        private void UiEventBroker_OnRepositoryChanged(IRepository repository)
+        private void UiEventBroker_OnRepositoriesUpdated()
         {
             UiEventBroker_OnSettingsUpdated(settingsService.Settings);
         }

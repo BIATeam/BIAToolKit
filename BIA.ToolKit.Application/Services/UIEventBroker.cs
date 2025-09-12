@@ -12,29 +12,21 @@ namespace BIA.ToolKit.Application.Services
 {
     public class UIEventBroker
     {
-        private readonly SettingsService settingsService;
-
-        public enum TabItemModifyProjectEnum
-        {
-            Migration,
-            OptionGenerator,
-            DtoGenerator,
-            CrudGenerator
-        }
-
         public delegate void ProjectChanged(Project project);
         public delegate void NewVersionAvailable();
-        public delegate void ActionWithWaiterAsync(Func<Task> action);
+        public delegate void ExecuteActionWithWaiterAsyncRequest(Func<Task> action);
         public delegate void SettingsUpdated(IBIATKSettings settings);
-        public delegate void RepositoryChanged(IRepository repository);
-        public delegate void RepositoryFormOpened(RepositoryViewModel repository);
+        public delegate void RepositoriesUpdated();
+        public delegate void RepositoryViewModelChanged(RepositoryViewModel oldRepository, RepositoryViewModel newRepository);
+        public delegate void OpenRepositoryFormRequest(RepositoryViewModel repository);
 
         public event ProjectChanged OnProjectChanged;
         public event NewVersionAvailable OnNewVersionAvailable;
-        public event ActionWithWaiterAsync OnActionWithWaiter;
+        public event ExecuteActionWithWaiterAsyncRequest OnExecuteActionWithWaiterAsyncRequest;
         public event SettingsUpdated OnSettingsUpdated;
-        public event RepositoryChanged OnRepositoryChanged;
-        public event RepositoryFormOpened OnRepositoryFormOpened;
+        public event RepositoryViewModelChanged OnRepositoryViewModelChanged;
+        public event OpenRepositoryFormRequest OnOpenRepositoryFormRequest;
+        public event RepositoriesUpdated OnRepositoriesUpdated;
 
         public void NotifyProjectChanged(Project project)
         {
@@ -46,9 +38,9 @@ namespace BIA.ToolKit.Application.Services
             OnNewVersionAvailable?.Invoke();
         }
 
-        public void ExecuteActionWithWaiter(Func<Task> task)
+        public void RequestExecuteActionWithWaiter(Func<Task> task)
         {
-            OnActionWithWaiter?.Invoke(task);
+            OnExecuteActionWithWaiterAsyncRequest?.Invoke(task);
         }
 
         public void NotifySettingsUpdated(IBIATKSettings settings)
@@ -56,14 +48,19 @@ namespace BIA.ToolKit.Application.Services
             OnSettingsUpdated?.Invoke(settings);
         }
 
-        public void NotifyRepositoryChanged(IRepository repository)
-        { 
-            OnRepositoryChanged?.Invoke(repository); 
+        public void NotifyRepositoriesUpdated()
+        {
+            OnRepositoriesUpdated?.Invoke();
         }
 
-        public void OpenRepositoryForm(RepositoryViewModel repository)
+        public void NotifyRepositoryViewModelChanged(RepositoryViewModel oldRepository, RepositoryViewModel newRepository)
+        { 
+            OnRepositoryViewModelChanged?.Invoke(oldRepository, newRepository); 
+        }
+
+        public void RequestOpenRepositoryForm(RepositoryViewModel repository)
         {
-            OnRepositoryFormOpened?.Invoke(repository);
+            OnOpenRepositoryFormRequest?.Invoke(repository);
         }
     }
 }

@@ -163,7 +163,7 @@
 
         private void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            uiEventBroker.ExecuteActionWithWaiter(async () =>
+            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
             {
                 //vm.UseCompanyFiles = vm.WorkTemplate?.RepositorySettings?.Name == "BIATemplate";
                 await this.FillVersionFolderPathAsync();

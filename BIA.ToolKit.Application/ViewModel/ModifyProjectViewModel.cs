@@ -189,7 +189,7 @@
             {
                 IsFileGeneratorServiceInit = false;
                 IsProjectCompatibleCrudGenerator = false;
-                eventBroker.ExecuteActionWithWaiter(async () =>
+                eventBroker.RequestExecuteActionWithWaiter(async () =>
                 {
                     Project currentProject = null;
 

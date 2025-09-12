@@ -31,7 +31,7 @@
         public bool IsFolderRepository => repository.RepositoryType == Domain.RepositoryType.Folder;
         public ICommand SynchronizeCommand => new RelayCommand((_) => Synchronize());
         public ICommand CleanReleasesCommand => new RelayCommand((_) => CleanReleases());
-        public ICommand OpenFormCommand => new RelayCommand((_) => eventBroker.OpenRepositoryForm(this));
+        public ICommand OpenFormCommand => new RelayCommand((_) => eventBroker.RequestOpenRepositoryForm(this));
 
         public string CompanyName
         {
@@ -63,15 +63,7 @@
             }
         }
 
-        public RepositoryType RepositoryType
-        {
-            get => repository.RepositoryType;
-            set
-            {
-                repository.RepositoryType = value;
-                RaisePropertyChanged(nameof(RepositoryType));
-            }
-        }
+        public RepositoryType RepositoryType => repository.RepositoryType;
 
         public string Resource
         {
@@ -93,13 +85,13 @@
             {
                 repository.UseRepository = value;
                 RaisePropertyChanged(nameof(UseRepository));
-                eventBroker.NotifyRepositoryChanged(repository);
+                eventBroker.NotifyRepositoriesUpdated();
             }
         }
 
         private void Synchronize()
         {
-            eventBroker.ExecuteActionWithWaiter(async () =>
+            eventBroker.RequestExecuteActionWithWaiter(async () =>
             {
                 if (IsGitRepository && repository is RepositoryGit repositoryGit)
                 {
@@ -111,7 +103,7 @@
 
         private void CleanReleases()
         {
-            eventBroker.ExecuteActionWithWaiter(async () =>
+            eventBroker.RequestExecuteActionWithWaiter(async () =>
             {
                 try
                 {

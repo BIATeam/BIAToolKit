@@ -97,7 +97,7 @@
             if (project is null || project.BIAFronts.Count == 0)
                 return;
 
-            uiEventBroker.ExecuteActionWithWaiter(() => InitProjectTask(project));
+            uiEventBroker.RequestExecuteActionWithWaiter(() => InitProjectTask(project));
         }
 
         private Task InitProjectTask(Project project)
@@ -260,7 +260,7 @@
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteActionWithWaiter(async () =>
+            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
             {
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
                 {

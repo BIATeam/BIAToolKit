@@ -47,7 +47,7 @@
             <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Items" ItemsSource="{Binding RepositoryTypes}" SelectedItem="{Binding RepositoryType}"/>
         </StackPanel>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Margin="5" IsDefault="True">OK</Button>
+            <Button Margin="5" x:Name="SubmitButton" IsDefault="True" Click="SubmitButton_Click">OK</Button>
             <Button Margin="5" IsCancel="True">Cancel</Button>
         </StackPanel>
     </Grid>

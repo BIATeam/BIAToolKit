@@ -22,10 +22,17 @@
     /// </summary>
     public partial class RepositoryFormUC : Window
     {
+        public RepositoryFormViewModel ViewModel => DataContext as RepositoryFormViewModel;
+
         public RepositoryFormUC(RepositoryViewModel repository, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
         {
             DataContext = new RepositoryFormViewModel(repository, gitService, eventBroker, consoleWriter);
             InitializeComponent();
+        }
+
+        private void SubmitButton_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = true;
         }
     }
 }

@@ -28,6 +28,36 @@
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
             eventBroker.OnSettingsUpdated += EventBroker_OnSettingsUpdated;
+            eventBroker.OnRepositoryViewModelChanged += EventBroker_OnRepositoryChanged;
+        }
+
+        private void EventBroker_OnRepositoryChanged(RepositoryViewModel oldRepository, RepositoryViewModel newRepository)
+        {
+            for (int i = 0; i < TemplateRepositories.Count; i++)
+            {
+                if (TemplateRepositories[i] == oldRepository)
+                {
+                    TemplateRepositories.RemoveAt(i);
+                    TemplateRepositories.Insert(i, newRepository);
+                    settingsService.SetTemplateRepositories(TemplateRepositories.Select(x => x.Model).ToList());
+                }
+            }
+
+            for (int i = 0; i < CompanyFilesRepositories.Count; i++)
+            {
+                if (CompanyFilesRepositories[i] == oldRepository)
+                {
+                    CompanyFilesRepositories.RemoveAt(i);
+                    CompanyFilesRepositories.Insert(i, newRepository);
+                    settingsService.SetCompanyFilesRepositories(TemplateRepositories.Select(x => x.Model).ToList());
+                }
+            }
+
+            if (ToolkitRepository == oldRepository)
+            {
+                ToolkitRepository = newRepository;
+                settingsService.SetToolkitRepository(ToolkitRepository.Model);
+            }
         }
 
         private void CompanyFilesRepositories_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
