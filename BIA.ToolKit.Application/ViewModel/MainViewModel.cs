@@ -108,6 +108,8 @@
             settingsService.SetTemplateRepositories(TemplateRepositories.Select(x => x.Model).ToList());
         }
 
+        public ICommand OpenToolkitRepositorySettingsCommand => new RelayCommand((_) => eventBroker.RequestOpenRepositoryForm(ToolkitRepository, RepositoryFormMode.Edit));
+
         public ICommand AddTemplateRepositoryCommand => new RelayCommand((_) => AddTemplateRepository());
 
         public ICommand AddCompanyFilesRepositoryCommand => new RelayCommand((_) => AddCompanyFilesRepository());
@@ -176,6 +178,8 @@
                     RepositoryFolder repositoryFolder => new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter),
                     _ => throw new NotImplementedException()
                 };
+                ToolkitRepository.IsVisibleCompanyName = false;
+                ToolkitRepository.IsVisibleProjectName = false;
 
                 firstTimeSettingsUpdated = false;
                 TemplateRepositories.CollectionChanged += TemplateRepositories_CollectionChanged;

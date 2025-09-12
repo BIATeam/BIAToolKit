@@ -15,9 +15,9 @@
         public RepositoryViewModel Repository
         {
             get => repository;
-            set 
+            set
             {
-                repository = value; 
+                repository = value;
                 RaisePropertyChanged(nameof(Repository));
             }
         }
@@ -42,7 +42,12 @@
                             useRepository: repository.UseRepository),
                         gitService,
                         eventBroker,
-                        consoleWriter),
+                        consoleWriter)
+                    { 
+                        IsVisibleCompanyName = repository.IsVisibleCompanyName, 
+                        IsVisibleProjectName = repository.IsVisibleProjectName 
+                    },
+
                     RepositoryType.Folder => new RepositoryFolderViewModel(
                         new RepositoryFolder(
                             repository.Name,
@@ -52,8 +57,12 @@
                             useRepository: repository.UseRepository),
                         gitService,
                         eventBroker,
-                        consoleWriter),
-                    _ => throw new NotImplementedException(),
+                        consoleWriter)
+                    {
+                        IsVisibleCompanyName = repository.IsVisibleCompanyName,
+                        IsVisibleProjectName = repository.IsVisibleProjectName
+                    },
+                        _ => throw new NotImplementedException(),
                 };
                 RaisePropertyChanged(nameof(RepositoryType));
             }

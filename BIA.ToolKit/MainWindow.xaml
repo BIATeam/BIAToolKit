@@ -42,6 +42,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition/>
                                     <RowDefinition/>
+                                    <RowDefinition/>
                                 </Grid.RowDefinitions>
                                 <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
                                     <Button Height="20" Padding="0" x:Name="UpdateButton" VerticalAlignment="Center" ToolTip="New version available !" Background="Transparent" Foreground="Transparent" BorderThickness="0" Cursor="Hand" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisConverter}}" Click="UpdateButton_Click">
@@ -52,10 +53,11 @@
                                         <Image Source="/Images/rafraichir-32.png" Cursor="Hand" RenderOptions.BitmapScalingMode="Fant" />
                                     </Button>
                                 </StackPanel>
-                                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
                                     <CheckBox Name="AutoUpdateCheckbox" IsChecked="{Binding Settings_AutoUpdate}"/>
                                     <Label VerticalAlignment="Center" Foreground="White" Content="Auto update" FontSize="10" Margin="0,1,0,0"/>
                                 </StackPanel>
+                                <Button Margin="0,5" Style="{StaticResource MaterialDesignPaperButton}" Content="Toolkit Repository Settings" Grid.Row="2" Width="auto" HorizontalAlignment="Right" Command="{Binding OpenToolkitRepositorySettingsCommand}"/>
                             </Grid>
 
                             <Grid Grid.Row="1" Margin="30,10">

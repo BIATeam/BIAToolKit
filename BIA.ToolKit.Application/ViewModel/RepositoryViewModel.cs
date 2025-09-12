@@ -34,6 +34,9 @@
         public ICommand OpenFormCommand => new RelayCommand((_) => eventBroker.RequestOpenRepositoryForm(this, RepositoryFormMode.Edit));
         public ICommand DeleteCommand => new RelayCommand((_) => eventBroker.NotifyRepositoryViewModelDeleted(this));
 
+        public bool IsVisibleCompanyName { get; set; } = true;
+        public bool IsVisibleProjectName { get; set; } = true;
+
         public string CompanyName
         {
             get => repository.CompanyName;

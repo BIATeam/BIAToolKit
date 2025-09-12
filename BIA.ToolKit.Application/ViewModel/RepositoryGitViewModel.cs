@@ -35,6 +35,8 @@
             set { repositoryGit.ReleasesFolderRegexPattern = value; RaisePropertyChanged(nameof(ReleasesFolderRegexPattern)); }
         }
 
+        public Array ReleaseTypes => Enum.GetValues<ReleaseType>();
+
         public ReleaseType ReleaseType
         {
             get => repositoryGit.ReleaseType;

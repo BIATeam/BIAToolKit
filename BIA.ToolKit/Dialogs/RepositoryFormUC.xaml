@@ -7,46 +7,54 @@
         xmlns:viewModel="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="Log Detail" Height="auto" Width="500"
+        Title="Repository Details" Height="auto"
         MinHeight="200"
+        MinWidth="600"
         SizeToContent="WidthAndHeight"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Style="{StaticResource MaterialDesignWindow}"
         d:DataContext="{d:DesignInstance Type=viewModel:RepositoryFormViewModel, IsDesignTimeCreatable=False}">
     <Window.Resources>
-        <DataTemplate x:Key="CommonFields" DataType="{x:Type viewModel:RepositoryViewModel}">
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+        <Thickness x:Key="FormFieldMargin">0,0,0,5</Thickness>
+
+        <DataTemplate x:Key="CommonFields" d:DataType="{x:Type viewModel:RepositoryGitViewModel}">
             <StackPanel>
-                <Label Content="COMMON" Foreground="YELLOW"/>
+                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Name" Text="{Binding Name}" TextWrapping="Wrap"/>
+                <ComboBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Repository Type" ItemsSource="{Binding Source={x:Reference Form}, Path=DataContext.RepositoryTypes}" SelectedItem="{Binding Source={x:Reference Form}, Path=DataContext.RepositoryType}"/>
+                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Company Name" Text="{Binding CompanyName}" TextWrapping="Wrap" Visibility="{Binding IsVisibleCompanyName, Converter={StaticResource BoolToVisConverter}}"/>
+                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Project Name" Text="{Binding ProjectName}" TextWrapping="Wrap" Visibility="{Binding IsVisibleProjectName, Converter={StaticResource BoolToVisConverter}}"/>
             </StackPanel>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type viewModel:RepositoryGitViewModel}">
             <StackPanel>
-                <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource CommonFields}"/>
-                <Label Content="GIT" Foreground="YELLOW"/>
+                <ContentPresenter Margin="0,0,0,5" Content="{Binding}" ContentTemplate="{StaticResource CommonFields}"/>
+                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Url" Text="{Binding Url}" TextWrapping="Wrap"/>
+                <CheckBox Margin="{StaticResource FormFieldMargin}" IsChecked="{Binding UseLocalClonedFolder}" Content="Use Local Cloned Folder"/>
+                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Local Cloned Folder Path" Text="{Binding LocalClonedFolderPath}" TextWrapping="Wrap" Visibility="{Binding UseLocalClonedFolder, Converter={StaticResource BoolToVisConverter}}"/>
+                <ComboBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Release Type" ItemsSource="{Binding ReleaseTypes}" SelectedItem="{Binding ReleaseType}"/>
             </StackPanel>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type viewModel:RepositoryFolderViewModel}">
             <StackPanel>
-                <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource CommonFields}"/>
-                <Label Content="FOLDER" Foreground="YELLOW"/>
+                <ContentPresenter Margin="0,0,0,5" Content="{Binding}" ContentTemplate="{StaticResource CommonFields}"/>
+                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Path" Text="{Binding Path}" TextWrapping="Wrap"/>
+                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Release Regex Pattern" Text="{Binding ReleaseFolderRegexPattern}" TextWrapping="Wrap"/>
             </StackPanel>
         </DataTemplate>
     </Window.Resources>
 
-    <Grid>
+    <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0">
-            <ContentControl Grid.Row="0" Content="{Binding Repository}"/>
-            <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Items" ItemsSource="{Binding RepositoryTypes}" SelectedItem="{Binding RepositoryType}"/>
-        </StackPanel>
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+        <ContentControl x:Name="Form" Grid.Row="0" Content="{Binding Repository}"/>
+        <StackPanel Margin="0,5,0,0" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Margin="5" x:Name="SubmitButton" IsDefault="True" Click="SubmitButton_Click">OK</Button>
             <Button Margin="5" IsCancel="True">Cancel</Button>
         </StackPanel>
