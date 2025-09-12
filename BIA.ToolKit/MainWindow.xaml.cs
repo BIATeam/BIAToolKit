@@ -153,10 +153,6 @@
                         owner: "BIATeam",
                         useRepository: true
                     ),
-                //new RepositoryFolder(
-                //    name: "BIAToolkit Folder",
-                //    path: "\\\\share.bia.safran\\BIAToolKit\\Releases\\BiaToolkit"
-                //),
 
                 TemplateRepositories = !string.IsNullOrEmpty(Properties.Settings.Default.TemplateRepositories) ?
                     JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.TemplateRepositories)
@@ -173,30 +169,13 @@
                             projectName: "BIATemplate",
                             useRepository: true
                         ),
-                        RepositoryGit.CreateWithReleaseTypeTag(
-                            name: "BIATemplateV2 GIT",
-                            url: "https://azure.devops.safran/SafranElectricalAndPower/Digital%20Manufacturing/_git/BIATemplateV2",
-                            companyName: "TheBIADevCompany",
-                            projectName: "BIATemplate"
-                        ),
-                        //new RepositoryFolder(
-                        //    name: "BIATemplate Folder",
-                        //    path: "\\\\share.bia.safran\\BIAToolKit\\Releases\\BiaTemplate"
-                        //),
                     ],
 
                 CompanyFilesRepositories = !string.IsNullOrEmpty(Properties.Settings.Default.CompanyFilesRepositories) ?
                     JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.CompanyFilesRepositories)
                     .Select(ConvertRepository)
                     .ToList() :
-                    [
-                        RepositoryGit.CreateWithReleaseTypeFolder(
-                            name: "BIACompanyFiles GIT",
-                            url: "https://azure.devops.safran/SafranElectricalAndPower/Digital%20Manufacturing/_git/BIACompanyFiles",
-                            releasesFolderRegexPattern: "^V\\d+\\.\\d+\\.\\d+(?:\\.\\d+)?$",
-                            companyName: "TheBIADevCompany",
-                            projectName: "BIATemplate")
-                    ]
+                    []
             };
 
             var fillReleasesTasks = settings.TemplateRepositories
