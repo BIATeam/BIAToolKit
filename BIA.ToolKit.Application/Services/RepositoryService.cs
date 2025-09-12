@@ -28,7 +28,10 @@
             if(!localFolderExists)
             {
                 outPut.AddMessageLine($"Local repository {repository.Name} not found at {repository.LocalPath}", "red");
-                outPut.AddMessageLine($"Did you forget to synchronize the repository locally ?", "red");
+                if (repository.RepositoryType == RepositoryType.Git)
+                {
+                    outPut.AddMessageLine($"Did you forget to synchronize the repository ?", "red");
+                }
             }
             return localFolderExists;
         }

@@ -102,11 +102,21 @@
         {
             eventBroker.RequestExecuteActionWithWaiter(async () =>
             {
-                if (IsGitRepository && repository is RepositoryGit repositoryGit)
+                try
                 {
-                    await gitService.Synchronize(repositoryGit);
+                    if (IsGitRepository && repository is RepositoryGit repositoryGit)
+                    {
+                        await gitService.Synchronize(repositoryGit);
+                    }
+
+                    consoleWriter.AddMessageLine("Getting releases data...", "pink");
+                    await repository.FillReleasesAsync();
+                    consoleWriter.AddMessageLine("Releases data got successfully", "green");
                 }
-                await repository.FillReleasesAsync();
+                catch (Exception ex)
+                {
+                    consoleWriter.AddMessageLine($"Error : {ex.Message}", "red");
+                }
             });
         }
 

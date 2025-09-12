@@ -71,8 +71,8 @@
 
         public void RefreshConfiguration()
         {
-            MigrateOriginVersionAndOption.refreshConfig();
-            MigrateTargetVersionAndOption.refreshConfig();
+            MigrateOriginVersionAndOption.RefreshConfiguration();
+            MigrateTargetVersionAndOption.RefreshConfiguration();
         }
 
         private void ModifyProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)

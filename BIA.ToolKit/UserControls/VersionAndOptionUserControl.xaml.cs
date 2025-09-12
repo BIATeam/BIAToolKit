@@ -50,6 +50,13 @@
             this.settingsService = settingsService;
             this.uiEventBroker = uiEventBroker;
             vm.Inject(repositoryService, consoleWriter);
+
+            uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
+        }
+
+        private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
+        {
+            vm.SettingsUseCompanyFiles = settings.UseCompanyFiles;
         }
 
         public void SelectVersion(string version)
@@ -115,7 +122,7 @@
             }
         }
 
-        public void refreshConfig()
+        public void RefreshConfiguration()
         {
             var listCompanyFiles = new List<WorkRepository>();
             var listWorkTemplates = new List<WorkRepository>();
@@ -126,29 +133,26 @@
                 AddTemplatesVersion(listWorkTemplates, repository);
             }
 
-            //if (Directory.Exists(settingsService.Settings.BIATemplateRepository.RootFolderPath))
-            //{
-            //    AddTemplatesVersion(listWorkTemplates, settingsService.Settings.BIATemplateRepository);
-            //    listWorkTemplates.Add(new WorkRepository(settingsService.Settings.BIATemplateRepository, "VX.Y.Z"));
-            //}
-
             vm.WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
             if (listWorkTemplates.Count >= 1)
             {
                 vm.WorkTemplate = listWorkTemplates[^1];
             }
 
-            //vm.SettingsUseCompanyFiles = settingsService.Settings.UseCompanyFiles;
-            //vm.UseCompanyFiles = settingsService.Settings.UseCompanyFiles;
-            //if (settingsService.Settings.UseCompanyFiles)
-            //{
-            //    AddTemplatesVersion(listCompanyFiles, settingsService.Settings.CompanyFilesRepository);
-            //    vm.WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
-            //    if (vm.WorkCompanyFiles.Count >= 1)
-            //    {
-            //        vm.WorkCompanyFile = vm.GetWorkCompanyFile(vm.WorkTemplate.Version);
-            //    }
-            //}
+            vm.SettingsUseCompanyFiles = settingsService.Settings.UseCompanyFiles;
+            vm.UseCompanyFiles = settingsService.Settings.UseCompanyFiles;
+            if (settingsService.Settings.UseCompanyFiles)
+            {
+                foreach (var repository in settingsService.Settings.CompanyFilesRepositories)
+                {
+                    AddTemplatesVersion(listCompanyFiles, repository);
+                }
+                vm.WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
+                if (vm.WorkCompanyFiles.Count >= 1)
+                {
+                    vm.WorkCompanyFile = vm.GetWorkCompanyFile(vm.WorkTemplate.Version);
+                }
+            }
         }
 
         private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, IRepository repository)
@@ -165,7 +169,6 @@
         {
             uiEventBroker.RequestExecuteActionWithWaiter(async () =>
             {
-                //vm.UseCompanyFiles = vm.WorkTemplate?.RepositorySettings?.Name == "BIATemplate";
                 await this.FillVersionFolderPathAsync();
                 this.LoadfeatureSetting();
                 this.LoadVersionAndOption(false);

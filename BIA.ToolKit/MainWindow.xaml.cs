@@ -87,9 +87,9 @@
         private void UiEventBroker_OnRepositoryFormOpened(RepositoryViewModel repository, RepositoryFormMode mode)
         {
             var form = new RepositoryFormUC(repository, gitService, uiEventBroker, consoleWriter) { Owner = this };
-            if(form.ShowDialog() == true)
+            if (form.ShowDialog() == true)
             {
-                switch(mode)
+                switch (mode)
                 {
                     case RepositoryFormMode.Edit:
                         uiEventBroker.NotifyRepositoryViewModelChanged(repository, form.ViewModel.Repository);
@@ -189,7 +189,7 @@
                         await r.FillReleasesAsync();
                         consoleWriter.AddMessageLine($"Releases data got successfully for repository {r.Name}", "green");
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         consoleWriter.AddMessageLine($"Error while getting releases data for repository {r.Name} : {ex.Message}", "red");
                     }
@@ -270,15 +270,16 @@
             await OnUpdateAvailable();
         }
 
-        public bool RefreshConfiguration()
+        public bool CheckRepositoriesConfiguration()
         {
-            return RefreshBIATemplateConfiguration() && RefreshCompanyFilesConfiguration();
+            var templatesConfigurationValid = CheckTemplateRepositoriesConfiguration();
+            var companyFilesConfigurationValid = CheckCompanyFilesRepositoriesConfiguration();
+            return templatesConfigurationValid && companyFilesConfigurationValid;
         }
 
-        public bool RefreshBIATemplateConfiguration()
+        public bool CheckTemplateRepositoriesConfiguration()
         {
-            Configurationchange();
-            if (!CheckBIATemplate(settingsService.Settings))
+            if (!CheckTemplateRepositories(settingsService.Settings))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
                 return false;
@@ -286,21 +287,9 @@
             return true;
         }
 
-        public void ConfigurationChange(object sender, RoutedEventArgs e)
+        public bool CheckCompanyFilesRepositoriesConfiguration()
         {
-            Configurationchange();
-        }
-
-        private void Configurationchange()
-        {
-            isCreateTabInitialized = false;
-            isModifyTabInitialized = false;
-        }
-
-        public bool RefreshCompanyFilesConfiguration()
-        {
-            Configurationchange();
-            if (!CheckCompanyFiles(settingsService.Settings))
+            if (!CheckCompanyFilesRepositories(settingsService.Settings))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
                 return false;
@@ -308,8 +297,14 @@
             return true;
         }
 
-        public bool CheckBIATemplate(IBIATKSettings biaTKsettings)
+        public bool CheckTemplateRepositories(IBIATKSettings biaTKsettings)
         {
+            if (!biaTKsettings.TemplateRepositories.Where(r => r.UseRepository).Any())
+            {
+                consoleWriter.AddMessageLine("You must use at least one Templates repository", "red");
+                return false;
+            }
+
             foreach (var repository in biaTKsettings.TemplateRepositories.Where(r => r.UseRepository))
             {
                 if (!repositoryService.CheckRepoFolder(repository))
@@ -321,10 +316,16 @@
             return true;
         }
 
-        public bool CheckCompanyFiles(IBIATKSettings biaTKsettings)
+        public bool CheckCompanyFilesRepositories(IBIATKSettings biaTKsettings)
         {
             if (biaTKsettings.UseCompanyFiles)
             {
+                if (!biaTKsettings.CompanyFilesRepositories.Where(r => r.UseRepository).Any())
+                {
+                    consoleWriter.AddMessageLine("You must use at least one Company Files repository", "red");
+                    return false;
+                }
+
                 foreach (var repository in biaTKsettings.CompanyFilesRepositories.Where(r => r.UseRepository))
                 {
                     if (!repositoryService.CheckRepoFolder(repository))
@@ -362,32 +363,22 @@
 
         private void OnTabModifySelected(object sender, RoutedEventArgs e)
         {
-            var tab = sender as TabItem;
-            if (tab != null)
+            if (sender is TabItem)
             {
-                if (!isModifyTabInitialized)
+                if (CheckRepositoriesConfiguration())
                 {
-                    if (RefreshConfiguration())
-                    {
-                        ModifyProject.RefreshConfiguration();
-                        isModifyTabInitialized = true;
-                    }
+                    ModifyProject.RefreshConfiguration();
                 }
             }
         }
 
         private void OnTabCreateSelected(object sender, RoutedEventArgs e)
         {
-            var tab = sender as TabItem;
-            if (tab != null)
+            if (sender is TabItem)
             {
-                if (!isCreateTabInitialized)
+                if (CheckRepositoriesConfiguration())
                 {
-                    if (RefreshConfiguration())
-                    {
-                        CreateVersionAndOption.refreshConfig();
-                        isCreateTabInitialized = true;
-                    }
+                    CreateVersionAndOption.RefreshConfiguration();
                 }
             }
         }

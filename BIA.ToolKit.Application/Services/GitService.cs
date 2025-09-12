@@ -29,18 +29,21 @@
         {
             if (!repository.UseLocalClonedFolder)
             {
-                if (Directory.Exists(repository.LocalPath))
+                await Task.Run(() =>
                 {
-                    var dirInfo = new DirectoryInfo(repository.LocalPath);
-                    foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                    if (Directory.Exists(repository.LocalPath))
                     {
-                        file.Attributes = FileAttributes.Normal;
-                        File.Delete(file.FullName);
+                        var dirInfo = new DirectoryInfo(repository.LocalPath);
+                        foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                        {
+                            file.Attributes = FileAttributes.Normal;
+                            File.Delete(file.FullName);
+                        }
+                        Directory.Delete(repository.LocalPath, true);
                     }
-                    Directory.Delete(repository.LocalPath, true);
-                }
 
-                Directory.CreateDirectory(repository.LocalPath);
+                    Directory.CreateDirectory(repository.LocalPath);
+                });
 
                 await Clone(repository.Url, repository.LocalPath);
                 return;

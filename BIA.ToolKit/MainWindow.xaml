@@ -100,12 +100,13 @@
 
                                     <Grid Grid.RowSpan="2" Background="Black" Opacity="0.4"/>
                                     <StackPanel Grid.Row="0" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,5">
-                                        <Label Grid.Row="0" Margin="0,2,0,0" Content="COMPANY FILES REPOSITORIES" Foreground="White" FontWeight="Bold" FontSize="25"/>
-                                        <Button Padding="5,0" Margin="10,0,0,0" Command="{Binding AddCompanyFilesRepositoryCommand}" ToolTip="Add Company Files Repository">
+                                        <ToggleButton Margin="0,0,10,0" Style="{StaticResource MaterialDesignSwitchToggleButton}" IsChecked="{Binding Settings_UseCompanyFiles}"/>
+                                        <Label Grid.Row="0" Margin="0,2,0,0" Content="COMPANY FILES REPOSITORIES" Foreground="White" FontWeight="Bold" FontSize="25" IsEnabled="{Binding Settings_UseCompanyFiles}"/>
+                                        <Button Padding="5,0" Margin="10,0,0,0" Command="{Binding AddCompanyFilesRepositoryCommand}" ToolTip="Add Company Files Repository" IsEnabled="{Binding Settings_UseCompanyFiles}">
                                             <materialDesign:PackIcon Kind="Add" Height="25" Width="25"/>
                                         </Button>
                                     </StackPanel>
-                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" Margin="10,0,0,0">
+                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" Margin="10,0,0,0" IsEnabled="{Binding Settings_UseCompanyFiles}">
                                         <ItemsControl ItemsSource="{Binding CompanyFilesRepositories}" VerticalAlignment="Top">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate DataType="{x:Type local:RepositoryViewModel}">
