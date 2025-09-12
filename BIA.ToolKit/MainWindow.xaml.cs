@@ -84,12 +84,22 @@
             uiEventBroker.OnOpenRepositoryFormRequest += UiEventBroker_OnRepositoryFormOpened;
         }
 
-        private void UiEventBroker_OnRepositoryFormOpened(RepositoryViewModel repository)
+        private void UiEventBroker_OnRepositoryFormOpened(RepositoryViewModel repository, RepositoryFormMode mode)
         {
             var form = new RepositoryFormUC(repository, gitService, uiEventBroker, consoleWriter) { Owner = this };
             if(form.ShowDialog() == true)
             {
-                uiEventBroker.NotifyRepositoryViewModelChanged(repository, form.ViewModel.Repository);
+                switch(mode)
+                {
+                    case RepositoryFormMode.Edit:
+                        uiEventBroker.NotifyRepositoryViewModelChanged(repository, form.ViewModel.Repository);
+                        break;
+                    case RepositoryFormMode.Create:
+                        uiEventBroker.NotifyRepositoryViewModelAdded(form.ViewModel.Repository);
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
             }
         }
 

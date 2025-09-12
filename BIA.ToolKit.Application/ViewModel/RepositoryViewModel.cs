@@ -31,7 +31,8 @@
         public bool IsFolderRepository => repository.RepositoryType == Domain.RepositoryType.Folder;
         public ICommand SynchronizeCommand => new RelayCommand((_) => Synchronize());
         public ICommand CleanReleasesCommand => new RelayCommand((_) => CleanReleases());
-        public ICommand OpenFormCommand => new RelayCommand((_) => eventBroker.RequestOpenRepositoryForm(this));
+        public ICommand OpenFormCommand => new RelayCommand((_) => eventBroker.RequestOpenRepositoryForm(this, RepositoryFormMode.Edit));
+        public ICommand DeleteCommand => new RelayCommand((_) => eventBroker.NotifyRepositoryViewModelDeleted(this));
 
         public string CompanyName
         {

@@ -41,6 +41,9 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Style="{StaticResource MaterialDesignPaperButton}"  Padding="5,0"  Command="{Binding DeleteCommand}" Margin="0,0,5,0">
+                            <materialDesign:PackIcon Kind="Bin" Height="25" Width="25" />
+                        </Button>
                         <Button Style="{StaticResource MaterialDesignPaperButton}"  Padding="5,0"  Command="{Binding OpenFormCommand}">
                             <materialDesign:PackIcon Kind="Cog" Height="25" Width="25" />
                         </Button>
@@ -53,7 +56,7 @@
                         <RowDefinition/>
                     </Grid.RowDefinitions>
 
-                    <TextBox Grid.Row="0" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Repository Type" Text="{Binding RepositoryType}" TextWrapping="Wrap" IsReadOnly="true"/>
+                    <TextBox Grid.Row="0" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Repository Type" Text="{Binding RepositoryType, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="true"/>
                     <TextBox Grid.Row="1" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Resource" Text="{Binding Resource, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="true"/>
                 </Grid>
             </Grid>

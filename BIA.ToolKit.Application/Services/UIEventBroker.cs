@@ -10,6 +10,12 @@ using BIA.ToolKit.Domain.Settings;
 
 namespace BIA.ToolKit.Application.Services
 {
+    public enum RepositoryFormMode
+    {
+        Create,
+        Edit
+    }
+
     public class UIEventBroker
     {
         public delegate void ProjectChanged(Project project);
@@ -18,7 +24,9 @@ namespace BIA.ToolKit.Application.Services
         public delegate void SettingsUpdated(IBIATKSettings settings);
         public delegate void RepositoriesUpdated();
         public delegate void RepositoryViewModelChanged(RepositoryViewModel oldRepository, RepositoryViewModel newRepository);
-        public delegate void OpenRepositoryFormRequest(RepositoryViewModel repository);
+        public delegate void RepositoryViewModelDeleted(RepositoryViewModel repository);
+        public delegate void OpenRepositoryFormRequest(RepositoryViewModel repository, RepositoryFormMode mode);
+        public delegate void RepositoryViewModelAdded(RepositoryViewModel repository);
 
         public event ProjectChanged OnProjectChanged;
         public event NewVersionAvailable OnNewVersionAvailable;
@@ -27,6 +35,8 @@ namespace BIA.ToolKit.Application.Services
         public event RepositoryViewModelChanged OnRepositoryViewModelChanged;
         public event OpenRepositoryFormRequest OnOpenRepositoryFormRequest;
         public event RepositoriesUpdated OnRepositoriesUpdated;
+        public event RepositoryViewModelDeleted OnRepositoryViewModelDeleted;
+        public event RepositoryViewModelAdded OnRepositoryViewModelAdded;
 
         public void NotifyProjectChanged(Project project)
         {
@@ -58,9 +68,19 @@ namespace BIA.ToolKit.Application.Services
             OnRepositoryViewModelChanged?.Invoke(oldRepository, newRepository); 
         }
 
-        public void RequestOpenRepositoryForm(RepositoryViewModel repository)
+        public void RequestOpenRepositoryForm(RepositoryViewModel repository, RepositoryFormMode mode)
         {
-            OnOpenRepositoryFormRequest?.Invoke(repository);
+            OnOpenRepositoryFormRequest?.Invoke(repository, mode);
+        }
+
+        public void NotifyRepositoryViewModelDeleted(RepositoryViewModel repository)
+        {
+            OnRepositoryViewModelDeleted?.Invoke(repository);
+        }
+
+        public void NotifyRepositoryViewModelAdded(RepositoryViewModel repository)
+        {
+            OnRepositoryViewModelAdded?.Invoke(repository);
         }
     }
 }

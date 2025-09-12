@@ -72,7 +72,12 @@
                                     </Grid.RowDefinitions>
 
                                     <Grid Grid.RowSpan="2" Background="Black" Opacity="0.4"/>
-                                    <Label Grid.Row="0" Content="TEMPLATES REPOSITORIES" Foreground="White" FontWeight="Bold" FontSize="20" HorizontalAlignment="Center"/>
+                                    <StackPanel Grid.Row="0" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,5">
+                                        <Label Grid.Row="0" Margin="0,2,0,0" Content="TEMPLATES REPOSITORIES" Foreground="White" FontWeight="Bold" FontSize="25"/>
+                                        <Button Padding="5,0" Margin="10,0,0,0"  Command="{Binding AddTemplateRepositoryCommand}">
+                                            <materialDesign:PackIcon Kind="Add" Height="25" Width="25"/>
+                                        </Button>
+                                    </StackPanel>
                                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" Margin="10,0,0,0">
                                         <ItemsControl ItemsSource="{Binding TemplateRepositories}" VerticalAlignment="Top">
                                             <ItemsControl.ItemTemplate>
@@ -92,7 +97,12 @@
                                     </Grid.RowDefinitions>
 
                                     <Grid Grid.RowSpan="2" Background="Black" Opacity="0.4"/>
-                                    <Label Grid.Row="0" Content="COMPANY FILES REPOSITORIES" Foreground="White" FontWeight="Bold" FontSize="20" HorizontalAlignment="Center"/>
+                                    <StackPanel Grid.Row="0" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,5">
+                                        <Label Grid.Row="0" Margin="0,2,0,0" Content="COMPANY FILES REPOSITORIES" Foreground="White" FontWeight="Bold" FontSize="25"/>
+                                        <Button Padding="5,0" Margin="10,0,0,0" Command="{Binding AddCompanyFilesRepositoryCommand}">
+                                            <materialDesign:PackIcon Kind="Add" Height="25" Width="25"/>
+                                        </Button>
+                                    </StackPanel>
                                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" Margin="10,0,0,0">
                                         <ItemsControl ItemsSource="{Binding CompanyFilesRepositories}" VerticalAlignment="Top">
                                             <ItemsControl.ItemTemplate>

@@ -10,6 +10,7 @@
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Settings;
+    using Octokit;
 
     public class MainViewModel : ObservableObject
     {
@@ -19,6 +20,8 @@
         private readonly GitService gitService;
         private readonly IConsoleWriter consoleWriter;
         private bool firstTimeSettingsUpdated = true;
+        private bool waitAddTemplateRepository;
+        private bool waitAddCompanyFilesRepository;
 
         public MainViewModel(Version applicationVersion, UIEventBroker eventBroker, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter)
         {
@@ -29,6 +32,43 @@
             this.consoleWriter = consoleWriter;
             eventBroker.OnSettingsUpdated += EventBroker_OnSettingsUpdated;
             eventBroker.OnRepositoryViewModelChanged += EventBroker_OnRepositoryChanged;
+            eventBroker.OnRepositoryViewModelDeleted += EventBroker_OnRepositoryViewModelDeleted;
+            eventBroker.OnRepositoryViewModelAdded += EventBroker_OnRepositoryViewModelAdded;
+        }
+
+        private void EventBroker_OnRepositoryViewModelAdded(RepositoryViewModel repository)
+        {
+            if (waitAddTemplateRepository)
+            {
+                TemplateRepositories.Add(repository);
+            }
+
+            if (waitAddCompanyFilesRepository)
+            {
+                CompanyFilesRepositories.Add(repository);
+            }
+
+            waitAddTemplateRepository = false;
+            waitAddCompanyFilesRepository = false;
+        }
+
+        private void EventBroker_OnRepositoryViewModelDeleted(RepositoryViewModel repository)
+        {
+            for (int i = 0; i < TemplateRepositories.Count; i++)
+            {
+                if (TemplateRepositories[i] == repository)
+                {
+                    TemplateRepositories.RemoveAt(i);
+                }
+            }
+
+            for (int i = 0; i < CompanyFilesRepositories.Count; i++)
+            {
+                if (CompanyFilesRepositories[i] == repository)
+                {
+                    CompanyFilesRepositories.RemoveAt(i);
+                }
+            }
         }
 
         private void EventBroker_OnRepositoryChanged(RepositoryViewModel oldRepository, RepositoryViewModel newRepository)
@@ -39,7 +79,6 @@
                 {
                     TemplateRepositories.RemoveAt(i);
                     TemplateRepositories.Insert(i, newRepository);
-                    settingsService.SetTemplateRepositories(TemplateRepositories.Select(x => x.Model).ToList());
                 }
             }
 
@@ -49,7 +88,6 @@
                 {
                     CompanyFilesRepositories.RemoveAt(i);
                     CompanyFilesRepositories.Insert(i, newRepository);
-                    settingsService.SetCompanyFilesRepositories(TemplateRepositories.Select(x => x.Model).ToList());
                 }
             }
 
@@ -70,6 +108,24 @@
             settingsService.SetTemplateRepositories(TemplateRepositories.Select(x => x.Model).ToList());
         }
 
+        public ICommand AddTemplateRepositoryCommand => new RelayCommand((_) => AddTemplateRepository());
+
+        public ICommand AddCompanyFilesRepositoryCommand => new RelayCommand((_) => AddCompanyFilesRepository());
+
+        private void AddTemplateRepository()
+        {
+            waitAddTemplateRepository = true;
+            waitAddCompanyFilesRepository = false;
+            eventBroker.RequestOpenRepositoryForm(new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, eventBroker, consoleWriter), RepositoryFormMode.Create);
+        }
+
+        private void AddCompanyFilesRepository()
+        {
+            waitAddCompanyFilesRepository = true;
+            waitAddTemplateRepository = false;
+            eventBroker.RequestOpenRepositoryForm(new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, eventBroker, consoleWriter), RepositoryFormMode.Create);
+        }
+
         public ObservableCollection<RepositoryViewModel> TemplateRepositories { get; } = [];
         public ObservableCollection<RepositoryViewModel> CompanyFilesRepositories { get; } = [];
 
@@ -82,80 +138,6 @@
                 toolkitRepository = value;
                 RaisePropertyChanged(nameof(ToolkitRepository));
             }
-        }
-
-        public ICommand AddTemplateRepositoryCommand => new RelayCommand((_) => AddTemplateRepository());
-
-        public ICommand AddCompanyFilesRepositoryCommand => new RelayCommand((_) => AddCompanyFilesRepository());
-
-        public ICommand EditToolkitRepositoryCommand => new RelayCommand<RepositoryFolderViewModel>(EditToolkitRepository);
-
-        public ICommand EditTemplateRepositoryCommand => new RelayCommand<RepositoryFolderViewModel>(EditTemplateRepository);
-
-        public ICommand EditCompanyFilesRepositoryCommand => new RelayCommand<RepositoryFolderViewModel>(EditCompanyFilesRepository);
-
-        public ICommand RemoveTemplateRepositoryCommand => new RelayCommand<RepositoryFolderViewModel>(RemoveTemplateRepository);
-
-        public ICommand RemoveCompanyFilesRepositoryCommand => new RelayCommand<RepositoryFolderViewModel>(RemoveCompanyFilesRepository);
-
-        private void AddTemplateRepository()
-        {
-            var repository = CreateRepository();
-            if (repository is null)
-                return;
-
-            TemplateRepositories.Add(repository);
-            
-        }
-
-        private void AddCompanyFilesRepository()
-        {
-            var repository = CreateRepository();
-            if (repository is null)
-                return;
-
-            CompanyFilesRepositories.Add(repository);
-            settingsService.SetCompanyFilesRepositories(CompanyFilesRepositories.Select(x => x.Model).ToList());
-        }
-
-        private RepositoryViewModel CreateRepository()
-        {
-            return default;
-        }
-
-        private void RemoveTemplateRepository(RepositoryFolderViewModel repository)
-        {
-            TemplateRepositories.Remove(repository);
-            settingsService.SetTemplateRepositories(TemplateRepositories.Select(x => x.Model).ToList());
-        }
-
-        private void RemoveCompanyFilesRepository(RepositoryFolderViewModel repository)
-        {
-            TemplateRepositories.Remove(repository);
-            settingsService.SetCompanyFilesRepositories(CompanyFilesRepositories.Select(x => x.Model).ToList());
-        }
-
-        private void EditTemplateRepository(RepositoryViewModel repository)
-        {
-            if (EditRepository(repository))
-                settingsService.SetTemplateRepositories(TemplateRepositories.Select(x => x.Model).ToList());
-        }
-
-        private void EditCompanyFilesRepository(RepositoryViewModel repository)
-        {
-            if (EditRepository(repository))
-                settingsService.SetCompanyFilesRepositories(CompanyFilesRepositories.Select(x => x.Model).ToList());
-        }
-
-        private void EditToolkitRepository(RepositoryViewModel repository)
-        {
-            if(EditRepository(repository))
-                settingsService.SetToolkitRepository(ToolkitRepository.Model);
-        }
-
-        private bool EditRepository(RepositoryViewModel repository)
-        {
-            return true;
         }
 
         private void EventBroker_OnSettingsUpdated(IBIATKSettings settings)
@@ -210,7 +192,7 @@
         public string Settings_RootProjectsPath
         {
             get { return settingsService.Settings.CreateProjectRootProjectsPath; }
-            set 
+            set
             {
                 if (settingsService.Settings.CreateProjectRootProjectsPath != value)
                 {
