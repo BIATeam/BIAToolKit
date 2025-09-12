@@ -31,6 +31,7 @@
         public bool IsFolderRepository => repository.RepositoryType == Domain.RepositoryType.Folder;
         public ICommand SynchronizeCommand => new RelayCommand((_) => Synchronize());
         public ICommand CleanReleasesCommand => new RelayCommand((_) => CleanReleases());
+        public ICommand OpenFormCommand => new RelayCommand((_) => eventBroker.OpenRepositoryForm(this));
 
         public string CompanyName
         {
@@ -62,17 +63,13 @@
             }
         }
 
-        public ReadOnlySpan<string> RepositoryTypes => Enum.GetNames<RepositoryType>();
-
-        public string RepositoryType
+        public RepositoryType RepositoryType
         {
-            get => $"{repository.RepositoryType}";
+            get => repository.RepositoryType;
             set
             {
-                repository.RepositoryType = Enum.Parse<RepositoryType>(value);
+                repository.RepositoryType = value;
                 RaisePropertyChanged(nameof(RepositoryType));
-                RaisePropertyChanged(nameof(IsGitRepository));
-                RaisePropertyChanged(nameof(IsFolderRepository));
             }
         }
 

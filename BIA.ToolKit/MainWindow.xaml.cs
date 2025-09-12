@@ -81,6 +81,16 @@
             uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
             uiEventBroker.OnRepositoryChanged += UiEventBroker_OnRepositoryChanged;
+            uiEventBroker.OnRepositoryFormOpened += UiEventBroker_OnRepositoryFormOpened;
+        }
+
+        private void UiEventBroker_OnRepositoryFormOpened(RepositoryViewModel repository)
+        {
+            var form = new RepositoryFormUC(repository, gitService, uiEventBroker, consoleWriter) { Owner = this };
+            if(form.ShowDialog() == true)
+            {
+                UiEventBroker_OnRepositoryChanged(repository.Model);
+            }
         }
 
         private void UiEventBroker_OnRepositoryChanged(IRepository repository)
@@ -179,19 +189,22 @@
                     ]
             };
 
-            var fillReleasesTasks = settings.TemplateRepositories.Concat(settings.CompanyFilesRepositories).Select(async (r) =>
-            {
-                try
+            var fillReleasesTasks = settings.TemplateRepositories
+                .Concat(settings.CompanyFilesRepositories)
+                .Where(r => r.UseRepository)
+                .Select(async (r) =>
                 {
-                    consoleWriter.AddMessageLine($"Getting releases data for repository {r.Name}...", "pink");
-                    await r.FillReleasesAsync();
-                    consoleWriter.AddMessageLine($"Releases data got successfully for repository {r.Name}", "green");
-                }
-                catch(Exception ex)
-                {
-                    consoleWriter.AddMessageLine($"Error while getting releases data for repository {r.Name} : {ex.Message}", "red");
-                }
-            });
+                    try
+                    {
+                        consoleWriter.AddMessageLine($"Getting releases data for repository {r.Name}...", "pink");
+                        await r.FillReleasesAsync();
+                        consoleWriter.AddMessageLine($"Releases data got successfully for repository {r.Name}", "green");
+                    }
+                    catch(Exception ex)
+                    {
+                        consoleWriter.AddMessageLine($"Error while getting releases data for repository {r.Name} : {ex.Message}", "red");
+                    }
+                });
             await Task.WhenAll(fillReleasesTasks);
 
             settingsService.Init(settings);

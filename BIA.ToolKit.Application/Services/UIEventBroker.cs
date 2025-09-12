@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BIA.ToolKit.Application.ViewModel;
 using BIA.ToolKit.Domain;
 using BIA.ToolKit.Domain.ModifyProject;
 using BIA.ToolKit.Domain.Settings;
@@ -26,12 +27,14 @@ namespace BIA.ToolKit.Application.Services
         public delegate void ActionWithWaiterAsync(Func<Task> action);
         public delegate void SettingsUpdated(IBIATKSettings settings);
         public delegate void RepositoryChanged(IRepository repository);
+        public delegate void RepositoryFormOpened(RepositoryViewModel repository);
 
         public event ProjectChanged OnProjectChanged;
         public event NewVersionAvailable OnNewVersionAvailable;
         public event ActionWithWaiterAsync OnActionWithWaiter;
         public event SettingsUpdated OnSettingsUpdated;
         public event RepositoryChanged OnRepositoryChanged;
+        public event RepositoryFormOpened OnRepositoryFormOpened;
 
         public void NotifyProjectChanged(Project project)
         {
@@ -56,6 +59,11 @@ namespace BIA.ToolKit.Application.Services
         public void NotifyRepositoryChanged(IRepository repository)
         { 
             OnRepositoryChanged?.Invoke(repository); 
+        }
+
+        public void OpenRepositoryForm(RepositoryViewModel repository)
+        {
+            OnRepositoryFormOpened?.Invoke(repository);
         }
     }
 }

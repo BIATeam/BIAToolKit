@@ -30,9 +30,20 @@
                 </Grid.RowDefinitions>
 
                 <Grid Grid.Row="0" Margin="0,0,0,5">
-                    <StackPanel Orientation="Horizontal">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                         <ToggleButton Margin="0,0,10,0" Style="{StaticResource MaterialDesignSwitchToggleButton}" IsChecked="{Binding UseRepository}"/>
                         <Label VerticalAlignment="Center" Content="{Binding Name}" Foreground="White" FontWeight="Bold" FontSize="15" d:Content="REPOSITORY NAME" IsEnabled="{Binding UseRepository}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Style="{StaticResource MaterialDesignPaperButton}"  Padding="5,0"  Command="{Binding OpenFormCommand}">
+                            <materialDesign:PackIcon Kind="Cog" Height="25" Width="25" />
+                        </Button>
                     </StackPanel>
                 </Grid>
 
@@ -48,10 +59,10 @@
             </Grid>
 
             <StackPanel Grid.Column="1" Margin="10,0,0,0" IsEnabled="{Binding UseRepository}">
-                <Button Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Padding="5,0" Command="{Binding SynchronizeCommand}">
+                <Button Style="{StaticResource MaterialDesignOutlinedButton}" Padding="5,0" Command="{Binding SynchronizeCommand}">
                     <materialDesign:PackIcon Kind="Sync" Height="25" Width="25" />
                 </Button>
-                <Button Style="{StaticResource MaterialDesignPaperButton}" Padding="5,0" Margin="0,5,0,0" Command="{Binding CleanReleasesCommand}">
+                <Button Style="{StaticResource MaterialDesignOutlinedButton}" Padding="5,0" Margin="0,5,0,0" Command="{Binding CleanReleasesCommand}">
                     <materialDesign:PackIcon Kind="DeleteSweep" Height="25" Width="25" />
                 </Button>
             </StackPanel>

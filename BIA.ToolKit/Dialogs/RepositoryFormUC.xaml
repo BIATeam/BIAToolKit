@@ -1,0 +1,54 @@
+﻿<Window x:Class="BIA.ToolKit.Dialogs.RepositoryFormUC"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BIA.ToolKit.Dialogs"
+        xmlns:viewModel="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="Log Detail" Height="auto" Width="500"
+        MinHeight="200"
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        Style="{StaticResource MaterialDesignWindow}"
+        d:DataContext="{d:DesignInstance Type=viewModel:RepositoryFormViewModel, IsDesignTimeCreatable=False}">
+    <Window.Resources>
+        <DataTemplate x:Key="CommonFields" DataType="{x:Type viewModel:RepositoryViewModel}">
+            <StackPanel>
+                <Label Content="COMMON" Foreground="YELLOW"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewModel:RepositoryGitViewModel}">
+            <StackPanel>
+                <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource CommonFields}"/>
+                <Label Content="GIT" Foreground="YELLOW"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewModel:RepositoryFolderViewModel}">
+            <StackPanel>
+                <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource CommonFields}"/>
+                <Label Content="FOLDER" Foreground="YELLOW"/>
+            </StackPanel>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <ContentControl Grid.Row="0" Content="{Binding Repository}"/>
+            <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Items" ItemsSource="{Binding RepositoryTypes}" SelectedItem="{Binding RepositoryType}"/>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Margin="5" IsDefault="True">OK</Button>
+            <Button Margin="5" IsCancel="True">Cancel</Button>
+        </StackPanel>
+    </Grid>
+</Window>
