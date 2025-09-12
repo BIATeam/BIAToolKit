@@ -310,7 +310,7 @@
 
         public bool CheckBIATemplate(IBIATKSettings biaTKsettings)
         {
-            foreach (var repository in biaTKsettings.TemplateRepositories)
+            foreach (var repository in biaTKsettings.TemplateRepositories.Where(r => r.UseRepository))
             {
                 if (!repositoryService.CheckRepoFolder(repository))
                 {
@@ -325,7 +325,7 @@
         {
             if (biaTKsettings.UseCompanyFiles)
             {
-                foreach (var repository in biaTKsettings.CompanyFilesRepositories)
+                foreach (var repository in biaTKsettings.CompanyFilesRepositories.Where(r => r.UseRepository))
                 {
                     if (!repositoryService.CheckRepoFolder(repository))
                     {

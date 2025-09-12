@@ -37,42 +37,42 @@
                         file.Attributes = FileAttributes.Normal;
                         File.Delete(file.FullName);
                     }
+                    Directory.Delete(repository.LocalPath, true);
                 }
-                Directory.Delete(repository.LocalPath, true);
 
                 Directory.CreateDirectory(repository.LocalPath);
 
-                await Clone(repository.Name, repository.Url, repository.LocalPath);
+                await Clone(repository.Url, repository.LocalPath);
                 return;
             }
-            
-            await Synchronize(repository.Name, repository.LocalPath);
+
+            await Synchronize(repository.Url, repository.LocalPath);
         }
 
-        public async Task Synchronize(string repoName, string localPath)
+        public async Task Synchronize(string url, string localPath)
         {
-            outPut.AddMessageLine($"Synchronize {repoName} into {localPath}...", "Pink");
+            outPut.AddMessageLine($"Synchronize {url} into {localPath}...", "Pink");
             if (await RunScript("git", "pull", localPath) == 0)
             {
-                outPut.AddMessageLine($"Synchronize {repoName} finished", "Green");
+                outPut.AddMessageLine($"Synchronize finished", "Green");
             }
             else
             {
-                outPut.AddMessageLine($"Error durring synchronize {repoName}", "Red");
+                outPut.AddMessageLine($"Error while synchronizing", "Red");
             }
         }
 
-        public async Task Clone(string repoName, string url, string localPath)
+        public async Task Clone(string url, string localPath)
         {
-            outPut.AddMessageLine($"Clone {repoName} into {localPath}...", "Pink");
+            outPut.AddMessageLine($"Clone {url} into {localPath}...", "Pink");
 
             if (await RunScript("git", $"clone \"" + url + "\" \"" + localPath + "\"") == 0)
             {
-                outPut.AddMessageLine($"Clone {repoName} finished", "Green");
+                outPut.AddMessageLine($"Clone finished", "Green");
             }
             else
             {
-                outPut.AddMessageLine($"Error durring clone {repoName}", "Red");
+                outPut.AddMessageLine($"Error while cloning", "Red");
             }
         }
 
@@ -174,7 +174,7 @@
             // Process the list of files found in the directory.
             string[] fileEntries = Directory.GetFiles(targetDirectory, "*.rej");
             foreach (string fileName in fileEntries)
-               await MergeRejectedFileAsync(fileName, param);
+                await MergeRejectedFileAsync(fileName, param);
 
             // Recurse into subdirectories of this directory.
             string[] subdirectoryEntries = Directory.GetDirectories(targetDirectory);

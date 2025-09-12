@@ -44,14 +44,17 @@
         {
             CleanReleases();
 
-            var dirInfo = new DirectoryInfo(LocalPath);
-            foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+            if (RepositoryType == RepositoryType.Git && Directory.Exists(LocalPath))
             {
-                file.Attributes = FileAttributes.Normal;
-                File.Delete(file.FullName);
-            }
+                var dirInfo = new DirectoryInfo(LocalPath);
+                foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                {
+                    file.Attributes = FileAttributes.Normal;
+                    File.Delete(file.FullName);
+                }
 
-            Directory.Delete(LocalPath, true);
+                Directory.Delete(LocalPath, true);
+            }
         }
     }
 }

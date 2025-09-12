@@ -51,6 +51,11 @@
 
             waitAddTemplateRepository = false;
             waitAddCompanyFilesRepository = false;
+
+            if(repository.Model.RepositoryType == Domain.RepositoryType.Git && repository.Model is IRepositoryGit repositoryGit)
+            {
+                eventBroker.RequestExecuteActionWithWaiter(async () => await gitService.Synchronize(repositoryGit));
+            }
         }
 
         private void EventBroker_OnRepositoryViewModelDeleted(RepositoryViewModel repository)

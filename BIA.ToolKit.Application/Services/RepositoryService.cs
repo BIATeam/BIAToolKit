@@ -27,7 +27,8 @@
             var localFolderExists = Directory.Exists(repository.LocalPath);
             if(!localFolderExists)
             {
-                outPut.AddMessageLine($"Local repository {repository.Name} not found at {repository.LocalPath}");
+                outPut.AddMessageLine($"Local repository {repository.Name} not found at {repository.LocalPath}", "red");
+                outPut.AddMessageLine($"Did you forget to synchronize the repository locally ?", "red");
             }
             return localFolderExists;
         }
