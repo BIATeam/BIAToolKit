@@ -16,6 +16,7 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Helper;
 
     /// <summary>
     /// Interaction logic for RepositoryFormUC.xaml
@@ -33,6 +34,22 @@
         private void SubmitButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = true;
+        }
+
+        private void BrowseLocalClonedFolderButton_Click(object sender, RoutedEventArgs e)
+        {
+            if(ViewModel.Repository is RepositoryGitViewModel repositoryGit)
+            {
+                repositoryGit.LocalClonedFolderPath = FileDialog.BrowseFolder(repositoryGit.LocalClonedFolderPath);
+            }
+        }
+
+        private void BrowseRepositoryFolderButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.Repository is RepositoryFolderViewModel repositoryFolder)
+            {
+                repositoryFolder.Path = FileDialog.BrowseFolder(repositoryFolder.Path);
+            }
         }
     }
 }

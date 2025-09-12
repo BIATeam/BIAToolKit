@@ -7,11 +7,11 @@
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
-    public sealed class RepositoryFolder(string name, string path, string releaseFolderRegexPattern = null, string companyName = null, string projectName = null, bool useRepository = false) : Repository(name, RepositoryType.Folder, companyName, projectName, useRepository), IRepositoryFolder
+    public sealed class RepositoryFolder(string name, string path, string releasesFolderRegexPattern = null, string companyName = null, string projectName = null, bool useRepository = false) : Repository(name, RepositoryType.Folder, companyName, projectName, useRepository), IRepositoryFolder
     {
         public override string LocalPath => Path;
         public string Path { get; set; } = path;
-        public string ReleaseFolderRegexPattern { get; set; } = releaseFolderRegexPattern;
+        public string ReleasesFolderRegexPattern { get; set; } = releasesFolderRegexPattern;
 
         public override Task FillReleasesAsync()
         {
@@ -22,9 +22,9 @@
 
             var repositoryFolders = Directory.EnumerateDirectories(LocalPath);
 
-            if (!string.IsNullOrWhiteSpace(ReleaseFolderRegexPattern))
+            if (!string.IsNullOrWhiteSpace(ReleasesFolderRegexPattern))
             {
-                var regex = new Regex(ReleaseFolderRegexPattern);
+                var regex = new Regex(ReleasesFolderRegexPattern);
                 repositoryFolders = repositoryFolders.Where(dir => regex.IsMatch(System.IO.Path.GetFileName(dir)));
             }
 

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.ObjectModel;
+    using System.IO;
     using System.Linq;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
@@ -14,13 +15,22 @@
         public string Path
         {
             get => repositoryFolder.Path;
-            set { repositoryFolder.Path = value; RaisePropertyChanged(nameof(Path)); }
+            set
+            {
+                repositoryFolder.Path = value; RaisePropertyChanged(nameof(Path));
+                RaisePropertyChanged(nameof(IsValid));
+            }
         }
 
-        public string ReleaseFolderRegexPattern
+        public string ReleasesFolderRegexPattern
         {
-            get => repositoryFolder.ReleaseFolderRegexPattern;
-            set { repositoryFolder.ReleaseFolderRegexPattern = value; RaisePropertyChanged(nameof(ReleaseFolderRegexPattern)); }
+            get => repositoryFolder.ReleasesFolderRegexPattern;
+            set { repositoryFolder.ReleasesFolderRegexPattern = value; RaisePropertyChanged(nameof(ReleasesFolderRegexPattern)); }
+        }
+
+        protected override bool EnsureIsValid()
+        {
+            return !string.IsNullOrWhiteSpace(Path) && Directory.Exists(Path);
         }
     }
 }

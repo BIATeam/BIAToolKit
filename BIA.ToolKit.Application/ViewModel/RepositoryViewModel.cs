@@ -26,6 +26,8 @@
             this.consoleWriter = consoleWriter;
         }
 
+        protected abstract bool EnsureIsValid();
+
         public IRepository Model => repository;
         public bool IsGitRepository => repository.RepositoryType == Domain.RepositoryType.Git;
         public bool IsFolderRepository => repository.RepositoryType == Domain.RepositoryType.Folder;
@@ -33,6 +35,8 @@
         public ICommand CleanReleasesCommand => new RelayCommand((_) => CleanReleases());
         public ICommand OpenFormCommand => new RelayCommand((_) => eventBroker.RequestOpenRepositoryForm(this, RepositoryFormMode.Edit));
         public ICommand DeleteCommand => new RelayCommand((_) => eventBroker.NotifyRepositoryViewModelDeleted(this));
+
+        public bool IsValid => !string.IsNullOrWhiteSpace(Name) && EnsureIsValid();
 
         public bool IsVisibleCompanyName { get; set; } = true;
         public bool IsVisibleProjectName { get; set; } = true;
@@ -54,6 +58,7 @@
             {
                 repository.Name = value;
                 RaisePropertyChanged(nameof(Name));
+                RaisePropertyChanged(nameof(IsValid));
             }
         }
 

@@ -263,7 +263,7 @@
                 RepositoryType.Folder => new RepositoryFolder(
                     name: repositoryUserConfig.Name,
                     path: repositoryUserConfig.Path,
-                    releaseFolderRegexPattern: repositoryUserConfig.ReleaseFolderRegexPattern,
+                    releasesFolderRegexPattern: repositoryUserConfig.ReleasesFolderRegexPattern,
                     companyName: repositoryUserConfig.CompanyName,
                     projectName: repositoryUserConfig.ProjectName,
                     useRepository: repositoryUserConfig.UseRepository),
