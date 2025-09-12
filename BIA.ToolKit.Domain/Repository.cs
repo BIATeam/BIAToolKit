@@ -39,5 +39,19 @@
         {
             releases.ForEach(r => r.Clean());
         }
+
+        public void Clean()
+        {
+            CleanReleases();
+
+            var dirInfo = new DirectoryInfo(LocalPath);
+            foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+            {
+                file.Attributes = FileAttributes.Normal;
+                File.Delete(file.FullName);
+            }
+
+            Directory.Delete(LocalPath, true);
+        }
     }
 }

@@ -4,6 +4,7 @@
     using System.Collections.ObjectModel;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
     using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
@@ -69,6 +70,13 @@
                     CompanyFilesRepositories.RemoveAt(i);
                 }
             }
+
+            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            {
+                consoleWriter.AddMessageLine($"Deleting repository {repository.Name}...", "pink");
+                await Task.Run(repository.Model.Clean);
+                consoleWriter.AddMessageLine("Repository deleted", "green");
+            });
         }
 
         private void EventBroker_OnRepositoryChanged(RepositoryViewModel oldRepository, RepositoryViewModel newRepository)

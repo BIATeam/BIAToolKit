@@ -46,6 +46,11 @@
 
         public bool UseRepository { get; set; }
 
+        public void Clean()
+        {
+            throw new NotImplementedException();
+        }
+
         public void CleanReleases()
         {
             throw new NotImplementedException();

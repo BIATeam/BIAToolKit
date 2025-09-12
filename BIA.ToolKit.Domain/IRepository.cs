@@ -16,5 +16,6 @@
 
         Task FillReleasesAsync();
         void CleanReleases();
+        void Clean();
     }
 }
