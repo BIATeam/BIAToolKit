@@ -179,7 +179,13 @@
                     JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.CompanyFilesRepositories) : [],
             };
             settings.InitRepositoriesInterfaces();
+            await GetReleasesData(settings);
 
+            settingsService.Init(settings);
+        }
+
+        private async Task GetReleasesData(BIATKSettings settings)
+        {
             var fillReleasesTasks = settings.TemplateRepositories
                 .Concat(settings.CompanyFilesRepositories)
                 .Where(r => r.UseRepository)
@@ -197,8 +203,6 @@
                     }
                 });
             await Task.WhenAll(fillReleasesTasks);
-
-            settingsService.Init(settings);
         }
 
         private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
@@ -477,11 +481,16 @@
             await ExecuteTaskWithWaiterAsync(updateService.CheckForUpdatesAsync);
         }
 
-        private void ImportConfigButton_Click(object sender, RoutedEventArgs e)
+        private async void ImportConfigButton_Click(object sender, RoutedEventArgs e)
         {
             var configFile = FileDialog.BrowseFile(string.Empty, "btksettings");
+            if (string.IsNullOrWhiteSpace(configFile) || !File.Exists(configFile))
+                return;
+
             var config = JsonConvert.DeserializeObject<BIATKSettings>(File.ReadAllText(configFile));
             config.InitRepositoriesInterfaces();
+
+            consoleWriter.AddMessageLine($"New configuration imported from {configFile}", "yellow");
 
             settingsService.SetToolkitRepository(config.ToolkitRepository);
             settingsService.SetTemplateRepositories(config.TemplateRepositories);
@@ -491,7 +500,7 @@
             settingsService.SetAutoUpdate(config.AutoUpdate);
             settingsService.SetUseCompanyFiles(config.UseCompanyFiles);
 
-            consoleWriter.AddMessageLine($"New configuration imported from {configFile}", "yellow");
+            await ExecuteTaskWithWaiterAsync(async () => await GetReleasesData(config));
         }
 
         private void ExportConfigButton_Click(object sender, RoutedEventArgs e)

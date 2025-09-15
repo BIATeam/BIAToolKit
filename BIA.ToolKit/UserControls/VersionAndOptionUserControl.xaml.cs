@@ -57,6 +57,7 @@
         private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
         {
             vm.SettingsUseCompanyFiles = settings.UseCompanyFiles;
+            RefreshConfiguration();
         }
 
         public void SelectVersion(string version)
