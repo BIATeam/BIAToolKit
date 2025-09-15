@@ -149,7 +149,7 @@
                     AddTemplatesVersion(listCompanyFiles, repository);
                 }
                 vm.WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
-                if (vm.WorkCompanyFiles.Count >= 1)
+                if (vm.WorkCompanyFiles.Count >= 1 && vm.WorkTemplate is not null)
                 {
                     vm.WorkCompanyFile = vm.GetWorkCompanyFile(vm.WorkTemplate.Version);
                 }

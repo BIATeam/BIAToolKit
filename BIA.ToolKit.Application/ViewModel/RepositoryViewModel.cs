@@ -32,6 +32,7 @@
         public bool IsGitRepository => repository.RepositoryType == Domain.RepositoryType.Git;
         public bool IsFolderRepository => repository.RepositoryType == Domain.RepositoryType.Folder;
         public ICommand SynchronizeCommand => new RelayCommand((_) => Synchronize());
+        public ICommand GetReleasesCommand => new RelayCommand((_) => GetReleases());
         public ICommand CleanReleasesCommand => new RelayCommand((_) => CleanReleases());
         public ICommand OpenFormCommand => new RelayCommand((_) => eventBroker.RequestOpenRepositoryForm(this, RepositoryFormMode.Edit));
         public ICommand DeleteCommand => new RelayCommand((_) => eventBroker.NotifyRepositoryViewModelDeleted(this));
@@ -109,6 +110,21 @@
                         await gitService.Synchronize(repositoryGit);
                     }
 
+                    GetReleases();
+                }
+                catch (Exception ex)
+                {
+                    consoleWriter.AddMessageLine($"Error : {ex.Message}", "red");
+                }
+            });
+        }
+
+        private void GetReleases()
+        {
+            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            {
+                try
+                {
                     consoleWriter.AddMessageLine("Getting releases data...", "pink");
                     await repository.FillReleasesAsync();
                     consoleWriter.AddMessageLine("Releases data got successfully", "green");

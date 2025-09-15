@@ -6,6 +6,7 @@
     using System;
     using System.Collections.Generic;
     using System.Configuration;
+    using System.Linq;
     using System.Xml.Linq;
 
     public class SettingsService
@@ -74,17 +75,29 @@
 
         public void SetToolkitRepository(IRepository repository)
         {
-            ExecuteAndNotifySettingsUpdated(() => settings.ToolkitRepository = repository);
+            ExecuteAndNotifySettingsUpdated(() =>
+            {
+                settings.ToolkitRepository = repository;
+                settings.ToolkitRepositoryConfig = repository.ToRepositoryConfig();
+            });
         }
 
         public void SetTemplateRepositories(IReadOnlyList<IRepository> repositories)
         {
-            ExecuteAndNotifySettingsUpdated(() => settings.TemplateRepositories = repositories);
+            ExecuteAndNotifySettingsUpdated(() =>
+            {
+                settings.TemplateRepositories = repositories;
+                settings.TemplateRepositories = repositories.Select(r => r.ToRepositoryConfig()).ToList();
+            });
         }
 
         public void SetCompanyFilesRepositories(IReadOnlyList<IRepository> repositories)
         {
-            ExecuteAndNotifySettingsUpdated(() => settings.CompanyFilesRepositories = repositories);
+            ExecuteAndNotifySettingsUpdated(() =>
+            {
+                settings.CompanyFilesRepositories = repositories;
+                settings.CompanyFilesRepositories = repositories.Select(r => r.ToRepositoryConfig()).ToList();
+            });
         }
 
         private void ExecuteAndNotifySettingsUpdated(Action action)

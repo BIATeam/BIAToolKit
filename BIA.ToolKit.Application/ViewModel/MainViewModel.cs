@@ -155,48 +155,58 @@
             }
         }
 
+        public void UpdateRepositories(IBIATKSettings settings)
+        {
+            TemplateRepositories.CollectionChanged -= TemplateRepositories_CollectionChanged;
+            CompanyFilesRepositories.CollectionChanged -= CompanyFilesRepositories_CollectionChanged;
+
+            TemplateRepositories.Clear();
+            foreach (var repository in settings.TemplateRepositories)
+            {
+                if (repository is RepositoryGit repositoryGit)
+                {
+                    TemplateRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter));
+                }
+
+                if (repository is RepositoryFolder repositoryFolder)
+                {
+                    TemplateRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter));
+                }
+            }
+
+            CompanyFilesRepositories.Clear();
+            foreach (var repository in settings.CompanyFilesRepositories)
+            {
+                if (repository is RepositoryGit repositoryGit)
+                {
+                    CompanyFilesRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter));
+                }
+
+                if (repository is RepositoryFolder repositoryFolder)
+                {
+                    CompanyFilesRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter));
+                }
+            }
+
+            ToolkitRepository = settings.ToolkitRepository switch
+            {
+                RepositoryGit repositoryGit => new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter),
+                RepositoryFolder repositoryFolder => new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter),
+                _ => throw new NotImplementedException()
+            };
+            ToolkitRepository.IsVisibleCompanyName = false;
+            ToolkitRepository.IsVisibleProjectName = false;
+
+            TemplateRepositories.CollectionChanged += TemplateRepositories_CollectionChanged;
+            CompanyFilesRepositories.CollectionChanged += CompanyFilesRepositories_CollectionChanged;
+        }
+
         private void EventBroker_OnSettingsUpdated(IBIATKSettings settings)
         {
             if (firstTimeSettingsUpdated)
             {
-                foreach (var repository in settings.TemplateRepositories)
-                {
-                    if (repository is RepositoryGit repositoryGit)
-                    {
-                        TemplateRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter));
-                    }
-
-                    if (repository is RepositoryFolder repositoryFolder)
-                    {
-                        TemplateRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter));
-                    }
-                }
-
-                foreach (var repository in settings.CompanyFilesRepositories)
-                {
-                    if (repository is RepositoryGit repositoryGit)
-                    {
-                        CompanyFilesRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter));
-                    }
-
-                    if (repository is RepositoryFolder repositoryFolder)
-                    {
-                        CompanyFilesRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter));
-                    }
-                }
-
-                ToolkitRepository = settings.ToolkitRepository switch
-                {
-                    RepositoryGit repositoryGit => new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter),
-                    RepositoryFolder repositoryFolder => new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter),
-                    _ => throw new NotImplementedException()
-                };
-                ToolkitRepository.IsVisibleCompanyName = false;
-                ToolkitRepository.IsVisibleProjectName = false;
-
+                UpdateRepositories(settings);
                 firstTimeSettingsUpdated = false;
-                TemplateRepositories.CollectionChanged += TemplateRepositories_CollectionChanged;
-                CompanyFilesRepositories.CollectionChanged += CompanyFilesRepositories_CollectionChanged;
             }
 
             RaisePropertyChanged(nameof(Settings_RootProjectsPath));

@@ -59,6 +59,12 @@
             _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService);
 
             uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
+            uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
+        }
+
+        private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
+        {
+            RefreshConfiguration();
         }
 
         private void UiEventBroker_OnProjectChanged(Domain.ModifyProject.Project project)

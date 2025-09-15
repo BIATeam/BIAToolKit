@@ -492,15 +492,21 @@
 
             consoleWriter.AddMessageLine($"New configuration imported from {configFile}", "yellow");
 
-            settingsService.SetToolkitRepository(config.ToolkitRepository);
-            settingsService.SetTemplateRepositories(config.TemplateRepositories);
-            settingsService.SetCompanyFilesRepositories(config.CompanyFilesRepositories);
-            settingsService.SetCreateProjectRootProjectPath(config.CreateProjectRootProjectsPath);
-            settingsService.SetModifyProjectRootProjectPath(config.ModifyProjectRootProjectsPath);
-            settingsService.SetAutoUpdate(config.AutoUpdate);
-            settingsService.SetUseCompanyFiles(config.UseCompanyFiles);
+            await ExecuteTaskWithWaiterAsync(async () =>
+            {
+                await GetReleasesData(config);
 
-            await ExecuteTaskWithWaiterAsync(async () => await GetReleasesData(config));
+                settingsService.SetToolkitRepository(config.ToolkitRepository);
+                settingsService.SetTemplateRepositories(config.TemplateRepositories);
+                settingsService.SetCompanyFilesRepositories(config.CompanyFilesRepositories);
+                settingsService.SetCreateProjectRootProjectPath(config.CreateProjectRootProjectsPath);
+                settingsService.SetModifyProjectRootProjectPath(config.ModifyProjectRootProjectsPath);
+                settingsService.SetAutoUpdate(config.AutoUpdate);
+                settingsService.SetUseCompanyFiles(config.UseCompanyFiles);
+
+                CreateVersionAndOption.RefreshConfiguration();
+                ViewModel.UpdateRepositories(settingsService.Settings);
+            });
         }
 
         private void ExportConfigButton_Click(object sender, RoutedEventArgs e)

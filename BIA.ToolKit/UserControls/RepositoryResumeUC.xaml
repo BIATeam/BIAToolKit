@@ -61,8 +61,11 @@
                     <Button Style="{StaticResource MaterialDesignOutlinedButton}" Padding="5,0" Command="{Binding SynchronizeCommand}" ToolTip="Synchronize">
                         <materialDesign:PackIcon Kind="Sync" Height="25" Width="25" />
                     </Button>
+                    <Button Style="{StaticResource MaterialDesignOutlinedButton}" Padding="5,0" Margin="0,5,0,0" Command="{Binding GetReleasesCommand}" ToolTip="Get Releases">
+                        <materialDesign:PackIcon Kind="ArchiveSyncOutline" Height="25" Width="25" />
+                    </Button>
                     <Button Style="{StaticResource MaterialDesignPaperButton}" Padding="5,0" Margin="0,5,0,0" Command="{Binding CleanReleasesCommand}" ToolTip="Clean Releases">
-                        <materialDesign:PackIcon Kind="DeleteSweep" Height="25" Width="25" />
+                        <materialDesign:PackIcon Kind="ArchiveRemoveOutline" Height="25" Width="25" />
                     </Button>
                 </StackPanel>
             </Grid>

@@ -58,5 +58,38 @@
                 _ => throw new NotImplementedException(),
             };
         }
+
+        public static RepositoryUserConfig ToRepositoryConfig(this IRepository repository)
+        {
+            var repositoryConfig = new RepositoryUserConfig
+            {
+                Name = repository.Name,
+                CompanyName = repository.CompanyName,
+                ProjectName = repository.ProjectName,
+                RepositoryType = repository.RepositoryType,
+                UseRepository = repository.UseRepository,
+            };
+
+            if(repository is RepositoryGit repositoryGit)
+            {
+                repositoryConfig.RepositoryGitKind = repositoryGit.RepositoryGitKind;
+                repositoryConfig.GitRepositoryName = repositoryGit.GitRepositoryName;
+                repositoryConfig.LocalClonedFolderPath = repositoryGit.LocalClonedFolderPath;
+                repositoryConfig.Owner = repositoryGit.Owner;
+                repositoryConfig.ReleasesFolderRegexPattern = repositoryGit.ReleasesFolderRegexPattern;
+                repositoryConfig.ReleaseType = repositoryGit.ReleaseType;
+                repositoryConfig.Url = repositoryGit.Url;
+                repositoryConfig.UrlRelease = repositoryGit.UrlRelease;
+                repositoryConfig.UseLocalClonedFolder = repositoryGit.UseLocalClonedFolder;
+            }
+
+            if (repository is RepositoryFolder repositoryFolder)
+            {
+                repositoryConfig.Path = repositoryFolder.Path;
+                repositoryConfig.ReleasesFolderRegexPattern = repositoryFolder.ReleasesFolderRegexPattern;
+            }
+
+            return repositoryConfig;
+        }
     }
 }
