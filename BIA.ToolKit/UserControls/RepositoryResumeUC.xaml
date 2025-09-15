@@ -39,7 +39,7 @@
                                 <materialDesign:PackIcon Kind="ArchiveStar" VerticalAlignment="Center" Margin="0,0,0,2"/>
                             </StackPanel>
                         </materialDesign:ColorZone>
-                        
+
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -60,8 +60,27 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0" IsEnabled="{Binding UseRepository}">
-                    <TextBox Grid.Row="0" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Repository Type" Text="{Binding RepositoryType, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="true"/>
-                    <TextBox Grid.Row="1" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Resource" Text="{Binding Resource, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="true"/>
+                    <TextBox Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Repository Type" Text="{Binding RepositoryType, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="true"/>
+                    <Grid Margin="{StaticResource FormRowMargin}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Source" Text="{Binding Source, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="true"/>
+                        <Button Grid.Column="1" Style="{StaticResource MaterialDesignFlatButton}" Padding="5,0" Margin="5,0,0,0" Command="{Binding OpenSourceFolderCommand}" ToolTip="Open source folder" Visibility="{Binding CanOpenSource, Converter={StaticResource BoolToVisConverter}}">
+                            <materialDesign:PackIcon Kind="FolderEyeOutline" Height="20" Width="20" />
+                        </Button>
+                    </Grid>
+                    <Grid Margin="{StaticResource FormRowMargin}" Visibility="{Binding CanSynchronize, Converter={StaticResource BoolToVisConverter}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Synchronized Folder" Text="{Binding LocalPath, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="true"/>
+                        <Button Grid.Column="1" Style="{StaticResource MaterialDesignFlatButton}" Padding="5,0" Margin="5,0,0,0" Command="{Binding OpenSynchronizedFolderCommand}" ToolTip="Open synchronized folder">
+                            <materialDesign:PackIcon Kind="FolderEyeOutline" Height="20" Width="20" />
+                        </Button>
+                    </Grid>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Center">

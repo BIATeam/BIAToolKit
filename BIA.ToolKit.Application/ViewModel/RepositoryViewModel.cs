@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections.ObjectModel;
+    using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using System.Windows.Input;
@@ -41,6 +43,8 @@
         public bool IsGitRepository => repository.RepositoryType == Domain.RepositoryType.Git;
         public bool IsFolderRepository => repository.RepositoryType == Domain.RepositoryType.Folder;
         public ICommand SynchronizeCommand => new RelayCommand((_) => Synchronize());
+        public ICommand OpenSourceFolderCommand => new RelayCommand((_) => OpenSourceFolder());
+        public ICommand OpenSynchronizedFolderCommand => new RelayCommand((_) => OpenSynchronizedFolder());
         public ICommand GetReleasesDataCommand => new RelayCommand((_) => GetReleasesData());
         public ICommand CleanReleasesCommand => new RelayCommand((_) => CleanReleases());
         public ICommand OpenFormCommand => new RelayCommand((_) => eventBroker.RequestOpenRepositoryForm(this, RepositoryFormMode.Edit));
@@ -48,6 +52,7 @@
 
         public bool IsValid => !string.IsNullOrWhiteSpace(Name) && EnsureIsValid();
         public bool CanSynchronize => Model.RepositoryType == RepositoryType.Git;
+        public bool CanOpenSource => Model.RepositoryType == RepositoryType.Folder;
         public bool IsVisibleCompanyName { get; set; } = true;
         public bool IsVisibleProjectName { get; set; } = true;
         public bool CanBeVersionXYZ { get; set; }
@@ -103,7 +108,7 @@
 
         public RepositoryType RepositoryType => repository.RepositoryType;
 
-        public string Resource
+        public string Source
         {
             get
             {
@@ -115,6 +120,8 @@
                 };
             }
         }
+
+        public string LocalPath => repository.LocalPath;
 
         public bool UseRepository
         {
@@ -177,6 +184,37 @@
                     consoleWriter.AddMessageLine($"Failed to clean releases : {ex.Message}");
                 }
             });
+        }
+
+        private void OpenSynchronizedFolder()
+        {
+            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            {
+                if (!Directory.Exists(Model.LocalPath))
+                {
+                    consoleWriter.AddMessageLine($"Synchronized folder {Model.LocalPath} not found");
+                }
+
+                await Task.Run(() => Process.Start("explorer.exe", Model.LocalPath));
+            });
+            
+        }
+
+        private void OpenSourceFolder()
+        {
+            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            {
+                if (Model is RepositoryFolder repoFolder)
+                {
+                    if (!Directory.Exists(repoFolder.Path))
+                    {
+                        consoleWriter.AddMessageLine($"Source folder {repoFolder.Path} not found");
+                    }
+
+                    await Task.Run(() => Process.Start("explorer.exe", Model.LocalPath));
+                }
+            });
+
         }
     }
 }
