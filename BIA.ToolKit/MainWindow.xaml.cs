@@ -268,6 +268,15 @@
                 }
             }
 
+            var repositoryVersionXYZ = biaTKsettings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
+            if(repositoryVersionXYZ is not null)
+            {
+                if (!repositoryService.CheckRepoFolder(repositoryVersionXYZ))
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 

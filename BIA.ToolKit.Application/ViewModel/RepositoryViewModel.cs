@@ -41,7 +41,7 @@
         public bool IsGitRepository => repository.RepositoryType == Domain.RepositoryType.Git;
         public bool IsFolderRepository => repository.RepositoryType == Domain.RepositoryType.Folder;
         public ICommand SynchronizeCommand => new RelayCommand((_) => Synchronize());
-        public ICommand GetReleasesCommand => new RelayCommand((_) => GetReleases());
+        public ICommand GetReleasesDataCommand => new RelayCommand((_) => GetReleasesData());
         public ICommand CleanReleasesCommand => new RelayCommand((_) => CleanReleases());
         public ICommand OpenFormCommand => new RelayCommand((_) => eventBroker.RequestOpenRepositoryForm(this, RepositoryFormMode.Edit));
         public ICommand DeleteCommand => new RelayCommand((_) => eventBroker.NotifyRepositoryViewModelDeleted(this));
@@ -133,12 +133,10 @@
             {
                 try
                 {
-                    if (IsGitRepository && repository is RepositoryGit repositoryGit)
+                    if (CanSynchronize && IsGitRepository && repository is RepositoryGit repositoryGit)
                     {
                         await gitService.Synchronize(repositoryGit);
                     }
-
-                    GetReleases();
                 }
                 catch (Exception ex)
                 {
@@ -147,7 +145,7 @@
             });
         }
 
-        private void GetReleases()
+        private void GetReleasesData()
         {
             eventBroker.RequestExecuteActionWithWaiter(async () =>
             {

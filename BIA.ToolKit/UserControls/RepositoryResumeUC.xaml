@@ -33,7 +33,7 @@
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                         <ToggleButton Style="{StaticResource MaterialDesignSwitchToggleButton}" IsChecked="{Binding UseRepository}"/>
                         <Label Margin="10,0" VerticalAlignment="Center" Content="{Binding Name}" Foreground="White" FontWeight="Bold" FontSize="15" d:Content="REPOSITORY NAME" IsEnabled="{Binding UseRepository}"/>
-                        <materialDesign:ColorZone IsEnabled="{Binding UseRepository}" Padding="0" Mode="SecondaryDark" VerticalAlignment="Center" CornerRadius="5" Visibility="{Binding IsVersionXYZ, Converter={StaticResource BoolToVisConverter}}">
+                        <materialDesign:ColorZone Padding="0" Mode="SecondaryDark" VerticalAlignment="Center" CornerRadius="5" Visibility="{Binding IsVersionXYZ, Converter={StaticResource BoolToVisConverter}}">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0">
                                 <Label Content="Version X.Y.Z" VerticalAlignment="Center" Foreground="Black"/>
                                 <materialDesign:PackIcon Kind="ArchiveStar" VerticalAlignment="Center" Margin="0,0,0,2"/>
@@ -64,14 +64,14 @@
                     <TextBox Grid.Row="1" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Resource" Text="{Binding Resource, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="true"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Margin="20,0,0,0" IsEnabled="{Binding UseRepository}" VerticalAlignment="Center">
-                    <Button Style="{StaticResource MaterialDesignOutlinedButton}" Padding="5,0" Command="{Binding SynchronizeCommand}" ToolTip="Synchronize">
+                <StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Center">
+                    <Button Style="{StaticResource MaterialDesignOutlinedButton}" Padding="5,0" Command="{Binding SynchronizeCommand}" ToolTip="Synchronize" Visibility="{Binding CanSynchronize, Converter={StaticResource BoolToVisConverter}}">
                         <materialDesign:PackIcon Kind="Sync" Height="25" Width="25" />
                     </Button>
-                    <Button Style="{StaticResource MaterialDesignOutlinedButton}" Padding="5,0" Margin="0,5,0,0" Command="{Binding GetReleasesCommand}" ToolTip="Get Releases">
+                    <Button Style="{StaticResource MaterialDesignOutlinedButton}" Padding="5,0" Margin="0,5,0,0" Command="{Binding GetReleasesDataCommand}" ToolTip="Synchronize Releases Data" IsEnabled="{Binding UseRepository}">
                         <materialDesign:PackIcon Kind="ArchiveSyncOutline" Height="25" Width="25" />
                     </Button>
-                    <Button Style="{StaticResource MaterialDesignPaperButton}" Padding="5,0" Margin="0,5,0,0" Command="{Binding CleanReleasesCommand}" ToolTip="Clean Releases">
+                    <Button Style="{StaticResource MaterialDesignPaperButton}" Padding="5,0" Margin="0,5,0,0" Command="{Binding CleanReleasesCommand}" ToolTip="Clean Releases" IsEnabled="{Binding UseRepository}">
                         <materialDesign:PackIcon Kind="ArchiveRemoveOutline" Height="25" Width="25" />
                     </Button>
                 </StackPanel>

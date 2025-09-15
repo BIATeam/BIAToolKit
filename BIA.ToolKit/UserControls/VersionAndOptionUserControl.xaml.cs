@@ -128,23 +128,30 @@
             var listCompanyFiles = new List<WorkRepository>();
             var listWorkTemplates = new List<WorkRepository>();
 
-
-            foreach (var repository in settingsService.Settings.TemplateRepositories)
+            foreach (var repository in settingsService.Settings.TemplateRepositories.Where(r => r.UseRepository))
             {
                 AddTemplatesVersion(listWorkTemplates, repository);
+            }
+
+            var hasVersionXYZ = false;
+            var repositoryVersionXYZ = settingsService.Settings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
+            if (repositoryVersionXYZ is not null)
+            {
+                listWorkTemplates.Add(new WorkRepository(repositoryVersionXYZ, "VX.Y.Z"));
+                hasVersionXYZ = true;
             }
 
             vm.WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
             if (listWorkTemplates.Count >= 1)
             {
-                vm.WorkTemplate = listWorkTemplates[^1];
+                vm.WorkTemplate = hasVersionXYZ && listWorkTemplates.Count >= 2 ? listWorkTemplates[^2] : listWorkTemplates[^1];
             }
 
             vm.SettingsUseCompanyFiles = settingsService.Settings.UseCompanyFiles;
             vm.UseCompanyFiles = settingsService.Settings.UseCompanyFiles;
             if (settingsService.Settings.UseCompanyFiles)
             {
-                foreach (var repository in settingsService.Settings.CompanyFilesRepositories)
+                foreach (var repository in settingsService.Settings.CompanyFilesRepositories.Where(r => r.UseRepository))
                 {
                     AddTemplatesVersion(listCompanyFiles, repository);
                 }
