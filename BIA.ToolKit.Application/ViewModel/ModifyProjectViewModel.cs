@@ -113,6 +113,7 @@
                 if (settingsService.Settings.ModifyProjectRootProjectsPath != value)
                 {
                     settingsService.SetModifyProjectRootProjectPath(value);
+                    RefreshProjetsList();
                 }
             }
         }

@@ -65,6 +65,7 @@
         private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
         {
             RefreshConfiguration();
+            _viewModel.RefreshProjetsList();
         }
 
         private void UiEventBroker_OnProjectChanged(Domain.ModifyProject.Project project)
