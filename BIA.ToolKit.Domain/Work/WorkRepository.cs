@@ -9,6 +9,7 @@
         public string Version { get; private set; }
         public Version VersionData { get; private set; }
         public string VersionFolderPath { get; set; }
+        public string VersionLabel => $"{Version} ({Repository.Name})";
 
         //public string? VersionFolderPath
         //{

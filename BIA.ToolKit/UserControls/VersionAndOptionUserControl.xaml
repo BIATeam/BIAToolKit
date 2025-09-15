@@ -22,7 +22,7 @@
         </Grid.ColumnDefinitions>
 
         <ComboBox Grid.Column="0" ItemsSource="{Binding WorkTemplates}" 
-                  DisplayMemberPath="Version"
+                  DisplayMemberPath="VersionLabel"
                   SelectedItem="{Binding WorkTemplate}"
                   SelectionChanged="FrameworkVersion_SelectionChanged"
                   Style="{StaticResource MaterialDesignFilledComboBox}"
@@ -67,7 +67,7 @@
                         <CheckBox Grid.Row="0" Margin="0,5" IsChecked="{Binding UseCompanyFiles}" Name="UseCompanyFiles" Content="Use Company Files" Foreground="White" />
                         <ComboBox Grid.Row="1" Margin="0,5"
                                     ItemsSource="{Binding WorkCompanyFiles}" 
-                                    DisplayMemberPath="Version"
+                                    DisplayMemberPath="VersionLabel"
                                     SelectedItem="{Binding WorkCompanyFile}"
                                     SelectionChanged="CFVersion_SelectionChanged"
                                     Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}"
