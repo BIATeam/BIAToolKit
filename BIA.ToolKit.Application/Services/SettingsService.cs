@@ -87,7 +87,7 @@
             ExecuteAndNotifySettingsUpdated(() =>
             {
                 settings.TemplateRepositories = repositories;
-                settings.TemplateRepositories = repositories.Select(r => r.ToRepositoryConfig()).ToList();
+                settings.TemplateRepositoriesConfig = repositories.Select(r => r.ToRepositoryConfig()).ToList();
             });
         }
 
@@ -96,7 +96,7 @@
             ExecuteAndNotifySettingsUpdated(() =>
             {
                 settings.CompanyFilesRepositories = repositories;
-                settings.CompanyFilesRepositories = repositories.Select(r => r.ToRepositoryConfig()).ToList();
+                settings.CompanyFilesRepositoriesConfig = repositories.Select(r => r.ToRepositoryConfig()).ToList();
             });
         }
 

@@ -20,7 +20,7 @@
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
         <Thickness x:Key="FormFieldMargin">0,0,0,8</Thickness>
 
-        <DataTemplate x:Key="CommonFields" d:DataType="{x:Type viewModel:RepositoryGitViewModel}">
+        <DataTemplate x:Key="CommonFields" DataType="{x:Type viewModel:RepositoryViewModel}">
             <StackPanel>
                 <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Name" Text="{Binding Name}" TextWrapping="Wrap"/>
                 <ComboBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Repository Type" ItemsSource="{Binding Source={x:Reference Form}, Path=DataContext.RepositoryTypes}" SelectedItem="{Binding Source={x:Reference Form}, Path=DataContext.RepositoryType}"/>
@@ -44,6 +44,7 @@
                         <materialDesign:PackIcon Kind="FolderSearch" Height="25" Width="25" />
                     </Button>
                 </Grid>
+                <CheckBox Margin="{StaticResource FormFieldMargin}" IsChecked="{Binding IsVersionXYZ}" Content="Use as version X.Y.Z" Visibility="{Binding CanBeVersionXYZ, Converter={StaticResource BoolToVisConverter}}"/>
                 <ComboBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Release Type" ItemsSource="{Binding ReleaseTypes}" SelectedItem="{Binding ReleaseType}"/>
                 <!-- Release type GIT -->
                 <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="GIT Repository Name" Text="{Binding GitRepositoryName}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeGit, Converter={StaticResource BoolToVisConverter}}"/>

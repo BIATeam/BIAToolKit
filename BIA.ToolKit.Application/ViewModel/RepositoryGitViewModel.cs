@@ -10,8 +10,7 @@
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
 
-    public sealed class RepositoryGitViewModel(RepositoryGit repositoryGit, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
-        : RepositoryViewModel(repositoryGit, gitService, eventBroker, consoleWriter)
+    public sealed class RepositoryGitViewModel(RepositoryGit repositoryGit, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter) : RepositoryViewModel(repositoryGit, gitService, eventBroker, consoleWriter)
     {
         public string GitRepositoryName
         {

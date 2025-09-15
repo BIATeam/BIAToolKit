@@ -24,6 +24,15 @@
             this.gitService = gitService;
             this.eventBroker = eventBroker;
             this.consoleWriter = consoleWriter;
+            eventBroker.OnRepositoryViewModelVersionXYZChanged += EventBroker_OnRepositoryViewModelVersionXYZChanged;
+        }
+
+        private void EventBroker_OnRepositoryViewModelVersionXYZChanged(RepositoryViewModel repository)
+        {
+            if (repository == this)
+                return;
+
+            IsVersionXYZ = false;
         }
 
         protected abstract bool EnsureIsValid();
@@ -38,9 +47,28 @@
         public ICommand DeleteCommand => new RelayCommand((_) => eventBroker.NotifyRepositoryViewModelDeleted(this));
 
         public bool IsValid => !string.IsNullOrWhiteSpace(Name) && EnsureIsValid();
-
+        public bool CanSynchronize => Model.RepositoryType == RepositoryType.Git;
         public bool IsVisibleCompanyName { get; set; } = true;
         public bool IsVisibleProjectName { get; set; } = true;
+        public bool CanBeVersionXYZ { get; set; }
+
+        public bool IsVersionXYZ
+        {
+            get => repository is RepositoryGit repositoryGit && repositoryGit.IsVersionXYZ;
+            set
+            {
+                if (repository is RepositoryGit repositoryGit)
+                {
+                    repositoryGit.IsVersionXYZ = value;
+                    RaisePropertyChanged(nameof(IsVersionXYZ));
+                    eventBroker.NotifyRepositoriesUpdated();
+                    if (value == true)
+                    {
+                        eventBroker.NotifyViewModelVersionXYZChanged(this);
+                    }
+                }
+            }
+        }
 
         public string CompanyName
         {

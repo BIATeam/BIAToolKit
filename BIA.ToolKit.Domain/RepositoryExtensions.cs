@@ -25,7 +25,8 @@
                         companyName: repositoryUserConfig.CompanyName,
                         projectName: repositoryUserConfig.ProjectName,
                         localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath,
-                        useRepository: repositoryUserConfig.UseRepository
+                        useRepository: repositoryUserConfig.UseRepository,
+                        isVersionXYZ: repositoryUserConfig.IsVersionXYZ
                     ),
                     ReleaseType.Folder => RepositoryGit.CreateWithReleaseTypeFolder(
                         name: repositoryUserConfig.Name,
@@ -35,7 +36,8 @@
                         companyName: repositoryUserConfig.CompanyName,
                         projectName: repositoryUserConfig.ProjectName,
                         localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath,
-                        useRepository: repositoryUserConfig.UseRepository
+                        useRepository: repositoryUserConfig.UseRepository,
+                        isVersionXYZ: repositoryUserConfig.IsVersionXYZ
                     ),
                     ReleaseType.Tag => RepositoryGit.CreateWithReleaseTypeTag(
                         name: repositoryUserConfig.Name,
@@ -44,7 +46,8 @@
                         companyName: repositoryUserConfig.CompanyName,
                         projectName: repositoryUserConfig.ProjectName,
                         localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath,
-                        useRepository: repositoryUserConfig.UseRepository
+                        useRepository: repositoryUserConfig.UseRepository,
+                        isVersionXYZ: repositoryUserConfig.IsVersionXYZ
                     ),
                     _ => throw new NotImplementedException(),
                 },

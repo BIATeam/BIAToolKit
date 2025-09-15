@@ -13,5 +13,6 @@
         bool UseLocalClonedFolder { get; }
         RepositoryGitKind RepositoryGitKind { get; }
         string UrlRelease { get; }
+        bool IsVersionXYZ { get; }
     }
 }

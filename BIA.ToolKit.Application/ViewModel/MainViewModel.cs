@@ -165,7 +165,8 @@
             {
                 if (repository is RepositoryGit repositoryGit)
                 {
-                    TemplateRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter));
+                    var viewModel = new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter) { CanBeVersionXYZ = true };
+                    TemplateRepositories.Add(viewModel);
                 }
 
                 if (repository is RepositoryFolder repositoryFolder)

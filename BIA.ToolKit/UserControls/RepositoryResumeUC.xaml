@@ -31,8 +31,15 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <ToggleButton Margin="0,0,10,0" Style="{StaticResource MaterialDesignSwitchToggleButton}" IsChecked="{Binding UseRepository}"/>
-                        <Label VerticalAlignment="Center" Content="{Binding Name}" Foreground="White" FontWeight="Bold" FontSize="15" d:Content="REPOSITORY NAME" IsEnabled="{Binding UseRepository}"/>
+                        <ToggleButton Style="{StaticResource MaterialDesignSwitchToggleButton}" IsChecked="{Binding UseRepository}"/>
+                        <Label Margin="10,0" VerticalAlignment="Center" Content="{Binding Name}" Foreground="White" FontWeight="Bold" FontSize="15" d:Content="REPOSITORY NAME" IsEnabled="{Binding UseRepository}"/>
+                        <materialDesign:ColorZone IsEnabled="{Binding UseRepository}" Padding="0" Mode="SecondaryDark" VerticalAlignment="Center" CornerRadius="5" Visibility="{Binding IsVersionXYZ, Converter={StaticResource BoolToVisConverter}}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0">
+                                <Label Content="Version X.Y.Z" VerticalAlignment="Center" Foreground="Black"/>
+                                <materialDesign:PackIcon Kind="ArchiveStar" VerticalAlignment="Center" Margin="0,0,0,2"/>
+                            </StackPanel>
+                        </materialDesign:ColorZone>
+                        
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">

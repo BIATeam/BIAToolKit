@@ -46,6 +46,8 @@
 
         public bool UseRepository { get; set; }
 
+        public bool IsVersionXYZ { get; set; }
+
         public void Clean()
         {
             throw new NotImplementedException();
