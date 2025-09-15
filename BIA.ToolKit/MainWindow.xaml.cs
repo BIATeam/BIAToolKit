@@ -24,6 +24,8 @@
     using BIA.ToolKit.Domain;
     using Microsoft.Extensions.DependencyInjection;
     using Newtonsoft.Json;
+    using BIA.ToolKit.Common.Helpers;
+    using System.Configuration;
 
 
     /// <summary>
@@ -143,40 +145,40 @@
                 ModifyProjectRootProjectsPath = Properties.Settings.Default.ModifyProjectRootFolderText,
                 AutoUpdate = Properties.Settings.Default.AutoUpdate,
 
-                ToolkitRepository = !string.IsNullOrEmpty(Properties.Settings.Default.ToolkitRepository) ?
-                    ConvertRepository(JsonConvert.DeserializeObject<RepositoryUserConfig>(Properties.Settings.Default.ToolkitRepository)) :
-                    RepositoryGit.CreateWithReleaseTypeGit(
-                        name: "BIAToolkit GIT",
-                        repositoryGitKind: RepositoryGitKind.Github,
-                        url: "https://github.com/BIATeam/BIAToolKit",
-                        gitRepositoryName: "BIAToolKit",
-                        owner: "BIATeam",
-                        useRepository: true
-                    ),
+                ToolkitRepositoryConfig = !string.IsNullOrEmpty(Properties.Settings.Default.ToolkitRepository) ?
+                    JsonConvert.DeserializeObject<RepositoryUserConfig>(Properties.Settings.Default.ToolkitRepository) :
+                    new RepositoryUserConfig()
+                    {
+                        Name = "BIAToolkit GIT",
+                        RepositoryType = RepositoryType.Git,
+                        RepositoryGitKind = RepositoryGitKind.Github,
+                        Url = "https://github.com/BIATeam/BIAToolKit",
+                        GitRepositoryName = "BIAToolKit",
+                        Owner = "BIATeam",
+                        UseRepository = true
+                    },
 
-                TemplateRepositories = !string.IsNullOrEmpty(Properties.Settings.Default.TemplateRepositories) ?
-                    JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.TemplateRepositories)
-                    .Select(ConvertRepository)
-                    .ToList() :
+                TemplateRepositoriesConfig = !string.IsNullOrEmpty(Properties.Settings.Default.TemplateRepositories) ?
+                    JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.TemplateRepositories) :
                     [
-                        RepositoryGit.CreateWithReleaseTypeGit(
-                            name: "BIATemplate GIT",
-                            repositoryGitKind: RepositoryGitKind.Github,
-                            url: "https://github.com/BIATeam/BIADemo",
-                            gitRepositoryName: "BIATemplate",
-                            owner: "BIATeam",
-                            companyName: "TheBIADevCompany",
-                            projectName: "BIATemplate",
-                            useRepository: true
-                        ),
+                        new RepositoryUserConfig()
+                        {
+                            Name = "BIATemplate GIT",
+                            RepositoryType = RepositoryType.Git,
+                            RepositoryGitKind = RepositoryGitKind.Github,
+                            Url = "https://github.com/BIATeam/BIADemo",
+                            GitRepositoryName = "BIATemplate",
+                            Owner = "BIATeam",
+                            CompanyName = "TheBIADevCompany",
+                            ProjectName = "BIATemplate",
+                            UseRepository = true
+                        }
                     ],
 
-                CompanyFilesRepositories = !string.IsNullOrEmpty(Properties.Settings.Default.CompanyFilesRepositories) ?
-                    JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.CompanyFilesRepositories)
-                    .Select(ConvertRepository)
-                    .ToList() :
-                    []
+                CompanyFilesRepositoriesConfig = !string.IsNullOrEmpty(Properties.Settings.Default.CompanyFilesRepositories) ?
+                    JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.CompanyFilesRepositories) : [],
             };
+            settings.InitRepositoriesInterfaces();
 
             var fillReleasesTasks = settings.TemplateRepositories
                 .Concat(settings.CompanyFilesRepositories)
@@ -197,57 +199,6 @@
             await Task.WhenAll(fillReleasesTasks);
 
             settingsService.Init(settings);
-        }
-
-        private IRepository ConvertRepository(RepositoryUserConfig repositoryUserConfig)
-        {
-            return repositoryUserConfig.RepositoryType switch
-            {
-                RepositoryType.Git => repositoryUserConfig.ReleaseType switch
-                {
-                    ReleaseType.Git => RepositoryGit.CreateWithReleaseTypeGit(
-                        name: repositoryUserConfig.Name,
-                        repositoryGitKind: repositoryUserConfig.RepositoryGitKind,
-                        url: repositoryUserConfig.Url,
-                        urlRelease: repositoryUserConfig.UrlRelease,
-                        gitRepositoryName: repositoryUserConfig.GitRepositoryName,
-                        owner: repositoryUserConfig.Owner,
-                        useLocalClonedFolder: repositoryUserConfig.UseLocalClonedFolder,
-                        companyName: repositoryUserConfig.CompanyName,
-                        projectName: repositoryUserConfig.ProjectName,
-                        localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath,
-                        useRepository: repositoryUserConfig.UseRepository
-                    ),
-                    ReleaseType.Folder => RepositoryGit.CreateWithReleaseTypeFolder(
-                        name: repositoryUserConfig.Name,
-                        url: repositoryUserConfig.Url,
-                        useLocalClonedFolder: repositoryUserConfig.UseLocalClonedFolder,
-                        releasesFolderRegexPattern: repositoryUserConfig.ReleasesFolderRegexPattern,
-                        companyName: repositoryUserConfig.CompanyName,
-                        projectName: repositoryUserConfig.ProjectName,
-                        localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath,
-                        useRepository: repositoryUserConfig.UseRepository
-                    ),
-                    ReleaseType.Tag => RepositoryGit.CreateWithReleaseTypeTag(
-                        name: repositoryUserConfig.Name,
-                        url: repositoryUserConfig.Url,
-                        useLocalClonedFolder: repositoryUserConfig.UseLocalClonedFolder,
-                        companyName: repositoryUserConfig.CompanyName,
-                        projectName: repositoryUserConfig.ProjectName,
-                        localClonedFolderPath: repositoryUserConfig.LocalClonedFolderPath,
-                        useRepository: repositoryUserConfig.UseRepository
-                    ),
-                    _ => throw new NotImplementedException(),
-                },
-                RepositoryType.Folder => new RepositoryFolder(
-                    name: repositoryUserConfig.Name,
-                    path: repositoryUserConfig.Path,
-                    releasesFolderRegexPattern: repositoryUserConfig.ReleasesFolderRegexPattern,
-                    companyName: repositoryUserConfig.CompanyName,
-                    projectName: repositoryUserConfig.ProjectName,
-                    useRepository: repositoryUserConfig.UseRepository),
-                _ => throw new NotImplementedException(),
-            };
         }
 
         private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
@@ -524,6 +475,39 @@
         private async void CheckUpdateButton_Click(object sender, RoutedEventArgs e)
         {
             await ExecuteTaskWithWaiterAsync(updateService.CheckForUpdatesAsync);
+        }
+
+        private void ImportConfigButton_Click(object sender, RoutedEventArgs e)
+        {
+            var configFile = FileDialog.BrowseFile(string.Empty, "btksettings");
+            var config = JsonConvert.DeserializeObject<BIATKSettings>(File.ReadAllText(configFile));
+            config.InitRepositoriesInterfaces();
+
+            settingsService.SetToolkitRepository(config.ToolkitRepository);
+            settingsService.SetTemplateRepositories(config.TemplateRepositories);
+            settingsService.SetCompanyFilesRepositories(config.CompanyFilesRepositories);
+            settingsService.SetCreateProjectRootProjectPath(config.CreateProjectRootProjectsPath);
+            settingsService.SetModifyProjectRootProjectPath(config.ModifyProjectRootProjectsPath);
+            settingsService.SetAutoUpdate(config.AutoUpdate);
+            settingsService.SetUseCompanyFiles(config.UseCompanyFiles);
+
+            consoleWriter.AddMessageLine($"New configuration imported from {configFile}", "yellow");
+        }
+
+        private void ExportConfigButton_Click(object sender, RoutedEventArgs e)
+        {
+            var targetDirectory = FileDialog.BrowseFolder(string.Empty);
+            if (string.IsNullOrWhiteSpace(targetDirectory))
+                return;
+
+            var targetFile = Path.Combine(targetDirectory, "user.btksettings");
+            var settings = JsonConvert.SerializeObject(settingsService.Settings);
+            if(File.Exists(targetFile))
+                File.Delete(targetFile);
+
+            File.AppendAllText(targetFile, settings);
+
+            consoleWriter.AddMessageLine($"Configuration exported in {targetFile}", "yellow");
         }
     }
 }

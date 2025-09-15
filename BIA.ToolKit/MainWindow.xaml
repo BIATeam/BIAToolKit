@@ -39,25 +39,51 @@
                             <Image gif:ImageBehavior.AnimatedSource="Images/LogoBIA.png" Grid.RowSpan="2" Opacity="0.6"/>
 
                             <Grid Grid.Row="0" Margin="10">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
-                                </Grid.RowDefinitions>
-                                <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
-                                    <Button Height="20" Padding="0" x:Name="UpdateButton" VerticalAlignment="Center" ToolTip="New version available !" Background="Transparent" Foreground="Transparent" BorderThickness="0" Cursor="Hand" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisConverter}}" Click="UpdateButton_Click">
-                                        <Image Source="/Images/update.png" />
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid Grid.Column="0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <Button x:Name="ImportConfigButton" Grid.Row="0" Height="35" Click="ImportConfigButton_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <materialDesign:PackIcon Kind="Import" Height="25" Width="25"/>
+                                            <Label Content="Import Configuration" Foreground="Black"/>
+                                        </StackPanel>
                                     </Button>
-                                    <Label Grid.ColumnSpan="2" Content="{Binding ApplicationVersion}" VerticalAlignment="Center" Foreground="#FFF0F0F0" d:Content="V0.0.0.0"/>
-                                    <Button Height="18" x:Name="CheckUpdateButton" VerticalAlignment="Center" ToolTip="Check for update" Padding="1" Margin="2,0" Click="CheckUpdateButton_Click">
-                                        <Image Source="/Images/rafraichir-32.png" Cursor="Hand" RenderOptions.BitmapScalingMode="Fant" />
+                                    <Button x:Name="ExportConfigButton" Grid.Row="1" Height="35" Style="{StaticResource MaterialDesignPaperButton}" Click="ExportConfigButton_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Label Content="Export Configuration" Foreground="White"/>
+                                            <materialDesign:PackIcon Kind="Export" Height="25" Width="25"/>
+                                        </StackPanel>
                                     </Button>
-                                </StackPanel>
-                                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <CheckBox Name="AutoUpdateCheckbox" IsChecked="{Binding Settings_AutoUpdate}"/>
-                                    <Label VerticalAlignment="Center" Foreground="White" Content="Auto update" FontSize="10" Margin="0,1,0,0"/>
-                                </StackPanel>
-                                <Button Margin="0,5" Style="{StaticResource MaterialDesignPaperButton}" Content="Toolkit Repository Settings" Grid.Row="2" Width="auto" HorizontalAlignment="Right" Command="{Binding OpenToolkitRepositorySettingsCommand}"/>
+                                </Grid>
+
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
+                                        <Button Height="20" Padding="0" x:Name="UpdateButton" VerticalAlignment="Center" ToolTip="New version available !" Background="Transparent" Foreground="Transparent" BorderThickness="0" Cursor="Hand" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisConverter}}" Click="UpdateButton_Click">
+                                            <Image Source="/Images/update.png" />
+                                        </Button>
+                                        <Label Grid.ColumnSpan="2" Content="{Binding ApplicationVersion}" VerticalAlignment="Center" Foreground="#FFF0F0F0" d:Content="V0.0.0.0"/>
+                                        <Button Height="18" x:Name="CheckUpdateButton" VerticalAlignment="Center" ToolTip="Check for update" Padding="1" Margin="2,0" Click="CheckUpdateButton_Click">
+                                            <Image Source="/Images/rafraichir-32.png" Cursor="Hand" RenderOptions.BitmapScalingMode="Fant" />
+                                        </Button>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <CheckBox Name="AutoUpdateCheckbox" IsChecked="{Binding Settings_AutoUpdate}"/>
+                                        <Label VerticalAlignment="Center" Foreground="White" Content="Auto update" FontSize="10" Margin="0,1,0,0"/>
+                                    </StackPanel>
+                                    <Button Margin="0,5" Style="{StaticResource MaterialDesignPaperButton}" Content="Toolkit Repository Settings" Grid.Row="2" Width="auto" HorizontalAlignment="Right" Command="{Binding OpenToolkitRepositorySettingsCommand}"/>
+                                </Grid>
                             </Grid>
 
                             <Grid Grid.Row="1" Margin="30,10">
