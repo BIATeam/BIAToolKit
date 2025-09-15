@@ -9,6 +9,7 @@
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using BIA.ToolKit.Domain.Settings;
+    using Newtonsoft.Json;
     using Octokit;
     using static System.Net.WebRequestMethods;
 

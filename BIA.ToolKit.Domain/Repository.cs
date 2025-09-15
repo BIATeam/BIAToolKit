@@ -25,7 +25,6 @@
         public abstract string LocalPath { get; }
 
         protected List<Release> releases = [];
-        [JsonIgnore]
         public IReadOnlyList<Release> Releases => releases;
 
         public abstract Task FillReleasesAsync();

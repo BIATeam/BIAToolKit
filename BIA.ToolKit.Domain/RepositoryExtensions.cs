@@ -84,6 +84,7 @@
                 repositoryConfig.Url = repositoryGit.Url;
                 repositoryConfig.UrlRelease = repositoryGit.UrlRelease;
                 repositoryConfig.UseLocalClonedFolder = repositoryGit.UseLocalClonedFolder;
+                repositoryConfig.IsVersionXYZ = repositoryGit.IsVersionXYZ;
             }
 
             if (repository is RepositoryFolder repositoryFolder)

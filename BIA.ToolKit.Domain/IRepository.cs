@@ -7,9 +7,11 @@
     public interface IRepository
     {
         string CompanyName { get; }
+        [JsonIgnore]
         string LocalPath { get; }
         string Name { get; }
         string ProjectName { get; }
+        [JsonIgnore]
         IReadOnlyList<Release> Releases { get; }
         RepositoryType RepositoryType { get; }
         bool UseRepository { get; }
