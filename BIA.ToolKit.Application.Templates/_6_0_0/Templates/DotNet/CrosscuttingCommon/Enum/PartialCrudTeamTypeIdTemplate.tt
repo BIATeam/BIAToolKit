@@ -1,0 +1,13 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<# if(ModelInstance.IsTeam) { #>
+        // BIAToolKit - Begin Partial TeamTypeId <#= ModelInstance.EntityName #>
+
+        /// <summary>
+        /// Value for <#= ModelInstance.EntityName #>.
+        /// </summary>
+        <#= ModelInstance.EntityName #> = <#= ModelInstance.TeamTypeId #>,
+
+        // BIAToolKit - End Partial TeamTypeId <#= ModelInstance.EntityName #>
+<# }  #>

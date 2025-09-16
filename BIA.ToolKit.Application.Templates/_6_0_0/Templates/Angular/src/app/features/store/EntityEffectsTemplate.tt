@@ -1,0 +1,301 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+import { Injectable } from '@angular/core';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { Store } from '@ngrx/store';
+import { BiaMessageService, biaSuccessWaitRefreshSignalR } from 'bia-ng/core';
+import { DataResult } from 'bia-ng/models';
+import { of } from 'rxjs';
+import {
+  catchError,
+  concatMap,
+  map,
+  switchMap,
+  withLatestFrom,
+} from 'rxjs/operators';
+import { AppState } from 'src/app/store/state';
+import { <#= ModelInstance.EntityName #> } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
+import { <#= ModelInstance.EntityName #>Das } from '../services/<#= ModelInstance.EntityName.ToKebabCase() #>-das.service';
+import { Feature<#= ModelInstance.EntityNamePlural #>Store } from './<#= ModelInstance.EntityName.ToKebabCase() #>.state';
+import { Feature<#= ModelInstance.EntityNamePlural #>Actions } from './<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-actions';
+
+/**
+ * Effects file is for isolating and managing side effects of the application in one place
+ * Http requests, Sockets, Routing, LocalStorage, etc
+ */
+
+@Injectable()
+export class <#= ModelInstance.EntityNamePlural #>Effects {
+  loadAllByPost$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost),
+      map(x => x?.event),
+      switchMap(event =>
+        this.<#= ModelInstance.EntityName.ToCamelCase() #>Das.getListByPost({ event: event }).pipe(
+          map((result: DataResult<<#= ModelInstance.EntityName #>[]>) =>
+            Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPostSuccess({
+              result: result,
+              event: event,
+            })
+          ),
+          catchError(err => {
+            this.biaMessageService.showErrorHttpResponse(err);
+            return of(Feature<#= ModelInstance.EntityNamePlural #>Actions.failure({ error: err }));
+          })
+        )
+      )
+    )
+  );
+
+  load$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(Feature<#= ModelInstance.EntityNamePlural #>Actions.load),
+      map(x => x?.id),
+      switchMap(id => {
+        return this.<#= ModelInstance.EntityName.ToCamelCase() #>Das.get({ id: id }).pipe(
+          map(<#= ModelInstance.EntityName.ToCamelCase() #> => Feature<#= ModelInstance.EntityNamePlural #>Actions.loadSuccess({ <#= ModelInstance.EntityName.ToCamelCase() #> })),
+          catchError(err => {
+            this.biaMessageService.showErrorHttpResponse(err);
+            return of(Feature<#= ModelInstance.EntityNamePlural #>Actions.failure({ error: err }));
+          })
+        );
+      })
+    )
+  );
+
+  create$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(Feature<#= ModelInstance.EntityNamePlural #>Actions.create),
+      map(x => <# if (ModelInstance.BaseKeyType == "Guid") { #>{
+        return { ...x.<#= ModelInstance.EntityName.ToCamelCase() #>, id: undefined };
+      }<# } else { #>x?.<#= ModelInstance.EntityName.ToCamelCase() #><# } #>),
+      concatMap(<#= ModelInstance.EntityName.ToCamelCase() #> =>
+        of(<#= ModelInstance.EntityName.ToCamelCase() #>).pipe(
+          withLatestFrom(
+            this.store.select(Feature<#= ModelInstance.EntityNamePlural #>Store.getLastLazyLoadEvent)
+          )
+        )
+      ),
+      switchMap(([<#= ModelInstance.EntityName.ToCamelCase() #>, event]) => {
+        return this.<#= ModelInstance.EntityName.ToCamelCase() #>Das
+          .post({
+            item: <#= ModelInstance.EntityName.ToCamelCase() #>,
+            offlineMode: <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.useOfflineMode,
+          })
+          .pipe(
+            map(() => {
+              this.biaMessageService.showAddSuccess();
+              if (<#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.useSignalR) {
+                return biaSuccessWaitRefreshSignalR();
+              } else {
+                return Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost({
+                  event: event,
+                });
+              }
+            }),
+            catchError(err => {
+              this.biaMessageService.showErrorHttpResponse(err);
+              return of(Feature<#= ModelInstance.EntityNamePlural #>Actions.failure({ error: err }));
+            })
+          );
+      })
+    )
+  );
+
+  update$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(Feature<#= ModelInstance.EntityNamePlural #>Actions.update),
+      map(x => x?.<#= ModelInstance.EntityName.ToCamelCase() #>),
+      concatMap(<#= ModelInstance.EntityName.ToCamelCase() #> =>
+        of(<#= ModelInstance.EntityName.ToCamelCase() #>).pipe(
+          withLatestFrom(
+            this.store.select(Feature<#= ModelInstance.EntityNamePlural #>Store.getLastLazyLoadEvent)
+          )
+        )
+      ),
+      switchMap(([<#= ModelInstance.EntityName.ToCamelCase() #>, event]) => {
+        return this.<#= ModelInstance.EntityName.ToCamelCase() #>Das
+          .put({
+            item: <#= ModelInstance.EntityName.ToCamelCase() #>,
+            id: <#= ModelInstance.EntityName.ToCamelCase() #>.id,
+            offlineMode: <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.useOfflineMode,
+          })
+          .pipe(
+            map(() => {
+              this.biaMessageService.showUpdateSuccess();
+              if (<#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.useSignalR) {
+                return biaSuccessWaitRefreshSignalR();
+              } else {
+                return Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost({
+                  event: event,
+                });
+              }
+            }),
+            catchError(err => {
+              this.biaMessageService.showErrorHttpResponse(err);
+              return of(Feature<#= ModelInstance.EntityNamePlural #>Actions.failure({ error: err }));
+            })
+          );
+      })
+    )
+  );
+
+<#  if(ModelInstance.CanImport) { #>
+  save$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(Feature<#= ModelInstance.EntityNamePlural #>Actions.save),
+      map(x => <# if (ModelInstance.BaseKeyType == "Guid") { #>{
+        return x.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>.map((<#= ModelInstance.EntityName.ToCamelCase() #>: <#= ModelInstance.EntityName #>) =>
+          <#= ModelInstance.EntityName.ToCamelCase() #>.id ? <#= ModelInstance.EntityName.ToCamelCase() #> : { ...<#= ModelInstance.EntityName.ToCamelCase() #>, id: undefined }
+        );
+      }<# } else { #>x?.<#= ModelInstance.EntityNamePlural.ToCamelCase() #><# } #>),
+      concatMap(<#= ModelInstance.EntityNamePlural.ToCamelCase() #> =>
+        of(<#= ModelInstance.EntityNamePlural.ToCamelCase() #>).pipe(
+          withLatestFrom(
+            this.store.select(Feature<#= ModelInstance.EntityNamePlural #>Store.getLastLazyLoadEvent)
+          )
+        )
+      ),
+      switchMap(([<#= ModelInstance.EntityNamePlural.ToCamelCase() #>, event]) => {
+        return this.<#= ModelInstance.EntityName.ToCamelCase() #>Das
+          .save({
+            items: <#= ModelInstance.EntityNamePlural.ToCamelCase() #>,
+            offlineMode: <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.useOfflineMode,
+          })
+          .pipe(
+            map(() => {
+              this.biaMessageService.showUpdateSuccess();
+              if (<#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.useSignalR) {
+                return biaSuccessWaitRefreshSignalR();
+              } else {
+                return Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost({
+                  event: event,
+                });
+              }
+            }),
+            catchError(err => {
+              this.biaMessageService.showErrorHttpResponse(err);
+              return of(Feature<#= ModelInstance.EntityNamePlural #>Actions.failure({ error: err }));
+            })
+          );
+      })
+    )
+  );
+<#  } #>
+
+  destroy$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(Feature<#= ModelInstance.EntityNamePlural #>Actions.remove),
+      map(x => x?.id),
+      concatMap((id: number) =>
+        of(id).pipe(
+          withLatestFrom(
+            this.store.select(Feature<#= ModelInstance.EntityNamePlural #>Store.getLastLazyLoadEvent)
+          )
+        )
+      ),
+      switchMap(([id, event]) => {
+        return this.<#= ModelInstance.EntityName.ToCamelCase() #>Das
+          .delete({
+            id: id,
+            offlineMode: <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.useOfflineMode,
+          })
+          .pipe(
+            map(() => {
+              this.biaMessageService.showDeleteSuccess();
+              if (<#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.useSignalR) {
+                return biaSuccessWaitRefreshSignalR();
+              } else {
+                return Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost({
+                  event: event,
+                });
+              }
+            }),
+            catchError(err => {
+              this.biaMessageService.showErrorHttpResponse(err);
+              return of(Feature<#= ModelInstance.EntityNamePlural #>Actions.failure({ error: err }));
+            })
+          );
+      })
+    )
+  );
+
+  multiDestroy$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(Feature<#= ModelInstance.EntityNamePlural #>Actions.multiRemove),
+      map(x => x?.ids),
+      concatMap((ids: number[]) =>
+        of(ids).pipe(
+          withLatestFrom(
+            this.store.select(Feature<#= ModelInstance.EntityNamePlural #>Store.getLastLazyLoadEvent)
+          )
+        )
+      ),
+      switchMap(([ids, event]) => {
+        return this.<#= ModelInstance.EntityName.ToCamelCase() #>Das
+          .deletes({
+            ids: ids,
+            offlineMode: <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.useOfflineMode,
+          })
+          .pipe(
+            map(() => {
+              this.biaMessageService.showDeleteSuccess();
+              if (<#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.useSignalR) {
+                return biaSuccessWaitRefreshSignalR();
+              } else {
+                return Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost({
+                  event: event,
+                });
+              }
+            }),
+            catchError(err => {
+              this.biaMessageService.showErrorHttpResponse(err);
+              return of(Feature<#= ModelInstance.EntityNamePlural #>Actions.failure({ error: err }));
+            })
+          );
+      })
+    )
+  );
+  <#  if(ModelInstance.IsFixable) { #>
+  
+  updateFixedStatus$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(Feature<#= ModelInstance.EntityNamePlural #>Actions.updateFixedStatus),
+      map(x => x),
+      concatMap(x =>
+        of(x).pipe(
+          withLatestFrom(
+            this.store.select(Feature<#= ModelInstance.EntityNamePlural #>Store.getLastLazyLoadEvent)
+          )
+        )
+      ),
+      switchMap(([x, event]) => {
+        return this.<#= ModelInstance.EntityName.ToCamelCase() #>Das
+          .updateFixedStatus({ id: x.id, fixed: x.isFixed })
+          .pipe(
+            map(<#= ModelInstance.EntityName.ToCamelCase() #> => {
+              this.biaMessageService.showUpdateSuccess();
+              this.store.dispatch(
+                Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost({ event: event })
+              );
+              return Feature<#= ModelInstance.EntityNamePlural #>Actions.loadSuccess({ <#= ModelInstance.EntityName.ToCamelCase() #> });
+            }),
+            catchError(err => {
+              this.biaMessageService.showErrorHttpResponse(err);
+              return of(Feature<#= ModelInstance.EntityNamePlural #>Actions.failure({ error: err }));
+            })
+          );
+      })
+    )
+  );
+  <#  } #>
+
+  constructor(
+    private actions$: Actions,
+    private <#= ModelInstance.EntityName.ToCamelCase() #>Das: <#= ModelInstance.EntityName #>Das,
+    private biaMessageService: BiaMessageService,
+    private store: Store<AppState>
+  ) {}
+}

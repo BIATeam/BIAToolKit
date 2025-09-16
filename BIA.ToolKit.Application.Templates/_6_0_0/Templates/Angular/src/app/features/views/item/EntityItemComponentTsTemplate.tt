@@ -1,0 +1,30 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+import { AsyncPipe, NgIf } from '@angular/common';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import {
+  CrudItemItemComponent,
+  CrudItemService,
+  SpinnerComponent,
+} from 'bia-ng/shared';
+import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
+
+@Component({
+  selector: 'app-<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-item',
+  templateUrl:
+    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/bia-ng/templates/feature-templates/crud-items/views/crud-item-item/crud-item-item.component.html',
+  styleUrls: [
+    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/bia-ng/templates/feature-templates/crud-items/views/crud-item-item/crud-item-item.component.scss',
+  ],
+  imports: [RouterOutlet, NgIf, AsyncPipe, SpinnerComponent],
+  providers: [
+    {
+      provide: CrudItemService,
+      useExisting: <#= ModelInstance.EntityName #>Service,
+    },
+  ],
+})
+export class <#= ModelInstance.EntityName #>ItemComponent extends CrudItemItemComponent<<#= ModelInstance.EntityName #>> {}

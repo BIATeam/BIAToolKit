@@ -1,0 +1,9 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<# if(ModelInstance.IsTeam) { #>
+                    // BIAToolKit - Begin Partial TeamTypeRoleModelBuilder <#= ModelInstance.EntityName #>
+                    rt.HasData(new { TeamTypesId = (int)TeamTypeId.<#= ModelInstance.EntityName #>, RolesId = (int)RoleId.<#= ModelInstance.EntityName #>Admin });
+
+                    // BIAToolKit - End Partial TeamTypeRoleModelBuilder <#= ModelInstance.EntityName #>
+<# }  #>

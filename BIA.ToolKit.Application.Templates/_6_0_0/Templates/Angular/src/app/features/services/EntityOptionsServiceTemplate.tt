@@ -1,0 +1,79 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+import { Injectable } from '@angular/core';
+import {
+<# if(ModelInstance.HasOptionItems) { #>
+  Observable,
+<# } #>
+  combineLatest,
+} from 'rxjs';
+import { map } from 'rxjs/operators';
+import { CrudItemOptionsService, DictOptionDto } from 'bia-ng/shared';
+<# if(ModelInstance.HasOptionItems) { #>
+import { Store } from '@ngrx/store';
+import { OptionDto } from 'bia-ng/models';
+import { AppState } from 'src/app/store/state';
+<# } #>
+<#  foreach(var optionItem in ModelInstance.OptionItems) { #>
+import { getAll<#= optionItem #>Options } from 'src/app/domains/<#= optionItem.ToKebabCase() #>-option/store/<#= optionItem.ToKebabCase() #>-option.state';
+import { Domain<#= optionItem #>OptionsActions } from 'src/app/domains/<#= optionItem.ToKebabCase() #>-option/store/<#= optionItem.ToKebabCase() #>-options-actions';
+<#  } #>
+
+@Injectable({
+  providedIn: 'root',
+})
+export class <#= ModelInstance.EntityName #>OptionsService extends CrudItemOptionsService {
+<#  foreach(var optionItem in ModelInstance.OptionItems) { #>
+  <#= optionItem.ToCamelCase() #>Options$: Observable<OptionDto[]>;
+<#  } #>
+
+  constructor(
+  <# if(ModelInstance.HasOptionItems) { #>
+    private store: Store<AppState>
+  <# } #>
+  ) {
+    super();
+    // TODO after creation of CRUD<# if(ModelInstance.IsTeam) {#> Team<# } #> <#= ModelInstance.EntityName #> : get all required option dto use in Table calc and create and edit form
+<#  foreach(var optionItem in ModelInstance.OptionItems) { #>
+    this.<#= optionItem.ToCamelCase() #>Options$ = this.store.select(getAll<#= optionItem #>Options);
+<#  } #>
+<# if(ModelInstance.HasOptionItems) { #>
+    let cpt = 0;
+<# } #>
+<#  foreach(var optionItem in ModelInstance.OptionItems) { #>
+    const <#= optionItem.ToCamelCase() #> = cpt++;
+<#  } #>
+
+<#  if(!ModelInstance.HasOptionItems) { #>
+    this.dictOptionDtos$ = combineLatest([]).pipe(
+      map(() => <DictOptionDto[]>[])
+    );
+<#  } else { #>
+    this.dictOptionDtos$ = combineLatest([
+<#  foreach(var optionItem in ModelInstance.OptionItems) { #>
+      this.<#= optionItem.ToCamelCase() #>Options$,
+<#  } #>
+    ]).pipe(
+      map(options => {
+        return <DictOptionDto[]>[
+<#  foreach(var optionItem in ModelInstance.OptionItems) { 
+        var matchingOptionProperties = ModelInstance.Properties.Where(x => x.IsOption && x.OptionItemType == optionItem);
+        foreach(var property in matchingOptionProperties) { #>
+          new DictOptionDto('<#= property.Name.ToCamelCase() #>', options[<#= optionItem.ToCamelCase() #>]),
+<#      }
+    } #>
+        ];
+      })
+    );
+<#  } #>
+  }
+
+<# if(ModelInstance.HasOptionItems) { #>
+  loadAllOptions() {
+<#  foreach(var optionItem in ModelInstance.OptionItems) { #>
+    this.store.dispatch(Domain<#= optionItem #>OptionsActions.loadAll());
+<#  } #>
+  }
+<# } #>
+}

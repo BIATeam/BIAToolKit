@@ -1,0 +1,53 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateOption.ttinclude" #>
+<#@ output extension=".cs" #>
+// <copyright file="<#= ModelInstance.EntityName #>OptionsController.cs" company="<#= ModelInstance.CompanyName #>">
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Presentation.Api.Controllers.<#= ModelInstance.DomainName #>
+{
+    using System.Threading.Tasks;
+    using BIA.Net.Core.Presentation.Api.Controller.Base;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.DomainName #>;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common;
+
+    /// <summary>
+    /// The API controller used to manage <#= ModelInstance.EntityName.ToLiteral() #> options.
+    /// </summary>
+    public class <#= ModelInstance.EntityName #>OptionsController : BiaControllerBase
+    {
+        /// <summary>
+        /// The <#= ModelInstance.EntityName.ToLiteral() #> application service.
+        /// </summary>
+        private readonly I<#= ModelInstance.EntityName #>OptionAppService <#= ModelInstance.EntityName.ToCamelCase() #>OptionService;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>OptionsController"/> class.
+        /// </summary>
+        /// <param name="<#= ModelInstance.EntityName.ToCamelCase() #>OptionService">The <#= ModelInstance.EntityName.ToLiteral() #> application service.</param>
+        public <#= ModelInstance.EntityName #>OptionsController(I<#= ModelInstance.EntityName #>OptionAppService <#= ModelInstance.EntityName.ToCamelCase() #>OptionService)
+        {
+            this.<#= ModelInstance.EntityName.ToCamelCase() #>OptionService = <#= ModelInstance.EntityName.ToCamelCase() #>OptionService;
+        }
+
+        /// <summary>
+        /// Gets all option that I can see.
+        /// </summary>
+        /// /// <returns>The list of <#= ModelInstance.EntityNamePlural.ToLiteral() #>.</returns>
+        [HttpGet("allOptions")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = Rights.<#= ModelInstance.EntityName #>Options.Options)]
+        public async Task<IActionResult> GetAllOptions()
+        {
+            var results = await this.<#= ModelInstance.EntityName.ToCamelCase() #>OptionService.GetAllOptionsAsync();
+            return this.Ok(results);
+        }
+    }
+}

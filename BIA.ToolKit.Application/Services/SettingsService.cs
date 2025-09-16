@@ -1,16 +1,19 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Settings;
     using System;
     using System.Collections.Generic;
     using System.Configuration;
+    using System.Linq;
+    using System.Xml.Linq;
 
     public class SettingsService
     {
         private readonly IConsoleWriter consoleWriter;
         private readonly UIEventBroker eventBroker;
-        private BIATKSettings settings;
+        private BIATKSettings settings = new();
         public IBIATKSettings Settings => settings;
 
         /// <summary>
@@ -45,54 +48,14 @@
             eventBroker.NotifySettingsUpdated(settings);
         }
 
-        public void SetBIATemplateRepositoryUrlRepository(string url)
-        {
-            ExecuteAndNotifySettingsUpdated(() => ((RepositorySettings)settings.BIATemplateRepository).UrlRepo = url);
-        }
-
-        public void SetUseBIATemplateRepositoryLocalFolder(bool use)
-        {
-            ExecuteAndNotifySettingsUpdated(() => ((RepositorySettings)settings.BIATemplateRepository).UseLocalFolder = use);
-        }
-
-        public void SetBIATemplateRepositoryLocalFolderPath(string path)
-        {
-            ExecuteAndNotifySettingsUpdated(() => ((RepositorySettings)settings.BIATemplateRepository).LocalFolderPath = path);
-        }
-
         public void SetUseCompanyFiles(bool use)
         {
             ExecuteAndNotifySettingsUpdated(() => settings.UseCompanyFiles = use);
         }
 
-        public void SetCompanyFileseRepositoryUrlRepository(string url)
-        {
-            ExecuteAndNotifySettingsUpdated(() => ((RepositorySettings)settings.CompanyFilesRepository).UrlRepo = url);
-        }
-
-        public void SetUseCompanyFilesRepositoryLocalFolder(bool use)
-        {
-            ExecuteAndNotifySettingsUpdated(() => ((RepositorySettings)settings.CompanyFilesRepository).UseLocalFolder = use);
-        }
-
-        public void SetCompanyFilesRepositoryLocalFolderPath(string path)
-        {
-            ExecuteAndNotifySettingsUpdated(() => ((RepositorySettings)settings.CompanyFilesRepository).LocalFolderPath = path);
-        }
-
-        public void SetCustomRepositories(List<RepositorySettings> repositoriesSettings)
-        {
-            ExecuteAndNotifySettingsUpdated(() => settings.CustomRepoTemplates = repositoriesSettings);
-        }
-
         public void SetAutoUpdate(bool autoUpdate)
         {
             ExecuteAndNotifySettingsUpdated(() => settings.AutoUpdate = autoUpdate);
-        }
-
-        public void SetUseLocalReleaseRepository(bool use)
-        {
-            ExecuteAndNotifySettingsUpdated(() => settings.UseLocalReleaseRepository = use);
         }
 
         public void SetCreateProjectRootProjectPath(string path)
@@ -105,14 +68,36 @@
             ExecuteAndNotifySettingsUpdated(() => settings.ModifyProjectRootProjectsPath = path);
         }
 
-        public void SetLocalReleaseRepositoryPath(string path)
-        {
-            ExecuteAndNotifySettingsUpdated(() => settings.LocalReleaseRepositoryPath = path);
-        }
-
         public void SetCreateCompanyName(string name)
         {
             ExecuteAndNotifySettingsUpdated(() => settings.CreateCompanyName = name);
+        }
+
+        public void SetToolkitRepository(IRepository repository)
+        {
+            ExecuteAndNotifySettingsUpdated(() =>
+            {
+                settings.ToolkitRepository = repository;
+                settings.ToolkitRepositoryConfig = repository.ToRepositoryConfig();
+            });
+        }
+
+        public void SetTemplateRepositories(IReadOnlyList<IRepository> repositories)
+        {
+            ExecuteAndNotifySettingsUpdated(() =>
+            {
+                settings.TemplateRepositories = repositories;
+                settings.TemplateRepositoriesConfig = repositories.Select(r => r.ToRepositoryConfig()).ToList();
+            });
+        }
+
+        public void SetCompanyFilesRepositories(IReadOnlyList<IRepository> repositories)
+        {
+            ExecuteAndNotifySettingsUpdated(() =>
+            {
+                settings.CompanyFilesRepositories = repositories;
+                settings.CompanyFilesRepositoriesConfig = repositories.Select(r => r.ToRepositoryConfig()).ToList();
+            });
         }
 
         private void ExecuteAndNotifySettingsUpdated(Action action)

@@ -13,6 +13,7 @@
         {
             modelProviders.Add(new FileGeneratorModelProvider_4_0_0(consoleWriter));
             modelProviders.Add(new FileGeneratorModelProvider_5_0_0(consoleWriter));
+            modelProviders.Add(new FileGeneratorModelProvider_6_0_0(consoleWriter));
         }
 
         public IFileGeneratorModelProvider GetModelProvider(Version version)

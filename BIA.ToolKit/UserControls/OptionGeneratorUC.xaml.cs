@@ -106,7 +106,7 @@
             // Set form enabled
             vm.IsProjectChosen = true;
 
-            uiEventBroker.ExecuteActionWithWaiter(InitProjectTask);
+            uiEventBroker.RequestExecuteActionWithWaiter(InitProjectTask);
         }
 
         private Task InitProjectTask()
@@ -180,7 +180,7 @@
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteActionWithWaiter(async () =>
+            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
             {
 
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())

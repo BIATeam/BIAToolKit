@@ -1,0 +1,17 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateOption.ttinclude" #>
+<#@ output extension=".ts" #>
+import { NgModule } from '@angular/core';
+import { EffectsModule } from '@ngrx/effects';
+import { StoreModule } from '@ngrx/store';
+import { storeKey } from './<#= ModelInstance.EntityName.ToKebabCase() #>-option.constants';
+import { reducers } from './store/<#= ModelInstance.EntityName.ToKebabCase() #>-option.state';
+import { <#= ModelInstance.EntityName #>OptionsEffects } from './store/<#= ModelInstance.EntityName.ToKebabCase() #>-options-effects';
+
+@NgModule({
+  imports: [
+    StoreModule.forFeature(storeKey, reducers),
+    EffectsModule.forFeature([<#= ModelInstance.EntityName #>OptionsEffects]),
+  ],
+})
+export class <#= ModelInstance.EntityName #>OptionModule {}

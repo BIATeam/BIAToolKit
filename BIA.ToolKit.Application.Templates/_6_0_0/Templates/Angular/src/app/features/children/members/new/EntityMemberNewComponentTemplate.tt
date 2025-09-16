@@ -1,0 +1,37 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(ModelInstance.IsTeam) { #>
+import { AsyncPipe } from '@angular/common';
+import { Component, Injector, OnInit } from '@angular/core';
+import {
+  MemberFormNewComponent,
+  MemberModule,
+  MemberNewComponent,
+} from 'bia-ng/shared';
+import { TeamTypeId } from 'src/app/shared/constants';
+import { <#= ModelInstance.EntityName #>Service } from '../../../../services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
+
+@Component({
+  selector: 'app-<#= ModelInstance.EntityName.ToKebabCase() #>-member-new',
+  templateUrl:
+    '../../../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/bia-ng/templates/feature-templates/members/views/member-new/member-new.component.html',
+  imports: [MemberModule, AsyncPipe, MemberFormNewComponent],
+})
+export class <#= ModelInstance.EntityName #>MemberNewComponent
+  extends MemberNewComponent
+  implements OnInit
+{
+  constructor(
+    injector: Injector,
+    public <#= ModelInstance.EntityName.ToCamelCase() #>Service: <#= ModelInstance.EntityName #>Service
+  ) {
+    super(injector);
+  }
+
+  ngOnInit() {
+    this.teamTypeId = TeamTypeId.<#= ModelInstance.EntityName #>;
+    super.ngOnInit();
+  }
+}
+<#  } #>

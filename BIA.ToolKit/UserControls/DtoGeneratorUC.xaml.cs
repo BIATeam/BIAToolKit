@@ -76,7 +76,7 @@
             if (project is null)
                 return;
 
-            uiEventBroker.ExecuteActionWithWaiter(() => InitProjectTask(project));
+            uiEventBroker.RequestExecuteActionWithWaiter(() => InitProjectTask(project));
         }
 
         private Task InitProjectTask(Project project)
@@ -108,7 +108,7 @@
 
         private void RefreshEntitiesList_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteActionWithWaiter(ListEntities);
+            uiEventBroker.RequestExecuteActionWithWaiter(ListEntities);
         }
 
         private void SelectProperties_Click(object sender, RoutedEventArgs e)
@@ -137,7 +137,7 @@
 
         private void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteActionWithWaiter(async () =>
+            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
             {
                 UpdateHistoryFile();
                 await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext

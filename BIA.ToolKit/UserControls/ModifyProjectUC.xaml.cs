@@ -59,6 +59,17 @@
             _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService);
 
             uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
+            uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
+        }
+
+        private bool firstTimeSettingsUpdated = true;
+        private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
+        {
+            if (firstTimeSettingsUpdated)
+            {
+                _viewModel.RefreshProjetsList();
+                firstTimeSettingsUpdated = false;
+            }
         }
 
         private void UiEventBroker_OnProjectChanged(Domain.ModifyProject.Project project)
@@ -71,8 +82,9 @@
 
         public void RefreshConfiguration()
         {
-            MigrateOriginVersionAndOption.refreshConfig();
-            MigrateTargetVersionAndOption.refreshConfig();
+            MigrateOriginVersionAndOption.RefreshConfiguration();
+            MigrateOriginVersionAndOption.LoadVersionAndOption(true);
+            MigrateTargetVersionAndOption.RefreshConfiguration();
         }
 
         private void ModifyProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)
@@ -82,7 +94,7 @@
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteActionWithWaiter(Migrate_Run);
+            uiEventBroker.RequestExecuteActionWithWaiter(Migrate_Run);
         }
         private async Task Migrate_Run()
         {
@@ -103,7 +115,7 @@
 
         private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteActionWithWaiter(MigrateGenerateOnly_Run);
+            uiEventBroker.RequestExecuteActionWithWaiter(MigrateGenerateOnly_Run);
         }
 
         private async Task<int> MigrateGenerateOnly_Run()
@@ -131,7 +143,7 @@
 
         private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteActionWithWaiter(MigrateApplyDiff_Run);
+            uiEventBroker.RequestExecuteActionWithWaiter(MigrateApplyDiff_Run);
         }
 
         private async Task<bool> MigrateApplyDiff_Run()
@@ -154,7 +166,7 @@
 
         private void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteActionWithWaiter(MigrateMergeRejected_Run);
+            uiEventBroker.RequestExecuteActionWithWaiter(MigrateMergeRejected_Run);
         }
 
         private async Task MigrateMergeRejected_Run()
@@ -201,7 +213,7 @@
 
         private void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteActionWithWaiter(async () => await OverwriteBIAFolder(true));
+            uiEventBroker.RequestExecuteActionWithWaiter(async () => await OverwriteBIAFolder(true));
         }
 
         private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion)
@@ -359,7 +371,7 @@
 
         private void FixUsings_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.ExecuteActionWithWaiter(FixUsings_Run);
+            uiEventBroker.RequestExecuteActionWithWaiter(FixUsings_Run);
         }
 
         private async Task FixUsings_Run()

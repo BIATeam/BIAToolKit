@@ -7,46 +7,46 @@
 
     public class RepositoriesSettingsVM : ObservableObject
     {
-        ObservableCollection<IRepositorySettings> repositoriesSettings;
+        //ObservableCollection<IRepositorySettings> repositoriesSettings;
 
-        public RepositoriesSettingsVM()
-        {
-            repositoriesSettings = new ObservableCollection<IRepositorySettings>();
-        }
+        //public RepositoriesSettingsVM()
+        //{
+        //    repositoriesSettings = new ObservableCollection<IRepositorySettings>();
+        //}
 
-        public ObservableCollection<IRepositorySettings> RepositoriesSettings {
-            get { return repositoriesSettings; }
-        }
+        //public ObservableCollection<IRepositorySettings> RepositoriesSettings {
+        //    get { return repositoriesSettings; }
+        //}
 
-        public void LoadSettings(IReadOnlyList<IRepositorySettings> repositoriesSettings)
-        {
-            this.repositoriesSettings.Clear();
-            foreach(var repo in repositoriesSettings)
-            {
-                this.repositoriesSettings.Add(repo);
-            }
-            RaisePropertyChanged(nameof(RepositoriesSettings));
-        }
+        //public void LoadSettings(IReadOnlyList<IRepositorySettings> repositoriesSettings)
+        //{
+        //    this.repositoriesSettings.Clear();
+        //    foreach(var repo in repositoriesSettings)
+        //    {
+        //        this.repositoriesSettings.Add(repo);
+        //    }
+        //    RaisePropertyChanged(nameof(RepositoriesSettings));
+        //}
 
-        private RepositorySettings repositorySettings;
+        //private RepositorySettings repositorySettings;
 
-        public RepositorySettings RepositorySettings
-        {
-            get { return repositorySettings; }
-            set
-            {
-                if (repositorySettings != value)
-                {
-                    repositorySettings = value;
-                    RaisePropertyChanged(nameof(RepositorySettings));
-                    RaisePropertyChanged(nameof(IsRepoSelected));
-                }
-            }
-        }
+        //public RepositorySettings RepositorySettings
+        //{
+        //    get { return repositorySettings; }
+        //    set
+        //    {
+        //        if (repositorySettings != value)
+        //        {
+        //            repositorySettings = value;
+        //            RaisePropertyChanged(nameof(RepositorySettings));
+        //            RaisePropertyChanged(nameof(IsRepoSelected));
+        //        }
+        //    }
+        //}
 
-        public bool IsRepoSelected
-        {
-            get { return repositorySettings != null; }
-        }
+        //public bool IsRepoSelected
+        //{
+        //    get { return repositorySettings != null; }
+        //}
     }
 }

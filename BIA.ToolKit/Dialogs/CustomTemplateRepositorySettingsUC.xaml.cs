@@ -33,10 +33,10 @@
         private void cancelButton_Click(object sender, RoutedEventArgs e) =>
             DialogResult = false;
 
-        internal bool? ShowDialog(RepositorySettings currentItem)
-        {
-            ((RepositorySettingsVM)this.DataContext).RepositorySettings = currentItem;
-            return ShowDialog();
-        }
+        //internal bool? ShowDialog(RepositorySettings currentItem)
+        //{
+        //    ((RepositorySettingsVM)this.DataContext).RepositorySettings = currentItem;
+        //    return ShowDialog();
+        //}
     }
 }

@@ -11,59 +11,48 @@
     using System.Linq;
     using System;
     using System.Collections.Generic;
+    using BIA.ToolKit.Domain;
 
     public class RepositoryService
     {
-        private IConsoleWriter outPut;
-        private GitService gitService;
-        private readonly LocalReleaseRepositoryService localReleaseRepositoryService;
-        private List<VersionDownload> versionDownloads = new();
+        private readonly IConsoleWriter outPut;
 
-        public RepositoryService(IConsoleWriter outPut, GitService gitService, LocalReleaseRepositoryService localReleaseRepositoryService)
+        public RepositoryService(IConsoleWriter outPut)
         {
             this.outPut = outPut;
-            this.gitService = gitService;
-            this.localReleaseRepositoryService = localReleaseRepositoryService;
         }
 
-        public bool CheckRepoFolder(IRepositorySettings repository, bool inSync)
+        public bool CheckRepoFolder(Domain.IRepository repository)
         {
-            if (string.IsNullOrEmpty(repository.RootFolderPath))
+            var localFolderExists = Directory.Exists(repository.LocalPath);
+            if(!localFolderExists)
             {
-                outPut.AddMessageLine("Error on " + repository.Name + " local folder :\r\nThe path is not define.\r\n Correct it in config tab.", "Red");
-            }
-            if (!inSync && !Directory.Exists(repository.RootFolderPath))
-            {
-                if (repository.UseLocalFolder)
+                outPut.AddMessageLine($"Local repository {repository.Name} not found at {repository.LocalPath}", "red");
+                if (repository.RepositoryType == RepositoryType.Git)
                 {
-                    outPut.AddMessageLine("Error on " + repository.Name + " local folder :\r\nThe path " + repository.RootFolderPath + " do not exist.\r\n Correct it in config tab.", "Red");
+                    outPut.AddMessageLine($"Did you forget to synchronize the repository ?", "red");
                 }
-                else
-                {
-                    outPut.AddMessageLine("Error on " + repository.Name + " :\r\nThe path " + repository.RootFolderPath + " do not exist.\r\n Please synchronize the repository.", "Red");
-                }
-                return false;
             }
-            return true;
+            return localFolderExists;
         }
 
-        public async Task CleanRepository(IRepositorySettings repository)
+        public async Task CleanRepository(Domain.IRepository repository)
         {
             try
             {
-                outPut.AddMessageLine($"Cleaning repository {repository.RootFolderPath}...", "pink");
+                outPut.AddMessageLine($"Cleaning repository {repository.LocalPath}...", "pink");
                 await Task.Run(() =>
                 {
-                    if (Directory.Exists(repository.RootFolderPath))
+                    if (Directory.Exists(repository.LocalPath))
                     {
-                        var dirInfo = new DirectoryInfo(repository.RootFolderPath);
+                        var dirInfo = new DirectoryInfo(repository.LocalPath);
 
                         foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
                         {
                             file.Attributes = FileAttributes.Normal;
                         }
 
-                        Directory.Delete(repository.RootFolderPath, true);
+                        Directory.Delete(repository.LocalPath, true);
                     }
                 });
 
@@ -75,144 +64,38 @@
             }
         }
 
-        public async Task CleanReleases(IRepositorySettings repository)
-        {
-            if (repository.Versioning == VersioningType.Release)
-            {
-                try
-                {
-                    var releasesFolderPath = Path.Combine(AppSettings.AppFolderPath, repository.Name);
-                    outPut.AddMessageLine($"Cleaning releases in {releasesFolderPath}...", "pink");
-                    await Task.Run(() =>
-                    {
-                        if (Directory.Exists(releasesFolderPath))
-                        {
-                            var dirInfo = new DirectoryInfo(releasesFolderPath);
-
-                            foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
-                            {
-                                file.Attributes = FileAttributes.Normal;
-                                File.Delete(file.FullName);
-                            }
-
-                            foreach (var innerDirectory in dirInfo.GetDirectories("*"))
-                            {
-                                if (innerDirectory.Name.Equals(Path.GetFileName(repository.RootFolderPath)))
-                                    continue;
-
-                                Directory.Delete(innerDirectory.FullName, true);
-                            }
-                        }
-                    });
-
-                    outPut.AddMessageLine("Releases cleaned.", "green");
-                }
-                catch (Exception ex)
-                {
-                    outPut.AddMessageLine($"Error when cleaning releases : {ex.Message}", "red");
-                }
-            }
-        }
-
-        public async Task<string> PrepareVersionFolder(IRepositorySettings repository, string version)
+        public async Task CleanReleases(Domain.IRepository repository)
         {
             try
             {
-                if (repository.Versioning == VersioningType.Folder)
+                outPut.AddMessageLine($"Cleaning releases of repository {repository.Name}...", "pink");
+
+                await Task.Run(() =>
                 {
-                    return repository.RootFolderPath + "\\" + version;
-                }
-                else if (repository.Versioning == VersioningType.Release)
+                    repository.CleanReleases();
+                });
+
+                outPut.AddMessageLine($"Releases of repository {repository.Name} cleaned", "green");
+            }
+            catch (Exception ex)
+            {
+                outPut.AddMessageLine($"Error when cleaning releases : {ex.Message}", "red");
+            }
+        }
+
+        public async Task<string> PrepareVersionFolder(Domain.IRepository repository, string version)
+        {
+            try
+            {
+                var release = repository.Releases.FirstOrDefault(r => r.Name == version)
+                        ?? throw new Exception($"Release {version} not found for repository {repository.Name}");
+
+                if (!release.IsDownloaded)
                 {
-                    using (var repo = new Repository(repository.RootFolderPath))
-                    {
-                        foreach (var tag in repo.Tags)
-                        {
-                            if (tag.FriendlyName == version)
-                            {
-                                var zipPath = AppSettings.AppFolderPath + "\\" + repository.Name + "\\" + tag.FriendlyName + ".zip";
-                                string biaTemplatePathVersionUnzip = AppSettings.AppFolderPath + "\\" + repository.Name + "\\" + tag.FriendlyName;
-                                Directory.CreateDirectory(AppSettings.AppFolderPath + "\\" + repository.Name + "\\");
-
-                                if (!Directory.Exists(biaTemplatePathVersionUnzip))
-                                {
-                                    var versionDownload = versionDownloads.Find(x => x.Version == version);
-                                    if (versionDownload == null)
-                                    {
-                                        versionDownload = new VersionDownload { Version = version };
-                                        versionDownloads.Add(versionDownload);
-                                    }
-
-                                    if (!versionDownload.IsDownloading)
-                                    {
-                                        versionDownload.IsDownloading = true;
-                                        try
-                                        {
-                                            outPut.AddMessageLine($"Downloading release {tag.FriendlyName}...", "Pink");
-                                            if (localReleaseRepositoryService.UseLocalReleaseRepository)
-                                            {
-                                                outPut.AddMessageLine("Using local release repository", "gray");
-                                                var localReleaseZipPath = localReleaseRepositoryService.GetBiaTemplateReleaseArchivePath(tag.FriendlyName);
-                                                File.Copy(localReleaseZipPath, zipPath, true);
-                                            }
-                                            else
-                                            {
-                                                var zipUrl = repository.UrlRelease + tag.CanonicalName + ".zip";
-                                                if (File.Exists(zipPath))
-                                                {
-                                                    File.Delete(zipPath);
-                                                }
-                                                HttpClientHandler httpClientHandler = new()
-                                                {
-                                                    DefaultProxyCredentials = CredentialCache.DefaultCredentials,
-                                                };
-                                                using var httpClient = new HttpClient(httpClientHandler);
-                                                var response = await httpClient.GetAsync(zipUrl);
-                                                using var fs = new FileStream(zipPath, FileMode.CreateNew);
-                                                await response.Content.CopyToAsync(fs);
-                                            }
-
-                                            if (!File.Exists(zipPath))
-                                            {
-                                                outPut.AddMessageLine($"Release {version} not downloaded", "Red");
-                                                break;
-                                            }
-
-                                            outPut.AddMessageLine($"Release {version} downloaded", "green");
-
-                                            await UnzipIfNotExist(zipPath, biaTemplatePathVersionUnzip, version);
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            outPut.AddMessageLine("Cannot download release: " + version + $" ({e.Message})", "Red");
-                                        }
-
-                                        versionDownload.IsDownloading = false;
-                                    }
-                                    else
-                                    {
-                                        while (versionDownload.IsDownloading)
-                                        {
-                                            await Task.Delay(TimeSpan.FromSeconds(1));
-                                        }
-                                    }
-                                }
-
-                                var dirContent = Directory.GetDirectories(biaTemplatePathVersionUnzip, "*.*", SearchOption.TopDirectoryOnly);
-                                if (dirContent.Length == 1)
-                                {
-                                    return dirContent[0];
-                                }
-                            }
-                        }
-                    }
-                    return string.Empty;
+                    await DownloadReleaseAsync(repository, release);
                 }
-                else
-                {
-                    await this.gitService.CheckoutTag(repository, version);
-                    return repository.RootFolderPath;
-                }
+
+                return release.LocalPath;
             }
             catch (Exception ex)
             {
@@ -221,40 +104,47 @@
             }
         }
 
-        private async Task UnzipIfNotExist(string zipPath, string biaTemplatePathVersionUnzip, string version)
+        private async Task DownloadReleaseAsync(Domain.IRepository repository, Release release)
         {
-            if (!Directory.Exists(biaTemplatePathVersionUnzip))
+            outPut.AddMessageLine($"Downloading release {release.Name} of repository {repository.Name}...", "pink");
+            await release.DownloadAsync();
+            outPut.AddMessageLine($"Release {release.Name} of repository {repository.Name} downloaded", "green");
+
+            if (repository.RepositoryType == RepositoryType.Git && repository is RepositoryGit repositoryGit && repositoryGit.ReleaseType == ReleaseType.Git)
             {
-                outPut.AddMessageLine($"Unzipping {version}...", "pink");
-                await Task.Run(() =>
+                await UnzipReleaseGitAsset(repository, release);
+            }
+        }
+
+        private async Task UnzipReleaseGitAsset(Domain.IRepository repository, Release release)
+        {
+            var assetArchivePath = Path.Combine(release.LocalPath, $"{release.Name}.zip");
+            if (!File.Exists(assetArchivePath))
+            {
+                throw new FileNotFoundException(assetArchivePath);
+            }
+
+            outPut.AddMessageLine($"Unzipping {Path.GetFileName(assetArchivePath)} of repository {repository.Name}...", "pink");
+            await Task.Run(() =>
+            {
+                ZipFile.ExtractToDirectory(assetArchivePath, release.LocalPath);
+                FileTransform.FolderUnix2Dos(release.LocalPath);
+                File.Delete(assetArchivePath);
+
+                var contentDirectories = Directory.GetDirectories(release.LocalPath, "*.*", SearchOption.TopDirectoryOnly);
+                if (contentDirectories.Length == 1)
                 {
-                    ZipFile.ExtractToDirectory(zipPath, biaTemplatePathVersionUnzip);
-                    FileTransform.FolderUnix2Dos(biaTemplatePathVersionUnzip);
-                    File.Delete(zipPath);
-                });
-                outPut.AddMessageLine($"{version} unzipped", "green");
-            }
-        }
-
-        private static bool IsTextFileEmpty(string fileName)
-        {
-            var info = new FileInfo(fileName);
-            if (info.Length == 0)
-                return true;
-
-            // only if your use case can involve files with 1 or a few bytes of content.
-            if (info.Length < 6)
-            {
-                var content = File.ReadAllText(fileName);
-                return content.Length == 0;
-            }
-            return false;
-        }
-
-        private class VersionDownload
-        {
-            public string Version { get; set; }
-            public bool IsDownloading { get; set; }
+                    var contentDirectory = contentDirectories[0];
+                    foreach (var file in Directory.EnumerateFiles(contentDirectory, "*", SearchOption.AllDirectories))
+                    {
+                        var dest = file.Replace(contentDirectory, release.LocalPath);
+                        Directory.CreateDirectory(Path.GetDirectoryName(dest));
+                        File.Copy(file, dest);
+                    }
+                    Directory.Delete(contentDirectory, true);
+                }
+            });
+            outPut.AddMessageLine($"{Path.GetFileName(assetArchivePath)} of repository {repository.Name} unzipped", "green");
         }
     }
 }

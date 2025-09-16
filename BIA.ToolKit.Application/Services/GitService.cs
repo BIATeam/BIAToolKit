@@ -12,83 +12,72 @@
     using BIA.ToolKit.Domain.Settings;
     using System.Diagnostics.CodeAnalysis;
     using System.Text.RegularExpressions;
+    using BIA.ToolKit.Domain;
 
     public class GitService
     {
         private IConsoleWriter outPut;
-        public GitService(IConsoleWriter outPut)
+        private readonly UIEventBroker eventBroker;
+
+        public GitService(IConsoleWriter outPut, UIEventBroker eventBroker)
         {
             this.outPut = outPut;
+            this.eventBroker = eventBroker;
         }
 
-        public async Task Synchronize(IRepositorySettings repository)
+        public async Task Synchronize(IRepositoryGit repository)
         {
-            if (!repository.UseLocalFolder && !Directory.Exists(repository.RootFolderPath))
+            if (!repository.UseLocalClonedFolder)
             {
-                await this.Clone(repository.Name, repository.UrlRepo, repository.RootFolderPath);
+                await Task.Run(() =>
+                {
+                    if (Directory.Exists(repository.LocalPath))
+                    {
+                        var dirInfo = new DirectoryInfo(repository.LocalPath);
+                        foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                        {
+                            file.Attributes = FileAttributes.Normal;
+                            File.Delete(file.FullName);
+                        }
+                        Directory.Delete(repository.LocalPath, true);
+                    }
+
+                    Directory.CreateDirectory(repository.LocalPath);
+                });
+
+                await Clone(repository.Url, repository.LocalPath);
+                return;
             }
-            else
-            {
-                await this.Synchronize(repository.Name, repository.RootFolderPath);
-            }
+
+            await Synchronize(repository.Url, repository.LocalPath);
         }
 
-
-        public async Task Synchronize(string repoName, string localPath)
+        public async Task Synchronize(string url, string localPath)
         {
-            outPut.AddMessageLine($"Synchronize {repoName} into {localPath}...", "Pink");
+            outPut.AddMessageLine($"Synchronize {url} into {localPath}...", "Pink");
             if (await RunScript("git", "pull", localPath) == 0)
             {
-                outPut.AddMessageLine($"Synchronize {repoName} finished", "Green");
+                outPut.AddMessageLine($"Synchronize finished", "Green");
             }
             else
             {
-                outPut.AddMessageLine($"Error durring synchronize {repoName}", "Red");
+                outPut.AddMessageLine($"Error while synchronizing", "Red");
             }
         }
 
-        public async Task Clone(string repoName, string url, string localPath)
+        public async Task Clone(string url, string localPath)
         {
-            outPut.AddMessageLine($"Clone {repoName} into {localPath}...", "Pink");
+            outPut.AddMessageLine($"Clone {url} into {localPath}...", "Pink");
 
             if (await RunScript("git", $"clone \"" + url + "\" \"" + localPath + "\"") == 0)
             {
-                outPut.AddMessageLine($"Clone {repoName} finished", "Green");
+                outPut.AddMessageLine($"Clone finished", "Green");
             }
             else
             {
-                outPut.AddMessageLine($"Error durring clone {repoName}", "Red");
+                outPut.AddMessageLine($"Error while cloning", "Red");
             }
         }
-
-        public List<string> GetTags(string localPath)
-        {
-            List<string> release = new List<string>();
-
-            using (var repo = new Repository(localPath))
-            {
-                release = repo.Tags.Select(t => t.FriendlyName).ToList();
-            }
-
-            return release;
-        }
-
-
-        public async Task CheckoutTag(IRepositorySettings repoSettings, string tag)
-        {
-            // git checkout tags/1.1.4
-            outPut.AddMessageLine("Checkout Tag " + tag + "  for repo : " + repoSettings.Name + ".", "Pink");
-
-            if (await RunScript("git", $"checkout tags/" + tag, repoSettings.RootFolderPath) == 0)
-            {
-                outPut.AddMessageLine("Checkout Tag " + tag + "  for repo : " + repoSettings.Name + "finished", "Green");
-            }
-            else
-            {
-                outPut.AddMessageLine("Error durring Checkout Tag " + tag + "  for repo : " + repoSettings.Name, "Red");
-            }
-        }
-
 
         public async Task<bool> DiffFolder(bool actionFinishedAtEnd, string rootPath, string name1, string name2, string migrateFilePath)
         {
@@ -188,7 +177,7 @@
             // Process the list of files found in the directory.
             string[] fileEntries = Directory.GetFiles(targetDirectory, "*.rej");
             foreach (string fileName in fileEntries)
-               await MergeRejectedFileAsync(fileName, param);
+                await MergeRejectedFileAsync(fileName, param);
 
             // Recurse into subdirectories of this directory.
             string[] subdirectoryEntries = Directory.GetDirectories(targetDirectory);

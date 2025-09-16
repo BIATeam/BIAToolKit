@@ -1,0 +1,12 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<#  if(ModelInstance.HasFixableParent) { #>
+            // BIAToolKit - Begin Partial FixedChildrenRepositoryInjection<#= ModelInstance.ParentName #> <#= ModelInstance.EntityName #>
+<#  if(!ModelInstance.HasCustomRepository) { #>
+            ITGenericRepository<<#= ModelInstance.EntityName #>, int> <#= ModelInstance.EntityName.ToCamelCase() #>Repository,
+<#  } else { #>
+            I<#= ModelInstance.EntityName #>Repository <#= ModelInstance.EntityName.ToCamelCase() #>Repository,
+<#  } #>
+            // BIAToolKit - End Partial FixedChildrenRepositoryInjection<#= ModelInstance.ParentName #> <#= ModelInstance.EntityName #>
+<# }  #>

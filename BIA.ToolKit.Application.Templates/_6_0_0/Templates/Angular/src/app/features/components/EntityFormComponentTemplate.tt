@@ -1,0 +1,18 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+import { Component } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { BiaFormComponent, CrudItemFormComponent } from 'bia-ng/shared';
+import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+
+@Component({
+  selector: 'app-<#= ModelInstance.EntityName.ToKebabCase() #>-form',
+  templateUrl:
+    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/bia-ng/templates/feature-templates/crud-items/components/crud-item-form/crud-item-form.component.html',
+  styleUrls: [
+    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/bia-ng/templates/feature-templates/crud-items/components/crud-item-form/crud-item-form.component.scss',
+  ],
+  imports: [BiaFormComponent],
+})
+export class <#= ModelInstance.EntityName #>FormComponent extends CrudItemFormComponent<<#= ModelInstance.EntityName #>> {}

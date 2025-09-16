@@ -1,0 +1,25 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(ModelInstance.HasParent) { #>
+  // BIAToolKit - Begin Partial <#= ModelInstance.ParentName #>IndexTsOnViewChild <#= ModelInstance.EntityName #>
+<#  if(!ModelInstance.IsTeam) { #>
+  onView<#= ModelInstance.EntityNamePlural #>(crudItemId: any) {
+    if (crudItemId && crudItemId > 0) {
+      this.router.navigate([crudItemId, '<#= ModelInstance.EntityNamePlural.ToKebabCase() #>'], {
+        relativeTo: this.activatedRoute,
+      });
+    }
+  }
+<#  } else { #>
+  onView<#= ModelInstance.EntityNamePlural #>() {
+    if (this.selectedCrudItems.length === 1) {
+      this.router.navigate(
+        [this.selectedCrudItems[0].id, '<#= ModelInstance.EntityNamePlural.ToKebabCase() #>'],
+        { relativeTo: this.activatedRoute }
+      );
+    }
+  }
+<#  } #>
+  // BIAToolKit - End Partial <#= ModelInstance.ParentName #>IndexTsOnViewChild <#= ModelInstance.EntityName #>
+<# }  #>

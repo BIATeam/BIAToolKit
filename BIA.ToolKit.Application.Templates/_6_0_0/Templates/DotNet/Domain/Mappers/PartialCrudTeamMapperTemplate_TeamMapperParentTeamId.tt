@@ -1,0 +1,9 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+<# if(ModelInstance.IsTeam && ModelInstance.HasParent) { #>
+                // BIAToolKit - Begin Partial TeamMapperParentTeamId <#= ModelInstance.EntityName #>
+                <#= ModelInstance.EntityName #> <#= ModelInstance.EntityName.ToCamelCase() #> => team.TeamTypeId == (int)TeamTypeId.<#= ModelInstance.EntityName #> ? <#= ModelInstance.EntityName.ToCamelCase() #>.<#= ModelInstance.ParentName #>Id : 0,
+
+                // BIAToolKit - End Partial TeamMapperParentTeamId <#= ModelInstance.EntityName #>
+<# }  #>

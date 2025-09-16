@@ -15,6 +15,7 @@
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Domain.Work;
@@ -31,6 +32,7 @@
         private SettingsService settingsService;
         private string currentProjectPath;
         private UIEventBroker uiEventBroker;
+        private IConsoleWriter consoleWriter;
 
         public VersionAndOptionViewModel vm;
 
@@ -48,7 +50,16 @@
             this.featureSettingService = featureSettingService;
             this.settingsService = settingsService;
             this.uiEventBroker = uiEventBroker;
-            vm.Inject(repositoryService, consoleWriter);
+            this.consoleWriter = consoleWriter;
+            vm.Inject(repositoryService, consoleWriter, uiEventBroker);
+
+            uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
+        }
+
+        private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
+        {
+            vm.SettingsUseCompanyFiles = settings.UseCompanyFiles;
+            RefreshConfiguration();
         }
 
         public void SelectVersion(string version)
@@ -64,15 +75,22 @@
             this.LoadVersionAndOption(mapCompanyFileVersion);
         }
 
-        private void LoadVersionAndOption(bool mapCompanyFileVersion)
+        public void LoadVersionAndOption(bool mapCompanyFileVersion)
         {
             if (!string.IsNullOrWhiteSpace(this.currentProjectPath))
             {
                 string projectGenerationFile = Path.Combine(this.currentProjectPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
                 if (File.Exists(projectGenerationFile))
                 {
-                    VersionAndOptionDto versionAndOptionDto = CommonTools.DeserializeJsonFile<VersionAndOptionDto>(projectGenerationFile);
-                    VersionAndOptionMapper.DtoToModel(versionAndOptionDto, vm, mapCompanyFileVersion);
+                    try
+                    {
+                        VersionAndOptionDto versionAndOptionDto = CommonTools.DeserializeJsonFile<VersionAndOptionDto>(projectGenerationFile);
+                        VersionAndOptionMapper.DtoToModel(versionAndOptionDto, vm, mapCompanyFileVersion);
+                    }
+                    catch(Exception ex)
+                    {
+                        consoleWriter.AddMessageLine($"Error when reading {projectGenerationFile} : {ex.Message}", "red");
+                    }
                 }
             }
         }
@@ -101,83 +119,64 @@
 
         public async Task FillVersionFolderPathAsync()
         {
-            if (vm?.WorkTemplate?.RepositorySettings != null)
+            if (vm?.WorkTemplate?.Repository != null)
             {
                 if (vm.WorkTemplate.Version == "VX.Y.Z")
                 {
-                    vm.WorkTemplate.VersionFolderPath = vm.WorkTemplate.RepositorySettings.RootFolderPath;
+                    vm.WorkTemplate.VersionFolderPath = vm.WorkTemplate.Repository.LocalPath;
                 }
                 else
                 {
-                    vm.WorkTemplate.VersionFolderPath = await this.repositoryService.PrepareVersionFolder(vm.WorkTemplate.RepositorySettings, vm.WorkTemplate.Version);
+                    vm.WorkTemplate.VersionFolderPath = await this.repositoryService.PrepareVersionFolder(vm.WorkTemplate.Repository, vm.WorkTemplate.Version);
                 }
             }
         }
 
-        public void refreshConfig()
+        public void RefreshConfiguration()
         {
             var listCompanyFiles = new List<WorkRepository>();
             var listWorkTemplates = new List<WorkRepository>();
 
-
-            if (settingsService.Settings.CustomRepoTemplates?.Count > 0)
+            foreach (var repository in settingsService.Settings.TemplateRepositories.Where(r => r.UseRepository))
             {
-                foreach (var repositorySettings in settingsService.Settings.CustomRepoTemplates)
-                {
-                    AddTemplatesVersion(listWorkTemplates, repositorySettings);
-                }
+                AddTemplatesVersion(listWorkTemplates, repository);
             }
 
-            if (Directory.Exists(settingsService.Settings.BIATemplateRepository.RootFolderPath))
+            var hasVersionXYZ = false;
+            var repositoryVersionXYZ = settingsService.Settings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
+            if (repositoryVersionXYZ is not null)
             {
-                AddTemplatesVersion(listWorkTemplates, settingsService.Settings.BIATemplateRepository);
-                listWorkTemplates.Add(new WorkRepository(settingsService.Settings.BIATemplateRepository, "VX.Y.Z"));
+                listWorkTemplates.Add(new WorkRepository(repositoryVersionXYZ, "VX.Y.Z"));
+                hasVersionXYZ = true;
             }
 
             vm.WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
-            if (listWorkTemplates.Count >= 2)
+            if (listWorkTemplates.Count >= 1)
             {
-                vm.WorkTemplate = listWorkTemplates[listWorkTemplates.Count - 2];
+                vm.WorkTemplate = hasVersionXYZ && listWorkTemplates.Count >= 2 ? listWorkTemplates[^2] : listWorkTemplates[^1];
             }
 
             vm.SettingsUseCompanyFiles = settingsService.Settings.UseCompanyFiles;
             vm.UseCompanyFiles = settingsService.Settings.UseCompanyFiles;
             if (settingsService.Settings.UseCompanyFiles)
             {
-                AddTemplatesVersion(listCompanyFiles, settingsService.Settings.CompanyFilesRepository);
+                foreach (var repository in settingsService.Settings.CompanyFilesRepositories.Where(r => r.UseRepository))
+                {
+                    AddTemplatesVersion(listCompanyFiles, repository);
+                }
                 vm.WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
-                if (vm.WorkCompanyFiles.Count >= 1)
+                if (vm.WorkCompanyFiles.Count >= 1 && vm.WorkTemplate is not null)
                 {
                     vm.WorkCompanyFile = vm.GetWorkCompanyFile(vm.WorkTemplate.Version);
                 }
             }
         }
 
-        private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, IRepositorySettings repositorySettings)
+        private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, IRepository repository)
         {
-            if (repositorySettings.Versioning == VersioningType.Folder)
+            foreach(var release in repository.Releases)
             {
-                if (Directory.Exists(repositorySettings.RootFolderPath))
-                {
-                    DirectoryInfo di = new DirectoryInfo(repositorySettings.RootFolderPath);
-                    //  an array representing the files in the current directory.
-                    DirectoryInfo[] versionDirectories = di.GetDirectories("V*.*.*", SearchOption.TopDirectoryOnly);
-                    // Print out the names of the files in the current directory.
-                    foreach (DirectoryInfo dir in versionDirectories)
-                    {
-                        //Add and select the last added
-                        WorkTemplates.Add(new WorkRepository(repositorySettings, dir.Name));
-                    }
-                }
-            }
-            else
-            {
-                List<string> versions = gitService.GetTags(repositorySettings.RootFolderPath).OrderBy(q => q).ToList();
-
-                foreach (string version in versions)
-                {
-                    WorkTemplates.Add(new WorkRepository(repositorySettings, version));
-                }
+                WorkTemplates.Add(new WorkRepository(repository, release.Name));
             }
 
             WorkTemplates.Sort(new WorkRepository.VersionComparer());
@@ -185,9 +184,8 @@
 
         private void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            uiEventBroker.ExecuteActionWithWaiter(async () =>
+            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
             {
-                //vm.UseCompanyFiles = vm.WorkTemplate?.RepositorySettings?.Name == "BIATemplate";
                 await this.FillVersionFolderPathAsync();
                 this.LoadfeatureSetting();
                 this.LoadVersionAndOption(false);
