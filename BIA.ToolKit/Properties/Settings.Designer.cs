@@ -25,90 +25,6 @@ namespace BIA.ToolKit.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool BIATemplateLocalFolder {
-            get {
-                return ((bool)(this["BIATemplateLocalFolder"]));
-            }
-            set {
-                this["BIATemplateLocalFolder"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool BIATemplateGitHub {
-            get {
-                return ((bool)(this["BIATemplateGitHub"]));
-            }
-            set {
-                this["BIATemplateGitHub"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool CompanyFilesGit {
-            get {
-                return ((bool)(this["CompanyFilesGit"]));
-            }
-            set {
-                this["CompanyFilesGit"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool CompanyFilesLocalFolder {
-            get {
-                return ((bool)(this["CompanyFilesLocalFolder"]));
-            }
-            set {
-                this["CompanyFilesLocalFolder"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("D:\\...\\BIATemplate")]
-        public string BIATemplateLocalFolderText {
-            get {
-                return ((string)(this["BIATemplateLocalFolderText"]));
-            }
-            set {
-                this["BIATemplateLocalFolderText"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("https://.../_git/BIACompanyFiles")]
-        public string CompanyFilesGitRepo {
-            get {
-                return ((string)(this["CompanyFilesGitRepo"]));
-            }
-            set {
-                this["CompanyFilesGitRepo"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("D:\\...\\BIACompanyFiles")]
-        public string CompanyFilesLocalFolderText {
-            get {
-                return ((string)(this["CompanyFilesLocalFolderText"]));
-            }
-            set {
-                this["CompanyFilesLocalFolderText"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("D:\\...\\MyRootProjectPath")]
         public string CreateProjectRootFolderText {
             get {
@@ -145,18 +61,6 @@ namespace BIA.ToolKit.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string CustomTemplates {
-            get {
-                return ((string)(this["CustomTemplates"]));
-            }
-            set {
-                this["CustomTemplates"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool ApplicationUpdated {
             get {
@@ -164,30 +68,6 @@ namespace BIA.ToolKit.Properties {
             }
             set {
                 this["ApplicationUpdated"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool UseLocalReleaseRepository {
-            get {
-                return ((bool)(this["UseLocalReleaseRepository"]));
-            }
-            set {
-                this["UseLocalReleaseRepository"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string LocalReleaseRepositoryPath {
-            get {
-                return ((string)(this["LocalReleaseRepositoryPath"]));
-            }
-            set {
-                this["LocalReleaseRepositoryPath"] = value;
             }
         }
         
@@ -212,6 +92,42 @@ namespace BIA.ToolKit.Properties {
             }
             set {
                 this["ModifyProjectRootFolderText"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string TemplateRepositories {
+            get {
+                return ((string)(this["TemplateRepositories"]));
+            }
+            set {
+                this["TemplateRepositories"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string CompanyFilesRepositories {
+            get {
+                return ((string)(this["CompanyFilesRepositories"]));
+            }
+            set {
+                this["CompanyFilesRepositories"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ToolkitRepository {
+            get {
+                return ((string)(this["ToolkitRepository"]));
+            }
+            set {
+                this["ToolkitRepository"] = value;
             }
         }
     }

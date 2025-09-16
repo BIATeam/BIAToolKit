@@ -2,27 +2,6 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="BIA.ToolKit.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="BIATemplateLocalFolder" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="BIATemplateGitHub" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="CompanyFilesGit" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="CompanyFilesLocalFolder" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="BIATemplateLocalFolderText" Type="System.String" Scope="User">
-      <Value Profile="(Default)">D:\...\BIATemplate</Value>
-    </Setting>
-    <Setting Name="CompanyFilesGitRepo" Type="System.String" Scope="User">
-      <Value Profile="(Default)">https://.../_git/BIACompanyFiles</Value>
-    </Setting>
-    <Setting Name="CompanyFilesLocalFolderText" Type="System.String" Scope="User">
-      <Value Profile="(Default)">D:\...\BIACompanyFiles</Value>
-    </Setting>
     <Setting Name="CreateProjectRootFolderText" Type="System.String" Scope="User">
       <Value Profile="(Default)">D:\...\MyRootProjectPath</Value>
     </Setting>
@@ -32,23 +11,23 @@
     <Setting Name="UseCompanyFile" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="CustomTemplates" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
-    </Setting>
     <Setting Name="ApplicationUpdated" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="UseLocalReleaseRepository" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="LocalReleaseRepositoryPath" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
     </Setting>
     <Setting Name="AutoUpdate" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="ModifyProjectRootFolderText" Type="System.String" Scope="User">
       <Value Profile="(Default)">D:\...\MyRootProjectPath</Value>
+    </Setting>
+    <Setting Name="TemplateRepositories" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="CompanyFilesRepositories" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="ToolkitRepository" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>
