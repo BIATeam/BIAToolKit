@@ -182,13 +182,30 @@
             settingsService.Init(settings);
         }
 
-        private async Task GetReleasesData(BIATKSettings settings)
+        private async Task GetReleasesData(BIATKSettings settings, bool syncBefore = false)
         {
             var fillReleasesTasks = settings.TemplateRepositories
                 .Concat(settings.CompanyFilesRepositories)
                 .Where(r => r.UseRepository)
                 .Select(async (r) =>
                 {
+                    if (syncBefore)
+                    {
+                        try
+                        {
+                            if (r is IRepositoryGit repoGit)
+                            {
+                                consoleWriter.AddMessageLine($"Synchronizing repository {r.Name}...", "pink");
+                                await gitService.Synchronize(repoGit);
+                                consoleWriter.AddMessageLine($"Synchronized successfully of repository {r.Name}", "green");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            consoleWriter.AddMessageLine($"Error while synchronizing repository {r.Name} : {ex.Message}", "red");
+                        }
+                    }
+
                     try
                     {
                         consoleWriter.AddMessageLine($"Getting releases data for repository {r.Name}...", "pink");
@@ -501,7 +518,7 @@
 
             await ExecuteTaskWithWaiterAsync(async () =>
             {
-                await GetReleasesData(config);
+                await GetReleasesData(config, true);
 
                 settingsService.SetToolkitRepository(config.ToolkitRepository);
                 settingsService.SetTemplateRepositories(config.TemplateRepositories);
@@ -511,7 +528,6 @@
                 settingsService.SetAutoUpdate(config.AutoUpdate);
                 settingsService.SetUseCompanyFiles(config.UseCompanyFiles);
 
-                CreateVersionAndOption.RefreshConfiguration();
                 ViewModel.UpdateRepositories(settingsService.Settings);
             });
         }
