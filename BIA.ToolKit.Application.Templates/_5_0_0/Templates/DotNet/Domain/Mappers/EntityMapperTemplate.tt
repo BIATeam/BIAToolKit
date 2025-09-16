@@ -29,7 +29,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <# if(ModelInstance.IsTeamType && ModelInstance.HasAncestorTeam) { #>
     using BIA.Net.Core.Common.Enum;
 <#  } #>
-<# if(ModelInstance.HasAncestorTeam) { #>
+<# if(ModelInstance.HasAncestorTeam || ModelInstance.HasParent) { #>
     using BIA.Net.Core.Common.Exceptions;
 <#  } #>
 <# if (ModelInstance.Properties.Count() > 0) { #>
