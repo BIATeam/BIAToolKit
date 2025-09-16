@@ -105,6 +105,7 @@
             Projects = projectList;
         }
 
+        public string CurrentRootProjectsPath { get; set; }
         public string RootProjectsPath
         {
             get => settingsService?.Settings?.ModifyProjectRootProjectsPath;
@@ -112,6 +113,7 @@
             {
                 if (settingsService.Settings.ModifyProjectRootProjectsPath != value)
                 {
+                    CurrentRootProjectsPath = $"{value}";
                     settingsService.SetModifyProjectRootProjectPath(value);
                     RefreshProjetsList();
                 }

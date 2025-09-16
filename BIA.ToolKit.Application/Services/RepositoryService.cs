@@ -112,11 +112,11 @@
 
             if (repository.RepositoryType == RepositoryType.Git && repository is RepositoryGit repositoryGit && repositoryGit.ReleaseType == ReleaseType.Git)
             {
-                await UnzipReleaseGitAsset(release);
+                await UnzipReleaseGitAsset(repository, release);
             }
         }
 
-        private async Task UnzipReleaseGitAsset(Release release)
+        private async Task UnzipReleaseGitAsset(Domain.IRepository repository, Release release)
         {
             var assetArchivePath = Path.Combine(release.LocalPath, $"{release.Name}.zip");
             if (!File.Exists(assetArchivePath))
@@ -124,7 +124,7 @@
                 throw new FileNotFoundException(assetArchivePath);
             }
 
-            outPut.AddMessageLine($"Unzipping {Path.GetFileName(assetArchivePath)}...", "pink");
+            outPut.AddMessageLine($"Unzipping {Path.GetFileName(assetArchivePath)} of repository {repository.Name}...", "pink");
             await Task.Run(() =>
             {
                 ZipFile.ExtractToDirectory(assetArchivePath, release.LocalPath);
@@ -144,7 +144,7 @@
                     Directory.Delete(contentDirectory, true);
                 }
             });
-            outPut.AddMessageLine($"{Path.GetFileName(assetArchivePath)} unzipped", "green");
+            outPut.AddMessageLine($"{Path.GetFileName(assetArchivePath)} of repository {repository.Name} unzipped", "green");
         }
     }
 }

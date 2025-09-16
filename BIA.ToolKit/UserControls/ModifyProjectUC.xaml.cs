@@ -62,10 +62,14 @@
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
         }
 
+        private bool firstTimeSettingsUpdated = true;
         private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
         {
-            RefreshConfiguration();
-            _viewModel.RefreshProjetsList();
+            if (firstTimeSettingsUpdated)
+            {
+                _viewModel.RefreshProjetsList();
+                firstTimeSettingsUpdated = false;
+            }
         }
 
         private void UiEventBroker_OnProjectChanged(Domain.ModifyProject.Project project)
@@ -79,6 +83,7 @@
         public void RefreshConfiguration()
         {
             MigrateOriginVersionAndOption.RefreshConfiguration();
+            MigrateOriginVersionAndOption.LoadVersionAndOption(true);
             MigrateTargetVersionAndOption.RefreshConfiguration();
         }
 

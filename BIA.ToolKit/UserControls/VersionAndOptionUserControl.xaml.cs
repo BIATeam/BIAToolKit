@@ -32,6 +32,7 @@
         private SettingsService settingsService;
         private string currentProjectPath;
         private UIEventBroker uiEventBroker;
+        private IConsoleWriter consoleWriter;
 
         public VersionAndOptionViewModel vm;
 
@@ -49,6 +50,7 @@
             this.featureSettingService = featureSettingService;
             this.settingsService = settingsService;
             this.uiEventBroker = uiEventBroker;
+            this.consoleWriter = consoleWriter;
             vm.Inject(repositoryService, consoleWriter, uiEventBroker);
 
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
@@ -73,15 +75,22 @@
             this.LoadVersionAndOption(mapCompanyFileVersion);
         }
 
-        private void LoadVersionAndOption(bool mapCompanyFileVersion)
+        public void LoadVersionAndOption(bool mapCompanyFileVersion)
         {
             if (!string.IsNullOrWhiteSpace(this.currentProjectPath))
             {
                 string projectGenerationFile = Path.Combine(this.currentProjectPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
                 if (File.Exists(projectGenerationFile))
                 {
-                    VersionAndOptionDto versionAndOptionDto = CommonTools.DeserializeJsonFile<VersionAndOptionDto>(projectGenerationFile);
-                    VersionAndOptionMapper.DtoToModel(versionAndOptionDto, vm, mapCompanyFileVersion);
+                    try
+                    {
+                        VersionAndOptionDto versionAndOptionDto = CommonTools.DeserializeJsonFile<VersionAndOptionDto>(projectGenerationFile);
+                        VersionAndOptionMapper.DtoToModel(versionAndOptionDto, vm, mapCompanyFileVersion);
+                    }
+                    catch(Exception ex)
+                    {
+                        consoleWriter.AddMessageLine($"Error when reading {projectGenerationFile} : {ex.Message}", "red");
+                    }
                 }
             }
         }
