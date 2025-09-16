@@ -182,25 +182,28 @@
             settingsService.Init(settings);
         }
 
-        private async Task GetReleasesData(BIATKSettings settings)
+        private async Task GetReleasesData(BIATKSettings settings, bool syncBefore = false)
         {
             var fillReleasesTasks = settings.TemplateRepositories
                 .Concat(settings.CompanyFilesRepositories)
                 .Where(r => r.UseRepository)
                 .Select(async (r) =>
                 {
-                    try
+                    if (syncBefore)
                     {
-                        if (r is IRepositoryGit repoGit)
+                        try
                         {
-                            consoleWriter.AddMessageLine($"Synchronizing repository {r.Name}...", "pink");
-                            await gitService.Synchronize(repoGit);
-                            consoleWriter.AddMessageLine($"Synchronized successfully of repository {r.Name}", "green");
+                            if (r is IRepositoryGit repoGit)
+                            {
+                                consoleWriter.AddMessageLine($"Synchronizing repository {r.Name}...", "pink");
+                                await gitService.Synchronize(repoGit);
+                                consoleWriter.AddMessageLine($"Synchronized successfully of repository {r.Name}", "green");
+                            }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        consoleWriter.AddMessageLine($"Error while synchronizing repository {r.Name} : {ex.Message}", "red");
+                        catch (Exception ex)
+                        {
+                            consoleWriter.AddMessageLine($"Error while synchronizing repository {r.Name} : {ex.Message}", "red");
+                        }
                     }
 
                     try
@@ -515,7 +518,7 @@
 
             await ExecuteTaskWithWaiterAsync(async () =>
             {
-                await GetReleasesData(config);
+                await GetReleasesData(config, true);
 
                 settingsService.SetToolkitRepository(config.ToolkitRepository);
                 settingsService.SetTemplateRepositories(config.TemplateRepositories);
