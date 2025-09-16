@@ -76,14 +76,14 @@
         {
             ParameterModifyChange();
             MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
-            MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, true);
-            MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false);
+            MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, true, true);
+            MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false, false);
         }
 
         public void RefreshConfiguration()
         {
             MigrateOriginVersionAndOption.RefreshConfiguration();
-            MigrateOriginVersionAndOption.LoadVersionAndOption(true);
+            MigrateOriginVersionAndOption.LoadVersionAndOption(true, true);
             MigrateTargetVersionAndOption.RefreshConfiguration();
         }
 

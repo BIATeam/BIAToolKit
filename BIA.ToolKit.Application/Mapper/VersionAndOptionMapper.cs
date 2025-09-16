@@ -7,7 +7,7 @@
 
     public static class VersionAndOptionMapper
     {
-        public static void DtoToModel(VersionAndOptionDto dto, VersionAndOptionViewModel vm, bool mapCompanyFileVersion)
+        public static void DtoToModel(VersionAndOptionDto dto, VersionAndOptionViewModel vm, bool mapCompanyFileVersion, bool mapFrameworkVersion)
         {
             // Company Files
             vm.UseCompanyFiles = dto.UseCompanyFiles;
@@ -28,6 +28,15 @@
             }
 
             vm.CheckOptions(dto.Options);
+
+            if (mapFrameworkVersion)
+            {
+                var workTemplate = vm.WorkTemplates.FirstOrDefault(x => x.Version == dto.FrameworkVersion);
+                if (workTemplate is not null)
+                {
+                    vm.WorkTemplate = workTemplate;
+                }
+            }
         }
 
         public static void ModelToDto(VersionAndOption model, VersionAndOptionDto dto)

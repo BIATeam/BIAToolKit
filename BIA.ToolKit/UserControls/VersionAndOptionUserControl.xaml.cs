@@ -59,7 +59,6 @@
         private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
         {
             vm.SettingsUseCompanyFiles = settings.UseCompanyFiles;
-            RefreshConfiguration();
         }
 
         public void SelectVersion(string version)
@@ -67,15 +66,15 @@
             vm.WorkTemplate = vm.WorkTemplates.FirstOrDefault(workTemplate => workTemplate.Version == $"V{version}");
         }
 
-        public void SetCurrentProjectPath(string path, bool mapCompanyFileVersion)
+        public void SetCurrentProjectPath(string path, bool mapCompanyFileVersion, bool mapFrameworkVersion)
         {
             this.currentProjectPath = path;
             this.LoadfeatureSetting();
 
-            this.LoadVersionAndOption(mapCompanyFileVersion);
+            this.LoadVersionAndOption(mapCompanyFileVersion, mapFrameworkVersion);
         }
 
-        public void LoadVersionAndOption(bool mapCompanyFileVersion)
+        public void LoadVersionAndOption(bool mapCompanyFileVersion, bool mapFrameworkVersion)
         {
             if (!string.IsNullOrWhiteSpace(this.currentProjectPath))
             {
@@ -85,7 +84,7 @@
                     try
                     {
                         VersionAndOptionDto versionAndOptionDto = CommonTools.DeserializeJsonFile<VersionAndOptionDto>(projectGenerationFile);
-                        VersionAndOptionMapper.DtoToModel(versionAndOptionDto, vm, mapCompanyFileVersion);
+                        VersionAndOptionMapper.DtoToModel(versionAndOptionDto, vm, mapCompanyFileVersion, mapFrameworkVersion);
                     }
                     catch(Exception ex)
                     {
@@ -153,7 +152,7 @@
             vm.WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
             if (listWorkTemplates.Count >= 1)
             {
-                vm.WorkTemplate = hasVersionXYZ && listWorkTemplates.Count >= 2 ? listWorkTemplates[^2] : listWorkTemplates[^1];
+                vm.WorkTemplate =  hasVersionXYZ && listWorkTemplates.Count >= 2 ? listWorkTemplates[^2] : listWorkTemplates[^1];
             }
 
             vm.SettingsUseCompanyFiles = settingsService.Settings.UseCompanyFiles;
@@ -188,13 +187,13 @@
             {
                 await this.FillVersionFolderPathAsync();
                 this.LoadfeatureSetting();
-                this.LoadVersionAndOption(false);
+                this.LoadVersionAndOption(false, false);
             });
         }
 
         private void CFVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            this.LoadVersionAndOption(false);
+            this.LoadVersionAndOption(false, false);
         }
     }
 }
