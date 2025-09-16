@@ -18,6 +18,7 @@
         public VersionAndOption VersionAndOption { get; set; }
         public RepositoryService repositoryService;
         IConsoleWriter consoleWriter;
+        private UIEventBroker eventBroker;
 
         private bool hasFeature = false;
         private bool areFeatureInitialized = false;
@@ -27,10 +28,11 @@
             VersionAndOption = new VersionAndOption();
         }
 
-        public void Inject(RepositoryService repositoryService, IConsoleWriter consoleWriter)
+        public void Inject(RepositoryService repositoryService, IConsoleWriter consoleWriter, UIEventBroker eventBroker)
         {
             this.repositoryService = repositoryService;
             this.consoleWriter = consoleWriter;
+            this.eventBroker = eventBroker;
         }
 
         public ObservableCollection<WorkRepository> WorkTemplates
@@ -126,36 +128,39 @@
                     
                     if (WorkCompanyFile != null)
                     {
-                        WorkCompanyFile.VersionFolderPath = repositoryService.PrepareVersionFolder(WorkCompanyFile.Repository, WorkCompanyFile.Version).Result;
-                        string fileName = WorkCompanyFile.VersionFolderPath + "\\biaCompanyFiles.json";
-
-                        try
+                        eventBroker.RequestExecuteActionWithWaiter(async () =>
                         {
-                            string jsonString = File.ReadAllText(fileName);
-
-                            CFSettings cfSetting = JsonSerializer.Deserialize<CFSettings>(jsonString);
-
-                            var listProfiles = new List<string>();
-                            foreach (string profile in cfSetting.Profiles)
+                            try
                             {
-                                listProfiles.Add(profile);
-                                Profile = profile;
-                            }
-                            Profiles = new ObservableCollection<string>(listProfiles);
+                                WorkCompanyFile.VersionFolderPath = await repositoryService.PrepareVersionFolder(WorkCompanyFile.Repository, WorkCompanyFile.Version);
+                                string fileName = WorkCompanyFile.VersionFolderPath + "\\biaCompanyFiles.json";
 
-                            var options = new List<CFOption>();
-                            foreach (CFOption option in cfSetting.Options)
+                                string jsonString = File.ReadAllText(fileName);
+
+                                CFSettings cfSetting = JsonSerializer.Deserialize<CFSettings>(jsonString);
+
+                                var listProfiles = new List<string>();
+                                foreach (string profile in cfSetting.Profiles)
+                                {
+                                    listProfiles.Add(profile);
+                                    Profile = profile;
+                                }
+                                Profiles = new ObservableCollection<string>(listProfiles);
+
+                                var options = new List<CFOption>();
+                                foreach (CFOption option in cfSetting.Options)
+                                {
+                                    option.IsChecked = (!(option?.Default == 0));
+                                    options.Add(option);
+                                }
+                                Options = new ObservableCollection<CFOption>(options);
+
+                            }
+                            catch (Exception ex)
                             {
-                                option.IsChecked = (!(option?.Default == 0));
-                                options.Add(option);
+                                consoleWriter.AddMessageLine(ex.Message, "Red");
                             }
-                            Options = new ObservableCollection<CFOption>(options);
-
-                        }
-                        catch (Exception ex)
-                        {
-                            consoleWriter.AddMessageLine(ex.Message, "Red");
-                        }
+                        });
                     }
                     RaisePropertyChanged(nameof(WorkCompanyFile));
                 }

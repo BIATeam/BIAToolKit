@@ -106,9 +106,9 @@
 
         private async Task DownloadReleaseAsync(Domain.IRepository repository, Release release)
         {
-            outPut.AddMessageLine($"Downloading release {release.Name}...", "pink");
+            outPut.AddMessageLine($"Downloading release {release.Name} of repository {repository.Name}...", "pink");
             await release.DownloadAsync();
-            outPut.AddMessageLine($"Release {release.Name} downloaded", "green");
+            outPut.AddMessageLine($"Release {release.Name} of repository {repository.Name} downloaded", "green");
 
             if (repository.RepositoryType == RepositoryType.Git && repository is RepositoryGit repositoryGit && repositoryGit.ReleaseType == ReleaseType.Git)
             {

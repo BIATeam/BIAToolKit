@@ -49,7 +49,7 @@
             this.featureSettingService = featureSettingService;
             this.settingsService = settingsService;
             this.uiEventBroker = uiEventBroker;
-            vm.Inject(repositoryService, consoleWriter);
+            vm.Inject(repositoryService, consoleWriter, uiEventBroker);
 
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
         }
