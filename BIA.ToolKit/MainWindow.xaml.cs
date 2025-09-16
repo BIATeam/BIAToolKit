@@ -191,6 +191,20 @@
                 {
                     try
                     {
+                        if (r is IRepositoryGit repoGit)
+                        {
+                            consoleWriter.AddMessageLine($"Synchronizing repository {r.Name}...", "pink");
+                            await gitService.Synchronize(repoGit);
+                            consoleWriter.AddMessageLine($"Synchronized successfully of repository {r.Name}", "green");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        consoleWriter.AddMessageLine($"Error while synchronizing repository {r.Name} : {ex.Message}", "red");
+                    }
+
+                    try
+                    {
                         consoleWriter.AddMessageLine($"Getting releases data for repository {r.Name}...", "pink");
                         await r.FillReleasesAsync();
                         consoleWriter.AddMessageLine($"Releases data got successfully for repository {r.Name}", "green");
@@ -511,7 +525,6 @@
                 settingsService.SetAutoUpdate(config.AutoUpdate);
                 settingsService.SetUseCompanyFiles(config.UseCompanyFiles);
 
-                CreateVersionAndOption.RefreshConfiguration();
                 ViewModel.UpdateRepositories(settingsService.Settings);
             });
         }
