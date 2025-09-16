@@ -43,7 +43,7 @@
         public bool IsGitRepository => repository.RepositoryType == Domain.RepositoryType.Git;
         public bool IsFolderRepository => repository.RepositoryType == Domain.RepositoryType.Folder;
         public ICommand SynchronizeCommand => new RelayCommand((_) => Synchronize());
-        public ICommand OpenSourceFolderCommand => new RelayCommand((_) => OpenSourceFolder());
+        public ICommand OpenSourceCommand => new RelayCommand((_) => OpenSource());
         public ICommand OpenSynchronizedFolderCommand => new RelayCommand((_) => OpenSynchronizedFolder());
         public ICommand GetReleasesDataCommand => new RelayCommand((_) => GetReleasesData());
         public ICommand CleanReleasesCommand => new RelayCommand((_) => CleanReleases());
@@ -51,8 +51,6 @@
         public ICommand DeleteCommand => new RelayCommand((_) => eventBroker.NotifyRepositoryViewModelDeleted(this));
 
         public bool IsValid => !string.IsNullOrWhiteSpace(Name) && EnsureIsValid();
-        public bool CanSynchronize => Model.RepositoryType == RepositoryType.Git;
-        public bool CanOpenSource => Model.RepositoryType == RepositoryType.Folder;
         public bool IsVisibleCompanyName { get; set; } = true;
         public bool IsVisibleProjectName { get; set; } = true;
         public bool CanBeVersionXYZ { get; set; }
@@ -140,7 +138,7 @@
             {
                 try
                 {
-                    if (CanSynchronize && IsGitRepository && repository is RepositoryGit repositoryGit)
+                    if (IsGitRepository && repository is RepositoryGit repositoryGit)
                     {
                         await gitService.Synchronize(repositoryGit);
                     }
@@ -200,7 +198,7 @@
             
         }
 
-        private void OpenSourceFolder()
+        private void OpenSource()
         {
             eventBroker.RequestExecuteActionWithWaiter(async () =>
             {
@@ -211,10 +209,14 @@
                         consoleWriter.AddMessageLine($"Source folder {repoFolder.Path} not found");
                     }
 
-                    await Task.Run(() => Process.Start("explorer.exe", Model.LocalPath));
+                    await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = Model.LocalPath, UseShellExecute = true }));
+                }
+
+                if(Model is RepositoryGit repoGit)
+                {
+                    await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = repoGit.Url, UseShellExecute = true }));
                 }
             });
-
         }
     }
 }

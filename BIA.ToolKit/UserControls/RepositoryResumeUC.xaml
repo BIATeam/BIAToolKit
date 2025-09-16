@@ -31,7 +31,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <ToggleButton Style="{StaticResource MaterialDesignSwitchToggleButton}" IsChecked="{Binding UseRepository}"/>
+                        <ToggleButton Style="{StaticResource MaterialDesignSwitchToggleButton}" IsChecked="{Binding UseRepository}" ToolTip="Use Repository"/>
                         <Label Margin="10,0" VerticalAlignment="Center" Content="{Binding Name}" Foreground="White" FontWeight="Bold" FontSize="15" d:Content="REPOSITORY NAME" IsEnabled="{Binding UseRepository}"/>
                         <materialDesign:ColorZone Padding="0" Mode="SecondaryDark" VerticalAlignment="Center" CornerRadius="5" Visibility="{Binding IsVersionXYZ, Converter={StaticResource BoolToVisConverter}}">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0">
@@ -59,36 +59,39 @@
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" IsEnabled="{Binding UseRepository}">
-                    <TextBox Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Repository Type" Text="{Binding RepositoryType, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="true"/>
+                <StackPanel Grid.Column="0">
+                    <TextBox Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Repository Type" Text="{Binding RepositoryType, Mode=OneWay}" IsReadOnly="true" IsEnabled="{Binding UseRepository}"/>
                     <Grid Margin="{StaticResource FormRowMargin}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
                             <ColumnDefinition Width="auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Source" Text="{Binding Source, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="true"/>
-                        <Button Grid.Column="1" Style="{StaticResource MaterialDesignFlatButton}" Padding="5,0" Margin="5,0,0,0" Command="{Binding OpenSourceFolderCommand}" ToolTip="Open source folder" Visibility="{Binding CanOpenSource, Converter={StaticResource BoolToVisConverter}}">
-                            <materialDesign:PackIcon Kind="FolderEyeOutline" Height="20" Width="20" />
+                        <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Source" Text="{Binding Source, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="true" IsEnabled="{Binding UseRepository}"/>
+                        <Button Grid.Column="1" Style="{StaticResource MaterialDesignFlatButton}" Padding="5,0" Margin="5,0,0,0" Command="{Binding OpenSourceCommand}" ToolTip="Go to source">
+                            <Grid>
+                                <materialDesign:PackIcon Kind="FolderOpen" Height="20" Width="20" Visibility="{Binding IsFolderRepository, Converter={StaticResource BoolToVisConverter}}" />
+                                <materialDesign:PackIcon Kind="Web" Height="20" Width="20" Visibility="{Binding IsGitRepository, Converter={StaticResource BoolToVisConverter}}" />
+                            </Grid>
                         </Button>
                     </Grid>
-                    <Grid Margin="{StaticResource FormRowMargin}" Visibility="{Binding CanSynchronize, Converter={StaticResource BoolToVisConverter}}">
+                    <Grid Margin="{StaticResource FormRowMargin}" Visibility="{Binding IsGitRepository, Converter={StaticResource BoolToVisConverter}}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
                             <ColumnDefinition Width="auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Synchronized Folder" Text="{Binding LocalPath, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="true"/>
+                        <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}" materialDesign:HintAssist.Hint="Synchronized Folder" Text="{Binding LocalPath, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="true" IsEnabled="{Binding UseRepository}"/>
                         <Button Grid.Column="1" Style="{StaticResource MaterialDesignFlatButton}" Padding="5,0" Margin="5,0,0,0" Command="{Binding OpenSynchronizedFolderCommand}" ToolTip="Open synchronized folder">
-                            <materialDesign:PackIcon Kind="FolderEyeOutline" Height="20" Width="20" />
+                            <materialDesign:PackIcon Kind="FolderOpen" Height="20" Width="20" />
                         </Button>
                     </Grid>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Center">
-                    <Button Style="{StaticResource MaterialDesignOutlinedButton}" Padding="5,0" Command="{Binding SynchronizeCommand}" ToolTip="Synchronize" Visibility="{Binding CanSynchronize, Converter={StaticResource BoolToVisConverter}}">
+                    <Button Style="{StaticResource MaterialDesignOutlinedButton}" Padding="5,0" Command="{Binding SynchronizeCommand}" ToolTip="Synchronize" Visibility="{Binding IsGitRepository, Converter={StaticResource BoolToVisConverter}}">
                         <materialDesign:PackIcon Kind="Sync" Height="25" Width="25" />
                     </Button>
                     <Button Style="{StaticResource MaterialDesignOutlinedButton}" Padding="5,0" Margin="0,5,0,0" Command="{Binding GetReleasesDataCommand}" ToolTip="Synchronize Releases Data" IsEnabled="{Binding UseRepository}">
-                        <materialDesign:PackIcon Kind="ArchiveSyncOutline" Height="25" Width="25" />
+                        <materialDesign:PackIcon Kind="ArchiveSync" Height="25" Width="25" />
                     </Button>
                     <Button Style="{StaticResource MaterialDesignPaperButton}" Padding="5,0" Margin="0,5,0,0" Command="{Binding CleanReleasesCommand}" ToolTip="Clean Releases" IsEnabled="{Binding UseRepository}">
                         <materialDesign:PackIcon Kind="ArchiveRemoveOutline" Height="25" Width="25" />
