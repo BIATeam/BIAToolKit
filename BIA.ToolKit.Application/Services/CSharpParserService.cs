@@ -239,7 +239,7 @@ using Roslyn.Services;*/
             return null;
         }
 
-        public IEnumerable<EntityInfo> GetDomainEntities(Domain.ModifyProject.Project project, CRUDSettings settings, IEnumerable<string> excludedPropertiesNames = null, IEnumerable<string> filteredEntityBaseTypes = null)
+        public IEnumerable<EntityInfo> GetDomainEntities(Domain.ModifyProject.Project project)
         {
             List<EntityInfo> entities = new();
 

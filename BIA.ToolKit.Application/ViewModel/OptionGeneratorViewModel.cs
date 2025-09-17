@@ -91,19 +91,6 @@
             }
         }
 
-        private bool showAllEntities;
-
-        public bool ShowAllEntities
-        {
-            get { return showAllEntities; }
-            set 
-            { 
-                showAllEntities = value; 
-                RaisePropertyChanged(nameof(ShowAllEntities));
-            }
-        }
-
-
         private Dictionary<string, string> entityFiles;
         public Dictionary<string, string> EntityFiles
         {

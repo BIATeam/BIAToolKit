@@ -100,7 +100,7 @@
             if (project is null)
                 return Task.CompletedTask;
 
-            var domainEntities = parserService.GetDomainEntities(project, settings).ToList();
+            var domainEntities = parserService.GetDomainEntities(project).ToList();
             vm.SetEntities(domainEntities);
             return Task.CompletedTask;
         }

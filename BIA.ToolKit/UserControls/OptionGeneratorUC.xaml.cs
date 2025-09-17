@@ -480,18 +480,7 @@
             entityInfoFiles.Clear();
 
             var entityFiles = new Dictionary<string, string>();
-            var baseTypes = new List<string>(CommonTools.BaseEntityInterfaces)
-            {
-                "Team",
-                "BaseEntity"
-            };
-
-            if(vm.ShowAllEntities)
-            {
-                baseTypes = null;
-            }
-
-            var entities = service.GetDomainEntities(vm.CurrentProject, settings, ["id"], baseTypes);
+            var entities = service.GetDomainEntities(vm.CurrentProject);
             foreach (var entity in entities)
             {
                 entityInfoFiles.Add(entity.Path, entity);

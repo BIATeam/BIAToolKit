@@ -43,19 +43,12 @@
                 </Grid.RowDefinitions>
 
                 <Grid Grid.Row="0" Margin="{StaticResource FormFirstRowMargin}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="auto"/>
-                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
                     <ComboBox Grid.Column="0" Grid.Row="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Entity" x:Name="EntitiesComboBox" ItemsSource="{Binding EntitiesNames}" SelectedValue="{Binding SelectedEntityName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsProjectChosen}" SelectionChanged="EntitiesComboBox_SelectionChanged"/>
                     <Label Grid.Column="0" Grid.Row="1" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="{Binding WasAlreadyGenerated, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible"/>
-                    <Button Grid.Column="1" Margin="5,0,0,0" IsEnabled="{Binding IsProjectChosen}" x:Name="RefreshDtoList" Click="RefreshEntitiesList_Click" ToolTip="Refresh list">
-                        <Image Source="/Images/rafraichir-32.png" />
-                    </Button>
                 </Grid>
                 <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Domain" Text="{Binding EntityDomain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsEntitySelected}"/>
                 <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Ancestor Team" Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
