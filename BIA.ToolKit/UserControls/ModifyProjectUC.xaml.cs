@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.UserControls
 {
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
@@ -78,6 +79,22 @@
             MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
             MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, true, true);
             MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false, false);
+            
+            if (project is not null && File.Exists(project.SolutionPath))
+            {
+                uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+                {
+                    try
+                    {
+                        await cSharpParserService.LoadSolution(project.SolutionPath);
+                        consoleWriter.AddMessageLine($"Classes parsed : {cSharpParserService.CurrentSolutionClasses.Count}", "lightgreen");
+                    }
+                    catch(Exception ex)
+                    {
+                        consoleWriter.AddMessageLine($"Error whil loading project solution : {ex.Message}");
+                    }
+                });
+            }
         }
 
         public void RefreshConfiguration()
@@ -232,7 +249,7 @@
             // Create project at original version.
             if (Directory.Exists(projectOriginPath))
             {
-               await Task.Run(() => FileTransform.ForceDeleteDirectory(projectOriginPath));
+                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectOriginPath));
             }
 
             await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, _viewModel.CurrentProject.BIAFronts);
@@ -306,7 +323,7 @@
             {
                 var diffInstruction = migrateFileContent.ElementAt(index - 1);
                 var match = Regex.Match(diffInstruction, pathOfFileRegex);
-                if(match.Success)
+                if (match.Success)
                 {
                     filesToDelete.Add(Path.Combine(currentProject.Folder, match.Groups[1].Value).Replace("/", "\\"));
                 }
@@ -324,7 +341,7 @@
                 }
             }
 
-            if(hasNotDeletedFiles)
+            if (hasNotDeletedFiles)
             {
                 consoleWriter.AddMessageLine("Some files have not been deleted. Check the previous details to launch diff command for each of them. Delete them manually if applicable.", "orange");
             }
@@ -376,7 +393,7 @@
 
         private async Task FixUsings_Run()
         {
-            await cSharpParserService.FixUsings(_viewModel.CurrentProject.SolutionPath, forceRestore: true);
+            await cSharpParserService.FixUsings(_viewModel.CurrentProject.SolutionPath);
         }
     }
 }
