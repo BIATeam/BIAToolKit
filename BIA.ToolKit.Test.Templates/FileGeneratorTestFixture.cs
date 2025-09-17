@@ -36,7 +36,6 @@
 
         public FileGeneratorTestFixture()
         {
-            var eventBroker = new UIEventBroker();
             var consoleWriter = new ConsoleWriterTest(stopwatch);
             stopwatch.Start();
 
@@ -88,7 +87,7 @@
             };
 
             consoleWriter.AddMessageLine($"Init service...");
-            FileGeneratorService = new FileGeneratorService(consoleWriter, eventBroker);
+            FileGeneratorService = new FileGeneratorService(consoleWriter, new CSharpParserService(consoleWriter, new UIEventBroker()));
             FileGeneratorService.Init(TestProject, true).Wait();
 
             if (referenceProject.BIAFronts.Count != 0)

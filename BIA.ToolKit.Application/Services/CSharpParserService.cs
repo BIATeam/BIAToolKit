@@ -188,17 +188,21 @@ using Roslyn.Services;*/
             return entities.OrderBy(x => x.Name);
         }
 
-        public static void RegisterMSBuild(IConsoleWriter consoleWriter)
+        public void RegisterMSBuild(IConsoleWriter consoleWriter)
         {
             try
             {
                 if (MSBuildLocator.IsRegistered)
+                {
+                    InitWorkspace();
                     return;
+                }
 
                 var instances = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).ToList();
                 if (instances.Count > 0)
                 {
                     MSBuildLocator.RegisterInstance(instances.First());
+                    InitWorkspace();
                     return;
                 }
 
@@ -223,6 +227,7 @@ using Roslyn.Services;*/
                 }
 
                 MSBuildLocator.RegisterMSBuildPath(Path.GetDirectoryName(msbuildPath));
+                InitWorkspace();
             }
             catch (Exception ex)
             {
@@ -230,9 +235,8 @@ using Roslyn.Services;*/
             }
         }
 
-        public async Task LoadSolution(string solutionPath)
+        private void InitWorkspace()
         {
-            Workspace?.Dispose();
             Workspace = MSBuildWorkspace.Create();
 
             if (Workspace == null)
@@ -240,11 +244,21 @@ using Roslyn.Services;*/
                 consoleWriter.AddMessageLine("Error: Workspace could not be created.", "red");
                 return;
             }
+        }
+
+        public async Task LoadSolution(string solutionPath)
+        {
+            if(Workspace is null)
+            {
+                consoleWriter.AddMessageLine($"MSBuildWorkspace has not been initialized", "red");
+                return;
+            }
 
             if (!await RestoreSolution(solutionPath))
                 return;
 
             consoleWriter.AddMessageLine("Opening solution...", "darkgray");
+            Workspace.CloseSolution();
             var solution = await Workspace.OpenSolutionAsync(solutionPath);
 
             if (solution == null)

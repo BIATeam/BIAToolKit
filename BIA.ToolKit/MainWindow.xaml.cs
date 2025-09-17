@@ -37,6 +37,7 @@
 
         private readonly RepositoryService repositoryService;
         private readonly GitService gitService;
+        private readonly CSharpParserService cSharpParserService;
         private readonly ProjectCreatorService projectCreatorService;
         private readonly SettingsService settingsService;
         private readonly FileGeneratorService fileGeneratorService;
@@ -55,6 +56,7 @@
 
             this.repositoryService = repositoryService;
             this.gitService = gitService;
+            this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
             this.settingsService = settingsService;
             this.fileGeneratorService = fileGeneratorService;
@@ -129,7 +131,7 @@
                     await updateService.CheckForUpdatesAsync();
                 }
 
-                await Task.Run(() => CSharpParserService.RegisterMSBuild(consoleWriter));
+                await Task.Run(() => cSharpParserService.RegisterMSBuild(consoleWriter));
             });
         }
 
