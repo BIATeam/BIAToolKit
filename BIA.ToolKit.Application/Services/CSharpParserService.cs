@@ -271,35 +271,43 @@ using Roslyn.Services;*/
             CurrentSolution = solution;
         }
 
-        public async Task ParseSolutionClasses(Func<INamedTypeSymbol, bool> typeFilter = null)
+        public async Task ParseSolutionClasses()
         {
             var result = new List<ClassInfo>();
             consoleWriter.AddMessageLine("Parsing classes...", "darkgray");
 
-            var classesInfosPerProjectTasks = CurrentSolution.Projects.Select(x => GetClassesInfoFromProject(typeFilter, x));
-            var classesInfos = (await Task.WhenAll(classesInfosPerProjectTasks)).SelectMany(x => x).ToList();
-
-            CurrentSolutionClasses = classesInfos;
+            var classesInfosPerProjectTasks = CurrentSolution.Projects.Select(GetClassesInfoFromProject);
+            var classesInfosReports = await Task.WhenAll(classesInfosPerProjectTasks);
+            foreach(var report in classesInfosReports)
+            {
+                consoleWriter.AddMessageLine($"{report.Project} : {report.ClassesCount} classes parsed in {report.ElapsedSeconds} seconds", "gray");
+            }
+            CurrentSolutionClasses = classesInfosReports.SelectMany(x => x.ClassesInfo).ToList();
             eventBroker.NotifySolutionClassesParsed();
             consoleWriter.AddMessageLine($"Classes parsed successfully", "lightgreen");
         }
 
-        private static async Task<List<ClassInfo>> GetClassesInfoFromProject(Func<INamedTypeSymbol, bool> typeFilter, Project project)
+        private async Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)> GetClassesInfoFromProject(Project project)
         {
             var result = new List<ClassInfo>();
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
 
             // Compilation (nécessaire pour symboles/semantics)
             var compilation = await project.GetCompilationAsync().ConfigureAwait(false);
             if (compilation is null)
-                return result;
+            {
+                return (result, project.Name, 0, 0);
+            }
 
             // Énumérer tous les types nommés
-            var allTypes = RoslynHelper.GetAllNamedTypes(compilation.GlobalNamespace)
-                .Where(t => t.TypeKind == TypeKind.Class);
-
-            // Filtre optionnel
-            if (typeFilter is not null)
-                allTypes = allTypes.Where(typeFilter);
+            var allTypes = RoslynHelper.GetAllNamedTypes(compilation.Assembly.GlobalNamespace)
+                .Where(t => 
+                    t.TypeKind == TypeKind.Class 
+                    && t.DeclaredAccessibility == Accessibility.Public 
+                    && !t.IsStatic 
+                    && !t.IsAbstract)
+                .ToList();
 
             foreach (var cls in allTypes)
             {
@@ -344,10 +352,12 @@ using Roslyn.Services;*/
                 ));
             }
 
-            return result;
+            stopwatch.Stop();
+
+            return (result, project.Name, result.Count, stopwatch.Elapsed.TotalSeconds);
         }
 
-        public async Task FixUsings(string solutionPath, IEnumerable<string> filteredDocumentsPath = null)
+        public async Task FixUsings()
         {
             consoleWriter.AddMessageLine("Start fix usings", "pink");
 
@@ -361,11 +371,6 @@ using Roslyn.Services;*/
 
                         foreach (var document in project.Documents)
                         {
-                            if (filteredDocumentsPath != null && !filteredDocumentsPath.Any(path => path.Equals(document.FilePath)))
-                            {
-                                continue;
-                            }
-
                             try
                             {
                                 if (await document.GetSyntaxRootAsync() is not CompilationUnitSyntax syntaxRoot)

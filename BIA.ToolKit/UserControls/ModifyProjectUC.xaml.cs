@@ -377,7 +377,7 @@
 
         private async Task FixUsings_Run()
         {
-            await cSharpParserService.FixUsings(_viewModel.CurrentProject.SolutionPath);
+            await cSharpParserService.FixUsings();
         }
     }
 }
