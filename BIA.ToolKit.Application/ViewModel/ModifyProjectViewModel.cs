@@ -73,14 +73,16 @@
         }
 
 
-        public List<string> Projects
+        private ObservableCollection<string> projects = [];
+        public ObservableCollection<string> Projects
         {
-            get { return ModifyProject.Projects; }
+            get => projects;
             set
             {
-                if (ModifyProject.Projects != value)
+                if (projects != value)
                 {
-                    ModifyProject.Projects = value;
+                    projects = value;
+                    ModifyProject.Projects = [.. value];
                     RaisePropertyChanged(nameof(Projects));
                 }
             }
@@ -88,7 +90,7 @@
 
         public void RefreshProjetsList()
         {
-            List<string> projectList = null;
+            List<string> newProjects = null;
 
             if (Directory.Exists(RootProjectsPath))
             {
@@ -96,15 +98,35 @@
                 // Create an array representing the files in the current directory.
                 DirectoryInfo[] versionDirectories = di.GetDirectories("*", SearchOption.TopDirectoryOnly);
 
-                projectList = new();
+                newProjects = new();
                 foreach (DirectoryInfo dir in versionDirectories)
                 {
                     //Add and select the last added
-                    projectList.Add(dir.Name);
+                    newProjects.Add(dir.Name);
                 }
             }
 
-            Projects = projectList;
+            for (int i = 0; i < newProjects.Count; i++)
+            {
+                var existingProjectInNewProjects = Projects.FirstOrDefault(x => x == newProjects[i]);
+                if (existingProjectInNewProjects is not null)
+                    continue;
+
+                Projects.Insert(i, newProjects[i]);
+            }
+
+            for (int i = 0; i < Projects.Count; i++)
+            {
+                var newProjectInExistingProjects = newProjects.FirstOrDefault(x => x == Projects[i]);
+                if (newProjectInExistingProjects is not null)
+                    continue;
+
+                if (Path.GetFileName(CurrentProject.Folder) == Projects[i])
+                {
+                    Folder = null;
+                }
+                Projects.RemoveAt(i);
+            }
         }
 
         public string CurrentRootProjectsPath { get; set; }
@@ -223,11 +245,15 @@
             get { return ModifyProject.CurrentProject?.Folder; }
             set
             {
-                IsFileGeneratorServiceInit = false;
-                IsProjectCompatibleCrudGenerator = false;
-                Project currentProject = null;
+                if (value == Path.GetFileName(Folder))
+                    return;
+
                 eventBroker.RequestExecuteActionWithWaiter(async () =>
                 {
+                    IsFileGeneratorServiceInit = false;
+                    IsProjectCompatibleCrudGenerator = false;
+
+                    Project currentProject = null;
                     if (value is not null)
                     {
                         consoleWriter.AddMessageLine($"Loading project {value}", "yellow");
@@ -266,8 +292,10 @@
 
                         var resolverTask = Task.Run(() => nvResolver.ResolveNamesAndVersion(currentProject));
                         var resolver2Task = Task.Run(() => nvResolver2.ResolveNamesAndVersion(currentProject));
-                        var solutionPathTask = Task.Run(() => currentProject.SolutionPath = Directory.GetFiles(currentProject.Folder, $"{currentProject.Name}.sln", SearchOption.AllDirectories).FirstOrDefault());
-                        await Task.WhenAll(resolverTask, resolver2Task, solutionPathTask);
+                        await Task.WhenAll(resolverTask, resolver2Task).ContinueWith((_) =>
+                        {
+                            currentProject.SolutionPath = Directory.GetFiles(currentProject.Folder, $"{currentProject.Name}.sln", SearchOption.AllDirectories).FirstOrDefault();
+                        });
 
                         consoleWriter.AddMessageLine("Names and version resolved", "lightgreen");
 
@@ -282,11 +310,13 @@
                     IsProjectCompatibleCrudGenerator = GenerateCrudService.IsProjectCompatible(currentProject);
                     CurrentProject = currentProject;
 
-                    if(CurrentProject is not null)
+                    if (CurrentProject is not null)
                     {
                         await parserService.LoadSolution(currentProject.SolutionPath);
                         await parserService.ParseSolutionClasses();
                     }
+
+                    RaisePropertyChanged(nameof(Folder));
                 });
             }
         }
