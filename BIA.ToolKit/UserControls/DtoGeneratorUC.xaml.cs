@@ -82,17 +82,15 @@
             if (project is null)
                 return;
 
-            uiEventBroker.RequestExecuteActionWithWaiter(() => InitProjectTask(project));
+            InitProject(project);
         }
 
-        private Task InitProjectTask(Project project)
+        private void InitProject(Project project)
         {
             this.project = project;
             vm.SetProject(project);
             
             InitHistoryFile(project);
-
-            return Task.CompletedTask;
         }
 
         private Task ListEntities()
