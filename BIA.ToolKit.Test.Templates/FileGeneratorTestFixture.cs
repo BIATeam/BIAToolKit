@@ -87,7 +87,7 @@
             };
 
             consoleWriter.AddMessageLine($"Init service...");
-            FileGeneratorService = new FileGeneratorService(consoleWriter, new CSharpParserService(consoleWriter, new UIEventBroker()));
+            FileGeneratorService = new FileGeneratorService(consoleWriter);
             FileGeneratorService.Init(TestProject, true).Wait();
 
             if (referenceProject.BIAFronts.Count != 0)

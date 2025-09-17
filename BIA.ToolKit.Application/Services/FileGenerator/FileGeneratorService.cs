@@ -35,7 +35,6 @@
 
         private readonly FileGeneratorModelProviderFactory _modelProviderFactory;
         private readonly IConsoleWriter _consoleWriter;
-        private readonly CSharpParserService parserService;
         private readonly List<Manifest> _manifests = [];
         private IFileGeneratorModelProvider _modelProvider;
         private string _modelProviderVersion;
@@ -48,10 +47,9 @@
 
         public bool IsInit { get; private set; }
 
-        public FileGeneratorService(IConsoleWriter consoleWriter, CSharpParserService parserService)
+        public FileGeneratorService(IConsoleWriter consoleWriter)
         {
             this._consoleWriter = consoleWriter;
-            this.parserService = parserService;
             _modelProviderFactory = new FileGeneratorModelProviderFactory(consoleWriter);
 
             LoadTemplatesManifests();
