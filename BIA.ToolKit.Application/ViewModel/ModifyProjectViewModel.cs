@@ -15,6 +15,7 @@
     using System.Linq;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
+    using System.Windows.Input;
 
     public class ModifyProjectViewModel : ObservableObject
     {
@@ -46,7 +47,7 @@
             RaisePropertyChanged(nameof(RootProjectsPath));
         }
 
-        //public IProductRepository Repository { get; set; }
+        public ICommand RefreshProjectInformationsCommand => new RelayCommand((_) => RefreshProjectInformations());
         public ModifyProject ModifyProject { get; set; }
 
         private bool _isFileGeneratorServiceInit;
@@ -106,6 +107,11 @@
                 }
             }
 
+            if (!newProjects.Select(x => Path.Combine(RootProjectsPath, x)).Contains(CurrentProject?.Folder))
+            {
+                Folder = null;
+            }
+
             for (int i = 0; i < newProjects.Count; i++)
             {
                 var existingProjectInNewProjects = Projects.FirstOrDefault(x => x == newProjects[i]);
@@ -121,11 +127,8 @@
                 if (newProjectInExistingProjects is not null)
                     continue;
 
-                if (Path.GetFileName(CurrentProject.Folder) == Projects[i])
-                {
-                    Folder = null;
-                }
                 Projects.RemoveAt(i);
+                i--;
             }
         }
 
@@ -137,7 +140,7 @@
             {
                 if (settingsService.Settings.ModifyProjectRootProjectsPath != value)
                 {
-                    CurrentRootProjectsPath = $"{value}";
+                    CurrentRootProjectsPath = value;
                     settingsService.SetModifyProjectRootProjectPath(value);
                     RefreshProjetsList();
                 }
@@ -256,64 +259,20 @@
                     Project currentProject = null;
                     if (value is not null)
                     {
-                        consoleWriter.AddMessageLine($"Loading project {value}", "yellow");
                         currentProject = new Project
                         {
                             Name = value
                         };
                         currentProject.Folder = RootProjectsPath + "\\" + currentProject.Name;
-
-                        consoleWriter.AddMessageLine("Resolving names and version...", "darkgray");
-                        NamesAndVersionResolver nvResolver2 = new()
-                        {
-                            ConstantFileRegExpPath = @"\\.*\\(.*)\.(.*)\.Common\\Constants\.cs$",
-                            ConstantFileNameSearchPattern = "Constants.cs",
-                            ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
-                            ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
-                            FrontFileRegExpPath = null,
-                            FrontFileUsingBiaNg = null,
-                            FrontFileBiaNgImportRegExp = null,
-                            FrontFileNameSearchPattern = null
-                        };
-
-                        NamesAndVersionResolver nvResolver = new()
-                        {
-                            ConstantFileRegExpPath = @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$",
-                            ConstantFileNameSearchPattern = "Constants.cs",
-                            ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
-                            ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
-                            FrontFileRegExpPath = [
-                                @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$",
-                                    @"\\(.*)\\packages\\bia-ng\\core\\bia-core.module\.ts$"],
-                            FrontFileUsingBiaNg = @"\\(?!.*(?:\\node_modules\\|\\dist\\|\\\.angular\\))(.*)\\package\.json$",
-                            FrontFileBiaNgImportRegExp = "\"bia-ng\":",
-                            FrontFileNameSearchPattern = "bia-core.module.ts"
-                        };
-
-                        var resolverTask = Task.Run(() => nvResolver.ResolveNamesAndVersion(currentProject));
-                        var resolver2Task = Task.Run(() => nvResolver2.ResolveNamesAndVersion(currentProject));
-                        await Task.WhenAll(resolverTask, resolver2Task).ContinueWith((_) =>
-                        {
-                            currentProject.SolutionPath = Directory.GetFiles(currentProject.Folder, $"{currentProject.Name}.sln", SearchOption.AllDirectories).FirstOrDefault();
-                        });
-
-                        consoleWriter.AddMessageLine("Names and version resolved", "lightgreen");
-
-                        if (currentProject.BIAFronts.Count == 0)
-                        {
-                            consoleWriter.AddMessageLine("Unable to find any BIA front folder for this project", "red");
-                        }
+                        await LoadProject(currentProject);
                     }
 
-                    await fileGeneratorService.Init(currentProject);
-                    IsFileGeneratorServiceInit = fileGeneratorService.IsInit;
-                    IsProjectCompatibleCrudGenerator = GenerateCrudService.IsProjectCompatible(currentProject);
+                    await InitFileGeneratorServiceFromProject(currentProject);
                     CurrentProject = currentProject;
 
                     if (CurrentProject is not null)
                     {
-                        await parserService.LoadSolution(currentProject.SolutionPath);
-                        await parserService.ParseSolutionClasses();
+                        await LoadProjectSolution(currentProject);
                     }
 
                     RaisePropertyChanged(nameof(Folder));
@@ -321,7 +280,89 @@
             }
         }
 
+        private async Task InitFileGeneratorServiceFromProject(Project currentProject)
+        {
+            await fileGeneratorService.Init(currentProject);
+            IsFileGeneratorServiceInit = fileGeneratorService.IsInit;
+            IsProjectCompatibleCrudGenerator = GenerateCrudService.IsProjectCompatible(currentProject);
+        }
 
+        private async Task LoadProject(Project project)
+        {
+            try
+            {
+                consoleWriter.AddMessageLine($"Loading project {project.Name}", "yellow");
+                consoleWriter.AddMessageLine("Resolving names and version...", "darkgray");
+                NamesAndVersionResolver nvResolverOldVersions = new()
+                {
+                    ConstantFileRegExpPath = @"\\.*\\(.*)\.(.*)\.Common\\Constants\.cs$",
+                    ConstantFileNameSearchPattern = "Constants.cs",
+                    ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
+                    ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
+                    FrontFileRegExpPath = null,
+                    FrontFileUsingBiaNg = null,
+                    FrontFileBiaNgImportRegExp = null,
+                    FrontFileNameSearchPattern = null
+                };
+
+                NamesAndVersionResolver nvResolver = new()
+                {
+                    ConstantFileRegExpPath = @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$",
+                    ConstantFileNameSearchPattern = "Constants.cs",
+                    ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
+                    ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
+                    FrontFileRegExpPath =
+                    [
+                        @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$",
+                    @"\\(.*)\\packages\\bia-ng\\core\\bia-core.module\.ts$"
+                    ],
+                    FrontFileUsingBiaNg = @"\\(?!.*(?:\\node_modules\\|\\dist\\|\\\.angular\\))(.*)\\package\.json$",
+                    FrontFileBiaNgImportRegExp = "\"bia-ng\":",
+                    FrontFileNameSearchPattern = "bia-core.module.ts"
+                };
+
+                var resolverTask = Task.Run(() => nvResolver.ResolveNamesAndVersion(project));
+                var resolverOldVersionsTask = Task.Run(() => nvResolverOldVersions.ResolveNamesAndVersion(project));
+                await Task.WhenAll(resolverTask, resolverOldVersionsTask).ContinueWith((_) =>
+                {
+                    project.SolutionPath = Directory.GetFiles(project.Folder, $"{project.Name}.sln", SearchOption.AllDirectories).FirstOrDefault();
+                });
+
+                consoleWriter.AddMessageLine("Names and version resolved", "lightgreen");
+
+                if (project.BIAFronts.Count == 0)
+                {
+                    consoleWriter.AddMessageLine("Unable to find any BIA front folder for this project", "orange");
+                }
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error while loading project : {ex.Message}", "red");
+            }
+        }
+
+        private async Task LoadProjectSolution(Project currentProject)
+        {
+            try
+            {
+                await parserService.LoadSolution(currentProject.SolutionPath);
+                await parserService.ParseSolutionClasses();
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error while loading project solution : {ex.Message}", "red");
+            }
+        }
+
+        private void RefreshProjectInformations()
+        {
+            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            {
+                await LoadProject(CurrentProject);
+                await InitFileGeneratorServiceFromProject(CurrentProject);
+                await LoadProjectSolution(CurrentProject);
+            });
+        }
 
         public string FrameworkVersion
         {
