@@ -120,12 +120,10 @@
                     </ScrollViewer>
                 </TabItem>
                 <TabItem x:Name="TabDtoGenerator" Header="DTO Generator" IsEnabled="{Binding IsFileGeneratorServiceInit, Mode=OneWay}">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <Grid>
-                            <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
-                            <uc:DtoGeneratorUC x:Name="DtoGenerator" Margin="10"/>
-                        </Grid>
-                    </ScrollViewer>
+                    <Grid>
+                        <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
+                        <uc:DtoGeneratorUC x:Name="DtoGenerator" Margin="10"/>
+                    </Grid>
                 </TabItem>
                 <TabItem x:Name="TabCrudGenerator" Header="CRUD Generator" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
