@@ -33,14 +33,16 @@ using Roslyn.Services;*/
         private readonly List<string> excludedEntitiesFolders = new() { "bin", "obj" };
         private readonly List<string> excludedEntitiesFilesSuffixes = new() { "Mapper", "Service", "Repository", "Customizer", "Specification" };
         private readonly IConsoleWriter consoleWriter;
+        private readonly UIEventBroker eventBroker;
         private Solution CurrentSolution;
         public IReadOnlyList<ClassInfo> CurrentSolutionClasses { get; private set; } = [];
 
         private MSBuildWorkspace Workspace { get; set; }
 
-        public CSharpParserService(IConsoleWriter consoleWriter)
+        public CSharpParserService(IConsoleWriter consoleWriter, UIEventBroker eventBroker)
         {
             this.consoleWriter = consoleWriter;
+            this.eventBroker = eventBroker;
         }
 
         public EntityInfo ParseEntity(string fileName, string dtoCustomFieldName, string dtoCustomClassName)
@@ -237,7 +239,7 @@ using Roslyn.Services;*/
             return null;
         }
 
-        public List<EntityInfo> GetDomainEntities(Domain.ModifyProject.Project project, CRUDSettings settings, IEnumerable<string> excludedPropertiesNames = null, IEnumerable<string> filteredEntityBaseTypes = null)
+        public IEnumerable<EntityInfo> GetDomainEntities(Domain.ModifyProject.Project project, CRUDSettings settings, IEnumerable<string> excludedPropertiesNames = null, IEnumerable<string> filteredEntityBaseTypes = null)
         {
             List<EntityInfo> entities = new();
 
@@ -257,36 +259,14 @@ using Roslyn.Services;*/
                     }
                 }
 
-                foreach (var file in files.OrderBy(x => Path.GetFileName(x)))
-                {
-                    try
-                    {
-                        var entityInfo = ParseEntity(file, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
-
-                        if (filteredEntityBaseTypes != null && !entityInfo.BaseList.Any(x => filteredEntityBaseTypes.Any(y => x.StartsWith(y))))
-                        {
-                            continue;
-                        }
-
-                        if (excludedPropertiesNames != null)
-                        {
-                            entityInfo.Properties.RemoveAll(p => excludedPropertiesNames.Any(x => p.Name.Equals(x, StringComparison.InvariantCultureIgnoreCase)));
-                        }
-
-                        entities.Add(entityInfo);
-                    }
-                    catch
-                    {
-                        continue;
-                    }
-                }
+                entities.AddRange(CurrentSolutionClasses.Where(x => files.Contains(x.FilePath)).DistinctBy(x => x.FilePath).Select(x => new EntityInfo(x)));
             }
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine(ex.Message, "Red");
             }
 
-            return entities;
+            return entities.OrderBy(x => x.Name);
         }
 
         public static void RegisterMSBuild(IConsoleWriter consoleWriter)
@@ -357,6 +337,7 @@ using Roslyn.Services;*/
             consoleWriter.AddMessageLine($"Solution loaded successfully", "lightgreen");
             CurrentSolution = solution;
             CurrentSolutionClasses = await ParseClasses();
+            eventBroker.NotifySolutionLoaded();
         }
 
         private async Task<IReadOnlyList<ClassInfo>> ParseClasses(Func<INamedTypeSymbol, bool> typeFilter = null)

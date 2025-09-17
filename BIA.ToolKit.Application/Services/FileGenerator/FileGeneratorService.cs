@@ -48,10 +48,10 @@
 
         public bool IsInit { get; private set; }
 
-        public FileGeneratorService(IConsoleWriter consoleWriter)
+        public FileGeneratorService(IConsoleWriter consoleWriter, UIEventBroker eventBroker)
         {
             this._consoleWriter = consoleWriter;
-            this.parserService = new CSharpParserService(consoleWriter);
+            this.parserService = new CSharpParserService(consoleWriter, eventBroker);
             _modelProviderFactory = new FileGeneratorModelProviderFactory(consoleWriter);
 
             LoadTemplatesManifests();

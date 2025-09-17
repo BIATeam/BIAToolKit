@@ -72,7 +72,14 @@
             this.settings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
+            this.uiEventBroker.OnSolutionLoaded += UiEventBroker_OnSolutionLoaded;
             this.fileGeneratorService = fileGeneratorService;
+        }
+
+        private void UiEventBroker_OnSolutionLoaded()
+        {
+            // List Entity files from Entity folder
+            ListEntityFiles();
         }
 
         private void UIEventBroker_OnProjectChanged(Project project)
@@ -113,9 +120,6 @@
         {
             // Load BIA settings + history + parse zips
             InitProject();
-
-            // List Entity files from Entity folder
-            ListEntityFiles();
 
             return Task.CompletedTask;
         }
@@ -469,6 +473,9 @@
         /// </summary>
         private void ListEntityFiles()
         {
+            if (vm?.CurrentProject is null)
+                return;
+
             vm.EntityFiles = null;
             entityInfoFiles.Clear();
 
@@ -510,7 +517,7 @@
                 if (entityInfo == null)
                 {
                     consoleWriter.AddMessageLine($"Entity '{fileName}' not parsed.", "Orange");
-                    entityInfo = service.ParseEntity(fileName, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
+                    return false;
                 }
 
                 // Check parsed Entity entity file

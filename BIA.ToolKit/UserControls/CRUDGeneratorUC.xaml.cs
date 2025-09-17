@@ -69,7 +69,14 @@
             this.settings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
+            this.uiEventBroker.OnSolutionLoaded += UiEventBroker_OnSolutionLoaded;
             this.fileGeneratorService = fileGeneratorService;
+        }
+
+        private void UiEventBroker_OnSolutionLoaded()
+        {
+            // List Dto files from Dto folder
+            ListDtoFiles();
         }
 
         private void UiEventBroker_OnProjectChanged(Project project)
@@ -106,9 +113,6 @@
 
             // Load BIA settings + history + parse zips
             InitProject(project);
-
-            // List Dto files from Dto folder
-            ListDtoFiles();
 
             return Task.CompletedTask;
         }
@@ -708,7 +712,7 @@
                 }
 
                 // Parse Dto entity file
-                vm.DtoEntity = service.ParseEntity(fileName, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
+                vm.DtoEntity = new Domain.DtoGenerator.EntityInfo(service.CurrentSolutionClasses.FirstOrDefault(x => x.FilePath == fileName));
 
                 // Fill display item list
                 List<string> displayItems = [];

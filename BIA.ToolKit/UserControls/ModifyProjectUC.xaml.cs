@@ -91,7 +91,7 @@
                     }
                     catch(Exception ex)
                     {
-                        consoleWriter.AddMessageLine($"Error whil loading project solution : {ex.Message}");
+                        consoleWriter.AddMessageLine($"Error while loading project solution : {ex.Message}", "red");
                     }
                 });
             }
