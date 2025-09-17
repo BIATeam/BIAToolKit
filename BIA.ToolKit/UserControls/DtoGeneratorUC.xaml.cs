@@ -56,12 +56,12 @@
             this.fileGeneratorService = fileGeneratorService;
             this.uiEventBroker = uiEventBroker;
             this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
-            this.uiEventBroker.OnSolutionLoaded += UiEventBroker_OnSolutionLoaded;
+            this.uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
 
             vm.Inject(fileGeneratorService, consoleWriter);
         }
 
-        private void UiEventBroker_OnSolutionLoaded()
+        private void UiEventBroker_OnSolutionClassesParsed()
         {
             ListEntities();
         }

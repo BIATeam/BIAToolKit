@@ -336,74 +336,81 @@ using Roslyn.Services;*/
 
             consoleWriter.AddMessageLine($"Solution loaded successfully", "lightgreen");
             CurrentSolution = solution;
-            CurrentSolutionClasses = await ParseClasses();
-            eventBroker.NotifySolutionLoaded();
         }
 
-        private async Task<IReadOnlyList<ClassInfo>> ParseClasses(Func<INamedTypeSymbol, bool> typeFilter = null)
+        public async Task ParseSolutionClasses(Func<INamedTypeSymbol, bool> typeFilter = null)
+        {
+            var result = new List<ClassInfo>();
+            consoleWriter.AddMessageLine("Parsing classes...", "darkgray");
+
+            var classesInfosPerProjectTasks = CurrentSolution.Projects.Select(x => GetClassesInfoFromProject(typeFilter, x));
+            var classesInfos = (await Task.WhenAll(classesInfosPerProjectTasks)).SelectMany(x => x).ToList();
+
+            CurrentSolutionClasses = classesInfos;
+            eventBroker.NotifySolutionClassesParsed();
+            consoleWriter.AddMessageLine($"Classes parsed successfully", "lightgreen");
+        }
+
+        private static async Task<List<ClassInfo>> GetClassesInfoFromProject(Func<INamedTypeSymbol, bool> typeFilter, Project project)
         {
             var result = new List<ClassInfo>();
 
-            consoleWriter.AddMessageLine($"Parsing classes...", "darkgray");
-            foreach (var project in CurrentSolution.Projects)
+            // Compilation (nécessaire pour symboles/semantics)
+            var compilation = await project.GetCompilationAsync().ConfigureAwait(false);
+            if (compilation is null)
+                return result;
+
+            // Énumérer tous les types nommés
+            var allTypes = RoslynHelper.GetAllNamedTypes(compilation.GlobalNamespace)
+                .Where(t => t.TypeKind == TypeKind.Class);
+
+            // Filtre optionnel
+            if (typeFilter is not null)
+                allTypes = allTypes.Where(typeFilter);
+
+            foreach (var cls in allTypes)
             {
-                // Compilation (nécessaire pour symboles/semantics)
-                var compilation = await project.GetCompilationAsync().ConfigureAwait(false);
-                if (compilation is null) continue;
+                // Fichier source principal (si partiel, on prend la 1re location source)
+                var filePath = cls.Locations.FirstOrDefault(l => l.IsInSource)?.SourceTree?.FilePath ?? string.Empty;
 
-                // Énumérer tous les types nommés
-                var allTypes = RoslynHelper.GetAllNamedTypes(compilation.GlobalNamespace)
-                    .Where(t => t.TypeKind == TypeKind.Class);
+                // Attributs de la classe
+                var classAttributes = cls.GetAttributes()
+                    .Select(RoslynHelper.ToAttributeInfo)
+                    .ToList();
 
-                // Filtre optionnel
-                if (typeFilter is not null)
-                    allTypes = allTypes.Where(typeFilter);
+                // Propriétés publiques accessibles (héritage inclus)
+                var properties = RoslynHelper.GetAllAccessiblePublicProperties(cls)
+                    .Select(p => new Domain.ProjectAnalysis.PropertyInfo(
+                        TypeName: RoslynHelper.Display(p.Type),
+                        Name: p.Name,
+                        IsExplicitInterfaceImplementation: p.ExplicitInterfaceImplementations.Length > 0,
+                        Attributes: p.GetAttributes().Select(RoslynHelper.ToAttributeInfo).ToList()
+                    ))
+                    .ToList();
 
-                foreach (var cls in allTypes)
-                {
-                    // Fichier source principal (si partiel, on prend la 1re location source)
-                    var filePath = cls.Locations.FirstOrDefault(l => l.IsInSource)?.SourceTree?.FilePath ?? string.Empty;
+                // Chaîne de bases
+                var baseChain = RoslynHelper.GetBaseTypes(cls)
+                    .Select(RoslynHelper.ToInheritedTypeInfo)
+                    .ToList();
 
-                    // Attributs de la classe
-                    var classAttributes = cls.GetAttributes()
-                        .Select(RoslynHelper.ToAttributeInfo)
-                        .ToList();
+                // Interfaces (transitives, dédupliquées par nom complet)
+                var interfaces = cls.AllInterfaces
+                    .Distinct<INamedTypeSymbol>(SymbolEqualityComparer.Default)
+                    .Select(RoslynHelper.ToInheritedTypeInfo)
+                    .ToList();
 
-                    // Propriétés publiques accessibles (héritage inclus)
-                    var properties = RoslynHelper.GetAllAccessiblePublicProperties(cls)
-                        .Select(p => new Domain.ProjectAnalysis.PropertyInfo(
-                            TypeName: RoslynHelper.Display(p.Type),
-                            Name: p.Name,
-                            IsExplicitInterfaceImplementation: p.ExplicitInterfaceImplementations.Length > 0,
-                            Attributes: p.GetAttributes().Select(RoslynHelper.ToAttributeInfo).ToList()
-                        ))
-                        .ToList();
-
-                    // Chaîne de bases
-                    var baseChain = RoslynHelper.GetBaseTypes(cls)
-                        .Select(RoslynHelper.ToInheritedTypeInfo)
-                        .ToList();
-
-                    // Interfaces (transitives, dédupliquées par nom complet)
-                    var interfaces = cls.AllInterfaces
-                        .Distinct<INamedTypeSymbol>(SymbolEqualityComparer.Default)
-                        .Select(RoslynHelper.ToInheritedTypeInfo)
-                        .ToList();
-
-                    result.Add(new ClassInfo(
-                        ClassName: RoslynHelper.Display(cls), // inclut génériques si présents
-                        FilePath: filePath,
-                        Namespace: cls.ContainingNamespace?.ToDisplayString() ?? "",
-                        IsGeneric: cls.IsGenericType,
-                        Attributes: classAttributes,
-                        PublicProperties: properties,
-                        BaseClassesChain: baseChain,
-                        AllInterfaces: interfaces
-                    ));
-                }
+                result.Add(new ClassInfo(
+                    ClassName: RoslynHelper.Display(cls), // inclut génériques si présents
+                    FilePath: filePath,
+                    Namespace: cls.ContainingNamespace?.ToDisplayString() ?? "",
+                    IsGeneric: cls.IsGenericType,
+                    Attributes: classAttributes,
+                    PublicProperties: properties,
+                    BaseClassesChain: baseChain,
+                    AllInterfaces: interfaces
+                ));
             }
 
-           // consoleWriter.AddMessageLine($"Classes parsed: {result.Count}", "lightgreen");
             return result;
         }
 
@@ -421,7 +428,7 @@ using Roslyn.Services;*/
 
                         foreach (var document in project.Documents)
                         {
-                            if(filteredDocumentsPath != null && !filteredDocumentsPath.Any(path => path.Equals(document.FilePath)))
+                            if (filteredDocumentsPath != null && !filteredDocumentsPath.Any(path => path.Equals(document.FilePath)))
                             {
                                 continue;
                             }
@@ -515,7 +522,7 @@ using Roslyn.Services;*/
                 consoleWriter.AddMessageLine($"Restore failed: {error}", "red");
                 return false;
             }
-            
+
             consoleWriter.AddMessageLine($"Restore succeed", "lightgreen");
             return true;
         }

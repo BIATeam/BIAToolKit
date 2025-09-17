@@ -57,7 +57,7 @@
             this.crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.settingsService = settingsService;
-            _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService);
+            _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
 
             uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
@@ -79,22 +79,6 @@
             MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
             MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, true, true);
             MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false, false);
-            
-            if (project is not null && File.Exists(project.SolutionPath))
-            {
-                uiEventBroker.RequestExecuteActionWithWaiter(async () =>
-                {
-                    try
-                    {
-                        await cSharpParserService.LoadSolution(project.SolutionPath);
-                        consoleWriter.AddMessageLine($"Classes parsed : {cSharpParserService.CurrentSolutionClasses.Count}", "lightgreen");
-                    }
-                    catch(Exception ex)
-                    {
-                        consoleWriter.AddMessageLine($"Error while loading project solution : {ex.Message}", "red");
-                    }
-                });
-            }
         }
 
         public void RefreshConfiguration()

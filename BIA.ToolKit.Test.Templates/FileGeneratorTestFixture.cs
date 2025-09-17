@@ -6,6 +6,7 @@
     using System.IO.Compression;
     using System.Linq;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Templates;
@@ -35,6 +36,7 @@
 
         public FileGeneratorTestFixture()
         {
+            var eventBroker = new UIEventBroker();
             var consoleWriter = new ConsoleWriterTest(stopwatch);
             stopwatch.Start();
 
@@ -86,7 +88,7 @@
             };
 
             consoleWriter.AddMessageLine($"Init service...");
-            FileGeneratorService = new FileGeneratorService(consoleWriter);
+            FileGeneratorService = new FileGeneratorService(consoleWriter, eventBroker);
             FileGeneratorService.Init(TestProject, true).Wait();
 
             if (referenceProject.BIAFronts.Count != 0)

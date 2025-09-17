@@ -72,11 +72,11 @@
             this.settings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
-            this.uiEventBroker.OnSolutionLoaded += UiEventBroker_OnSolutionLoaded;
+            this.uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
             this.fileGeneratorService = fileGeneratorService;
         }
 
-        private void UiEventBroker_OnSolutionLoaded()
+        private void UiEventBroker_OnSolutionClassesParsed()
         {
             // List Entity files from Entity folder
             ListEntityFiles();

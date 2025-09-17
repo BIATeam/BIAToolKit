@@ -22,6 +22,7 @@
         private FileGeneratorService fileGeneratorService;
         private IConsoleWriter consoleWriter;
         private SettingsService settingsService;
+        private CSharpParserService parserService;
 
         public ModifyProjectViewModel()
         {
@@ -29,12 +30,13 @@
             OverwriteBIAFromOriginal = true;
         }
 
-        public void Inject(UIEventBroker eventBroker, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService)
+        public void Inject(UIEventBroker eventBroker, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService, CSharpParserService parserService)
         {
             this.eventBroker = eventBroker;
             this.fileGeneratorService = fileGeneratorService;
             this.consoleWriter = consoleWriter;
             this.settingsService = settingsService;
+            this.parserService = parserService;
 
             eventBroker.OnSettingsUpdated += EventBroker_OnSettingsUpdated;
         }
@@ -223,59 +225,68 @@
             {
                 IsFileGeneratorServiceInit = false;
                 IsProjectCompatibleCrudGenerator = false;
+                Project currentProject = null;
                 eventBroker.RequestExecuteActionWithWaiter(async () =>
                 {
-                    Project currentProject = null;
-
-                    if (value != null)
+                    if (value is not null)
                     {
-                        await Task.Run(() =>
+                        consoleWriter.AddMessageLine($"Loading project {value}", "yellow");
+                        currentProject = new Project
                         {
-                            currentProject = new Project();
+                            Name = value
+                        };
+                        currentProject.Folder = RootProjectsPath + "\\" + currentProject.Name;
 
-                            currentProject.Name = value;
-                            currentProject.Folder = RootProjectsPath + "\\" + currentProject.Name;
+                        consoleWriter.AddMessageLine("Resolving names and version...", "darkgray");
+                        NamesAndVersionResolver nvResolver2 = new()
+                        {
+                            ConstantFileRegExpPath = @"\\.*\\(.*)\.(.*)\.Common\\Constants\.cs$",
+                            ConstantFileNameSearchPattern = "Constants.cs",
+                            ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
+                            ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
+                            FrontFileRegExpPath = null,
+                            FrontFileUsingBiaNg = null,
+                            FrontFileBiaNgImportRegExp = null,
+                            FrontFileNameSearchPattern = null
+                        };
 
-                            NamesAndVersionResolver nvResolver2 = new NamesAndVersionResolver()
-                            {
-                                ConstantFileRegExpPath = @"\\.*\\(.*)\.(.*)\.Common\\Constants\.cs$",
-                                ConstantFileNameSearchPattern = "Constants.cs",
-                                ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
-                                ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
-                                FrontFileRegExpPath = null,
-                                FrontFileUsingBiaNg = null,
-                                FrontFileBiaNgImportRegExp = null,
-                                FrontFileNameSearchPattern = null
-                            };
-                            nvResolver2.ResolveNamesAndVersion(currentProject);
-
-                            NamesAndVersionResolver nvResolver = new NamesAndVersionResolver()
-                            {
-                                ConstantFileRegExpPath = @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$",
-                                ConstantFileNameSearchPattern = "Constants.cs",
-                                ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
-                                ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
-                                FrontFileRegExpPath = [
-                                    @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$",
+                        NamesAndVersionResolver nvResolver = new()
+                        {
+                            ConstantFileRegExpPath = @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$",
+                            ConstantFileNameSearchPattern = "Constants.cs",
+                            ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
+                            ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
+                            FrontFileRegExpPath = [
+                                @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$",
                                     @"\\(.*)\\packages\\bia-ng\\core\\bia-core.module\.ts$"],
-                                FrontFileUsingBiaNg = @"\\(?!.*(?:\\node_modules\\|\\dist\\|\\\.angular\\))(.*)\\package\.json$",
-                                FrontFileBiaNgImportRegExp = "\"bia-ng\":",
-                                FrontFileNameSearchPattern = "bia-core.module.ts"
-                            };
-                            nvResolver.ResolveNamesAndVersion(currentProject);
+                            FrontFileUsingBiaNg = @"\\(?!.*(?:\\node_modules\\|\\dist\\|\\\.angular\\))(.*)\\package\.json$",
+                            FrontFileBiaNgImportRegExp = "\"bia-ng\":",
+                            FrontFileNameSearchPattern = "bia-core.module.ts"
+                        };
 
-                            currentProject.SolutionPath = Directory.GetFiles(currentProject.Folder, $"{currentProject.Name}.sln", SearchOption.AllDirectories).FirstOrDefault();
-                        });
+                        var resolverTask = Task.Run(() => nvResolver.ResolveNamesAndVersion(currentProject));
+                        var resolver2Task = Task.Run(() => nvResolver2.ResolveNamesAndVersion(currentProject));
+                        var solutionPathTask = Task.Run(() => currentProject.SolutionPath = Directory.GetFiles(currentProject.Folder, $"{currentProject.Name}.sln", SearchOption.AllDirectories).FirstOrDefault());
+                        await Task.WhenAll(resolverTask, resolver2Task, solutionPathTask);
+
+                        consoleWriter.AddMessageLine("Names and version resolved", "lightgreen");
 
                         if (currentProject.BIAFronts.Count == 0)
                         {
                             consoleWriter.AddMessageLine("Unable to find any BIA front folder for this project", "red");
                         }
                     }
+
                     await fileGeneratorService.Init(currentProject);
                     IsFileGeneratorServiceInit = fileGeneratorService.IsInit;
                     IsProjectCompatibleCrudGenerator = GenerateCrudService.IsProjectCompatible(currentProject);
                     CurrentProject = currentProject;
+
+                    if(CurrentProject is not null)
+                    {
+                        await parserService.LoadSolution(currentProject.SolutionPath);
+                        await parserService.ParseSolutionClasses();
+                    }
                 });
             }
         }

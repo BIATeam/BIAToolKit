@@ -28,7 +28,7 @@ namespace BIA.ToolKit.Application.Services
         public delegate void OpenRepositoryFormRequest(RepositoryViewModel repository, RepositoryFormMode mode);
         public delegate void RepositoryViewModelAdded(RepositoryViewModel repository);
         public delegate void RepositoryViewModelVersionXYZChanged(RepositoryViewModel repository);
-        public delegate void SolutionLoaded();
+        public delegate void SolutionClassesParsed();
 
         public event ProjectChanged OnProjectChanged;
         public event NewVersionAvailable OnNewVersionAvailable;
@@ -40,7 +40,7 @@ namespace BIA.ToolKit.Application.Services
         public event RepositoryViewModelDeleted OnRepositoryViewModelDeleted;
         public event RepositoryViewModelAdded OnRepositoryViewModelAdded;
         public event RepositoryViewModelVersionXYZChanged OnRepositoryViewModelVersionXYZChanged;
-        public event SolutionLoaded OnSolutionLoaded;
+        public event SolutionClassesParsed OnSolutionClassesParsed;
 
         public void NotifyProjectChanged(Project project)
         {
@@ -92,9 +92,9 @@ namespace BIA.ToolKit.Application.Services
             OnRepositoryViewModelVersionXYZChanged?.Invoke(repository);
         }
 
-        public void NotifySolutionLoaded()
+        public void NotifySolutionClassesParsed()
         {
-            OnSolutionLoaded?.Invoke();
+            OnSolutionClassesParsed?.Invoke();
         }
     }
 }
