@@ -16,38 +16,38 @@
         {
             get
             {
-                if(excludedPropertiesToGenerate != null)
-                    return excludedPropertiesToGenerate;
-
-                excludedPropertiesToGenerate = new List<string>()
+                if (excludedPropertiesToGenerate == null)
                 {
-                    "Id",
-                };
+                    excludedPropertiesToGenerate = new List<string>()
+                    {
+                        "Id",
+                    };
 
-                if(IsVersioned)
-                {
-                    excludedPropertiesToGenerate.Add("RowVersion");
-                }
+                    if (IsVersioned)
+                    {
+                        excludedPropertiesToGenerate.Add("RowVersion");
+                    }
 
-                if(IsArchivable)
-                {
-                    excludedPropertiesToGenerate.Add("IsArchived");
-                    excludedPropertiesToGenerate.Add("ArchivedDate");
-                }
+                    if (IsArchivable)
+                    {
+                        excludedPropertiesToGenerate.Add("IsArchived");
+                        excludedPropertiesToGenerate.Add("ArchivedDate");
+                    }
 
-                if (IsFixable)
-                {
-                    excludedPropertiesToGenerate.Add("IsFixed");
-                    excludedPropertiesToGenerate.Add("FixedDate");
-                }
+                    if (IsFixable)
+                    {
+                        excludedPropertiesToGenerate.Add("IsFixed");
+                        excludedPropertiesToGenerate.Add("FixedDate");
+                    }
 
-                if(IsTeamType)
-                {
-                    excludedPropertiesToGenerate.Add("Title");
-                    excludedPropertiesToGenerate.Add("TeamType");
-                    excludedPropertiesToGenerate.Add("TeamTypeId");
-                    excludedPropertiesToGenerate.Add("Members");
-                    excludedPropertiesToGenerate.Add("NotificationTeams");
+                    if (IsTeamType)
+                    {
+                        excludedPropertiesToGenerate.Add("Title");
+                        excludedPropertiesToGenerate.Add("TeamType");
+                        excludedPropertiesToGenerate.Add("TeamTypeId");
+                        excludedPropertiesToGenerate.Add("Members");
+                        excludedPropertiesToGenerate.Add("NotificationTeams");
+                    }
                 }
 
                 return excludedPropertiesToGenerate;

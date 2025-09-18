@@ -11,7 +11,7 @@ var baseKeyType = ModelInstance.IsTeamType ? string.Empty : $", {ModelInstance.B
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers
 {
-<# if (ModelInstance.Properties.Count() > 0) { #>
+<# if (ModelInstance.PropertiesToGenerate.Count() > 0) { #>
     using System;
 <#  } #>
 <#  if (ModelInstance.HasCollectionOptions) {  #>
@@ -20,19 +20,19 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <#  if (ModelInstance.HasTimeSpanProperty) {  #>
     using System.Globalization;
 <#  } #>
-<# if (ModelInstance.Properties.Count() > 0) { #>
+<# if (ModelInstance.PropertiesToGenerate.Count() > 0) { #>
     using System.Linq.Expressions;
 <#  } #>
 <# if (ModelInstance.IsTeamType) {  #>
     using System.Security.Principal;
 <#  } #>
-<# if(ModelInstance.IsTeamType && ModelInstance.HasAncestorTeam) { #>
+<# if(ModelInstance.IsTeamType && (ModelInstance.PropertiesToGenerate.Count() > 0 || ModelInstance.HasAncestorTeam)) { #>
     using BIA.Net.Core.Common.Enum;
 <#  } #>
 <# if(ModelInstance.HasAncestorTeam || ModelInstance.HasParent) { #>
     using BIA.Net.Core.Common.Exceptions;
 <#  } #>
-<# if (ModelInstance.Properties.Count() > 0) { #>
+<# if (ModelInstance.PropertiesToGenerate.Count() > 0) { #>
     using BIA.Net.Core.Common.Extensions;
     using BIA.Net.Core.Domain;
 <#  } #>
@@ -249,7 +249,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         {
             return new Dictionary<string, Func<string>>(base.DtoToCellMapping(dto))
             {
-<# foreach (var property in ModelInstance.Properties.Where(p => !p.IsParent)) { #>
+<# foreach (var property in ModelInstance.PropertiesToGenerate.Where(p => !p.IsParent)) { #>
                 { HeaderName.<#= property.MappingName #>, () => <#= property.GenerateMapperCSV() #> },
 <# } #>
             };
@@ -285,13 +285,13 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         public struct HeaderName
         {
 <# var index = 0;  #>
-<# foreach (var property in ModelInstance.Properties) { #>
+<# foreach (var property in ModelInstance.PropertiesToGenerate) { #>
             /// <summary>
             /// Header name for <#= property.MappingName.ToLiteral() #>.
             /// </summary>
             public const string <#= property.MappingName #> = "<#= property.MappingName.ToCamelCase() #>";
 <# index++;  #>
-<# if(index != ModelInstance.Properties.Count()) {#>
+<# if(index != ModelInstance.PropertiesToGenerate.Count()) {#>
 
 <# }#>
 <# } #>

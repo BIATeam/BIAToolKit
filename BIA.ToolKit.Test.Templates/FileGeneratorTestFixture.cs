@@ -116,6 +116,11 @@
             stopwatch.Stop();
         }
 
+        public bool IsTestProjectMinimalVersion(int minimalVersion)
+        {
+            return int.TryParse(TestProject.FrameworkVersion[0].ToString(), out int version) && version >= minimalVersion;
+        }
+
         public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext, List<string> partialMarkupIdentifiersToIgnore = null)
         {
             await RunTestGenerateAllFilesEqualsAsync(

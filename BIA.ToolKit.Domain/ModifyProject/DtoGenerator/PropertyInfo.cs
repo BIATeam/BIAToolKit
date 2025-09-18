@@ -17,6 +17,12 @@
             Type = propertyInfo.TypeName;
             Name = propertyInfo.Name;
             Annotations = new(propertyInfo.Attributes.SelectMany(x => x.Arguments));
+
+            if(Type.StartsWith("Nullable<"))
+            {
+                Type = Type.Replace("Nullable<", string.Empty).Replace(">", string.Empty);
+                Type += "?";
+            }
         }
 
         public PropertyInfo(string type, string name, List<AttributeArgumentSyntax> arguments)

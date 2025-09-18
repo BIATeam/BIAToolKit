@@ -13,8 +13,10 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     using System.Security.Principal;
     using System.Threading.Tasks;
     using BIA.Net.Core.Application.Services;
-<#  if(ModelInstance.HasAncestorTeam) { #>
+<#  if(ModelInstance.HasAncestorTeam || ModelInstance.IsFixable) { #>
     using BIA.Net.Core.Common.Exceptions;
+<#  } #>
+<#  if(ModelInstance.HasAncestorTeam) { #>
     using BIA.Net.Core.Domain.Authentication;
 <#  } #>
     using BIA.Net.Core.Domain.Dto.Base;

@@ -24,6 +24,9 @@
         [Fact]
         public async Task GeneratePlaneType_BIADemoConfiguration_AllFilesEquals()
         {
+            if (!fixture.IsTestProjectMinimalVersion(5))
+                return;
+
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
@@ -59,6 +62,9 @@
         [Fact]
         public async Task GenerateCountry_BIADemoConfiguration_AllFilesEquals()
         {
+            if (!fixture.IsTestProjectMinimalVersion(5))
+                return;
+
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",

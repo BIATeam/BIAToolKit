@@ -16,6 +16,9 @@
         [Fact]
         public async Task GeneratePlaneType_BIADemoConfiguration_AllFilesEquals()
         {
+            if (!fixture.IsTestProjectMinimalVersion(4))
+                return;
+
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
@@ -68,6 +71,9 @@
         [Fact]
         public async Task GeneratePlane_BIADemoConfiguration_AllFilesEquals()
         {
+            if (!fixture.IsTestProjectMinimalVersion(4))
+                return;
+
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
@@ -268,6 +274,9 @@
         [Fact]
         public async Task GenerateAircraftMaintenanceCompany_BIADemoConfiguration_AllFilesEquals()
         {
+            if (!fixture.IsTestProjectMinimalVersion(4))
+                return;
+
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Maintenance.Entities",
@@ -308,6 +317,9 @@
         [Fact]
         public async Task GenerateMaintenanceTeam_BIADemoConfiguration_AllFilesEquals()
         {
+            if (!fixture.IsTestProjectMinimalVersion(4))
+                return;
+
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Maintenance.Entities",

@@ -9,10 +9,53 @@
     public class EntityCrudModel<TPropertyCrudModel> : Common.Models.EntityModel, IEntityCrudModel<TPropertyCrudModel>
         where TPropertyCrudModel : class, IPropertyCrudModel
     {
-        protected readonly List<string> excludedPropertiesForBiaFieldConfigColumns = new List<string>
+        protected List<string> excludedProperties;
+        protected List<string> ExcludedProperties
         {
-            "Id"
-        };
+            get
+            {
+                if (excludedProperties == null)
+                {
+                    excludedProperties = new List<string>()
+                    {
+                        "Id",
+                        "DtoState"
+                    };
+
+                    if (IsVersioned)
+                    {
+                        excludedProperties.Add("RowVersion");
+                    }
+
+                    if (IsArchivable)
+                    {
+                        excludedProperties.Add("IsArchived");
+                        excludedProperties.Add("ArchivedDate");
+                    }
+
+                    if (IsFixable)
+                    {
+                        excludedProperties.Add("IsFixed");
+                        excludedProperties.Add("FixedDate");
+                    }
+
+                    if (IsTeam)
+                    {
+                        excludedProperties.Add("Title");
+                        excludedProperties.Add("TeamTypeId");
+                        excludedProperties.Add("IsDefault");
+                        excludedProperties.Add("Roles");
+                        excludedProperties.Add("ParentTeamId");
+                        excludedProperties.Add("ParentTeamTitle");
+                        excludedProperties.Add("CanUpdate");
+                        excludedProperties.Add("CanMemberListAccess");
+                        excludedProperties.Add("Admins");
+                    }
+                }
+
+                return excludedProperties;
+            }
+        }
 
         public bool IsTeam { get; set; }
         public bool HasAncestorTeam { get; set; }
@@ -39,7 +82,8 @@
                 return pathBuilder.ToString();
             }
         }
-        public IEnumerable<TPropertyCrudModel> BiaFieldConfigProperties => Properties.Where(p => !excludedPropertiesForBiaFieldConfigColumns.Contains(p.Name) && !p.IsParentIdentifier);
+        public IEnumerable<TPropertyCrudModel> PropertiesToGenerate => Properties.Where(p => !ExcludedProperties.Contains(p.Name));
+        public IEnumerable<TPropertyCrudModel> BiaFieldConfigProperties => PropertiesToGenerate.Where(p => !p.IsParentIdentifier);
         public bool UseHubForClient {  get; set; }
         public bool HasCustomRepository {  get; set; }
         public bool HasReadOnlyMode { get; set; }
