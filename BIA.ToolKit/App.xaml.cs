@@ -48,6 +48,14 @@
         }
         private async void OnStartup(object sender, StartupEventArgs e)
         {
+            if (ToolKit.Properties.Settings.Default.ApplicationUpdated)
+            {
+                ToolKit.Properties.Settings.Default.Upgrade();
+
+                ToolKit.Properties.Settings.Default.ApplicationUpdated = false;
+                ToolKit.Properties.Settings.Default.Save();
+            }
+
             var mainWindow = serviceProvider.GetService<MainWindow>();
             mainWindow.Show();
             await mainWindow.Init();

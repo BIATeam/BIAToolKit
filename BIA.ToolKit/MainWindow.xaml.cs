@@ -116,14 +116,6 @@
             {
                 await InitSettings();
 
-                if (Properties.Settings.Default.ApplicationUpdated)
-                {
-                    Properties.Settings.Default.Upgrade();
-
-                    Properties.Settings.Default.ApplicationUpdated = false;
-                    Properties.Settings.Default.Save();
-                }
-
                 updateService.SetAppVersion(Assembly.GetExecutingAssembly().GetName().Version);
 
                 if (Properties.Settings.Default.AutoUpdate)
