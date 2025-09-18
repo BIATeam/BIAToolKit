@@ -8,67 +8,34 @@
 
     static class FileDialog
     {
-        public static void BrowseFolder(TextBox destTextBox)
+        public static string BrowseFolder(string defaultFolder, string dialogDescription = null)
         {
-            using (System.Windows.Forms.FolderBrowserDialog openFileDlg = new System.Windows.Forms.FolderBrowserDialog())
+            using var openFileDlg = new System.Windows.Forms.FolderBrowserDialog();
+            if (Directory.Exists(defaultFolder))
             {
-                if (Directory.Exists(destTextBox.Text))
-                {
-                    openFileDlg.SelectedPath = destTextBox.Text;
-                }
-
-                var result = openFileDlg.ShowDialog();
-                if (result == System.Windows.Forms.DialogResult.OK)
-                {
-                    destTextBox.Text = openFileDlg.SelectedPath;
-                }
+                openFileDlg.InitialDirectory = defaultFolder;
             }
-        }
-        public static string BrowseFolder(string defaultFolder)
-        {
-            using (System.Windows.Forms.FolderBrowserDialog openFileDlg = new System.Windows.Forms.FolderBrowserDialog())
+
+            if(!string.IsNullOrWhiteSpace(dialogDescription))
             {
-                if (Directory.Exists(defaultFolder))
-                {
-                    openFileDlg.SelectedPath = defaultFolder;
-                }
-
-                var result = openFileDlg.ShowDialog();
-                if (result == System.Windows.Forms.DialogResult.OK)
-                {
-                    return openFileDlg.SelectedPath;
-                }
-                else
-                {
-                    return defaultFolder;
-                }
-            }
-        }
-
-
-        public static bool BrowseFile(TextBox destTextBox, string projectDir)
-        {
-            OpenFileDialog openFileDlg = new OpenFileDialog();
-
-            if (Directory.Exists(projectDir))
-            {
-                openFileDlg.InitialDirectory = projectDir;
-                openFileDlg.RestoreDirectory = true;
+                openFileDlg.Description = dialogDescription;
+                openFileDlg.UseDescriptionForTitle = true;
             }
 
             var result = openFileDlg.ShowDialog();
-            if (result == true)
+            if (result == System.Windows.Forms.DialogResult.OK)
             {
-                destTextBox.Text = openFileDlg.FileName;
-                return true;
+                return openFileDlg.SelectedPath;
             }
-            return false;
-
+            else
+            {
+                return defaultFolder;
+            }
         }
 
         public static string BrowseFile(string projectDir, string fileFilter = null)
         {
-            OpenFileDialog openFileDlg = new OpenFileDialog();
+            var openFileDlg = new OpenFileDialog();
             if (!string.IsNullOrWhiteSpace(fileFilter))
                 openFileDlg.Filter = $"{fileFilter.ToUpper()} Files|*.{fileFilter}";
 

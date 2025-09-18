@@ -362,7 +362,7 @@
 
         private void ModifyProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.RootProjectsPath = FileDialog.BrowseFolder(_viewModel.RootProjectsPath);
+            _viewModel.RootProjectsPath = FileDialog.BrowseFolder(_viewModel.RootProjectsPath, "Choose modify project root path");
         }
 
         private void RefreshProjectFolderList_Click(object sender, RoutedEventArgs e)
