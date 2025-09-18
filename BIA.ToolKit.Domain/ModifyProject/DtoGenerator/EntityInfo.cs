@@ -4,11 +4,23 @@ namespace BIA.ToolKit.Domain.DtoGenerator
     using System.Text.RegularExpressions;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
+    using BIA.ToolKit.Domain.ProjectAnalysis;
     using Humanizer;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
 
     public class EntityInfo
     {
+        public EntityInfo(ClassInfo classInfo)
+        {
+            Path = classInfo.FilePath;
+            Namespace = classInfo.Namespace;
+            Name = classInfo.ClassName;
+            BaseList = classInfo.BaseClassesChain.Concat(classInfo.AllInterfaces).Select(x => x.DisplayName).Distinct().ToList();
+            BaseKeyType = CommonTools.GetBaseKeyType(BaseList);
+            ClassAnnotations = new(classInfo.Attributes.SelectMany(x => x.Arguments));
+            Properties = new(classInfo.PublicProperties.Select(x => new PropertyInfo(x)).OrderBy(x => x.Name));
+        }
+
         public EntityInfo(string path, string @namespace, string name, string baseType, string baseKeyType, List<AttributeArgumentSyntax> arguments, List<string> baseList)
         {
             Path = path;

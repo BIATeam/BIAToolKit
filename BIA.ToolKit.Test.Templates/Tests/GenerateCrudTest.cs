@@ -17,6 +17,9 @@
         [Fact]
         public async Task GenerateEngine_BIADemoConfiguration_AllFilesEquals()
         {
+            if (!fixture.IsTestProjectMinimalVersion(5))
+                return;
+
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
@@ -89,6 +92,9 @@
         [Fact]
         public async Task GeneratePlane_BIADemoConfiguration_AllFilesEquals()
         {
+            if (!fixture.IsTestProjectMinimalVersion(5))
+                return;
+
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
@@ -160,6 +166,9 @@
         [Fact]
         public async Task GeneratePilot_BIADemoConfiguration_AllFilesEquals()
         {
+            if (!fixture.IsTestProjectMinimalVersion(6))
+                return;
+
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
@@ -211,6 +220,9 @@
         [Fact]
         public async Task GenerateFlight_BIADemoConfiguration_AllFilesEquals()
         {
+            if (!fixture.IsTestProjectMinimalVersion(6))
+                return;
+
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
@@ -262,6 +274,9 @@
         [Fact]
         public async Task GenerateAircraftMaintenanceCompany_BIADemoConfiguration_AllFilesEquals()
         {
+            if (!fixture.IsTestProjectMinimalVersion(5))
+                return;
+
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Maintenance",
@@ -306,6 +321,9 @@
         [Fact]
         public async Task GenerateMaintenanceTeam_BIADemoConfiguration_AllFilesEquals()
         {
+            if (!fixture.IsTestProjectMinimalVersion(5))
+                return;
+
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Maintenance",

@@ -43,19 +43,12 @@
                 </Grid.RowDefinitions>
 
                 <Grid Grid.Row="0" Margin="{StaticResource FormFirstRowMargin}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="auto"/>
-                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
                     <ComboBox Grid.Column="0" Grid.Row="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Entity" x:Name="EntitiesComboBox" ItemsSource="{Binding EntitiesNames}" SelectedValue="{Binding SelectedEntityName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsProjectChosen}" SelectionChanged="EntitiesComboBox_SelectionChanged"/>
                     <Label Grid.Column="0" Grid.Row="1" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="{Binding WasAlreadyGenerated, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible"/>
-                    <Button Grid.Column="1" Margin="5,0,0,0" IsEnabled="{Binding IsProjectChosen}" x:Name="RefreshDtoList" Click="RefreshEntitiesList_Click" ToolTip="Refresh list">
-                        <Image Source="/Images/rafraichir-32.png" />
-                    </Button>
                 </Grid>
                 <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Domain" Text="{Binding EntityDomain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsEntitySelected}"/>
                 <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Ancestor Team" Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
@@ -98,7 +91,7 @@
                 <Label Grid.Row="0" Content="Properties" FontWeight="Bold"/>
                 <Grid Grid.Row="1" Margin="10,5,10,0">
                     <Grid Background="#323232" Opacity="0.7"/>
-                    <TreeView Name="ClassTreeView"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding EntityProperties}">
+                    <TreeView Name="ClassTreeView" HorizontalAlignment="Stretch" ItemsSource="{Binding EntityProperties}" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Visible">
                         <TreeView.Resources>
                             <HierarchicalDataTemplate DataType="{x:Type local:EntityProperty}" ItemsSource="{Binding Properties}">
                                 <StackPanel Orientation="Horizontal">
@@ -128,9 +121,9 @@
                     <RowDefinition/>
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Content="Mapping" FontWeight="Bold"/>
-                <Grid Margin="10,30,10,0">
+                <Grid Grid.Row="1" Margin="10,5,10,0">
                     <Grid Background="#323232" Opacity="0.7"/>
-                    <ListView Grid.Column="2" Grid.Row="1" Name="PropertiesListView" ItemsSource="{Binding MappingEntityProperties}"  ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                    <ListView Name="PropertiesListView" ItemsSource="{Binding MappingEntityProperties}" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
                         <i:Interaction.Behaviors>
                             <behaviors:ListViewDragDropBehavior MoveCommand="{Binding MoveMappedPropertyCommand}" />
                         </i:Interaction.Behaviors>

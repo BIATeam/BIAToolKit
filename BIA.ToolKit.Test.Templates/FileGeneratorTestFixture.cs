@@ -6,6 +6,7 @@
     using System.IO.Compression;
     using System.Linq;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Templates;
@@ -38,7 +39,7 @@
             var consoleWriter = new ConsoleWriterTest(stopwatch);
             stopwatch.Start();
 
-            var biaDemoZipPath = "..\\..\\..\\..\\BIADemoVersions\\BIADemo_6.0.0-alpha.zip";
+            var biaDemoZipPath = "..\\..\\..\\..\\BIADemoVersions\\BIADemo_5.1.0.zip";
             var currentDir = Directory.GetCurrentDirectory();
             referenceProjectPath = NormalisePath(Path.Combine(currentDir, "..\\..\\..\\..\\BIADemoVersions\\", Path.GetFileNameWithoutExtension(biaDemoZipPath)));
             testProjectPath = Path.Combine(Path.GetTempPath(), "BIAToolKitTestTemplatesGenerated");
@@ -73,7 +74,7 @@
                 Name = "BIADemo",
                 CompanyName = "TheBIADevCompany",
                 BIAFronts = ["Angular"],
-                FrameworkVersion = "6.0.0"
+                FrameworkVersion = "5.0.0"
             };
 
             TestProject = new Project
@@ -113,6 +114,11 @@
         public void Dispose()
         {
             stopwatch.Stop();
+        }
+
+        public bool IsTestProjectMinimalVersion(int minimalVersion)
+        {
+            return int.TryParse(TestProject.FrameworkVersion[0].ToString(), out int version) && version >= minimalVersion;
         }
 
         public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext, List<string> partialMarkupIdentifiersToIgnore = null)

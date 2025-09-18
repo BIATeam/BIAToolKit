@@ -2,8 +2,7 @@
 {
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
-    public class EntityOptionModel : Common.Models.EntityModel, IEntityOptionModel
+    public class EntityOptionModel : _5_0_0.Models.EntityOptionModel
     {
-        public string OptionDisplayName { get; set; }
     }
 }

@@ -11,11 +11,48 @@
         public const string OptionDto = "OptionDto";
         public const string CollectionOptionDto = "ICollection<" + OptionDto + ">";
 
-        protected virtual List<string> ExcludedPropertiesToGenerate => new List<string>
+        protected List<string> excludedPropertiesToGenerate;
+        protected virtual List<string> ExcludedPropertiesToGenerate
         {
-            "Id",
-            "IsFixed"
-        };
+            get
+            {
+                if (excludedPropertiesToGenerate == null)
+                {
+                    excludedPropertiesToGenerate = new List<string>()
+                    {
+                        "Id",
+                    };
+
+                    if (IsVersioned)
+                    {
+                        excludedPropertiesToGenerate.Add("RowVersion");
+                    }
+
+                    if (IsArchivable)
+                    {
+                        excludedPropertiesToGenerate.Add("IsArchived");
+                        excludedPropertiesToGenerate.Add("ArchivedDate");
+                    }
+
+                    if (IsFixable)
+                    {
+                        excludedPropertiesToGenerate.Add("IsFixed");
+                        excludedPropertiesToGenerate.Add("FixedDate");
+                    }
+
+                    if (IsTeamType)
+                    {
+                        excludedPropertiesToGenerate.Add("Title");
+                        excludedPropertiesToGenerate.Add("TeamType");
+                        excludedPropertiesToGenerate.Add("TeamTypeId");
+                        excludedPropertiesToGenerate.Add("Members");
+                        excludedPropertiesToGenerate.Add("NotificationTeams");
+                    }
+                }
+
+                return excludedPropertiesToGenerate;
+            }
+        }
 
         public List<TPropertyDtoModel> Properties { get; set; } = new List<TPropertyDtoModel>();
         public IEnumerable<TPropertyDtoModel> PropertiesToGenerate => Properties.Where(p => !ExcludedPropertiesToGenerate.Contains(p.MappingName));

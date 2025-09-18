@@ -72,7 +72,14 @@
             this.settings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
+            this.uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
             this.fileGeneratorService = fileGeneratorService;
+        }
+
+        private void UiEventBroker_OnSolutionClassesParsed()
+        {
+            // List Entity files from Entity folder
+            ListEntityFiles();
         }
 
         private void UIEventBroker_OnProjectChanged(Project project)
@@ -113,9 +120,6 @@
         {
             // Load BIA settings + history + parse zips
             InitProject();
-
-            // List Entity files from Entity folder
-            ListEntityFiles();
 
             return Task.CompletedTask;
         }
@@ -469,22 +473,14 @@
         /// </summary>
         private void ListEntityFiles()
         {
+            if (vm?.CurrentProject is null)
+                return;
+
             vm.EntityFiles = null;
             entityInfoFiles.Clear();
 
             var entityFiles = new Dictionary<string, string>();
-            var baseTypes = new List<string>(CommonTools.BaseEntityInterfaces)
-            {
-                "Team",
-                "BaseEntity"
-            };
-
-            if(vm.ShowAllEntities)
-            {
-                baseTypes = null;
-            }
-
-            var entities = service.GetDomainEntities(vm.CurrentProject, settings, ["id"], baseTypes);
+            var entities = service.GetDomainEntities(vm.CurrentProject);
             foreach (var entity in entities)
             {
                 entityInfoFiles.Add(entity.Path, entity);
@@ -510,7 +506,7 @@
                 if (entityInfo == null)
                 {
                     consoleWriter.AddMessageLine($"Entity '{fileName}' not parsed.", "Orange");
-                    entityInfo = service.ParseEntity(fileName, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
+                    return false;
                 }
 
                 // Check parsed Entity entity file

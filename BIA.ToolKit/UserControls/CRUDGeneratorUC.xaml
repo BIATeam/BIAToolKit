@@ -46,19 +46,12 @@
 
             <!--#region Column 0 -->
             <Grid Grid.Column="0" Grid.Row="0" Margin="{StaticResource FormFirstRowMargin}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition Width="auto"/>
-                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="DTO Entity File" ItemsSource="{Binding DtoFiles.Keys}" SelectedValue="{Binding DtoSelected}" IsEnabled="{Binding IsProjectChosen}" SelectionChanged="ModifyDto_SelectionChange"/>
                 <Label Grid.Row="1" Name="CrudAlreadyGeneratedLabel" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="Collapsed" d:Visibility="Visible" />
-                <Button Margin="5,0,0,0" Grid.Column="1" IsEnabled="{Binding IsProjectChosen}" x:Name="RefreshDtoList"  Click="RefreshDtoList_Click" ToolTip="Refresh list">
-                    <Image Source="/Images/rafraichir-32.png" />
-                </Button>
             </Grid>
             <ComboBox Grid.Column="0" Grid.Row="1" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Generation" ItemsSource="{Binding FeatureNames}" SelectedItem="{Binding FeatureNameSelected}" IsEnabled="{Binding IsDtoParsed}"/>
             <TextBox Grid.Column="0" Grid.Row="2" Margin="{StaticResource FormGroupFirstRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Entity Name Singular" Text="{Binding CRUDNameSingular,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" TextChanged="ModifyEntitySingular_TextChange" IsEnabled="{Binding IsDtoParsed}"/>

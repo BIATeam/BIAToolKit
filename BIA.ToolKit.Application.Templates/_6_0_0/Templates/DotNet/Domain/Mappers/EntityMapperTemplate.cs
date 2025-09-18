@@ -25,7 +25,6 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
             {
                 return new ExpressionCollection<Plane>(base.ExpressionCollection)
                 {
-                    { HeaderName.Id, plane => plane.Id },
                     { HeaderName.Name, plane => plane.Name },
                     { HeaderName.Option, plane => plane.Option != null ? plane.Option.Name : null },
                 };
@@ -50,7 +49,6 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
         public override void DtoToEntity(PlaneDto dto, ref Plane entity)
         {
             base.DtoToEntity(dto, ref entity);
-            entity.Id = dto.Id;
             entity.Name = dto.Name;
 
             // Map relationship 0..1-* : Option
@@ -62,7 +60,6 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
         {
             return base.EntityToDto().CombineMapping(entity => new PlaneDto
             {
-                Id = entity.Id,
                 Name = entity.Name,
 
                 // Map relationship 0..1-* : Option
@@ -80,7 +77,6 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
         {
             return new Dictionary<string, Func<string>>(base.DtoToCellMapping(dto))
             {
-                { HeaderName.Id, () => CSVNumber(dto.Id) },
                 { HeaderName.Name, () => CSVString(dto.Name) },
                 { HeaderName.Option, () => CSVString(dto.Option?.Display) },
             };
@@ -91,11 +87,6 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
         /// </summary>
         public struct HeaderName
         {
-            /// <summary>
-            /// Header name for id.
-            /// </summary>
-            public const string Id = "id";
-
             /// <summary>
             /// Header name for name.
             /// </summary>

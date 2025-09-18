@@ -37,6 +37,7 @@
 
         private readonly RepositoryService repositoryService;
         private readonly GitService gitService;
+        private readonly CSharpParserService cSharpParserService;
         private readonly ProjectCreatorService projectCreatorService;
         private readonly SettingsService settingsService;
         private readonly FileGeneratorService fileGeneratorService;
@@ -55,6 +56,7 @@
 
             this.repositoryService = repositoryService;
             this.gitService = gitService;
+            this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
             this.settingsService = settingsService;
             this.fileGeneratorService = fileGeneratorService;
@@ -129,7 +131,7 @@
                     await updateService.CheckForUpdatesAsync();
                 }
 
-                await Task.Run(() => CSharpParserService.RegisterMSBuild(consoleWriter));
+                await Task.Run(() => cSharpParserService.RegisterMSBuild(consoleWriter));
             });
         }
 
@@ -337,7 +339,7 @@
 
         private void CreateProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Settings_RootProjectsPath = FileDialog.BrowseFolder(ViewModel.Settings_RootProjectsPath);
+            ViewModel.Settings_RootProjectsPath = FileDialog.BrowseFolder(ViewModel.Settings_RootProjectsPath, "Choose create project root path");
         }
 
         private void OnTabModifySelected(object sender, RoutedEventArgs e)
@@ -534,7 +536,7 @@
 
         private void ExportConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            var targetDirectory = FileDialog.BrowseFolder(string.Empty);
+            var targetDirectory = FileDialog.BrowseFolder(string.Empty, "Choose export folder target");
             if (string.IsNullOrWhiteSpace(targetDirectory))
                 return;
 

@@ -42,7 +42,7 @@ import { ArchivableDto } from 'src/app/shared/bia-shared/model/dto/archivable-dt
 // TODO after creation of CRUD<# if(ModelInstance.IsTeam) {#> Team<# } #> <#= ModelInstance.EntityName #> : adapt the model
 export interface <#= ModelInstance.EntityName #>
   extends <#=  ModelInstance.AngularModelInterfaceInheritance #> {
-<#  foreach(var property in ModelInstance.Properties) { #>
+<#  foreach(var property in ModelInstance.PropertiesToGenerate) { #>
   <#= property.Name.ToCamelCase() #>: <#= property.AngularType #>;
 <# }  #>
 }
