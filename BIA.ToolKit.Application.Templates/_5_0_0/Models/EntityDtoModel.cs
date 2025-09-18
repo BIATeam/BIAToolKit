@@ -39,6 +39,11 @@
                 return $"BaseDtoVersionedFixable<{BaseKeyType}>";
             if (IsVersioned)
                 return $"BaseDtoVersioned<{BaseKeyType}>";
+            if (IsFixable && IsArchivable)
+                return $"BaseDtoFixableArchivable<{BaseKeyType}>";
+            if (IsFixable)
+                return $"BaseDtoFixable<{BaseKeyType}>";
+
 
             return $"BaseDto<{BaseKeyType}>";
         }

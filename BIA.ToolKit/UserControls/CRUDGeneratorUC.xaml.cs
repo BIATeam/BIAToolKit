@@ -75,7 +75,7 @@
 
         private void UiEventBroker_OnSolutionClassesParsed()
         {
-            // List Dto files from Dto folder
+            InitProjectTask(vm.CurrentProject);
             ListDtoFiles();
         }
 
