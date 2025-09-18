@@ -40,7 +40,7 @@
         {
             if(ViewModel.Repository is RepositoryGitViewModel repositoryGit)
             {
-                repositoryGit.LocalClonedFolderPath = FileDialog.BrowseFolder(repositoryGit.LocalClonedFolderPath);
+                repositoryGit.LocalClonedFolderPath = FileDialog.BrowseFolder(repositoryGit.LocalClonedFolderPath, "Choose local cloned folder");
             }
         }
 
@@ -48,7 +48,7 @@
         {
             if (ViewModel.Repository is RepositoryFolderViewModel repositoryFolder)
             {
-                repositoryFolder.Path = FileDialog.BrowseFolder(repositoryFolder.Path);
+                repositoryFolder.Path = FileDialog.BrowseFolder(repositoryFolder.Path, "Choose source folder");
             }
         }
     }

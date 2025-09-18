@@ -7,6 +7,7 @@
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ProjectAnalysis;
     using Microsoft.Build.Locator;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
@@ -17,6 +18,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
@@ -31,91 +33,16 @@ using Roslyn.Services;*/
         private readonly List<string> excludedEntitiesFolders = new() { "bin", "obj" };
         private readonly List<string> excludedEntitiesFilesSuffixes = new() { "Mapper", "Service", "Repository", "Customizer", "Specification" };
         private readonly IConsoleWriter consoleWriter;
+        private readonly UIEventBroker eventBroker;
+        private Solution CurrentSolution;
+        public IReadOnlyList<ClassInfo> CurrentSolutionClasses { get; private set; } = [];
 
-        public CSharpParserService(IConsoleWriter consoleWriter)
+        private MSBuildWorkspace Workspace { get; set; }
+
+        public CSharpParserService(IConsoleWriter consoleWriter, UIEventBroker eventBroker)
         {
             this.consoleWriter = consoleWriter;
-        }
-
-        public EntityInfo ParseEntity(string fileName, string dtoCustomFieldName, string dtoCustomClassName)
-        {
-#if DEBUG
-            consoleWriter.AddMessageLine($"*** Parse file: '{fileName}' ***", "Green");
-#endif
-
-            var cancellationToken = new CancellationToken();
-
-            var fileText = File.ReadAllText(fileName);
-
-            var tree = CSharpSyntaxTree.ParseText(fileText, cancellationToken: cancellationToken);
-            var root = tree.GetCompilationUnitRoot(cancellationToken: cancellationToken);
-            if (root.ContainsDiagnostics)
-            {
-                // source contains syntax error
-                var ex = new ParseException(root.GetDiagnostics().Select(diag => diag.ToString()));
-                throw ex;
-            }
-
-            BaseNamespaceDeclarationSyntax namespaceSyntax = root
-                .Descendants<NamespaceDeclarationSyntax>()
-                .SingleOrDefault();
-
-            namespaceSyntax ??= root
-                .Descendants<FileScopedNamespaceDeclarationSyntax>()
-                .SingleOrDefault();
-
-            var @namespace = namespaceSyntax?.Name.ToString();
-
-            /*var relativeDirectory = @namespace
-                .RemovePreFix(projectInfo.FullName + ".")
-                .Replace('.', '/');*/
-
-            var classDeclarationSyntax = root
-                .Descendants<ClassDeclarationSyntax>()
-                .Single();
-
-            var className = classDeclarationSyntax.Identifier.ToString();
-            var baseList = classDeclarationSyntax.BaseList!;
-            var baseListNames = baseList?.Descendants<SimpleBaseTypeSyntax>().Select(x => x.ToString()).ToList();
-
-            var genericNameSyntax = baseList?.Descendants<SimpleBaseTypeSyntax>()
-                 .FirstOrDefault(node => !node.ToFullString().StartsWith("I"))? // Not interface
-                 .Descendants<GenericNameSyntax>()
-                 .FirstOrDefault();
-
-            string baseType;
-            string primaryKey;
-            IEnumerable<string> keyNames = null;
-            if (genericNameSyntax == null)
-            {
-                // No generic parameter -> Entity with Composite Keys
-                baseType = baseList?.Descendants<SimpleBaseTypeSyntax>()
-                    .SingleOrDefault(node => !node.ToFullString().StartsWith("I"))?
-                    .Type?.ToString();
-                primaryKey = null;
-                keyNames = new List<string>() { "Id" };
-            }
-            else
-            {
-                // Normal entity
-                baseType = genericNameSyntax.Identifier.ToString();
-                primaryKey = genericNameSyntax.Descendants<TypeArgumentListSyntax>().Single().Arguments[0].ToString();
-            }
-
-            var properties = GetPropertyList(root.Descendants<PropertyDeclarationSyntax>().ToList(), dtoCustomFieldName);
-            var classAnnotations = GetClassAnnotationList(classDeclarationSyntax.AttributeLists, dtoCustomClassName);
-
-            var entityInfo = new EntityInfo(fileName, @namespace, className, baseType, primaryKey/*, relativeDirectory*/, classAnnotations, baseListNames);
-            entityInfo.Properties.AddRange(properties);
-            if (keyNames != null)
-            {
-                entityInfo.CompositeKeyName = $"{className}Key";
-                var propList = keyNames.Select(k => properties.FirstOrDefault(prop => k == prop?.Name));
-                if (propList != null)
-                    entityInfo.CompositeKeys.AddRange(propList);
-            }
-
-            return entityInfo;
+            this.eventBroker = eventBroker;
         }
 
         public ClassDefinition ParseClassFile(string fileName)
@@ -194,71 +121,7 @@ using Roslyn.Services;*/
             return classDefinition;
         }
 
-
-
-        public static async Task ParseSolution(string projectPath)
-        {
-            try
-            {
-                MSBuildLocator.RegisterDefaults();
-                var workspace = MSBuildWorkspace.Create();
-                var project = await workspace.OpenProjectAsync(projectPath);
-                var compilation = await project.GetCompilationAsync();
-
-                foreach (var diagnostic in compilation.GetDiagnostics()
-                    .Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error))
-                {
-                    Console.WriteLine(diagnostic);
-                }
-            }
-            catch
-            {
-                throw;
-            }
-            /*            var workspace = Workspace.LoadSolution(projectPath);
-                       var solution = workspace.CurrentSolution;
-
-                        foreach (var projectId in solution.ProjectIds)
-                        {
-                            var project = solution.GetProject(projectId);
-                            foreach (var documentId in project.DocumentIds)
-                            {
-                                var document = project.GetDocument(documentId);
-                                CompilationUnitSyntax compilationUnit = (CompilationUnitSyntax)document.GetSyntaxRoot();
-                                Debug.WriteLine(String.Format("compilationUnit={0} before", compilationUnit.GetHashCode()));
-                                Debug.WriteLine(String.Format("project={0} before", project.GetHashCode()));
-                                Debug.WriteLine(String.Format("solution={0} before", solution.GetHashCode()));
-                                var mcu = new AnnotatorSyntaxRewritter().Visit(compilationUnit);
-                                var project2 = document.UpdateSyntaxRoot(mcu).Project;
-                                if (mcu != compilationUnit)
-                                {
-                                    solution = project2.Solution;
-                                }
-                                Debug.WriteLine(String.Format("compilationUnit={0} after", mcu.GetHashCode()));
-                                Debug.WriteLine(String.Format("project={0} after", project2.GetHashCode()));
-                                Debug.WriteLine(String.Format("solution={0} after", solution.GetHashCode()));
-                            }
-                        }
-
-                        foreach (var projectId in solution.ProjectIds)
-                        {
-                            var project = solution.GetProject(projectId);
-                            foreach (var documentId in project.DocumentIds)
-                            {
-                                var document = project.GetDocument(documentId);
-                                var compilationUnit = document.GetSyntaxRoot();
-                                var semanticModel = document.GetSemanticModel();
-                                Debug.WriteLine(String.Format("compilationUnit={0} stage", compilationUnit.GetHashCode()));
-                                Debug.WriteLine(String.Format("project={0} stage", project.GetHashCode()));
-                                Debug.WriteLine(String.Format("solution={0}", solution.GetHashCode()));
-
-                                MySyntaxWalker sw = new MySyntaxWalker(semanticModel);
-                                sw.Visit((SyntaxNode)compilationUnit);
-                            }
-                        }*/
-        }
-
-        public List<PropertyInfo> GetPropertyList(List<PropertyDeclarationSyntax> propertyList, string dtoCustomAttributeName)
+        public List<Domain.DtoGenerator.PropertyInfo> GetPropertyList(List<PropertyDeclarationSyntax> propertyList, string dtoCustomAttributeName)
         {
             return propertyList.Select(prop =>
             {
@@ -270,11 +133,11 @@ using Roslyn.Services;*/
                         if (dtoCustomAttributeName.Equals(annontationType, StringComparison.OrdinalIgnoreCase))
                         {
                             List<AttributeArgumentSyntax> annotations = attribute?.ArgumentList?.Arguments.ToList();
-                            return new PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), annotations);
+                            return new Domain.DtoGenerator.PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), annotations);
                         }
                     }
                 }
-                return new PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), null);
+                return new Domain.DtoGenerator.PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), null);
             }).ToList();
         }
 
@@ -295,7 +158,7 @@ using Roslyn.Services;*/
             return null;
         }
 
-        public List<EntityInfo> GetDomainEntities(Domain.ModifyProject.Project project, CRUDSettings settings, IEnumerable<string> excludedPropertiesNames = null, IEnumerable<string> filteredEntityBaseTypes = null)
+        public IEnumerable<EntityInfo> GetDomainEntities(Domain.ModifyProject.Project project)
         {
             List<EntityInfo> entities = new();
 
@@ -315,49 +178,31 @@ using Roslyn.Services;*/
                     }
                 }
 
-                foreach (var file in files.OrderBy(x => Path.GetFileName(x)))
-                {
-                    try
-                    {
-                        var entityInfo = ParseEntity(file, settings.DtoCustomAttributeFieldName, settings.DtoCustomAttributeClassName);
-
-                        if (filteredEntityBaseTypes != null && !entityInfo.BaseList.Any(x => filteredEntityBaseTypes.Any(y => x.StartsWith(y))))
-                        {
-                            continue;
-                        }
-
-                        if (excludedPropertiesNames != null)
-                        {
-                            entityInfo.Properties.RemoveAll(p => excludedPropertiesNames.Any(x => p.Name.Equals(x, StringComparison.InvariantCultureIgnoreCase)));
-                        }
-
-                        entities.Add(entityInfo);
-                    }
-                    catch
-                    {
-                        continue;
-                    }
-                }
+                entities.AddRange(CurrentSolutionClasses.Where(x => files.Contains(x.FilePath)).DistinctBy(x => x.FilePath).Select(x => new EntityInfo(x)));
             }
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine(ex.Message, "Red");
             }
 
-            return entities;
+            return entities.OrderBy(x => x.Name);
         }
 
-        public static void RegisterMSBuild(IConsoleWriter consoleWriter)
+        public void RegisterMSBuild(IConsoleWriter consoleWriter)
         {
             try
             {
                 if (MSBuildLocator.IsRegistered)
+                {
+                    InitWorkspace();
                     return;
+                }
 
                 var instances = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).ToList();
                 if (instances.Count > 0)
                 {
                     MSBuildLocator.RegisterInstance(instances.First());
+                    InitWorkspace();
                     return;
                 }
 
@@ -382,6 +227,7 @@ using Roslyn.Services;*/
                 }
 
                 MSBuildLocator.RegisterMSBuildPath(Path.GetDirectoryName(msbuildPath));
+                InitWorkspace();
             }
             catch (Exception ex)
             {
@@ -389,34 +235,135 @@ using Roslyn.Services;*/
             }
         }
 
-        public async Task FixUsings(string solutionPath, IEnumerable<string> filteredDocumentsPath = null, bool forceRestore = false)
+        private void InitWorkspace()
+        {
+            Workspace = MSBuildWorkspace.Create();
+
+            if (Workspace == null)
+            {
+                consoleWriter.AddMessageLine("Error: Workspace could not be created.", "red");
+                return;
+            }
+        }
+
+        public async Task LoadSolution(string solutionPath)
+        {
+            if(Workspace is null)
+            {
+                consoleWriter.AddMessageLine($"MSBuildWorkspace has not been initialized", "red");
+                return;
+            }
+
+            if (!await RestoreSolution(solutionPath))
+                return;
+
+            consoleWriter.AddMessageLine("Opening solution...", "darkgray");
+            Workspace.CloseSolution();
+            var solution = await Workspace.OpenSolutionAsync(solutionPath);
+
+            if (solution == null)
+            {
+                consoleWriter.AddMessageLine($"Error: Solution at path '{solutionPath}' could not be loaded.", "red");
+                return;
+            }
+
+            consoleWriter.AddMessageLine($"Solution loaded successfully", "lightgreen");
+            CurrentSolution = solution;
+        }
+
+        public async Task ParseSolutionClasses()
+        {
+            var result = new List<ClassInfo>();
+            consoleWriter.AddMessageLine("Parsing classes...", "darkgray");
+
+            var classesInfosPerProjectTasks = CurrentSolution.Projects.Select(GetClassesInfoFromProject);
+            var classesInfosReports = await Task.WhenAll(classesInfosPerProjectTasks);
+            foreach(var report in classesInfosReports)
+            {
+                consoleWriter.AddMessageLine($"{report.Project} : {report.ClassesCount} classes parsed in {report.ElapsedSeconds} seconds", "gray");
+            }
+            CurrentSolutionClasses = classesInfosReports.SelectMany(x => x.ClassesInfo).ToList();
+            eventBroker.NotifySolutionClassesParsed();
+            consoleWriter.AddMessageLine($"Classes parsed successfully", "lightgreen");
+        }
+
+        private async Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)> GetClassesInfoFromProject(Project project)
+        {
+            var result = new List<ClassInfo>();
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            // Compilation (nécessaire pour symboles/semantics)
+            var compilation = await project.GetCompilationAsync().ConfigureAwait(false);
+            if (compilation is null)
+            {
+                return (result, project.Name, 0, 0);
+            }
+
+            // Énumérer tous les types nommés
+            var allTypes = RoslynHelper.GetAllNamedTypes(compilation.Assembly.GlobalNamespace)
+                .Where(t => 
+                    t.TypeKind == TypeKind.Class 
+                    && t.DeclaredAccessibility == Accessibility.Public 
+                    && !t.IsStatic 
+                    && !t.IsAbstract)
+                .ToList();
+
+            foreach (var cls in allTypes)
+            {
+                // Fichier source principal (si partiel, on prend la 1re location source)
+                var filePath = cls.Locations.FirstOrDefault(l => l.IsInSource)?.SourceTree?.FilePath ?? string.Empty;
+
+                // Attributs de la classe
+                var classAttributes = cls.GetAttributes()
+                    .Select(RoslynHelper.ToAttributeInfo)
+                    .ToList();
+
+                // Propriétés publiques accessibles (héritage inclus)
+                var properties = RoslynHelper.GetAllAccessiblePublicProperties(cls)
+                    .Select(p => new Domain.ProjectAnalysis.PropertyInfo(
+                        TypeName: RoslynHelper.Display(p.Type),
+                        Name: p.Name,
+                        IsExplicitInterfaceImplementation: p.ExplicitInterfaceImplementations.Length > 0,
+                        Attributes: p.GetAttributes().Select(RoslynHelper.ToAttributeInfo).ToList()
+                    ))
+                    .ToList();
+
+                // Chaîne de bases
+                var baseChain = RoslynHelper.GetBaseTypes(cls)
+                    .Select(RoslynHelper.ToInheritedTypeInfo)
+                    .ToList();
+
+                // Interfaces (transitives, dédupliquées par nom complet)
+                var interfaces = cls.AllInterfaces
+                    .Distinct<INamedTypeSymbol>(SymbolEqualityComparer.Default)
+                    .Select(RoslynHelper.ToInheritedTypeInfo)
+                    .ToList();
+
+                result.Add(new ClassInfo(
+                    ClassName: RoslynHelper.Display(cls), // inclut génériques si présents
+                    FilePath: filePath,
+                    Namespace: cls.ContainingNamespace?.ToDisplayString() ?? "",
+                    IsGeneric: cls.IsGenericType,
+                    Attributes: classAttributes,
+                    PublicProperties: properties,
+                    BaseClassesChain: baseChain,
+                    AllInterfaces: interfaces
+                ));
+            }
+
+            stopwatch.Stop();
+
+            return (result, project.Name, result.Count, stopwatch.Elapsed.TotalSeconds);
+        }
+
+        public async Task FixUsings()
         {
             consoleWriter.AddMessageLine("Start fix usings", "pink");
 
             try
             {
-                using var workspace = MSBuildWorkspace.Create();
-                if (workspace == null)
-                {
-                    consoleWriter.AddMessageLine("Error: Workspace could not be created.", "red");
-                    return;
-                }
-
-                if (!await RestoreSolution(solutionPath, forceRestore))
-                    return;
-
-                consoleWriter.AddMessageLine("Opening solution...", "darkgray");
-                var solution = await workspace.OpenSolutionAsync(solutionPath);
-
-                if (solution == null)
-                {
-                    consoleWriter.AddMessageLine($"Error: Solution at path '{solutionPath}' could not be loaded.", "red");
-                    return;
-                }
-
-                consoleWriter.AddMessageLine($"Solution loaded successfully", "lightgreen");
-
-                foreach (var project in solution.Projects)
+                foreach (var project in CurrentSolution.Projects)
                 {
                     try
                     {
@@ -424,11 +371,6 @@ using Roslyn.Services;*/
 
                         foreach (var document in project.Documents)
                         {
-                            if(filteredDocumentsPath != null && !filteredDocumentsPath.Any(path => path.Equals(document.FilePath)))
-                            {
-                                continue;
-                            }
-
                             try
                             {
                                 if (await document.GetSyntaxRootAsync() is not CompilationUnitSyntax syntaxRoot)
@@ -465,7 +407,7 @@ using Roslyn.Services;*/
                                 // Handle order usings
                                 updatedRoot = OrderUsings(updatedRoot, document.Name);
 
-                                var formattedRoot = Microsoft.CodeAnalysis.Formatting.Formatter.Format(updatedRoot, workspace);
+                                var formattedRoot = Microsoft.CodeAnalysis.Formatting.Formatter.Format(updatedRoot, Workspace);
                                 File.WriteAllText(document.FilePath!, formattedRoot.ToFullString());
                             }
                             catch (Exception docEx)
@@ -490,9 +432,9 @@ using Roslyn.Services;*/
             }
         }
 
-        private async Task<bool> RestoreSolution(string solutionPath, bool forceRestore)
+        private async Task<bool> RestoreSolution(string solutionPath)
         {
-            if (!forceRestore && IsSolutionRestored(solutionPath))
+            if (IsSolutionRestored(solutionPath))
                 return true;
 
             consoleWriter.AddMessageLine("Restore solution...", "darkgray");
@@ -518,7 +460,7 @@ using Roslyn.Services;*/
                 consoleWriter.AddMessageLine($"Restore failed: {error}", "red");
                 return false;
             }
-            
+
             consoleWriter.AddMessageLine($"Restore succeed", "lightgreen");
             return true;
         }

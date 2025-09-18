@@ -56,8 +56,14 @@
             this.fileGeneratorService = fileGeneratorService;
             this.uiEventBroker = uiEventBroker;
             this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
+            this.uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
 
             vm.Inject(fileGeneratorService, consoleWriter);
+        }
+
+        private void UiEventBroker_OnSolutionClassesParsed()
+        {
+            ListEntities();
         }
 
         private void UIEventBroker_OnProjectChanged(Project project)
@@ -76,23 +82,23 @@
             if (project is null)
                 return;
 
-            uiEventBroker.RequestExecuteActionWithWaiter(() => InitProjectTask(project));
+            InitProject(project);
         }
 
-        private Task InitProjectTask(Project project)
+        private void InitProject(Project project)
         {
             this.project = project;
             vm.SetProject(project);
-
-            ListEntities();
+            
             InitHistoryFile(project);
-
-            return Task.CompletedTask;
         }
 
         private Task ListEntities()
         {
-            var domainEntities = parserService.GetDomainEntities(project, settings);
+            if (project is null)
+                return Task.CompletedTask;
+
+            var domainEntities = parserService.GetDomainEntities(project).ToList();
             vm.SetEntities(domainEntities);
             return Task.CompletedTask;
         }

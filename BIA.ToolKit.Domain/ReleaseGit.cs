@@ -17,15 +17,6 @@
         {
             InitDownload();
 
-            var httpClient = new HttpClient(
-                new HttpClientHandler
-                {
-                    UseProxy = true,
-                    DefaultProxyCredentials = CredentialCache.DefaultCredentials,
-                },
-                disposeHandler: true);
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "BiaToolKit");
-
             foreach (var asset in Assets)
             {
                 var fileName = string.IsNullOrWhiteSpace(asset.Name)
@@ -34,7 +25,7 @@
 
                 var targetPath = Path.Combine(LocalPath, fileName);
 
-                using var resp = await httpClient.GetAsync(asset.DownloadUrl);
+                using var resp = await Common.Helpers.HttpHelper.HttpClient.GetAsync(asset.DownloadUrl);
                 resp.EnsureSuccessStatusCode();
 
                 Directory.CreateDirectory(Path.GetDirectoryName(targetPath));

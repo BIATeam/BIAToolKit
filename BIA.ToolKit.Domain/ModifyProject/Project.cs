@@ -27,5 +27,12 @@
         /// Path to the solution of the project
         /// </summary>
         public string SolutionPath { get; set; }
+
+        public IReadOnlyList<string> ProjectFiles { get; private set; }
+
+        public async Task ListProjectFiles()
+        {
+            await Task.Run(() => ProjectFiles = Directory.EnumerateFiles(Folder, "*", SearchOption.AllDirectories).ToList());
+        }
     }
 }

@@ -7,7 +7,20 @@
     public class EntityDtoModel<TPropertyDtoModel> : _4_0_0.Models.EntityDtoModel<TPropertyDtoModel>
         where TPropertyDtoModel : class, IPropertyDtoModel
     {
-        protected override List<string> ExcludedPropertiesToGenerate => new List<string>();
+        protected override List<string> ExcludedPropertiesToGenerate
+        {
+            get
+            {
+                _ = base.ExcludedPropertiesToGenerate;
+
+                if (IsTeamType)
+                {
+                    excludedPropertiesToGenerate.Add("UserDefaultTeams");
+                }
+
+                return excludedPropertiesToGenerate;
+            }
+        }
 
         public override string GetClassInheritance()
         {

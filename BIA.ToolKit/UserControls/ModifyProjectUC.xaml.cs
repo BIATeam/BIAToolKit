@@ -1,5 +1,6 @@
 ﻿namespace BIA.ToolKit.UserControls
 {
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
@@ -56,7 +57,7 @@
             this.crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.settingsService = settingsService;
-            _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService);
+            _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
 
             uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
@@ -232,7 +233,7 @@
             // Create project at original version.
             if (Directory.Exists(projectOriginPath))
             {
-               await Task.Run(() => FileTransform.ForceDeleteDirectory(projectOriginPath));
+                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectOriginPath));
             }
 
             await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, _viewModel.CurrentProject.BIAFronts);
@@ -306,7 +307,7 @@
             {
                 var diffInstruction = migrateFileContent.ElementAt(index - 1);
                 var match = Regex.Match(diffInstruction, pathOfFileRegex);
-                if(match.Success)
+                if (match.Success)
                 {
                     filesToDelete.Add(Path.Combine(currentProject.Folder, match.Groups[1].Value).Replace("/", "\\"));
                 }
@@ -324,7 +325,7 @@
                 }
             }
 
-            if(hasNotDeletedFiles)
+            if (hasNotDeletedFiles)
             {
                 consoleWriter.AddMessageLine("Some files have not been deleted. Check the previous details to launch diff command for each of them. Delete them manually if applicable.", "orange");
             }
@@ -361,7 +362,7 @@
 
         private void ModifyProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.RootProjectsPath = FileDialog.BrowseFolder(_viewModel.RootProjectsPath);
+            _viewModel.RootProjectsPath = FileDialog.BrowseFolder(_viewModel.RootProjectsPath, "Choose modify project root path");
         }
 
         private void RefreshProjectFolderList_Click(object sender, RoutedEventArgs e)
@@ -376,7 +377,7 @@
 
         private async Task FixUsings_Run()
         {
-            await cSharpParserService.FixUsings(_viewModel.CurrentProject.SolutionPath, forceRestore: true);
+            await cSharpParserService.FixUsings();
         }
     }
 }

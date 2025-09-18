@@ -64,7 +64,8 @@
         public int TeamTypeId { get; set; }
         public int TeamRoleId { get; set; }
         public string FormReadOnlyMode { get; set; }
-        public string AngularModelInterfaceInheritance
+
+        public virtual string AngularModelInterfaceInheritance
         {
             get
             {
