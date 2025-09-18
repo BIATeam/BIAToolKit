@@ -93,18 +93,18 @@
         {
             List<string> newProjects = null;
 
-            if (Directory.Exists(RootProjectsPath))
-            {
-                DirectoryInfo di = new(RootProjectsPath);
-                // Create an array representing the files in the current directory.
-                DirectoryInfo[] versionDirectories = di.GetDirectories("*", SearchOption.TopDirectoryOnly);
+            if (!Directory.Exists(RootProjectsPath))
+                return;
 
-                newProjects = new();
-                foreach (DirectoryInfo dir in versionDirectories)
-                {
-                    //Add and select the last added
-                    newProjects.Add(dir.Name);
-                }
+            DirectoryInfo di = new(RootProjectsPath);
+            // Create an array representing the files in the current directory.
+            DirectoryInfo[] versionDirectories = di.GetDirectories("*", SearchOption.TopDirectoryOnly);
+
+            newProjects = new();
+            foreach (DirectoryInfo dir in versionDirectories)
+            {
+                //Add and select the last added
+                newProjects.Add(dir.Name);
             }
 
             if (!newProjects.Select(x => Path.Combine(RootProjectsPath, x)).Contains(CurrentProject?.Folder))
