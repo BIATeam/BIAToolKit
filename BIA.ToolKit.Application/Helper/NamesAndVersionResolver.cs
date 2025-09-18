@@ -33,12 +33,12 @@
         {
             if (!string.IsNullOrEmpty(ConstantFileNameSearchPattern))
             {
-                Regex reg = new Regex(currentProject.Folder.Replace("\\", "\\\\") + ConstantFileRegExpPath, RegexOptions.IgnoreCase);
-                string file = Directory.GetFiles(currentProject.Folder, ConstantFileNameSearchPattern, SearchOption.AllDirectories)?.Where(path => reg.IsMatch(path))?.FirstOrDefault();
+                var reg = new Regex(currentProject.Folder.Replace("\\", "\\\\") + ConstantFileRegExpPath, RegexOptions.IgnoreCase);
+                string file = currentProject.ProjectFiles.Where(path => path.EndsWith(ConstantFileNameSearchPattern) && reg.IsMatch(path))?.FirstOrDefault();
                 if (file != null)
                 {
-                    Regex regProjectName = new Regex(ConstantFileNamespace);
-                    Regex regVersion = new Regex(ConstantFileRegExpVersion);
+                    var regProjectName = new Regex(ConstantFileNamespace);
+                    var regVersion = new Regex(ConstantFileRegExpVersion);
 
                     foreach (var line in File.ReadAllLines(file))
                     {
@@ -62,8 +62,8 @@
             if (!string.IsNullOrEmpty(FrontFileNameSearchPattern))
             {
                 currentProject.BIAFronts.Clear();
-                Regex regPackageJson = new Regex(currentProject.Folder.Replace("\\", "\\\\") + FrontFileUsingBiaNg, RegexOptions.IgnoreCase);
-                List<string> packagesJsonFiles = Directory.GetFiles(currentProject.Folder, "package.json", SearchOption.AllDirectories)?.Where(path => regPackageJson.IsMatch(path)).ToList();
+                var regPackageJson = new Regex(currentProject.Folder.Replace("\\", "\\\\") + FrontFileUsingBiaNg, RegexOptions.IgnoreCase);
+                List<string> packagesJsonFiles = currentProject.ProjectFiles.Where(path => path.EndsWith("package.json") && regPackageJson.IsMatch(path)).ToList();
                 if (packagesJsonFiles != null)
                 {
                     foreach (var fileFront in packagesJsonFiles)
@@ -83,8 +83,8 @@
 
                 foreach (string regex in FrontFileRegExpPath)
                 {
-                    Regex reg2 = new Regex(currentProject.Folder.Replace("\\", "\\\\") + regex, RegexOptions.IgnoreCase);
-                    List<string> filesFront = Directory.GetFiles(currentProject.Folder, FrontFileNameSearchPattern, SearchOption.AllDirectories)?.Where(path => reg2.IsMatch(path)).ToList();
+                    var reg2 = new Regex(currentProject.Folder.Replace("\\", "\\\\") + regex, RegexOptions.IgnoreCase);
+                    List<string> filesFront = currentProject.ProjectFiles.Where(path => path.EndsWith(FrontFileNameSearchPattern) && reg2.IsMatch(path)).ToList();
 
                     if (filesFront != null)
                     {

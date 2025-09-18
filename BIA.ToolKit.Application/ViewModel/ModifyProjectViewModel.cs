@@ -178,7 +178,7 @@
 
                     if (CurrentProject is not null)
                     {
-                        await LoadProjectSolution(currentProject);
+                        await ParseProject(currentProject);
                     }
 
                     RaisePropertyChanged(nameof(Folder));
@@ -197,7 +197,13 @@
         {
             try
             {
-                consoleWriter.AddMessageLine($"Loading project {project.Name}", "yellow");
+                consoleWriter.AddMessageLine($"Loading project {project.Name}", "pink");
+
+                consoleWriter.AddMessageLine("List project's files...", "darkgray");
+                await project.ListProjectFiles();
+                project.SolutionPath = project.ProjectFiles.FirstOrDefault(path => path.EndsWith($"{project.Name}.sln"));
+                consoleWriter.AddMessageLine("Project's files listed", "lightgreen");
+
                 consoleWriter.AddMessageLine("Resolving names and version...", "darkgray");
                 NamesAndVersionResolver nvResolverOldVersions = new()
                 {
@@ -229,10 +235,7 @@
 
                 var resolverTask = Task.Run(() => nvResolver.ResolveNamesAndVersion(project));
                 var resolverOldVersionsTask = Task.Run(() => nvResolverOldVersions.ResolveNamesAndVersion(project));
-                await Task.WhenAll(resolverTask, resolverOldVersionsTask).ContinueWith((_) =>
-                {
-                    project.SolutionPath = Directory.GetFiles(project.Folder, $"{project.Name}.sln", SearchOption.AllDirectories).FirstOrDefault();
-                });
+                await Task.WhenAll(resolverTask, resolverOldVersionsTask);
 
                 consoleWriter.AddMessageLine("Names and version resolved", "lightgreen");
 
@@ -247,7 +250,7 @@
             }
         }
 
-        private async Task LoadProjectSolution(Project currentProject)
+        private async Task ParseProject(Project currentProject)
         {
             try
             {
@@ -266,7 +269,7 @@
             {
                 await LoadProject(CurrentProject);
                 await InitFileGeneratorServiceFromProject(CurrentProject);
-                await LoadProjectSolution(CurrentProject);
+                await ParseProject(CurrentProject);
             });
         }
 
