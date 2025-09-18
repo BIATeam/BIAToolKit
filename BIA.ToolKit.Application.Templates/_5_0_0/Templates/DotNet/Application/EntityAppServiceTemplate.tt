@@ -27,9 +27,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
 <#  } #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common.Enum;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
-<#  if(ModelInstance.HasAncestorTeam) { #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.User;
-<#  } #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers;
 <#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
@@ -113,7 +111,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
 
             this.FiltersContext.Add(
                 AccessMode.Update,
-                TeamAppService.UpdateSpecification<<#= ModelInstance.EntityName #>>(TeamTypeId.<#= ModelInstance.EntityName #>, principal));
+                TeamAppService.UpdateSpecification<<#= ModelInstance.EntityName #>, UserDataDto>(TeamTypeId.<#= ModelInstance.EntityName #>, principal));
 <#  } #>
 <#  if(ModelInstance.HasAncestorTeam) {  #>
             var userData = (principal as BiaClaimsPrincipal).GetUserData<UserDataDto>();
