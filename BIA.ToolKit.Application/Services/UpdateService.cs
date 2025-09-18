@@ -11,6 +11,7 @@
     using System.Threading.Tasks;
     using System.Windows;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain;
 
     public class UpdateService
@@ -40,6 +41,7 @@
         public void SetAppVersion(Version version)
         {
             this.currentVersion = version;
+            BiaToolkitVersion.ApplicationVersion = version.ToString();
         }
 
         public async Task CheckForUpdatesAsync()
