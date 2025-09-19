@@ -270,7 +270,22 @@
                 await LoadProject(CurrentProject);
                 await InitFileGeneratorServiceFromProject(CurrentProject);
                 await ParseProject(CurrentProject);
+                RefreshUI();
             });
+        }
+
+        private void RefreshUI()
+        {
+            RaisePropertyChanged(nameof(FrameworkVersion));
+            RaisePropertyChanged(nameof(CompanyName));
+            RaisePropertyChanged(nameof(Name));
+            RaisePropertyChanged(nameof(IsProjectSelected));
+            RaisePropertyChanged(nameof(BIAFronts));
+            if ((!IsProjectCompatibleCrudGenerator && !IsFileGeneratorServiceInit) 
+                || (SelectedTabIndex == 2 && !IsFileGeneratorServiceInit))
+            {
+                SelectedTabIndex = 0;
+            }
         }
 
         public string FrameworkVersion
@@ -300,11 +315,7 @@
                 if (ModifyProject.CurrentProject != value)
                 {
                     ModifyProject.CurrentProject = value;
-                    RaisePropertyChanged(nameof(FrameworkVersion));
-                    RaisePropertyChanged(nameof(CompanyName));
-                    RaisePropertyChanged(nameof(Name));
-                    RaisePropertyChanged(nameof(IsProjectSelected));
-                    RaisePropertyChanged(nameof(BIAFronts));
+                    RefreshUI();
                     eventBroker.NotifyProjectChanged(value);
                 }
             }
@@ -316,5 +327,18 @@
         }
 
         public bool IsProjectSelected => CurrentProject != null;
+
+        private int selectedTabIndex = 0;
+
+        public int SelectedTabIndex
+        {
+            get { return selectedTabIndex; }
+            set 
+            { 
+                selectedTabIndex = value;
+                RaisePropertyChanged(nameof(SelectedTabIndex));
+            }
+        }
+
     }
 }

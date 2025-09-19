@@ -64,9 +64,6 @@
                 return;
             }
 
-            if (project.Folder == _currentProject?.Folder)
-                return;
-
             IsInit = false;
             _currentProject = project;
             _fromUnitTest = fromUnitTest;
