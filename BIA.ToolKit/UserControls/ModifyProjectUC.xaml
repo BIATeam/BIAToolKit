@@ -75,7 +75,7 @@
         </Grid>
         <Grid Grid.Row="1" Margin="10,0,10,0">
             <Grid Background="Black" Opacity="0.2"/>
-            <TabControl x:Name="TabActions">
+            <TabControl x:Name="TabActions" SelectedIndex="{Binding SelectedTabIndex}">
                 <TabItem x:Name="TabMigration" Header="Migration">
                     <Grid Margin="5">
                         <Grid.ColumnDefinitions>
