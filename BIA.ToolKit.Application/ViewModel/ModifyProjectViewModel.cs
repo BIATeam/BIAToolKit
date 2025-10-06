@@ -151,10 +151,10 @@
 
         public string Folder
         {
-            get { return ModifyProject.CurrentProject?.Folder; }
+            get { return Path.GetFileName(ModifyProject.CurrentProject?.Folder); }
             set
             {
-                if (value == Path.GetFileName(Folder))
+                if (value == Folder)
                     return;
 
                 eventBroker.RequestExecuteActionWithWaiter(async () =>
@@ -167,9 +167,9 @@
                     {
                         currentProject = new Project
                         {
-                            Name = value
+                            Name = value,
+                            Folder = Path.Combine(RootProjectsPath, value)
                         };
-                        currentProject.Folder = RootProjectsPath + "\\" + currentProject.Name;
                         await LoadProject(currentProject);
                     }
 
@@ -201,7 +201,7 @@
 
                 consoleWriter.AddMessageLine("List project's files...", "darkgray");
                 await project.ListProjectFiles();
-                project.SolutionPath = project.ProjectFiles.FirstOrDefault(path => path.EndsWith($"{project.Name}.sln"));
+                project.SolutionPath = project.ProjectFiles.FirstOrDefault(path => path.EndsWith($"{project.Name}.sln", StringComparison.InvariantCultureIgnoreCase));
                 consoleWriter.AddMessageLine("Project's files listed", "lightgreen");
 
                 consoleWriter.AddMessageLine("Resolving names and version...", "darkgray");

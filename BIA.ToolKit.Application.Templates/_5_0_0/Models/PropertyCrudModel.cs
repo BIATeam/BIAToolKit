@@ -14,10 +14,10 @@
         public bool IsRequired => !IsNullable;
         public bool IsOption => Type.StartsWith("OptionDto") || Type.StartsWith("ICollection<OptionDto>");
         public bool IsCollection => Type.StartsWith("ICollection");
-        public bool IsNullable => Type.EndsWith("?") || !BiaFieldAttributes.Any(x => x.Key == "Required" && x.Value == "true");
+        public bool IsNullable => Type.EndsWith("?") || !BiaFieldAttributes.Any(x => x.Key == "Required" && x.Value.Equals("true", StringComparison.InvariantCultureIgnoreCase));
         public bool IsDecimal => Type.StartsWith("decimal", StringComparison.InvariantCultureIgnoreCase);
         public string OptionItemType => BiaFieldAttributes.SingleOrDefault(x => x.Key == "ItemType").Value;
-        public bool IsParentIdentifier => BiaFieldAttributes.Any(x => x.Key == "IsParent" && x.Value == "true");
+        public bool IsParentIdentifier => BiaFieldAttributes.Any(x => x.Key == "IsParent" && x.Value.Equals("true", StringComparison.InvariantCultureIgnoreCase));
 
         private string angularType;
         public string AngularType
