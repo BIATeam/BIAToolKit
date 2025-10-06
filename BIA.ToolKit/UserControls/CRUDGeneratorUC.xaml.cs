@@ -1,27 +1,22 @@
 ﻿namespace BIA.ToolKit.UserControls
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
+    using System.Windows;
+    using System.Windows.Controls;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
-    using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Runtime.CompilerServices;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Windows;
-    using System.Windows.Controls;
-    using System.Windows.Input;
-    using static BIA.ToolKit.Application.Services.UIEventBroker;
 
     /// <summary>
     /// Interaction logic for DtoGenerator.xaml
@@ -104,7 +99,7 @@
             if (project is null || project.BIAFronts.Count == 0)
                 return;
 
-           InitProjectTask(project);
+            InitProjectTask(project);
         }
 
         private void InitProjectTask(Project project)
@@ -671,16 +666,18 @@
             Dictionary<string, string> dtoFiles = [];
 
             string dtoFolder = $"{vm.CurrentProject.CompanyName}.{vm.CurrentProject.Name}.Domain.Dto";
-            string path = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, dtoFolder);
+            string dtoFolderPath = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, dtoFolder);
 
             try
             {
-                if (Directory.Exists(path))
+                if (Directory.Exists(dtoFolderPath))
                 {
-                    // List files
-                    List<string> files = Directory.EnumerateFiles(path, "*Dto.cs", SearchOption.AllDirectories).ToList();
-                    // Build dictionnary: key = file Name, Value = full path
-                    files.ForEach(x => dtoFiles.Add(new FileInfo(x).Name, new FileInfo(x).FullName));
+                    foreach (var dtoClass in service.CurrentSolutionClasses.Where(x =>
+                        x.FilePath.StartsWith(dtoFolderPath, StringComparison.InvariantCultureIgnoreCase)
+                        && x.FilePath.EndsWith("Dto.cs")))
+                    {
+                        dtoFiles.Add(dtoClass.ClassName, dtoClass.FilePath);
+                    }
                 }
             }
             catch (Exception ex)
@@ -745,7 +742,7 @@
             vm.AddOptionItems(foldersName.Select(x => new OptionItem(CommonTools.ConvertKebabToPascalCase(x))));
         }
 
-        
+
 
         /// <summary>
         /// Extract the entity name form Dto file name.
