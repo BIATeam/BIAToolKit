@@ -5,11 +5,8 @@
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
-    using System.Text.Json;
     using System.Threading.Tasks;
-    using System.Windows;
     using System.Windows.Controls;
-    using System.Windows.Media;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Mapper;
     using BIA.ToolKit.Application.Services;
@@ -19,7 +16,6 @@
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Domain.Work;
-    using Windows.UI.Input;
 
     /// <summary>
     /// Interaction logic for VersionAndOptionView.xaml

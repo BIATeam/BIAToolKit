@@ -201,7 +201,7 @@
 
                 consoleWriter.AddMessageLine("List project's files...", "darkgray");
                 await project.ListProjectFiles();
-                project.SolutionPath = project.ProjectFiles.FirstOrDefault(path => path.EndsWith($"{project.Name}.sln"));
+                project.SolutionPath = project.ProjectFiles.FirstOrDefault(path => path.EndsWith($"{project.Name}.sln", StringComparison.InvariantCultureIgnoreCase));
                 consoleWriter.AddMessageLine("Project's files listed", "lightgreen");
 
                 consoleWriter.AddMessageLine("Resolving names and version...", "darkgray");
