@@ -31,7 +31,7 @@ using Roslyn.Services;*/
     public class CSharpParserService
     {
         private readonly List<string> excludedEntitiesFolders = new() { "bin", "obj" };
-        private readonly List<string> excludedEntitiesFilesSuffixes = new() { "Mapper", "Service", "Repository", "Customizer", "Specification" };
+        private readonly List<string> excludedEntitiesFilesSuffixes = new() { "Mapper", "Service", "Repository", "Customizer", "Specification", "Dto" };
         private readonly IConsoleWriter consoleWriter;
         private readonly UIEventBroker eventBroker;
         private Solution CurrentSolution;
@@ -167,18 +167,16 @@ using Roslyn.Services;*/
 
             try
             {
-                var files = new List<string>();
                 if (Directory.Exists(projectDomainPath))
                 {
-                    var subFolders = Directory.GetDirectories(projectDomainPath).Where(x => !excludedEntitiesFolders.Contains(Path.GetFileName(x))).ToList();
-                    foreach (var subFolder in subFolders)
+                    foreach (var entity in CurrentSolutionClasses.Where(x =>
+                        x.FilePath.StartsWith(projectDomainPath, StringComparison.InvariantCultureIgnoreCase)
+                        && x.FilePath.EndsWith(".cs")
+                        && !excludedEntitiesFilesSuffixes.Any(suffix => Path.GetFileNameWithoutExtension(x.FilePath).EndsWith(suffix))))
                     {
-                        var subFolderFiles = Directory.EnumerateFiles(subFolder, "*.cs", SearchOption.AllDirectories);
-                        files.AddRange(subFolderFiles.Where(file => !excludedEntitiesFilesSuffixes.Any(suffix => Path.GetFileNameWithoutExtension(file).EndsWith(suffix))));
+                        entities.Add(new EntityInfo(entity));
                     }
                 }
-
-                entities.AddRange(CurrentSolutionClasses.Where(x => files.Contains(x.FilePath)).DistinctBy(x => x.FilePath).Select(x => new EntityInfo(x)));
             }
             catch (Exception ex)
             {
@@ -248,7 +246,7 @@ using Roslyn.Services;*/
 
         public async Task LoadSolution(string solutionPath)
         {
-            if(Workspace is null)
+            if (Workspace is null)
             {
                 consoleWriter.AddMessageLine($"MSBuildWorkspace has not been initialized", "red");
                 return;
@@ -278,7 +276,7 @@ using Roslyn.Services;*/
 
             var classesInfosPerProjectTasks = CurrentSolution.Projects.Select(GetClassesInfoFromProject);
             var classesInfosReports = await Task.WhenAll(classesInfosPerProjectTasks);
-            foreach(var report in classesInfosReports)
+            foreach (var report in classesInfosReports)
             {
                 consoleWriter.AddMessageLine($"{report.Project} : {report.ClassesCount} classes parsed in {report.ElapsedSeconds} seconds", "gray");
             }
@@ -302,10 +300,10 @@ using Roslyn.Services;*/
 
             // Énumérer tous les types nommés
             var allTypes = RoslynHelper.GetAllNamedTypes(compilation.Assembly.GlobalNamespace)
-                .Where(t => 
-                    t.TypeKind == TypeKind.Class 
-                    && t.DeclaredAccessibility == Accessibility.Public 
-                    && !t.IsStatic 
+                .Where(t =>
+                    t.TypeKind == TypeKind.Class
+                    && t.DeclaredAccessibility == Accessibility.Public
+                    && !t.IsStatic
                     && !t.IsAbstract)
                 .ToList();
 
