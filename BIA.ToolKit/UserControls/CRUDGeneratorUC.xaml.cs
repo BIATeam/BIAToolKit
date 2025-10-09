@@ -711,7 +711,11 @@
 
                 // Fill display item list
                 List<string> displayItems = [];
-                vm.DtoEntity.Properties.ForEach(p => displayItems.Add(p.Name));
+                foreach(var property in vm.DtoEntity.Properties.OrderBy(x => x.Name))
+                {
+                    displayItems.Add(property.Name);
+                }
+
                 vm.DtoDisplayItems = displayItems;
                 vm.DtoDisplayItemSelected = vm.DtoEntity.Properties.FirstOrDefault(p => p.Type.StartsWith("string", StringComparison.CurrentCultureIgnoreCase))?.Name;
 

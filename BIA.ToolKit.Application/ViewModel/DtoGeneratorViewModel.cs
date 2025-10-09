@@ -333,7 +333,7 @@
             if (SelectedEntityInfo == null)
                 return;
 
-            foreach (var property in SelectedEntityInfo.Properties)
+            foreach (var property in SelectedEntityInfo.Properties.OrderBy(x => x.Name))
             {
                 var propertyViewModel = new EntityProperty
                 {
