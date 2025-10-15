@@ -28,5 +28,7 @@
                 return string.Join(", ", interfaces);
             }
         }
+
+        public new bool HasAudit { get; set; }
     }
 }

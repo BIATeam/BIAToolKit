@@ -125,5 +125,7 @@
                 return string.Join(", ", interfaces);
             }
         }
+
+        public bool HasAudit { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
     }
 }

@@ -63,6 +63,7 @@
             model.TeamRoleId = crudContext.TeamRoleId;
             model.TeamTypeId = crudContext.TeamTypeId;
             model.FormReadOnlyMode = crudContext.FormReadOnlyMode;
+            model.HasAudit = crudContext.HasAudit;
 
             model.Properties = crudContext.Properties.Select(x => new TPropertyCrudModel
             {
