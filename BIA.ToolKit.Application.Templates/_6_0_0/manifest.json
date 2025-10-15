@@ -21,8 +21,8 @@
           "outputPath": "{Project}.Domain\\{Domain}\\Entities\\{Entity}Audit.cs"
         },
         {
-          "inputPath": "CrosscuttingCommon\\PartialDtoIocContainerTemplate_IocAuditMapper.tt",
-          "outputPath": "{Project}.Crosscutting.Common\\IocContainer.cs",
+          "inputPath": "CrosscuttingIoc\\PartialDtoIocContainerTemplate_IocAuditMapper.tt",
+          "outputPath": "{Project}.Crosscutting.Ioc\\IocContainer.cs",
           "isPartial": true,
           "partialInsertionMarkup": "IocAuditMapper"
         },
