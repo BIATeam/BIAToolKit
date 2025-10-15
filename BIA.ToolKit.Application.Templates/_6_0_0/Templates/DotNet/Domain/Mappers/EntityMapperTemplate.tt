@@ -75,6 +75,9 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 
         /// <inheritdoc />
         public override int TeamType => (int)TeamTypeId.<#= ModelInstance.EntityName #>;
+<# if (ModelInstance.Properties.Count() > 0) { #>
+
+<#  } #>
 <# } #>
 <#  if (ModelInstance.HasAudit) { #>
         /// <summary>
@@ -85,8 +88,10 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         {
             this.AuditMapper = auditMappers.FirstOrDefault(x => x.EntityType == typeof(<#= ModelInstance.EntityName #>));
         }
-<# } #>
+<# if (ModelInstance.Properties.Count() > 0) { #>
 
+<#  } #>
+<# } #>
 <# if (ModelInstance.Properties.Count() > 0) { #>
         /// <inheritdoc />
         public override ExpressionCollection<<#= ModelInstance.EntityName #>> ExpressionCollection
