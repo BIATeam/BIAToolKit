@@ -42,7 +42,7 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>Reducers = createReduc
     return stateUpdated;
   }),
   on(Feature<#= ModelInstance.EntityNamePlural #>Actions.clearCurrent, state => {
-    return { ...state, currentItem: <<#= ModelInstance.EntityName #>>{<# if(ModelInstance.BaseKeyType == "string" || ModelInstance.BaseKeyType == "Guid") { #> id: '' <# } #><# if(ModelInstance.DisplayHistorical) { #>, currentItemHistorical: [] <# } #>} };
+    return { ...state, currentItem: <<#= ModelInstance.EntityName #>>{<# if(ModelInstance.BaseKeyType == "string" || ModelInstance.BaseKeyType == "Guid") { #> id: '' <# } #>}<# if(ModelInstance.DisplayHistorical) { #>, currentItemHistorical: [] <# } #> };
   }),
   on(Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost, state => {
     return { ...state, loadingGetAll: true };

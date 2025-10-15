@@ -16,7 +16,7 @@
   [showFullPageButton]="showFullPageButton"
   (layoutChanged)="notifyLayoutChange($event)"
   [displayHistorical]="crudConfiguration.displayHistorical"
-  [historicalEntries]="(plane.crudItemHistorical$ | async) ?? []"
+  [historicalEntries]="(planeService.crudItemHistorical$ | async) ?? []"
   ></app-plane-form>
 <bia-spinner
   *ngIf="planeService.loadingGet$ | async"

@@ -33,7 +33,7 @@ export const planeReducers = createReducer<State>(
     return stateUpdated;
   }),
   on(FeaturePlanesActions.clearCurrent, state => {
-    return { ...state, currentItem: <Plane>{, currentItemHistorical: [] } };
+    return { ...state, currentItem: <Plane>{}, currentItemHistorical: []  };
   }),
   on(FeaturePlanesActions.loadAllByPost, state => {
     return { ...state, loadingGetAll: true };

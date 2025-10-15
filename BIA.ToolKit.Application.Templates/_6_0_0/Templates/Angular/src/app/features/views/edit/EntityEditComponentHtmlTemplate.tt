@@ -20,7 +20,7 @@
   (layoutChanged)="notifyLayoutChange($event)"
 <#  if(ModelInstance.DisplayHistorical) { #>
   [displayHistorical]="crudConfiguration.displayHistorical"
-  [historicalEntries]="(<#= ModelInstance.EntityName.ToCamelCase() #>.crudItemHistorical$ | async) ?? []"
+  [historicalEntries]="(<#= ModelInstance.EntityName.ToCamelCase() #>Service.crudItemHistorical$ | async) ?? []"
 <#  } #>
   ></app-<#= ModelInstance.EntityName.ToKebabCase() #>-form>
 <bia-spinner
