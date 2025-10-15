@@ -90,23 +90,23 @@
             FileGeneratorService = new FileGeneratorService(consoleWriter);
             FileGeneratorService.Init(TestProject, true).Wait();
 
-            //if (referenceProject.BIAFronts.Count != 0)
-            //{
-            //    var referenceProjetAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
-            //    FileGeneratorService.SetPrettierAngularProjectPath(referenceProjetAngularPath);
-            //    if (doUnzip)
-            //    {
-            //        consoleWriter.AddMessageLine("npm i reference project...");
-            //        var process = new Process();
-            //        process.StartInfo.WorkingDirectory = referenceProjetAngularPath;
-            //        process.StartInfo.FileName = "cmd.exe";
-            //        process.StartInfo.Arguments = $"/C npm i";
-            //        process.StartInfo.UseShellExecute = true;
-            //        process.StartInfo.CreateNoWindow = false;
-            //        process.Start();
-            //        process.WaitForExit();
-            //    }
-            //}
+            if (referenceProject.BIAFronts.Count != 0)
+            {
+                var referenceProjetAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
+                FileGeneratorService.SetPrettierAngularProjectPath(referenceProjetAngularPath);
+                if (doUnzip)
+                {
+                    consoleWriter.AddMessageLine("npm i reference project...");
+                    var process = new Process();
+                    process.StartInfo.WorkingDirectory = referenceProjetAngularPath;
+                    process.StartInfo.FileName = "cmd.exe";
+                    process.StartInfo.Arguments = $"/C npm i";
+                    process.StartInfo.UseShellExecute = true;
+                    process.StartInfo.CreateNoWindow = false;
+                    process.Start();
+                    process.WaitForExit();
+                }
+            }
 
             consoleWriter.AddMessageLine($"Ready");
         }
