@@ -18,7 +18,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
             BaseList = classInfo.BaseClassesChain.Concat(classInfo.AllInterfaces).Select(x => x.DisplayName).Distinct().ToList();
             BaseKeyType = CommonTools.GetBaseKeyType(BaseList);
             ClassAnnotations = new(classInfo.Attributes.SelectMany(x => x.Arguments));
-            Properties = new(classInfo.PublicProperties.Select(x => new PropertyInfo(x)).OrderBy(x => x.Name));
+            Properties = new(classInfo.PublicProperties.Select(x => new PropertyInfo(x)));
         }
 
         public EntityInfo(string path, string @namespace, string name, string baseType, string baseKeyType, List<AttributeArgumentSyntax> arguments, List<string> baseList)

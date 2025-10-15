@@ -525,7 +525,10 @@
                 }
 
                 // Fill display item list
-                vm.Entity.Properties.ForEach(p => vm.EntityDisplayItems.Add(p.Name));
+                foreach(var property in vm.Entity.Properties.OrderBy(x => x.Name))
+                {
+                    vm.EntityDisplayItems.Add(property.Name);
+                }
 
                 // Set by default previous generation selected value
                 var history = this.optionGenerationHistory?.OptionGenerationHistory?.FirstOrDefault(gh => (vm.EntitySelected == Path.GetFileNameWithoutExtension(gh.Mapping.Entity)));

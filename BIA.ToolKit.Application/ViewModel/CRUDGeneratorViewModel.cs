@@ -207,7 +207,7 @@
         public void AddOptionItems(IEnumerable<OptionItem> optionItems)
         {
             OptionItems.Clear();
-            foreach (var optionItem in optionItems)
+            foreach (var optionItem in optionItems.OrderBy(x => x.OptionName))
             {
                 OptionItems.Add(optionItem);
             }
