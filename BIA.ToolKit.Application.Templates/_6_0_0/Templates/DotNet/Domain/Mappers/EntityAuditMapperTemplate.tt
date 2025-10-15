@@ -25,8 +25,6 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         /// </summary>
         public <#= ModelInstance.EntityName #>AuditMapper()
         {
-            this.LinkedAuditMappers = [];
-            this.AuditPropertyMappers = [];
         }
     }
 }
