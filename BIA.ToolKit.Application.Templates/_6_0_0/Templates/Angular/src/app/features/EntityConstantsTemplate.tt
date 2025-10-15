@@ -29,6 +29,9 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration: Cru
 <#  if(ModelInstance.IsFixable || ModelInstance.HasFixableParent) { #>
   isFixable: true,
 <#  } #>
+<#  if(ModelInstance.DisplayHistorical) { #>
+  displayHistorical: true,
+<#  } #>
   useCalcMode: <# if(ModelInstance.IsTeam) { #>false<#  } else { #>true<# } #>,
   useSignalR: false,
   useView: <# if(ModelInstance.HasAncestorTeam) {  #>true<# } else {#>false<# } #>,
