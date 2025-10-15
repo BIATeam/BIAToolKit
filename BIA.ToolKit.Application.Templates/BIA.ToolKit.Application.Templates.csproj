@@ -83,6 +83,11 @@
     <Compile Include="_6_0_0\Models\EntityOptionModel.cs" />
     <Compile Include="_6_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_6_0_0\Models\PropertyDtoModel.cs" />
+    <None Include="_6_0_0\Templates\DotNet\Domain\Entities\EntityAuditTemplate.cs">
+      <DependentUpon>EntityAuditTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_6_0_0\Templates\DotNet\InfrastructureData\PartialDtoDataContextTemplate_DbSetAudit.cs">
       <DependentUpon>PartialDtoDataContextTemplate_DbSetAudit.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -1999,6 +2004,13 @@
     <EmbeddedResource Include="_6_0_0\Templates\DotNet\InfrastructureData\PartialDtoDataContextTemplate_DbSetAudit.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PartialDtoDataContextTemplate_DbSetAudit.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\DotNet\Domain\Entities\EntityAuditTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityAuditTemplate.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

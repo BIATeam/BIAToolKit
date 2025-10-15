@@ -17,6 +17,10 @@
           "outputPath": "{Project}.Domain\\{Domain}\\Mappers\\{Entity}AuditMapper.cs"
         },
         {
+          "inputPath": "Domain\\Entities\\EntityAuditTemplate.tt",
+          "outputPath": "{Project}.Domain\\{Domain}\\Entities\\{Entity}Audit.cs"
+        },
+        {
           "inputPath": "CrosscuttingCommon\\PartialDtoIocContainerTemplate_IocAuditMapper.tt",
           "outputPath": "{Project}.Crosscutting.Common\\IocContainer.cs",
           "isPartial": true,
