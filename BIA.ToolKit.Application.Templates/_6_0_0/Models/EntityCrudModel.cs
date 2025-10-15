@@ -29,6 +29,6 @@
             }
         }
 
-        public new bool HasAudit { get; set; }
+        public override bool HasAudit { get; set; }
     }
 }

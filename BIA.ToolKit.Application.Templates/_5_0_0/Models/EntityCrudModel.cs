@@ -126,6 +126,6 @@
             }
         }
 
-        public bool HasAudit { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public virtual bool HasAudit { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
     }
 }
