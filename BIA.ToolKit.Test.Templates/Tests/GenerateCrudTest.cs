@@ -153,7 +153,7 @@
                 FormReadOnlyMode = Enum.GetName(typeof(FormReadOnlyMode), FormReadOnlyMode.Off),
                 CanImport = true,
                 GenerateBack = true,
-                GenerateFront = true,
+                GenerateFront = false,
                 AngularFront = "Angular",
                 DisplayHistorical = true,
             };
