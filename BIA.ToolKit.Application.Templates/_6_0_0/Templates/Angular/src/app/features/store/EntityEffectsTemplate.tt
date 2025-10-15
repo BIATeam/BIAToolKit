@@ -55,7 +55,18 @@ export class <#= ModelInstance.EntityNamePlural #>Effects {
       map(x => x?.id),
       switchMap(id => {
         return this.<#= ModelInstance.EntityName.ToCamelCase() #>Das.get({ id: id }).pipe(
+<#  if(ModelInstance.DisplayHistorical) { #>
+          map(<#= ModelInstance.EntityName.ToCamelCase() #> => {
+            if (<#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.displayHistorical) {
+              this.store.dispatch(
+                Feature<#= ModelInstance.EntityNamePlural #>Actions.loadHistorical({ id: <#= ModelInstance.EntityName.ToCamelCase() #>.id })
+              );
+            }
+            return FeaturePlanesActions.loadSuccess({ <#= ModelInstance.EntityName.ToCamelCase() #> });
+          }),
+<#  } else { #>
           map(<#= ModelInstance.EntityName.ToCamelCase() #> => Feature<#= ModelInstance.EntityNamePlural #>Actions.loadSuccess({ <#= ModelInstance.EntityName.ToCamelCase() #> })),
+<#  } #>
           catchError(err => {
             this.biaMessageService.showErrorHttpResponse(err);
             return of(Feature<#= ModelInstance.EntityNamePlural #>Actions.failure({ error: err }));
@@ -287,6 +298,26 @@ export class <#= ModelInstance.EntityNamePlural #>Effects {
               return of(Feature<#= ModelInstance.EntityNamePlural #>Actions.failure({ error: err }));
             })
           );
+      })
+    )
+  );
+  <#  } #>
+  <#  if(ModelInstance.DisplayHistorical) { #>
+  
+  loadHistorical$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(Feature<#= ModelInstance.EntityNamePlural #>Actions.loadHistorical),
+      map(x => x?.id),
+      switchMap(id => {
+        return this.<#= ModelInstance.EntityName.ToCamelCase() #>Das.getHistorical({ id: id }).pipe(
+          map(historical => {
+            return Feature<#= ModelInstance.EntityNamePlural #>Actions.loadHistoricalSuccess({ historical });
+          }),
+          catchError(err => {
+            this.biaMessageService.showErrorHttpResponse(err);
+            return of(Feature<#= ModelInstance.EntityNamePlural #>Actions.failure({ error: err }));
+          })
+        );
       })
     )
   );
