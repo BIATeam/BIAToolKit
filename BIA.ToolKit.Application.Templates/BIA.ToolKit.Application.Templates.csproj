@@ -83,6 +83,11 @@
     <Compile Include="_6_0_0\Models\EntityOptionModel.cs" />
     <Compile Include="_6_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_6_0_0\Models\PropertyDtoModel.cs" />
+    <None Include="_6_0_0\Templates\DotNet\CrosscuttingIoc\PartialDtoIocContainerAuditMapperTemplate.cs">
+      <DependentUpon>PartialDtoIocContainerAuditMapperTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_6_0_0\Templates\DotNet\Domain\Mappers\EntityAuditMapperTemplate.cs">
       <DependentUpon>EntityAuditMapperTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -1963,6 +1968,13 @@
     <EmbeddedResource Include="_6_0_0\Templates\DotNet\Domain\Mappers\EntityAuditMapperTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityAuditMapperTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\DotNet\CrosscuttingIoc\PartialDtoIocContainerAuditMapperTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialDtoIocContainerAuditMapperTemplate.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
