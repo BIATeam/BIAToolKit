@@ -155,7 +155,7 @@
                 GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
-                HasAudit = true,
+                DisplayHistorical = true,
             };
 
             await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);

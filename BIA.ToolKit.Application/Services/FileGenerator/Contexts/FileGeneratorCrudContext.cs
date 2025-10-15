@@ -26,6 +26,6 @@
         public int TeamTypeId { get; set; }
         public int TeamRoleId { get; set; }
         public string FormReadOnlyMode { get; set; }
-        public bool HasAudit { get; set; }
+        public bool DisplayHistorical { get; set; }
     }
 }

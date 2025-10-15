@@ -42,6 +42,6 @@
         public string FormReadOnlyMode { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         public bool IsVersioned { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         public bool IsArchivable { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
-        public virtual bool HasAudit { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public virtual bool DisplayHistorical { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
     }
 }

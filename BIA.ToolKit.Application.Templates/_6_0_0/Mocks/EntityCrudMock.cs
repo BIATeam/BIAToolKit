@@ -20,7 +20,7 @@
             DisplayItemName = "Msn";
             OptionItems = new List<string> { "Engine", "PlaneType" };
             HasParent = false;
-            HasAudit = true;
+            DisplayHistorical = true;
             //ParentName = "AircraftMaintenanceCompany";
             //ParentNamePlural = "AircraftMaintenanceCompanies";
             //AngularParentRelativePath = "aircraft-maintenance-companies";

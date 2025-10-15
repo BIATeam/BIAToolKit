@@ -417,7 +417,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
             }
         }
 <#  } #>
-<#  if (ModelInstance.HasAudit) { #>
+<#  if (ModelInstance.DisplayHistorical) { #>
 
         /// <summary>
         /// Return the historical of an item by its id.

@@ -29,6 +29,6 @@
             }
         }
 
-        public override bool HasAudit { get; set; }
+        public override bool DisplayHistorical { get; set; }
     }
 }
