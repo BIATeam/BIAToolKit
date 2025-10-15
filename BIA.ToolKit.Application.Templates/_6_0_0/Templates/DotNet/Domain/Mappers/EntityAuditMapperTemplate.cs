@@ -17,8 +17,6 @@ namespace TheBIADevCompany.BIADemo.Domain.Fleet.Mappers
         /// </summary>
         public PlaneAuditMapper()
         {
-            this.LinkedAuditMappers = [];
-            this.AuditPropertyMappers = [];
         }
     }
 }
