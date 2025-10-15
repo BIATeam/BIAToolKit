@@ -275,12 +275,12 @@ export class <#= ModelInstance.EntityNamePlural #>Effects {
         return this.<#= ModelInstance.EntityName.ToCamelCase() #>Das
           .updateFixedStatus({ id: x.id, fixed: x.isFixed })
           .pipe(
-            map(<#= ModelInstance.EntityName.ToCamelCase() #> => {
+            map(() => {
               this.biaMessageService.showUpdateSuccess();
               this.store.dispatch(
-                Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost({ event: event })
+                Feature<#= ModelInstance.EntityNamePlural #>Actions.load({ id: x.id })
               );
-              return Feature<#= ModelInstance.EntityNamePlural #>Actions.loadSuccess({ <#= ModelInstance.EntityName.ToCamelCase() #> });
+              return Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost({ event: event });
             }),
             catchError(err => {
               this.biaMessageService.showErrorHttpResponse(err);
