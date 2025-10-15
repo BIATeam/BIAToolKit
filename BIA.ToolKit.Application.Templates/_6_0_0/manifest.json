@@ -11,6 +11,10 @@
         {
           "inputPath": "DomainDto\\EntityDtoTemplate.tt",
           "outputPath": "{Project}.Domain.Dto\\{Domain}\\{Entity}Dto.cs"
+        },
+        {
+          "inputPath": "Domain\\Mappers\\EntityAuditMapperTemplate.tt",
+          "outputPath": "{Project}.Domain\\{Domain}\\Mappers\\{Entity}AuditMapper.cs"
         }
       ]
     },
