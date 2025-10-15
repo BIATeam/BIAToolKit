@@ -34,6 +34,11 @@
 <#  } #>
       [selectedElements]="selectedCrudItems"
       [showTableControllerButton]="crudConfiguration.useCompactMode ?? false"
+<#  if(ModelInstance.DisplayHistorical) { #>
+      [showHistoricalButton]="
+        crudConfiguration.displayHistorical && crudConfiguration.useCalcMode
+      "
+<#  } #>
       [tableControllerVisible]="showTableController"
       [showFixedButtons]="crudConfiguration.isFixable"
       (toggleTableControllerVisibility)="toggleTableControllerVisibility()"
