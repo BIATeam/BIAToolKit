@@ -262,6 +262,7 @@
                 IsVersioned = true,
                 IsFixable = true,
                 IsArchivable = true,
+                HasAudit = true,
             };
 
             await fixture.RunTestGenerateDtoAllFilesEqualsAsync(dtoContext);

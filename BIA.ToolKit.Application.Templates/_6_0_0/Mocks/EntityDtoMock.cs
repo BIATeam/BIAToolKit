@@ -13,6 +13,7 @@
             DomainName = "Fleet";
             EntityName = "Plane";
             BaseKeyType = "int";
+            HasAudit = true;
             Properties = new List<PropertyDtoModel>()
             {
                 new PropertyDtoModel

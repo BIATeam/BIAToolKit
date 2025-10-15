@@ -110,6 +110,7 @@
             model.IsArchivable = dtoContext.IsArchivable;
             model.IsFixable = dtoContext.IsFixable;
             model.IsVersioned = dtoContext.IsVersioned;
+            model.HasAudit = dtoContext.HasAudit;
 
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {

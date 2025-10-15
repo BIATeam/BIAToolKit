@@ -66,6 +66,7 @@
         public bool IsArchivable { get; set; }
         public bool IsFixable { get; set; }
         public bool IsVersioned { get; set; }
+        public bool HasAudit { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
 
         public virtual string GetClassInheritance()
         {
