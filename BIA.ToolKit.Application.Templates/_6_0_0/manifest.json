@@ -17,10 +17,16 @@
           "outputPath": "{Project}.Domain\\{Domain}\\Mappers\\{Entity}AuditMapper.cs"
         },
         {
-          "inputPath": "CrosscuttingCommon\\Enum\\PartialDtoIocContainerAuditMapperTemplate.tt",
+          "inputPath": "CrosscuttingCommon\\PartialDtoIocContainerTemplate_IocAuditMapper.tt",
           "outputPath": "{Project}.Crosscutting.Common\\IocContainer.cs",
           "isPartial": true,
           "partialInsertionMarkup": "IocAuditMapper"
+        },
+        {
+          "inputPath": "InfrastructureData\\Features\\PartialDtoAuditFeatureTemplate_AuditTypeMapper.tt",
+          "outputPath": "{Project}.Infrastructure.Data\\Features\\AuditFeature.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "AuditTypeMapper"
         }
       ]
     },

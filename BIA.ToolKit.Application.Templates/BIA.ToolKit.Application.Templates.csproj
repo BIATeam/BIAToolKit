@@ -83,8 +83,13 @@
     <Compile Include="_6_0_0\Models\EntityOptionModel.cs" />
     <Compile Include="_6_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_6_0_0\Models\PropertyDtoModel.cs" />
-    <None Include="_6_0_0\Templates\DotNet\CrosscuttingIoc\PartialDtoIocContainerAuditMapperTemplate.cs">
-      <DependentUpon>PartialDtoIocContainerAuditMapperTemplate.tt</DependentUpon>
+    <None Include="_6_0_0\Templates\DotNet\InfrastructureData\Features\PartialDtoAuditFeatureTemplate_AuditTypeMapper.cs">
+      <DependentUpon>PartialDtoAuditFeatureTemplate_AuditTypeMapper.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_6_0_0\Templates\DotNet\CrosscuttingIoc\PartialDtoIocContainerTemplate_IocAuditMapper.cs">
+      <DependentUpon>PartialDtoIocContainerTemplate_IocAuditMapper.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
@@ -1972,9 +1977,16 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="_6_0_0\Templates\DotNet\CrosscuttingIoc\PartialDtoIocContainerAuditMapperTemplate.tt">
+    <EmbeddedResource Include="_6_0_0\Templates\DotNet\CrosscuttingIoc\PartialDtoIocContainerTemplate_IocAuditMapper.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PartialDtoIocContainerAuditMapperTemplate.cs</LastGenOutput>
+      <LastGenOutput>PartialDtoIocContainerTemplate_IocAuditMapper.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\DotNet\InfrastructureData\Features\PartialDtoAuditFeatureTemplate_AuditTypeMapper.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialDtoAuditFeatureTemplate_AuditTypeMapper.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
