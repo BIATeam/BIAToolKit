@@ -1374,6 +1374,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>EntityConstantsTemplate.tt</DependentUpon>
     </TypeScriptCompile>
+    <None Include="_6_0_0\Templates\Angular\src\app\features\views\historical\EntityHistoricalComponentTsTemplate.ts">
+      <DependentUpon>EntityHistoricalComponentTsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.tt">
@@ -1939,6 +1944,13 @@
     <EmbeddedResource Include="_6_0_0\Templates\DotNet\PresentationApi\PartialOptionBianetconfigTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PartialOptionBianetconfigTemplate.json</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\features\views\historical\EntityHistoricalComponentTsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityHistoricalComponentTsTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

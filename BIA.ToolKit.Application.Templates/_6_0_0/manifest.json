@@ -383,6 +383,10 @@
         {
           "inputPath": "src\\app\\features\\children\\members\\index\\EntityMemberIndexComponentTemplate.tt",
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\children\\members\\views\\{Entity}-members-index\\{Entity}-members-index.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\historical\\EntityHistoricalComponentTsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-historical\\{Entity}-historical.component.ts"
         }
       ]
     }

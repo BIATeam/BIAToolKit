@@ -1,0 +1,36 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(ModelInstance.DisplayHistorical) { #>
+import { AsyncPipe } from '@angular/common';
+import { Component, Injector } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
+import { CrudItemHistoricalTimelineComponent } from 'packages/bia-ng/shared/feature-templates/crud-items/components/crud-item-historical-timeline/crud-item-historical-timeline.component';
+import { CrudItemHistoricalComponent } from 'packages/bia-ng/shared/feature-templates/crud-items/views/crud-item-historical/crud-item-historical.component';
+import { Button } from 'primeng/button';
+import { <#=  ModelInstance.EntityName #> } from '../../model/<#=  ModelInstance.EntityName.ToCamelCase() #>';
+import { <#=  ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../../<#=  ModelInstance.EntityName.ToCamelCase() #>.constants';
+import { <#=  ModelInstance.EntityName #>Service } from '../../services/<#=  ModelInstance.EntityName.ToCamelCase() #>.service';
+
+@Component({
+  selector: 'app-<#=  ModelInstance.EntityName.ToCamelCase() #>-historical',
+  imports: [
+    CrudItemHistoricalTimelineComponent,
+    AsyncPipe,
+    TranslateModule,
+    Button,
+  ],
+  templateUrl:
+    '../../../../../../node_modules/bia-ng/templates/feature-templates/crud-items/views/crud-item-historical/crud-item-historical.component.html',
+  styleUrl:
+    '../../../../../../packages/bia-ng/shared/feature-templates/crud-items/views/crud-item-historical/crud-item-historical.component.scss',
+})
+export class <#=  ModelInstance.EntityName #>HistoricalComponent extends CrudItemHistoricalComponent<<#=  ModelInstance.EntityName #>> {
+  constructor(
+    protected injector: Injector,
+    protected <#=  ModelInstance.EntityName.ToCamelCase() #>Service: <#=  ModelInstance.EntityName #>Service
+  ) {
+    super(injector, <#=  ModelInstance.EntityName.ToCamelCase() #>Service, <#=  ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration);
+  }
+}
+<#  } #>
