@@ -11,8 +11,17 @@
 
     public static class CommonTools
     {
-        public static List<string> BaseEntityInterfaces = new() { "IEntity<", "IEntityFixable<", "IEntityArchivable<" };
-        
+        private readonly static List<string> BaseBiaInterfacesAndClasses =
+        [
+            "IEntity<",
+            "IEntityFixable<",
+            "IEntityArchivable<",
+            "BaseDtoVersioned<",
+            "BaseDtoVersionedFixable<",
+            "BaseDtoFixable<",
+            "BaseDtoFixableArchivable<" 
+        ];
+
         /// <summary>
         /// Add a data to a dictionnary.
         /// </summary>
@@ -294,11 +303,11 @@
 
         public static string GetBaseKeyType(List<string> baseList)
         {
-            var iEntityBase = baseList.FirstOrDefault(x => BaseEntityInterfaces.Any(y => x.StartsWith(y)));
+            var iEntityBase = baseList.FirstOrDefault(x => BaseBiaInterfacesAndClasses.Any(y => x.StartsWith(y)));
             if (iEntityBase == null)
-                return baseList.Contains("Team") 
-                    || baseList.Contains("TeamDto") 
-                    || baseList.Any(x => (x.StartsWith("BaseEntity") || x.StartsWith("BaseDto")) && x.Contains("Team")) ? 
+                return baseList.Contains("Team")
+                    || baseList.Contains("TeamDto")
+                    || baseList.Any(x => (x.StartsWith("BaseEntity") || x.StartsWith("BaseDto")) && x.Contains("Team")) ?
                     "int" : null;
 
             var regex = new Regex(@"<\s*(\w+)\s*>");
