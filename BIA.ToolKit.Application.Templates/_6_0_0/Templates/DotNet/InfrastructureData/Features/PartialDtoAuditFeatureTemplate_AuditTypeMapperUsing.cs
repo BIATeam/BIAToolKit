@@ -1,4 +1,4 @@
-﻿    // BIAToolKit - Begin Partial AuditTypeMapperUsing Plane
+﻿    // BIAToolKit - Begin Partial AuditTypeMapperUsing Fleet
     using TheBIADevCompany.BIADemo.Domain.Fleet.Entities;
 
-    // BIAToolKit - End Partial AuditTypeMapperUsing Plane
+    // BIAToolKit - End Partial AuditTypeMapperUsing Fleet

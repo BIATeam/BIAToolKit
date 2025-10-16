@@ -30,7 +30,8 @@
           "inputPath": "InfrastructureData\\Features\\PartialDtoAuditFeatureTemplate_AuditTypeMapperUsing.tt",
           "outputPath": "{Project}.Infrastructure.Data\\Features\\AuditFeature.cs",
           "isPartial": true,
-          "partialInsertionMarkup": "AuditTypeMapperUsing"
+          "partialInsertionMarkup": "AuditTypeMapperUsing",
+          "UseDomainPartialInsertionMarkup":  true
         },
         {
           "inputPath": "InfrastructureData\\PartialDtoDataContextTemplate_DbSetAudit.tt",
