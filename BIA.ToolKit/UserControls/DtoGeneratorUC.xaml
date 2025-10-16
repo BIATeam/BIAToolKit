@@ -72,7 +72,7 @@
                 <CheckBox Grid.Row="3" Content="Fixable" Foreground="White" IsChecked="{Binding IsFixable,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
                 <CheckBox Grid.Row="4" Content="Archivable" Foreground="White" IsChecked="{Binding IsArchivable,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
                 
-                <CheckBox Grid.Column="1" Grid.Row="1" Content="Use dedicated audit" Foreground="White" IsChecked="{Binding UseDedicatedAudit,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsAuditable}"/>
+                <CheckBox Grid.Column="1" Grid.Row="1" Content="Use dedicated audit" Foreground="White" IsChecked="{Binding UseDedicatedAudit,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsAuditable}" Visibility="{Binding IsVisibleUseDedicatedAudit, Converter={StaticResource BoolToVisConverter}}"/>
             </Grid>
 
             <Button VerticalAlignment="Top" Grid.Column="6" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" x:Name="GenerateButton" Content="Generate" Height="50" Click="GenerateButton_Click" IsEnabled="{Binding IsGenerationEnabled}"></Button>

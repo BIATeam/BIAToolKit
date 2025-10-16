@@ -19,6 +19,7 @@
 
     public class DtoGeneratorViewModel : ObservableObject
     {
+        private Project project;
         private FileGeneratorService fileGeneratorService;
         private IConsoleWriter consoleWriter;
         private readonly List<EntityInfo> domainEntities = new();
@@ -265,6 +266,7 @@
             && !string.IsNullOrWhiteSpace(EntityDomain)
             && !string.IsNullOrWhiteSpace(SelectedBaseKeyType);
         public bool IsAuditable => SelectedEntityInfo?.IsAuditable == true;
+        public bool IsVisibleUseDedicatedAudit => Version.TryParse(project?.FrameworkVersion, out var version) && version.Major >= 6;
 
         public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>(RemoveMappingProperty);
         public ICommand MoveMappedPropertyCommand => new RelayCommand<MoveItemArgs>(x => MoveMappedProperty(x.OldIndex, x.NewIndex));
@@ -274,6 +276,9 @@
         {
             ProjectDomainNamespace = GetProjectDomainNamespace(project);
             IsProjectChosen = true;
+
+            this.project = project;
+            RaisePropertyChanged(nameof(IsVisibleUseDedicatedAudit));
         }
 
         public void Inject(FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter)
@@ -607,6 +612,7 @@
             EntitiesNames.Clear();
             EntityDomain = null;
             AncestorTeam = null;
+            project = null;
         }
 
         private void MoveMappedProperty(int oldIndex, int newIndex)
