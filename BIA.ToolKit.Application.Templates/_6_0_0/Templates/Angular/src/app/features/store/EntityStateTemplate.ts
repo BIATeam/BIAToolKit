@@ -4,19 +4,19 @@
   createFeatureSelector,
   createSelector,
 } from '@ngrx/store';
-import { MaintenanceTeam } from '../model/maintenance-team';
-import { maintenanceTeamCRUDConfiguration } from '../maintenance-team.constants';
-import * as fromMaintenanceTeams from './maintenance-teams-reducer';
+import { Plane } from '../model/plane';
+import { planeCRUDConfiguration } from '../plane.constants';
+import * as fromPlanes from './planes-reducer';
 
-export namespace FeatureMaintenanceTeamsStore {
-  export interface MaintenanceTeamsState {
-    maintenanceTeams: fromMaintenanceTeams.State;
+export namespace FeaturePlanesStore {
+  export interface PlanesState {
+    planes: fromPlanes.State;
   }
 
   /** Provide reducers with AoT-compilation compliance */
-  export function reducers(state: MaintenanceTeamsState | undefined, action: Action) {
+  export function reducers(state: PlanesState | undefined, action: Action) {
     return combineReducers({
-      maintenanceTeams: fromMaintenanceTeams.maintenanceTeamReducers,
+      planes: fromPlanes.planeReducers,
     })(state, action);
   }
 
@@ -25,44 +25,49 @@ export namespace FeatureMaintenanceTeamsStore {
    * This is used for selecting feature states that are loaded eagerly or lazily.
    */
 
-  export const getMaintenanceTeamsState = createFeatureSelector<MaintenanceTeamsState>(
-    maintenanceTeamCRUDConfiguration.storeKey
+  export const getPlanesState = createFeatureSelector<PlanesState>(
+    planeCRUDConfiguration.storeKey
   );
 
-  export const getMaintenanceTeamsEntitiesState = createSelector(
-    getMaintenanceTeamsState,
-    state => state.maintenanceTeams
+  export const getPlanesEntitiesState = createSelector(
+    getPlanesState,
+    state => state.planes
   );
 
-  export const getMaintenanceTeamsTotalCount = createSelector(
-    getMaintenanceTeamsEntitiesState,
+  export const getPlanesTotalCount = createSelector(
+    getPlanesEntitiesState,
     state => state.totalCount
   );
 
-  export const getCurrentMaintenanceTeam = createSelector(
-    getMaintenanceTeamsEntitiesState,
-    state => state.currentItem ?? <MaintenanceTeam>{}
+  export const getCurrentPlane = createSelector(
+    getPlanesEntitiesState,
+    state => state.currentItem ?? <Plane>{}
+  );
+
+  export const getCurrentPlaneHistorical = createSelector(
+    getPlanesEntitiesState,
+    state => state.currentItemHistorical
   );
 
   export const getLastLazyLoadEvent = createSelector(
-    getMaintenanceTeamsEntitiesState,
+    getPlanesEntitiesState,
     state => state.lastLazyLoadEvent
   );
 
-  export const getMaintenanceTeamLoadingGet = createSelector(
-    getMaintenanceTeamsEntitiesState,
+  export const getPlaneLoadingGet = createSelector(
+    getPlanesEntitiesState,
     state => state.loadingGet
   );
 
-  export const getMaintenanceTeamLoadingGetAll = createSelector(
-    getMaintenanceTeamsEntitiesState,
+  export const getPlaneLoadingGetAll = createSelector(
+    getPlanesEntitiesState,
     state => state.loadingGetAll
   );
 
-  export const { selectAll: getAllMaintenanceTeams } =
-    fromMaintenanceTeams.maintenanceTeamsAdapter.getSelectors(getMaintenanceTeamsEntitiesState);
+  export const { selectAll: getAllPlanes } =
+    fromPlanes.planesAdapter.getSelectors(getPlanesEntitiesState);
 
-  export const getMaintenanceTeamById = (id: number) =>
-    createSelector(getMaintenanceTeamsEntitiesState, fromMaintenanceTeams.getMaintenanceTeamById(id));
+  export const getPlaneById = (id: number) =>
+    createSelector(getPlanesEntitiesState, fromPlanes.getPlaneById(id));
 }
 

@@ -1,5 +1,5 @@
 ﻿            // BIAToolKit - Begin Partial TeamConfig MaintenanceTeam
-            new ()
+            new()
             {
                 TeamTypeId = (int)TeamTypeId.MaintenanceTeam,
                 RightPrefix = "MaintenanceTeam",
@@ -13,7 +13,7 @@
                 }.ToImmutable(),
                 Parents = new ImmutableListBuilder<BiaTeamParentConfig<BaseEntityTeam>>
                 {
-                    new ()
+                    new()
                     {
                         TeamTypeId = (int)TeamTypeId.AircraftMaintenanceCompany,
                         GetParent = team => (team as MaintenanceCompanies.Entities.MaintenanceTeam).AircraftMaintenanceCompany,

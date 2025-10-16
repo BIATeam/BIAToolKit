@@ -30,6 +30,9 @@ import { <#= ModelInstance.EntityNamePlural #>Effects } from './store/<#= ModelI
 import { <#= ModelInstance.EntityName #>EditComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-edit/<#= ModelInstance.EntityName.ToKebabCase() #>-edit.component';
 import { <#= ModelInstance.EntityName #>ImportComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-import/<#= ModelInstance.EntityName.ToKebabCase() #>-import.component';
 import { <#= ModelInstance.EntityName #>NewComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-new/<#= ModelInstance.EntityName.ToKebabCase() #>-new.component';
+<#  if (ModelInstance.DisplayHistorical) { #>
+import { <#= ModelInstance.EntityName #>HistoricalComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-historical/<#= ModelInstance.EntityName.ToKebabCase() #>-historical.component';
+<#  } #>
 
 export const ROUTES: Routes = [
   {
@@ -124,6 +127,23 @@ export const ROUTES: Routes = [
             component: <#= ModelInstance.EntityName #>EditComponent,
             canActivate: [PermissionGuard],
           },
+<#  if (ModelInstance.DisplayHistorical) { #>
+          {
+            path: 'historical',
+            data: {
+              breadcrumb: 'bia.historical',
+              canNavigate: false,
+              layoutMode: LayoutMode.popup,
+              style: {
+                minWidth: '50vw',
+              },
+              title: 'bia.historical',
+              permission: Permission.<#= ModelInstance.EntityName #>_Read,
+            },
+            component: <#= ModelInstance.EntityName #>HistoricalComponent,
+            canActivate: [PermissionGuard],
+          },
+<#  } #>
           {
             path: '',
             pathMatch: 'full',

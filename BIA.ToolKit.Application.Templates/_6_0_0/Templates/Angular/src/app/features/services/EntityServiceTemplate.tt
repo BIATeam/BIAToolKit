@@ -20,6 +20,9 @@ import { <#= ModelInstance.EntityName #>OptionsService } from './<#= ModelInstan
 <#  if(ModelInstance.HasParent) {#>
 import { <#= ModelInstance.ParentName #>Service } from '../../../services/<#= ModelInstance.ParentName.ToKebabCase() #>.service';
 <#  } #>
+<#  if (ModelInstance.DisplayHistorical) { #>
+import { HistoricalEntryDto } from 'packages/bia-ng/models/dto/historical-entry-dto';
+<#  } #>
 
 @Injectable({
   providedIn: 'root',
@@ -98,6 +101,11 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
     Feature<#= ModelInstance.EntityNamePlural #>Store.getCurrent<#= ModelInstance.EntityName #>
   );
 
+<#  if (ModelInstance.DisplayHistorical) { #>
+  public crudItemHistorical$: Observable<HistoricalEntryDto[]> =
+    this.store.select(Feature<#= ModelInstance.EntityNamePlural #>Store.getCurrent<#= ModelInstance.EntityName #>Historical);
+<#  } #>
+
   public displayItemName$: Observable<string> = this.crudItem$.pipe(
     map(<#= ModelInstance.EntityName.ToCamelCase() #> => <#= ModelInstance.EntityName.ToCamelCase() #>?.<#= ModelInstance.DisplayItemName.ToCamelCase() #>?.toString() ?? '')
   );
@@ -159,6 +167,11 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
     this.store.dispatch(
       Feature<#= ModelInstance.EntityNamePlural #>Actions.updateFixedStatus({ id: id, isFixed: isFixed })
     );
+  }
+<#  } #>
+<#  if(ModelInstance.DisplayHistorical) { #>
+  public loadHistoric(id: any): void {
+    this.store.dispatch(Feature<#= ModelInstance.EntityNamePlural #>Actions.loadHistorical({ id: id }));
   }
 <#  } #>
 }

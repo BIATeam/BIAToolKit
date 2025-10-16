@@ -39,6 +39,7 @@
         public bool IsVersioned { get; set; }
         public bool IsArchivable { get; set; }
         public string EntityBaseKeyType { get; set; }
+        public bool DisplayHistorical { get; set; }
     }
 
     public class DtoMapping

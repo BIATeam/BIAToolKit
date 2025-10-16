@@ -6,30 +6,28 @@ import {
   LayoutMode,
 } from 'bia-ng/shared';
 import { Permission } from 'src/app/shared/permission';
-import { MaintenanceTeamItemComponent } from './views/maintenance-team-item/maintenance-team-item.component';
-import { MaintenanceTeamsIndexComponent } from './views/maintenance-teams-index/maintenance-teams-index.component';
-import { aircraftMaintenanceCompanyCRUDConfiguration } from '../../aircraft-maintenance-company.constants';
-import { AircraftMaintenanceCompaniesEffects } from '../../store/aircraft-maintenance-companies-effects';
-import { FeatureAircraftMaintenanceCompaniesStore } from '../../store/aircraft-maintenance-company.state';
+import { PlaneItemComponent } from './views/plane-item/plane-item.component';
+import { PlanesIndexComponent } from './views/planes-index/planes-index.component';
 import { EngineOptionModule } from 'src/app/domains/engine-option/engine-option.module';
 import { PlaneTypeOptionModule } from 'src/app/domains/plane-type-option/plane-type-option.module';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreModule } from '@ngrx/store';
-import { maintenanceTeamCRUDConfiguration } from './maintenance-team.constants';
-import { FeatureMaintenanceTeamsStore } from './store/maintenance-team.state';
-import { MaintenanceTeamsEffects } from './store/maintenance-teams-effects';
-import { MaintenanceTeamEditComponent } from './views/maintenance-team-edit/maintenance-team-edit.component';
-import { MaintenanceTeamImportComponent } from './views/maintenance-team-import/maintenance-team-import.component';
-import { MaintenanceTeamNewComponent } from './views/maintenance-team-new/maintenance-team-new.component';
+import { planeCRUDConfiguration } from './plane.constants';
+import { FeaturePlanesStore } from './store/plane.state';
+import { PlanesEffects } from './store/planes-effects';
+import { PlaneEditComponent } from './views/plane-edit/plane-edit.component';
+import { PlaneImportComponent } from './views/plane-import/plane-import.component';
+import { PlaneNewComponent } from './views/plane-new/plane-new.component';
+import { PlaneHistoricalComponent } from './views/plane-historical/plane-historical.component';
 
 export const ROUTES: Routes = [
   {
     path: '',
     data: {
       breadcrumb: null,
-      permission: Permission.MaintenanceTeam_List_Access,
-      injectComponent: MaintenanceTeamsIndexComponent,
-      configuration: maintenanceTeamCRUDConfiguration,
+      permission: Permission.Plane_List_Access,
+      injectComponent: PlanesIndexComponent,
+      configuration: planeCRUDConfiguration,
     },
     component: DynamicLayoutComponent,
     canActivate: [PermissionGuard],
@@ -40,10 +38,10 @@ export const ROUTES: Routes = [
         data: {
           breadcrumb: 'bia.add',
           canNavigate: false,
-          permission: Permission.MaintenanceTeam_Create,
-          title: 'maintenanceTeam.add',
+          permission: Permission.Plane_Create,
+          title: 'plane.add',
         },
-        component: MaintenanceTeamNewComponent,
+        component: PlaneNewComponent,
         canActivate: [PermissionGuard],
       },
       {
@@ -52,32 +50,33 @@ export const ROUTES: Routes = [
           breadcrumb: '',
           canNavigate: false,
         },
-        component: MaintenanceTeamItemComponent,
+        component: PlaneItemComponent,
         canActivate: [PermissionGuard],
         children: [
-          {
-            path: 'members',
-            data: {
-              breadcrumb: 'app.members',
-              canNavigate: true,
-              permission:
-                Permission.MaintenanceTeam_Member_List_Access,
-              layoutMode: LayoutMode.fullPage,
-            },
-            loadChildren: () =>
-              import(
-                './children/members/maintenance-team-member.module'
-              ).then(m => m.MaintenanceTeamMemberModule),
-          },
           {
             path: 'edit',
             data: {
               breadcrumb: 'bia.edit',
               canNavigate: true,
-              permission: Permission.MaintenanceTeam_Update,
-              title: 'maintenanceTeam.edit',
+              permission: Permission.Plane_Update,
+              title: 'plane.edit',
             },
-            component: MaintenanceTeamEditComponent,
+            component: PlaneEditComponent,
+            canActivate: [PermissionGuard],
+          },
+          {
+            path: 'historical',
+            data: {
+              breadcrumb: 'bia.historical',
+              canNavigate: false,
+              layoutMode: LayoutMode.popup,
+              style: {
+                minWidth: '50vw',
+              },
+              title: 'bia.historical',
+              permission: Permission.Plane_Read,
+            },
+            component: PlaneHistoricalComponent,
             canActivate: [PermissionGuard],
           },
           {
@@ -85,8 +84,8 @@ export const ROUTES: Routes = [
             pathMatch: 'full',
             redirectTo: 'edit',
           },
-          // BIAToolKit - Begin MaintenanceTeamModuleChildPath
-          // BIAToolKit - End MaintenanceTeamModuleChildPath
+          // BIAToolKit - Begin PlaneModuleChildPath
+          // BIAToolKit - End PlaneModuleChildPath
         ],
       },
     ],
@@ -98,18 +97,13 @@ export const ROUTES: Routes = [
   imports: [
     RouterModule.forChild(ROUTES),
     StoreModule.forFeature(
-      maintenanceTeamCRUDConfiguration.storeKey,
-      FeatureMaintenanceTeamsStore.reducers
+      planeCRUDConfiguration.storeKey,
+      FeaturePlanesStore.reducers
     ),
-    // Team Parent Store:
-    StoreModule.forFeature(
-      aircraftMaintenanceCompanyCRUDConfiguration.storeKey,
-      FeatureAircraftMaintenanceCompaniesStore.reducers
-    ),
-    EffectsModule.forFeature([MaintenanceTeamsEffects, AircraftMaintenanceCompaniesEffects]),
+    EffectsModule.forFeature([PlanesEffects]),
     // Domain Modules:
     EngineOptionModule,
     PlaneTypeOptionModule,
   ],
 })
-export class MaintenanceTeamModule {}
+export class PlaneModule {}

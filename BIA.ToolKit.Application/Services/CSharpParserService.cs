@@ -466,15 +466,8 @@ using Roslyn.Services;*/
         private static bool IsSolutionRestored(string solutionPath)
         {
             var solutionDir = Path.GetDirectoryName(solutionPath)!;
-            var csprojFiles = Directory.GetFiles(solutionDir, "*.csproj", SearchOption.AllDirectories);
-
-            foreach (var proj in csprojFiles)
-            {
-                if (!IsProjectRestored(proj))
-                    return false;
-            }
-
-            return true;
+            var csprojFiles = Directory.GetFiles(solutionDir, "*.csproj", SearchOption.AllDirectories).Where(x => !x.Contains("BIAPackage"));
+            return csprojFiles.All(IsProjectRestored);
         }
 
         private static bool IsProjectRestored(string projectFilePath)

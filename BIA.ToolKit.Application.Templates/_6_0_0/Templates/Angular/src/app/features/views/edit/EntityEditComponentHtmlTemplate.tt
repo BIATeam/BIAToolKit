@@ -17,7 +17,12 @@
   [showPopupButton]="showPopupButton"
   [showSplitButton]="showSplitButton"
   [showFullPageButton]="showFullPageButton"
-  (layoutChanged)="notifyLayoutChange($event)"></app-<#= ModelInstance.EntityName.ToKebabCase() #>-form>
+  (layoutChanged)="notifyLayoutChange($event)"
+<#  if(ModelInstance.DisplayHistorical) { #>
+  [displayHistorical]="crudConfiguration.displayHistorical"
+  [historicalEntries]="(<#= ModelInstance.EntityName.ToCamelCase() #>Service.crudItemHistorical$ | async) ?? []"
+<#  } #>
+  ></app-<#= ModelInstance.EntityName.ToKebabCase() #>-form>
 <bia-spinner
   *ngIf="<#= ModelInstance.EntityName.ToCamelCase() #>Service.loadingGet$ | async"
   [overlay]="true"></bia-spinner>

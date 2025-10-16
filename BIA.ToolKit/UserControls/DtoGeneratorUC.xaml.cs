@@ -161,7 +161,8 @@
                     IsFixable = vm.IsFixable,
                     AncestorTeamName = vm.AncestorTeam,
                     HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
-                    GenerateBack = true
+                    GenerateBack = true,
+                    HasAudit = vm.UseDedicatedAudit
                 });
             });
         }
@@ -181,6 +182,7 @@
             generation.IsArchivable = vm.IsArchivable;
             generation.IsFixable = vm.IsFixable;
             generation.EntityBaseKeyType = vm.SelectedBaseKeyType;
+            generation.UseDedicatedAudit = vm.UseDedicatedAudit;
             generation.PropertyMappings.Clear();
 
             foreach (var property in vm.MappingEntityProperties)
@@ -250,6 +252,7 @@
             vm.IsFixable = generation.IsFixable;
             vm.IsArchivable = generation.IsArchivable;
             vm.SelectedBaseKeyType = generation.EntityBaseKeyType;
+            vm.UseDedicatedAudit = generation.UseDedicatedAudit;
 
             var allEntityProperties = vm.AllEntityPropertiesRecursively.ToList();
             foreach (var property in allEntityProperties)

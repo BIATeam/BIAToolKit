@@ -10,25 +10,26 @@
             CompanyName = "TheBIADevCompany";
             ProjectName = "BIADemo";
             EntityNameArticle = "a";
-            DomainName = "MaintenanceCompanies";
-            EntityName = "MaintenanceTeam";
+            DomainName = "Fleet";
+            EntityName = "Plane";
             BaseKeyType = "int";
-            EntityNamePlural = "MaintenanceTeams";
-            IsTeam = true;
+            EntityNamePlural = "Planes";
+            IsTeam = false;
             HasAncestorTeam = true;
             AncestorTeamName = "Site";
-            DisplayItemName = "Name";
+            DisplayItemName = "Msn";
             OptionItems = new List<string> { "Engine", "PlaneType" };
-            HasParent = true;
-            ParentName = "AircraftMaintenanceCompany";
-            ParentNamePlural = "AircraftMaintenanceCompanies";
-            AngularParentRelativePath = "aircraft-maintenance-companies";
-            AngularDeepLevel = 2;
+            HasParent = false;
+            DisplayHistorical = true;
+            //ParentName = "AircraftMaintenanceCompany";
+            //ParentNamePlural = "AircraftMaintenanceCompanies";
+            //AngularParentRelativePath = "aircraft-maintenance-companies";
+            //AngularDeepLevel = 2;
             Properties = new List<PropertyCrudModel>
             {
                  new PropertyCrudModel
                 {
-                    Name = "AircraftMaintenanceCompanyId",
+                    Name = "SiteId",
                     Type = "int",
                     BiaFieldAttributes = new List<KeyValuePair<string, string>>
                     {

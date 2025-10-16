@@ -7,5 +7,6 @@
     public class EntityDtoModel<TPropertyDtoModel> : _5_0_0.Models.EntityDtoModel<TPropertyDtoModel>
         where TPropertyDtoModel : class, IPropertyDtoModel
     {
+        public override bool HasAudit { get; set; }
     }
 }

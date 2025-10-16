@@ -63,6 +63,7 @@
             model.TeamRoleId = crudContext.TeamRoleId;
             model.TeamTypeId = crudContext.TeamTypeId;
             model.FormReadOnlyMode = crudContext.FormReadOnlyMode;
+            model.DisplayHistorical = crudContext.DisplayHistorical;
 
             model.Properties = crudContext.Properties.Select(x => new TPropertyCrudModel
             {
@@ -109,6 +110,7 @@
             model.IsArchivable = dtoContext.IsArchivable;
             model.IsFixable = dtoContext.IsFixable;
             model.IsVersioned = dtoContext.IsVersioned;
+            model.HasAudit = dtoContext.HasAudit;
 
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {

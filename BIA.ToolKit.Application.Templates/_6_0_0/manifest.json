@@ -11,6 +11,33 @@
         {
           "inputPath": "DomainDto\\EntityDtoTemplate.tt",
           "outputPath": "{Project}.Domain.Dto\\{Domain}\\{Entity}Dto.cs"
+        },
+        {
+          "inputPath": "Domain\\Mappers\\EntityAuditMapperTemplate.tt",
+          "outputPath": "{Project}.Domain\\{Domain}\\Mappers\\{Entity}AuditMapper.cs"
+        },
+        {
+          "inputPath": "Domain\\Entities\\EntityAuditTemplate.tt",
+          "outputPath": "{Project}.Domain\\{Domain}\\Entities\\{Entity}Audit.cs"
+        },
+        {
+          "inputPath": "InfrastructureData\\Features\\PartialDtoAuditFeatureTemplate_AuditTypeMapper.tt",
+          "outputPath": "{Project}.Infrastructure.Data\\Features\\AuditFeature.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "AuditTypeMapper"
+        },
+        {
+          "inputPath": "InfrastructureData\\Features\\PartialDtoAuditFeatureTemplate_AuditTypeMapperUsing.tt",
+          "outputPath": "{Project}.Infrastructure.Data\\Features\\AuditFeature.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "AuditTypeMapperUsing",
+          "UseDomainPartialInsertionMarkup":  true
+        },
+        {
+          "inputPath": "InfrastructureData\\PartialDtoDataContextTemplate_DbSetAudit.tt",
+          "outputPath": "{Project}.Infrastructure.Data\\DataContext.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "DbSetAudit"
         }
       ]
     },
@@ -383,6 +410,10 @@
         {
           "inputPath": "src\\app\\features\\children\\members\\index\\EntityMemberIndexComponentTemplate.tt",
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\children\\members\\views\\{Entity}-members-index\\{Entity}-members-index.component.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\views\\historical\\EntityHistoricalComponentTsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-historical\\{Entity}-historical.component.ts"
         }
       ]
     }

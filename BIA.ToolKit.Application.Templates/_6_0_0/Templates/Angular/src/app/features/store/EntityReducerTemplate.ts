@@ -4,54 +4,60 @@ import {
   CrudState,
   DEFAULT_CRUD_STATE,
 } from 'bia-ng/models';
-import { MaintenanceTeam } from '../model/maintenance-team';
-import { FeatureMaintenanceTeamsActions } from './maintenance-teams-actions';
+import { Plane } from '../model/plane';
+import { FeaturePlanesActions } from './planes-actions';
+import { HistoricalEntryDto } from 'packages/bia-ng/models/dto/historical-entry-dto';
 
-// This adapter will allow is to manipulate maintenanceTeams (mostly CRUD operations)
-export const maintenanceTeamsAdapter = createEntityAdapter<MaintenanceTeam>({
-  selectId: (maintenanceTeam: MaintenanceTeam) => maintenanceTeam.id,
+// This adapter will allow is to manipulate planes (mostly CRUD operations)
+export const planesAdapter = createEntityAdapter<Plane>({
+  selectId: (plane: Plane) => plane.id,
   sortComparer: false,
 });
 
-export interface State extends CrudState<MaintenanceTeam>, EntityState<MaintenanceTeam> {
+export interface State extends CrudState<Plane>, EntityState<Plane> {
   // additional props here
+  currentItemHistorical: HistoricalEntryDto[];
 }
 
-export const INIT_STATE: State = maintenanceTeamsAdapter.getInitialState({
+export const INIT_STATE: State = planesAdapter.getInitialState({
   ...DEFAULT_CRUD_STATE(),
+  currentItemHistorical: [],
   // additional props default values here
 });
 
-export const maintenanceTeamReducers = createReducer<State>(
+export const planeReducers = createReducer<State>(
   INIT_STATE,
-  on(FeatureMaintenanceTeamsActions.clearAll, state => {
-    const stateUpdated = maintenanceTeamsAdapter.removeAll(state);
+  on(FeaturePlanesActions.clearAll, state => {
+    const stateUpdated = planesAdapter.removeAll(state);
     stateUpdated.totalCount = 0;
     return stateUpdated;
   }),
-  on(FeatureMaintenanceTeamsActions.clearCurrent, state => {
-    return { ...state, currentItem: <MaintenanceTeam>{} };
+  on(FeaturePlanesActions.clearCurrent, state => {
+    return { ...state, currentItem: <Plane>{}, currentItemHistorical: []  };
   }),
-  on(FeatureMaintenanceTeamsActions.loadAllByPost, state => {
+  on(FeaturePlanesActions.loadAllByPost, state => {
     return { ...state, loadingGetAll: true };
   }),
-  on(FeatureMaintenanceTeamsActions.load, state => {
+  on(FeaturePlanesActions.load, state => {
     return { ...state, loadingGet: true };
   }),
-    on(FeatureMaintenanceTeamsActions.loadAllByPostSuccess, (state, { result, event }) => {
-    const stateUpdated = maintenanceTeamsAdapter.setAll(result.data, state);
+    on(FeaturePlanesActions.loadAllByPostSuccess, (state, { result, event }) => {
+    const stateUpdated = planesAdapter.setAll(result.data, state);
     stateUpdated.totalCount = result.totalCount;
     stateUpdated.lastLazyLoadEvent = event;
     stateUpdated.loadingGetAll = false;
     return stateUpdated;
   }),
-  on(FeatureMaintenanceTeamsActions.loadSuccess, (state, { maintenanceTeam }) => {
-    return { ...state, currentItem: maintenanceTeam, loadingGet: false };
+  on(FeaturePlanesActions.loadSuccess, (state, { plane }) => {
+    return { ...state, currentItem: plane, loadingGet: false };
   }),
-  on(FeatureMaintenanceTeamsActions.failure, state => {
+  on(FeaturePlanesActions.loadHistoricalSuccess, (state, { historical }) => {
+    return { ...state, currentItemHistorical: historical };
+  }),
+  on(FeaturePlanesActions.failure, state => {
     return { ...state, loadingGetAll: false, loadingGet: false };
   })
 );
 
-export const getMaintenanceTeamById = (id: number) => (state: State) =>
+export const getPlaneById = (id: number) => (state: State) =>
   state.entities[id];

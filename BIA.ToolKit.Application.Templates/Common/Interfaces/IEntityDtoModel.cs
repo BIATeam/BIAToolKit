@@ -16,5 +16,6 @@
         bool IsFixable { get; set; }
         bool IsVersioned { get; set; }
         string GetClassInheritance();
+        bool HasAudit { get; set;}
     }
 }

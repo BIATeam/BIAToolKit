@@ -46,6 +46,13 @@ export namespace Feature<#= ModelInstance.EntityNamePlural #>Store {
     get<#= ModelInstance.EntityNamePlural #>EntitiesState,
     state => state.currentItem ?? <<#= ModelInstance.EntityName #>>{<# if(ModelInstance.BaseKeyType == "string" || ModelInstance.BaseKeyType == "Guid") { #> id: '' <# } #>}
   );
+<#  if(ModelInstance.DisplayHistorical) { #>
+
+  export const getCurrent<#= ModelInstance.EntityName #>Historical = createSelector(
+    get<#= ModelInstance.EntityNamePlural #>EntitiesState,
+    state => state.currentItemHistorical
+  );
+<#  } #>
 
   export const getLastLazyLoadEvent = createSelector(
     get<#= ModelInstance.EntityNamePlural #>EntitiesState,

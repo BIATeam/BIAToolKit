@@ -3,7 +3,7 @@
 <#@ output extension=".cs" #>
 <# if(ModelInstance.IsTeam && ModelInstance.HasParent) { #>
                 // BIAToolKit - Begin Partial TeamConfig<#= ModelInstance.ParentName #>Children <#= ModelInstance.EntityName #>
-                    new ()
+                    new()
                     {
                         TeamTypeId = (int)TeamTypeId.<#= ModelInstance.EntityName #>,
                         GetChilds = team => (team as <#= ModelInstance.DomainName #>.Entities.<#= ModelInstance.ParentName #>).<#= ModelInstance.EntityNamePlural #>,
