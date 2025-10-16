@@ -13,7 +13,7 @@ var baseKeyType = ModelInstance.IsTeamType ? string.Empty : $", {ModelInstance.B
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers
 {
     using BIA.Net.Core.Domain.Mapper;
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Fleet.Entities;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
 
     /// <summary>
     /// Audit mapper for <see cref="<#= ModelInstance.EntityName #>"/>.
