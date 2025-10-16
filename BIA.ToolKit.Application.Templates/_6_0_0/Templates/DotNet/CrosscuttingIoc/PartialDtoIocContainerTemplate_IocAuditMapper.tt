@@ -1,9 +1,0 @@
-﻿<#@ template debug="true" hostspecific="true" language="C#" #>
-<#@ include file="$(T4Includes_6_0_0)\TemplateDto.ttinclude" #>
-<#@ output extension=".cs" #>
-<# if(ModelInstance.HasAudit) {  #>
-            // BIAToolKit - Begin Partial IocAuditMapper <#= ModelInstance.EntityName #>
-            collection.AddSingleton<IAuditMapper, <#= ModelInstance.EntityName #>AuditMapper>();
-
-            // BIAToolKit - End Partial IocAuditMapper <#= ModelInstance.EntityName #>
-<# }  #>
