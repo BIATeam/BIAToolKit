@@ -126,6 +126,7 @@
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0" Margin="{StaticResource FormRowMargin}">
                             <Grid.ColumnDefinitions>
@@ -171,6 +172,14 @@
                             </Grid.ColumnDefinitions>
                             <CheckBox Grid.Column="0" Content="Advanced Filter" Foreground="White" IsChecked="{Binding UseAdvancedFilter}"/>
                             <CheckBox Grid.Column="2" Content="Use HUB client" Foreground="White" IsChecked="{Binding UseHubClient}"/>
+                        </Grid>
+                        <Grid Grid.Row="5" Margin="{StaticResource FormRowMargin}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition Width="0.1*"/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0" Content="Display Historical" Foreground="White" IsChecked="{Binding DisplayHistorical}" Visibility="{Binding IsVisibleDisplayHistorical, Converter={StaticResource BoolToVisConverter}}"/>
                         </Grid>
                     </Grid>
                 </Grid>
