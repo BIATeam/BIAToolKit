@@ -116,7 +116,7 @@
                 }
 
                 RaisePropertyChanged(nameof(IsEntitySelected));
-                RaisePropertyChanged(nameof(UseDedicatedAudit));
+                RaisePropertyChanged(nameof(IsAuditable));
 
                 RefreshEntityPropertiesTreeView();
                 RemoveAllMappingProperties();
@@ -126,6 +126,7 @@
                 IsFixable = SelectedEntityInfo?.IsFixable == true;
                 IsArchivable = SelectedEntityInfo?.IsArchivable == true;
                 SelectedBaseKeyType = SelectedEntityInfo?.BaseKeyType;
+                UseDedicatedAudit = false;
             }
         }
 
