@@ -45,6 +45,8 @@
                     }
                     BiaFront = BiaFronts.FirstOrDefault();
                 }
+
+                RaisePropertyChanged(nameof(IsVisibleDisplayHistorical));
             }
         }
 
@@ -203,6 +205,21 @@
                 }
             }
         }
+
+        private bool displayHistorical;
+
+        public bool DisplayHistorical
+        {
+            get { return displayHistorical; }
+            set 
+            {
+                displayHistorical = value; 
+                RaisePropertyChanged(nameof(DisplayHistorical));
+            }
+        }
+
+        public bool IsVisibleDisplayHistorical => Version.TryParse(CurrentProject?.FrameworkVersion, out var version) && version.Major >= 6;
+
 
         public void AddOptionItems(IEnumerable<OptionItem> optionItems)
         {

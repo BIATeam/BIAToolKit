@@ -1,10 +1,10 @@
-﻿<app-maintenance-team-form
+﻿<app-plane-form
   *ngIf="crudItemService.crudItem$ | async; let crudItem"
   [crudItem]="crudItem"
   [fields]="crudConfiguration.fieldsConfig.columns"
   [formLayoutConfig]="crudConfiguration.formLayoutConfig"
   [formReadOnlyMode]="formReadOnlyMode"
-  [dictOptionDtos]="(maintenanceTeamService.optionsService.dictOptionDtos$ | async) ?? []"
+  [dictOptionDtos]="(planeService.optionsService.dictOptionDtos$ | async) ?? []"
   [isCrudItemOutdated]="isCrudItemOutdated"
   [showFixableState]="crudConfiguration.isFixable"
   [canFix]="canFix"
@@ -14,7 +14,10 @@
   [showPopupButton]="showPopupButton"
   [showSplitButton]="showSplitButton"
   [showFullPageButton]="showFullPageButton"
-  (layoutChanged)="notifyLayoutChange($event)"></app-maintenance-team-form>
+  (layoutChanged)="notifyLayoutChange($event)"
+  [displayHistorical]="crudConfiguration.displayHistorical"
+  [historicalEntries]="(planeService.crudItemHistorical$ | async) ?? []"
+  ></app-plane-form>
 <bia-spinner
-  *ngIf="maintenanceTeamService.loadingGet$ | async"
+  *ngIf="planeService.loadingGet$ | async"
   [overlay]="true"></bia-spinner>

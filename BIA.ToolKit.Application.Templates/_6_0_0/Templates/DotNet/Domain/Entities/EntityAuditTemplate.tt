@@ -1,0 +1,24 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateDto.ttinclude" #>
+<#@ output extension=".cs" #>
+<#
+var baseMapperClass = ModelInstance.IsTeamType ? "BaseTeamMapper" : "BaseMapper";
+var baseKeyType = ModelInstance.IsTeamType ? string.Empty : $", {ModelInstance.BaseKeyType}";
+#>
+<#  if(ModelInstance.HasAudit) { #>
+// <copyright file="<#= ModelInstance.EntityName #>Audit.cs" company="<#= ModelInstance.CompanyName #>">
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities
+{
+    using BIA.Net.Core.Domain.Audit;
+
+    /// <summary>
+    /// Audit entity for <see cref="<#= ModelInstance.EntityName #>"/>.
+    /// </summary>
+    public class <#= ModelInstance.EntityName #>Audit : AuditKeyedEntity<<#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, int>
+    {
+    }
+}
+<# }  #>

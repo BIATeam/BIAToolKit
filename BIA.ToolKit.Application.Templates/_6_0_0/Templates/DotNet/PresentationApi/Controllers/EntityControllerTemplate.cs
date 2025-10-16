@@ -1,14 +1,14 @@
-﻿// <copyright file="MaintenanceTeamsController.cs" company="TheBIADevCompany">
+﻿// <copyright file="PlanesController.cs" company="TheBIADevCompany">
 // Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
-// #define UseHubForClientInMaintenanceTeam
-namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompanies
+// #define UseHubForClientInPlane
+namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Fleet
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-#if UseHubForClientInMaintenanceTeam
+#if UseHubForClientInPlane
     using BIA.Net.Core.Application.Services;
 #endif
     using BIA.Net.Core.Common;
@@ -18,78 +18,78 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
-    using TheBIADevCompany.BIADemo.Application.MaintenanceCompanies;
+    using TheBIADevCompany.BIADemo.Application.Fleet;
     using TheBIADevCompany.BIADemo.Crosscutting.Common;
-    using TheBIADevCompany.BIADemo.Domain.Dto.MaintenanceCompanies;
+    using TheBIADevCompany.BIADemo.Domain.Dto.Fleet;
 
     /// <summary>
-    /// The API controller used to manage MaintenanceTeams.
+    /// The API controller used to manage Planes.
     /// </summary>
-#if !UseHubForClientInMaintenanceTeam
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S1481:Unused local variables should be removed", Justification = "UseHubForClientInMaintenanceTeam not set")]
+#if !UseHubForClientInPlane
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S1481:Unused local variables should be removed", Justification = "UseHubForClientInPlane not set")]
 #endif
-    public class MaintenanceTeamsController : BiaControllerBase
+    public class PlanesController : BiaControllerBase
     {
         /// <summary>
-        /// The maintenanceTeam application service.
+        /// The plane application service.
         /// </summary>
-        private readonly IMaintenanceTeamAppService maintenanceTeamService;
+        private readonly IPlaneAppService planeService;
 
-#if UseHubForClientInMaintenanceTeam
+#if UseHubForClientInPlane
         private readonly IClientForHubService clientForHubService;
 #endif
 
-#if UseHubForClientInMaintenanceTeam
+#if UseHubForClientInPlane
         /// <summary>
-        /// Initializes a new instance of the <see cref="MaintenanceTeamsController"/> class.
+        /// Initializes a new instance of the <see cref="PlanesController"/> class.
         /// </summary>
-        /// <param name="maintenanceTeamService">The maintenanceTeam application service.</param>
+        /// <param name="planeService">The plane application service.</param>
         /// <param name="clientForHubService">The hub for client.</param>
-        public MaintenanceTeamsController(
-            IMaintenanceTeamAppService maintenanceTeamService,
+        public PlanesController(
+            IPlaneAppService planeService,
             IClientForHubService clientForHubService)
 #else
         /// <summary>
-        /// Initializes a new instance of the <see cref="MaintenanceTeamsController"/> class.
+        /// Initializes a new instance of the <see cref="PlanesController"/> class.
         /// </summary>
-        /// <param name="maintenanceTeamService">The maintenanceTeam application service.</param>
-        public MaintenanceTeamsController(IMaintenanceTeamAppService maintenanceTeamService)
+        /// <param name="planeService">The plane application service.</param>
+        public PlanesController(IPlaneAppService planeService)
 #endif
         {
-#if UseHubForClientInMaintenanceTeam
+#if UseHubForClientInPlane
             this.clientForHubService = clientForHubService;
 #endif
-            this.maintenanceTeamService = maintenanceTeamService;
+            this.planeService = planeService;
         }
 
         /// <summary>
-        /// Get all maintenanceTeams with filters.
+        /// Get all planes with filters.
         /// </summary>
         /// <param name="filters">The filters.</param>
-        /// <returns>The list of maintenanceTeams.</returns>
+        /// <returns>The list of planes.</returns>
         [HttpPost("all")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Roles = Rights.MaintenanceTeams.ListAccess)]
+        [Authorize(Roles = Rights.Planes.ListAccess)]
         public async Task<IActionResult> GetAll([FromBody] PagingFilterFormatDto filters)
         {
-            var (results, total) = await this.maintenanceTeamService.GetRangeAsync(filters);
+            var (results, total) = await this.planeService.GetRangeAsync(filters);
             this.HttpContext.Response.Headers.Append(BiaConstants.HttpHeaders.TotalCount, total.ToString());
             return this.Ok(results);
         }
 
         /// <summary>
-        /// Get a maintenanceTeam by its identifier.
+        /// Get a plane by its identifier.
         /// </summary>
         /// <param name="id">The identifier.</param>
-        /// <returns>The maintenanceTeam.</returns>
+        /// <returns>The plane.</returns>
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Roles = Rights.MaintenanceTeams.Read)]
+        [Authorize(Roles = Rights.Planes.Read)]
         public async Task<IActionResult> Get(int id)
         {
             if (id == 0)
@@ -99,7 +99,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
 
             try
             {
-                var dto = await this.maintenanceTeamService.GetAsync(id);
+                var dto = await this.planeService.GetAsync(id);
                 return this.Ok(dto);
             }
             catch (ElementNotFoundException)
@@ -109,23 +109,23 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
         }
 
         /// <summary>
-        /// Add a maintenanceTeam.
+        /// Add a plane.
         /// </summary>
-        /// <param name="dto">The maintenanceTeam DTO.</param>
+        /// <param name="dto">The plane DTO.</param>
         /// <returns>The result of the creation.</returns>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Roles = Rights.MaintenanceTeams.Create)]
-        public async Task<IActionResult> Add([FromBody] MaintenanceTeamDto dto)
+        [Authorize(Roles = Rights.Planes.Create)]
+        public async Task<IActionResult> Add([FromBody] PlaneDto dto)
         {
             try
             {
-                var createdDto = await this.maintenanceTeamService.AddAsync(dto);
-#if UseHubForClientInMaintenanceTeam
-                await this.clientForHubService.SendTargetedMessage(createdDto.AircraftMaintenanceCompanyId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
+                var createdDto = await this.planeService.AddAsync(dto);
+#if UseHubForClientInPlane
+                await this.clientForHubService.SendTargetedMessage(createdDto.SiteId.ToString(), "planes", "refresh-planes");
 #endif
                 return this.CreatedAtAction("Get", new { id = createdDto.Id }, createdDto);
             }
@@ -140,10 +140,10 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
         }
 
         /// <summary>
-        /// Update a maintenanceTeam.
+        /// Update a plane.
         /// </summary>
-        /// <param name="id">The maintenanceTeam identifier.</param>
-        /// <param name="dto">The maintenanceTeam DTO.</param>
+        /// <param name="id">The plane identifier.</param>
+        /// <param name="dto">The plane DTO.</param>
         /// <returns>The result of the update.</returns>
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -152,8 +152,8 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Roles = Rights.MaintenanceTeams.Update)]
-        public async Task<IActionResult> Update(int id, [FromBody] MaintenanceTeamDto dto)
+        [Authorize(Roles = Rights.Planes.Update)]
+        public async Task<IActionResult> Update(int id, [FromBody] PlaneDto dto)
         {
             if (id == 0 || dto == null || dto.Id != id)
             {
@@ -162,9 +162,9 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
 
             try
             {
-                var updatedDto = await this.maintenanceTeamService.UpdateAsync(dto);
-#if UseHubForClientInMaintenanceTeam
-                await this.clientForHubService.SendTargetedMessage(updatedDto.AircraftMaintenanceCompanyId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
+                var updatedDto = await this.planeService.UpdateAsync(dto);
+#if UseHubForClientInPlane
+                await this.clientForHubService.SendTargetedMessage(updatedDto.SiteId.ToString(), "planes", "refresh-planes");
 #endif
                 return this.Ok(updatedDto);
             }
@@ -187,16 +187,16 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
         }
 
         /// <summary>
-        /// Remove a maintenanceTeam.
+        /// Remove a plane.
         /// </summary>
-        /// <param name="id">The maintenanceTeam identifier.</param>
+        /// <param name="id">The plane identifier.</param>
         /// <returns>The result of the remove.</returns>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Roles = Rights.MaintenanceTeams.Delete)]
+        [Authorize(Roles = Rights.Planes.Delete)]
         public async Task<IActionResult> Remove(int id)
         {
             if (id == 0)
@@ -206,9 +206,9 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
 
             try
             {
-                var deletedDto = await this.maintenanceTeamService.RemoveAsync(id);
-#if UseHubForClientInMaintenanceTeam
-                await this.clientForHubService.SendTargetedMessage(deletedDto.AircraftMaintenanceCompanyId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
+                var deletedDto = await this.planeService.RemoveAsync(id);
+#if UseHubForClientInPlane
+                await this.clientForHubService.SendTargetedMessage(deletedDto.SiteId.ToString(), "planes", "refresh-planes");
 #endif
                 return this.Ok();
             }
@@ -219,16 +219,16 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
         }
 
         /// <summary>
-        /// Removes the specified maintenanceTeam ids.
+        /// Removes the specified plane ids.
         /// </summary>
-        /// <param name="ids">The maintenanceTeam ids.</param>
+        /// <param name="ids">The plane ids.</param>
         /// <returns>The result of the remove.</returns>
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Roles = Rights.MaintenanceTeams.Delete)]
+        [Authorize(Roles = Rights.Planes.Delete)]
         public async Task<IActionResult> Remove([FromQuery] List<int> ids)
         {
             if (ids?.Any() != true)
@@ -238,11 +238,11 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
 
             try
             {
-                var deletedDtos = await this.maintenanceTeamService.RemoveAsync(ids);
-#if UseHubForClientInMaintenanceTeam
-                deletedDtos.Select(m => m.AircraftMaintenanceCompanyId).Distinct().ToList().ForEach(async parentId =>
+                var deletedDtos = await this.planeService.RemoveAsync(ids);
+#if UseHubForClientInPlane
+                deletedDtos.Select(m => m.SiteId).Distinct().ToList().ForEach(async parentId =>
                 {
-                    await this.clientForHubService.SendTargetedMessage(parentId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
+                    await this.clientForHubService.SendTargetedMessage(parentId.ToString(), "planes", "refresh-planes");
                 });
 #endif
                 return this.Ok();
@@ -254,9 +254,9 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
         }
 
         /// <summary>
-        /// Save all maintenanceTeams according to their state (added, updated or removed).
+        /// Save all planes according to their state (added, updated or removed).
         /// </summary>
-        /// <param name="dtos">The list of maintenanceTeams.</param>
+        /// <param name="dtos">The list of planes.</param>
         /// <returns>The status code.</returns>
         [HttpPost("save")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -265,8 +265,8 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Roles = Rights.MaintenanceTeams.Save)]
-        public async Task<IActionResult> Save(IEnumerable<MaintenanceTeamDto> dtos)
+        [Authorize(Roles = Rights.Planes.Save)]
+        public async Task<IActionResult> Save(IEnumerable<PlaneDto> dtos)
         {
             var dtoList = dtos.ToList();
             if (!dtoList.Any())
@@ -276,11 +276,11 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
 
             try
             {
-                var savedDtos = await this.maintenanceTeamService.SaveAsync(dtoList);
-#if UseHubForClientInMaintenanceTeam
-                savedDtos.Select(m => m.AircraftMaintenanceCompanyId).Distinct().ToList().ForEach(async parentId =>
+                var savedDtos = await this.planeService.SaveAsync(dtoList);
+#if UseHubForClientInPlane
+                savedDtos.Select(m => m.SiteId).Distinct().ToList().ForEach(async parentId =>
                 {
-                    await this.clientForHubService.SendTargetedMessage(parentId.ToString(), "maintenanceTeams", "refresh-maintenanceTeams");
+                    await this.clientForHubService.SendTargetedMessage(parentId.ToString(), "planes", "refresh-planes");
                 });
 #endif
                 return this.Ok();
@@ -305,11 +305,34 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.MaintenanceCompa
         /// <param name="filters">filters ( <see cref="PagingFilterFormatDto"/>).</param>
         /// <returns>a csv file.</returns>
         [HttpPost("csv")]
-        [Authorize(Roles = Rights.MaintenanceTeams.ListAccess)]
+        [Authorize(Roles = Rights.Planes.ListAccess)]
         public virtual async Task<IActionResult> GetFile([FromBody] PagingFilterFormatDto filters)
         {
-            byte[] buffer = await this.maintenanceTeamService.GetCsvAsync(filters);
-            return this.File(buffer, BiaConstants.Csv.ContentType + ";charset=utf-8", $"MaintenanceTeams{BiaConstants.Csv.Extension}");
+            byte[] buffer = await this.planeService.GetCsvAsync(filters);
+            return this.File(buffer, BiaConstants.Csv.ContentType + ";charset=utf-8", $"Planes{BiaConstants.Csv.Extension}");
+        }
+
+        /// <summary>
+        /// Return the historical of an item by its id.
+        /// </summary>
+        /// <param name="id">ID of the item to update.</param>
+        /// <returns>Item's historical.</returns>
+        [HttpGet("{id}/historical")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = Rights.Planes.Read)]
+        public virtual async Task<IActionResult> GetHistorical(int id)
+        {
+            try
+            {
+                var dto = await this.planeService.GetHistoricalAsync(id);
+                return this.Ok(dto);
+            }
+            catch (ElementNotFoundException)
+            {
+                return this.NotFound();
+            }
         }
     }
 }

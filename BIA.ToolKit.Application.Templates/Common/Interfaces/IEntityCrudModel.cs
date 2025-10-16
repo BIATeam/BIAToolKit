@@ -35,5 +35,6 @@
         int TeamTypeId { get; set; }
         int TeamRoleId { get; set; }
         string FormReadOnlyMode { get; set; }
+        bool DisplayHistorical { get; set; }
     }
 }

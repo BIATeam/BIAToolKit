@@ -12,11 +12,11 @@ import {
   withLatestFrom,
 } from 'rxjs/operators';
 import { AppState } from 'src/app/store/state';
-import { MaintenanceTeam } from '../model/maintenance-team';
-import { maintenanceTeamCRUDConfiguration } from '../maintenance-team.constants';
-import { MaintenanceTeamDas } from '../services/maintenance-team-das.service';
-import { FeatureMaintenanceTeamsStore } from './maintenance-team.state';
-import { FeatureMaintenanceTeamsActions } from './maintenance-teams-actions';
+import { Plane } from '../model/plane';
+import { planeCRUDConfiguration } from '../plane.constants';
+import { PlaneDas } from '../services/plane-das.service';
+import { FeaturePlanesStore } from './plane.state';
+import { FeaturePlanesActions } from './planes-actions';
 
 /**
  * Effects file is for isolating and managing side effects of the application in one place
@@ -24,22 +24,22 @@ import { FeatureMaintenanceTeamsActions } from './maintenance-teams-actions';
  */
 
 @Injectable()
-export class MaintenanceTeamsEffects {
+export class PlanesEffects {
   loadAllByPost$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(FeatureMaintenanceTeamsActions.loadAllByPost),
+      ofType(FeaturePlanesActions.loadAllByPost),
       map(x => x?.event),
       switchMap(event =>
-        this.maintenanceTeamDas.getListByPost({ event: event }).pipe(
-          map((result: DataResult<MaintenanceTeam[]>) =>
-            FeatureMaintenanceTeamsActions.loadAllByPostSuccess({
+        this.planeDas.getListByPost({ event: event }).pipe(
+          map((result: DataResult<Plane[]>) =>
+            FeaturePlanesActions.loadAllByPostSuccess({
               result: result,
               event: event,
             })
           ),
           catchError(err => {
             this.biaMessageService.showErrorHttpResponse(err);
-            return of(FeatureMaintenanceTeamsActions.failure({ error: err }));
+            return of(FeaturePlanesActions.failure({ error: err }));
           })
         )
       )
@@ -48,14 +48,21 @@ export class MaintenanceTeamsEffects {
 
   load$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(FeatureMaintenanceTeamsActions.load),
+      ofType(FeaturePlanesActions.load),
       map(x => x?.id),
       switchMap(id => {
-        return this.maintenanceTeamDas.get({ id: id }).pipe(
-          map(maintenanceTeam => FeatureMaintenanceTeamsActions.loadSuccess({ maintenanceTeam })),
+        return this.planeDas.get({ id: id }).pipe(
+          map(plane => {
+            if (planeCRUDConfiguration.displayHistorical) {
+              this.store.dispatch(
+                FeaturePlanesActions.loadHistorical({ id: plane.id })
+              );
+            }
+            return FeaturePlanesActions.loadSuccess({ plane });
+          }),
           catchError(err => {
             this.biaMessageService.showErrorHttpResponse(err);
-            return of(FeatureMaintenanceTeamsActions.failure({ error: err }));
+            return of(FeaturePlanesActions.failure({ error: err }));
           })
         );
       })
@@ -64,35 +71,35 @@ export class MaintenanceTeamsEffects {
 
   create$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(FeatureMaintenanceTeamsActions.create),
-      map(x => x?.maintenanceTeam),
-      concatMap(maintenanceTeam =>
-        of(maintenanceTeam).pipe(
+      ofType(FeaturePlanesActions.create),
+      map(x => x?.plane),
+      concatMap(plane =>
+        of(plane).pipe(
           withLatestFrom(
-            this.store.select(FeatureMaintenanceTeamsStore.getLastLazyLoadEvent)
+            this.store.select(FeaturePlanesStore.getLastLazyLoadEvent)
           )
         )
       ),
-      switchMap(([maintenanceTeam, event]) => {
-        return this.maintenanceTeamDas
+      switchMap(([plane, event]) => {
+        return this.planeDas
           .post({
-            item: maintenanceTeam,
-            offlineMode: maintenanceTeamCRUDConfiguration.useOfflineMode,
+            item: plane,
+            offlineMode: planeCRUDConfiguration.useOfflineMode,
           })
           .pipe(
             map(() => {
               this.biaMessageService.showAddSuccess();
-              if (maintenanceTeamCRUDConfiguration.useSignalR) {
+              if (planeCRUDConfiguration.useSignalR) {
                 return biaSuccessWaitRefreshSignalR();
               } else {
-                return FeatureMaintenanceTeamsActions.loadAllByPost({
+                return FeaturePlanesActions.loadAllByPost({
                   event: event,
                 });
               }
             }),
             catchError(err => {
               this.biaMessageService.showErrorHttpResponse(err);
-              return of(FeatureMaintenanceTeamsActions.failure({ error: err }));
+              return of(FeaturePlanesActions.failure({ error: err }));
             })
           );
       })
@@ -101,36 +108,36 @@ export class MaintenanceTeamsEffects {
 
   update$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(FeatureMaintenanceTeamsActions.update),
-      map(x => x?.maintenanceTeam),
-      concatMap(maintenanceTeam =>
-        of(maintenanceTeam).pipe(
+      ofType(FeaturePlanesActions.update),
+      map(x => x?.plane),
+      concatMap(plane =>
+        of(plane).pipe(
           withLatestFrom(
-            this.store.select(FeatureMaintenanceTeamsStore.getLastLazyLoadEvent)
+            this.store.select(FeaturePlanesStore.getLastLazyLoadEvent)
           )
         )
       ),
-      switchMap(([maintenanceTeam, event]) => {
-        return this.maintenanceTeamDas
+      switchMap(([plane, event]) => {
+        return this.planeDas
           .put({
-            item: maintenanceTeam,
-            id: maintenanceTeam.id,
-            offlineMode: maintenanceTeamCRUDConfiguration.useOfflineMode,
+            item: plane,
+            id: plane.id,
+            offlineMode: planeCRUDConfiguration.useOfflineMode,
           })
           .pipe(
             map(() => {
               this.biaMessageService.showUpdateSuccess();
-              if (maintenanceTeamCRUDConfiguration.useSignalR) {
+              if (planeCRUDConfiguration.useSignalR) {
                 return biaSuccessWaitRefreshSignalR();
               } else {
-                return FeatureMaintenanceTeamsActions.loadAllByPost({
+                return FeaturePlanesActions.loadAllByPost({
                   event: event,
                 });
               }
             }),
             catchError(err => {
               this.biaMessageService.showErrorHttpResponse(err);
-              return of(FeatureMaintenanceTeamsActions.failure({ error: err }));
+              return of(FeaturePlanesActions.failure({ error: err }));
             })
           );
       })
@@ -140,35 +147,35 @@ export class MaintenanceTeamsEffects {
 
   destroy$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(FeatureMaintenanceTeamsActions.remove),
+      ofType(FeaturePlanesActions.remove),
       map(x => x?.id),
       concatMap((id: number) =>
         of(id).pipe(
           withLatestFrom(
-            this.store.select(FeatureMaintenanceTeamsStore.getLastLazyLoadEvent)
+            this.store.select(FeaturePlanesStore.getLastLazyLoadEvent)
           )
         )
       ),
       switchMap(([id, event]) => {
-        return this.maintenanceTeamDas
+        return this.planeDas
           .delete({
             id: id,
-            offlineMode: maintenanceTeamCRUDConfiguration.useOfflineMode,
+            offlineMode: planeCRUDConfiguration.useOfflineMode,
           })
           .pipe(
             map(() => {
               this.biaMessageService.showDeleteSuccess();
-              if (maintenanceTeamCRUDConfiguration.useSignalR) {
+              if (planeCRUDConfiguration.useSignalR) {
                 return biaSuccessWaitRefreshSignalR();
               } else {
-                return FeatureMaintenanceTeamsActions.loadAllByPost({
+                return FeaturePlanesActions.loadAllByPost({
                   event: event,
                 });
               }
             }),
             catchError(err => {
               this.biaMessageService.showErrorHttpResponse(err);
-              return of(FeatureMaintenanceTeamsActions.failure({ error: err }));
+              return of(FeaturePlanesActions.failure({ error: err }));
             })
           );
       })
@@ -177,44 +184,62 @@ export class MaintenanceTeamsEffects {
 
   multiDestroy$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(FeatureMaintenanceTeamsActions.multiRemove),
+      ofType(FeaturePlanesActions.multiRemove),
       map(x => x?.ids),
       concatMap((ids: number[]) =>
         of(ids).pipe(
           withLatestFrom(
-            this.store.select(FeatureMaintenanceTeamsStore.getLastLazyLoadEvent)
+            this.store.select(FeaturePlanesStore.getLastLazyLoadEvent)
           )
         )
       ),
       switchMap(([ids, event]) => {
-        return this.maintenanceTeamDas
+        return this.planeDas
           .deletes({
             ids: ids,
-            offlineMode: maintenanceTeamCRUDConfiguration.useOfflineMode,
+            offlineMode: planeCRUDConfiguration.useOfflineMode,
           })
           .pipe(
             map(() => {
               this.biaMessageService.showDeleteSuccess();
-              if (maintenanceTeamCRUDConfiguration.useSignalR) {
+              if (planeCRUDConfiguration.useSignalR) {
                 return biaSuccessWaitRefreshSignalR();
               } else {
-                return FeatureMaintenanceTeamsActions.loadAllByPost({
+                return FeaturePlanesActions.loadAllByPost({
                   event: event,
                 });
               }
             }),
             catchError(err => {
               this.biaMessageService.showErrorHttpResponse(err);
-              return of(FeatureMaintenanceTeamsActions.failure({ error: err }));
+              return of(FeaturePlanesActions.failure({ error: err }));
             })
           );
+      })
+    )
+  );
+      
+  loadHistorical$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(FeaturePlanesActions.loadHistorical),
+      map(x => x?.id),
+      switchMap(id => {
+        return this.planeDas.getHistorical({ id: id }).pipe(
+          map(historical => {
+            return FeaturePlanesActions.loadHistoricalSuccess({ historical });
+          }),
+          catchError(err => {
+            this.biaMessageService.showErrorHttpResponse(err);
+            return of(FeaturePlanesActions.failure({ error: err }));
+          })
+        );
       })
     )
   );
   
   constructor(
     private actions$: Actions,
-    private maintenanceTeamDas: MaintenanceTeamDas,
+    private planeDas: PlaneDas,
     private biaMessageService: BiaMessageService,
     private store: Store<AppState>
   ) {}

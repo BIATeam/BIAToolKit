@@ -22,6 +22,7 @@
                 public string OutputPath { get; set; }
                 public bool IsPartial { get; set; }
                 public string PartialInsertionMarkup { get; set; }
+                public bool UseDomainPartialInsertionMarkup { get; set; }
 
                 public bool Equals(Template other)
                 {

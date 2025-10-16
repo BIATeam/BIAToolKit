@@ -19,6 +19,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
             BaseKeyType = CommonTools.GetBaseKeyType(BaseList);
             ClassAnnotations = new(classInfo.Attributes.SelectMany(x => x.Arguments));
             Properties = new(classInfo.PublicProperties.Select(x => new PropertyInfo(x)));
+            IsAuditable = classInfo.Attributes.Any(x => x.Name == "AuditInclude");
         }
 
         public EntityInfo(string path, string @namespace, string name, string baseType, string baseKeyType, List<AttributeArgumentSyntax> arguments, List<string> baseList)
@@ -57,6 +58,8 @@ namespace BIA.ToolKit.Domain.DtoGenerator
         public bool IsArchivable => IsFixable || BaseList.Any(x => x.StartsWith("IEntityArchivable<")) || BaseList.Any(x => (x.StartsWith("BaseEntity") || x.StartsWith("BaseDto")) && x.Contains("Archivable"));
         public string AncestorTeamName => ClassAnnotations.FirstOrDefault(c => c.Key == CRUDDataUpdateType.AncestorTeam.ToString()).Value;
         public bool HasAncestorTeam => !string.IsNullOrWhiteSpace(AncestorTeamName);
+        public bool IsAuditable { get; set; }
+
 
         private void ParseAnnotations(List<AttributeArgumentSyntax> annotations)
         {

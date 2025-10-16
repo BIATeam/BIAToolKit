@@ -3,22 +3,23 @@
 } from 'bia-ng/shared';
 import { TeamTypeId } from 'src/app/shared/constants';
 import {
-  MaintenanceTeam,
-  maintenanceTeamFieldsConfiguration,
-  maintenanceTeamFormLayoutConfiguration,
-} from './model/maintenance-team';
+  Plane,
+  planeFieldsConfiguration,
+  planeFormLayoutConfiguration,
+} from './model/plane';
 
-// TODO after creation of CRUD Team MaintenanceTeam : adapt the global configuration
-export const maintenanceTeamCRUDConfiguration: CrudConfig<MaintenanceTeam> = new CrudConfig({
+// TODO after creation of CRUD Plane : adapt the global configuration
+export const planeCRUDConfiguration: CrudConfig<Plane> = new CrudConfig({
   // IMPORTANT: this key should be unique in all the application.
-  featureName: 'maintenance-teams',
-  fieldsConfig: maintenanceTeamFieldsConfiguration,
-  formLayoutConfig: maintenanceTeamFormLayoutConfiguration,
-  useCalcMode: false,
+  featureName: 'planes',
+  fieldsConfig: planeFieldsConfiguration,
+  formLayoutConfig: planeFormLayoutConfiguration,
+  displayHistorical: true,
+  useCalcMode: true,
   useSignalR: false,
   useView: true,
   useViewTeamWithTypeId: TeamTypeId.Site, // use to filter view by teams => should know the type of team
-  usePopup: true,
+  usePopup: false,
   useSplit: false,
   useOfflineMode: false,
   useCompactMode: false,

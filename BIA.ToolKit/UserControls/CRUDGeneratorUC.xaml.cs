@@ -193,6 +193,7 @@
                         vm.IsVersioned = history.IsVersioned;
                         vm.IsArchivable = history.IsArchivable;
                         vm.SelectedBaseKeyType = history.EntityBaseKeyType;
+                        vm.DisplayHistorical = history.DisplayHistorical;
                         if (history.OptionItems != null)
                         {
                             foreach (var option in vm.OptionItems)
@@ -293,6 +294,7 @@
                         FormReadOnlyMode = vm.SelectedFormReadOnlyMode,
                         IsVersioned = vm.IsVersioned,
                         IsArchivable = vm.IsArchivable,
+                        DisplayHistorical = vm.DisplayHistorical
                     });
 
                     UpdateCrudGenerationHistory();
@@ -408,6 +410,7 @@
             vm.BiaFronts.Clear();
             vm.BiaFront = null;
             vm.IsTeam = false;
+            vm.DisplayHistorical = false;
 
             this.crudHistory = null;
         }
@@ -420,7 +423,7 @@
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"Error on intializing project: {ex.Message}", "Red");
+                consoleWriter.AddMessageLine($"Error on initializing project: {ex.Message}", "Red");
             }
         }
 
@@ -562,6 +565,7 @@
                     IsVersioned = vm.IsVersioned,
                     IsArchivable = vm.IsArchivable,
                     EntityBaseKeyType = vm.SelectedBaseKeyType,
+                    DisplayHistorical = vm.DisplayHistorical,
                     // Create "Mapping" part
                     Mapping = new()
                     {
@@ -739,6 +743,9 @@
 
             // List Options folders
             string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, domainsPath);
+            if(!Directory.Exists(folderPath))
+                return;
+
             List<string> folders = [.. Directory.GetDirectories(folderPath, $"*{suffix}", SearchOption.AllDirectories)];
             folders.ForEach(f => foldersName.Add(new DirectoryInfo(f).Name.Replace(suffix, "")));
 

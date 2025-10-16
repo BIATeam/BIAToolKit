@@ -28,5 +28,7 @@
                 return string.Join(", ", interfaces);
             }
         }
+
+        public override bool DisplayHistorical { get; set; }
     }
 }

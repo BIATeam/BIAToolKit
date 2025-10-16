@@ -29,7 +29,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
 <# if(ModelInstance.IsTeamType && ModelInstance.HasAncestorTeam) { #>
     using BIA.Net.Core.Common.Enum;
 <#  } #>
-<# if(ModelInstance.IsTeamType && (ModelInstance.PropertiesToGenerate.Count() > 0 || ModelInstance.HasAncestorTeam)) { #>
+<# if((ModelInstance.IsTeamType || ModelInstance.HasParent) && (ModelInstance.PropertiesToGenerate.Count() > 0 || ModelInstance.HasAncestorTeam)) { #>
     using BIA.Net.Core.Common.Exceptions;
 <#  } #>
 <# if (ModelInstance.PropertiesToGenerate.Count() > 0) { #>
@@ -62,17 +62,37 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>Mapper"/> class.
         /// </summary>
         /// <param name="principal">The principal.</param>
-        public <#= ModelInstance.EntityName #>Mapper(IPrincipal principal)
+<#  if (ModelInstance.HasAudit) { #>
+        /// <param name="auditMappers">The injected collection of <see cref="IAuditMapper"/>.</param>
+<#  } #>
+        public <#= ModelInstance.EntityName #>Mapper(IPrincipal principal<#  if (ModelInstance.HasAudit) { #>, IEnumerable<IAuditMapper> auditMappers<# } #>)
             : base(principal)
         {
+<#  if (ModelInstance.HasAudit) { #>
+            this.AuditMapper = auditMappers.FirstOrDefault(x => x.EntityType == typeof(<#= ModelInstance.EntityName #>));
+<#  } #>
         }
 
         /// <inheritdoc />
         public override int TeamType => (int)TeamTypeId.<#= ModelInstance.EntityName #>;
-<#      if (ModelInstance.Properties.Count() > 0) { #>
+<# if (ModelInstance.Properties.Count() > 0) { #>
 
-<#      }
-   } if (ModelInstance.Properties.Count() > 0) { #>
+<#  } #>
+<# } #>
+<#  if (ModelInstance.HasAudit) { #>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>Mapper"/> class.
+        /// </summary>
+        /// <param name="auditMappers">The injected collection of <see cref="IAuditMapper"/>.</param>
+        public <#= ModelInstance.EntityName #>Mapper(IEnumerable<IAuditMapper> auditMappers)
+        {
+            this.AuditMapper = auditMappers.FirstOrDefault(x => x.EntityType == typeof(<#= ModelInstance.EntityName #>));
+        }
+<# if (ModelInstance.Properties.Count() > 0) { #>
+
+<#  } #>
+<# } #>
+<# if (ModelInstance.Properties.Count() > 0) { #>
         /// <inheritdoc />
         public override ExpressionCollection<<#= ModelInstance.EntityName #>> ExpressionCollection
         {

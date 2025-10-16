@@ -83,6 +83,31 @@
     <Compile Include="_6_0_0\Models\EntityOptionModel.cs" />
     <Compile Include="_6_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_6_0_0\Models\PropertyDtoModel.cs" />
+    <None Include="_6_0_0\Templates\DotNet\InfrastructureData\Features\PartialDtoAuditFeatureTemplate_AuditTypeMapperUsing.cs">
+      <DependentUpon>PartialDtoAuditFeatureTemplate_AuditTypeMapperUsing.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_6_0_0\Templates\DotNet\Domain\Entities\EntityAuditTemplate.cs">
+      <DependentUpon>EntityAuditTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_6_0_0\Templates\DotNet\InfrastructureData\PartialDtoDataContextTemplate_DbSetAudit.cs">
+      <DependentUpon>PartialDtoDataContextTemplate_DbSetAudit.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_6_0_0\Templates\DotNet\InfrastructureData\Features\PartialDtoAuditFeatureTemplate_AuditTypeMapper.cs">
+      <DependentUpon>PartialDtoAuditFeatureTemplate_AuditTypeMapper.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_6_0_0\Templates\DotNet\Domain\Mappers\EntityAuditMapperTemplate.cs">
+      <DependentUpon>EntityAuditMapperTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_6_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.cs">
       <DependentUpon>EntityAppServiceTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -1374,6 +1399,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>EntityConstantsTemplate.tt</DependentUpon>
     </TypeScriptCompile>
+    <None Include="_6_0_0\Templates\Angular\src\app\features\views\historical\EntityHistoricalComponentTsTemplate.ts">
+      <DependentUpon>EntityHistoricalComponentTsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.tt">
@@ -1939,6 +1969,48 @@
     <EmbeddedResource Include="_6_0_0\Templates\DotNet\PresentationApi\PartialOptionBianetconfigTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PartialOptionBianetconfigTemplate.json</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\features\views\historical\EntityHistoricalComponentTsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityHistoricalComponentTsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\DotNet\Domain\Mappers\EntityAuditMapperTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityAuditMapperTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\DotNet\InfrastructureData\Features\PartialDtoAuditFeatureTemplate_AuditTypeMapper.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialDtoAuditFeatureTemplate_AuditTypeMapper.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\DotNet\InfrastructureData\PartialDtoDataContextTemplate_DbSetAudit.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialDtoDataContextTemplate_DbSetAudit.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\DotNet\Domain\Entities\EntityAuditTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityAuditTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\DotNet\InfrastructureData\Features\PartialDtoAuditFeatureTemplate_AuditTypeMapperUsing.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialDtoAuditFeatureTemplate_AuditTypeMapperUsing.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

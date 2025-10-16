@@ -1,0 +1,9 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateDto.ttinclude" #>
+<#@ output extension=".cs" #>
+<# if(ModelInstance.HasAudit) {  #>
+    // BIAToolKit - Begin Partial AuditTypeMapperUsing <#= ModelInstance.DomainName #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
+
+    // BIAToolKit - End Partial AuditTypeMapperUsing <#= ModelInstance.DomainName #>
+<# }  #>

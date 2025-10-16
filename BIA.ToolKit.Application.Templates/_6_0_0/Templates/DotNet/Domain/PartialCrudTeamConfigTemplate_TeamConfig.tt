@@ -3,7 +3,7 @@
 <#@ output extension=".cs" #>
 <# if(ModelInstance.IsTeam) { #>
             // BIAToolKit - Begin Partial TeamConfig <#= ModelInstance.EntityName #>
-            new ()
+            new()
             {
                 TeamTypeId = (int)TeamTypeId.<#= ModelInstance.EntityName #>,
                 RightPrefix = "<#= ModelInstance.EntityName #>",
@@ -18,7 +18,7 @@
 <#  if(ModelInstance.HasParent) { #>
                 Parents = new ImmutableListBuilder<BiaTeamParentConfig<BaseEntityTeam>>
                 {
-                    new ()
+                    new()
                     {
                         TeamTypeId = (int)TeamTypeId.<#= ModelInstance.ParentName #>,
                         GetParent = team => (team as <#= ModelInstance.DomainName #>.Entities.<#= ModelInstance.EntityName #>).<#= ModelInstance.ParentName #>,

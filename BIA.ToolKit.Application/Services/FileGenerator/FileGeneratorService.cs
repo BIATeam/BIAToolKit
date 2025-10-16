@@ -494,7 +494,7 @@
             }
             else
             {
-                var indexBegin = outputContent.FindIndex(line => line.Contains(insertionMarkupEnd));
+                var indexBegin = outputContent.FindIndex(line => line.Trim().Equals(insertionMarkupEnd));
                 outputContent.InsertRange(indexBegin, generatedTemplateContent);
             }
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
@@ -506,8 +506,8 @@
             var partialInsertionMarkup = GetInsertionMarkup(template, context);
 
             return (
-                AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupPartialBeginPattern, partialInsertionMarkup, context.EntityName), outputPath),
-                AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupPartialEndPattern, partialInsertionMarkup, context.EntityName), outputPath)
+                AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupPartialBeginPattern, partialInsertionMarkup, template.UseDomainPartialInsertionMarkup ? context.DomainName : context.EntityName), outputPath),
+                AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupPartialEndPattern, partialInsertionMarkup, template.UseDomainPartialInsertionMarkup ? context.DomainName :  context.EntityName), outputPath)
                 );
         }
 

@@ -9,6 +9,9 @@ import {
 } from 'bia-ng/models';
 import { <#= ModelInstance.EntityName #> } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
 import { Feature<#= ModelInstance.EntityNamePlural #>Actions } from './<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-actions';
+<#  if(ModelInstance.DisplayHistorical) { #>
+import { HistoricalEntryDto } from 'packages/bia-ng/models/dto/historical-entry-dto';
+<#  } #>
 
 // This adapter will allow is to manipulate <#= ModelInstance.EntityNamePlural.ToCamelCase() #> (mostly CRUD operations)
 export const <#= ModelInstance.EntityNamePlural.ToCamelCase() #>Adapter = createEntityAdapter<<#= ModelInstance.EntityName #>>({
@@ -18,10 +21,16 @@ export const <#= ModelInstance.EntityNamePlural.ToCamelCase() #>Adapter = create
 
 export interface State extends CrudState<<#= ModelInstance.EntityName #>>, EntityState<<#= ModelInstance.EntityName #>> {
   // additional props here
+<#  if(ModelInstance.DisplayHistorical) { #>
+  currentItemHistorical: HistoricalEntryDto[];
+<#  } #>
 }
 
 export const INIT_STATE: State = <#= ModelInstance.EntityNamePlural.ToCamelCase() #>Adapter.getInitialState({
   ...DEFAULT_CRUD_STATE(),
+<#  if(ModelInstance.DisplayHistorical) { #>
+  currentItemHistorical: [],
+<#  } #>
   // additional props default values here
 });
 
@@ -33,7 +42,7 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>Reducers = createReduc
     return stateUpdated;
   }),
   on(Feature<#= ModelInstance.EntityNamePlural #>Actions.clearCurrent, state => {
-    return { ...state, currentItem: <<#= ModelInstance.EntityName #>>{<# if(ModelInstance.BaseKeyType == "string" || ModelInstance.BaseKeyType == "Guid") { #> id: '' <# } #>} };
+    return { ...state, currentItem: <<#= ModelInstance.EntityName #>>{<# if(ModelInstance.BaseKeyType == "string" || ModelInstance.BaseKeyType == "Guid") { #> id: '' <# } #>}<# if(ModelInstance.DisplayHistorical) { #>, currentItemHistorical: [] <# } #> };
   }),
   on(Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost, state => {
     return { ...state, loadingGetAll: true };
@@ -56,6 +65,11 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>Reducers = createReduc
   on(Feature<#= ModelInstance.EntityNamePlural #>Actions.loadSuccess, (state, { <#= ModelInstance.EntityName.ToCamelCase() #> }) => {
     return { ...state, currentItem: <#= ModelInstance.EntityName.ToCamelCase() #>, loadingGet: false };
   }),
+<#  if(ModelInstance.DisplayHistorical) { #>
+  on(Feature<#= ModelInstance.EntityNamePlural #>Actions.loadHistoricalSuccess, (state, { historical }) => {
+    return { ...state, currentItemHistorical: historical };
+  }),
+<#  } #>
   on(Feature<#= ModelInstance.EntityNamePlural #>Actions.failure, state => {
     return { ...state, loadingGetAll: false, loadingGet: false };
   })
