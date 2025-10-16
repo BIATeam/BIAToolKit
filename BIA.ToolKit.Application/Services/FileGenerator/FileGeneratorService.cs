@@ -494,7 +494,7 @@
             }
             else
             {
-                var indexBegin = outputContent.FindIndex(line => line.Contains(insertionMarkupEnd));
+                var indexBegin = outputContent.FindIndex(line => line.Trim().Equals(insertionMarkupEnd));
                 outputContent.InsertRange(indexBegin, generatedTemplateContent);
             }
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
