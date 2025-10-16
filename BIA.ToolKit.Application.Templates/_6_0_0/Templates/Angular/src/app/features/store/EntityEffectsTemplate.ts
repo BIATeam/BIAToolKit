@@ -58,7 +58,7 @@ export class PlanesEffects {
                 FeaturePlanesActions.loadHistorical({ id: plane.id })
               );
             }
-            return FeaturePlanessActions.loadSuccess({ plane });
+            return FeaturePlanesActions.loadSuccess({ plane });
           }),
           catchError(err => {
             this.biaMessageService.showErrorHttpResponse(err);

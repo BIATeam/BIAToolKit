@@ -62,7 +62,7 @@ export class <#= ModelInstance.EntityNamePlural #>Effects {
                 Feature<#= ModelInstance.EntityNamePlural #>Actions.loadHistorical({ id: <#= ModelInstance.EntityName.ToCamelCase() #>.id })
               );
             }
-            return Feature<#= ModelInstance.EntityNamePlural #>sActions.loadSuccess({ <#= ModelInstance.EntityName.ToCamelCase() #> });
+            return Feature<#= ModelInstance.EntityNamePlural #>Actions.loadSuccess({ <#= ModelInstance.EntityName.ToCamelCase() #> });
           }),
 <#  } else { #>
           map(<#= ModelInstance.EntityName.ToCamelCase() #> => Feature<#= ModelInstance.EntityNamePlural #>Actions.loadSuccess({ <#= ModelInstance.EntityName.ToCamelCase() #> })),
