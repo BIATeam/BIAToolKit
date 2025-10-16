@@ -57,6 +57,8 @@ namespace BIA.ToolKit.Domain.DtoGenerator
         public bool IsArchivable => IsFixable || BaseList.Any(x => x.StartsWith("IEntityArchivable<")) || BaseList.Any(x => (x.StartsWith("BaseEntity") || x.StartsWith("BaseDto")) && x.Contains("Archivable"));
         public string AncestorTeamName => ClassAnnotations.FirstOrDefault(c => c.Key == CRUDDataUpdateType.AncestorTeam.ToString()).Value;
         public bool HasAncestorTeam => !string.IsNullOrWhiteSpace(AncestorTeamName);
+        public bool IsAuditable => ClassAnnotations.Any(x => x.Key == "AuditInclude");
+
 
         private void ParseAnnotations(List<AttributeArgumentSyntax> annotations)
         {

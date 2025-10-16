@@ -161,7 +161,8 @@
                     IsFixable = vm.IsFixable,
                     AncestorTeamName = vm.AncestorTeam,
                     HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
-                    GenerateBack = true
+                    GenerateBack = true,
+                    HasAudit = vm.UseDedicatedAudit
                 });
             });
         }

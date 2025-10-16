@@ -116,6 +116,7 @@
                 }
 
                 RaisePropertyChanged(nameof(IsEntitySelected));
+                RaisePropertyChanged(nameof(UseDedicatedAudit));
 
                 RefreshEntityPropertiesTreeView();
                 RemoveAllMappingProperties();
@@ -242,7 +243,17 @@
             }
         }
 
+        private bool useDedicatedAudit;
 
+        public bool UseDedicatedAudit
+        {
+            get { return useDedicatedAudit; }
+            set 
+            { 
+                useDedicatedAudit = value; 
+                RaisePropertyChanged(nameof(UseDedicatedAudit));
+            }
+        }
 
         public string ProjectDomainNamespace { get; private set; }
         public EntityInfo SelectedEntityInfo { get; private set; }
@@ -252,6 +263,7 @@
             ((HasMappingProperties && MappingEntityProperties.All(x => x.IsValid) && MappingEntityProperties.Count == MappingEntityProperties.DistinctBy(x => x.MappingName).Count())  || !HasMappingProperties)
             && !string.IsNullOrWhiteSpace(EntityDomain)
             && !string.IsNullOrWhiteSpace(SelectedBaseKeyType);
+        public bool IsAuditable => SelectedEntityInfo?.IsAuditable == true;
 
         public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>(RemoveMappingProperty);
         public ICommand MoveMappedPropertyCommand => new RelayCommand<MoveItemArgs>(x => MoveMappedProperty(x.OldIndex, x.NewIndex));
