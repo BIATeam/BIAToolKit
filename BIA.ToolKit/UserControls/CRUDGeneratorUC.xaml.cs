@@ -420,7 +420,7 @@
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"Error on intializing project: {ex.Message}", "Red");
+                consoleWriter.AddMessageLine($"Error on initializing project: {ex.Message}", "Red");
             }
         }
 
@@ -739,6 +739,9 @@
 
             // List Options folders
             string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, domainsPath);
+            if(!Directory.Exists(folderPath))
+                return;
+
             List<string> folders = [.. Directory.GetDirectories(folderPath, $"*{suffix}", SearchOption.AllDirectories)];
             folders.ForEach(f => foldersName.Add(new DirectoryInfo(f).Name.Replace(suffix, "")));
 

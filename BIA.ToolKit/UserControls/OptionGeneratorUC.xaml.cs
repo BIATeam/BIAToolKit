@@ -315,7 +315,7 @@
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"Error on intializing project: {ex.Message}", "Red");
+                consoleWriter.AddMessageLine($"Error on initializing project: {ex.Message}", "Red");
             }
         }
 
