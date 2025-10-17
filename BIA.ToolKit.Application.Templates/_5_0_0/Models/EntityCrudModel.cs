@@ -126,6 +126,6 @@
             }
         }
 
-        public virtual bool DisplayHistorical { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public virtual bool DisplayHistorical { get => throw new System.NotImplementedException(); set; }
     }
 }

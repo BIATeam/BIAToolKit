@@ -4,6 +4,6 @@
 
     public class EntityOptionModel : Common.Models.EntityModel, IEntityOptionModel
     {
-        public string OptionDisplayName { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public string OptionDisplayName { get => throw new System.NotImplementedException(); set; }
     }
 }

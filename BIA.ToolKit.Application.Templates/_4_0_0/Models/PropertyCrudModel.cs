@@ -12,7 +12,7 @@
 
         public string AngularValidators => throw new NotImplementedException();
 
-        public List<KeyValuePair<string, string>> BiaFieldAttributes { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public List<KeyValuePair<string, string>> BiaFieldAttributes { get => throw new System.NotImplementedException(); set; }
 
         public bool HasAngularPropType => throw new NotImplementedException();
 
@@ -30,10 +30,10 @@
 
         public bool IsRequired => throw new NotImplementedException();
 
-        public string Name { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string Name { get => throw new System.NotImplementedException(); set; }
 
         public string OptionItemType => throw new NotImplementedException();
 
-        public string Type { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string Type { get => throw new System.NotImplementedException(); set; }
     }
 }
