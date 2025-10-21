@@ -1326,11 +1326,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <None Include="_6_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentTsTemplate.ts">
-      <DependentUpon>EntityIndexComponentTsTemplate.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </None>
     <None Include="_6_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.ts">
       <DependentUpon>PartialCrudEntityIndexComponentTsTemplate_CanSelectElementChildSet.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -1406,6 +1401,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
+    <TypeScriptCompile Include="_6_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentTsTemplate.ts">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityIndexComponentTsTemplate.tt</DependentUpon>
+    </TypeScriptCompile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.tt">
@@ -1634,8 +1634,8 @@
   <ItemGroup>
     <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentTsTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityIndexComponentTsTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>EntityIndexComponentTsTemplate.ts</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
