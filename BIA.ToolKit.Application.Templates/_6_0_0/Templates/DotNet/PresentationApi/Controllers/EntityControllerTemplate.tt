@@ -389,7 +389,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
         public virtual async Task<IActionResult> GetFile([FromBody] PagingFilterFormatDto filters)
         {
             byte[] buffer = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.GetCsvAsync(filters);
-            return this.File(buffer, BiaConstants.Csv.ContentType + ";charset=utf-8", $"<#= ModelInstance.EntityNamePlural #>{BiaConstants.Csv.Extension}");
+            return this.File(buffer, BiaConstants.Csv.ContentType + $";charset={BiaConstants.Csv.CharsetEncoding}", $"<#= ModelInstance.EntityNamePlural #>{BiaConstants.Csv.Extension}");
         }
 <#  if (ModelInstance.IsFixable) { #>
 
