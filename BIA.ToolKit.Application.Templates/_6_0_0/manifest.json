@@ -368,10 +368,16 @@
           "partialInsertionMarkup": "Routing"
         },
         {
-          "inputPath": "src\\app\\shared\\PartialCrudNavigation.tt",
+          "inputPath": "src\\app\\shared\\PartialCrudNavigation_Domain.tt",
           "outputPath": "src\\app\\shared\\navigation.ts",
           "isPartial": true,
-          "partialInsertionMarkup": "Navigation"
+          "partialInsertionMarkup": "NavigationDomain"
+        },
+        {
+          "inputPath": "src\\app\\shared\\PartialCrudNavigation_DomainChildren.tt",
+          "outputPath": "src\\app\\shared\\navigation.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "NavigationDomain{Domain}Children"
         },
         {
           "inputPath": "src\\app\\shared\\PartialCrudPermission.tt",

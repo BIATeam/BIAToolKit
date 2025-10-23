@@ -1,0 +1,15 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(!ModelInstance.HasParent || ModelInstance.IsTeam) {  #>
+  // BIAToolKit - Begin Partial NavigationDomain <#=  ModelInstance.DomainName #>
+  {
+    labelKey: 'app.<#=  ModelInstance.DomainName.ToCamelCase() #>',
+    icon: 'pi pi-bars',
+    children: [
+      // BIAToolKit - Begin NavigationDomain<#=  ModelInstance.DomainName #>Children
+      // BIAToolKit - End NavigationDomain<#=  ModelInstance.DomainName #>Children
+    ],
+  },
+  // BIAToolKit - End Partial NavigationDomain <#=  ModelInstance.DomainName #>
+<# }  #>
