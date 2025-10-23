@@ -2,21 +2,21 @@
 <#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
 <#  if(!ModelInstance.HasParent || ModelInstance.IsTeam) {  #>
-          // BIAToolKit - Begin Partial Routing <#=  ModelInstance.EntityName #>
-          {
-            path: '<#= ModelInstance.EntityNamePlural.ToKebabCase() #>',
-            data: {
-              breadcrumb: 'app.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>',
-              canNavigate: true,
-            },
-            loadChildren: () =>
-              import(
+              // BIAToolKit - Begin Partial Routing <#=  ModelInstance.DomainName #> <#=  ModelInstance.EntityName #>
+              {
+                path: '<#= ModelInstance.EntityNamePlural.ToKebabCase() #>',
+                data: {
+                  breadcrumb: 'app.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>',
+                  canNavigate: true,
+                },
+                loadChildren: () =>
+                  import(
 <#  if(ModelInstance.IsTeam && ModelInstance.HasParent) { #>
-                './features/<#= ModelInstance.AngularParentRelativePath.Replace(@"\", "/") #>/children/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>/<#= ModelInstance.EntityName.ToKebabCase() #>.module'
+                    './features/<#= ModelInstance.AngularParentRelativePath.Replace(@"\", "/") #>/children/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>/<#= ModelInstance.EntityName.ToKebabCase() #>.module'
 <#  } else { #>
-                './features/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>/<#= ModelInstance.EntityName.ToKebabCase() #>.module'
+                    './features/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>/<#= ModelInstance.EntityName.ToKebabCase() #>.module'
 <#  } #>
-              ).then(m => m.<#= ModelInstance.EntityName #>Module),
-          },
-          // BIAToolKit - End Partial Routing <#=  ModelInstance.EntityName #>
+                  ).then(m => m.<#= ModelInstance.EntityName #>Module),
+              },
+              // BIAToolKit - End Partial Routing <#=  ModelInstance.DomainName #> <#=  ModelInstance.EntityName #>
 <# }  #>
