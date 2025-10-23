@@ -6,7 +6,7 @@
       {
         labelKey: 'app.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>',
         permissions: [Permission.<#= ModelInstance.EntityName #>_List_Access],
-        path: ['/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>'],
+        path: ['/<#= ModelInstance.DomainName.ToKebabCase() #>/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>'],
       },
       // BIAToolKit - End Partial NavigationDomain<#=  ModelInstance.DomainName #>Children <#=  ModelInstance.EntityName #>
 <# }  #>

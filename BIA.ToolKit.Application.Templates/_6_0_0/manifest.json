@@ -362,10 +362,18 @@
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-item\\{Entity}-item.component.ts"
         },
         {
-          "inputPath": "src\\app\\PartialCrudAppRoutingModule.tt",
+          "inputPath": "src\\app\\PartialCrudAppRoutingModule_Domain.tt",
           "outputPath": "src\\app\\app-routing.module.ts",
           "isPartial": true,
-          "partialInsertionMarkup": "Routing"
+          "partialInsertionMarkup": "RoutingDomain",
+          "UseDomainPartialInsertionMarkup": true,
+          "ignoredInnerMarkups": [ "RoutingDomain{Domain}Children" ]
+        },
+        {
+          "inputPath": "src\\app\\PartialCrudAppRoutingModule_DomainChildren.tt",
+          "outputPath": "src\\app\\app-routing.module.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "RoutingDomain{Domain}Children"
         },
         {
           "inputPath": "src\\app\\shared\\PartialCrudNavigation_Domain.tt",

@@ -2,6 +2,6 @@
       {
         labelKey: 'app.planes',
         permissions: [Permission.Plane_List_Access],
-        path: ['/planes'],
+        path: ['/fleet/planes'],
       },
       // BIAToolKit - End Partial NavigationDomainFleetChildren Plane
