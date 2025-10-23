@@ -1411,6 +1411,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
+    <None Include="_6_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation_DomainPermissions.ts">
+      <DependentUpon>PartialCrudNavigation_DomainPermissions.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.tt">
@@ -2025,6 +2030,13 @@
     <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation_Domain.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PartialCrudNavigation_Domain.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation_DomainPermissions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudNavigation_DomainPermissions.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

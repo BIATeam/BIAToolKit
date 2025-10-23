@@ -371,7 +371,14 @@
           "inputPath": "src\\app\\shared\\PartialCrudNavigation_Domain.tt",
           "outputPath": "src\\app\\shared\\navigation.ts",
           "isPartial": true,
-          "partialInsertionMarkup": "NavigationDomain"
+          "partialInsertionMarkup": "NavigationDomain",
+          "ignoreInnerMarkups": [ "NavigationDomain{Domain}Permissions", "NavigationDomain{Domain}Children" ]
+        },
+        {
+          "inputPath": "src\\app\\shared\\PartialCrudNavigation_DomainPermissions.tt",
+          "outputPath": "src\\app\\shared\\navigation.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "NavigationDomain{Domain}Permissions"
         },
         {
           "inputPath": "src\\app\\shared\\PartialCrudNavigation_DomainChildren.tt",
