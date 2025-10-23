@@ -1,13 +1,13 @@
-﻿              // BIAToolKit - Begin Partial Routing Fleet Plane
-              {
-                path: 'planes',
-                data: {
-                  breadcrumb: 'app.planes',
-                  canNavigate: true,
-                },
-                loadChildren: () =>
-                  import(
-                    './features/planes/plane.module'
-                  ).then(m => m.PlaneModule),
-              },
-              // BIAToolKit - End Partial Routing Fleet Plane
+﻿          // BIAToolKit - Begin Partial Routing MaintenanceTeam
+          {
+            path: 'maintenance-teams',
+            data: {
+              breadcrumb: 'app.maintenanceTeams',
+              canNavigate: true,
+            },
+            loadChildren: () =>
+              import(
+                './features/aircraft-maintenance-companies/children/maintenance-teams/maintenance-team.module'
+              ).then(m => m.MaintenanceTeamModule),
+          },
+          // BIAToolKit - End Partial Routing MaintenanceTeam
