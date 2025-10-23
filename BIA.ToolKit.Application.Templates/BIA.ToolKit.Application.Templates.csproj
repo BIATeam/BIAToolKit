@@ -1406,6 +1406,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>EntityIndexComponentTsTemplate.tt</DependentUpon>
     </TypeScriptCompile>
+    <None Include="_6_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule_Domain.ts">
+      <DependentUpon>PartialCrudAppRoutingModule_Domain.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.tt">
@@ -2013,6 +2018,13 @@
     <EmbeddedResource Include="_6_0_0\Templates\DotNet\InfrastructureData\Features\PartialDtoAuditFeatureTemplate_AuditTypeMapperUsing.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PartialDtoAuditFeatureTemplate_AuditTypeMapperUsing.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule_Domain.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudAppRoutingModule_Domain.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
