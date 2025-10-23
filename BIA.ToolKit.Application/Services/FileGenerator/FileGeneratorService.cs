@@ -486,11 +486,42 @@
             // Partial content already exists
             if (outputContent.Any(line => line.Trim().Equals(partialInsertionMarkupBegin)) && outputContent.Any(line => line.Trim().Equals(partialInsertionMarkupEnd)))
             {
+                // Retrieve content into ignored inner markups
+                var ignoredInnerMarkupsContent = new Dictionary<(string insertionMarkup, string insertionMarkupBegin, string insertionMarkupEnd), List<string>>();
+                var ignoredInnerMarkups = template.IgnoreInnerMarkups.Select(x =>
+                {
+                    var insertionMarkup = GetInsertionMarkup(new Template { PartialInsertionMarkup = x }, _currentContext);
+                    var insertionMarkupBegin = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupBeginPattern, insertionMarkup), outputPath);
+                    var insertionMarkupEnd = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupEndPattern, insertionMarkup), outputPath);
+                    return (
+                        insertionMarkup,
+                        insertionMarkupBegin,
+                        insertionMarkupEnd);
+                }).ToList();
+
+                foreach (var ignoredInnerMarkup in ignoredInnerMarkups)
+                {
+                    var ignoredInnerMarkupBeginIndex = outputContent.FindIndex(line => line.Trim().Equals(ignoredInnerMarkup.insertionMarkupBegin));
+                    var ignoredInnerMarkupEndIndex = outputContent.FindIndex(line => line.Trim().Equals(ignoredInnerMarkup.insertionMarkupEnd));
+                    if (ignoredInnerMarkupBeginIndex > -1 && ignoredInnerMarkupEndIndex > -1)
+                    {
+                        ignoredInnerMarkupsContent.Add(ignoredInnerMarkup, outputContent.GetRange(ignoredInnerMarkupBeginIndex + 1, ignoredInnerMarkupEndIndex - ignoredInnerMarkupBeginIndex - 1));
+                    }
+                }
+
+                // Find begin/end markups
                 var indexBegin = outputContent.FindIndex(line => line.Trim().Equals(partialInsertionMarkupBegin));
                 var indexEnd = outputContent.FindIndex(line => line.Trim().Equals(partialInsertionMarkupEnd));
                 // Replace previous generated content by new one
                 outputContent.RemoveRange(indexBegin, indexEnd - indexBegin + 1);
                 outputContent.InsertRange(indexBegin, generatedTemplateContent);
+
+                // Reinsert content of ignored inner markups
+                foreach (var ignoredInnerMarkupContent in ignoredInnerMarkupsContent)
+                {
+                    var ignoredInnerMarkupBeginIndex = outputContent.FindIndex(line => line.Trim().Equals(ignoredInnerMarkupContent.Key.insertionMarkupBegin));
+                    outputContent.InsertRange(ignoredInnerMarkupBeginIndex + 1, ignoredInnerMarkupContent.Value);
+                }
             }
             else
             {
