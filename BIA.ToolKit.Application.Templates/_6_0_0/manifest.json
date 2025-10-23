@@ -362,16 +362,38 @@
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-item\\{Entity}-item.component.ts"
         },
         {
-          "inputPath": "src\\app\\PartialCrudAppRoutingModule.tt",
+          "inputPath": "src\\app\\PartialCrudAppRoutingModule_Domain.tt",
           "outputPath": "src\\app\\app-routing.module.ts",
           "isPartial": true,
-          "partialInsertionMarkup": "Routing"
+          "partialInsertionMarkup": "RoutingDomain",
+          "UseDomainPartialInsertionMarkup": true,
+          "ignoredInnerMarkups": [ "RoutingDomain{Domain}Children" ]
         },
         {
-          "inputPath": "src\\app\\shared\\PartialCrudNavigation.tt",
+          "inputPath": "src\\app\\PartialCrudAppRoutingModule_DomainChildren.tt",
+          "outputPath": "src\\app\\app-routing.module.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "RoutingDomain{Domain}Children"
+        },
+        {
+          "inputPath": "src\\app\\shared\\PartialCrudNavigation_Domain.tt",
           "outputPath": "src\\app\\shared\\navigation.ts",
           "isPartial": true,
-          "partialInsertionMarkup": "Navigation"
+          "partialInsertionMarkup": "NavigationDomain",
+          "UseDomainPartialInsertionMarkup": true,
+          "ignoredInnerMarkups": [ "NavigationDomain{Domain}Permissions", "NavigationDomain{Domain}Children" ]
+        },
+        {
+          "inputPath": "src\\app\\shared\\PartialCrudNavigation_DomainPermissions.tt",
+          "outputPath": "src\\app\\shared\\navigation.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "NavigationDomain{Domain}Permissions"
+        },
+        {
+          "inputPath": "src\\app\\shared\\PartialCrudNavigation_DomainChildren.tt",
+          "outputPath": "src\\app\\shared\\navigation.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "NavigationDomain{Domain}Children"
         },
         {
           "inputPath": "src\\app\\shared\\PartialCrudPermission.tt",

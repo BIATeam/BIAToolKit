@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
 
@@ -23,6 +24,7 @@
                 public bool IsPartial { get; set; }
                 public string PartialInsertionMarkup { get; set; }
                 public bool UseDomainPartialInsertionMarkup { get; set; }
+                public List<string> IgnoredInnerMarkups { get; set; } = [];
 
                 public bool Equals(Template other)
                 {
@@ -30,7 +32,9 @@
                         InputPath == other.InputPath 
                         && OutputPath == other.OutputPath 
                         && IsPartial == other.IsPartial 
-                        && other.PartialInsertionMarkup == PartialInsertionMarkup;
+                        && other.PartialInsertionMarkup == PartialInsertionMarkup
+                        && IgnoredInnerMarkups.Count == other.IgnoredInnerMarkups.Count 
+                        && IgnoredInnerMarkups.All(other.IgnoredInnerMarkups.Contains);
                 }
             }
 

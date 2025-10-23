@@ -158,7 +158,7 @@
                 DisplayHistorical = true,
             };
 
-            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);
+            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext, ["Pilot", "Flight"]);
         }
 
         /// <summary>
@@ -212,7 +212,7 @@
                 AngularFront = "Angular",
             };
 
-            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);
+            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext, ["Flight", "Plane"]);
         }
 
         /// <summary>
@@ -266,7 +266,7 @@
                 AngularFront = "Angular",
             };
 
-            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);
+            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext, ["Pilot", "Plane"]);
         }
 
         /// <summary>
@@ -389,7 +389,7 @@
                 AngularFront = "Angular",
             };
 
-            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);
+            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext, ["AircraftMaintenanceCompany"]);
         }
     }
 }

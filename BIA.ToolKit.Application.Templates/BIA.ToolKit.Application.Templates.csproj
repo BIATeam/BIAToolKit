@@ -1366,8 +1366,8 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <None Include="_6_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule.ts">
-      <DependentUpon>PartialCrudAppRoutingModule.tt</DependentUpon>
+    <None Include="_6_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule_DomainChildren.ts">
+      <DependentUpon>PartialCrudAppRoutingModule_DomainChildren.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
@@ -1381,8 +1381,8 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <None Include="_6_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation.ts">
-      <DependentUpon>PartialCrudNavigation.tt</DependentUpon>
+    <None Include="_6_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation_DomainChildren.ts">
+      <DependentUpon>PartialCrudNavigation_DomainChildren.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
@@ -1406,6 +1406,21 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>EntityIndexComponentTsTemplate.tt</DependentUpon>
     </TypeScriptCompile>
+    <None Include="_6_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation_Domain.ts">
+      <DependentUpon>PartialCrudNavigation_Domain.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_6_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation_DomainPermissions.ts">
+      <DependentUpon>PartialCrudNavigation_DomainPermissions.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_6_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule_Domain.ts">
+      <DependentUpon>PartialCrudAppRoutingModule_Domain.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.tt">
@@ -1737,9 +1752,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule.tt">
+    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule_DomainChildren.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PartialCrudAppRoutingModule.ts</LastGenOutput>
+      <LastGenOutput>PartialCrudAppRoutingModule_DomainChildren.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
@@ -1758,9 +1773,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation.tt">
+    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation_DomainChildren.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PartialCrudNavigation.ts</LastGenOutput>
+      <LastGenOutput>PartialCrudNavigation_DomainChildren.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
@@ -2013,6 +2028,27 @@
     <EmbeddedResource Include="_6_0_0\Templates\DotNet\InfrastructureData\Features\PartialDtoAuditFeatureTemplate_AuditTypeMapperUsing.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PartialDtoAuditFeatureTemplate_AuditTypeMapperUsing.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation_Domain.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudNavigation_Domain.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation_DomainPermissions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudNavigation_DomainPermissions.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule_Domain.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudAppRoutingModule_Domain.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

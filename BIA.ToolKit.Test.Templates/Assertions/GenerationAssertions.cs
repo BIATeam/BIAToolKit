@@ -9,6 +9,7 @@
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Templates;
+    using LibGit2Sharp;
 
     internal static class GenerationAssertions
     {
@@ -158,26 +159,19 @@
             {
                 foreach(var markup in partialMarkupIdentifiersToIgnore)
                 {
-                    var markupSafe = Regex.Escape(markup);
-                    var markupBeginPattern = $@"^\/\/ BIAToolKit - Begin Partial\b.*?\b{markupSafe}$";
-                    var markupEndPattern = $@"^\/\/ BIAToolKit - End Partial\b.*?\b{markupSafe}$";
-
-                    var markupBegin = referenceLines.FirstOrDefault(l => Regex.IsMatch(l.Trim(), markupBeginPattern));
-                    var markupEnd = referenceLines.FirstOrDefault(l => Regex.IsMatch(l.Trim(), markupEndPattern));
-
-                    if (!string.IsNullOrWhiteSpace(markupBegin) && !string.IsNullOrWhiteSpace(markupEnd))
-                    {
-                        RemoveLinesBetweenMarkups(markupBegin, markupEnd, referenceLines);
-                    }
+                    RemoveContentBetweenIgnoredMarkups(referencePath, referenceLines, markup);
+                    RemoveContentBetweenIgnoredMarkups(generatedPath, generatedLines, markup);
                 }
             }
 
             referencePath = referencePath
                 .Replace(Path.GetFileNameWithoutExtension(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}")
-                .Replace("{Parent}", context.ParentName);
+                .Replace("{Parent}", context.ParentName)
+                .Replace("{Domain}", context.DomainName);
             generatedPath = generatedPath
                 .Replace(Path.GetFileNameWithoutExtension(generatedPath), $"{Path.GetFileNameWithoutExtension(generatedPath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}")
-                .Replace("{Parent}", context.ParentName);
+                .Replace("{Parent}", context.ParentName)
+                .Replace("{Domain}", context.DomainName);
 
             if (File.Exists(referencePath))
             {
@@ -189,6 +183,31 @@
             }
             File.AppendAllLines(referencePath, referenceLines);
             File.AppendAllLines(generatedPath, generatedLines);
+        }
+
+        private static void RemoveContentBetweenIgnoredMarkups(string filePath, List<string> lines, string markup)
+        {
+            var markupSafe = Regex.Escape(markup);
+            var markupBeginPattern = $@"^\/\/ BIAToolKit - Begin Partial\b.*?\b{markupSafe}$";
+            var markupEndPattern = $@"^\/\/ BIAToolKit - End Partial\b.*?\b{markupSafe}$";
+
+            var beginMarkups = lines.Where(l => Regex.IsMatch(l.Trim(), markupBeginPattern)).ToList();
+            var endMarkups = lines.Where(l => Regex.IsMatch(l.Trim(), markupEndPattern)).ToList();
+            if (beginMarkups.Count != endMarkups.Count)
+            {
+                throw new PartialInsertionMarkupBeginAndMarkupCountNotEqualException(markupSafe, filePath);
+            }
+
+            foreach (var beginMarkup in beginMarkups)
+            {
+                var endMarkupTarget = beginMarkup.Replace("Begin", "End");
+                var endMarkup = endMarkups.FirstOrDefault(x => x == endMarkupTarget);
+                if (string.IsNullOrWhiteSpace(endMarkup))
+                {
+                    throw new PartialInsertionMarkupNotFoundException(endMarkupTarget, filePath);
+                }
+                RemoveLinesBetweenMarkups(beginMarkup, endMarkup, lines);
+            }
         }
 
         private static void CompareFiles(string referencePath, string generatedPath)

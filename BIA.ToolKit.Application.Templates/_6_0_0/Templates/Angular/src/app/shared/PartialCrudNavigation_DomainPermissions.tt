@@ -1,0 +1,8 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(!ModelInstance.HasParent || ModelInstance.IsTeam) {  #>
+      // BIAToolKit - Begin Partial NavigationDomain<#= ModelInstance.DomainName #>Permissions <#= ModelInstance.EntityName #>
+      Permission.<#= ModelInstance.EntityName #>_List_Access,
+      // BIAToolKit - End Partial NavigationDomain<#= ModelInstance.DomainName #>Permissions <#= ModelInstance.EntityName #>
+<# }  #>

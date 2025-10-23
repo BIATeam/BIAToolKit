@@ -34,4 +34,7 @@
 
     internal class GenerationFailureException() : GenerationAssertionException($"Generation has failed")
     { }
+
+    internal class PartialInsertionMarkupBeginAndMarkupCountNotEqualException(string partialInsertionMarkup, string filePath) : GenerationAssertionException($"File: {filePath}\nMarkup: \"{partialInsertionMarkup}\"\n")
+    { }
 }
