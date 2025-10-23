@@ -5,7 +5,6 @@
   // BIAToolKit - Begin Partial NavigationDomain <#=  ModelInstance.DomainName #>
   {
     labelKey: 'app.<#=  ModelInstance.DomainName.ToCamelCase() #>',
-    icon: 'pi pi-bars',
     permissions: [
       // BIAToolKit - Begin NavigationDomain<#=  ModelInstance.DomainName #>Permissions
       // BIAToolKit - End NavigationDomain<#=  ModelInstance.DomainName #>Permissions

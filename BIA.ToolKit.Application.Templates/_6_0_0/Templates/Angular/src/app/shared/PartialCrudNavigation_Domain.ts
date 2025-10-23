@@ -1,7 +1,6 @@
 ﻿  // BIAToolKit - Begin Partial NavigationDomain Fleet
   {
     labelKey: 'app.fleet',
-    icon: 'pi pi-bars',
     permissions: [
       // BIAToolKit - Begin NavigationDomainFleetPermissions
       // BIAToolKit - End NavigationDomainFleetPermissions
