@@ -513,7 +513,9 @@
 
         private static string GetInsertionMarkup(Manifest.Feature.Template template, FileGeneratorContext context)
         {
-            return template.PartialInsertionMarkup.Replace("{Parent}", context.ParentName);
+            return template.PartialInsertionMarkup
+                .Replace("{Parent}", context.ParentName)
+                .Replace("{Domain}", context.DomainName);
         }
 
         private static string AdaptBiaToolKitMarkup(string markup, string outputPath)
