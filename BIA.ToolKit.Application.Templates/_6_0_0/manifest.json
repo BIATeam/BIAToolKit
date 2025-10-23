@@ -373,7 +373,7 @@
           "isPartial": true,
           "partialInsertionMarkup": "NavigationDomain",
           "UseDomainPartialInsertionMarkup": true,
-          "ignoreInnerMarkups": [ "NavigationDomain{Domain}Permissions", "NavigationDomain{Domain}Children" ]
+          "ignoredInnerMarkups": [ "NavigationDomain{Domain}Permissions", "NavigationDomain{Domain}Children" ]
         },
         {
           "inputPath": "src\\app\\shared\\PartialCrudNavigation_DomainPermissions.tt",

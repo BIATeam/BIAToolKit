@@ -488,7 +488,7 @@
             {
                 // Retrieve content into ignored inner markups
                 var ignoredInnerMarkupsContent = new Dictionary<(string insertionMarkup, string insertionMarkupBegin, string insertionMarkupEnd), List<string>>();
-                var ignoredInnerMarkups = template.IgnoreInnerMarkups.Select(x =>
+                var ignoredInnerMarkups = template.IgnoredInnerMarkups.Select(x =>
                 {
                     var insertionMarkup = GetInsertionMarkup(new Template { PartialInsertionMarkup = x }, _currentContext);
                     var insertionMarkupBegin = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupBeginPattern, insertionMarkup), outputPath);

@@ -24,7 +24,7 @@
                 public bool IsPartial { get; set; }
                 public string PartialInsertionMarkup { get; set; }
                 public bool UseDomainPartialInsertionMarkup { get; set; }
-                public List<string> IgnoreInnerMarkups { get; set; } = [];
+                public List<string> IgnoredInnerMarkups { get; set; } = [];
 
                 public bool Equals(Template other)
                 {
@@ -33,8 +33,8 @@
                         && OutputPath == other.OutputPath 
                         && IsPartial == other.IsPartial 
                         && other.PartialInsertionMarkup == PartialInsertionMarkup
-                        && IgnoreInnerMarkups.Count == other.IgnoreInnerMarkups.Count 
-                        && IgnoreInnerMarkups.All(other.IgnoreInnerMarkups.Contains);
+                        && IgnoredInnerMarkups.Count == other.IgnoredInnerMarkups.Count 
+                        && IgnoredInnerMarkups.All(other.IgnoredInnerMarkups.Contains);
                 }
             }
 
