@@ -372,6 +372,7 @@
           "outputPath": "src\\app\\shared\\navigation.ts",
           "isPartial": true,
           "partialInsertionMarkup": "NavigationDomain",
+          "UseDomainPartialInsertionMarkup": true,
           "ignoreInnerMarkups": [ "NavigationDomain{Domain}Permissions", "NavigationDomain{Domain}Children" ]
         },
         {
