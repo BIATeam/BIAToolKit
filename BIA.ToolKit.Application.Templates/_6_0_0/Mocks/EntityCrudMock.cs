@@ -21,6 +21,7 @@
             OptionItems = new List<string> { "Engine", "PlaneType" };
             HasParent = false;
             DisplayHistorical = true;
+            UseDomainUrl = true;
             //ParentName = "AircraftMaintenanceCompany";
             //ParentNamePlural = "AircraftMaintenanceCompanies";
             //AngularParentRelativePath = "aircraft-maintenance-companies";

@@ -1421,6 +1421,16 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
+    <None Include="_6_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation.ts">
+      <DependentUpon>PartialCrudNavigation.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_6_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule.ts">
+      <DependentUpon>PartialCrudAppRoutingModule.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.tt">
@@ -2049,6 +2059,20 @@
     <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule_Domain.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PartialCrudAppRoutingModule_Domain.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudNavigation.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\PartialCrudAppRoutingModule.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudAppRoutingModule.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

@@ -40,6 +40,7 @@
         public bool IsArchivable { get; set; }
         public string EntityBaseKeyType { get; set; }
         public bool DisplayHistorical { get; set; }
+        public bool UseDomainUrl { get; set; }
     }
 
     public class DtoMapping

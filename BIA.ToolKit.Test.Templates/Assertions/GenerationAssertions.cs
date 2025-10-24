@@ -165,11 +165,11 @@
             }
 
             referencePath = referencePath
-                .Replace(Path.GetFileNameWithoutExtension(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}")
+                .Replace(Path.GetFileNameWithoutExtension(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Partial_{template.PartialInsertionMarkup}_{context.EntityName}")
                 .Replace("{Parent}", context.ParentName)
                 .Replace("{Domain}", context.DomainName);
             generatedPath = generatedPath
-                .Replace(Path.GetFileNameWithoutExtension(generatedPath), $"{Path.GetFileNameWithoutExtension(generatedPath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}")
+                .Replace(Path.GetFileNameWithoutExtension(generatedPath), $"{Path.GetFileNameWithoutExtension(generatedPath)}_Partial_{template.PartialInsertionMarkup}_{context.EntityName}")
                 .Replace("{Parent}", context.ParentName)
                 .Replace("{Domain}", context.DomainName);
 
@@ -191,8 +191,8 @@
             var markupBeginPattern = $@"^\/\/ BIAToolKit - Begin Partial\b.*?\b{markupSafe}$";
             var markupEndPattern = $@"^\/\/ BIAToolKit - End Partial\b.*?\b{markupSafe}$";
 
-            var beginMarkups = lines.Where(l => Regex.IsMatch(l.Trim(), markupBeginPattern)).ToList();
-            var endMarkups = lines.Where(l => Regex.IsMatch(l.Trim(), markupEndPattern)).ToList();
+            var beginMarkups = lines.Where(l => Regex.IsMatch(l.Trim(), markupBeginPattern)).Distinct().ToList();
+            var endMarkups = lines.Where(l => Regex.IsMatch(l.Trim(), markupEndPattern)).Distinct().ToList();
             if (beginMarkups.Count != endMarkups.Count)
             {
                 throw new PartialInsertionMarkupBeginAndMarkupCountNotEqualException(markupSafe, filePath);
