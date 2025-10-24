@@ -64,6 +64,7 @@
             model.TeamTypeId = crudContext.TeamTypeId;
             model.FormReadOnlyMode = crudContext.FormReadOnlyMode;
             model.DisplayHistorical = crudContext.DisplayHistorical;
+            model.UseDomainUrl = crudContext.UseDomainUrl;
 
             model.Properties = crudContext.Properties.Select(x => new TPropertyCrudModel
             {

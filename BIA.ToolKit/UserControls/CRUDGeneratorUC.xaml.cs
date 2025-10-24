@@ -194,6 +194,7 @@
                         vm.IsArchivable = history.IsArchivable;
                         vm.SelectedBaseKeyType = history.EntityBaseKeyType;
                         vm.DisplayHistorical = history.DisplayHistorical;
+                        vm.UseDomainUrl = history.UseDomainUrl;
                         if (history.OptionItems != null)
                         {
                             foreach (var option in vm.OptionItems)
@@ -294,7 +295,8 @@
                         FormReadOnlyMode = vm.SelectedFormReadOnlyMode,
                         IsVersioned = vm.IsVersioned,
                         IsArchivable = vm.IsArchivable,
-                        DisplayHistorical = vm.DisplayHistorical
+                        DisplayHistorical = vm.DisplayHistorical,
+                        UseDomainUrl = vm.UseDomainUrl,
                     });
 
                     UpdateCrudGenerationHistory();
@@ -411,6 +413,7 @@
             vm.BiaFront = null;
             vm.IsTeam = false;
             vm.DisplayHistorical = false;
+            vm.UseDomainUrl = false;
 
             this.crudHistory = null;
         }
@@ -566,6 +569,7 @@
                     IsArchivable = vm.IsArchivable,
                     EntityBaseKeyType = vm.SelectedBaseKeyType,
                     DisplayHistorical = vm.DisplayHistorical,
+                    UseDomainUrl = vm.UseDomainUrl,
                     // Create "Mapping" part
                     Mapping = new()
                     {

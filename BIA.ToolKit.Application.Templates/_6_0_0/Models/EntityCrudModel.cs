@@ -30,5 +30,6 @@
         }
 
         public override bool DisplayHistorical { get; set; }
+        public override bool UseDomainUrl { get; set; }
     }
 }

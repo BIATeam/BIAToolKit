@@ -44,5 +44,6 @@
         public bool IsVersioned { get => throw new System.NotImplementedException(); set; }
         public bool IsArchivable { get => throw new System.NotImplementedException(); set; }
         public virtual bool DisplayHistorical { get => throw new System.NotImplementedException(); set; }
+        public bool UseDomainUrl { get => throw new System.NotImplementedException(); set; }
     }
 }

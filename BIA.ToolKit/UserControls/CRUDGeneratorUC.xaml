@@ -179,7 +179,8 @@
                                 <ColumnDefinition Width="0.1*"/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Content="Display Historical" Foreground="White" IsChecked="{Binding DisplayHistorical}" Visibility="{Binding IsVisibleDisplayHistorical, Converter={StaticResource BoolToVisConverter}}"/>
+                            <CheckBox Grid.Column="0" Content="Display Historical" Foreground="White" IsChecked="{Binding DisplayHistorical}" Visibility="{Binding IsProjectCompatibleV6, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible"/>
+                            <CheckBox Grid.Column="2" Content="Use Domain URL" Foreground="White" IsChecked="{Binding UseDomainUrl}" Visibility="{Binding IsProjectCompatibleV6, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible"/>
                         </Grid>
                     </Grid>
                 </Grid>

@@ -81,6 +81,7 @@
                 GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
+                UseDomainUrl = true,
             };
 
             await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);
@@ -156,6 +157,7 @@
                 GenerateFront = true,
                 AngularFront = "Angular",
                 DisplayHistorical = true,
+                UseDomainUrl = true,
             };
 
             await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext, ["Pilot", "Flight"]);
@@ -210,6 +212,7 @@
                 GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
+                UseDomainUrl = false,
             };
 
             await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext, ["Flight", "Plane"]);
@@ -264,6 +267,7 @@
                 GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
+                UseDomainUrl = false,
             };
 
             await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext, ["Pilot", "Plane"]);
@@ -311,6 +315,7 @@
                 GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
+                UseDomainUrl = true,
             };
 
             await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext, ["MaintenanceTeam"]);
@@ -387,6 +392,7 @@
                 GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
+                UseDomainUrl = true,
             };
 
             await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext, ["AircraftMaintenanceCompany"]);
