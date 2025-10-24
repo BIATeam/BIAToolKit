@@ -165,11 +165,11 @@
             }
 
             referencePath = referencePath
-                .Replace(Path.GetFileNameWithoutExtension(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}")
+                .Replace(Path.GetFileNameWithoutExtension(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Partial_{template.PartialInsertionMarkup}_{context.EntityName}")
                 .Replace("{Parent}", context.ParentName)
                 .Replace("{Domain}", context.DomainName);
             generatedPath = generatedPath
-                .Replace(Path.GetFileNameWithoutExtension(generatedPath), $"{Path.GetFileNameWithoutExtension(generatedPath)}_Partial_{template.PartialInsertionMarkup}{context.EntityName}")
+                .Replace(Path.GetFileNameWithoutExtension(generatedPath), $"{Path.GetFileNameWithoutExtension(generatedPath)}_Partial_{template.PartialInsertionMarkup}_{context.EntityName}")
                 .Replace("{Parent}", context.ParentName)
                 .Replace("{Domain}", context.DomainName);
 
