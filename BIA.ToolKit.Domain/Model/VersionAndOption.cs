@@ -21,7 +21,7 @@
         public ObservableCollection<CFOption> Options { get; set; }
         public ObservableCollection<WorkRepository> WorkCompanyFiles { get; set; }
 
-        public ObservableCollection<FeatureSetting> FeatureSettings { get; set; }
+        public ObservableCollection<FeatureSetting> FeatureSettings { get; set; } = [];
 
         // use as output
         // Framework version

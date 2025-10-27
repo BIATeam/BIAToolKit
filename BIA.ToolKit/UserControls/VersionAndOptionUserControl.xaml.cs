@@ -24,7 +24,6 @@
     {
         GitService gitService;
         RepositoryService repositoryService;
-        FeatureSettingService featureSettingService;
         private SettingsService settingsService;
         private string currentProjectPath;
         private UIEventBroker uiEventBroker;
@@ -38,12 +37,10 @@
             vm = (VersionAndOptionViewModel)base.DataContext;
         }
 
-        public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, FeatureSettingService featureSettingService,
-                    SettingsService settingsService, UIEventBroker uiEventBroker)
+        public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, SettingsService settingsService, UIEventBroker uiEventBroker)
         {
             this.gitService = gitService;
             this.repositoryService = repositoryService;
-            this.featureSettingService = featureSettingService;
             this.settingsService = settingsService;
             this.uiEventBroker = uiEventBroker;
             this.consoleWriter = consoleWriter;
@@ -92,8 +89,8 @@
 
         private void LoadfeatureSetting()
         {
-            List<FeatureSetting> featureSettings = this.featureSettingService.Get(vm.WorkTemplate?.VersionFolderPath);
-            List<FeatureSetting> projectFeatureSettings = this.featureSettingService.Get(this.currentProjectPath);
+            List<FeatureSetting> featureSettings = FeatureSettingHelper.Get(vm.WorkTemplate?.VersionFolderPath);
+            List<FeatureSetting> projectFeatureSettings = FeatureSettingHelper.Get(this.currentProjectPath);
 
             if (featureSettings?.Any() == true && projectFeatureSettings?.Any() == true)
             {

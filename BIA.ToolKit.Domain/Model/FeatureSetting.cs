@@ -25,11 +25,16 @@
         /// <summary>
         /// Gets or sets the tag.
         /// </summary>
-        public List<string> Tags { get; set; }
+        public List<string> Tags { get; set; } = [];
 
         /// <summary>
         /// Gets or sets the folders to excludes.
         /// </summary>
-        public List<string> FoldersToExcludes { get; set; }
+        public List<string> FoldersToExcludes { get; set; } = [];
+
+        /// <summary>
+        /// Gets or sets the features ID to disabled when current feature is enabled.
+        /// </summary>
+        public List<int> DisabledFeatures { get; set; } = [];
     }
 }

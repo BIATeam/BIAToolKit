@@ -21,7 +21,6 @@
     {
         private readonly IConsoleWriter consoleWriter;
         private readonly RepositoryService repositoryService;
-        private readonly FeatureSettingService featureSettingService;
         private readonly CSharpParserService parserService;
         private readonly SettingsService settingsService;
 
@@ -29,12 +28,10 @@
         public ProjectCreatorService(IConsoleWriter consoleWriter,
             RepositoryService repositoryService,
             SettingsService settingsService,
-            FeatureSettingService featureSettingService,
             CSharpParserService parserService)
         {
             this.consoleWriter = consoleWriter;
             this.repositoryService = repositoryService;
-            this.featureSettingService = featureSettingService;
             this.parserService = parserService;
             this.settingsService = settingsService;
         }
@@ -48,7 +45,7 @@
             // Ensure to have namespaces correctly formated
             projectParameters.ProjectName = $"{char.ToUpper(projectParameters.ProjectName[0])}{projectParameters.ProjectName[1..]}";
 
-            List<FeatureSetting> featureSettings = projectParameters.VersionAndOption?.FeatureSettings?.ToList();
+            List<FeatureSetting> featureSettings = projectParameters.VersionAndOption?.FeatureSettings.ToList();
 
             List<string> localFilesToExcludes = new List<string>();
 
@@ -70,9 +67,9 @@
             else
             {
                 List<string> foldersToExcludes = null;
-                if (!featureSettingService.HasAllFeature(featureSettings))
+                if (!featureSettings.HasAllFeature())
                 {
-                    foldersToExcludes = featureSettingService.GetFoldersToExcludes(featureSettings);
+                    foldersToExcludes = featureSettings.GetFoldersToExcludes();
                     List<string> filesToExcludes = this.GetFileToExcludes(projectParameters.VersionAndOption, featureSettings);
                     localFilesToExcludes.AddRange(filesToExcludes);
                 }
@@ -279,7 +276,7 @@
 
         private List<string> GetFileToExcludes(VersionAndOption versionAndOption, List<FeatureSetting> settings)
         {
-            List<string> tags = featureSettingService.GetBiaFeatureTagToDeletes(settings, BiaFeatureTag.ItemGroupTag);
+            List<string> tags = settings.GetBiaFeatureTagToDeletes(BiaFeatureTag.ItemGroupTag);
 
             List<string> filesToExcludes = new List<string>();
 
@@ -325,18 +322,18 @@
 
         private void CleanProject(string projectPath, VersionAndOption versionAndOption, List<FeatureSetting> featureSettings)
         {
-            if (!featureSettingService.HasAllFeature(versionAndOption.FeatureSettings.ToList()))
+            if (!versionAndOption.FeatureSettings.ToList().HasAllFeature())
             {
                 this.CleanSln(projectPath, versionAndOption);
                 this.CleanCsProj(projectPath);
 
                 DirectoryHelper.DeleteEmptyDirectories(projectPath);
 
-                List<string> tagToDeletes = featureSettingService.GetBiaFeatureTagToDeletes(featureSettings);
+                List<string> tagToDeletes = featureSettings.GetBiaFeatureTagToDeletes();
                 FileHelper.CleanFilesByTag(projectPath, tagToDeletes, "#if", "#endif", $"*{FileExtensions.DotNetClass}", true);
             }
 
-            List<string> tags = featureSettingService.GetAllBiaFeatureTag(featureSettings);
+            List<string> tags = featureSettings.GetAllBiaFeatureTag();
             FileHelper.CleanFilesByTag(projectPath, tags, "#if", "#endif", $"*{FileExtensions.DotNetClass}", false);
         }
 

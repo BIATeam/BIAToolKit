@@ -12,6 +12,7 @@
     using System.IO;
     using System.Linq;
     using System.Text.Json;
+    using System.Windows.Input;
 
     public class VersionAndOptionViewModel : ObservableObject
     {
@@ -232,7 +233,7 @@
             {
                 if (VersionAndOption.FeatureSettings != value)
                 {
-                    VersionAndOption.FeatureSettings = value;
+                    VersionAndOption.FeatureSettings = value ?? [];
                     HasFeature = VersionAndOption.FeatureSettings.Any();
                     AreFeatureInitialized = true;
                     RaisePropertyChanged(nameof(FeatureSettings));
@@ -303,5 +304,18 @@
         }
 
         public bool IsVisibileNoFeature => !AreFeatureVisible;
+
+        public ICommand OnFeatureSettingSelectionChangedCommand => new RelayCommand(_ => OnFeatureSettingSelectionChanged());
+
+        private void OnFeatureSettingSelectionChanged()
+        {
+            var notSelectedFeatures = FeatureSettings.FilterNotSelectedFeatures();
+            var features = new List<FeatureSetting>(FeatureSettings);
+            foreach (var notSelectedFeature in notSelectedFeatures)
+            {
+                features.Single(x => x.Id == notSelectedFeature.Id).IsSelected = false;
+            }
+            FeatureSettings = new ObservableCollection<FeatureSetting>(features);
+        }
     }
 }
