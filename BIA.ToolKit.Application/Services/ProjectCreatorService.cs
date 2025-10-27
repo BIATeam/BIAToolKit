@@ -249,10 +249,7 @@
                 List<XElement> itemGroups = xDocument.Descendants(ns + "ItemGroup")
                                 .Where(x => ((string)x.Attribute("Label"))?.StartsWith(BiaFeatureTag.ItemGroupTag) == true).ToList();
 
-                XElement defineConstantsElement = xDocument.Descendants(ns + "PropertyGroup")
-                    .FirstOrDefault(x => (string)x.Attribute("Condition") == "'$(Configuration)|$(Platform)'=='Debug|AnyCPU'")
-                    ?.Element(ns + "DefineConstants");
-
+                var defineConstantsElements = xDocument.Descendants("DefineConstants").ToList();
                 bool shouldSaveDocument = false;
 
                 if (itemGroups.Count > 0)
@@ -261,10 +258,13 @@
                     shouldSaveDocument = true;
                 }
 
-                if (!string.IsNullOrWhiteSpace(defineConstantsElement?.Value))
+                foreach (var defineConstantsElement in defineConstantsElements)
                 {
-                    defineConstantsElement.Value = csprojFile.EndsWith($"{BiaProjectName.Test}{FileExtensions.DotNetProject}") ? "TRACE" : string.Empty;
-                    shouldSaveDocument = true;
+                    if (!string.IsNullOrWhiteSpace(defineConstantsElement?.Value))
+                    {
+                        defineConstantsElement.Value = csprojFile.EndsWith($"{BiaProjectName.Test}{FileExtensions.DotNetProject}") ? "TRACE" : string.Empty;
+                        shouldSaveDocument = true;
+                    }
                 }
 
                 if (shouldSaveDocument)
