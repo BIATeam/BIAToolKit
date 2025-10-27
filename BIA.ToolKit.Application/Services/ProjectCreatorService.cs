@@ -70,7 +70,7 @@
                 if (!featureSettings.HasAllFeature())
                 {
                     foldersToExcludes = featureSettings.GetFoldersToExcludes();
-                    List<string> filesToExcludes = this.GetFileToExcludes(projectParameters.VersionAndOption, featureSettings);
+                    List<string> filesToExcludes = GetFilesToExcludes(projectParameters.VersionAndOption, featureSettings);
                     localFilesToExcludes.AddRange(filesToExcludes);
                 }
 
@@ -274,24 +274,20 @@
             }
         }
 
-        private List<string> GetFileToExcludes(VersionAndOption versionAndOption, List<FeatureSetting> settings)
+        private static List<string> GetFilesToExcludes(VersionAndOption versionAndOption, List<FeatureSetting> settings)
         {
             List<string> tags = settings.GetBiaFeatureTagToDeletes(BiaFeatureTag.ItemGroupTag);
 
             List<string> filesToExcludes = new List<string>();
-
-            string csprojFile = (FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}")).FirstOrDefault();
-
-            if (!string.IsNullOrWhiteSpace(csprojFile))
+            var csprojFiles = FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}");
+            foreach (var csprojFile in csprojFiles)
             {
                 XDocument document = XDocument.Load(csprojFile);
                 XNamespace ns = document.Root.Name.Namespace;
 
-                XElement itemGroup = document.Descendants(ns + "ItemGroup")
-                                        .FirstOrDefault(x => tags.Contains((string)x.Attribute("Label")));
-
-                if (itemGroup != null)
-                {
+                var itemGroups = document.Descendants(ns + "ItemGroup").Where(x => tags.Contains((string)x.Attribute("Label"))).ToList();
+                foreach(var itemGroup in itemGroups)
+                { 
                     List<string> compileRemoveItems = itemGroup.Elements(ns + "Compile")
                                                       .Where(x => x.Attribute("Remove") != null)
                                                       .Select(x => x.Attribute("Remove").Value)
