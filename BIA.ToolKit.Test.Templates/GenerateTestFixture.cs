@@ -14,11 +14,11 @@
 
     public abstract class GenerateTestFixture() : IDisposable
     {
-        internal class ConsoleWriterTest(Stopwatch stopwatch) : IConsoleWriter
+        internal class ConsoleWriterTest(Stopwatch stopwatch, string fixtureName) : IConsoleWriter
         {
             public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
             {
-                Console.WriteLine($"[{nameof(GenerateTestFixture)} {stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}]\t{message}");
+                Console.WriteLine($"[{fixtureName} {stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}]\t{message}");
             }
         }
 
@@ -33,7 +33,7 @@
 
         protected void Init(string biaDemoArchiveName, Project biaDemoProject)
         {
-            var consoleWriter = new ConsoleWriterTest(stopwatch);
+            var consoleWriter = new ConsoleWriterTest(stopwatch, this.GetType().Name);
             stopwatch.Start();
 
             var biaDemoZipPath = $"..\\..\\..\\..\\BIADemoVersions\\{biaDemoArchiveName}.zip";
