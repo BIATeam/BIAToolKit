@@ -1,9 +1,7 @@
 ﻿namespace BIA.ToolKit.Test.Templates.Assertions
 {
     using System;
-    using Microsoft.Build.Tasks;
     using System.Text;
-    using static BIA.ToolKit.Application.Templates.Manifest.Feature;
 
     internal class GenerationAssertionException(string message) : Exception(message)
     { }

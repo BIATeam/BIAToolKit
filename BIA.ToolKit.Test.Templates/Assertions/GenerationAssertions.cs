@@ -3,17 +3,14 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using System.Text.RegularExpressions;
-    using System.Threading.Tasks;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Templates;
-    using LibGit2Sharp;
 
     internal static class GenerationAssertions
     {
-        public static void AssertAllFilesEquals(FileGeneratorTestFixture testFixture, FileGeneratorContext context)
+        public static void AssertAllFilesEquals(GenerateTestFixture testFixture, FileGeneratorContext context)
         {
             if(context.GenerationReport.HasFailed)
             {
@@ -62,7 +59,7 @@
             }
         }
 
-        private static void VerifyFilesEquals(FileGeneratorTestFixture testFixture, string referencePath, string generatedPath, FileGeneratorContext context, Manifest.Feature.Template template, bool isAngularTemplate = false)
+        private static void VerifyFilesEquals(GenerateTestFixture testFixture, string referencePath, string generatedPath, FileGeneratorContext context, Manifest.Feature.Template template, bool isAngularTemplate = false)
         {
             if (context.GenerationReport.TemplatesIgnored.Any(t => t.Equals(template)))
                 return;
@@ -81,7 +78,7 @@
             CompareFiles(referencePath, generatedPath);
         }
 
-        private static void RemoveGenerationIgnoreCode(FileGeneratorTestFixture testFixture, ref string referencePath, bool isAngularTemplate)
+        private static void RemoveGenerationIgnoreCode(GenerateTestFixture testFixture, ref string referencePath, bool isAngularTemplate)
         {
             const string biaDemoMarkupBegin = "Begin BIAToolKit Generation Ignore";
             const string biaDemoMarkupEnd = "End BIAToolKit Generation Ignore";

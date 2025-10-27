@@ -1,21 +1,11 @@
-﻿namespace BIA.ToolKit.Test.Templates.Tests
+﻿namespace BIA.ToolKit.Test.Templates._6_0_0
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
-    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
-    using BIA.ToolKit.Application.Templates;
-    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
-    using Newtonsoft.Json;
 
-    [Collection("FileGeneratorTestCollection")]
-    public class GenerateOptionTest(FileGeneratorTestFixture fixture)
+    [Collection(nameof(GenerateTestFixtureCollection))]
+    public sealed class GenerateOptionTest(GenerateTestFixture_6_0_0 fixture)
     {
         /// <summary>
         /// Generates the option's files for PlaneType.
@@ -24,9 +14,6 @@
         [Fact]
         public async Task GeneratePlaneType_BIADemoConfiguration_AllFilesEquals()
         {
-            if (!fixture.IsTestProjectMinimalVersion(5))
-                return;
-
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
@@ -62,9 +49,6 @@
         [Fact]
         public async Task GenerateCountry_BIADemoConfiguration_AllFilesEquals()
         {
-            if (!fixture.IsTestProjectMinimalVersion(5))
-                return;
-
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
