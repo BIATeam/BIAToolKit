@@ -26,7 +26,7 @@
             return files.ToList();
         }
 
-        public static void CleanFilesByTag(string path, List<string> beginTags, string endTag, string extension, bool hasRemoveRange)
+        public static void CleanFilesByTag(string path, List<string> deletionTags, string beginTagPrefix, string endTag, string extension, bool removeContentBetween)
         {
             string[] files = Directory.GetFiles(path, extension, SearchOption.AllDirectories);
 
@@ -34,14 +34,24 @@
             {
                 var lines = File.ReadLines(file).ToList();
 
-                foreach (var beginTag in beginTags)
+                foreach (var deletionTag in deletionTags)
                 {
-                    var beginTagIndexes = GetTagIndexes(beginTag, lines);
-                    if (!beginTagIndexes.Any())
+                    var beginTagIndexes = GetTagIndexes(deletionTag, lines);
+                    if (beginTagIndexes.Count == 0)
+                        continue;
+
+                    var validBeginTagIndexes = new List<int>();
+                    foreach (var beginTagIndex in beginTagIndexes)
+                    {
+                        if (IsLineValidForDeletion(lines[beginTagIndex], beginTagPrefix, deletionTags))
+                            validBeginTagIndexes.Add(beginTagIndex);
+                    }
+
+                    if (validBeginTagIndexes.Count == 0)
                         continue;
 
                     var endTagIndexes = GetTagIndexes(endTag, lines);
-                    var indexPairs = beginTagIndexes
+                    var indexPairs = validBeginTagIndexes
                     .Select(beginTagIndex => new
                     {
                         BeginIndex = beginTagIndex,
@@ -51,7 +61,7 @@
 
                     foreach (var pair in indexPairs)
                     {
-                        if (hasRemoveRange)
+                        if (removeContentBetween)
                         {
                             var elseTagIndexes = GetElseTagIndexesInRange(lines, pair.BeginIndex, pair.EndIndex);
                             if (elseTagIndexes.Any())
@@ -82,6 +92,34 @@
                     }
 
                     File.WriteAllLines(file, lines);
+                }
+
+                static bool IsLineValidForDeletion(string tagLine, string beginTagPrefix, ICollection<string> deletionTags)
+                {
+                    if (string.IsNullOrWhiteSpace(tagLine)) 
+                        return false;
+
+                    tagLine = tagLine.Trim();
+                    if (!tagLine.StartsWith(beginTagPrefix, StringComparison.Ordinal))
+                        return false;
+
+                    var tagsExpression = tagLine[beginTagPrefix.Length..].Trim();
+
+                    // TAG1 && TAG2
+                    if (tagsExpression.Contains("&&"))
+                        return true;
+
+                    // TAG1 || TAG2
+                    if (tagsExpression.Contains("||"))
+                    {
+                        var orTags = tagsExpression.Split(["||"], StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(t => t.Trim())
+                                        .Where(t => t.Length > 0);
+                        return orTags.All(deletionTags.Contains);
+                    }
+
+                    // TAG1
+                    return tagsExpression.Length > 0 && deletionTags.Contains(tagsExpression);
                 }
 
                 static List<int> GetTagIndexes(string tag, List<string> lines)
