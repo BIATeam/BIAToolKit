@@ -226,29 +226,30 @@
             Options = new ObservableCollection<CFOption>(options);
         }
 
-        public ObservableCollection<FeatureSetting> FeatureSettings
+        private ObservableCollection<FeatureSettingViewModel> featureSettings = [];
+        public ObservableCollection<FeatureSettingViewModel> FeatureSettings
         {
-            get { return VersionAndOption.FeatureSettings; }
+            get { return featureSettings; }
             set
             {
-                if (VersionAndOption.FeatureSettings != value)
+                if (featureSettings != value)
                 {
-                    VersionAndOption.FeatureSettings = value ?? [];
-                    HasFeature = VersionAndOption.FeatureSettings.Any();
+                    featureSettings = value ?? [];
+                    HasFeature = featureSettings.Any();
                     AreFeatureInitialized = true;
                     RaisePropertyChanged(nameof(FeatureSettings));
+                    VersionAndOption.FeatureSettings = featureSettings.Select(x => x.FeatureSetting).ToList();
                 }
             }
         }
 
         public void CheckFeature(List<string> tags, List<string> folders)
         {
-            var features = new List<FeatureSetting>();
-            foreach (FeatureSetting feature in FeatureSettings)
+            foreach (var feature in FeatureSettings)
             {
-                if ((feature.Tags != null && tags != null && feature.Tags.Any(t1 => tags.Any(t2 => string.Equals(t1,t2))))
+                if ((feature.FeatureSetting.Tags != null && tags != null && feature.FeatureSetting.Tags.Any(t1 => tags.Any(t2 => string.Equals(t1,t2))))
                     ||
-                    (feature.FoldersToExcludes != null && folders != null && feature.FoldersToExcludes.Any(f1 => folders.Any(f2 => string.Equals(f1, f2))))
+                    (feature.FeatureSetting.FoldersToExcludes != null && folders != null && feature.FeatureSetting.FoldersToExcludes.Any(f1 => folders.Any(f2 => string.Equals(f1, f2))))
                     )
                 {
                     feature.IsSelected = true;
@@ -257,9 +258,7 @@
                 {
                     feature.IsSelected = false;
                 }
-                features.Add(feature);
             }
-            FeatureSettings = new ObservableCollection<FeatureSetting>(features);
         }
 
         public bool HasFeature
@@ -309,13 +308,11 @@
 
         private void OnFeatureSettingSelectionChanged()
         {
-            var notSelectedFeatures = FeatureSettings.FilterNotSelectedFeatures();
-            var features = new List<FeatureSetting>(FeatureSettings);
+            var notSelectedFeatures = VersionAndOption.FeatureSettings.FilterNotSelectedFeatures();
             foreach (var notSelectedFeature in notSelectedFeatures)
             {
-                features.Single(x => x.Id == notSelectedFeature.Id).IsSelected = false;
+                FeatureSettings.Single(x => x.FeatureSetting.Id == notSelectedFeature.Id).IsSelected = false;
             }
-            FeatureSettings = new ObservableCollection<FeatureSetting>(features);
         }
     }
 }

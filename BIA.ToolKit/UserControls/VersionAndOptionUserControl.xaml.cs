@@ -105,8 +105,19 @@
                 }
             }
 
-            featureSettings = featureSettings ?? new List<FeatureSetting>();
-            vm.FeatureSettings = new ObservableCollection<FeatureSetting>(featureSettings);
+            featureSettings = featureSettings ?? [];
+            var featureSettingViewModels =  new ObservableCollection<FeatureSettingViewModel>(featureSettings.Select(x => new FeatureSettingViewModel(x)));
+            foreach(var featureSettingViewModel in featureSettingViewModels)
+            {
+                if(featureSettingViewModel.FeatureSetting.DisabledFeatures.Count != 0)
+                {
+                    featureSettingViewModel.DisabledFeatures = string.Join(", ", featureSettings
+                        .Where(x => featureSettingViewModel.FeatureSetting.DisabledFeatures.Contains(x.Id))
+                        .Select(x => x.DisplayName));
+                }
+            }
+
+            vm.FeatureSettings = featureSettingViewModels;
         }
 
         public async Task FillVersionFolderPathAsync()
