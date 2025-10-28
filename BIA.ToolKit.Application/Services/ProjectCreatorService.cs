@@ -237,34 +237,58 @@
             }
         }
 
-        private void CleanCsProj(string projectPath)
+        private void CleanCsProj(string projectPath, List<FeatureSetting> featureSettings)
         {
             List<string> csprojFiles = FileHelper.GetFilesFromPathWithExtension(projectPath, $"*{FileExtensions.DotNetProject}");
+            var tagsToDelete = featureSettings.GetBiaFeatureTagToDeletes();
 
             foreach (string csprojFile in csprojFiles)
             {
                 XDocument xDocument = XDocument.Load(csprojFile);
                 XNamespace ns = xDocument.Root.Name.Namespace;
-
-                List<XElement> itemGroups = xDocument.Descendants(ns + "ItemGroup")
-                                .Where(x => ((string)x.Attribute("Label"))?.StartsWith(BiaFeatureTag.ItemGroupTag) == true).ToList();
-
-                var defineConstantsElements = xDocument.Descendants("DefineConstants").ToList();
                 bool shouldSaveDocument = false;
 
+                // ItemGroup
+                var itemGroups = xDocument
+                    .Descendants("ItemGroup")
+                    .Where(x => x.Attribute("Label")?.Value?.StartsWith(BiaFeatureTag.ItemGroupTag) == true)
+                    .ToList();
                 if (itemGroups.Count > 0)
                 {
                     itemGroups.ForEach(ig => ig.Remove());
                     shouldSaveDocument = true;
                 }
 
-                foreach (var defineConstantsElement in defineConstantsElements)
+                // DefineConstants
+                var defineConstants = xDocument
+                    .Descendants("DefineConstants")
+                    .ToList();
+                foreach (var defineConstant in defineConstants)
                 {
-                    if (!string.IsNullOrWhiteSpace(defineConstantsElement?.Value))
+                    if (!string.IsNullOrWhiteSpace(defineConstant.Value))
                     {
-                        defineConstantsElement.Value = csprojFile.EndsWith($"{BiaProjectName.Test}{FileExtensions.DotNetProject}") ? "TRACE" : string.Empty;
+                        defineConstant.Value = csprojFile.EndsWith($"{BiaProjectName.Test}{FileExtensions.DotNetProject}") ? "TRACE" : string.Empty;
                         shouldSaveDocument = true;
                     }
+                }
+
+                // ProjectReference
+                var projectReferences = xDocument
+                    .Descendants("ProjectReference")
+                    .Where(x => x.Attribute("Condition") is not null)
+                    .ToList();
+                foreach (var projectReference in projectReferences)
+                {
+                    var conditionAttribute = projectReference.Attribute("Condition");
+                    if (tagsToDelete.Any(conditionAttribute.Value.Contains))
+                    {
+                        projectReference.Remove();
+                    }
+                    else
+                    {
+                        projectReference.SetAttributeValue(conditionAttribute.Name, null);
+                    }
+                    shouldSaveDocument = true;
                 }
 
                 if (shouldSaveDocument)
@@ -286,8 +310,8 @@
                 XNamespace ns = document.Root.Name.Namespace;
 
                 var itemGroups = document.Descendants(ns + "ItemGroup").Where(x => tags.Contains((string)x.Attribute("Label"))).ToList();
-                foreach(var itemGroup in itemGroups)
-                { 
+                foreach (var itemGroup in itemGroups)
+                {
                     List<string> compileRemoveItems = itemGroup.Elements(ns + "Compile")
                                                       .Where(x => x.Attribute("Remove") != null)
                                                       .Select(x => x.Attribute("Remove").Value)
@@ -321,7 +345,7 @@
             if (!versionAndOption.FeatureSettings.ToList().HasAllFeature())
             {
                 this.CleanSln(projectPath, versionAndOption);
-                this.CleanCsProj(projectPath);
+                this.CleanCsProj(projectPath, featureSettings);
 
                 DirectoryHelper.DeleteEmptyDirectories(projectPath);
 
