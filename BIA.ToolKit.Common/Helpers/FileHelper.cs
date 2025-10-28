@@ -26,7 +26,7 @@
             return files.ToList();
         }
 
-        public static void CleanFilesByTag(string path, List<string> deletionTags, string beginTagPrefix, string endTag, string extension, bool removeContentBetween)
+        public static void CleanFilesByTag(string path, List<string> deletionTags, string beginTagPrefix, string elseTag, string endTag, string extension, bool removeContentBetween)
         {
             string[] files = Directory.GetFiles(path, extension, SearchOption.AllDirectories);
 
@@ -63,7 +63,7 @@
                     {
                         if (removeContentBetween)
                         {
-                            var elseTagIndexes = GetElseTagIndexesInRange(lines, pair.BeginIndex, pair.EndIndex);
+                            var elseTagIndexes = GetElseTagIndexesInRange(lines, pair.BeginIndex, pair.EndIndex, elseTag);
                             if (elseTagIndexes.Any())
                             {
                                 lines.RemoveAt(pair.EndIndex);
@@ -77,7 +77,7 @@
                         }
                         else
                         {
-                            var elseTagIndexes = GetElseTagIndexesInRange(lines, pair.BeginIndex, pair.EndIndex);
+                            var elseTagIndexes = GetElseTagIndexesInRange(lines, pair.BeginIndex, pair.EndIndex, elseTag);
                             if (elseTagIndexes.Any())
                             {
                                 var elseTagIndex = elseTagIndexes.First() + pair.BeginIndex;
@@ -131,10 +131,15 @@
                     .OrderBy(x => x).ToList();
                 }
 
-                static List<int> GetElseTagIndexesInRange(List<string> lines, int rangeStart, int rangeEnd)
+                static List<int> GetElseTagIndexesInRange(List<string> lines, int rangeStart, int rangeEnd, string elseTag)
                 {
+                    if (string.IsNullOrWhiteSpace(elseTag))
+                    {
+                        return [];
+                    }
+
                     var rangeLines = lines.Take(new Range(rangeStart, rangeEnd + 1)).ToList();
-                    return GetTagIndexes("#else", rangeLines);
+                    return GetTagIndexes(elseTag, rangeLines);
                 }
             });
         }

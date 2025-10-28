@@ -350,13 +350,13 @@
                 DirectoryHelper.DeleteEmptyDirectories(projectPath);
 
                 List<string> tagToDeletes = featureSettings.GetBiaFeatureTagToDeletes();
-                FileHelper.CleanFilesByTag(projectPath, tagToDeletes, "#if", "#endif", $"*{FileExtensions.DotNetClass}", true);
-                FileHelper.CleanFilesByTag(projectPath, tagToDeletes, "// if", "// endif", $"*{FileExtensions.Json}", true);
+                FileHelper.CleanFilesByTag(projectPath, tagToDeletes, "#if", "#else", "#endif", $"*{FileExtensions.DotNetClass}", true);
+                FileHelper.CleanFilesByTag(projectPath, tagToDeletes, "// if", null, "// endif", $"*{FileExtensions.Json}", true);
             }
 
             List<string> tags = featureSettings.GetAllBiaFeatureTag();
-            FileHelper.CleanFilesByTag(projectPath, tags, "#if", "#endif", $"*{FileExtensions.DotNetClass}", false);
-            FileHelper.CleanFilesByTag(projectPath, tags, "// if", "// endif", $"*{FileExtensions.Json}", false);
+            FileHelper.CleanFilesByTag(projectPath, tags, "#if", "#else", "#endif", $"*{FileExtensions.DotNetClass}", false);
+            FileHelper.CleanFilesByTag(projectPath, tags, "// if", null, "// endif", $"*{FileExtensions.Json}", false);
         }
 
         private void CleanBiaToolkitJsonFiles(string projectPath)
