@@ -15,6 +15,7 @@
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Domain.Work;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using static BIA.ToolKit.Common.Constants;
 
     public class ProjectCreatorService
@@ -47,13 +48,14 @@
 
             List<FeatureSetting> featureSettings = projectParameters.VersionAndOption?.FeatureSettings.ToList();
 
-            List<string> localFilesToExcludes = new List<string>();
+            List<string> foldersToExcludes = [];
+            List<string> localFilesToExcludes = [];
 
             if (projectParameters.VersionAndOption.WorkTemplate.Version == "VX.Y.Z")
             {
                 // Copy from local folder
                 projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath = projectParameters.VersionAndOption.WorkTemplate.Repository.LocalPath;
-                localFilesToExcludes = new List<string>() { "^\\.git$", "^\\.vs$", "\\.csproj\\.user$", "^bin$", "^obj$", "^node_modules$", "^dist$" };
+                foldersToExcludes.AddRange("^\\.git$", "^\\.vs$", "\\.csproj\\.user$", "^bin$", "^obj$", "^node_modules$", "^dist$");
             }
             else
             {
@@ -66,12 +68,10 @@
             }
             else
             {
-                List<string> foldersToExcludes = null;
                 if (!featureSettings.HasAllFeature())
                 {
-                    foldersToExcludes = featureSettings.GetFoldersToExcludes();
-                    List<string> filesToExcludes = GetFilesToExcludes(projectParameters.VersionAndOption, featureSettings);
-                    localFilesToExcludes.AddRange(filesToExcludes);
+                    foldersToExcludes.AddRange(featureSettings.GetFoldersToExcludes());
+                    localFilesToExcludes.AddRange(GetFilesToExcludes(projectParameters, featureSettings));
                 }
 
                 consoleWriter.AddMessageLine("Start copy template files.", "Pink");
@@ -298,14 +298,16 @@
             }
         }
 
-        private static List<string> GetFilesToExcludes(VersionAndOption versionAndOption, List<FeatureSetting> settings)
+        private static List<string> GetFilesToExcludes(ProjectParameters projectParameters, List<FeatureSetting> settings)
         {
             List<string> tags = settings.GetBiaFeatureTagToDeletes(BiaFeatureTag.ItemGroupTag);
 
             List<string> filesToExcludes = new List<string>();
-            var csprojFiles = FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}");
+            var csprojFiles = FileHelper.GetFilesFromPathWithExtension(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}");
             foreach (var csprojFile in csprojFiles)
             {
+                var rootDirectory = Path.GetDirectoryName(csprojFile);
+
                 XDocument document = XDocument.Load(csprojFile);
                 XNamespace ns = document.Root.Name.Namespace;
 
@@ -322,16 +324,24 @@
                         string newPattern;
                         if (item.Contains("**\\*"))
                         {
-                            newPattern = ".*" + Regex.Escape(item.Replace("**\\*", "").Replace(".cs", "").Replace("*", "")) + ".*\\.cs$";
+                            newPattern = @"\\.*\\.*" + Regex.Escape(item.Replace("**\\*", "").Replace(".cs", "").Replace("*", "")) + ".*\\.cs$";
                         }
                         else
                         {
-                            newPattern = "^" + Regex.Escape(item.Replace("**\\", "").Replace(".cs", "")) + "\\.cs$";
+                            newPattern = @"\\.*\\" + Regex.Escape(item.Replace("**\\", "").Replace(".cs", "")) + @"\.cs$";
                         }
 
-                        if (!filesToExcludes.Contains(newPattern))
+                        var fullPattern = 
+                            @"^.*\\"
+                            + rootDirectory
+                                .Replace(Path.GetDirectoryName(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath) + @"\", string.Empty)
+                                .Replace(@"\", @"\\")
+                                .Replace(".", "\\.") 
+                            + newPattern;
+
+                        if (!filesToExcludes.Contains(fullPattern))
                         {
-                            filesToExcludes.Add(newPattern);
+                            filesToExcludes.Add(fullPattern);
                         }
                     }
                 }

@@ -304,21 +304,15 @@
                     continue; // skip this folder if its name matches any of the folder names to exclude
                 }
 
-                if (filesToExclude == null || !filesToExclude.Any(s => Regex.Match(sourceDirName, s, RegexOptions.IgnoreCase).Success))
-                {
-                    var subTargetPath = sourceDir.Replace(sourcePath, targetPath);
-                    Directory.CreateDirectory(sourceDir.Replace(sourcePath, targetPath));
-                    CopyFilesRecursively(sourceDir, subTargetPath, profile, filesToExclude, foldersToExcludes);
-                }
+                var subTargetPath = sourceDir.Replace(sourcePath, targetPath);
+                Directory.CreateDirectory(sourceDir.Replace(sourcePath, targetPath));
+                CopyFilesRecursively(sourceDir, subTargetPath, profile, filesToExclude, foldersToExcludes);
             }
 
             //Copy all the files & Replaces any files with the same name
             foreach (string sourceFile in Directory.GetFiles(sourcePath, "*.*", SearchOption.TopDirectoryOnly))
             {
-
-                string sourceFileName = Path.GetFileName(sourceFile);
-
-                if (filesToExclude == null || !filesToExclude.Any(s => Regex.Match(sourceFileName, s, RegexOptions.IgnoreCase).Success))
+                if (filesToExclude == null || !filesToExclude.Any(s => Regex.Match(sourceFile, s, RegexOptions.IgnoreCase).Success))
                 {
                     if (profile != "" && Regex.Match(sourceFile, "\\[.*\\]", RegexOptions.IgnoreCase).Success)
                     {
