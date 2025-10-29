@@ -41,7 +41,6 @@
             services.AddSingleton<ZipParserService>();
             services.AddSingleton<GenerateCrudService>();
             services.AddSingleton<SettingsService>();
-            services.AddSingleton<FeatureSettingService>();
             services.AddSingleton<FileGeneratorService>();
             services.AddSingleton<UpdateService>();
             services.AddLogging();

@@ -27,5 +27,6 @@
         public int TeamRoleId { get; set; }
         public string FormReadOnlyMode { get; set; }
         public bool DisplayHistorical { get; set; }
+        public bool UseDomainUrl { get; set; }
     }
 }

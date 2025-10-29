@@ -1,0 +1,18 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(ModelInstance.UseDomainUrl && (!ModelInstance.HasParent || ModelInstance.IsTeam)) {  #>
+  // BIAToolKit - Begin Partial NavigationDomain <#=  ModelInstance.DomainName #>
+  {
+    labelKey: 'app.<#=  ModelInstance.DomainName.ToCamelCase() #>',
+    permissions: [
+      // BIAToolKit - Begin NavigationDomain<#=  ModelInstance.DomainName #>Permissions
+      // BIAToolKit - End NavigationDomain<#=  ModelInstance.DomainName #>Permissions
+    ],
+    children: [
+      // BIAToolKit - Begin NavigationDomain<#=  ModelInstance.DomainName #>Children
+      // BIAToolKit - End NavigationDomain<#=  ModelInstance.DomainName #>Children
+    ],
+  },
+  // BIAToolKit - End Partial NavigationDomain <#=  ModelInstance.DomainName #>
+<# }  #>

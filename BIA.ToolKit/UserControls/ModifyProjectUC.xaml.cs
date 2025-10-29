@@ -42,15 +42,15 @@
         }
 
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
-            ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService, FeatureSettingService featureSettingService,
+            ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
             FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
         {
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
-            MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, featureSettingService, settingsService, uiEventBroker);
-            MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, featureSettingService, settingsService, uiEventBroker);
+            MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
+            MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
@@ -194,7 +194,7 @@
                     Directory.CreateDirectory(rootBiaFolder);
                 }
 
-                var fileToSuppress = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, FeatureSettingService.fileName);
+                var fileToSuppress = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, FeatureSettingHelper.fileName);
                 if (File.Exists(fileToSuppress))
                 {
                     File.Delete(fileToSuppress);

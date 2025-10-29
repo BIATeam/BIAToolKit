@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Test.Templates.Tests
+﻿namespace BIA.ToolKit.Test.Templates._5_0_0
 {
     using System;
     using System.Collections.Generic;
@@ -8,8 +8,8 @@
     using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Domain.DtoGenerator;
 
-    [Collection("FileGeneratorTestCollection")]
-    public class GenerateCrudTest(FileGeneratorTestFixture fixture)
+    [Collection(nameof(GenerateTestFixtureCollection))]
+    public sealed class GenerateCrudTest(GenerateTestFixture_5_0_0 fixture)
     {
         /// <summary>
         /// Generates the CRUD's files for Engine.
@@ -17,9 +17,6 @@
         [Fact]
         public async Task GenerateEngine_BIADemoConfiguration_AllFilesEquals()
         {
-            if (!fixture.IsTestProjectMinimalVersion(5))
-                return;
-
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
@@ -92,9 +89,6 @@
         [Fact]
         public async Task GeneratePlane_BIADemoConfiguration_AllFilesEquals()
         {
-            if (!fixture.IsTestProjectMinimalVersion(5))
-                return;
-
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
@@ -155,118 +149,9 @@
                 GenerateBack = true,
                 GenerateFront = true,
                 AngularFront = "Angular",
-                DisplayHistorical = true,
             };
 
-            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);
-        }
-
-        /// <summary>
-        /// Generates the CRUD's files for Plane.
-        /// </summary>
-        [Fact]
-        public async Task GeneratePilot_BIADemoConfiguration_AllFilesEquals()
-        {
-            if (!fixture.IsTestProjectMinimalVersion(6))
-                return;
-
-            var entityInfo = new EntityInfo(
-                path: string.Empty,
-                @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
-                name: "Pilot",
-                baseType: null,
-                baseKeyType: "Guid",
-                arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "Site")],
-                baseList: ["BaseDtoVersionedFixableArchivable<Guid>"]);
-
-            var domainName = "Fleet";
-
-            var properties = new List<PropertyInfo>
-            {
-                new("int", "SiteId", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("IsParent", true)]),
-                new("string", "IdentificationNumber", [RoslynHelper.CreateAttributeArgument("Required", true)]),
-                new("int?", "FlightHours", [RoslynHelper.CreateAttributeArgument("Required", false)]),
-            };
-
-            var crudContext = new FileGeneratorCrudContext
-            {
-                CompanyName = fixture.TestProject.CompanyName,
-                ProjectName = fixture.TestProject.Name,
-                DomainName = domainName,
-                EntityName = entityInfo.Name,
-                EntityNamePlural = entityInfo.NamePluralized,
-                BaseKeyType = entityInfo.BaseKeyType,
-                Properties = properties,
-                IsVersioned = true,
-                DisplayItemName = "IdentificationNumber",
-                OptionItems = [],
-                HasAncestorTeam = true,
-                AncestorTeamName = "Site",
-                UseHubForClient = false,
-                HasReadOnlyMode = true,
-                IsFixable = true,
-                FormReadOnlyMode = Enum.GetName(typeof(FormReadOnlyMode), FormReadOnlyMode.Off),
-                CanImport = true,
-                GenerateBack = true,
-                GenerateFront = true,
-                AngularFront = "Angular",
-            };
-
-            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);
-        }
-
-        /// <summary>
-        /// Generates the CRUD's files for Plane.
-        /// </summary>
-        [Fact]
-        public async Task GenerateFlight_BIADemoConfiguration_AllFilesEquals()
-        {
-            if (!fixture.IsTestProjectMinimalVersion(6))
-                return;
-
-            var entityInfo = new EntityInfo(
-                path: string.Empty,
-                @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Fleet",
-                name: "Flight",
-                baseType: null,
-                baseKeyType: "string",
-                arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "Site")],
-                baseList: ["BaseDtoVersionedFixableArchivable<string>"]);
-
-            var domainName = "Fleet";
-
-            var properties = new List<PropertyInfo>
-            {
-                new("int", "SiteId", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("IsParent", true)]),
-                new("OptionDto", "DepartureAirport", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("ItemType", "Airport")]),
-                new("OptionDto", "ArrivalAirport", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("ItemType", "Airport")]),
-            };
-
-            var crudContext = new FileGeneratorCrudContext
-            {
-                CompanyName = fixture.TestProject.CompanyName,
-                ProjectName = fixture.TestProject.Name,
-                DomainName = domainName,
-                EntityName = entityInfo.Name,
-                EntityNamePlural = entityInfo.NamePluralized,
-                BaseKeyType = entityInfo.BaseKeyType,
-                Properties = properties,
-                IsVersioned = true,
-                DisplayItemName = "Id",
-                OptionItems = ["Airport"],
-                HasAncestorTeam = true,
-                AncestorTeamName = "Site",
-                UseHubForClient = false,
-                HasReadOnlyMode = true,
-                IsFixable = true,
-                FormReadOnlyMode = Enum.GetName(typeof(FormReadOnlyMode), FormReadOnlyMode.Off),
-                CanImport = true,
-                GenerateBack = true,
-                GenerateFront = true,
-                AngularFront = "Angular",
-            };
-
-            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);
+            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext, ["Pilot", "Flight"]);
         }
 
         /// <summary>
@@ -275,9 +160,6 @@
         [Fact]
         public async Task GenerateAircraftMaintenanceCompany_BIADemoConfiguration_AllFilesEquals()
         {
-            if (!fixture.IsTestProjectMinimalVersion(5))
-                return;
-
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Maintenance",
@@ -322,9 +204,6 @@
         [Fact]
         public async Task GenerateMaintenanceTeam_BIADemoConfiguration_AllFilesEquals()
         {
-            if (!fixture.IsTestProjectMinimalVersion(5))
-                return;
-
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Dto.Maintenance",
@@ -389,7 +268,7 @@
                 AngularFront = "Angular",
             };
 
-            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext);
+            await fixture.RunTestGenerateCrudAllFilesEqualsAsync(crudContext, ["AircraftMaintenanceCompany"]);
         }
     }
 }

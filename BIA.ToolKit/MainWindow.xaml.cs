@@ -48,7 +48,7 @@
 
         public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, FeatureSettingService featureSettingService, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService)
+            IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService)
         {
 
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
@@ -68,9 +68,9 @@
 
             InitializeComponent();
 
-            CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, featureSettingService, settingsService, uiEventBroker);
+            CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
             ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, zipParserService, crudService, settingsService, featureSettingService, fileGeneratorService, uiEventBroker);
+                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, uiEventBroker);
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);

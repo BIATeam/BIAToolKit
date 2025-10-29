@@ -1,13 +1,13 @@
-﻿          // BIAToolKit - Begin Partial Routing MaintenanceTeam
+﻿          // BIAToolKit - Begin Partial Routing Plane
           {
-            path: 'maintenance-teams',
+            path: 'planes',
             data: {
-              breadcrumb: 'app.maintenanceTeams',
+              breadcrumb: 'app.planes',
               canNavigate: true,
             },
             loadChildren: () =>
               import(
-                './features/aircraft-maintenance-companies/children/maintenance-teams/maintenance-team.module'
-              ).then(m => m.MaintenanceTeamModule),
+                './features/planes/plane.module'
+              ).then(m => m.PlaneModule),
           },
-          // BIAToolKit - End Partial Routing MaintenanceTeam
+          // BIAToolKit - End Partial Routing Plane

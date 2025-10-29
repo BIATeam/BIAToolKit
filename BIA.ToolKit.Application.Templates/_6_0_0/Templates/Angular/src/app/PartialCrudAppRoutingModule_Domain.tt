@@ -1,0 +1,17 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(ModelInstance.UseDomainUrl && (!ModelInstance.HasParent || ModelInstance.IsTeam)) {  #>
+          // BIAToolKit - Begin Partial RoutingDomain <#=  ModelInstance.DomainName #>
+          {
+            path: '<#=  ModelInstance.DomainName.ToKebabCase() #>',
+            data: {
+              canNavigate: false,
+            },
+            children: [
+              // BIAToolKit - Begin RoutingDomain<#=  ModelInstance.DomainName #>Children
+              // BIAToolKit - End RoutingDomain<#=  ModelInstance.DomainName #>Children
+            ],
+          },
+          // BIAToolKit - End Partial RoutingDomain <#=  ModelInstance.DomainName #>
+<# }  #>

@@ -105,6 +105,11 @@ namespace BIA.ToolKit.Common
             /// The dot net class.
             /// </summary>
             public const string DotNetClass = ".cs";
+
+            /// <summary>
+            /// The JSON extension.
+            /// </summary>
+            public const string Json = ".json";
         }
 
         /// <summary>

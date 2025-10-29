@@ -46,7 +46,7 @@
                     BiaFront = BiaFronts.FirstOrDefault();
                 }
 
-                RaisePropertyChanged(nameof(IsVisibleDisplayHistorical));
+                RaisePropertyChanged(nameof(IsProjectCompatibleV6));
             }
         }
 
@@ -205,21 +205,6 @@
                 }
             }
         }
-
-        private bool displayHistorical;
-
-        public bool DisplayHistorical
-        {
-            get { return displayHistorical; }
-            set 
-            {
-                displayHistorical = value; 
-                RaisePropertyChanged(nameof(DisplayHistorical));
-            }
-        }
-
-        public bool IsVisibleDisplayHistorical => Version.TryParse(CurrentProject?.FrameworkVersion, out var version) && version.Major >= 6;
-
 
         public void AddOptionItems(IEnumerable<OptionItem> optionItems)
         {
@@ -699,6 +684,29 @@
             }
         }
 
+        public bool IsProjectCompatibleV6 => Version.TryParse(CurrentProject?.FrameworkVersion, out var version) && version.Major >= 6;
+
+        private bool displayHistorical;
+        public bool DisplayHistorical
+        {
+            get { return displayHistorical; }
+            set
+            {
+                displayHistorical = value;
+                RaisePropertyChanged(nameof(DisplayHistorical));
+            }
+        }
+
+        private bool useDomainUrl;
+        public bool UseDomainUrl
+        {
+            get { return useDomainUrl; }
+            set
+            {
+                useDomainUrl = value;
+                RaisePropertyChanged(nameof(UseDomainUrl));
+            }
+        }
 
         #endregion
 

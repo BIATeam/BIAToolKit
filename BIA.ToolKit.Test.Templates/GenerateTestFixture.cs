@@ -6,43 +6,40 @@
     using System.IO.Compression;
     using System.Linq;
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
-    using BIA.ToolKit.Application.Templates;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Test.Templates.Assertions;
-    using Microsoft.Build.Tasks;
     using static BIA.ToolKit.Application.Templates.Manifest;
 
-    public class FileGeneratorTestFixture : IDisposable
+    public abstract class GenerateTestFixture() : IDisposable
     {
-        internal class ConsoleWriterTest(Stopwatch stopwatch) : IConsoleWriter
+        internal class ConsoleWriterTest(Stopwatch stopwatch, string fixtureName) : IConsoleWriter
         {
             public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
             {
-                Console.WriteLine($"[{nameof(FileGeneratorTestFixture)} {stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}]\t{message}");
+                Console.WriteLine($"[{fixtureName} {stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}]\t{message}");
             }
         }
 
         public FileGeneratorService FileGeneratorService { get; private set; }
-        private readonly string referenceProjectPath;
-        private readonly string testProjectPath;
-        private readonly Project referenceProject;
+        private string referenceProjectPath;
+        private string testProjectPath;
+        private Project referenceProject;
         private readonly Stopwatch stopwatch = new();
         public Feature CurrentTestFeature { get; private set; }
         public Project TestProject { get; private set; }
         public List<string> PartialMarkupIdentifiersToIgnore { get; private set; }
 
-        public FileGeneratorTestFixture()
+        protected void Init(string biaDemoArchiveName, Project biaDemoProject)
         {
-            var consoleWriter = new ConsoleWriterTest(stopwatch);
+            var consoleWriter = new ConsoleWriterTest(stopwatch, this.GetType().Name);
             stopwatch.Start();
 
-            var biaDemoZipPath = "..\\..\\..\\..\\BIADemoVersions\\BIADemo_6.0.0-alpha.zip";
+            var biaDemoZipPath = $"..\\..\\..\\..\\BIADemoVersions\\{biaDemoArchiveName}.zip";
             var currentDir = Directory.GetCurrentDirectory();
             referenceProjectPath = NormalisePath(Path.Combine(currentDir, "..\\..\\..\\..\\BIADemoVersions\\", Path.GetFileNameWithoutExtension(biaDemoZipPath)));
-            testProjectPath = Path.Combine(Path.GetTempPath(), "BIAToolKitTestTemplatesGenerated");
+            testProjectPath = Path.Combine(Path.GetTempPath(), "BIAToolKitTestTemplatesGenerated", biaDemoProject.FrameworkVersion);
 
             consoleWriter.AddMessageLine($"Reference project at {referenceProjectPath}");
             consoleWriter.AddMessageLine($"Generation path at {testProjectPath}");
@@ -68,14 +65,8 @@
             consoleWriter.AddMessageLine($"Creating target test directory for generation...");
             Directory.CreateDirectory(testProjectPath);
 
-            referenceProject = new Project
-            {
-                Folder = referenceProjectPath,
-                Name = "BIADemo",
-                CompanyName = "TheBIADevCompany",
-                BIAFronts = ["Angular"],
-                FrameworkVersion = "6.0.0"
-            };
+            referenceProject = biaDemoProject;
+            referenceProject.Folder = referenceProjectPath;
 
             TestProject = new Project
             {
@@ -114,11 +105,6 @@
         public void Dispose()
         {
             stopwatch.Stop();
-        }
-
-        public bool IsTestProjectMinimalVersion(int minimalVersion)
-        {
-            return int.TryParse(TestProject.FrameworkVersion[0].ToString(), out int version) && version >= minimalVersion;
         }
 
         public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext, List<string> partialMarkupIdentifiersToIgnore = null)

@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Test.Templates.Tests
+﻿namespace BIA.ToolKit.Test.Templates._5_0_0
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -6,8 +6,8 @@
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
 
-    [Collection("FileGeneratorTestCollection")]
-    public class GenerateDtoTest(FileGeneratorTestFixture fixture)
+    [Collection(nameof(GenerateTestFixtureCollection))]
+    public sealed class GenerateDtoTest(GenerateTestFixture_5_0_0 fixture)
     {
         /// <summary>
         /// Generates the dto and mapper for PlaneType.
@@ -16,9 +16,6 @@
         [Fact]
         public async Task GeneratePlaneType_BIADemoConfiguration_AllFilesEquals()
         {
-            if (!fixture.IsTestProjectMinimalVersion(4))
-                return;
-
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
@@ -71,9 +68,6 @@
         [Fact]
         public async Task GeneratePlane_BIADemoConfiguration_AllFilesEquals()
         {
-            if (!fixture.IsTestProjectMinimalVersion(4))
-                return;
-
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
@@ -275,9 +269,6 @@
         [Fact]
         public async Task GenerateAircraftMaintenanceCompany_BIADemoConfiguration_AllFilesEquals()
         {
-            if (!fixture.IsTestProjectMinimalVersion(4))
-                return;
-
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Maintenance.Entities",
@@ -318,9 +309,6 @@
         [Fact]
         public async Task GenerateMaintenanceTeam_BIADemoConfiguration_AllFilesEquals()
         {
-            if (!fixture.IsTestProjectMinimalVersion(4))
-                return;
-
             var entityInfo = new EntityInfo(
                 path: string.Empty,
                 @namespace: "TheBIADevCompany.BIADemo.Domain.Maintenance.Entities",

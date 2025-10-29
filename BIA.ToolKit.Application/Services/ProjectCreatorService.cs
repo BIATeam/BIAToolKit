@@ -15,13 +15,13 @@
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Domain.Work;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using static BIA.ToolKit.Common.Constants;
 
     public class ProjectCreatorService
     {
         private readonly IConsoleWriter consoleWriter;
         private readonly RepositoryService repositoryService;
-        private readonly FeatureSettingService featureSettingService;
         private readonly CSharpParserService parserService;
         private readonly SettingsService settingsService;
 
@@ -29,12 +29,10 @@
         public ProjectCreatorService(IConsoleWriter consoleWriter,
             RepositoryService repositoryService,
             SettingsService settingsService,
-            FeatureSettingService featureSettingService,
             CSharpParserService parserService)
         {
             this.consoleWriter = consoleWriter;
             this.repositoryService = repositoryService;
-            this.featureSettingService = featureSettingService;
             this.parserService = parserService;
             this.settingsService = settingsService;
         }
@@ -48,15 +46,16 @@
             // Ensure to have namespaces correctly formated
             projectParameters.ProjectName = $"{char.ToUpper(projectParameters.ProjectName[0])}{projectParameters.ProjectName[1..]}";
 
-            List<FeatureSetting> featureSettings = projectParameters.VersionAndOption?.FeatureSettings?.ToList();
+            List<FeatureSetting> featureSettings = projectParameters.VersionAndOption?.FeatureSettings.ToList();
 
-            List<string> localFilesToExcludes = new List<string>();
+            List<string> foldersToExcludes = [];
+            List<string> localFilesToExcludes = [];
 
             if (projectParameters.VersionAndOption.WorkTemplate.Version == "VX.Y.Z")
             {
                 // Copy from local folder
                 projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath = projectParameters.VersionAndOption.WorkTemplate.Repository.LocalPath;
-                localFilesToExcludes = new List<string>() { "^\\.git$", "^\\.vs$", "\\.csproj\\.user$", "^bin$", "^obj$", "^node_modules$", "^dist$" };
+                foldersToExcludes.AddRange("^\\.git$", "^\\.vs$", "\\.csproj\\.user$", "^bin$", "^obj$", "^node_modules$", "^dist$");
             }
             else
             {
@@ -69,12 +68,10 @@
             }
             else
             {
-                List<string> foldersToExcludes = null;
-                if (!featureSettingService.HasAllFeature(featureSettings))
+                if (!featureSettings.HasAllFeature())
                 {
-                    foldersToExcludes = featureSettingService.GetFoldersToExcludes(featureSettings);
-                    List<string> filesToExcludes = this.GetFileToExcludes(projectParameters.VersionAndOption, featureSettings);
-                    localFilesToExcludes.AddRange(filesToExcludes);
+                    foldersToExcludes.AddRange(featureSettings.GetFoldersToExcludes());
+                    localFilesToExcludes.AddRange(GetFilesToExcludes(projectParameters, featureSettings));
                 }
 
                 consoleWriter.AddMessageLine("Start copy template files.", "Pink");
@@ -240,33 +237,57 @@
             }
         }
 
-        private void CleanCsProj(string projectPath)
+        private void CleanCsProj(string projectPath, List<FeatureSetting> featureSettings)
         {
             List<string> csprojFiles = FileHelper.GetFilesFromPathWithExtension(projectPath, $"*{FileExtensions.DotNetProject}");
+            var tagsToDelete = featureSettings.GetBiaFeatureTagToDeletes();
 
             foreach (string csprojFile in csprojFiles)
             {
                 XDocument xDocument = XDocument.Load(csprojFile);
                 XNamespace ns = xDocument.Root.Name.Namespace;
-
-                List<XElement> itemGroups = xDocument.Descendants(ns + "ItemGroup")
-                                .Where(x => ((string)x.Attribute("Label"))?.StartsWith(BiaFeatureTag.ItemGroupTag) == true).ToList();
-
-                XElement defineConstantsElement = xDocument.Descendants(ns + "PropertyGroup")
-                    .FirstOrDefault(x => (string)x.Attribute("Condition") == "'$(Configuration)|$(Platform)'=='Debug|AnyCPU'")
-                    ?.Element(ns + "DefineConstants");
-
                 bool shouldSaveDocument = false;
 
+                // ItemGroup
+                var itemGroups = xDocument
+                    .Descendants("ItemGroup")
+                    .Where(x => x.Attribute("Label")?.Value?.StartsWith(BiaFeatureTag.ItemGroupTag) == true)
+                    .ToList();
                 if (itemGroups.Count > 0)
                 {
                     itemGroups.ForEach(ig => ig.Remove());
                     shouldSaveDocument = true;
                 }
 
-                if (!string.IsNullOrWhiteSpace(defineConstantsElement?.Value))
+                // DefineConstants
+                var defineConstants = xDocument
+                    .Descendants("DefineConstants")
+                    .ToList();
+                foreach (var defineConstant in defineConstants)
                 {
-                    defineConstantsElement.Value = csprojFile.EndsWith($"{BiaProjectName.Test}{FileExtensions.DotNetProject}") ? "TRACE" : string.Empty;
+                    if (!string.IsNullOrWhiteSpace(defineConstant.Value))
+                    {
+                        defineConstant.Value = csprojFile.EndsWith($"{BiaProjectName.Test}{FileExtensions.DotNetProject}") ? "TRACE" : string.Empty;
+                        shouldSaveDocument = true;
+                    }
+                }
+
+                // ProjectReference
+                var projectReferences = xDocument
+                    .Descendants("ProjectReference")
+                    .Where(x => x.Attribute("Condition") is not null)
+                    .ToList();
+                foreach (var projectReference in projectReferences)
+                {
+                    var conditionAttribute = projectReference.Attribute("Condition");
+                    if (tagsToDelete.Any(conditionAttribute.Value.Contains))
+                    {
+                        projectReference.Remove();
+                    }
+                    else
+                    {
+                        projectReference.SetAttributeValue(conditionAttribute.Name, null);
+                    }
                     shouldSaveDocument = true;
                 }
 
@@ -277,23 +298,21 @@
             }
         }
 
-        private List<string> GetFileToExcludes(VersionAndOption versionAndOption, List<FeatureSetting> settings)
+        private static List<string> GetFilesToExcludes(ProjectParameters projectParameters, List<FeatureSetting> settings)
         {
-            List<string> tags = featureSettingService.GetBiaFeatureTagToDeletes(settings, BiaFeatureTag.ItemGroupTag);
+            List<string> tags = settings.GetBiaFeatureTagToDeletes(BiaFeatureTag.ItemGroupTag);
 
             List<string> filesToExcludes = new List<string>();
-
-            string csprojFile = (FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}")).FirstOrDefault();
-
-            if (!string.IsNullOrWhiteSpace(csprojFile))
+            var csprojFiles = FileHelper.GetFilesFromPathWithExtension(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}");
+            foreach (var csprojFile in csprojFiles)
             {
+                var rootDirectory = Path.GetDirectoryName(csprojFile);
+
                 XDocument document = XDocument.Load(csprojFile);
                 XNamespace ns = document.Root.Name.Namespace;
 
-                XElement itemGroup = document.Descendants(ns + "ItemGroup")
-                                        .FirstOrDefault(x => tags.Contains((string)x.Attribute("Label")));
-
-                if (itemGroup != null)
+                var itemGroups = document.Descendants(ns + "ItemGroup").Where(x => tags.Contains((string)x.Attribute("Label"))).ToList();
+                foreach (var itemGroup in itemGroups)
                 {
                     List<string> compileRemoveItems = itemGroup.Elements(ns + "Compile")
                                                       .Where(x => x.Attribute("Remove") != null)
@@ -305,16 +324,24 @@
                         string newPattern;
                         if (item.Contains("**\\*"))
                         {
-                            newPattern = ".*" + Regex.Escape(item.Replace("**\\*", "").Replace(".cs", "").Replace("*", "")) + ".*\\.cs$";
+                            newPattern = @"\\.*\\.*" + Regex.Escape(item.Replace("**\\*", "").Replace(".cs", "").Replace("*", "")) + ".*\\.cs$";
                         }
                         else
                         {
-                            newPattern = "^" + Regex.Escape(item.Replace("**\\", "").Replace(".cs", "")) + "\\.cs$";
+                            newPattern = @"\\.*\\" + Regex.Escape(item.Replace("**\\", "").Replace(".cs", "")) + @"\.cs$";
                         }
 
-                        if (!filesToExcludes.Contains(newPattern))
+                        var fullPattern = 
+                            @"^.*\\"
+                            + rootDirectory
+                                .Replace(Path.GetDirectoryName(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath) + @"\", string.Empty)
+                                .Replace(@"\", @"\\")
+                                .Replace(".", "\\.") 
+                            + newPattern;
+
+                        if (!filesToExcludes.Contains(fullPattern))
                         {
-                            filesToExcludes.Add(newPattern);
+                            filesToExcludes.Add(fullPattern);
                         }
                     }
                 }
@@ -325,19 +352,21 @@
 
         private void CleanProject(string projectPath, VersionAndOption versionAndOption, List<FeatureSetting> featureSettings)
         {
-            if (!featureSettingService.HasAllFeature(versionAndOption.FeatureSettings.ToList()))
+            if (!versionAndOption.FeatureSettings.ToList().HasAllFeature())
             {
                 this.CleanSln(projectPath, versionAndOption);
-                this.CleanCsProj(projectPath);
+                this.CleanCsProj(projectPath, featureSettings);
 
                 DirectoryHelper.DeleteEmptyDirectories(projectPath);
 
-                List<string> tagToDeletes = featureSettingService.GetBiaFeatureTagToDeletes(featureSettings);
-                FileHelper.CleanFilesByTag(projectPath, tagToDeletes, "#if", "#endif", $"*{FileExtensions.DotNetClass}", true);
+                List<string> tagToDeletes = featureSettings.GetBiaFeatureTagToDeletes();
+                FileHelper.CleanFilesByTag(projectPath, tagToDeletes, "#if", "#else", "#endif", $"*{FileExtensions.DotNetClass}", true);
+                FileHelper.CleanFilesByTag(projectPath, tagToDeletes, "// if", null, "// endif", $"*{FileExtensions.Json}", true);
             }
 
-            List<string> tags = featureSettingService.GetAllBiaFeatureTag(featureSettings);
-            FileHelper.CleanFilesByTag(projectPath, tags, "#if", "#endif", $"*{FileExtensions.DotNetClass}", false);
+            List<string> tags = featureSettings.GetAllBiaFeatureTag();
+            FileHelper.CleanFilesByTag(projectPath, tags, "#if", "#else", "#endif", $"*{FileExtensions.DotNetClass}", false);
+            FileHelper.CleanFilesByTag(projectPath, tags, "// if", null, "// endif", $"*{FileExtensions.Json}", false);
         }
 
         private void CleanBiaToolkitJsonFiles(string projectPath)

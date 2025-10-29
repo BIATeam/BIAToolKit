@@ -1,8 +1,7 @@
-﻿  // BIAToolKit - Begin Partial Navigation MaintenanceTeam
+﻿  // BIAToolKit - Begin Partial Navigation Plane
   {
-    labelKey: 'app.maintenanceTeams',
-    permissions: [Permission.MaintenanceTeam_List_Access],
-    path: ['/maintenance-teams'],
-    icon: 'pi pi-sitemap',
+    labelKey: 'app.planes',
+    permissions: [Permission.Plane_List_Access],
+    path: ['/planes'],
   },
-  // BIAToolKit - End Partial Navigation MaintenanceTeam
+  // BIAToolKit - End Partial Navigation Plane

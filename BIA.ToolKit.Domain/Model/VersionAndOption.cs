@@ -11,7 +11,6 @@
             WorkCompanyFiles = new ObservableCollection<WorkRepository>();
             WorkTemplates = new ObservableCollection<WorkRepository>();
             Profiles = new ObservableCollection<string>();
-            FeatureSettings = new ObservableCollection<FeatureSetting>();
             Options = new ObservableCollection<CFOption>();
         }
         public bool? Test { get; set; }
@@ -21,7 +20,7 @@
         public ObservableCollection<CFOption> Options { get; set; }
         public ObservableCollection<WorkRepository> WorkCompanyFiles { get; set; }
 
-        public ObservableCollection<FeatureSetting> FeatureSettings { get; set; }
+        public List<FeatureSetting> FeatureSettings { get; set; } = [];
 
         // use as output
         // Framework version
