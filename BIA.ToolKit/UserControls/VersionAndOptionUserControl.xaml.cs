@@ -51,6 +51,7 @@
 
         private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
         {
+            RefreshConfiguration();
             vm.SettingsUseCompanyFiles = settings.UseCompanyFiles;
         }
 
@@ -85,20 +86,18 @@
             if (string.IsNullOrWhiteSpace(this.currentProjectPath))
                 return;
 
-                string projectGenerationFile = Path.Combine(this.currentProjectPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
+            string projectGenerationFile = Path.Combine(this.currentProjectPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
             if (!File.Exists(projectGenerationFile))
                 return;
 
-                    try
-                    {
-                        VersionAndOptionDto versionAndOptionDto = CommonTools.DeserializeJsonFile<VersionAndOptionDto>(projectGenerationFile);
+            try
+            {
+                VersionAndOptionDto versionAndOptionDto = CommonTools.DeserializeJsonFile<VersionAndOptionDto>(projectGenerationFile);
                 VersionAndOptionMapper.DtoToModel(versionAndOptionDto, vm, mapCompanyFileVersion, mapFrameworkVersion, OriginFeatureSettings);
-                    }
+            }
             catch (Exception ex)
-                    {
-                        consoleWriter.AddMessageLine($"Error when reading {projectGenerationFile} : {ex.Message}", "red");
-                    }
-                }
+            {
+                consoleWriter.AddMessageLine($"Error when reading {projectGenerationFile} : {ex.Message}", "red");
             }
         }
 
