@@ -107,7 +107,7 @@
 
         private void UiEventBroker_OnRepositoriesUpdated()
         {
-            UiEventBroker_OnSettingsUpdated(settingsService.Settings);
+            uiEventBroker.NotifySettingsUpdated(settingsService.Settings);
         }
 
         public async Task Init()
@@ -234,7 +234,7 @@
             await OnUpdateAvailable();
         }
 
-        public bool CheckRepositoriesConfiguration()
+        public bool EnsureValidRepositoriesConfiguration()
         {
             var templatesConfigurationValid = CheckTemplateRepositoriesConfiguration();
             var companyFilesConfigurationValid = CheckCompanyFilesRepositoriesConfiguration();
@@ -338,10 +338,7 @@
         {
             if (sender is TabItem)
             {
-                if (CheckRepositoriesConfiguration())
-                {
-                    ModifyProject.RefreshConfiguration();
-                }
+                EnsureValidRepositoriesConfiguration();
             }
         }
 
@@ -349,10 +346,7 @@
         {
             if (sender is TabItem)
             {
-                if (CheckRepositoriesConfiguration())
-                {
-                    CreateVersionAndOption.RefreshConfiguration();
-                }
+                EnsureValidRepositoriesConfiguration();
             }
         }
 
