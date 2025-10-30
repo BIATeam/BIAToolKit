@@ -3,18 +3,18 @@
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.Work;
+    using System.Collections.Generic;
     using System.Linq;
 
     public static class VersionAndOptionMapper
     {
-        public static void DtoToModel(VersionAndOptionDto dto, VersionAndOptionViewModel vm, bool mapCompanyFileVersion, bool mapFrameworkVersion)
+        public static void DtoToModel(VersionAndOptionDto dto, VersionAndOptionViewModel vm, bool mapCompanyFileVersion, bool mapFrameworkVersion, List<FeatureSetting> originFeatureSettings)
         {
             // Company Files
             vm.UseCompanyFiles = dto.UseCompanyFiles;
 
-
             // Feature
-            vm.CheckFeature(dto.Tags, dto.Folders);
+            vm.SetFeaturesSelection(dto.Tags, dto.Folders, originFeatureSettings);
 
             // Company Files
             if (mapCompanyFileVersion)
@@ -44,8 +44,17 @@
             dto.FrameworkVersion = model.WorkTemplate?.Version;
 
             // Feature
-            dto.Tags = model.FeatureSettings.Where(f => f.IsSelected && f.Tags?.Any() == true).SelectMany(f => f.Tags).Distinct().ToList();
-            dto.Folders = model.FeatureSettings.Where(f => f.IsSelected && f.FoldersToExcludes?.Any() == true).SelectMany(f => f.FoldersToExcludes).Distinct().ToList();
+            dto.Tags = model.FeatureSettings
+                .Where(f => f.IsSelected)
+                .SelectMany(f => f.Tags)
+                .Distinct()
+                .ToList();
+
+            dto.Folders = model.FeatureSettings
+                .Where(f => f.IsSelected)
+                .SelectMany(f => f.FoldersToExcludes)
+                .Distinct()
+                .ToList();
 
             // Company Files
             dto.UseCompanyFiles = model.UseCompanyFiles;

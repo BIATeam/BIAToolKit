@@ -73,19 +73,15 @@
             }
         }
 
-        private void UiEventBroker_OnProjectChanged(Domain.ModifyProject.Project project)
+        private void InitVersionAndOptionComponents()
         {
             ParameterModifyChange();
             MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
             MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, true, true);
-            MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false, false);
-        }
-
-        public void RefreshConfiguration()
-        {
-            MigrateOriginVersionAndOption.RefreshConfiguration();
-            MigrateOriginVersionAndOption.LoadVersionAndOption(true, true);
-            MigrateTargetVersionAndOption.RefreshConfiguration();
+            MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false, false,
+                _viewModel.CurrentProject is null ?
+                null :
+                MigrateOriginVersionAndOption.vm.FeatureSettings.Select(x => x.FeatureSetting));
         }
 
         private void ModifyProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)
