@@ -59,8 +59,14 @@
             this.settingsService = settingsService;
             _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
 
-            uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
+            uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
+        }
+
+        private void UiEventBroker_OnSolutionClassesParsed()
+        {
+            ParameterModifyChange();
+            InitVersionAndOptionComponents();
         }
 
         private bool firstTimeSettingsUpdated = true;
@@ -75,7 +81,6 @@
 
         private void InitVersionAndOptionComponents()
         {
-            ParameterModifyChange();
             MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
             MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, true, true);
             MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false, false,
