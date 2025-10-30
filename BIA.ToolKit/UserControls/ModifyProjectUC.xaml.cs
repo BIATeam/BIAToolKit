@@ -59,8 +59,14 @@
             this.settingsService = settingsService;
             _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
 
-            uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
+            uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
+        }
+
+        private void UiEventBroker_OnSolutionClassesParsed()
+        {
+            ParameterModifyChange();
+            InitVersionAndOptionComponents();
         }
 
         private bool firstTimeSettingsUpdated = true;
@@ -73,19 +79,14 @@
             }
         }
 
-        private void UiEventBroker_OnProjectChanged(Domain.ModifyProject.Project project)
+        private void InitVersionAndOptionComponents()
         {
-            ParameterModifyChange();
             MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
             MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, true, true);
-            MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false, false);
-        }
-
-        public void RefreshConfiguration()
-        {
-            MigrateOriginVersionAndOption.RefreshConfiguration();
-            MigrateOriginVersionAndOption.LoadVersionAndOption(true, true);
-            MigrateTargetVersionAndOption.RefreshConfiguration();
+            MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false, false,
+                _viewModel.CurrentProject is null ?
+                null :
+                MigrateOriginVersionAndOption.vm.FeatureSettings.Select(x => x.FeatureSetting));
         }
 
         private void ModifyProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)

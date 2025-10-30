@@ -64,7 +64,6 @@
                 {
                     repositoryGit.IsVersionXYZ = value;
                     RaisePropertyChanged(nameof(IsVersionXYZ));
-                    eventBroker.NotifyRepositoriesUpdated();
                     if (value == true)
                     {
                         eventBroker.NotifyViewModelVersionXYZChanged(this);

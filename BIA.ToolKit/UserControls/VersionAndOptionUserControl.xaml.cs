@@ -28,7 +28,7 @@
         private string currentProjectPath;
         private UIEventBroker uiEventBroker;
         private IConsoleWriter consoleWriter;
-
+        private List<FeatureSetting> OriginFeatureSettings;
         public VersionAndOptionViewModel vm;
 
         public VersionAndOptionUserControl()
@@ -51,6 +51,7 @@
 
         private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
         {
+            RefreshConfiguration();
             vm.SettingsUseCompanyFiles = settings.UseCompanyFiles;
         }
 
@@ -59,31 +60,44 @@
             vm.WorkTemplate = vm.WorkTemplates.FirstOrDefault(workTemplate => workTemplate.Version == $"V{version}");
         }
 
-        public void SetCurrentProjectPath(string path, bool mapCompanyFileVersion, bool mapFrameworkVersion)
+        public void SetCurrentProjectPath(string path, bool mapCompanyFileVersion, bool mapFrameworkVersion, IEnumerable<FeatureSetting> originFeatureSettings = null)
         {
             this.currentProjectPath = path;
             this.LoadfeatureSetting();
 
+            if (originFeatureSettings != null)
+            {
+                uiEventBroker.OnOriginFeatureSettingsChanged -= UiEventBroker_OnOriginFeatureSettingsChanged;
+                uiEventBroker.OnOriginFeatureSettingsChanged += UiEventBroker_OnOriginFeatureSettingsChanged;
+                OriginFeatureSettings = new List<FeatureSetting>(originFeatureSettings);
+            }
+
             this.LoadVersionAndOption(mapCompanyFileVersion, mapFrameworkVersion);
+        }
+
+        private void UiEventBroker_OnOriginFeatureSettingsChanged(List<FeatureSetting> featureSettings)
+        {
+            OriginFeatureSettings = featureSettings;
+            LoadVersionAndOption(false, false);
         }
 
         public void LoadVersionAndOption(bool mapCompanyFileVersion, bool mapFrameworkVersion)
         {
-            if (!string.IsNullOrWhiteSpace(this.currentProjectPath))
+            if (string.IsNullOrWhiteSpace(this.currentProjectPath))
+                return;
+
+            string projectGenerationFile = Path.Combine(this.currentProjectPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
+            if (!File.Exists(projectGenerationFile))
+                return;
+
+            try
             {
-                string projectGenerationFile = Path.Combine(this.currentProjectPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
-                if (File.Exists(projectGenerationFile))
-                {
-                    try
-                    {
-                        VersionAndOptionDto versionAndOptionDto = CommonTools.DeserializeJsonFile<VersionAndOptionDto>(projectGenerationFile);
-                        VersionAndOptionMapper.DtoToModel(versionAndOptionDto, vm, mapCompanyFileVersion, mapFrameworkVersion);
-                    }
-                    catch(Exception ex)
-                    {
-                        consoleWriter.AddMessageLine($"Error when reading {projectGenerationFile} : {ex.Message}", "red");
-                    }
-                }
+                VersionAndOptionDto versionAndOptionDto = CommonTools.DeserializeJsonFile<VersionAndOptionDto>(projectGenerationFile);
+                VersionAndOptionMapper.DtoToModel(versionAndOptionDto, vm, mapCompanyFileVersion, mapFrameworkVersion, OriginFeatureSettings);
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error when reading {projectGenerationFile} : {ex.Message}", "red");
             }
         }
 
@@ -106,10 +120,10 @@
             }
 
             featureSettings = featureSettings ?? [];
-            var featureSettingViewModels =  new ObservableCollection<FeatureSettingViewModel>(featureSettings.Select(x => new FeatureSettingViewModel(x)));
-            foreach(var featureSettingViewModel in featureSettingViewModels)
+            var featureSettingViewModels = new ObservableCollection<FeatureSettingViewModel>(featureSettings.Select(x => new FeatureSettingViewModel(x)));
+            foreach (var featureSettingViewModel in featureSettingViewModels)
             {
-                if(featureSettingViewModel.FeatureSetting.DisabledFeatures.Count != 0)
+                if (featureSettingViewModel.FeatureSetting.DisabledFeatures.Count != 0)
                 {
                     featureSettingViewModel.DisabledFeatures = string.Join(", ", featureSettings
                         .Where(x => featureSettingViewModel.FeatureSetting.DisabledFeatures.Contains(x.Id))
@@ -135,7 +149,7 @@
             }
         }
 
-        public void RefreshConfiguration()
+        private void RefreshConfiguration()
         {
             var listCompanyFiles = new List<WorkRepository>();
             var listWorkTemplates = new List<WorkRepository>();
@@ -156,7 +170,7 @@
             vm.WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
             if (listWorkTemplates.Count >= 1)
             {
-                vm.WorkTemplate =  hasVersionXYZ && listWorkTemplates.Count >= 2 ? listWorkTemplates[^2] : listWorkTemplates[^1];
+                vm.WorkTemplate = hasVersionXYZ && listWorkTemplates.Count >= 2 ? listWorkTemplates[^2] : listWorkTemplates[^1];
             }
 
             vm.SettingsUseCompanyFiles = settingsService.Settings.UseCompanyFiles;
@@ -177,7 +191,7 @@
 
         private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, IRepository repository)
         {
-            foreach(var release in repository.Releases)
+            foreach (var release in repository.Releases)
             {
                 WorkTemplates.Add(new WorkRepository(repository, release.Name));
             }
@@ -192,6 +206,10 @@
                 await this.FillVersionFolderPathAsync();
                 this.LoadfeatureSetting();
                 this.LoadVersionAndOption(false, false);
+                if (OriginFeatureSettings is null)
+                {
+                    uiEventBroker.NotifyOriginFeatureSettingsChanged(vm.FeatureSettings.Select(x => x.FeatureSetting).ToList());
+                }
             });
         }
 

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BIA.ToolKit.Application.ViewModel;
 using BIA.ToolKit.Domain;
+using BIA.ToolKit.Domain.Model;
 using BIA.ToolKit.Domain.ModifyProject;
 using BIA.ToolKit.Domain.Settings;
 
@@ -29,6 +30,7 @@ namespace BIA.ToolKit.Application.Services
         public delegate void RepositoryViewModelAdded(RepositoryViewModel repository);
         public delegate void RepositoryViewModelVersionXYZChanged(RepositoryViewModel repository);
         public delegate void SolutionClassesParsed();
+        public delegate void OriginFeatureSettingsChanged(List<FeatureSetting> featureSettings);
 
         public event ProjectChanged OnProjectChanged;
         public event NewVersionAvailable OnNewVersionAvailable;
@@ -41,6 +43,7 @@ namespace BIA.ToolKit.Application.Services
         public event RepositoryViewModelAdded OnRepositoryViewModelAdded;
         public event RepositoryViewModelVersionXYZChanged OnRepositoryViewModelVersionXYZChanged;
         public event SolutionClassesParsed OnSolutionClassesParsed;
+        public event OriginFeatureSettingsChanged OnOriginFeatureSettingsChanged;
 
         public void NotifyProjectChanged(Project project)
         {
@@ -95,6 +98,11 @@ namespace BIA.ToolKit.Application.Services
         public void NotifySolutionClassesParsed()
         {
             OnSolutionClassesParsed?.Invoke();
+        }
+
+        public void NotifyOriginFeatureSettingsChanged(List<FeatureSetting> featureSettings)
+        {
+            OnOriginFeatureSettingsChanged?.Invoke(featureSettings);
         }
     }
 }

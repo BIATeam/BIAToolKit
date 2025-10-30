@@ -126,7 +126,7 @@
                 if (VersionAndOption.WorkCompanyFile != value)
                 {
                     VersionAndOption.WorkCompanyFile = value;
-                    
+
                     if (WorkCompanyFile != null)
                     {
                         eventBroker.RequestExecuteActionWithWaiter(async () =>
@@ -172,8 +172,8 @@
         public bool SettingsUseCompanyFiles
         {
             get { return settingsUseCompanyFiles; }
-            set 
-            { 
+            set
+            {
                 settingsUseCompanyFiles = value;
                 RaisePropertyChanged(nameof(SettingsUseCompanyFiles));
                 RaisePropertyChanged(nameof(SettingsNotUseCompanyFiles));
@@ -215,7 +215,7 @@
             }
         }
 
-        public void CheckOptions (List<string> checkedOptions)
+        public void CheckOptions(List<string> checkedOptions)
         {
             var options = new List<CFOption>();
             foreach (CFOption option in Options)
@@ -243,21 +243,21 @@
             }
         }
 
-        public void CheckFeature(List<string> tags, List<string> folders)
+        public void SetFeaturesSelection(List<string> projectGenerationTags, List<string> projectGenerationExcludedFolders, List<FeatureSetting> originFeatureSettings)
         {
-            foreach (var feature in FeatureSettings)
+            foreach (var feature in FeatureSettings.Select(x => x.FeatureSetting))
             {
-                if ((feature.FeatureSetting.Tags != null && tags != null && feature.FeatureSetting.Tags.Any(t1 => tags.Any(t2 => string.Equals(t1,t2))))
-                    ||
-                    (feature.FeatureSetting.FoldersToExcludes != null && folders != null && feature.FeatureSetting.FoldersToExcludes.Any(f1 => folders.Any(f2 => string.Equals(f1, f2))))
-                    )
+                var isFeatureTagUsedInProjectGeneration = projectGenerationTags.Any(feature.Tags.Contains);
+                var isFeatureExcludedFoldersInProjectGeneration = projectGenerationExcludedFolders.Any(feature.FoldersToExcludes.Contains);
+                var isSelected = isFeatureTagUsedInProjectGeneration || isFeatureExcludedFoldersInProjectGeneration;
+
+                if (!isSelected && originFeatureSettings is not null)
                 {
-                    feature.IsSelected = true;
+                    var originFeature = originFeatureSettings.FirstOrDefault(x => x.Id == feature.Id);
+                    isSelected = originFeature is null && feature.IsSelected;
                 }
-                else
-                {
-                    feature.IsSelected = false;
-                }
+
+                feature.IsSelected = isSelected;
             }
         }
 
