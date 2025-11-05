@@ -188,7 +188,7 @@
         // Insert logic for processing found files here.
         public async Task MergeRejectedFileAsync(string rejectedFilePath, MergeParameter param)
         {
-            outPut.AddMessageLine("Merge file '" + rejectedFilePath + "'.", "White");
+            outPut.AddMessageLine("Merge rejected file '" + rejectedFilePath + "'.", "White");
 
             var rejectedFileDiffInstruction = File.ReadAllLines(rejectedFilePath).First();
             (string rejectedFileOriginalFileRelativePath, string rejectedFileTargetFileRelativePath) = ExtractOriginalAndFinalRelativePathOfDiffInstruction(rejectedFileDiffInstruction);
@@ -196,7 +196,7 @@
             var migrationPatchFileDiffInstruction = File.ReadLines(param.MigrationPatchFilePath).FirstOrDefault(l => l.EndsWith(rejectedFileTargetFileRelativePath));
             (string migrationPatchFileOriginalFileRelativePath, string migrationPatchFileTargetFileRelativePath) = ExtractOriginalAndFinalRelativePathOfDiffInstruction(migrationPatchFileDiffInstruction);
 
-            string finalProjectFile = rejectedFilePath.Substring(0, rejectedFilePath.Length - 4);
+            string finalProjectFile = rejectedFilePath[..^4];
             string originalProjectFile = Path.Combine(param.ProjectOriginPath, migrationPatchFileOriginalFileRelativePath.Replace("/", "\\"));
             string targetProjectFile = Path.Combine(param.ProjectTargetPath, migrationPatchFileTargetFileRelativePath.Replace("/", "\\"));
 
@@ -205,33 +205,56 @@
                 outPut.AddMessageLine($"Unable to perform merge : original project's file {originalProjectFile} doesn't exist", "red");
                 return;
             }
-
             if (!File.Exists(targetProjectFile))
             {
                 outPut.AddMessageLine($"Unable to perform merge : target project's file {targetProjectFile} doesn't exist", "red");
                 return;
             }
-
             if (!File.Exists(finalProjectFile))
             {
                 outPut.AddMessageLine($"Unable to perform merge : final project's file {finalProjectFile} doesn't exist", "red");
                 return;
             }
 
-            int result = await RunScript("git", $"merge-file -L Src -L {param.ProjectOriginVersion} -L {param.ProjectTargetVersion} \"{finalProjectFile}\" \"{originalProjectFile}\" \"{targetProjectFile}\"");
+            int result = await RunScript("git",
+                $"merge-file -L Src -L {param.ProjectOriginVersion} -L {param.ProjectTargetVersion} " +
+                $"\"{finalProjectFile}\" \"{originalProjectFile}\" \"{targetProjectFile}\"");
+
             if (result == 0)
             {
-                File.Delete(rejectedFilePath);
-            }
-            if (result > 0)
-            {
-                outPut.AddMessageLine(result + " conflict to solve in file '" + rejectedFilePath + "'.", "Yellow");
-                File.Delete(rejectedFilePath);
+                if (File.Exists(rejectedFilePath)) File.Delete(rejectedFilePath);
+                return;
             }
             else if (result < 0)
             {
-                outPut.AddMessageLine("Error " + result + " durring Merge file '" + rejectedFilePath + "'.", "Red");
+                outPut.AddMessageLine("Error " + result + " during Merge file '" + rejectedFilePath + "'.", "Red");
+                return;
             }
+
+            outPut.AddMessageLine(result + " conflict to solve in file '" + finalProjectFile + "'.", "Yellow");
+
+            string baseOid = await GitOutAsync($"hash-object -w \"{originalProjectFile}\"", param.ProjectPath);
+            string oursOid = await GitOutAsync($"hash-object -w \"{finalProjectFile}\"", param.ProjectPath);
+            string theirsOid = await GitOutAsync($"hash-object -w \"{targetProjectFile}\"", param.ProjectPath);
+
+            string relPath = finalProjectFile.Replace(param.ProjectPath + @"\", string.Empty).Replace('\\', '/');
+
+            await RunCaptureAsync("git", $"rm --cached --ignore-unmatch -- \"{relPath}\"", workingDir: param.ProjectPath);
+
+            string indexInfo =
+                $"100644 {baseOid} 1\t{relPath}\n" +
+                $"100644 {oursOid} 2\t{relPath}\n" +
+                $"100644 {theirsOid} 3\t{relPath}\n";
+
+            var (uExit, _, uErr) = await RunCaptureAsync("git", "update-index --add --index-info", workingDir: param.ProjectPath, stdin: indexInfo);
+            if (uExit != 0)
+            {
+                outPut.AddMessageLine($"git update-index has failed: {uErr}", "Red");
+                return;
+            }
+
+            if (File.Exists(rejectedFilePath)) 
+                File.Delete(rejectedFilePath);
         }
 
         private (string OriginalRelativePath, string TargetRelativePath) ExtractOriginalAndFinalRelativePathOfDiffInstruction(string diffInstruction)
@@ -252,6 +275,44 @@
             }
 
             return (string.Empty, string.Empty);
+        }
+
+        static async Task<(int Exit, string Stdout, string Stderr)> RunCaptureAsync(string fileName, string args, string? workingDir = null, string? stdin = null)
+        {
+            var psi = new ProcessStartInfo(fileName, args)
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                RedirectStandardInput = stdin != null,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+            if (!string.IsNullOrEmpty(workingDir))
+                psi.WorkingDirectory = workingDir;
+
+            using var p = new Process { StartInfo = psi };
+            p.Start();
+
+            if (stdin != null)
+            {
+                await p.StandardInput.WriteAsync(stdin);
+                p.StandardInput.Close();
+            }
+
+            var stdoutTask = p.StandardOutput.ReadToEndAsync();
+            var stderrTask = p.StandardError.ReadToEndAsync();
+            await Task.WhenAll(stdoutTask, stderrTask, p.WaitForExitAsync());
+
+            return (p.ExitCode, stdoutTask.Result, stderrTask.Result);
+        }
+
+        // Spécifique Git: renvoie stdout.Trim() ou lève en cas d’erreur
+        static async Task<string> GitOutAsync(string args, string? stdin = null)
+        {
+            var (exit, stdout, stderr) = await RunCaptureAsync("git", args, stdin: stdin);
+            if (exit != 0)
+                throw new InvalidOperationException($"git {args} a échoué ({exit}): {stderr}");
+            return stdout.Trim();
         }
 
         /// <summary>

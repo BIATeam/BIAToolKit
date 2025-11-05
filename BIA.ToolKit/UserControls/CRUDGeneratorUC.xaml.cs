@@ -71,7 +71,10 @@
         private void UiEventBroker_OnSolutionClassesParsed()
         {
             InitProjectTask(vm.CurrentProject);
-            ListDtoFiles();
+            if (vm.CurrentProject is not null)
+            {
+                ListDtoFiles();
+            }
         }
 
         private void UiEventBroker_OnProjectChanged(Project project)
@@ -106,8 +109,11 @@
         {
             ClearAll();
 
-            // Load BIA settings + history + parse zips
-            InitProject(project);
+            if (project is not null)
+            {
+                // Load BIA settings + history + parse zips
+                InitProject(project);
+            }
         }
 
         /// <summary>
