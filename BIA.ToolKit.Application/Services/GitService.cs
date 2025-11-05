@@ -233,9 +233,9 @@
 
             outPut.AddMessageLine(result + " conflict to solve in file '" + finalProjectFile + "'.", "Yellow");
 
-            string baseOid = await GitOutAsync($"hash-object -w \"{originalProjectFile}\"", param.ProjectPath);
-            string oursOid = await GitOutAsync($"hash-object -w \"{finalProjectFile}\"", param.ProjectPath);
-            string theirsOid = await GitOutAsync($"hash-object -w \"{targetProjectFile}\"", param.ProjectPath);
+            string baseOid = await HashObjectAsync(originalProjectFile, param.ProjectPath);
+            string oursOid = await HashObjectAsync(finalProjectFile, param.ProjectPath);
+            string theirsOid = await HashObjectAsync(targetProjectFile, param.ProjectPath);
 
             string relPath = finalProjectFile.Replace(param.ProjectPath + @"\", string.Empty).Replace('\\', '/');
 
@@ -255,6 +255,21 @@
 
             if (File.Exists(rejectedFilePath)) 
                 File.Delete(rejectedFilePath);
+        }
+
+        static async Task EnsureBlobExistsAsync(string oid, string repoRoot)
+        {
+            var (e, _, err) = await RunCaptureAsync("git", $"cat-file -e {oid}", workingDir: repoRoot);
+            if (e != 0) throw new InvalidOperationException($"Blob manquant {oid}: {err}");
+        }
+
+        static async Task<string> HashObjectAsync(string path, string repoRoot)
+        {
+            var (e, outp, err) = await RunCaptureAsync("git", $"hash-object -w \"{path}\"", workingDir: repoRoot);
+            if (e != 0) throw new InvalidOperationException($"hash-object a échoué pour {path}: {err}");
+            var oid = outp.Trim();
+            await EnsureBlobExistsAsync(oid, repoRoot);
+            return oid;
         }
 
         private (string OriginalRelativePath, string TargetRelativePath) ExtractOriginalAndFinalRelativePathOfDiffInstruction(string diffInstruction)
