@@ -25,6 +25,7 @@
             OptionItems = [];
             ZipFeatureTypeList = [];
             FeatureNames = [];
+            DtoEntities = [];
         }
 
         #region CurrentProject
@@ -89,16 +90,16 @@
             }
         }
 
-        private Dictionary<string, string> dtoFiles;
-        public Dictionary<string, string> DtoFiles
+        private ObservableCollection<EntityInfo> dtoEntities;
+        public ObservableCollection<EntityInfo> DtoEntities
         {
-            get => dtoFiles;
+            get => dtoEntities;
             set
             {
-                if (dtoFiles != value)
+                if (dtoEntities != value)
                 {
-                    dtoFiles = value;
-                    RaisePropertyChanged(nameof(DtoFiles));
+                    dtoEntities = value;
+                    RaisePropertyChanged(nameof(DtoEntities));
                 }
             }
         }
@@ -113,20 +114,6 @@
                 {
                     dtoDisplayItems = value;
                     RaisePropertyChanged(nameof(DtoDisplayItems));
-                }
-            }
-        }
-
-        private string dtoSelected;
-        public string DtoSelected
-        {
-            get => dtoSelected;
-            set
-            {
-                if (dtoSelected != value)
-                {
-                    dtoSelected = value;
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
                 }
             }
         }

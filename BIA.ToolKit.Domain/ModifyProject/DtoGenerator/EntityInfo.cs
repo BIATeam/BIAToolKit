@@ -39,7 +39,7 @@ namespace BIA.ToolKit.Domain.DtoGenerator
 
         public string Namespace { get; }
         public string Path { get; }
-        public string NamespaceLastPart => Namespace.Split('.').Last();
+        public string NamespaceInProject => string.Join(".", Namespace.Split('.').Skip(3));
         public string CompanyName => Namespace.Split('.').First();
         public string ProjectName => Namespace.Split('.').ElementAt(1);
         public string Name { get; }

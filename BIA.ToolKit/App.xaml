@@ -10,6 +10,15 @@
                 <materialDesign:BundledTheme BaseTheme="Dark" PrimaryColor="LightGreen" SecondaryColor="Lime" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <DataTemplate x:Key="EntityDisplayTemplate">
+                <TextBlock TextTrimming="CharacterEllipsis">
+                    <Run Text="{Binding Name, Mode=OneTime}" FontWeight="Bold" />
+                    <Run Text=" - " />
+                    <Run Text="{Binding NamespaceInProject, Mode=OneTime}"
+                        FontStyle="Italic"
+                        FontSize="12" />
+                </TextBlock>
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

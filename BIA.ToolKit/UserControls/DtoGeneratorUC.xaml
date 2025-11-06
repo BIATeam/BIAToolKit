@@ -47,7 +47,7 @@
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
-                    <ComboBox Grid.Column="0" Grid.Row="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Entity" x:Name="EntitiesComboBox" ItemsSource="{Binding EntitiesNames}" SelectedValue="{Binding SelectedEntityName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsProjectChosen}" SelectionChanged="EntitiesComboBox_SelectionChanged"/>
+                    <ComboBox Grid.Column="0" Grid.Row="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Entity" x:Name="EntitiesComboBox" ItemsSource="{Binding Entities}" SelectedItem="{Binding Entity, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsProjectChosen}" SelectionChanged="EntitiesComboBox_SelectionChanged" ItemTemplate="{StaticResource EntityDisplayTemplate}"/>
                     <Label Grid.Column="0" Grid.Row="1" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="{Binding WasAlreadyGenerated, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible"/>
                 </Grid>
                 <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Domain" Text="{Binding EntityDomain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsEntitySelected}"/>

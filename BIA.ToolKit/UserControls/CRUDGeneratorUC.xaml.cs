@@ -14,6 +14,7 @@
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
@@ -130,12 +131,8 @@
             if (vm.CurrentProject is null)
                 return;
 
-            vm.ParentName = null;
-            vm.ParentNamePlural = null;
-            vm.HasParent = false;
-            vm.Domain = null;
             vm.IsDtoParsed = ParseDtoFile();
-            vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoSelected);
+            vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoEntity?.Name);
             vm.IsTeam = vm.DtoEntity?.IsTeam == true;
             vm.IsVersioned = vm.DtoEntity?.IsVersioned == true;
             vm.IsFixable = vm.DtoEntity?.IsFixable == true;
@@ -410,8 +407,7 @@
             vm.FeatureNames.Clear();
 
             vm.DtoEntity = null;
-            vm.DtoSelected = null;
-            vm.DtoFiles = null;
+            vm.DtoEntities.Clear();
             vm.IsWebApiSelected = false;
             vm.IsFrontSelected = false;
             vm.FeatureNameSelected = null;
@@ -677,7 +673,7 @@
         /// </summary>
         private void ListDtoFiles()
         {
-            Dictionary<string, string> dtoFiles = [];
+            List<EntityInfo> dtoEntities = [];
 
             string dtoFolder = $"{vm.CurrentProject.CompanyName}.{vm.CurrentProject.Name}.Domain.Dto";
             string dtoFolderPath = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, dtoFolder);
@@ -690,7 +686,7 @@
                         x.FilePath.StartsWith(dtoFolderPath, StringComparison.InvariantCultureIgnoreCase)
                         && x.FilePath.EndsWith("Dto.cs")))
                     {
-                        dtoFiles.Add(dtoClass.ClassName, dtoClass.FilePath);
+                        dtoEntities.Add(new EntityInfo(dtoClass));
                     }
                 }
             }
@@ -699,7 +695,7 @@
                 consoleWriter.AddMessageLine(ex.Message, "Red");
             }
 
-            vm.DtoFiles = dtoFiles.OrderBy(x => x.Key).ToDictionary();
+            vm.DtoEntities = new(dtoEntities.OrderBy(x => x.Name));
         }
 
         /// <summary>
@@ -709,19 +705,8 @@
         {
             try
             {
-                if (string.IsNullOrEmpty(vm.DtoSelected))
+                if (vm.DtoEntity is null)
                     return false;
-
-                // Check selected Dto file
-                string fileName = vm.DtoFiles[vm.DtoSelected];
-                if (string.IsNullOrWhiteSpace(fileName))
-                {
-                    consoleWriter.AddMessageLine($"Dto file '{fileName}' not found to parse.", "Orange");
-                    return false;
-                }
-
-                // Parse Dto entity file
-                vm.DtoEntity = new Domain.DtoGenerator.EntityInfo(service.CurrentSolutionClasses.FirstOrDefault(x => x.FilePath == fileName));
 
                 // Fill display item list
                 List<string> displayItems = [];
@@ -770,6 +755,9 @@
         /// </summary>
         private static string GetEntityNameFromDto(string dtoFileName)
         {
+            if(string.IsNullOrWhiteSpace(dtoFileName)) 
+                return null;
+
             var fileName = Path.GetFileNameWithoutExtension(dtoFileName);
             if (!string.IsNullOrWhiteSpace(fileName) && fileName.ToLower().EndsWith("dto"))
             {
@@ -784,11 +772,11 @@
         /// </summary>
         private string GetDtoSelectedPath()
         {
-            if (string.IsNullOrWhiteSpace(vm.DtoSelected))
+            if (vm.DtoEntity is null)
                 return null;
 
             string dotNetPath = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet);
-            return vm.DtoFiles[vm.DtoSelected].Replace(dotNetPath, "").TrimStart(Path.DirectorySeparatorChar);
+            return vm.DtoEntity.Path.Replace(dotNetPath, "").TrimStart(Path.DirectorySeparatorChar);
         }
         #endregion
 

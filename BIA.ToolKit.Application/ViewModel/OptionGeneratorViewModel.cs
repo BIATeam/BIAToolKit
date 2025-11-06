@@ -19,7 +19,7 @@
         public OptionGeneratorViewModel()
         {
             ZipFeatureTypeList = new();
-            EntityFiles = new();
+            Entities = new();
             EntityDisplayItems = new();
         }
 
@@ -87,20 +87,21 @@
                 if (entity != value)
                 {
                     entity = value;
+                    RaisePropertyChanged(nameof(IsButtonGenerateOptionEnable));
                 }
             }
         }
 
-        private Dictionary<string, string> entityFiles;
-        public Dictionary<string, string> EntityFiles
+        private ObservableCollection<EntityInfo> entities;
+        public ObservableCollection<EntityInfo> Entities
         {
-            get => entityFiles;
+            get => entities;
             set
             {
-                if (entityFiles != value)
+                if (entities != value)
                 {
-                    entityFiles = value;
-                    RaisePropertyChanged(nameof(EntityFiles));
+                    entities = value;
+                    RaisePropertyChanged(nameof(Entities));
                 }
             }
         }
@@ -115,20 +116,6 @@
                 {
                     entityDisplayItems = value;
                     RaisePropertyChanged(nameof(EntityDisplayItems));
-                }
-            }
-        }
-
-        private string entitySelected;
-        public string EntitySelected
-        {
-            get => entitySelected;
-            set
-            {
-                if (entitySelected != value)
-                {
-                    entitySelected = value;
-                    RaisePropertyChanged(nameof(IsButtonGenerateOptionEnable));
                 }
             }
         }

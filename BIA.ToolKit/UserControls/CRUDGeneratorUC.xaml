@@ -50,7 +50,7 @@
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="DTO Entity File" ItemsSource="{Binding DtoFiles.Keys}" SelectedValue="{Binding DtoSelected}" IsEnabled="{Binding IsProjectChosen}" SelectionChanged="ModifyDto_SelectionChange"/>
+                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="DTO Entity File" ItemsSource="{Binding DtoEntities}" SelectedItem="{Binding DtoEntity}" IsEnabled="{Binding IsProjectChosen}" SelectionChanged="ModifyDto_SelectionChange" ItemTemplate="{StaticResource EntityDisplayTemplate}"/>
                 <Label Grid.Row="1" Name="CrudAlreadyGeneratedLabel" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="Collapsed" d:Visibility="Visible" />
             </Grid>
             <ComboBox Grid.Column="0" Grid.Row="1" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Generation" ItemsSource="{Binding FeatureNames}" SelectedItem="{Binding FeatureNameSelected}" IsEnabled="{Binding IsDtoParsed}"/>
