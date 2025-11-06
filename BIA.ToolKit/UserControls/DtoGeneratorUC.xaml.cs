@@ -151,8 +151,8 @@
                     CompanyName = project.CompanyName,
                     ProjectName = project.Name,
                     DomainName = vm.EntityDomain,
-                    EntityName = vm.SelectedEntityInfo.Name,
-                    EntityNamePlural = vm.SelectedEntityInfo.NamePluralized,
+                    EntityName = vm.Entity.Name,
+                    EntityNamePlural = vm.Entity.NamePluralized,
                     BaseKeyType = vm.SelectedBaseKeyType,
                     Properties = [.. vm.MappingEntityProperties],
                     IsTeam = vm.IsTeam,
@@ -173,8 +173,8 @@
             generation ??= new DtoGeneration();
 
             generation.DateTime = DateTime.Now;
-            generation.EntityName = vm.SelectedEntityInfo.Name;
-            generation.EntityNamespace = vm.SelectedEntityInfo.Namespace;
+            generation.EntityName = vm.Entity.Name;
+            generation.EntityNamespace = vm.Entity.Namespace;
             generation.Domain = vm.EntityDomain;
             generation.AncestorTeam = vm.AncestorTeam;
             generation.IsTeam = vm.IsTeam;
@@ -228,11 +228,10 @@
 
         private void EntitiesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var entity = vm.SelectedEntityInfo;
-            if (entity is null)
+            if (vm.Entity is null)
                 return;
 
-            LoadFromHistory(entity);
+            LoadFromHistory(vm.Entity);
         }
 
         private void LoadFromHistory(EntityInfo entity)
