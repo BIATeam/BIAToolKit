@@ -22,7 +22,6 @@
         private Project project;
         private FileGeneratorService fileGeneratorService;
         private IConsoleWriter consoleWriter;
-        private readonly List<EntityInfo> domainEntities = new();
         private readonly List<string> optionCollectionsMappingTypes = new()
         {
             "icollection",
@@ -76,44 +75,36 @@
 
         public bool IsFileGeneratorInit => this.fileGeneratorService?.IsInit == true;
 
-        private ObservableCollection<string> entitiesNames = new();
-        public ObservableCollection<string> EntitiesNames
+        private ObservableCollection<EntityInfo> entities = [];
+        public ObservableCollection<EntityInfo> Entities
         {
-            get => entitiesNames;
+            get => entities;
             set
             {
-                entitiesNames = value;
-                RaisePropertyChanged(nameof(EntitiesNames));
+                entities = value;
+                RaisePropertyChanged(nameof(Entities));
             }
         }
 
-        private string selectedEntityName;
-        public string SelectedEntityName
+        private EntityInfo entity;
+        public EntityInfo Entity
         {
-            get => selectedEntityName;
+            get => entity;
             set
             {
-                selectedEntityName = value;
-                RaisePropertyChanged(nameof(SelectedEntityName));
+                entity = value;
+                RaisePropertyChanged(nameof(Entity));
                 AncestorTeam = null;
+                EntityDomain = null;
 
-                if (selectedEntityName != null)
+                if(entity is not null)
                 {
-                    var regexMatches = Regex.Match(selectedEntityName, @"\(([^)]*)\)");
-                    if (regexMatches.Success)
+                    var namespaceElements = entity.Namespace.Split('.').ToList();
+                    var dtoNamespaceIndex = namespaceElements.FindIndex(x => x == "Domain");
+                    if(dtoNamespaceIndex != -1)
                     {
-                        var entityEndNamespace = $"{regexMatches.Groups[1].Value}.{selectedEntityName.Replace(regexMatches.Groups[0].Value, string.Empty).Trim()}";
-                        SelectedEntityInfo = domainEntities.First(e => e.FullNamespace.EndsWith(entityEndNamespace));
-                        EntityDomain = entityEndNamespace.Split(".").First();
+                        EntityDomain = namespaceElements.ElementAt(dtoNamespaceIndex + 1);
                     }
-                    else
-                    {
-                        SelectedEntityInfo = null;
-                    }
-                }
-                else
-                {
-                    SelectedEntityInfo = null;
                 }
 
                 RaisePropertyChanged(nameof(IsEntitySelected));
@@ -122,11 +113,11 @@
                 RefreshEntityPropertiesTreeView();
                 RemoveAllMappingProperties();
 
-                IsTeam = SelectedEntityInfo?.IsTeam == true;
-                IsVersioned = SelectedEntityInfo?.IsVersioned == true;
-                IsFixable = SelectedEntityInfo?.IsFixable == true;
-                IsArchivable = SelectedEntityInfo?.IsArchivable == true;
-                SelectedBaseKeyType = SelectedEntityInfo?.BaseKeyType;
+                IsTeam = entity?.IsTeam == true;
+                IsVersioned = entity?.IsVersioned == true;
+                IsFixable = entity?.IsFixable == true;
+                IsArchivable = entity?.IsArchivable == true;
+                SelectedBaseKeyType = entity?.BaseKeyType;
                 UseDedicatedAudit = false;
             }
         }
@@ -258,14 +249,13 @@
         }
 
         public string ProjectDomainNamespace { get; private set; }
-        public EntityInfo SelectedEntityInfo { get; private set; }
-        public bool IsEntitySelected => SelectedEntityInfo != null;
+        public bool IsEntitySelected => Entity != null;
         public bool HasMappingProperties => MappingEntityProperties.Count > 0;
         public bool IsGenerationEnabled => 
             ((HasMappingProperties && MappingEntityProperties.All(x => x.IsValid) && MappingEntityProperties.Count == MappingEntityProperties.DistinctBy(x => x.MappingName).Count())  || !HasMappingProperties)
             && !string.IsNullOrWhiteSpace(EntityDomain)
             && !string.IsNullOrWhiteSpace(SelectedBaseKeyType);
-        public bool IsAuditable => SelectedEntityInfo?.IsAuditable == true;
+        public bool IsAuditable => Entity?.IsAuditable == true;
         public bool IsVisibleUseDedicatedAudit => Version.TryParse(project?.FrameworkVersion, out var version) && version.Major >= 6;
 
         public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>(RemoveMappingProperty);
@@ -293,21 +283,9 @@
             EntityDomain = null;
             AncestorTeam = null;
 
-            domainEntities.Clear();
-            domainEntities.AddRange(entities);
+            ComputeBaseKeyType(entities);
 
-            ComputeBaseKeyType(domainEntities);
-
-            var entitiesNames = entities
-                .Select(x => $"{x.Name} ({x.FullNamespace.Replace($"{ProjectDomainNamespace}.", string.Empty).Replace($".{x.Name}", string.Empty)})")
-                .OrderBy(x => x)
-                .ToList();
-
-            EntitiesNames.Clear();
-            foreach (var entityName in entitiesNames)
-            {
-                EntitiesNames.Add(entityName);
-            }
+            Entities = new(entities);
         }
 
         private static void ComputeBaseKeyType(List<EntityInfo> entities)
@@ -348,10 +326,10 @@
         private void RefreshEntityPropertiesTreeView()
         {
             EntityProperties.Clear();
-            if (SelectedEntityInfo == null)
+            if (Entity == null)
                 return;
 
-            foreach (var property in SelectedEntityInfo.Properties.OrderBy(x => x.Name))
+            foreach (var property in Entity.Properties.OrderBy(x => x.Name))
             {
                 var propertyViewModel = new EntityProperty
                 {
@@ -359,16 +337,16 @@
                     Type = property.Type,
                     CompositeName = property.Name,
                     IsSelected = true,
-                    ParentType = SelectedEntityInfo.Name
+                    ParentType = Entity.Name
                 };
-                FillEntityProperties(propertyViewModel, SelectedEntityInfo.Name);
+                FillEntityProperties(propertyViewModel, Entity.Name);
                 EntityProperties.Add(propertyViewModel);
             }
         }
 
         private void FillEntityProperties(EntityProperty property, string rootPropertyType)
         {
-            var propertyInfo = domainEntities.FirstOrDefault(e => e.Name == property.Type);
+            var propertyInfo = Entities.FirstOrDefault(e => e.Name == property.Type);
             if (propertyInfo == null)
             {
                 return;
@@ -441,7 +419,7 @@
                     if (mappingEntityProperty.IsOption || mappingEntityProperty.IsOptionCollection)
                     {
                         mappingEntityProperty.OptionType = ExtractOptionType(selectedEntityProperty.Type);
-                        var optionEntity = domainEntities.FirstOrDefault(x => x.Name == mappingEntityProperty.OptionType);
+                        var optionEntity = Entities.FirstOrDefault(x => x.Name == mappingEntityProperty.OptionType);
                         if (optionEntity != null)
                         {
                             mappingEntityProperty.OptionDisplayProperties.AddRange(optionEntity.Properties.Select(x => x.Name));
@@ -485,7 +463,7 @@
                                 var optionRelationSecondType = mappingEntityProperty.OptionType;
 
                                 var relationTypeClassNames = new List<string> { optionRelationFirstType, mappingEntityProperty.OptionType };
-                                var entityInfo = domainEntities.SingleOrDefault(x =>
+                                var entityInfo = Entities.SingleOrDefault(x =>
                                     string.IsNullOrEmpty(x.BaseKeyType)
                                     && relationTypeClassNames.All(y => x.Properties.Select(x => x.Type).Contains(y)));
 
@@ -609,7 +587,7 @@
 
         public void Clear()
         {
-            EntitiesNames.Clear();
+            Entities.Clear();
             EntityDomain = null;
             AncestorTeam = null;
             project = null;

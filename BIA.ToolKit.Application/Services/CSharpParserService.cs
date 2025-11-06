@@ -30,7 +30,6 @@ using Roslyn.Services;*/
 
     public class CSharpParserService
     {
-        private readonly List<string> excludedEntitiesFolders = new() { "bin", "obj" };
         private readonly List<string> excludedEntitiesFilesSuffixes = new() { "Mapper", "Service", "Repository", "Customizer", "Specification", "Dto" };
         private readonly IConsoleWriter consoleWriter;
         private readonly UIEventBroker eventBroker;
@@ -164,13 +163,15 @@ using Roslyn.Services;*/
 
             string entitiesFolder = $"{project.CompanyName}.{project.Name}.Domain";
             string projectDomainPath = Path.Combine(project.Folder, Constants.FolderDotNet, entitiesFolder);
+            string projectDomainDtoPath = projectDomainPath + ".Dto";
 
             try
             {
                 if (Directory.Exists(projectDomainPath))
                 {
                     foreach (var entity in CurrentSolutionClasses.Where(x =>
-                        x.FilePath.StartsWith(projectDomainPath, StringComparison.InvariantCultureIgnoreCase)
+                        !x.FilePath.StartsWith(projectDomainDtoPath, StringComparison.InvariantCultureIgnoreCase)
+                        && x.FilePath.StartsWith(projectDomainPath, StringComparison.InvariantCultureIgnoreCase)
                         && x.FilePath.EndsWith(".cs")
                         && !excludedEntitiesFilesSuffixes.Any(suffix => Path.GetFileNameWithoutExtension(x.FilePath).EndsWith(suffix))))
                     {
