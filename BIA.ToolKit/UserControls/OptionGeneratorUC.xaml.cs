@@ -13,6 +13,7 @@
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -46,7 +47,6 @@
         private string optionHistoryFileName;
         private readonly List<FeatureGenerationSettings> backSettingsList;
         private readonly List<FeatureGenerationSettings> frontSettingsList;
-        private readonly Dictionary<string, EntityInfo> entityInfoFiles = [];
 
         /// <summary>
         /// Constructor
@@ -148,7 +148,6 @@
                     if (history != null)
                     {
                         // Apply last generation values
-                        vm.EntitySelected = history.EntityNameSingular;
                         vm.EntityNamePlural = history.EntityNamePlural;
                         vm.Domain = history.Domain;
                         vm.BiaFront = history.BiaFront;
@@ -209,7 +208,7 @@
                 if (!zipService.ParseZips(vm.ZipFeatureTypeList, vm.CurrentProject, vm.BiaFront, settings))
                     return;
 
-                crudService.CrudNames.InitRenameValues(vm.EntitySelected, vm.EntityNamePlural);
+                crudService.CrudNames.InitRenameValues(vm.Entity.Name, vm.EntityNamePlural);
 
                 // Generation DotNet + Angular files
                 var featureName = vm.ZipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Option)?.Feature;
@@ -218,7 +217,7 @@
                 // Generate generation history file
                 UpdateOptionGenerationHistory();
 
-                consoleWriter.AddMessageLine($"End of '{vm.EntitySelected}' option generation.", "Blue");
+                consoleWriter.AddMessageLine($"End of '{vm.Entity.Name}' option generation.", "Blue");
             });
         }
 
@@ -233,7 +232,7 @@
                 var history = optionGenerationHistory?.OptionGenerationHistory?.FirstOrDefault(h => h.Mapping.Entity == GetEntitySelectedPath());
                 if (history == null)
                 {
-                    consoleWriter.AddMessageLine($"No previous '{vm.EntitySelected}' generation found.", "Orange");
+                    consoleWriter.AddMessageLine($"No previous '{vm.Entity.Name}' generation found.", "Orange");
                     return;
                 }
 
@@ -244,11 +243,11 @@
                 DeleteLastGenerationHistory(history);
                 OptionAlreadyGeneratedLabel.Visibility = Visibility.Hidden;
 
-                consoleWriter.AddMessageLine($"End of '{vm.EntitySelected}' suppression.", "Purple");
+                consoleWriter.AddMessageLine($"End of '{vm.Entity.Name}' suppression.", "Purple");
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"Error on deleting last '{vm.EntitySelected}' generation: {ex.Message}", "Red");
+                consoleWriter.AddMessageLine($"Error on deleting last '{vm.Entity.Name}' generation: {ex.Message}", "Red");
             }
         }
 
@@ -296,8 +295,7 @@
             vm.EntityDisplayItems.Clear();
             vm.EntityDisplayItemSelected = null;
             vm.Entity = null;
-            vm.EntitySelected = null;
-            vm.EntityFiles = null;
+            vm.Entities.Clear();
             vm.EntityNamePlural = null;
             vm.Domain = null;
             vm.BiaFronts.Clear();
@@ -398,7 +396,7 @@
                 OptionGenerationHistory history = new()
                 {
                     Date = DateTime.Now,
-                    EntityNameSingular = vm.EntitySelected,
+                    EntityNameSingular = vm.Entity.Name,
                     EntityNamePlural = vm.EntityNamePlural,
                     DisplayItem = vm.EntityDisplayItemSelected,
                     Domain = vm.Domain,
@@ -476,18 +474,7 @@
             if (vm?.CurrentProject is null)
                 return;
 
-            vm.EntityFiles = null;
-            entityInfoFiles.Clear();
-
-            var entityFiles = new Dictionary<string, string>();
-            var entities = service.GetDomainEntities(vm.CurrentProject);
-            foreach (var entity in entities)
-            {
-                entityInfoFiles.Add(entity.Path, entity);
-                entityFiles.Add(Path.GetFileNameWithoutExtension(entity.Path), entity.Path);
-            }
-
-            vm.EntityFiles = entityFiles;
+            vm.Entities = new ObservableCollection<EntityInfo>(service.GetDomainEntities(vm.CurrentProject));
         }
 
         /// <summary>
@@ -497,27 +484,16 @@
         {
             try
             {
-                if (string.IsNullOrEmpty(vm.EntitySelected))
+                if (vm.Entity is null)
                     return false;
 
-                // Check selected Entity file
-                string fileName = vm.EntityFiles[vm.EntitySelected];
-                var entityInfo = entityInfoFiles[fileName];
-                if (entityInfo == null)
-                {
-                    consoleWriter.AddMessageLine($"Entity '{fileName}' not parsed.", "Orange");
-                    return false;
-                }
-
-                // Check parsed Entity entity file
-                vm.Entity = entityInfo;
-                var namespaceParts = entityInfo.Namespace.Split('.').ToList();
+                var namespaceParts = vm.Entity.Namespace.Split('.').ToList();
                 var domainIndex = namespaceParts.IndexOf("Domain");
                 if (domainIndex != -1)
                 {
                     vm.Domain = namespaceParts[domainIndex + 1];
                 }
-                vm.EntityNamePlural = entityInfo.NamePluralized;
+                vm.EntityNamePlural = vm.Entity.NamePluralized;
                 if (vm.Entity.Properties.Count == 0)
                 {
                     consoleWriter.AddMessageLine("No properties found on entity file.", "Orange");
@@ -525,13 +501,13 @@
                 }
 
                 // Fill display item list
-                foreach(var property in vm.Entity.Properties.OrderBy(x => x.Name))
+                foreach (var property in vm.Entity.Properties.OrderBy(x => x.Name))
                 {
                     vm.EntityDisplayItems.Add(property.Name);
                 }
 
                 // Set by default previous generation selected value
-                var history = this.optionGenerationHistory?.OptionGenerationHistory?.FirstOrDefault(gh => (vm.EntitySelected == Path.GetFileNameWithoutExtension(gh.Mapping.Entity)));
+                var history = this.optionGenerationHistory?.OptionGenerationHistory?.FirstOrDefault(gh => (vm.Entity.Name == Path.GetFileNameWithoutExtension(gh.Mapping.Entity)));
                 vm.EntityDisplayItemSelected = history?.DisplayItem;
 
                 return true;
@@ -548,11 +524,11 @@
         /// </summary>
         private string GetEntitySelectedPath()
         {
-            if (string.IsNullOrWhiteSpace(vm.EntitySelected))
+            if (vm.Entity is null)
                 return null;
 
             string dotNetPath = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet);
-            return vm.EntityFiles[vm.EntitySelected].Replace(dotNetPath, "").TrimStart(Path.DirectorySeparatorChar);
+            return vm.Entity.Name.Replace(dotNetPath, "").TrimStart(Path.DirectorySeparatorChar);
         }
         #endregion
 

@@ -36,7 +36,7 @@
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Entity" ItemsSource="{Binding EntityFiles.Keys}" SelectedValue="{Binding EntitySelected}" SelectionChanged="ModifyEntity_SelectionChange" IsEnabled="{Binding IsProjectChosen}"/>
+                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Entity" ItemsSource="{Binding Entities}" SelectedItem="{Binding Entity}" SelectionChanged="ModifyEntity_SelectionChange" IsEnabled="{Binding IsProjectChosen}" ItemTemplate="{StaticResource EntityDisplayTemplate}"/>
                 <Label Grid.Row="1" Name="OptionAlreadyGeneratedLabel" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="Collapsed" d:Visibility="Visible" />
             </Grid>
             <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Domain" Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextWrapping="Wrap" IsEnabled="{Binding IsEntityParsed}"/>
