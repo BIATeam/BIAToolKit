@@ -7,6 +7,7 @@
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Templates;
+    using BIA.ToolKit.Test.Templates.Helpers;
 
     internal static class GenerationAssertions
     {
@@ -75,7 +76,17 @@
             }
 
             RemoveGenerationIgnoreCode(testFixture, ref referencePath, isAngularTemplate);
-            CompareFiles(referencePath, generatedPath);
+            var result = DiffPlexFileComparer.CompareFiles(referencePath, generatedPath);
+            if (!result.AreEqual)
+            {
+                throw new FilesNotEqualsException(
+                    referencePath,
+                    generatedPath,
+                    result.Modified,
+                    result.Moved,
+                    result.Added,
+                    result.Deleted);
+            }
         }
 
         private static void RemoveGenerationIgnoreCode(GenerateTestFixture testFixture, ref string referencePath, bool isAngularTemplate)
@@ -204,152 +215,6 @@
                     throw new PartialInsertionMarkupNotFoundException(endMarkupTarget, filePath);
                 }
                 RemoveLinesBetweenMarkups(beginMarkup, endMarkup, lines);
-            }
-        }
-
-        private static void CompareFiles(string referencePath, string generatedPath)
-        {
-            int modified = 0;
-            int moved = 0;
-            int added = 0;
-            int deleted = 0;
-
-            int referenceIndex = 0;
-            int generatedIndex = 0;
-
-            List<int> generatedDeplacedLineIndexes = new List<int>();
-            List<int> referenceDeplacedLineIndexes = new List<int>();
-
-            var referenceLines = File.ReadAllLines(referencePath);
-            var generatedLines = File.ReadAllLines(generatedPath);
-
-            //var toBeUpdated =
-            //referenceLines.Where(
-            //a => generatedLines.Any(
-            //    b => (b.ObjectiveDetailId == a.ObjectiveDetailId) &&
-            //         (b.Number != a.Number || !b.Text.Equals(a.Text))));
-
-            var toBeAdded =
-                        referenceLines.Where(a => generatedLines.All(
-                        b => b != a));
-
-            var toBeDeleted =
-                        generatedLines.Where(a => referenceLines.All(
-                        b => b != a));
-
-            while (referenceIndex < referenceLines.Length || generatedIndex < generatedLines.Length)
-            {
-                if (referenceIndex >= referenceLines.Length)
-                {
-                    added++;
-                    generatedIndex++;
-                }
-                else if (generatedIndex >= generatedLines.Length)
-                {
-                    deleted++;
-                    referenceIndex++;
-                }
-                else
-                {
-                    var referenceLine = referenceLines[referenceIndex];
-                    var generatedLine = generatedLines[generatedIndex];
-
-                    if (string.Equals(referenceLine, generatedLine, StringComparison.Ordinal))
-                    {
-                        referenceIndex++;
-                        generatedIndex++;
-                    }
-                    else
-                    {
-                        var isActualEmpty = string.IsNullOrEmpty(generatedLine);
-                        var isExpectedEmpty = string.IsNullOrEmpty(referenceLine);
-                        if (isActualEmpty && isExpectedEmpty)
-                        {
-                            modified++;
-                            referenceIndex++;
-                            generatedIndex++;
-                        }
-                        else if (isActualEmpty)
-                        {
-                            added++;
-                            generatedIndex++;
-                        }
-                        else if (isExpectedEmpty)
-                        {
-                            deleted++;
-                            referenceIndex++;
-                        }
-                        else if (isExpectedEmpty)
-                        {
-                            deleted++;
-                            referenceIndex++;
-                        }
-                        else if (generatedLine.Contains(referenceLine) || referenceLine.Contains(generatedLine))
-                        {
-                            modified++;
-                            referenceIndex++;
-                            generatedIndex++;
-                        }
-                        else
-                        {
-                            var generatedIsInReferenceLater = referenceLines.Select((s, index) => new { s, index }).Where(x => x.index > referenceIndex).FirstOrDefault(b => b.s == generatedLine);
-                            var referenceIsInGeneratedLater = generatedLines.Select((s, index) => new { s, index }).Where(x => x.index > generatedIndex).FirstOrDefault(b => b.s == referenceLine);
-                            if (generatedIsInReferenceLater != null && referenceIsInGeneratedLater == null)
-                            {
-                                if (referenceDeplacedLineIndexes.Contains(referenceIndex))
-                                {
-                                    referenceDeplacedLineIndexes.Remove(referenceIndex);
-                                }
-                                else
-                                {
-                                    deleted++;
-                                }
-                                // generated is in reference later
-                                referenceIndex++;
-
-                            }
-                            else if (generatedIsInReferenceLater == null && referenceIsInGeneratedLater != null)
-                            {
-                                if (generatedDeplacedLineIndexes.Contains(generatedIndex))
-                                {
-                                    generatedDeplacedLineIndexes.Remove(generatedIndex);
-                                }
-                                else
-                                {
-                                    added++;
-                                }
-                                // reference is in generated later
-                                generatedIndex++;
-                            }
-                            else if (generatedIsInReferenceLater != null && referenceIsInGeneratedLater != null)
-                            {
-                                if (generatedIsInReferenceLater.index - generatedIndex < referenceIsInGeneratedLater.index - referenceIndex)
-                                {
-                                    referenceDeplacedLineIndexes.Add(referenceIsInGeneratedLater.index);
-                                    generatedIndex++;
-                                    moved++;
-                                }
-                                else
-                                {
-                                    generatedDeplacedLineIndexes.Add(generatedIsInReferenceLater.index);
-                                    referenceIndex++;
-                                    moved++;
-                                }
-                            }
-                            else
-                            {
-                                modified++;
-                                referenceIndex++;
-                                generatedIndex++;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (modified != 0 || added != 0 || deleted != 0 || moved != 0)
-            {
-                throw new FilesNotEqualsException(referencePath, generatedPath, modified, moved, added, deleted);
             }
         }
     }
