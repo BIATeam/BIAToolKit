@@ -1341,8 +1341,8 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <None Include="_6_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.ts">
-      <DependentUpon>PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.tt</DependentUpon>
+    <None Include="_6_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_SelectedButtonViewChild.ts">
+      <DependentUpon>PartialCrudEntityIndexComponentTsTemplate_SelectedButtonViewChild.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
@@ -1638,15 +1638,8 @@
   <ItemGroup>
     <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityIndexComponentHtmlTemplate.html</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.html">
-      <DependentUpon>EntityIndexComponentHtmlTemplate.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
+      <LastGenOutput>EntityIndexComponentHtmlTemplate.html</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -1661,20 +1654,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <LastGenOutput>EntityIndexComponentTsTemplate.ts</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentHtmlTemplate.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PartialCrudEntityIndexComponentHtmlTemplate.html</LastGenOutput>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentHtmlTemplate.html">
-      <DependentUpon>PartialCrudEntityIndexComponentHtmlTemplate.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -1699,9 +1678,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.tt">
+    <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\features\views\index\PartialCrudEntityIndexComponentTsTemplate_SelectedButtonViewChild.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.ts</LastGenOutput>
+      <LastGenOutput>PartialCrudEntityIndexComponentTsTemplate_SelectedButtonViewChild.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
@@ -2075,6 +2054,13 @@
       <LastGenOutput>PartialCrudAppRoutingModule.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="_6_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.html">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityIndexComponentHtmlTemplate.tt</DependentUpon>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

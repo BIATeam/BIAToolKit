@@ -4,8 +4,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from 'bia-ng/core';
 import { TeamAdvancedFilterDto } from 'bia-ng/models';
 import {
-  BiaButtonGroupComponent,
-  BiaButtonGroupItem,
   BiaTableBehaviorControllerComponent,
   BiaTableComponent,
   BiaTableControllerComponent,
@@ -14,7 +12,6 @@ import {
   CrudItemsIndexComponent,
 } from 'bia-ng/shared';
 import { PrimeTemplate } from 'primeng/api';
-import { ButtonDirective } from 'primeng/button';
 import { filter } from 'rxjs';
 import { Permission } from 'src/app/shared/permission';
 import { PlaneTableComponent } from '../../components/plane-table/plane-table.component';
@@ -30,7 +27,6 @@ import { PlaneOptionsService } from '../../services/plane-options.service';
   imports: [
     NgClass,
     PrimeTemplate,
-    ButtonDirective,
     PlaneTableComponent,
     AsyncPipe,
     TranslateModule,
@@ -72,4 +68,11 @@ export class PlanesIndexComponent extends CrudItemsIndexComponent<Plane> impleme
 
   // BIAToolKit - Begin PlaneIndexTsOnViewChild
   // BIAToolKit - End PlaneIndexTsOnViewChild
+
+  protected initSelectedButtonGroup() {
+    this.selectionActionsMenuItems = [
+      // BIAToolKit - Begin PlaneIndexTsSelectedButtonViewChild
+      // BIAToolKit - End PlaneIndexTsSelectedButtonViewChild
+    ];
+  }
 }

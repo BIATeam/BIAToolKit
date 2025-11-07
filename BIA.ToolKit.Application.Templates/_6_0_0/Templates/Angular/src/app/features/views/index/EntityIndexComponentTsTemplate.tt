@@ -7,8 +7,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from 'bia-ng/core';
 import { TeamAdvancedFilterDto } from 'bia-ng/models';
 import {
-  BiaButtonGroupComponent,
-  BiaButtonGroupItem,
   BiaTableBehaviorControllerComponent,
   BiaTableComponent,
   BiaTableControllerComponent,
@@ -20,7 +18,7 @@ import {
 <#  } #>
 } from 'bia-ng/shared';
 import { PrimeTemplate } from 'primeng/api';
-<#  if(!ModelInstance.IsTeam) { #>
+<#  if(ModelInstance.HasFixableParent) { #>
 import { ButtonDirective } from 'primeng/button';
 <#  } #>
 import { filter } from 'rxjs';
@@ -45,9 +43,7 @@ import { <#= ModelInstance.EntityName #>OptionsService } from '../../services/<#
   imports: [
     NgClass,
     PrimeTemplate,
-<#  if(ModelInstance.IsTeam) { #>
-    BiaButtonGroupComponent,
-<#  } else { #>
+<#  if(ModelInstance.HasFixableParent) { #>
     ButtonDirective,
 <#  } #>
     <#= ModelInstance.EntityName #>TableComponent,
@@ -172,28 +168,6 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
   }
 
 <#  if(ModelInstance.IsTeam) { #>
-  protected initSelectedButtonGroup() {
-    this.selectedButtonGroup = [
-      new BiaButtonGroupItem(
-        this.translateService.instant('<#= ModelInstance.EntityName.ToCamelCase() #>.edit'),
-        () => this.onEdit(this.selectedCrudItems[0].id),
-        this.canEdit,
-        this.selectedCrudItems.length !== 1,
-        this.translateService.instant('<#= ModelInstance.EntityName.ToCamelCase() #>.edit')
-      ),
-      // BIAToolKit - Begin <#= ModelInstance.EntityName #>IndexTsChildTeamButton
-      // BIAToolKit - End <#= ModelInstance.EntityName #>IndexTsChildTeamButton
-      new BiaButtonGroupItem(
-        this.translateService.instant('app.members'),
-        () => this.onViewMembers(this.selectedCrudItems[0].id),
-        this.canViewMembers,
-        this.selectedCrudItems.length !== 1 ||
-          !this.selectedCrudItems[0].canMemberListAccess,
-        this.translateService.instant('app.members')
-      ),
-    ];
-  }
-
   onClickRowData(crudItem: <#= ModelInstance.EntityName #>) {
     if (crudItem.canMemberListAccess) {
       this.onViewMembers(crudItem.id);
@@ -223,4 +197,34 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
 
   // BIAToolKit - Begin <#= ModelInstance.EntityName #>IndexTsOnViewChild
   // BIAToolKit - End <#= ModelInstance.EntityName #>IndexTsOnViewChild
+
+  protected initSelectedButtonGroup() {
+    this.selectionActionsMenuItems = [
+<#  if(ModelInstance.IsTeam) { #>
+      { separator: true },
+      {
+        label: this.translateService.instant('<#= ModelInstance.EntityName.ToCamelCase() #>.edit'),
+        command: () => this.onEdit(this.selectedCrudItems[0].id),
+        visible: this.canEdit,
+        disabled: this.selectedCrudItems.length !== 1,
+        tooltip: this.translateService.instant('<#= ModelInstance.EntityName.ToCamelCase() #>.edit'),
+        buttonOutlined: true,
+      },
+<#  } #>
+      // BIAToolKit - Begin <#= ModelInstance.EntityName #>IndexTsSelectedButtonViewChild
+      // BIAToolKit - End <#= ModelInstance.EntityName #>IndexTsSelectedButtonViewChild
+<#  if(ModelInstance.IsTeam) { #>
+      {
+        label: this.translateService.instant('app.members'),
+        command: () => this.onViewMembers(this.selectedCrudItems[0].id),
+        visible: this.canViewMembers,
+        disabled:
+          this.selectedCrudItems.length !== 1 ||
+          !this.selectedCrudItems[0].canMemberListAccess,
+        tooltip: this.translateService.instant('app.members'),
+        buttonOutlined: true,
+      },
+<#  } #>
+    ];
+  }
 }

@@ -42,7 +42,8 @@
       (toggleTableControllerVisibility)="toggleTableControllerVisibility()"
       (crudItemFixedChanged)="
         crudItemService.updateFixedStatus($event.crudItemId, $event.fixed)
-      ">
+      "
+      [selectionActionsMenuItems]="selectionActionsMenuItems">
 <#  if(ModelInstance.HasFixableParent) { #>
       <ng-template pTemplate="customControl">
         @if (isParentFixed) {
@@ -54,16 +55,6 @@
             [disabled]="true"></button>
         }
       </ng-template>
-<#  } #>
-<#  if(ModelInstance.IsTeam) { #>
-        <ng-template pTemplate="actionOnSelected">
-          <bia-button-group
-            [buttons]="selectedButtonGroup"
-            [compact]="false"></bia-button-group>
-        </ng-template>
-<#   } else { #>
-      <!-- BIAToolKit - Begin <#= ModelInstance.EntityName #>IndexHtml -->
-      <!-- BIAToolKit - End <#= ModelInstance.EntityName #>IndexHtml -->
 <#  } #>
     </bia-table-header>
     <bia-table-controller
