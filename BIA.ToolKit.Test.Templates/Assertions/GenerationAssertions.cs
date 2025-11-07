@@ -104,7 +104,8 @@
                 }
                 File.AppendAllLines(referencePath, referenceLines);
 
-                if (isAngularTemplate)
+                // Prettier front files (excluded HTML)
+                if (isAngularTemplate && !referencePath.EndsWith("html"))
                 {
                     testFixture.FileGeneratorService.RunPrettierAsync(referencePath).Wait();
                 }
