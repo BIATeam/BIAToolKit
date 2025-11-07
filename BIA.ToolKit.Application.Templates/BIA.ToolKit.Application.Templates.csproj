@@ -1401,11 +1401,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <TypeScriptCompile Include="_6_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentTsTemplate.ts">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>EntityIndexComponentTsTemplate.tt</DependentUpon>
-    </TypeScriptCompile>
     <None Include="_6_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation_Domain.ts">
       <DependentUpon>PartialCrudNavigation_Domain.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -1431,6 +1426,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
+    <TypeScriptCompile Include="_6_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentTsTemplate.ts">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityIndexComponentTsTemplate.tt</DependentUpon>
+    </TypeScriptCompile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.tt">

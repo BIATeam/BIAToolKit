@@ -1,7 +1,7 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
-import { AsyncPipe, NgClass, NgIf } from '@angular/common';
+import { AsyncPipe, NgClass } from '@angular/common';
 import { Component, Injector, OnInit, ViewChild } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from 'bia-ng/core';
@@ -45,7 +45,6 @@ import { <#= ModelInstance.EntityName #>OptionsService } from '../../services/<#
   imports: [
     NgClass,
     PrimeTemplate,
-    NgIf,
 <#  if(ModelInstance.IsTeam) { #>
     BiaButtonGroupComponent,
 <#  } else { #>

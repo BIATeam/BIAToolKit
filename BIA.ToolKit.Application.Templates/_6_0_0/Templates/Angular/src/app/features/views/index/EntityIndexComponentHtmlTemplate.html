@@ -56,8 +56,8 @@
           "></bia-table-behavior-controller>
       </ng-template>
     </bia-table-controller>
+    @if (!crudConfiguration.useCalcMode) {
     <bia-table
-      *ngIf="!crudConfiguration.useCalcMode"
       [elements]="
         crudConfiguration.useVirtualScroll
           ? virtualCrudItems
@@ -91,8 +91,8 @@
       [isResizableColumn]="crudConfiguration.useResizableColumn"
       [rowHeight]="defaultRowHeight"
       [showFixableState]="crudConfiguration.isFixable"></bia-table>
+    } @if (crudConfiguration.useCalcMode) {
     <app-plane-table
-      *ngIf="crudConfiguration.useCalcMode"
       [elements]="
         crudConfiguration.useVirtualScroll
           ? virtualCrudItems
@@ -127,6 +127,7 @@
       [isResizableColumn]="crudConfiguration.useResizableColumn"
       [rowHeight]="defaultRowHeight"
       [showFixableState]="crudConfiguration.isFixable"></app-plane-table>
+    }
   </div>
 </div>
 

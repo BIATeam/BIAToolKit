@@ -4,10 +4,7 @@
 import {
   AsyncPipe,
   NgClass,
-  NgFor,
-  NgIf,
   NgStyle,
-  NgSwitch,
   NgTemplateOutlet,
 } from '@angular/common';
 import { Component } from '@angular/core';
@@ -42,12 +39,9 @@ import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.E
   imports: [
     FormsModule,
     ReactiveFormsModule,
-    NgIf,
     TableModule,
     PrimeTemplate,
-    NgFor,
     Tooltip,
-    NgSwitch,
     NgClass,
     NgTemplateOutlet,
     Skeleton,

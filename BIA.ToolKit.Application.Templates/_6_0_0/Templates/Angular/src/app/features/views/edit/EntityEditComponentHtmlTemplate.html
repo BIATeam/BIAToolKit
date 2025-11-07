@@ -1,5 +1,5 @@
-﻿<app-plane-form
-  *ngIf="crudItemService.crudItem$ | async; let crudItem"
+﻿@if (crudItemService.crudItem$ | async; as crudItem) {
+<app-plane-form
   [crudItem]="crudItem"
   [fields]="crudConfiguration.fieldsConfig.columns"
   [formLayoutConfig]="crudConfiguration.formLayoutConfig"
@@ -18,6 +18,7 @@
   [displayHistorical]="crudConfiguration.displayHistorical"
   [historicalEntries]="(planeService.crudItemHistorical$ | async) ?? []"
   ></app-plane-form>
-<bia-spinner
-  *ngIf="planeService.loadingGet$ | async"
-  [overlay]="true"></bia-spinner>
+}
+@if (planeService.loadingGet$ | async) {
+  <bia-spinner [overlay]="true"></bia-spinner>
+}

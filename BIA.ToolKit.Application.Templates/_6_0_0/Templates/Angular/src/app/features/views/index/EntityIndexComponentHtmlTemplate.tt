@@ -45,13 +45,14 @@
       ">
 <#  if(ModelInstance.HasFixableParent) { #>
       <ng-template pTemplate="customControl">
-        <button
-          *ngIf="isParentFixed"
-          pButton
-          icon="pi pi-lock"
-          label="{{ 'bia.fixed' | translate }}"
-          type="button"
-          [disabled]="true"></button>
+        @if (isParentFixed) {
+          <button
+            pButton
+            icon="pi pi-lock"
+            label="{{ 'bia.fixed' | translate }}"
+            type="button"
+            [disabled]="true"></button>
+        }
       </ng-template>
 <#  } #>
 <#  if(ModelInstance.IsTeam) { #>
@@ -102,8 +103,8 @@
           "></bia-table-behavior-controller>
       </ng-template>
     </bia-table-controller>
+    @if (!crudConfiguration.useCalcMode) {
     <bia-table
-      *ngIf="!crudConfiguration.useCalcMode"
       [elements]="
         crudConfiguration.useVirtualScroll
           ? virtualCrudItems
@@ -152,8 +153,8 @@
 <#  } #>
       [rowHeight]="defaultRowHeight"
       [showFixableState]="crudConfiguration.isFixable"></bia-table>
+    } @if (crudConfiguration.useCalcMode) {
     <app-<#= ModelInstance.EntityName.ToKebabCase() #>-table
-      *ngIf="crudConfiguration.useCalcMode"
       [elements]="
         crudConfiguration.useVirtualScroll
           ? virtualCrudItems
@@ -195,15 +196,17 @@
 <#  } #>
       [rowHeight]="defaultRowHeight"
       [showFixableState]="crudConfiguration.isFixable"></app-<#= ModelInstance.EntityName.ToKebabCase() #>-table>
+    }
   </div>
 <#  if(ModelInstance.HasAdvancedFilter) { #>
+  @if (showAdvancedFilter) {
   <bia-team-advanced-filter
-    *ngIf="showAdvancedFilter"
     (filter)="onFilter($event)"
     (closeFilter)="onCloseFilter()"
     [advancedFilter]="
       crudConfiguration.fieldsConfig.advancedFilter
     "></bia-team-advanced-filter>
+  }
 <#  } #>
 </div>
 

@@ -1,4 +1,4 @@
-﻿import { AsyncPipe, NgIf } from '@angular/common';
+﻿import { AsyncPipe } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import {
@@ -6,22 +6,22 @@ import {
   CrudItemService,
   SpinnerComponent,
 } from 'bia-ng/shared';
-import { MaintenanceTeam } from '../../model/maintenance-team';
-import { MaintenanceTeamService } from '../../services/maintenance-team.service';
+import { Plane } from '../../model/plane';
+import { PlaneService } from '../../services/plane.service';
 
 @Component({
-  selector: 'app-maintenance-teams-item',
+  selector: 'app-planes-item',
   templateUrl:
-    '../../../../../../../../node_modules/bia-ng/templates/feature-templates/crud-items/views/crud-item-item/crud-item-item.component.html',
+    '../../../../../../node_modules/bia-ng/templates/feature-templates/crud-items/views/crud-item-item/crud-item-item.component.html',
   styleUrls: [
-    '../../../../../../../../node_modules/bia-ng/templates/feature-templates/crud-items/views/crud-item-item/crud-item-item.component.scss',
+    '../../../../../../node_modules/bia-ng/templates/feature-templates/crud-items/views/crud-item-item/crud-item-item.component.scss',
   ],
-  imports: [RouterOutlet, NgIf, AsyncPipe, SpinnerComponent],
+  imports: [RouterOutlet, AsyncPipe, SpinnerComponent],
   providers: [
     {
       provide: CrudItemService,
-      useExisting: MaintenanceTeamService,
+      useExisting: PlaneService,
     },
   ],
 })
-export class MaintenanceTeamItemComponent extends CrudItemItemComponent<MaintenanceTeam> {}
+export class PlaneItemComponent extends CrudItemItemComponent<Plane> {}

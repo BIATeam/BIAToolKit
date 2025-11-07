@@ -4,28 +4,28 @@ import {
   FormReadOnlyMode,
   SpinnerComponent,
 } from 'bia-ng/shared';
-import { AsyncPipe, NgIf } from '@angular/common';
-import { MaintenanceTeamFormComponent } from '../../components/maintenance-team-form/maintenance-team-form.component';
-import { MaintenanceTeam } from '../../model/maintenance-team';
-import { maintenanceTeamCRUDConfiguration } from '../../maintenance-team.constants';
-import { MaintenanceTeamService } from '../../services/maintenance-team.service';
+import { AsyncPipe } from '@angular/common';
+import { PlaneFormComponent } from '../../components/plane-form/plane-form.component';
+import { Plane } from '../../model/plane';
+import { planeCRUDConfiguration } from '../../plane.constants';
+import { PlaneService } from '../../services/plane.service';
 import { filter } from 'rxjs';
 import { Permission } from 'src/app/shared/permission';
-import { MaintenanceTeamOptionsService } from '../../services/maintenance-team-options.service';
+import { PlaneOptionsService } from '../../services/plane-options.service';
 
 @Component({
-  selector: 'app-maintenance-team-edit',
-  templateUrl: './maintenance-team-edit.component.html',
-  imports: [NgIf, MaintenanceTeamFormComponent, AsyncPipe, SpinnerComponent],
+  selector: 'app-plane-edit',
+  templateUrl: './plane-edit.component.html',
+  imports: [PlaneFormComponent, AsyncPipe, SpinnerComponent],
 })
-export class MaintenanceTeamEditComponent extends CrudItemEditComponent<MaintenanceTeam> implements OnInit {
+export class PlaneEditComponent extends CrudItemEditComponent<Plane> implements OnInit {
   constructor(
     protected injector: Injector,
-    protected maintenanceTeamOptionsService: MaintenanceTeamOptionsService,
-    public maintenanceTeamService: MaintenanceTeamService
+    protected planeOptionsService: PlaneOptionsService,
+    public planeService: PlaneService
   ) {
-    super(injector, maintenanceTeamService);
-    this.crudConfiguration = maintenanceTeamCRUDConfiguration;
+    super(injector, planeService);
+    this.crudConfiguration = planeCRUDConfiguration;
   }
 
 }
