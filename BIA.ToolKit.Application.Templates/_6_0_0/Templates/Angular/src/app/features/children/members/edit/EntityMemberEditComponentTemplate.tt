@@ -2,7 +2,7 @@
 <#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
 <#  if(ModelInstance.IsTeam) { #>
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Component, Injector, OnInit } from '@angular/core';
 import {
   MemberEditComponent,
@@ -19,7 +19,6 @@ import { <#= ModelInstance.EntityName #>Service } from '../../../../services/<#=
     '../../../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/bia-ng/templates/feature-templates/members/views/member-edit/member-edit.component.html',
   imports: [
     MemberModule,
-    NgIf,
     AsyncPipe,
     SpinnerComponent,
     MemberFormEditComponent,

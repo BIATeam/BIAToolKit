@@ -1,7 +1,7 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import {
@@ -19,7 +19,7 @@ import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= Model
   styleUrls: [
     '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/bia-ng/templates/feature-templates/crud-items/views/crud-item-item/crud-item-item.component.scss',
   ],
-  imports: [RouterOutlet, NgIf, AsyncPipe, SpinnerComponent],
+  imports: [RouterOutlet, AsyncPipe, SpinnerComponent],
   providers: [
     {
       provide: CrudItemService,

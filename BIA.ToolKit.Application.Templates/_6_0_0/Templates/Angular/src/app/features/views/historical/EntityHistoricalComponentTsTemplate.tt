@@ -5,9 +5,10 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, Injector } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
-import { CrudItemHistoricalTimelineComponent } from 'packages/bia-ng/shared/feature-templates/crud-items/components/crud-item-historical-timeline/crud-item-historical-timeline.component';
-import { CrudItemHistoricalComponent } from 'packages/bia-ng/shared/feature-templates/crud-items/views/crud-item-historical/crud-item-historical.component';
-import { Button } from 'primeng/button';
+import {
+  CrudItemHistoricalComponent,
+  CrudItemHistoricalTimelineComponent,
+} from 'bia-ng/shared';import { Button } from 'primeng/button';
 import { <#=  ModelInstance.EntityName #> } from '../../model/<#=  ModelInstance.EntityName.ToKebabCase() #>';
 import { <#=  ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../../<#=  ModelInstance.EntityName.ToKebabCase() #>.constants';
 import { <#=  ModelInstance.EntityName #>Service } from '../../services/<#=  ModelInstance.EntityName.ToKebabCase() #>.service';

@@ -1,0 +1,17 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(ModelInstance.HasParent) { #>
+      // BIAToolKit - Begin Partial <#= ModelInstance.ParentName #>IndexTsSelectedButtonViewChild <#= ModelInstance.EntityName #>
+      {
+        visible: this.canView<#= ModelInstance.EntityNamePlural #>,
+        disabled: this.selectedCrudItems.length !== 1,
+        label: this.translateService.instant('<#= ModelInstance.ParentName.ToCamelCase() #>.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>'),
+        tooltip: this.translateService.instant(
+          '<#= ModelInstance.ParentName.ToCamelCase() #>.<#= ModelInstance.EntityNamePlural.ToCamelCase() #>'
+        ),
+        command: () => this.onView<#= ModelInstance.EntityNamePlural #>(this.selectedCrudItems[0].id),
+        buttonOutlined: true,
+      },
+      // BIAToolKit - End Partial <#= ModelInstance.ParentName #>IndexTsSelectedButtonViewChild <#= ModelInstance.EntityName #>
+<# }  #>
