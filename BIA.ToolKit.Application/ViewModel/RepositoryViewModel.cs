@@ -157,6 +157,7 @@
                 {
                     consoleWriter.AddMessageLine("Getting releases data...", "pink");
                     await repository.FillReleasesAsync();
+                    eventBroker.NotifyRepositoryViewModelReleaseDataUpdated(this);
                     consoleWriter.AddMessageLine("Releases data got successfully", "green");
                 }
                 catch (Exception ex)
