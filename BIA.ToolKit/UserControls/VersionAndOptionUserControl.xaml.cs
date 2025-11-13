@@ -47,6 +47,12 @@
             vm.Inject(repositoryService, consoleWriter, uiEventBroker);
 
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
+            uiEventBroker.OnRepositoryViewModelReleaseDataUpdated += UiEventBroker_OnRepositoryViewModelReleaseDataUpdated;
+        }
+
+        private void UiEventBroker_OnRepositoryViewModelReleaseDataUpdated(RepositoryViewModel repository)
+        {
+            RefreshConfiguration();
         }
 
         private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)

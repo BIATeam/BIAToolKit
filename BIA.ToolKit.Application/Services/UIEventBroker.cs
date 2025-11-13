@@ -31,6 +31,7 @@ namespace BIA.ToolKit.Application.Services
         public delegate void RepositoryViewModelVersionXYZChanged(RepositoryViewModel repository);
         public delegate void SolutionClassesParsed();
         public delegate void OriginFeatureSettingsChanged(List<FeatureSetting> featureSettings);
+        public delegate void RepositoryViewModelReleaseDataUpdated(RepositoryViewModel repository);
 
         public event ProjectChanged OnProjectChanged;
         public event NewVersionAvailable OnNewVersionAvailable;
@@ -44,6 +45,7 @@ namespace BIA.ToolKit.Application.Services
         public event RepositoryViewModelVersionXYZChanged OnRepositoryViewModelVersionXYZChanged;
         public event SolutionClassesParsed OnSolutionClassesParsed;
         public event OriginFeatureSettingsChanged OnOriginFeatureSettingsChanged;
+        public event RepositoryViewModelReleaseDataUpdated OnRepositoryViewModelReleaseDataUpdated;
 
         public void NotifyProjectChanged(Project project)
         {
@@ -103,6 +105,11 @@ namespace BIA.ToolKit.Application.Services
         public void NotifyOriginFeatureSettingsChanged(List<FeatureSetting> featureSettings)
         {
             OnOriginFeatureSettingsChanged?.Invoke(featureSettings);
+        }
+
+        public void NotifyRepositoryViewModelReleaseDataUpdated(RepositoryViewModel repository)
+        {
+            OnRepositoryViewModelReleaseDataUpdated?.Invoke(repository);
         }
     }
 }
