@@ -17,6 +17,9 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
     using BIA.Net.Core.Common;
     using BIA.Net.Core.Common.Exceptions;
     using BIA.Net.Core.Domain.Dto.Base;
+<#  if(ModelInstance.IsTeam) { #>
+    using BIA.Net.Core.Domain.Dto.User;
+<#  } #>
     using BIA.Net.Core.Presentation.Api.Controller.Base;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
@@ -75,7 +78,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Authorize(Roles = Rights.<#= ModelInstance.EntityNamePlural #>.ListAccess)]
-        public async Task<IActionResult> GetAll([FromBody] PagingFilterFormatDto filters)
+        public async Task<IActionResult> GetAll([FromBody] PagingFilterFormatDto<# if(ModelInstance.IsTeam) {  #><TeamAdvancedFilterDto><# } #> filters)
         {
             var (results, total) = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.GetRangeAsync(filters);
             this.HttpContext.Response.Headers.Append(BiaConstants.HttpHeaders.TotalCount, total.ToString());
@@ -386,7 +389,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
         /// <returns>a csv file.</returns>
         [HttpPost("csv")]
         [Authorize(Roles = Rights.<#= ModelInstance.EntityNamePlural #>.ListAccess)]
-        public virtual async Task<IActionResult> GetFile([FromBody] PagingFilterFormatDto filters)
+        public virtual async Task<IActionResult> GetFile([FromBody] PagingFilterFormatDto<# if(ModelInstance.IsTeam) {  #><TeamAdvancedFilterDto><# } #> filters)
         {
             byte[] buffer = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Service.GetCsvAsync(filters);
             return this.File(buffer, BiaConstants.Csv.ContentType + $";charset={BiaConstants.Csv.CharsetEncoding}", $"<#= ModelInstance.EntityNamePlural #>{BiaConstants.Csv.Extension}");

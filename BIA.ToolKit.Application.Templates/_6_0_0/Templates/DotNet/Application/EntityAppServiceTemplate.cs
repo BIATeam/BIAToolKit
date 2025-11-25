@@ -1,10 +1,9 @@
-﻿// <copyright file="MaintenanceTeamAppService.cs" company="TheBIADevCompany">
+﻿// <copyright file="PlaneAppService.cs" company="TheBIADevCompany">
 // Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 
-namespace TheBIADevCompany.BIADemo.Application.MaintenanceCompanies
+namespace TheBIADevCompany.BIADemo.Application.Fleet
 {
-    using System.Linq.Expressions;
     using System.Security.Principal;
     using System.Threading.Tasks;
     using BIA.Net.Core.Application.Services;
@@ -14,20 +13,17 @@ namespace TheBIADevCompany.BIADemo.Application.MaintenanceCompanies
     using BIA.Net.Core.Domain.RepoContract;
     using BIA.Net.Core.Domain.Service;
     using BIA.Net.Core.Domain.Specification;
-    using BIA.Net.Core.Domain.User.Specifications;
-    using TheBIADevCompany.BIADemo.Application.User;
     using TheBIADevCompany.BIADemo.Crosscutting.Common.Enum;
-    using TheBIADevCompany.BIADemo.Domain.Dto.MaintenanceCompanies;
+    using TheBIADevCompany.BIADemo.Domain.Dto.Fleet;
     using TheBIADevCompany.BIADemo.Domain.Dto.User;
-    using TheBIADevCompany.BIADemo.Domain.MaintenanceCompanies.Entities;
-    using TheBIADevCompany.BIADemo.Domain.MaintenanceCompanies.Mappers;
+    using TheBIADevCompany.BIADemo.Domain.Fleet.Entities;
+    using TheBIADevCompany.BIADemo.Domain.Fleet.Mappers;
     using TheBIADevCompany.BIADemo.Domain.RepoContract;
-    using TheBIADevCompany.BIADemo.Domain.User;
 
     /// <summary>
-    /// The application service used for maintenanceTeam.
+    /// The application service used for plane.
     /// </summary>
-    public class MaintenanceTeamAppService : CrudAppServiceBase<MaintenanceTeamDto, MaintenanceTeam, int, PagingFilterFormatDto, MaintenanceTeamMapper>, IMaintenanceTeamAppService
+    public class PlaneAppService : CrudAppServiceBase<PlaneDto, Plane, int, PagingFilterFormatDto, PlaneMapper>, IPlaneAppService
     {
         /// <summary>
         /// The current AncestorTeamId.
@@ -35,44 +31,31 @@ namespace TheBIADevCompany.BIADemo.Application.MaintenanceCompanies
         private readonly int currentAncestorTeamId;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MaintenanceTeamAppService"/> class.
+        /// Initializes a new instance of the <see cref="PlaneAppService"/> class.
         /// </summary>
         /// <param name="repository">The repository.</param>
         /// <param name="principal">The claims principal.</param>
-        public MaintenanceTeamAppService(
-            ITGenericRepository<MaintenanceTeam, int> repository,
+        public PlaneAppService(
+            ITGenericRepository<Plane, int> repository,
             IPrincipal principal)
             : base(repository)
         {
-            this.FiltersContext.Add(
-                AccessMode.Read,
-                TeamAppService.ReadSpecification<MaintenanceTeam>(TeamTypeId.MaintenanceTeam, principal, TeamConfig.Config));
-
-            this.FiltersContext.Add(
-                AccessMode.Update,
-                TeamAppService.UpdateSpecification<MaintenanceTeam, UserDataDto>(TeamTypeId.MaintenanceTeam, principal));
             var userData = (principal as BiaClaimsPrincipal).GetUserData<UserDataDto>();
             this.currentAncestorTeamId = userData != null ? userData.GetCurrentTeamId((int)TeamTypeId.Site) : 0;
+
+            // For child : set the TeamId of the Ancestor that contain a team Parent
+            this.FiltersContext.Add(AccessMode.Read, new DirectSpecification<Plane>(x => x.SiteId == this.currentAncestorTeamId));
         }
 
         /// <inheritdoc/>
-        public override async Task<MaintenanceTeamDto> AddAsync(MaintenanceTeamDto dto, string mapperMode = null)
+        public override async Task<PlaneDto> AddAsync(PlaneDto dto, string mapperMode = null)
         {
             if (dto.SiteId != this.currentAncestorTeamId)
             {
-                throw new ForbiddenException("Can only add MaintenanceTeam on current parent Team.");
+                throw new ForbiddenException("Can only add Plane on current parent Team.");
             }
 
             return await base.AddAsync(dto, mapperMode);
-        }
-
-        /// <inheritdoc/>
-#pragma warning disable S1006 // Method overrides should not change parameter defaults
-        public override async Task<(IEnumerable<MaintenanceTeamDto> Results, int Total)> GetRangeAsync(PagingFilterFormatDto filters = null, int id = default, Specification<MaintenanceTeam> specification = null, Expression<Func<MaintenanceTeam, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
-#pragma warning restore S1006 // Method overrides should not change parameter defaults
-        {
-            specification ??= TeamAdvancedFilterSpecification<MaintenanceTeam>.Filter(filters);
-            return await base.GetRangeAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
         }
     }
 }
