@@ -20,6 +20,9 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     using BIA.Net.Core.Domain.Authentication;
 <#  } #>
     using BIA.Net.Core.Domain.Dto.Base;
+<#  if(ModelInstance.IsTeam) { #>
+    using BIA.Net.Core.Domain.Dto.User;
+<#  } #>
     using BIA.Net.Core.Domain.RepoContract;
     using BIA.Net.Core.Domain.Service;
     using BIA.Net.Core.Domain.Specification;
@@ -43,7 +46,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     /// <summary>
     /// The application service used for <#= ModelInstance.EntityName.ToCamelCase() #>.
     /// </summary>
-    public class <#= ModelInstance.EntityName #>AppService : CrudAppServiceBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto, <#= ModelInstance.EntityName #>Mapper>, I<#= ModelInstance.EntityName #>AppService
+    public class <#= ModelInstance.EntityName #>AppService : CrudAppServiceBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto<# if(ModelInstance.IsTeam) {  #><TeamAdvancedFilterDto><# } #>, <#= ModelInstance.EntityName #>Mapper>, I<#= ModelInstance.EntityName #>AppService
     {
 <#  if(ModelInstance.HasAncestorTeam) { #>
         /// <summary>
@@ -205,7 +208,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
 
         /// <inheritdoc/>
 #pragma warning disable S1006 // Method overrides should not change parameter defaults
-        public override async Task<(IEnumerable<<#= ModelInstance.EntityName #>Dto> Results, int Total)> GetRangeAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
+        public override async Task<(IEnumerable<<#= ModelInstance.EntityName #>Dto> Results, int Total)> GetRangeAsync(PagingFilterFormatDto<TeamAdvancedFilterDto> filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
 #pragma warning restore S1006 // Method overrides should not change parameter defaults
         {
             specification ??= TeamAdvancedFilterSpecification<<#= ModelInstance.EntityName #>>.Filter(filters);

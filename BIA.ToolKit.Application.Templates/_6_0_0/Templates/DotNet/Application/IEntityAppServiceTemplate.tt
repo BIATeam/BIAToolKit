@@ -9,13 +9,16 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
 {
     using BIA.Net.Core.Application.Services;
     using BIA.Net.Core.Domain.Dto.Base;
+<#  if(ModelInstance.IsTeam) { #>
+    using BIA.Net.Core.Domain.Dto.User;
+<#  } #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
 
     /// <summary>
     /// The interface defining the application service for <#= ModelInstance.EntityName.ToCamelCase() #>.
     /// </summary>
-    public interface I<#= ModelInstance.EntityName #>AppService : ICrudAppServiceBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto>
+    public interface I<#= ModelInstance.EntityName #>AppService : ICrudAppServiceBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto<# if(ModelInstance.IsTeam) {  #><TeamAdvancedFilterDto><# } #>>
     {
     }
 }
