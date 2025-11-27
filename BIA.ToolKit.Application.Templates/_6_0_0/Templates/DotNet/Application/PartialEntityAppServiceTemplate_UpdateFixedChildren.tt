@@ -3,7 +3,7 @@
 <#@ output extension=".cs" #>
 <#  if(ModelInstance.HasFixableParent) { #>
                 // BIAToolKit - Begin Partial UpdateFixedChildren<#= ModelInstance.ParentName #> <#= ModelInstance.EntityName #>
-                var <#= ModelInstance.EntityNamePlural.ToCamelCase() #> = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Repository.GetAllEntityAsync(filter: x => x.<#= ModelInstance.ParentName #>Id == id);
+                var <#= ModelInstance.EntityNamePlural.ToCamelCase() #> = await this.<#= ModelInstance.EntityName.ToCamelCase() #>Repository.GetAllEntityAsync(filter: x => x.<#= ModelInstance.ParentName #>Id == entityUpdatedId);
                 foreach (var <#= ModelInstance.EntityName.ToCamelCase() #> in <#= ModelInstance.EntityNamePlural.ToCamelCase() #>)
                 {
                     this.engineRepository.UpdateFixedAsync(<#= ModelInstance.EntityName.ToCamelCase() #>, isFixed);

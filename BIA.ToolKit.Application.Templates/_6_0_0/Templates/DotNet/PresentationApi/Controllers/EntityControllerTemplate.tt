@@ -385,7 +385,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
         /// <summary>
         /// Generates a csv file according to the filters.
         /// </summary>
-        /// <param name="filters">filters ( <see cref="PagingFilterFormatDto"/>).</param>
+        /// <param name="filters">filters ( <see cref="PagingFilterFormatDto<# if(ModelInstance.IsTeam) {  #>{TAdvancedFilter}<# } #>"/>).</param>
         /// <returns>a csv file.</returns>
         [HttpPost("csv")]
         [Authorize(Roles = Rights.<#= ModelInstance.EntityNamePlural #>.ListAccess)]
