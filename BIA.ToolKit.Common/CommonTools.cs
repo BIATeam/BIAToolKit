@@ -192,9 +192,16 @@
                 return default;
             }
 
-            using StreamReader reader = new(fileName);
-            string jsonString = reader.ReadToEnd();
-            return JsonConvert.DeserializeObject<T>(jsonString);
+            try
+            {
+                using StreamReader reader = new(fileName);
+                string jsonString = reader.ReadToEnd();
+                return JsonConvert.DeserializeObject<T>(jsonString);
+            }
+            catch
+            {
+                return default;
+            }
         }
 
         /// <summary>
