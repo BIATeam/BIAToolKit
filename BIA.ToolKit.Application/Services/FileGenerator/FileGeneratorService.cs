@@ -328,7 +328,15 @@
             }
 
             await RunGenerateTemplatesAsync(templates, model, GenerateAngularTemplateAsync);
-            await RunPrettierAsync(angularProjectFolder);
+
+            var filesExtensionToPrettier = new List<string> { ".html", ".ts" };
+            var templatesWithFileToPrettier = _currentContext.GenerationReport.TemplatesGenerated.Where(x => filesExtensionToPrettier.Contains(Path.GetExtension(x.OutputPath))).ToList();
+            var prettierTasks = templatesWithFileToPrettier.Select(async template =>
+            {
+                var filePath = GetAngularTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder);
+                await RunPrettierAsync(filePath);
+            }).ToList();
+            await Task.WhenAll(prettierTasks);
         }
 
         private async Task GenerateAngularTemplateAsync(Manifest.Feature.Template template, object model)
@@ -376,6 +384,8 @@
             return outputPath;
         }
 
+        private readonly SemaphoreSlim _prettierSemaphore = new(10);
+
         public async Task RunPrettierAsync(string path)
         {
             var cts = new CancellationTokenSource();
@@ -386,23 +396,25 @@
             process.StartInfo.Arguments = $"/C npx prettier --write {path} --plugin=prettier-plugin-organize-imports --config \"{Path.Combine(_prettierAngularProjectPath, ".prettierrc")}\"";
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
-            process.Start();
-            _consoleWriter.AddMessageLine($"Prettier {path}...", "gray");
 
             try
             {
+                await _prettierSemaphore.WaitAsync();
+                _consoleWriter.AddMessageLine($"Prettier {path}...", "gray");
+                process.Start();
                 cts.CancelAfter(30000);
                 await process.WaitForExitAsync(cts.Token);
-                _consoleWriter.AddMessageLine($"Prettier succeed !", "lightgreen");
+                _consoleWriter.AddMessageLine($"Prettier succeed for {path} !", "lightgreen");
             }
             catch (Exception ex)
             {
-                _consoleWriter.AddMessageLine($"prettier failed ({ex.Message})", "red");
+                _consoleWriter.AddMessageLine($"Prettier failed for {path} (PID={process.Id}) : {ex.Message}", "red");
                 process.Kill();
             }
             finally
             {
                 process.Dispose();
+                _prettierSemaphore.Release();
             }
         }
 
