@@ -159,6 +159,10 @@
                     await repository.FillReleasesAsync();
                     eventBroker.NotifyRepositoryViewModelReleaseDataUpdated(this);
                     consoleWriter.AddMessageLine("Releases data got successfully", "green");
+                    if (repository.UseDownloadedReleases)
+                    {
+                        consoleWriter.AddMessageLine($"WARNING: Releases data got from downloaded releases", "orange");
+                    }
                 }
                 catch (Exception ex)
                 {

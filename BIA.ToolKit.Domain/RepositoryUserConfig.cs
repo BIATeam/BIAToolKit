@@ -48,6 +48,8 @@
 
         public bool IsVersionXYZ { get; set; }
 
+        public bool UseDownloadedReleases => throw new NotImplementedException();
+
         public void Clean()
         {
             throw new NotImplementedException();

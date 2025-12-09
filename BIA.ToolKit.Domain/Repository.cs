@@ -22,6 +22,7 @@
         public string CompanyName { get; set; } = companyName;
         public string ProjectName { get; set; } = projectName;
         public bool UseRepository { get; set; } = useRepository;
+        public bool UseDownloadedReleases { get; protected set; }
         public abstract string LocalPath { get; }
 
         protected List<Release> releases = [];
@@ -31,6 +32,9 @@
 
         protected void EnsureReleasesDownloaded()
         {
+            if (UseDownloadedReleases)
+                return;
+
             releases.ForEach(r => r.EnsureDownloaded());
         }
 
@@ -54,6 +58,26 @@
 
                 Directory.Delete(LocalPath, true);
             }
+        }
+
+        protected void FillReleasesFromDownloadedReleases()
+        {
+            var releasesPath = Path.Combine(AppSettings.AppFolderPath, Name);
+            if (!Directory.Exists(releasesPath))
+            {
+                return;
+            }
+
+            UseDownloadedReleases = true;
+            var directoryInfo = new DirectoryInfo(releasesPath);
+            var directories = directoryInfo.GetDirectories();
+            var releases = directories
+                .Where(dir => !dir.Name.Equals("Repo"))
+                .Select(dir => new ReleaseFolder(dir.Name, dir.FullName, Name))
+                .OrderByDescending(r => r.Name);
+
+            this.releases.Clear();
+            this.releases.AddRange(releases);
         }
     }
 }

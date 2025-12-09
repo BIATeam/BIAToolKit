@@ -15,6 +15,7 @@
         IReadOnlyList<Release> Releases { get; }
         RepositoryType RepositoryType { get; }
         bool UseRepository { get; }
+        bool UseDownloadedReleases { get; }
 
         Task FillReleasesAsync();
         void CleanReleases();

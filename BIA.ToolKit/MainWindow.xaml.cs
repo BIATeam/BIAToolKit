@@ -205,6 +205,10 @@
                         consoleWriter.AddMessageLine($"Getting releases data for repository {r.Name}...", "pink");
                         await r.FillReleasesAsync();
                         consoleWriter.AddMessageLine($"Releases data got successfully for repository {r.Name}", "green");
+                        if(r.UseDownloadedReleases)
+                        {
+                            consoleWriter.AddMessageLine($"WARNING: Releases data got from downloaded releases for repository {r.Name}", "orange");
+                        }
                     }
                     catch (Exception ex)
                     {

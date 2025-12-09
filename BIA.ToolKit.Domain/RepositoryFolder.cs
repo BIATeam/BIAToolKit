@@ -16,26 +16,34 @@
 
         public override Task FillReleasesAsync()
         {
-            if (!Directory.Exists(LocalPath))
+            try
             {
-                throw new DirectoryNotFoundException(LocalPath);
+                UseDownloadedReleases = false;
+                if (!Directory.Exists(LocalPath))
+                {
+                    throw new DirectoryNotFoundException(LocalPath);
+                }
+
+                var repositoryFolders = Directory.EnumerateDirectories(LocalPath);
+
+                if (!string.IsNullOrWhiteSpace(ReleasesFolderRegexPattern))
+                {
+                    var regex = new Regex(ReleasesFolderRegexPattern);
+                    repositoryFolders = repositoryFolders.Where(dir => regex.IsMatch(System.IO.Path.GetFileName(dir)));
+                }
+
+                var releases = repositoryFolders
+                    .Select(directoryPath => new ReleaseFolder(System.IO.Path.GetFileName(directoryPath), directoryPath, Name))
+                    .OrderByDescending(r => r.Name);
+
+                this.releases.Clear();
+                this.releases.AddRange(releases);
+                EnsureReleasesDownloaded();
             }
-
-            var repositoryFolders = Directory.EnumerateDirectories(LocalPath);
-
-            if (!string.IsNullOrWhiteSpace(ReleasesFolderRegexPattern))
+            catch
             {
-                var regex = new Regex(ReleasesFolderRegexPattern);
-                repositoryFolders = repositoryFolders.Where(dir => regex.IsMatch(System.IO.Path.GetFileName(dir)));
+                FillReleasesFromDownloadedReleases();
             }
-
-            var releases = repositoryFolders
-                .Select(directoryPath => new ReleaseFolder(System.IO.Path.GetFileName(directoryPath), directoryPath, Name))
-                .OrderByDescending(r => r.Name);
-
-            this.releases.Clear();
-            this.releases.AddRange(releases);
-            EnsureReleasesDownloaded();
 
             return Task.CompletedTask;
         }
