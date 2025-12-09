@@ -25,7 +25,7 @@
         public bool CheckRepoFolder(Domain.IRepository repository)
         {
             var localFolderExists = Directory.Exists(repository.LocalPath);
-            if(!localFolderExists)
+            if (!localFolderExists && !repository.UseDownloadedReleases)
             {
                 outPut.AddMessageLine($"Local repository {repository.Name} not found at {repository.LocalPath}", "red");
                 if (repository.RepositoryType == RepositoryType.Git)
@@ -33,7 +33,7 @@
                     outPut.AddMessageLine($"Did you forget to synchronize the repository ?", "red");
                 }
             }
-            return localFolderExists;
+            return (localFolderExists && !repository.UseDownloadedReleases) || repository.UseDownloadedReleases;
         }
 
         public async Task CleanRepository(Domain.IRepository repository)
@@ -106,6 +106,9 @@
 
         private async Task DownloadReleaseAsync(Domain.IRepository repository, Release release)
         {
+            if (repository.UseDownloadedReleases)
+                return;
+
             outPut.AddMessageLine($"Downloading release {release.Name} of repository {repository.Name}...", "pink");
             await release.DownloadAsync();
             outPut.AddMessageLine($"Release {release.Name} of repository {repository.Name} downloaded", "green");

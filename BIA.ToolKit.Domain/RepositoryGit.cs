@@ -9,6 +9,7 @@
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using BIA.ToolKit.Domain.Settings;
+    using LibGit2Sharp;
     using Newtonsoft.Json;
     using Octokit;
     using static System.Net.WebRequestMethods;
@@ -73,20 +74,29 @@
 
         public override async Task FillReleasesAsync()
         {
-            switch (ReleaseType)
+            try
             {
-                case ReleaseType.Git:
-                    await FillReleasesGitAsync();
-                    break;
-                case ReleaseType.Folder:
-                    FillReleasesFolder();
-                    break;
-                case ReleaseType.Tag:
-                    FillReleasesTag();
-                    break;
-                default:
-                    throw new NotImplementedException();
+                UseDownloadedReleases = false;
+                switch (ReleaseType)
+                {
+                    case ReleaseType.Git:
+                        await FillReleasesGitAsync();
+                        break;
+                    case ReleaseType.Folder:
+                        FillReleasesFolder();
+                        break;
+                    case ReleaseType.Tag:
+                        FillReleasesTag();
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
             }
+            catch
+            {
+                FillReleasesFromDownloadedReleases();
+            }
+
             EnsureReleasesDownloaded();
         }
 
@@ -151,8 +161,14 @@
         private void FillReleasesTag()
         {
             using var gitRepo = new LibGit2Sharp.Repository(LocalPath);
+
+            // Try to reach the repository
+            var remoteOrigin = gitRepo.Network.Remotes["origin"] ?? throw new NullReferenceException();
+            static LibGit2Sharp.Credentials credHandler(string url, string usernameFromUrl, SupportedCredentialTypes types) => new DefaultCredentials();
+            _ = gitRepo.Network.ListReferences(remoteOrigin, credHandler) ?? throw new Exception();
+
             var releases = gitRepo.Tags.Select(t => new ReleaseTag(t.FriendlyName, this));
-            
+
             this.releases.Clear();
             this.releases.AddRange(releases);
         }
