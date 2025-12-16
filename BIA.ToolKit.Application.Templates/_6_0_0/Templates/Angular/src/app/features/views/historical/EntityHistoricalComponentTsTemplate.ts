@@ -18,7 +18,7 @@ import { PlaneService } from '../../services/plane.service';
     Button,
   ],
   templateUrl:
-    '../../../../../../node_modules/bia-ng/templates/feature-templates/crud-items/views/crud-item-historical/crud-item-historical.component.html',
+    '@bia-team/bia-ng/templates/feature-templates/crud-items/views/crud-item-historical/crud-item-historical.component.html',
   styleUrl:
     '../../../../../../packages/bia-ng/shared/feature-templates/crud-items/views/crud-item-historical/crud-item-historical.component.scss',
 })

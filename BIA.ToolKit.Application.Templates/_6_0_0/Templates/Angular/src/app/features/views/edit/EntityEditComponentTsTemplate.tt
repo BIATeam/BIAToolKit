@@ -6,7 +6,7 @@ import {
   CrudItemEditComponent,
   FormReadOnlyMode,
   SpinnerComponent,
-} from 'bia-ng/shared';
+} from '@bia-team/bia-ng/shared';
 import { AsyncPipe } from '@angular/common';
 import { <#= ModelInstance.EntityName #>FormComponent } from '../../components/<#= ModelInstance.EntityName.ToKebabCase() #>-form/<#= ModelInstance.EntityName.ToKebabCase() #>-form.component';
 import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>';

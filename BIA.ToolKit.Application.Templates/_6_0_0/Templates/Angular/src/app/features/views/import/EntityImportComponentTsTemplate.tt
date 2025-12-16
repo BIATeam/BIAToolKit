@@ -8,7 +8,7 @@ import {
   BiaFormComponent,
   CrudItemImportComponent,
   CrudItemImportFormComponent,
-} from 'bia-ng/shared';
+} from '@bia-team/bia-ng/shared';
 import { Permission } from 'src/app/shared/permission';
 import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
 import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../../<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
@@ -17,7 +17,7 @@ import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= Model
 @Component({
   selector: 'app-<#= ModelInstance.EntityName.ToKebabCase() #>-import',
   templateUrl:
-    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/bia-ng/templates/feature-templates/crud-items/views/crud-item-import/crud-item-import.component.html',
+    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/@bia-team/bia-ng/templates/feature-templates/crud-items/views/crud-item-import/crud-item-import.component.html',
   imports: [CrudItemImportFormComponent, AsyncPipe, BiaFormComponent],
 })
 export class <#= ModelInstance.EntityName #>ImportComponent extends CrudItemImportComponent<<#= ModelInstance.EntityName #>> {

@@ -6,7 +6,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import {
   BiaMessageService,
   BiaOnlineOfflineService,
-} from 'bia-ng/core';
+} from '@bia-team/bia-ng/core';
 import { of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { <#= ModelInstance.EntityName #>OptionDas } from '../services/<#= ModelInstance.EntityName.ToKebabCase() #>-option-das.service';

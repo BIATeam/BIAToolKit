@@ -4,8 +4,8 @@
 import { AsyncPipe, NgClass } from '@angular/common';
 import { Component, Injector, OnInit, ViewChild } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
-import { AuthService } from 'bia-ng/core';
-import { TeamAdvancedFilterDto } from 'bia-ng/models';
+import { AuthService } from '@bia-team/bia-ng/core';
+import { TeamAdvancedFilterDto } from '@bia-team/bia-ng/models';
 import {
   BiaTableBehaviorControllerComponent,
   BiaTableComponent,
@@ -16,7 +16,7 @@ import {
 <#  if(ModelInstance.HasAdvancedFilter) { #>
   TeamAdvancedFilterComponent,
 <#  } #>
-} from 'bia-ng/shared';
+} from '@bia-team/bia-ng/shared';
 import { PrimeTemplate } from 'primeng/api';
 <#  if(ModelInstance.HasFixableParent) { #>
 import { ButtonDirective } from 'primeng/button';

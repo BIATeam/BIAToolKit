@@ -6,7 +6,7 @@ import {
 	FormReadOnlyMode,
 <#  } #>
 	CrudConfig 
-} from 'bia-ng/shared';
+} from '@bia-team/bia-ng/shared';
 <#  if(ModelInstance.HasAncestorTeam) { #>
 import { TeamTypeId } from 'src/app/shared/constants';
 <#  } #>
