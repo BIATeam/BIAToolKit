@@ -312,7 +312,9 @@
             //Copy all the files & Replaces any files with the same name
             foreach (string sourceFile in Directory.GetFiles(sourcePath, "*.*", SearchOption.TopDirectoryOnly))
             {
-                if (filesToExclude == null || !filesToExclude.Any(s => Regex.Match(sourceFile, s, RegexOptions.IgnoreCase).Success))
+                var isFilenameExcluded = filesToExclude?.Any(s => Regex.Match(Path.GetFileName(sourceFile), s, RegexOptions.IgnoreCase).Success) == true;
+                var isFilePathExcluded = filesToExclude?.Any(s => Regex.Match(sourceFile, s, RegexOptions.IgnoreCase).Success) == true;
+                if (!isFilenameExcluded && !isFilePathExcluded)
                 {
                     if (profile != "" && Regex.Match(sourceFile, "\\[.*\\]", RegexOptions.IgnoreCase).Success)
                     {
