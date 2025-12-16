@@ -8,16 +8,16 @@ import {
   CrudItemItemComponent,
   CrudItemService,
   SpinnerComponent,
-} from 'bia-ng/shared';
+} from '@bia-team/bia-ng/shared';
 import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
 import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
 
 @Component({
   selector: 'app-<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-item',
   templateUrl:
-    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/bia-ng/templates/feature-templates/crud-items/views/crud-item-item/crud-item-item.component.html',
+    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/@bia-team/bia-ng/templates/feature-templates/crud-items/views/crud-item-item/crud-item-item.component.html',
   styleUrls: [
-    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/bia-ng/templates/feature-templates/crud-items/views/crud-item-item/crud-item-item.component.scss',
+    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/@bia-team/bia-ng/templates/feature-templates/crud-items/views/crud-item-item/crud-item-item.component.scss',
   ],
   imports: [RouterOutlet, AsyncPipe, SpinnerComponent],
   providers: [

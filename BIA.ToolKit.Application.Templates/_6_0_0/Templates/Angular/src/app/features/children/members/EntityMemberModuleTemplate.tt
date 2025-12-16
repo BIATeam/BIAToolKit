@@ -3,12 +3,13 @@
 <#@ output extension=".ts" #>
 <#  if(ModelInstance.IsTeam) { #>
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';import { PermissionGuard } from 'bia-ng/core';
+import { RouterModule, Routes } from '@angular/router';
+import { PermissionGuard } from '@bia-team/bia-ng/core';
 import {
-  FullPageLayoutComponent,
+  DynamicLayoutComponent,
+  LayoutMode,
   MemberModule,
-  PopupLayoutComponent,
-} from 'bia-ng/shared';
+} from '@bia-team/bia-ng/shared';
 import { Permission } from 'src/app/shared/permission';
 
 import { <#= ModelInstance.EntityName #>MemberEditComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-member-edit/<#= ModelInstance.EntityName.ToKebabCase() #>-member-edit.component';
@@ -24,7 +25,7 @@ const ROUTES: Routes = [
       permission: Permission.<#= ModelInstance.EntityName #>_Member_List_Access,
       injectComponent: <#= ModelInstance.EntityName #>MembersIndexComponent,
     },
-    component: FullPageLayoutComponent,
+    component: DynamicLayoutComponent,
     canActivate: [PermissionGuard],
     // [Calc] : The children are not used in calc
     children: [
@@ -35,9 +36,9 @@ const ROUTES: Routes = [
           canNavigate: false,
           permission: Permission.<#= ModelInstance.EntityName #>_Member_Create,
           title: 'member.add',
-          injectComponent: <#= ModelInstance.EntityName #>MemberNewComponent,
+          layoutMode: LayoutMode.popup,
         },
-        component: PopupLayoutComponent,
+        component: <#= ModelInstance.EntityName #>MemberNewComponent,
         canActivate: [PermissionGuard],
       },
       {
@@ -56,9 +57,9 @@ const ROUTES: Routes = [
               canNavigate: true,
               permission: Permission.<#= ModelInstance.EntityName #>_Member_Update,
               title: 'member.manage',
-              injectComponent: <#= ModelInstance.EntityName #>MemberEditComponent,
+              layoutMode: LayoutMode.popup,
             },
-            component: PopupLayoutComponent,
+            component: <#= ModelInstance.EntityName #>MemberEditComponent,
             canActivate: [PermissionGuard],
           },
           {

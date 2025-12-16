@@ -11,7 +11,7 @@ import { MaintenanceTeamService } from '../../../../services/maintenance-team.se
 @Component({
   selector: 'app-maintenance-team-member-new',
   templateUrl:
-    '../../../../../../../../../../node_modules/bia-ng/templates/feature-templates/members/views/member-new/member-new.component.html',
+    '../../../../../../../../../../node_modules/@bia-team/bia-ng/templates/feature-templates/members/views/member-new/member-new.component.html',
   imports: [MemberModule, AsyncPipe, MemberFormNewComponent],
 })
 export class MaintenanceTeamMemberNewComponent
