@@ -3,36 +3,39 @@
 <#@ output extension=".ts" #>
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { PermissionGuard } from 'bia-ng/core';
+import { PermissionGuard } from '@bia-team/bia-ng/core';
 import {
   DynamicLayoutComponent,
   LayoutMode,
-} from 'bia-ng/shared';
+} from '@bia-team/bia-ng/shared';
 import { Permission } from 'src/app/shared/permission';
-import { <#= ModelInstance.EntityName #>ItemComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-item/<#= ModelInstance.EntityName.ToKebabCase() #>-item.component';
-import { <#= ModelInstance.EntityNamePlural #>IndexComponent } from './views/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-index/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-index.component';
 <#  if(ModelInstance.IsTeam && ModelInstance.HasAncestorTeam) { #>
 import { <#= ModelInstance.ParentName.ToCamelCase() #>CRUDConfiguration } from '../../<#= ModelInstance.ParentName.ToKebabCase() #>.constants';
 import { <#= ModelInstance.ParentNamePlural #>Effects } from '../../store/<#= ModelInstance.ParentNamePlural.ToKebabCase() #>-effects';
 import { Feature<#= ModelInstance.ParentNamePlural #>Store } from '../../store/<#= ModelInstance.ParentName.ToKebabCase() #>.state';
 <#  } #>
+import { EffectsModule } from '@ngrx/effects';
+import { StoreModule } from '@ngrx/store';
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>
 import { <#= optionItem #>OptionModule } from 'src/app/domains/<#= optionItem.ToKebabCase() #>-option/<#= optionItem.ToKebabCase() #>-option.module';
 <#  } #>
-import { EffectsModule } from '@ngrx/effects';
-import { StoreModule } from '@ngrx/store';
 <#  if(ModelInstance.HasReadOnlyMode) { #>
 import { <#= ModelInstance.EntityName #>ReadComponent } from '../<#= ModelInstance.EntityNamePlural.ToKebabCase() #>/views/<#= ModelInstance.EntityName.ToKebabCase() #>-read/<#= ModelInstance.EntityName.ToKebabCase() #>-read.component';
 <#  } #>
 import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from './<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
+import { <#= ModelInstance.EntityName #>Service } from './services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
 import { Feature<#= ModelInstance.EntityNamePlural #>Store } from './store/<#= ModelInstance.EntityName.ToKebabCase() #>.state';
 import { <#= ModelInstance.EntityNamePlural #>Effects } from './store/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-effects';
 import { <#= ModelInstance.EntityName #>EditComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-edit/<#= ModelInstance.EntityName.ToKebabCase() #>-edit.component';
-import { <#= ModelInstance.EntityName #>ImportComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-import/<#= ModelInstance.EntityName.ToKebabCase() #>-import.component';
-import { <#= ModelInstance.EntityName #>NewComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-new/<#= ModelInstance.EntityName.ToKebabCase() #>-new.component';
 <#  if (ModelInstance.DisplayHistorical) { #>
 import { <#= ModelInstance.EntityName #>HistoricalComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-historical/<#= ModelInstance.EntityName.ToKebabCase() #>-historical.component';
 <#  } #>
+<#  if(ModelInstance.CanImport) { #>
+import { <#= ModelInstance.EntityName #>ImportComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-import/<#= ModelInstance.EntityName.ToKebabCase() #>-import.component';
+<#  } #>
+import { <#= ModelInstance.EntityName #>NewComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-new/<#= ModelInstance.EntityName.ToKebabCase() #>-new.component';
+import { <#= ModelInstance.EntityName #>ItemComponent } from './views/<#= ModelInstance.EntityName.ToKebabCase() #>-item/<#= ModelInstance.EntityName.ToKebabCase() #>-item.component';
+import { <#= ModelInstance.EntityNamePlural #>IndexComponent } from './views/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-index/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-index.component';
 
 export const ROUTES: Routes = [
   {
@@ -58,7 +61,8 @@ export const ROUTES: Routes = [
         component: <#= ModelInstance.EntityName #>NewComponent,
         canActivate: [PermissionGuard],
       },
-<#  if(ModelInstance.CanImport) { #>
+<#  if(ModelInstance.DisplayHistorical || !ModelInstance.HasReadOnlyMode) { #>
+<#    if(ModelInstance.CanImport) { #>
       {
         path: 'import',
         data: {
@@ -76,6 +80,47 @@ export const ROUTES: Routes = [
         component: <#= ModelInstance.EntityName #>ImportComponent,
         canActivate: [PermissionGuard],
       },
+<#    } #>
+      {
+        path: 'view',
+        data: {
+          featureConfiguration: <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration,
+          featureServiceType: <#= ModelInstance.EntityName #>Service,
+          leftWidth: 60,
+        },
+        loadChildren: () =>
+          import('<#= ModelInstance.HasParent ? "../../../../" : "../../" #>shared/bia-shared/view.module').then(m => m.ViewModule),
+      },
+<#  } else { #>
+      {
+        path: 'view',
+        data: {
+          featureConfiguration: <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration,
+          featureServiceType: <#= ModelInstance.EntityName #>Service,
+          leftWidth: 60,
+        },
+        loadChildren: () =>
+          import('<#= ModelInstance.HasParent ? "../../../../" : "../../" #>shared/bia-shared/view.module').then(m => m.ViewModule),
+      },
+<#    if(ModelInstance.CanImport) { #>
+      {
+        path: 'import',
+        data: {
+          breadcrumb: '<#= ModelInstance.EntityName.ToCamelCase() #>.import',
+          canNavigate: false,
+          layoutMode: LayoutMode.popup,
+          style: {
+            minWidth: '80vw',
+            maxWidth: '80vw',
+            maxHeight: '80vh',
+          },
+          permission: Permission.<#= ModelInstance.EntityName #>_Save,
+          title: '<#= ModelInstance.EntityName.ToCamelCase() #>.import',
+        },
+        component: <#= ModelInstance.EntityName #>ImportComponent,
+        canActivate: [PermissionGuard],
+      },
+<#    } #>
 <#  } #>
       {
         path: ':crudItemId',

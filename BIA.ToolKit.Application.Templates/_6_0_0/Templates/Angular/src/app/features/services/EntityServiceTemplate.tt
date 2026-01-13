@@ -3,8 +3,8 @@
 <#@ output extension=".ts" #>
 import { Injectable, Injector } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { AuthService } from 'bia-ng/core';
-import { CrudItemService, CrudItemSignalRService } from 'bia-ng/shared';
+import { AuthService } from '@bia-team/bia-ng/core';
+import { CrudItemService, CrudItemSignalRService } from '@bia-team/bia-ng/shared';
 import { TableLazyLoadEvent } from 'primeng/table';
 import { map, Observable } from 'rxjs';
 <#  if(ModelInstance.IsTeam || ModelInstance.HasAncestorTeam) {#>
@@ -21,7 +21,7 @@ import { <#= ModelInstance.EntityName #>OptionsService } from './<#= ModelInstan
 import { <#= ModelInstance.ParentName #>Service } from '../../../services/<#= ModelInstance.ParentName.ToKebabCase() #>.service';
 <#  } #>
 <#  if (ModelInstance.DisplayHistorical) { #>
-import { HistoricalEntryDto } from 'packages/bia-ng/models/dto/historical-entry-dto';
+import { HistoricalEntryDto } from '@bia-team/bia-ng/models';
 <#  } #>
 
 @Injectable({

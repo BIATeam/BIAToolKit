@@ -3,7 +3,7 @@
 <#@ output extension=".ts" #>
 import { AsyncPipe } from '@angular/common';
 import { Component, Injector, OnInit } from '@angular/core';
-import { CrudItemNewComponent } from 'bia-ng/shared';
+import { CrudItemNewComponent } from '@bia-team/bia-ng/shared';
 <#  if(ModelInstance.BaseKeyType == "string" || ModelInstance.BaseKeyType == "Guid") { #>
 import { of } from 'rxjs';
 <#  } #>

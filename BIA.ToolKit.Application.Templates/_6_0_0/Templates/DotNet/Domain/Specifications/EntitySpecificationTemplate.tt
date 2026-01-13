@@ -8,7 +8,7 @@
 
 namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Specifications
 {
-    using BIA.Net.Core.Domain.Dto.Base;
+    using BIA.Net.Core.Domain.Dto.Base.Interface;
     using BIA.Net.Core.Domain.Specification;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
 
@@ -22,7 +22,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
         /// </summary>
         /// <param name="filter">The filter.</param>
         /// <returns>The specification.</returns>
-        public static Specification<<#= ModelInstance.EntityName #>> SearchGetAll(PagingFilterFormatDto filter)
+        public static Specification<<#= ModelInstance.EntityName #>> SearchGetAll(IPagingFilterFormatDto filter)
         {
             Specification<<#= ModelInstance.EntityName #>> specification = new TrueSpecification<<#= ModelInstance.EntityName #>>();
 

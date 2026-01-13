@@ -9,10 +9,10 @@ import {
   combineLatest,
 } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { CrudItemOptionsService, DictOptionDto } from 'bia-ng/shared';
+import { CrudItemOptionsService, DictOptionDto } from '@bia-team/bia-ng/shared';
 <# if(ModelInstance.HasOptionItems) { #>
 import { Store } from '@ngrx/store';
-import { OptionDto } from 'bia-ng/models';
+import { OptionDto } from '@bia-team/bia-ng/models';
 import { AppState } from 'src/app/store/state';
 <# } #>
 <#  foreach(var optionItem in ModelInstance.OptionItems) { #>

@@ -1,10 +1,7 @@
 ﻿import {
   AsyncPipe,
   NgClass,
-  NgFor,
-  NgIf,
   NgStyle,
-  NgSwitch,
   NgTemplateOutlet,
 } from '@angular/common';
 import { Component } from '@angular/core';
@@ -27,24 +24,21 @@ import { PrimeTemplate } from 'primeng/api';
 import { Skeleton } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { Tooltip } from 'primeng/tooltip';
-import { MaintenanceTeam } from '../../model/maintenance-team';
+import { Plane } from '../../model/plane';
 
 @Component({
-  selector: 'app-maintenance-team-table',
+  selector: 'app-plane-table',
   templateUrl:
-    '../../../../../../../../node_modules/bia-ng/templates/components/table/bia-calc-table/bia-calc-table.component.html',
+    '@bia-team/bia-ng/templates/components/table/bia-calc-table/bia-calc-table.component.html',
   styleUrls: [
-    '../../../../../../../../node_modules/bia-ng/templates/components/table/bia-calc-table/bia-calc-table.component.scss',
+    '@bia-team/bia-ng/templates/components/table/bia-calc-table/bia-calc-table.component.scss',
   ],
   imports: [
     FormsModule,
     ReactiveFormsModule,
-    NgIf,
     TableModule,
     PrimeTemplate,
-    NgFor,
     Tooltip,
-    NgSwitch,
     NgClass,
     NgTemplateOutlet,
     Skeleton,
@@ -58,7 +52,7 @@ import { MaintenanceTeam } from '../../model/maintenance-team';
     BiaFrozenColumnDirective,
   ],
 })
-export class MaintenanceTeamTableComponent extends CrudItemTableComponent<MaintenanceTeam> {
+export class PlaneTableComponent extends CrudItemTableComponent<Plane> {
   constructor(
     public formBuilder: UntypedFormBuilder,
     public authService: AuthService,

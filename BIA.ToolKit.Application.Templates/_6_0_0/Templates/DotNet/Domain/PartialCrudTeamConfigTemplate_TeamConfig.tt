@@ -8,7 +8,7 @@
                 TeamTypeId = (int)TeamTypeId.<#= ModelInstance.EntityName #>,
                 RightPrefix = "<#= ModelInstance.EntityName #>",
                 AdminRoleIds = [
-                    (int)RoleId.<#= ModelInstance.EntityName #>Admin
+                    (int)RoleId.<#= ModelInstance.EntityName #>Admin,
                     ],
                 Children = new ImmutableListBuilder<BiaTeamChildrenConfig<BaseEntityTeam>>
                 {

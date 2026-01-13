@@ -286,12 +286,6 @@
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{EntityPlural}-index\\{EntityPlural}-index.component.html"
         },
         {
-          "inputPath": "src\\app\\features\\views\\index\\PartialCrudEntityIndexComponentHtmlTemplate.tt",
-          "outputPath": "src\\app\\features\\{ParentRelativePath}\\views\\{ParentPlural}-index\\{ParentPlural}-index.component.html",
-          "isPartial": true,
-          "partialInsertionMarkup": "{Parent}IndexHtml"
-        },
-        {
           "inputPath": "src\\app\\features\\views\\index\\EntityIndexComponentTsTemplate.tt",
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{EntityPlural}-index\\{EntityPlural}-index.component.ts"
         },
@@ -320,10 +314,10 @@
           "partialInsertionMarkup": "{Parent}IndexTsCanSelectElementChildSet"
         },
         {
-          "inputPath": "src\\app\\features\\views\\index\\PartialCrudEntityIndexComponentTsTemplate_ChildTeamButton.tt",
+          "inputPath": "src\\app\\features\\views\\index\\PartialCrudEntityIndexComponentTsTemplate_SelectedButtonViewChild.tt",
           "outputPath": "src\\app\\features\\{ParentRelativePath}\\views\\{ParentPlural}-index\\{ParentPlural}-index.component.ts",
           "isPartial": true,
-          "partialInsertionMarkup": "{Parent}IndexTsChildTeamButton"
+          "partialInsertionMarkup": "{Parent}IndexTsSelectedButtonViewChild"
         },
         {
           "inputPath": "src\\app\\features\\views\\index\\EntityIndexComponentScssTemplate.tt",

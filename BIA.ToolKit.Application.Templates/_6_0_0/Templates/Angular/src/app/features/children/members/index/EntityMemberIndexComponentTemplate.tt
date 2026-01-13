@@ -2,7 +2,7 @@
 <#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
 <#  if(ModelInstance.IsTeam) { #>
-import { AsyncPipe, NgClass, NgIf } from '@angular/common';
+import { AsyncPipe, NgClass } from '@angular/common';
 import { Component, Injector, OnInit } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { PrimeTemplate } from 'primeng/api';import {
@@ -14,7 +14,7 @@ import { PrimeTemplate } from 'primeng/api';import {
   MemberModule,
   MembersIndexComponent,
   MemberTableComponent,
-} from 'bia-ng/shared';
+} from '@bia-team/bia-ng/shared';
 import { TeamTypeId } from 'src/app/shared/constants';
 import { Permission } from 'src/app/shared/permission';
 import { <#= ModelInstance.EntityName #>Service } from '../../../../services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
@@ -22,14 +22,13 @@ import { <#= ModelInstance.EntityName #>Service } from '../../../../services/<#=
 @Component({
   selector: 'app-<#= ModelInstance.EntityName.ToKebabCase() #>-members-index',
   templateUrl:
-    '../../../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/bia-ng/templates/feature-templates/members/views/members-index/members-index.component.html',
+    '../../../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/@bia-team/bia-ng/templates/feature-templates/members/views/members-index/members-index.component.html',
   styleUrls: [
-    '../../../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/bia-ng/templates/feature-templates/crud-items/views/crud-items-index/crud-items-index.component.scss',
+    '../../../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/@bia-team/bia-ng/templates/feature-templates/crud-items/views/crud-items-index/crud-items-index.component.scss',
   ],
   imports: [
     NgClass,
     PrimeTemplate,
-    NgIf,
     MemberModule,
     AsyncPipe,
     TranslateModule,

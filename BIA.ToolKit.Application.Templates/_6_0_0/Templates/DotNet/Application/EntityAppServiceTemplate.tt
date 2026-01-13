@@ -20,11 +20,16 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     using BIA.Net.Core.Domain.Authentication;
 <#  } #>
     using BIA.Net.Core.Domain.Dto.Base;
+<#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
+    using BIA.Net.Core.Domain.Dto.Base.Interface;
+<# } #>
+<#  if(ModelInstance.IsTeam) { #>
+    using BIA.Net.Core.Domain.Dto.User;
+<#  } #>
     using BIA.Net.Core.Domain.RepoContract;
     using BIA.Net.Core.Domain.Service;
     using BIA.Net.Core.Domain.Specification;
 <#  if(ModelInstance.IsTeam) { #>
-    using BIA.Net.Core.Domain.User.Specifications;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.User;
 <#  } #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common.Enum;
@@ -32,10 +37,10 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.User;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers;
-    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.RepoContract;
 <#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Specifications;
 <#  } #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.RepoContract;
 <#  if(ModelInstance.IsTeam) { #>
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.User;
 <#  } #>
@@ -43,7 +48,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     /// <summary>
     /// The application service used for <#= ModelInstance.EntityName.ToCamelCase() #>.
     /// </summary>
-    public class <#= ModelInstance.EntityName #>AppService : CrudAppServiceBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto, <#= ModelInstance.EntityName #>Mapper>, I<#= ModelInstance.EntityName #>AppService
+    public class <#= ModelInstance.EntityName #>AppService : CrudAppServiceBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto<# if(ModelInstance.IsTeam) {  #><TeamAdvancedFilterDto><# } #>, <#= ModelInstance.EntityName #>Mapper>, I<#= ModelInstance.EntityName #>AppService
     {
 <#  if(ModelInstance.HasAncestorTeam) { #>
         /// <summary>
@@ -137,27 +142,11 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
 <#  if(ModelInstance.IsFixable) { #>
 #pragma warning restore SA1611 // Element parameters should be documented
 #pragma warning restore SA1515 // Single-line comment should be preceded by blank line
-
-        /// <inheritdoc/>
-        public override async Task<<#= ModelInstance.EntityName #>Dto> UpdateFixedAsync(<#= ModelInstance.BaseKeyType #> id, bool isFixed)
-        {
-            return await this.ExecuteWithFrontUserExceptionHandlingAsync(async () =>
-            {
-                // Update entity fixed status
-                var entity = await this.Repository.GetEntityAsync(id) ?? throw new ElementNotFoundException();
-                this.Repository.UpdateFixedAsync(entity, isFixed);
-
-                // BIAToolKit - Begin UpdateFixedChildren<#= ModelInstance.EntityName #>
-                // BIAToolKit - End UpdateFixedChildren<#= ModelInstance.EntityName #>
-                await this.Repository.UnitOfWork.CommitAsync();
-                return await this.GetAsync(id);
-            });
-        }
 <#  } #>
 <#  if(ModelInstance.HasAncestorTeam) { #>
 
         /// <inheritdoc/>
-        public override async Task<<#= ModelInstance.EntityName #>Dto> AddAsync(<#= ModelInstance.EntityName #>Dto dto, string mapperMode = null)
+        public override async Task<<#= ModelInstance.EntityName #>Dto> AddAsync(<#= ModelInstance.EntityName #>Dto dto, string mapperMode = null, bool autoCommit = true)
         {
 <#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
             var <#= ModelInstance.ParentName.ToCamelCase() #>Parent = await this.<#= ModelInstance.ParentName.ToCamelCase() #>Repository.GetEntityAsync(dto.<#= ModelInstance.ParentName #>Id, isReadOnlyMode: true);
@@ -179,37 +168,28 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
             }
 <#  } #>
 
-            return await base.AddAsync(dto, mapperMode);
+            return await base.AddAsync(dto, mapperMode, autoCommit: autoCommit);
+        }
+<#  } #>
+<#  if(ModelInstance.IsFixable) { #>
+
+        /// <inheritdoc/>
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        protected override async Task ExecuteActionsOnUpdateFixedAsync(<#= ModelInstance.BaseKeyType #> entityUpdatedId, bool isFixed)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        {
+            // BIAToolKit - Begin UpdateFixedChildren<#= ModelInstance.EntityName #>
+            // BIAToolKit - End UpdateFixedChildren<#= ModelInstance.EntityName #>
         }
 <#  } #>
 <#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
 
         /// <inheritdoc/>
-#pragma warning disable S1006 // Method overrides should not change parameter defaults
-        public override async Task<(IEnumerable<<#= ModelInstance.EntityName #>Dto> Results, int Total)> GetRangeAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
-#pragma warning restore S1006 // Method overrides should not change parameter defaults
+        protected override Specification<<#= ModelInstance.EntityName #>> GetFilterSpecification(IPagingFilterFormatDto filters)
         {
-            specification ??= <#= ModelInstance.EntityName #>Specification.SearchGetAll(filters);
-            return await base.GetRangeAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
-        }
-
-        /// <inheritdoc/>
-#pragma warning disable S1006 // Method overrides should not change parameter defaults
-        public override async Task<byte[]> GetCsvAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
-#pragma warning restore S1006 // Method overrides should not change parameter defaults
-        {
-            specification ??= <#= ModelInstance.EntityName #>Specification.SearchGetAll(filters);
-            return await base.GetCsvAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
-        }
-<#  } else if(ModelInstance.IsTeam) { #>
-
-        /// <inheritdoc/>
-#pragma warning disable S1006 // Method overrides should not change parameter defaults
-        public override async Task<(IEnumerable<<#= ModelInstance.EntityName #>Dto> Results, int Total)> GetRangeAsync(PagingFilterFormatDto filters = null, int id = default, Specification<<#= ModelInstance.EntityName #>> specification = null, Expression<Func<<#= ModelInstance.EntityName #>, bool>> filter = null, string accessMode = "Read", string queryMode = "ReadList", string mapperMode = null, bool isReadOnlyMode = false)
-#pragma warning restore S1006 // Method overrides should not change parameter defaults
-        {
-            specification ??= TeamAdvancedFilterSpecification<<#= ModelInstance.EntityName #>>.Filter(filters);
-            return await base.GetRangeAsync(filters, id, specification, filter, accessMode, queryMode, mapperMode, isReadOnlyMode);
+            var specification = base.GetFilterSpecification(filters);
+            specification &= <#= ModelInstance.EntityName #>Specification.SearchGetAll(filters);
+            return specification;
         }
 <#  } #>
     }

@@ -2,8 +2,8 @@
 <#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".html" #>
 <#  if(ModelInstance.HasReadOnlyMode) { #>
+@if (crudItemService.crudItem$ | async; as crudItem) {
 <app-<#= ModelInstance.EntityName.ToKebabCase() #>-form
-  *ngIf="crudItemService.crudItem$ | async; let crudItem"
   [crudItem]="crudItem"
   [fields]="crudConfiguration.fieldsConfig.columns"
   [formLayoutConfig]="crudConfiguration.formLayoutConfig"
@@ -17,8 +17,9 @@
   (save)="onSubmitted($event)"
   (fixedChanged)="crudItemService.updateFixedStatus(crudItem.id, $event)"
   (readOnlyChanged)="onReadOnlyChanged($event)"></app-<#= ModelInstance.EntityName.ToKebabCase() #>-form>
-<bia-spinner
-  *ngIf="<#= ModelInstance.EntityName.ToCamelCase() #>Service.loadingGet$ | async"
-  [overlay]="true"></bia-spinner>
+}
+@if (<#= ModelInstance.EntityName.ToCamelCase() #>Service.loadingGet$ | async) {
+  <bia-spinner [overlay]="true"></bia-spinner>
+}
 
 <#  } #>

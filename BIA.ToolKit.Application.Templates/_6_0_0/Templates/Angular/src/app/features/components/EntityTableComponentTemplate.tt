@@ -4,10 +4,7 @@
 import {
   AsyncPipe,
   NgClass,
-  NgFor,
-  NgIf,
   NgStyle,
-  NgSwitch,
   NgTemplateOutlet,
 } from '@angular/common';
 import { Component } from '@angular/core';
@@ -17,7 +14,7 @@ import {
   UntypedFormBuilder,
 } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { AuthService, BiaMessageService } from 'bia-ng/core';
+import { AuthService, BiaMessageService } from '@bia-team/bia-ng/core';
 import {
   BiaFrozenColumnDirective,
   BiaTableFilterComponent,
@@ -25,7 +22,7 @@ import {
   BiaTableInputComponent,
   BiaTableOutputComponent,
   CrudItemTableComponent,
-} from 'bia-ng/shared';
+} from '@bia-team/bia-ng/shared';
 import { PrimeTemplate } from 'primeng/api';
 import { Skeleton } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
@@ -35,19 +32,16 @@ import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.E
 @Component({
   selector: 'app-<#= ModelInstance.EntityName.ToKebabCase() #>-table',
   templateUrl:
-    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/bia-ng/templates/components/table/bia-calc-table/bia-calc-table.component.html',
+    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/@bia-team/bia-ng/templates/components/table/bia-calc-table/bia-calc-table.component.html',
   styleUrls: [
-    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/bia-ng/templates/components/table/bia-calc-table/bia-calc-table.component.scss',
+    '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/@bia-team/bia-ng/templates/components/table/bia-calc-table/bia-calc-table.component.scss',
   ],
   imports: [
     FormsModule,
     ReactiveFormsModule,
-    NgIf,
     TableModule,
     PrimeTemplate,
-    NgFor,
     Tooltip,
-    NgSwitch,
     NgClass,
     NgTemplateOutlet,
     Skeleton,

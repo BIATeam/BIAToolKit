@@ -3,15 +3,15 @@
 <#@ output extension=".ts" #>
 import { createEntityAdapter, EntityState } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
+import { <#= ModelInstance.EntityName #> } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+import { Feature<#= ModelInstance.EntityNamePlural #>Actions } from './<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-actions';
 import {
   CrudState,
   DEFAULT_CRUD_STATE,
-} from 'bia-ng/models';
-import { <#= ModelInstance.EntityName #> } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
-import { Feature<#= ModelInstance.EntityNamePlural #>Actions } from './<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-actions';
 <#  if(ModelInstance.DisplayHistorical) { #>
-import { HistoricalEntryDto } from 'packages/bia-ng/models/dto/historical-entry-dto';
+  HistoricalEntryDto,
 <#  } #>
+} from '@bia-team/bia-ng/models';
 
 // This adapter will allow is to manipulate <#= ModelInstance.EntityNamePlural.ToCamelCase() #> (mostly CRUD operations)
 export const <#= ModelInstance.EntityNamePlural.ToCamelCase() #>Adapter = createEntityAdapter<<#= ModelInstance.EntityName #>>({
