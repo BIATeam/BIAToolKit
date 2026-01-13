@@ -40,7 +40,7 @@ export interface <#= ModelInstance.EntityName #>
 export const <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration: BiaFieldsConfig<<#= ModelInstance.EntityName #>> = {
   columns: [
 <#  if(ModelInstance.BaseKeyType == "string") { #>
-    Object.assign(new BiaFieldConfig('id', 'flight.id'), {
+    Object.assign(new BiaFieldConfig('id', '<#= ModelInstance.EntityName.ToCamelCase() #>.id'), {
       type: PropType.String,
       isRequired: true,
       isEditable: false,
