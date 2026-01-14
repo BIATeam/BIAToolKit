@@ -358,10 +358,17 @@ using Roslyn.Services;*/
 
         public async Task FixUsings()
         {
+            if(string.IsNullOrWhiteSpace(CurrentSolution?.FilePath))
+            {
+                consoleWriter.AddMessageLine("No solution loaded to fix usings.", "red");
+                return;
+            }
+
             consoleWriter.AddMessageLine("Start fix usings", "pink");
 
             try
             {
+                await LoadSolution(CurrentSolution.FilePath);
                 foreach (var project in CurrentSolution.Projects)
                 {
                     try
