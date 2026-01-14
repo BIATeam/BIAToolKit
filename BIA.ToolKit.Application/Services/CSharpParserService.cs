@@ -647,6 +647,17 @@ using Roslyn.Services;*/
 
         private static SyntaxList<UsingDirectiveSyntax> OrderUsingsList(SyntaxList<UsingDirectiveSyntax> usings)
         {
+            var regularUsings = usings.Where(u => u.StaticKeyword.IsKind(SyntaxKind.None));
+            var staticUsings = usings.Except(regularUsings);
+
+            var orderedRegularUsings = OrderUsingsGroup(regularUsings);
+            var orderedStaticUsings = OrderUsingsGroup(staticUsings);
+
+            return SyntaxFactory.List(orderedRegularUsings.Concat(orderedStaticUsings));
+        }
+
+        private static IEnumerable<UsingDirectiveSyntax> OrderUsingsGroup(IEnumerable<UsingDirectiveSyntax> usings)
+        {
             var systemUsings = usings.Where(u => u.Name is IdentifierNameSyntax id && id.Identifier.Text.StartsWith("System") ||
                                                   u.Name is QualifiedNameSyntax qn && qn.ToString().StartsWith("System"))
                                       .OrderBy(u => u.Name.ToString(), StringComparer.OrdinalIgnoreCase);
@@ -654,7 +665,7 @@ using Roslyn.Services;*/
             var otherUsings = usings.Except(systemUsings)
                                     .OrderBy(u => u.Name.ToString(), StringComparer.OrdinalIgnoreCase);
 
-            return SyntaxFactory.List(systemUsings.Concat(otherUsings));
+            return systemUsings.Concat(otherUsings);
         }
 
         private static string ExtractTypeName(string typeName) => typeName.Contains('<') ? typeName[..typeName.IndexOf('<')] : typeName;
