@@ -358,10 +358,17 @@ using Roslyn.Services;*/
 
         public async Task FixUsings()
         {
+            if(string.IsNullOrWhiteSpace(CurrentSolution?.FilePath))
+            {
+                consoleWriter.AddMessageLine("No solution loaded to fix usings.", "red");
+                return;
+            }
+
             consoleWriter.AddMessageLine("Start fix usings", "pink");
 
             try
             {
+                await LoadSolution(CurrentSolution.FilePath);
                 foreach (var project in CurrentSolution.Projects)
                 {
                     try
@@ -399,15 +406,15 @@ using Roslyn.Services;*/
                                     continue;
                                 }
 
-                                // Handle missing usings
-                                var updatedRoot = AddMissingUsings(document.Name, syntaxRoot, compilation, semanticModel);
-                                // Handle obsolete usings
-                                updatedRoot = RemoveObsoleteUsings(semanticModel, document.Name, updatedRoot);
-                                // Handle order usings
-                                updatedRoot = OrderUsings(updatedRoot, document.Name);
+                                var (rootAfterAdd, missingUsingsAdded) = AddMissingUsings(document.Name, syntaxRoot, compilation, semanticModel);
+                                var (rootAfterRemove, obsoleteUsingsRemoved) = RemoveObsoleteUsings(semanticModel, document.Name, rootAfterAdd);
+                                var (finalRoot, usingsReordered) = OrderUsings(rootAfterRemove, document.Name);
 
-                                var formattedRoot = Microsoft.CodeAnalysis.Formatting.Formatter.Format(updatedRoot, Workspace);
-                                File.WriteAllText(document.FilePath!, formattedRoot.ToFullString());
+                                if (missingUsingsAdded || obsoleteUsingsRemoved || usingsReordered)
+                                {
+                                    var formattedRoot = Microsoft.CodeAnalysis.Formatting.Formatter.Format(finalRoot, Workspace);
+                                    File.WriteAllText(document.FilePath!, formattedRoot.ToFullString());
+                                }
                             }
                             catch (Exception docEx)
                             {
@@ -478,7 +485,7 @@ using Roslyn.Services;*/
             return File.Exists(assetsFile);
         }
 
-        private CompilationUnitSyntax AddMissingUsings(string documentName, CompilationUnitSyntax syntaxRoot, Compilation compilation, SemanticModel semanticModel)
+        private (CompilationUnitSyntax UpdatedRoot, bool HasChanges) AddMissingUsings(string documentName, CompilationUnitSyntax syntaxRoot, Compilation compilation, SemanticModel semanticModel)
         {
             var missingUsingDiagnostics = semanticModel.GetDiagnostics()
                                                 .Where(d => d.Id == "CS0246" || d.Id == "CS0118" || d.Id == "CS0103")
@@ -532,7 +539,7 @@ using Roslyn.Services;*/
             var updatedRoot = syntaxRoot;
 
             if (missingNamespaces.Count == 0)
-                return updatedRoot;
+                return (updatedRoot, false);
 
             var usingDirectives = syntaxRoot.DescendantNodes()
                 .OfType<UsingDirectiveSyntax>()
@@ -549,7 +556,7 @@ using Roslyn.Services;*/
                 .ToList();
 
             if (newUsings.Count == 0)
-                return updatedRoot;
+                return (updatedRoot, false);
 
             var lastUsing = usingDirectives.LastOrDefault();
             updatedRoot = lastUsing != null ?
@@ -558,17 +565,17 @@ using Roslyn.Services;*/
 
             consoleWriter.AddMessageLine($"-> {documentName} : {missingNamespaces.Count} missing using added", "lightgreen");
 
-            return updatedRoot;
+            return (updatedRoot, true);
         }
 
-        private CompilationUnitSyntax RemoveObsoleteUsings(SemanticModel semanticModel, string documentName, CompilationUnitSyntax syntaxRoot)
+        private (CompilationUnitSyntax UpdatedRoot, bool HasChanges) RemoveObsoleteUsings(SemanticModel semanticModel, string documentName, CompilationUnitSyntax syntaxRoot)
         {
             var obsoleteNamespaceDiagnostics = semanticModel.GetDiagnostics()
                                                 .Where(d => d.Id == "CS0234")
                                                 .ToList();
 
             if (obsoleteNamespaceDiagnostics.Count == 0)
-                return syntaxRoot;
+                return (syntaxRoot, false);
 
             var usingsRemovedCount = 0;
             var updatedRoot = syntaxRoot;
@@ -602,12 +609,13 @@ using Roslyn.Services;*/
             if (usingsRemovedCount > 0)
             {
                 consoleWriter.AddMessageLine($"-> {documentName} : {usingsRemovedCount} obsolete using removed", "yellow");
+                return (updatedRoot, true);
             }
 
-            return updatedRoot;
+            return (updatedRoot, false);
         }
 
-        private CompilationUnitSyntax OrderUsings(CompilationUnitSyntax syntaxRoot, string documentName)
+        private (CompilationUnitSyntax UpdatedRoot, bool HasChanges) OrderUsings(CompilationUnitSyntax syntaxRoot, string documentName)
         {
             var updatedRoot = syntaxRoot;
 
@@ -633,12 +641,24 @@ using Roslyn.Services;*/
             if (!syntaxRoot.IsEquivalentTo(updatedRoot))
             {
                 consoleWriter.AddMessageLine($"-> {documentName} : usings sorted", "lightgreen");
+                return (updatedRoot, true);
             }
 
-            return updatedRoot;
+            return (updatedRoot, false);
         }
 
         private static SyntaxList<UsingDirectiveSyntax> OrderUsingsList(SyntaxList<UsingDirectiveSyntax> usings)
+        {
+            var regularUsings = usings.Where(u => u.StaticKeyword.IsKind(SyntaxKind.None));
+            var staticUsings = usings.Except(regularUsings);
+
+            var orderedRegularUsings = OrderUsingsGroup(regularUsings);
+            var orderedStaticUsings = OrderUsingsGroup(staticUsings);
+
+            return SyntaxFactory.List(orderedRegularUsings.Concat(orderedStaticUsings));
+        }
+
+        private static IEnumerable<UsingDirectiveSyntax> OrderUsingsGroup(IEnumerable<UsingDirectiveSyntax> usings)
         {
             var systemUsings = usings.Where(u => u.Name is IdentifierNameSyntax id && id.Identifier.Text.StartsWith("System") ||
                                                   u.Name is QualifiedNameSyntax qn && qn.ToString().StartsWith("System"))
@@ -647,7 +667,7 @@ using Roslyn.Services;*/
             var otherUsings = usings.Except(systemUsings)
                                     .OrderBy(u => u.Name.ToString(), StringComparer.OrdinalIgnoreCase);
 
-            return SyntaxFactory.List(systemUsings.Concat(otherUsings));
+            return systemUsings.Concat(otherUsings);
         }
 
         private static string ExtractTypeName(string typeName) => typeName.Contains('<') ? typeName[..typeName.IndexOf('<')] : typeName;
