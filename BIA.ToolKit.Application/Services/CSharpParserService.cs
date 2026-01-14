@@ -406,15 +406,15 @@ using Roslyn.Services;*/
                                     continue;
                                 }
 
-                                // Handle missing usings
-                                var updatedRoot = AddMissingUsings(document.Name, syntaxRoot, compilation, semanticModel);
-                                // Handle obsolete usings
-                                updatedRoot = RemoveObsoleteUsings(semanticModel, document.Name, updatedRoot);
-                                // Handle order usings
-                                updatedRoot = OrderUsings(updatedRoot, document.Name);
+                                var (rootAfterAdd, missingUsingsAdded) = AddMissingUsings(document.Name, syntaxRoot, compilation, semanticModel);
+                                var (rootAfterRemove, obsoleteUsingsRemoved) = RemoveObsoleteUsings(semanticModel, document.Name, rootAfterAdd);
+                                var (finalRoot, usingsReordered) = OrderUsings(rootAfterRemove, document.Name);
 
-                                var formattedRoot = Microsoft.CodeAnalysis.Formatting.Formatter.Format(updatedRoot, Workspace);
-                                File.WriteAllText(document.FilePath!, formattedRoot.ToFullString());
+                                if (missingUsingsAdded || obsoleteUsingsRemoved || usingsReordered)
+                                {
+                                    var formattedRoot = Microsoft.CodeAnalysis.Formatting.Formatter.Format(finalRoot, Workspace);
+                                    File.WriteAllText(document.FilePath!, formattedRoot.ToFullString());
+                                }
                             }
                             catch (Exception docEx)
                             {
@@ -485,7 +485,7 @@ using Roslyn.Services;*/
             return File.Exists(assetsFile);
         }
 
-        private CompilationUnitSyntax AddMissingUsings(string documentName, CompilationUnitSyntax syntaxRoot, Compilation compilation, SemanticModel semanticModel)
+        private (CompilationUnitSyntax UpdatedRoot, bool HasChanges) AddMissingUsings(string documentName, CompilationUnitSyntax syntaxRoot, Compilation compilation, SemanticModel semanticModel)
         {
             var missingUsingDiagnostics = semanticModel.GetDiagnostics()
                                                 .Where(d => d.Id == "CS0246" || d.Id == "CS0118" || d.Id == "CS0103")
@@ -539,7 +539,7 @@ using Roslyn.Services;*/
             var updatedRoot = syntaxRoot;
 
             if (missingNamespaces.Count == 0)
-                return updatedRoot;
+                return (updatedRoot, false);
 
             var usingDirectives = syntaxRoot.DescendantNodes()
                 .OfType<UsingDirectiveSyntax>()
@@ -556,7 +556,7 @@ using Roslyn.Services;*/
                 .ToList();
 
             if (newUsings.Count == 0)
-                return updatedRoot;
+                return (updatedRoot, false);
 
             var lastUsing = usingDirectives.LastOrDefault();
             updatedRoot = lastUsing != null ?
@@ -565,17 +565,17 @@ using Roslyn.Services;*/
 
             consoleWriter.AddMessageLine($"-> {documentName} : {missingNamespaces.Count} missing using added", "lightgreen");
 
-            return updatedRoot;
+            return (updatedRoot, true);
         }
 
-        private CompilationUnitSyntax RemoveObsoleteUsings(SemanticModel semanticModel, string documentName, CompilationUnitSyntax syntaxRoot)
+        private (CompilationUnitSyntax UpdatedRoot, bool HasChanges) RemoveObsoleteUsings(SemanticModel semanticModel, string documentName, CompilationUnitSyntax syntaxRoot)
         {
             var obsoleteNamespaceDiagnostics = semanticModel.GetDiagnostics()
                                                 .Where(d => d.Id == "CS0234")
                                                 .ToList();
 
             if (obsoleteNamespaceDiagnostics.Count == 0)
-                return syntaxRoot;
+                return (syntaxRoot, false);
 
             var usingsRemovedCount = 0;
             var updatedRoot = syntaxRoot;
@@ -609,12 +609,13 @@ using Roslyn.Services;*/
             if (usingsRemovedCount > 0)
             {
                 consoleWriter.AddMessageLine($"-> {documentName} : {usingsRemovedCount} obsolete using removed", "yellow");
+                return (updatedRoot, true);
             }
 
-            return updatedRoot;
+            return (updatedRoot, false);
         }
 
-        private CompilationUnitSyntax OrderUsings(CompilationUnitSyntax syntaxRoot, string documentName)
+        private (CompilationUnitSyntax UpdatedRoot, bool HasChanges) OrderUsings(CompilationUnitSyntax syntaxRoot, string documentName)
         {
             var updatedRoot = syntaxRoot;
 
@@ -640,9 +641,10 @@ using Roslyn.Services;*/
             if (!syntaxRoot.IsEquivalentTo(updatedRoot))
             {
                 consoleWriter.AddMessageLine($"-> {documentName} : usings sorted", "lightgreen");
+                return (updatedRoot, true);
             }
 
-            return updatedRoot;
+            return (updatedRoot, false);
         }
 
         private static SyntaxList<UsingDirectiveSyntax> OrderUsingsList(SyntaxList<UsingDirectiveSyntax> usings)
