@@ -8,7 +8,7 @@
     using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Domain.DtoGenerator;
 
-    [Collection(nameof(GenerateTestFixtureCollection))]
+    [Collection(nameof(GenerateTestFixtureCollection_6_0_0))]
     public sealed class GenerateCrudTest(GenerateTestFixture_6_0_0 fixture)
     {
         /// <summary>

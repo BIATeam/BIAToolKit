@@ -6,7 +6,7 @@
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
 
-    [Collection(nameof(GenerateTestFixtureCollection))]
+    [Collection(nameof(GenerateTestFixtureCollection_6_0_0))]
     public sealed class GenerateDtoTest(GenerateTestFixture_6_0_0 fixture)
     {
         /// <summary>
