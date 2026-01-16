@@ -10,6 +10,11 @@
         /// <summary>
         /// Gets or sets the name.
         /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets the display name.
+        /// </summary>
         public string DisplayName { get; set; }
 
         /// <summary>
