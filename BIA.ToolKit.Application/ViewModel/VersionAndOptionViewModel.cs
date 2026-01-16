@@ -6,6 +6,8 @@
     using BIA.ToolKit.Domain.Work;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
+    using CommunityToolkit.Mvvm.Messaging;
+    using BIA.ToolKit.Application.Messages;
     using Humanizer;
     using System;
     using System.Collections.Generic;
@@ -20,7 +22,7 @@
         public VersionAndOption VersionAndOption { get; set; }
         public RepositoryService repositoryService;
         IConsoleWriter consoleWriter;
-        private UIEventBroker eventBroker;
+        private IMessenger messenger;
 
         private bool hasFeature = false;
         private bool areFeatureInitialized = false;
@@ -30,11 +32,11 @@
             VersionAndOption = new VersionAndOption();
         }
 
-        public void Inject(RepositoryService repositoryService, IConsoleWriter consoleWriter, UIEventBroker eventBroker)
+        public void Inject(RepositoryService repositoryService, IConsoleWriter consoleWriter, IMessenger messenger)
         {
             this.repositoryService = repositoryService;
             this.consoleWriter = consoleWriter;
-            this.eventBroker = eventBroker;
+            this.messenger = messenger;
         }
 
         public ObservableCollection<WorkRepository> WorkTemplates
@@ -130,7 +132,7 @@
 
                     if (WorkCompanyFile != null)
                     {
-                        eventBroker.RequestExecuteActionWithWaiter(async () =>
+                        messenger.Send(new ExecuteActionWithWaiterMessage(async () =>
                         {
                             try
                             {
@@ -162,7 +164,7 @@
                             {
                                 consoleWriter.AddMessageLine(ex.Message, "Red");
                             }
-                        });
+                        }));
                     }
                     OnPropertyChanged(nameof(WorkCompanyFile));
                 }

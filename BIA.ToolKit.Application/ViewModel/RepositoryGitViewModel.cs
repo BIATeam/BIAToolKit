@@ -10,7 +10,7 @@
     using BIA.ToolKit.Domain;
     using CommunityToolkit.Mvvm.Messaging;
 
-    public sealed class RepositoryGitViewModel(RepositoryGit repositoryGit, GitService gitService, IMessenger messenger, UIEventBroker eventBroker, IConsoleWriter consoleWriter) : RepositoryViewModel(repositoryGit, gitService, messenger, eventBroker, consoleWriter)
+    public sealed class RepositoryGitViewModel(RepositoryGit repositoryGit, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter) : RepositoryViewModel(repositoryGit, gitService, messenger, consoleWriter)
     {
         public string GitRepositoryName
         {

@@ -20,7 +20,6 @@
     {
         private readonly Version applicationVersion;
         private readonly IMessenger messenger;
-        private readonly UIEventBroker eventBroker; // Keep temporarily for dual support
         private readonly SettingsService settingsService;
         private readonly GitService gitService;
         private readonly IConsoleWriter consoleWriter;
@@ -28,26 +27,18 @@
         private bool waitAddTemplateRepository;
         private bool waitAddCompanyFilesRepository;
 
-        public MainViewModel(Version applicationVersion, IMessenger messenger, UIEventBroker eventBroker, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter)
+        public MainViewModel(Version applicationVersion, IMessenger messenger, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter)
         {
             this.applicationVersion = applicationVersion;
             this.messenger = messenger;
-            this.eventBroker = eventBroker;
             this.settingsService = settingsService;
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
             
-            // Register IMessenger handlers
             messenger.Register<SettingsUpdatedMessage>(this, (r, m) => EventBroker_OnSettingsUpdated(m.Settings));
             messenger.Register<RepositoryViewModelChangedMessage>(this, (r, m) => EventBroker_OnRepositoryChanged(m.OldRepository, m.NewRepository));
             messenger.Register<RepositoryViewModelDeletedMessage>(this, (r, m) => EventBroker_OnRepositoryViewModelDeleted(m.Repository));
             messenger.Register<RepositoryViewModelAddedMessage>(this, (r, m) => EventBroker_OnRepositoryViewModelAdded(m.Repository));
-            
-            // Keep old event broker temporarily for dual support
-            eventBroker.OnSettingsUpdated += EventBroker_OnSettingsUpdated;
-            eventBroker.OnRepositoryViewModelChanged += EventBroker_OnRepositoryChanged;
-            eventBroker.OnRepositoryViewModelDeleted += EventBroker_OnRepositoryViewModelDeleted;
-            eventBroker.OnRepositoryViewModelAdded += EventBroker_OnRepositoryViewModelAdded;
             
             OpenToolkitRepositorySettingsCommand = new RelayCommand(OpenToolkitRepositorySettings);
             AddTemplateRepositoryCommand = new RelayCommand(AddTemplateRepository);
@@ -72,7 +63,6 @@
             if(repository.Model.RepositoryType == Domain.RepositoryType.Git && repository.Model is IRepositoryGit repositoryGit)
             {
                 messenger.Send(new ExecuteActionWithWaiterMessage(async () => await gitService.Synchronize(repositoryGit)));
-                eventBroker.RequestExecuteActionWithWaiter(async () => await gitService.Synchronize(repositoryGit)); // Dual support
             }
         }
 
@@ -100,13 +90,6 @@
                 await Task.Run(repository.Model.Clean);
                 consoleWriter.AddMessageLine("Repository deleted", "green");
             }));
-            
-            eventBroker.RequestExecuteActionWithWaiter(async () => // Dual support
-            {
-                consoleWriter.AddMessageLine($"Deleting repository {repository.Name}...", "pink");
-                await Task.Run(repository.Model.Clean);
-                consoleWriter.AddMessageLine("Repository deleted", "green");
-            });
         }
 
         private void EventBroker_OnRepositoryChanged(RepositoryViewModel oldRepository, RepositoryViewModel newRepository)
@@ -149,7 +132,6 @@
         private void OpenToolkitRepositorySettings()
         {
             messenger.Send(new OpenRepositoryFormRequestMessage(ToolkitRepository, RepositoryFormMode.Edit));
-            eventBroker.RequestOpenRepositoryForm(ToolkitRepository, RepositoryFormMode.Edit); // Dual support
         }
 
         public IRelayCommand OpenToolkitRepositorySettingsCommand { get; }
@@ -162,18 +144,16 @@
         {
             waitAddTemplateRepository = true;
             waitAddCompanyFilesRepository = false;
-            var repo = new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, messenger, eventBroker, consoleWriter);
+            var repo = new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, messenger, consoleWriter);
             messenger.Send(new OpenRepositoryFormRequestMessage(repo, RepositoryFormMode.Create));
-            eventBroker.RequestOpenRepositoryForm(repo, RepositoryFormMode.Create); // Dual support
         }
 
         private void AddCompanyFilesRepository()
         {
             waitAddCompanyFilesRepository = true;
             waitAddTemplateRepository = false;
-            var repo = new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, messenger, eventBroker, consoleWriter);
+            var repo = new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, messenger, consoleWriter);
             messenger.Send(new OpenRepositoryFormRequestMessage(repo, RepositoryFormMode.Create));
-            eventBroker.RequestOpenRepositoryForm(repo, RepositoryFormMode.Create); // Dual support
         }
 
         public ObservableCollection<RepositoryViewModel> TemplateRepositories { get; } = [];
@@ -196,13 +176,13 @@
             {
                 if (repository is RepositoryGit repositoryGit)
                 {
-                    var viewModel = new RepositoryGitViewModel(repositoryGit, gitService, messenger, eventBroker, consoleWriter) { CanBeVersionXYZ = true };
+                    var viewModel = new RepositoryGitViewModel(repositoryGit, gitService, messenger, consoleWriter) { CanBeVersionXYZ = true };
                     TemplateRepositories.Add(viewModel);
                 }
 
                 if (repository is RepositoryFolder repositoryFolder)
                 {
-                    TemplateRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, messenger, eventBroker, consoleWriter));
+                    TemplateRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, messenger, consoleWriter));
                 }
             }
 
@@ -211,19 +191,19 @@
             {
                 if (repository is RepositoryGit repositoryGit)
                 {
-                    CompanyFilesRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService, messenger, eventBroker, consoleWriter));
+                    CompanyFilesRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService, messenger, consoleWriter));
                 }
 
                 if (repository is RepositoryFolder repositoryFolder)
                 {
-                    CompanyFilesRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, messenger, eventBroker, consoleWriter));
+                    CompanyFilesRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, messenger, consoleWriter));
                 }
             }
 
             ToolkitRepository = settings.ToolkitRepository switch
             {
-                RepositoryGit repositoryGit => new RepositoryGitViewModel(repositoryGit, gitService, messenger, eventBroker, consoleWriter),
-                RepositoryFolder repositoryFolder => new RepositoryFolderViewModel(repositoryFolder, gitService, messenger, eventBroker, consoleWriter),
+                RepositoryGit repositoryGit => new RepositoryGitViewModel(repositoryGit, gitService, messenger, consoleWriter),
+                RepositoryFolder repositoryFolder => new RepositoryFolderViewModel(repositoryFolder, gitService, messenger, consoleWriter),
                 _ => throw new NotImplementedException()
             };
             ToolkitRepository.IsVisibleCompanyName = false;

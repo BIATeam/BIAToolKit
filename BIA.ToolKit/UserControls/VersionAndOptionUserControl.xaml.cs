@@ -9,6 +9,7 @@
     using System.Windows.Controls;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Mapper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
@@ -16,6 +17,7 @@
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Domain.Work;
+    using CommunityToolkit.Mvvm.Messaging;
 
     /// <summary>
     /// Interaction logic for VersionAndOptionView.xaml
@@ -26,7 +28,7 @@
         RepositoryService repositoryService;
         private SettingsService settingsService;
         private string currentProjectPath;
-        private UIEventBroker uiEventBroker;
+        private IMessenger messenger;
         private IConsoleWriter consoleWriter;
         private List<FeatureSetting> OriginFeatureSettings;
         public VersionAndOptionViewModel vm;
@@ -37,17 +39,17 @@
             vm = (VersionAndOptionViewModel)base.DataContext;
         }
 
-        public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, SettingsService settingsService, UIEventBroker uiEventBroker)
+        public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, SettingsService settingsService, IMessenger messenger)
         {
             this.gitService = gitService;
             this.repositoryService = repositoryService;
             this.settingsService = settingsService;
-            this.uiEventBroker = uiEventBroker;
+            this.messenger = messenger;
             this.consoleWriter = consoleWriter;
-            vm.Inject(repositoryService, consoleWriter, uiEventBroker);
+            vm.Inject(repositoryService, consoleWriter, messenger);
 
-            uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
-            uiEventBroker.OnRepositoryViewModelReleaseDataUpdated += UiEventBroker_OnRepositoryViewModelReleaseDataUpdated;
+            messenger.Register<SettingsUpdatedMessage>(this, (r, m) => UiEventBroker_OnSettingsUpdated(m.Settings));
+            messenger.Register<RepositoryViewModelReleaseDataUpdatedMessage>(this, (r, m) => UiEventBroker_OnRepositoryViewModelReleaseDataUpdated(m.Repository));
         }
 
         private void UiEventBroker_OnRepositoryViewModelReleaseDataUpdated(RepositoryViewModel repository)
@@ -73,8 +75,8 @@
 
             if (originFeatureSettings != null)
             {
-                uiEventBroker.OnOriginFeatureSettingsChanged -= UiEventBroker_OnOriginFeatureSettingsChanged;
-                uiEventBroker.OnOriginFeatureSettingsChanged += UiEventBroker_OnOriginFeatureSettingsChanged;
+                messenger.Unregister<OriginFeatureSettingsChangedMessage>(this);
+                messenger.Register<OriginFeatureSettingsChangedMessage>(this, (r, m) => UiEventBroker_OnOriginFeatureSettingsChanged(m.FeatureSettings));
                 OriginFeatureSettings = new List<FeatureSetting>(originFeatureSettings);
             }
 
@@ -207,16 +209,16 @@
 
         private void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            messenger.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 await this.FillVersionFolderPathAsync();
                 this.LoadfeatureSetting();
                 this.LoadVersionAndOption(false, false);
                 if (OriginFeatureSettings is null)
                 {
-                    uiEventBroker.NotifyOriginFeatureSettingsChanged(vm.FeatureSettings.Select(x => x.FeatureSetting).ToList());
+                    messenger.Send(new OriginFeatureSettingsChangedMessage(vm.FeatureSettings.Select(x => x.FeatureSetting).ToList()));
                 }
-            });
+            }));
         }
 
         private void CFVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)

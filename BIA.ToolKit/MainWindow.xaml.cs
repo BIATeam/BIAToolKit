@@ -91,9 +91,9 @@
 
             InitializeComponent();
 
-            CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
+            CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, messenger);
             ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, uiEventBroker);
+                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, messenger);
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
@@ -112,16 +112,16 @@
 
         private void UiEventBroker_OnRepositoryFormOpened(RepositoryViewModel repository, RepositoryFormMode mode)
         {
-            var form = new RepositoryFormUC(repository, gitService, WeakReferenceMessenger.Default, uiEventBroker, consoleWriter) { Owner = this };
+            var form = new RepositoryFormUC(repository, gitService, messenger, consoleWriter) { Owner = this };
             if (form.ShowDialog() == true)
             {
                 switch (mode)
                 {
                     case RepositoryFormMode.Edit:
-                        uiEventBroker.NotifyRepositoryViewModelChanged(repository, form.ViewModel.Repository);
+                        messenger.Send(new RepositoryViewModelChangedMessage(repository, form.ViewModel.Repository));
                         break;
                     case RepositoryFormMode.Create:
-                        uiEventBroker.NotifyRepositoryViewModelAdded(form.ViewModel.Repository);
+                        messenger.Send(new RepositoryViewModelAddedMessage(form.ViewModel.Repository));
                         break;
                     default:
                         throw new NotImplementedException();
@@ -131,7 +131,7 @@
 
         private void UiEventBroker_OnRepositoriesUpdated()
         {
-            uiEventBroker.NotifySettingsUpdated(settingsService.Settings);
+            messenger.Send(new SettingsUpdatedMessage(settingsService.Settings));
         }
 
         public async Task Init()

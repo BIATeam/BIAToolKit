@@ -26,9 +26,9 @@
     {
         public RepositoryFormViewModel ViewModel => DataContext as RepositoryFormViewModel;
 
-        public RepositoryFormUC(RepositoryViewModel repository, GitService gitService, IMessenger messenger, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
+        public RepositoryFormUC(RepositoryViewModel repository, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter)
         {
-            DataContext = new RepositoryFormViewModel(repository, gitService, messenger, eventBroker, consoleWriter);
+            DataContext = new RepositoryFormViewModel(repository, gitService, messenger, consoleWriter);
             InitializeComponent();
         }
 

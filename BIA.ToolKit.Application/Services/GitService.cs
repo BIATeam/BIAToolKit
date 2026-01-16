@@ -17,12 +17,10 @@
     public class GitService : IGitService
     {
         private IConsoleWriter outPut;
-        private readonly UIEventBroker eventBroker;
 
-        public GitService(IConsoleWriter outPut, UIEventBroker eventBroker)
+        public GitService(IConsoleWriter outPut)
         {
             this.outPut = outPut;
-            this.eventBroker = eventBroker;
         }
 
         public async Task Synchronize(IRepositoryGit repository)

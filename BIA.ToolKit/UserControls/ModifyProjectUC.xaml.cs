@@ -11,6 +11,7 @@
     using System.Windows.Controls;
     using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Settings;
@@ -20,6 +21,7 @@
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.Properties;
+    using CommunityToolkit.Mvvm.Messaging;
 
     /// <summary>
     /// Interaction logic for ModifyProjectUC.xaml
@@ -32,7 +34,7 @@
         CSharpParserService cSharpParserService;
         ProjectCreatorService projectCreatorService;
         CRUDSettings crudSettings;
-        UIEventBroker uiEventBroker;
+        IMessenger messenger;
         SettingsService settingsService;
 
         public ModifyProjectUC()
@@ -43,24 +45,24 @@
 
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
+            FileGeneratorService fileGeneratorService, IMessenger messenger)
         {
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
-            MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
-            MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
-            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
-            OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
-            DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
+            MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, messenger);
+            MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, messenger);
+            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, messenger, fileGeneratorService);
+            OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, messenger, fileGeneratorService);
+            DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, messenger);
             this.crudSettings = new(settingsService);
-            this.uiEventBroker = uiEventBroker;
+            this.messenger = messenger;
             this.settingsService = settingsService;
-            _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
+            _viewModel.Inject(messenger, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
 
-            uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
-            uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
+            messenger.Register<SettingsUpdatedMessage>(this, (r, m) => UiEventBroker_OnSettingsUpdated(m.Settings));
+            messenger.Register<SolutionClassesParsedMessage>(this, (r, m) => UiEventBroker_OnSolutionClassesParsed());
         }
 
         private void UiEventBroker_OnSolutionClassesParsed()
@@ -96,7 +98,7 @@
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(Migrate_Run);
+            messenger.Send(new ExecuteActionWithWaiterMessage(Migrate_Run));
         }
         private async Task Migrate_Run()
         {
@@ -117,7 +119,7 @@
 
         private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(MigrateGenerateOnly_Run);
+            messenger.Send(new ExecuteActionWithWaiterMessage(MigrateGenerateOnly_Run));
         }
 
         private async Task<int> MigrateGenerateOnly_Run()
@@ -145,7 +147,7 @@
 
         private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(MigrateApplyDiff_Run);
+            messenger.Send(new ExecuteActionWithWaiterMessage(MigrateApplyDiff_Run));
         }
 
         private async Task<bool> MigrateApplyDiff_Run()
@@ -168,7 +170,7 @@
 
         private void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(MigrateMergeRejected_Run);
+            messenger.Send(new ExecuteActionWithWaiterMessage(MigrateMergeRejected_Run));
         }
 
         private async Task MigrateMergeRejected_Run()
@@ -215,7 +217,7 @@
 
         private void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () => await OverwriteBIAFolder(true));
+            messenger.Send(new ExecuteActionWithWaiterMessage(async () => await OverwriteBIAFolder(true)));
         }
 
         private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion)
@@ -373,7 +375,7 @@
 
         private void FixUsings_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(FixUsings_Run);
+            messenger.Send(new ExecuteActionWithWaiterMessage(FixUsings_Run));
         }
 
         private async Task FixUsings_Run()

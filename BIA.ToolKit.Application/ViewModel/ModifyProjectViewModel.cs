@@ -8,6 +8,8 @@
     using BIA.ToolKit.Domain.Settings;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
+    using CommunityToolkit.Mvvm.Messaging;
+    using BIA.ToolKit.Application.Messages;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -20,7 +22,7 @@
 
     public class ModifyProjectViewModel : ObservableObject
     {
-        private UIEventBroker eventBroker;
+        private IMessenger messenger;
         private FileGeneratorService fileGeneratorService;
         private IConsoleWriter consoleWriter;
         private SettingsService settingsService;
@@ -32,18 +34,18 @@
             OverwriteBIAFromOriginal = true;
         }
 
-        public void Inject(UIEventBroker eventBroker, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService, CSharpParserService parserService)
+        public void Inject(IMessenger messenger, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService, CSharpParserService parserService)
         {
-            this.eventBroker = eventBroker;
+            this.messenger = messenger;
             this.fileGeneratorService = fileGeneratorService;
             this.consoleWriter = consoleWriter;
             this.settingsService = settingsService;
             this.parserService = parserService;
 
-            eventBroker.OnSettingsUpdated += EventBroker_OnSettingsUpdated;
+            messenger.Register<SettingsUpdatedMessage>(this, (_, m) => OnSettingsUpdated(m.Settings));
         }
 
-        private void EventBroker_OnSettingsUpdated(IBIATKSettings settings)
+        private void OnSettingsUpdated(IBIATKSettings settings)
         {
             OnPropertyChanged(nameof(RootProjectsPath));
         }
@@ -158,7 +160,7 @@
                 if (value == Folder)
                     return;
 
-                eventBroker.RequestExecuteActionWithWaiter(async () =>
+                messenger.Send(new ExecuteActionWithWaiterMessage(async () =>
                 {
                     IsFileGeneratorServiceInit = false;
                     IsProjectCompatibleCrudGenerator = false;
@@ -183,7 +185,7 @@
                     }
 
                     OnPropertyChanged(nameof(Folder));
-                });
+                }));
             }
         }
 
@@ -266,13 +268,13 @@
 
         private void RefreshProjectInformations()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            messenger.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 await LoadProject(CurrentProject);
                 await InitFileGeneratorServiceFromProject(CurrentProject);
                 await ParseProject(CurrentProject);
                 RefreshUI();
-            });
+            }));
         }
 
         private void RefreshUI()
@@ -317,7 +319,7 @@
                 {
                     ModifyProject.CurrentProject = value;
                     RefreshUI();
-                    eventBroker.NotifyProjectChanged(value);
+                    messenger.Send(new ProjectChangedMessage(value));
                 }
             }
         }

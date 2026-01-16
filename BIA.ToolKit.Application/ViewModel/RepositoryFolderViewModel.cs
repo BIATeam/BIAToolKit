@@ -9,8 +9,8 @@
     using BIA.ToolKit.Domain;
     using CommunityToolkit.Mvvm.Messaging;
 
-    public sealed class RepositoryFolderViewModel(RepositoryFolder repositoryFolder, GitService gitService, IMessenger messenger, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
-        : RepositoryViewModel(repositoryFolder, gitService, messenger, eventBroker, consoleWriter)
+    public sealed class RepositoryFolderViewModel(RepositoryFolder repositoryFolder, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter)
+        : RepositoryViewModel(repositoryFolder, gitService, messenger, consoleWriter)
     {
         public string Path
         {

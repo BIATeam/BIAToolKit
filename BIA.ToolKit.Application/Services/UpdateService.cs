@@ -13,6 +13,8 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain;
+    using BIA.ToolKit.Application.Messages;
+    using CommunityToolkit.Mvvm.Messaging;
 
     public class UpdateService
     {
@@ -20,7 +22,7 @@
         private const string UpdaterArchiveName = "BIAToolKitUpdater.zip";
         private const string UpdaterName = "BIA.ToolKit.Updater.exe";
 
-        private readonly UIEventBroker eventBroker;
+        private readonly IMessenger messenger;
         private readonly IConsoleWriter consoleWriter;
         private readonly SettingsService settingsService;
         private Version currentVersion;
@@ -31,9 +33,9 @@
         }
         public bool HasNewVersion { get; private set; }
 
-        public UpdateService(UIEventBroker eventBroker, IConsoleWriter consoleWriter, SettingsService settingsService)
+        public UpdateService(IMessenger messenger, IConsoleWriter consoleWriter, SettingsService settingsService)
         {
-            this.eventBroker = eventBroker;
+            this.messenger = messenger;
             this.consoleWriter = consoleWriter;
             this.settingsService = settingsService;
         }
@@ -66,7 +68,7 @@
                         HasNewVersion = true;
                         NewVersion = newVersion;
                         this.lastRelease = lastRelease;
-                        eventBroker.NotifyNewVersionAvailable();
+                        messenger.Send(new NewVersionAvailableMessage());
                         return;
                     }
                 }

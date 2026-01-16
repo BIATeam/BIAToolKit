@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.UserControls
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
@@ -23,7 +24,7 @@
     using System.Windows.Input;
     using System.Windows.Markup;
     using Windows.Data.Xml.Dom;
-    using static BIA.ToolKit.Application.Services.UIEventBroker;
+    using CommunityToolkit.Mvvm.Messaging;
 
     /// <summary>
     /// Interaction logic for OptionGenerator.xaml
@@ -39,7 +40,7 @@
         private ZipParserService zipService;
         private GenerateCrudService crudService;
         private CRUDSettings settings;
-        private UIEventBroker uiEventBroker;
+        private IMessenger messenger;
         private FileGeneratorService fileGeneratorService;
 
         private readonly OptionGeneratorViewModel vm;
@@ -63,16 +64,16 @@
         /// Injection of services.
         /// </summary>
         public void Inject(CSharpParserService service, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, UIEventBroker uiEventBroker, FileGeneratorService fileGeneratorService)
+            IConsoleWriter consoleWriter, IMessenger messenger, FileGeneratorService fileGeneratorService)
         {
             this.consoleWriter = consoleWriter;
             this.service = service;
             this.zipService = zipService;
             this.crudService = crudService;
             this.settings = new(settingsService);
-            this.uiEventBroker = uiEventBroker;
-            this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
-            this.uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
+            this.messenger = messenger;
+            messenger.Register<ProjectChangedMessage>(this, (r, m) => UIEventBroker_OnProjectChanged(m.Project));
+            messenger.Register<SolutionClassesParsedMessage>(this, (r, m) => UiEventBroker_OnSolutionClassesParsed());
             this.fileGeneratorService = fileGeneratorService;
         }
 
@@ -113,7 +114,7 @@
             // Set form enabled
             vm.IsProjectChosen = true;
 
-            uiEventBroker.RequestExecuteActionWithWaiter(InitProjectTask);
+            messenger.Send(new ExecuteActionWithWaiterMessage(async () => await InitProjectTask()));
         }
 
         private Task InitProjectTask()
@@ -183,7 +184,7 @@
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            messenger.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
 
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
@@ -218,7 +219,7 @@
                 UpdateOptionGenerationHistory();
 
                 consoleWriter.AddMessageLine($"End of '{vm.Entity.Name}' option generation.", "Blue");
-            });
+            }));
         }
 
         /// <summary>

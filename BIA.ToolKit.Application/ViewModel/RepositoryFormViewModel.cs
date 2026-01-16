@@ -11,7 +11,7 @@
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Messaging;
 
-    public class RepositoryFormViewModel(RepositoryViewModel repository, GitService gitService, IMessenger messenger, UIEventBroker eventBroker, IConsoleWriter consoleWriter) : ObservableObject
+    public class RepositoryFormViewModel(RepositoryViewModel repository, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter) : ObservableObject
     {
         protected void RaisePropertyChanged(string propertyName) => OnPropertyChanged(propertyName);
 
@@ -45,7 +45,6 @@
                             useRepository: repository.UseRepository),
                         gitService,
                         messenger,
-                        eventBroker,
                         consoleWriter)
                     { 
                         IsVisibleCompanyName = repository.IsVisibleCompanyName, 
@@ -61,7 +60,6 @@
                             useRepository: repository.UseRepository),
                         gitService,
                         messenger,
-                        eventBroker,
                         consoleWriter)
                     {
                         IsVisibleCompanyName = repository.IsVisibleCompanyName,

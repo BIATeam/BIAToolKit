@@ -8,6 +8,7 @@
     using System.Windows;
     using System.Windows.Controls;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
@@ -18,6 +19,7 @@
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
+    using CommunityToolkit.Mvvm.Messaging;
 
     /// <summary>
     /// Interaction logic for DtoGenerator.xaml
@@ -32,7 +34,7 @@
         private ZipParserService zipService;
         private GenerateCrudService crudService;
         private CRUDSettings settings;
-        private UIEventBroker uiEventBroker;
+        private IMessenger messenger;
         private FileGeneratorService fileGeneratorService;
 
         private readonly CRUDGeneratorViewModel vm;
@@ -56,16 +58,16 @@
         /// Injection of services.
         /// </summary>
         public void Inject(CSharpParserService service, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, UIEventBroker uiEventBroker, FileGeneratorService fileGeneratorService)
+            IConsoleWriter consoleWriter, IMessenger messenger, FileGeneratorService fileGeneratorService)
         {
             this.consoleWriter = consoleWriter;
             this.service = service;
             this.zipService = zipService;
             this.crudService = crudService;
             this.settings = new(settingsService);
-            this.uiEventBroker = uiEventBroker;
-            this.uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
-            this.uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
+            this.messenger = messenger;
+            this.messenger.Register<ProjectChangedMessage>(this, (r, m) => UiEventBroker_OnProjectChanged(m.Project));
+            this.messenger.Register<SolutionClassesParsedMessage>(this, (r, m) => UiEventBroker_OnSolutionClassesParsed());
             this.fileGeneratorService = fileGeneratorService;
         }
 
@@ -262,7 +264,7 @@
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            messenger.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
                 {
@@ -327,7 +329,7 @@
                 UpdateCrudGenerationHistory();
 
                 consoleWriter.AddMessageLine($"End of '{vm.CRUDNameSingular}' generation.", "Blue");
-            });
+            }));
         }
 
         /// <summary>

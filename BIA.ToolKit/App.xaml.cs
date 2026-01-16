@@ -65,8 +65,7 @@
             services.AddTransient<OptionGeneratorViewModel>();
             services.AddTransient<VersionAndOptionViewModel>();
             services.AddTransient<RepositoryFormViewModel>();
-            services.AddTransient<RepositoryGitViewModel>();
-            services.AddTransient<RepositoryFolderViewModel>();
+            // RepositoryGitViewModel and RepositoryFolderViewModel are created manually in MainViewModel
             services.AddTransient<RepositoriesSettingsVM>();
             services.AddTransient<RepositorySettingsVM>();
             

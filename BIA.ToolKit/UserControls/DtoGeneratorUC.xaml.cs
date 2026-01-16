@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.UserControls
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
@@ -20,7 +21,7 @@
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
-    using static BIA.ToolKit.Application.Services.UIEventBroker;
+    using CommunityToolkit.Mvvm.Messaging;
 
     /// <summary>
     /// Interaction logic for DtoGenerator.xaml
@@ -33,7 +34,7 @@
         private FileGeneratorService fileGeneratorService;
         private CRUDSettings settings;
         private Project project;
-        private UIEventBroker uiEventBroker;
+        private IMessenger messenger;
         private string dtoGenerationHistoryFile;
         private DtoGenerationHistory generationHistory = new();
         private DtoGeneration generation;
@@ -49,14 +50,14 @@
         /// Injection of services.
         /// </summary>
         public void Inject(CSharpParserService parserService, SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
-            UIEventBroker uiEventBroker)
+            IMessenger messenger)
         {
             this.parserService = parserService;
             this.settings = new(settingsService);
             this.fileGeneratorService = fileGeneratorService;
-            this.uiEventBroker = uiEventBroker;
-            this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
-            this.uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
+            this.messenger = messenger;
+            messenger.Register<ProjectChangedMessage>(this, (r, m) => UIEventBroker_OnProjectChanged(m.Project));
+            messenger.Register<SolutionClassesParsedMessage>(this, (r, m) => UiEventBroker_OnSolutionClassesParsed());
 
             vm.Inject(fileGeneratorService, consoleWriter);
         }
@@ -114,7 +115,7 @@
 
         private void RefreshEntitiesList_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(ListEntities);
+            messenger.Send(new ExecuteActionWithWaiterMessage(async () => await ListEntities()));
         }
 
         private void SelectProperties_Click(object sender, RoutedEventArgs e)
@@ -143,7 +144,7 @@
 
         private void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            messenger.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 UpdateHistoryFile();
                 await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext
@@ -164,7 +165,7 @@
                     GenerateBack = true,
                     HasAudit = vm.UseDedicatedAudit
                 });
-            });
+            }));
         }
 
         private void UpdateHistoryFile()
