@@ -43,7 +43,6 @@
         private readonly ProjectCreatorService projectCreatorService;
         private readonly SettingsService settingsService;
         private readonly FileGeneratorService fileGeneratorService;
-        private readonly UIEventBroker uiEventBroker;
         private readonly IMessenger messenger;
         private readonly UpdateService updateService;
         private readonly GenerateFilesService generateFilesService;
@@ -62,7 +61,6 @@
             IConsoleWriter consoleWriter, 
             FileGeneratorService fileGeneratorService, 
             IMessenger messenger,
-            UIEventBroker uiEventBroker, 
             UpdateService updateService)
         {
 
@@ -76,20 +74,15 @@
             this.projectCreatorService = projectCreatorService;
             this.settingsService = settingsService;
             this.fileGeneratorService = fileGeneratorService;
-            this.uiEventBroker = uiEventBroker;
             this.updateService = updateService;
             this.generateFilesService = genFilesService;
 
-            uiEventBroker.OnExecuteActionWithWaiterAsyncRequest += async (action) => await ExecuteTaskWithWaiterAsync(action);
-
-            // IMessenger subscriptions (dual support during migration)
+            // IMessenger subscriptions for message handling
             messenger.Register<ExecuteActionWithWaiterMessage>(this, async (r, m) => await ExecuteTaskWithWaiterAsync(m.Action));
             messenger.Register<NewVersionAvailableMessage>(this, (r, m) => UiEventBroker_OnNewVersionAvailable());
             messenger.Register<SettingsUpdatedMessage>(this, (r, m) => UiEventBroker_OnSettingsUpdated(m.Settings));
             messenger.Register<RepositoriesUpdatedMessage>(this, (r, m) => UiEventBroker_OnRepositoriesUpdated());
             messenger.Register<OpenRepositoryFormRequestMessage>(this, (r, m) => UiEventBroker_OnRepositoryFormOpened(m.Repository, m.Mode));
-
-            InitializeComponent();
 
             CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, messenger);
             ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
@@ -103,11 +96,6 @@
             // Inject MainViewModel instead of creating it
             ViewModel = mainViewModel;
             DataContext = ViewModel;
-
-            uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
-            uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
-            uiEventBroker.OnRepositoriesUpdated += UiEventBroker_OnRepositoriesUpdated;
-            uiEventBroker.OnOpenRepositoryFormRequest += UiEventBroker_OnRepositoryFormOpened;
         }
 
         private void UiEventBroker_OnRepositoryFormOpened(RepositoryViewModel repository, RepositoryFormMode mode)
