@@ -2,13 +2,14 @@
 {
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.Templates.Common.Enum;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using Humanizer;
     using System;
     using System.Collections.Generic;
@@ -17,6 +18,9 @@
 
     public class CRUDGeneratorViewModel : ObservableObject
     {
+        // Helper to keep existing RaisePropertyChanged calls after migrating to CommunityToolkit
+        protected void RaisePropertyChanged(string propertyName) => OnPropertyChanged(propertyName);
+
         /// <summary>  
         /// Constructor.
         /// </summary>
@@ -808,6 +812,8 @@
 
     public class OptionItem : ObservableObject
     {
+        protected void RaisePropertyChanged(string propertyName) => OnPropertyChanged(propertyName);
+
         private bool check;
         public bool Check
         {

@@ -2,10 +2,11 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -19,6 +20,9 @@
 
     public class DtoGeneratorViewModel : ObservableObject
     {
+        // Helper to keep existing RaisePropertyChanged calls after migrating to CommunityToolkit
+        protected void RaisePropertyChanged(string propertyName) => OnPropertyChanged(propertyName);
+
         private Project project;
         private FileGeneratorService fileGeneratorService;
         private IConsoleWriter consoleWriter;
@@ -604,6 +608,8 @@
 
     public class EntityProperty : ObservableObject
     {
+        protected void RaisePropertyChanged(string propertyName) => OnPropertyChanged(propertyName);
+
         public string Name { get; set; }
         public string Type { get; set; }
 
@@ -631,6 +637,8 @@
 
     public class MappingEntityProperty : ObservableObject
     {
+        protected void RaisePropertyChanged(string propertyName) => OnPropertyChanged(propertyName);
+
         public string EntityCompositeName { get; set; }
         public string EntityType { get; set; }
 
