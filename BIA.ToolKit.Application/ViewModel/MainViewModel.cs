@@ -7,17 +7,20 @@
     using System.Threading.Tasks;
     using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Settings;
     using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Messaging;
     using Octokit;
 
     public partial class MainViewModel : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
     {
         private readonly Version applicationVersion;
-        private readonly UIEventBroker eventBroker;
+        private readonly IMessenger messenger;
+        private readonly UIEventBroker eventBroker; // Keep temporarily for dual support
         private readonly SettingsService settingsService;
         private readonly GitService gitService;
         private readonly IConsoleWriter consoleWriter;
@@ -25,13 +28,22 @@
         private bool waitAddTemplateRepository;
         private bool waitAddCompanyFilesRepository;
 
-        public MainViewModel(Version applicationVersion, UIEventBroker eventBroker, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter)
+        public MainViewModel(Version applicationVersion, IMessenger messenger, UIEventBroker eventBroker, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter)
         {
             this.applicationVersion = applicationVersion;
+            this.messenger = messenger;
             this.eventBroker = eventBroker;
             this.settingsService = settingsService;
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
+            
+            // Register IMessenger handlers
+            messenger.Register<SettingsUpdatedMessage>(this, (r, m) => EventBroker_OnSettingsUpdated(m.Settings));
+            messenger.Register<RepositoryViewModelChangedMessage>(this, (r, m) => EventBroker_OnRepositoryChanged(m.OldRepository, m.NewRepository));
+            messenger.Register<RepositoryViewModelDeletedMessage>(this, (r, m) => EventBroker_OnRepositoryViewModelDeleted(m.Repository));
+            messenger.Register<RepositoryViewModelAddedMessage>(this, (r, m) => EventBroker_OnRepositoryViewModelAdded(m.Repository));
+            
+            // Keep old event broker temporarily for dual support
             eventBroker.OnSettingsUpdated += EventBroker_OnSettingsUpdated;
             eventBroker.OnRepositoryViewModelChanged += EventBroker_OnRepositoryChanged;
             eventBroker.OnRepositoryViewModelDeleted += EventBroker_OnRepositoryViewModelDeleted;
@@ -55,7 +67,8 @@
 
             if(repository.Model.RepositoryType == Domain.RepositoryType.Git && repository.Model is IRepositoryGit repositoryGit)
             {
-                eventBroker.RequestExecuteActionWithWaiter(async () => await gitService.Synchronize(repositoryGit));
+                messenger.Send(new ExecuteActionWithWaiterMessage(async () => await gitService.Synchronize(repositoryGit)));
+                eventBroker.RequestExecuteActionWithWaiter(async () => await gitService.Synchronize(repositoryGit)); // Dual support
             }
         }
 
@@ -77,7 +90,14 @@
                 }
             }
 
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            messenger.Send(new ExecuteActionWithWaiterMessage(async () =>
+            {
+                consoleWriter.AddMessageLine($"Deleting repository {repository.Name}...", "pink");
+                await Task.Run(repository.Model.Clean);
+                consoleWriter.AddMessageLine("Repository deleted", "green");
+            }));
+            
+            eventBroker.RequestExecuteActionWithWaiter(async () => // Dual support
             {
                 consoleWriter.AddMessageLine($"Deleting repository {repository.Name}...", "pink");
                 await Task.Run(repository.Model.Clean);
@@ -122,7 +142,11 @@
             settingsService.SetTemplateRepositories(TemplateRepositories.Select(x => x.Model).ToList());
         }
 
-        public ICommand OpenToolkitRepositorySettingsCommand => new RelayCommand((_) => eventBroker.RequestOpenRepositoryForm(ToolkitRepository, RepositoryFormMode.Edit));
+        public ICommand OpenToolkitRepositorySettingsCommand => new RelayCommand((_) => 
+        {
+            messenger.Send(new OpenRepositoryFormRequestMessage(ToolkitRepository, RepositoryFormMode.Edit));
+            eventBroker.RequestOpenRepositoryForm(ToolkitRepository, RepositoryFormMode.Edit); // Dual support
+        });
 
         public ICommand AddTemplateRepositoryCommand => new RelayCommand((_) => AddTemplateRepository());
 
@@ -132,14 +156,18 @@
         {
             waitAddTemplateRepository = true;
             waitAddCompanyFilesRepository = false;
-            eventBroker.RequestOpenRepositoryForm(new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, eventBroker, consoleWriter), RepositoryFormMode.Create);
+            var repo = new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, eventBroker, consoleWriter);
+            messenger.Send(new OpenRepositoryFormRequestMessage(repo, RepositoryFormMode.Create));
+            eventBroker.RequestOpenRepositoryForm(repo, RepositoryFormMode.Create); // Dual support
         }
 
         private void AddCompanyFilesRepository()
         {
             waitAddCompanyFilesRepository = true;
             waitAddTemplateRepository = false;
-            eventBroker.RequestOpenRepositoryForm(new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, eventBroker, consoleWriter), RepositoryFormMode.Create);
+            var repo = new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, eventBroker, consoleWriter);
+            messenger.Send(new OpenRepositoryFormRequestMessage(repo, RepositoryFormMode.Create));
+            eventBroker.RequestOpenRepositoryForm(repo, RepositoryFormMode.Create); // Dual support
         }
 
         public ObservableCollection<RepositoryViewModel> TemplateRepositories { get; } = [];

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using BIA.ToolKit.Domain.Work;
+using BIA.ToolKit.Domain.Model;
 
 namespace BIA.ToolKit.Application.Messages
 {

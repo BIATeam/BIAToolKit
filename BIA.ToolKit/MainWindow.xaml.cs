@@ -26,6 +26,7 @@
     using Newtonsoft.Json;
     using BIA.ToolKit.Common.Helpers;
     using System.Configuration;
+    using CommunityToolkit.Mvvm.Messaging;
 
 
     /// <summary>
@@ -77,7 +78,7 @@
 
             txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
 
-            ViewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version, uiEventBroker, settingsService, gitService, consoleWriter);
+            ViewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version, WeakReferenceMessenger.Default, uiEventBroker, settingsService, gitService, consoleWriter);
             DataContext = ViewModel;
 
             uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
