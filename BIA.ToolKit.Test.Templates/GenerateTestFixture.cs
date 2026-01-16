@@ -85,18 +85,7 @@
             {
                 var referenceProjetAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
                 FileGeneratorService.SetPrettierAngularProjectPath(referenceProjetAngularPath);
-                if (doUnzip)
-                {
-                    consoleWriter.AddMessageLine("npm i reference project...");
-                    var process = new Process();
-                    process.StartInfo.WorkingDirectory = referenceProjetAngularPath;
-                    process.StartInfo.FileName = "cmd.exe";
-                    process.StartInfo.Arguments = $"/C npm i";
-                    process.StartInfo.UseShellExecute = true;
-                    process.StartInfo.CreateNoWindow = false;
-                    process.Start();
-                    process.WaitForExit();
-                }
+                FileGeneratorService.CreateTemporaryPrettierToolProject().Wait();
             }
 
             consoleWriter.AddMessageLine($"Ready");
@@ -105,6 +94,7 @@
         public void Dispose()
         {
             stopwatch.Stop();
+            FileGeneratorService.CleanupTemporaryPrettierToolProject();
         }
 
         public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext, List<string> partialMarkupIdentifiersToIgnore = null)
