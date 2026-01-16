@@ -5,8 +5,8 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.Model;
+    using CommunityToolkit.Mvvm.ComponentModel;
 
     public class FeatureSettingViewModel(FeatureSetting featureSetting) : ObservableObject
     {
@@ -19,9 +19,14 @@
             }
             set 
             { 
+                if (featureSetting.IsSelected == value)
+                {
+                    return;
+                }
+
                 featureSetting.IsSelected = value; 
-                RaisePropertyChanged(nameof(IsSelected));
-                RaisePropertyChanged(nameof(DisplayDisabledFeatures));
+                OnPropertyChanged(nameof(IsSelected));
+                OnPropertyChanged(nameof(DisplayDisabledFeatures));
             }
         }
 

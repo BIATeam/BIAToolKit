@@ -1,7 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.Settings;
+    using CommunityToolkit.Mvvm.ComponentModel;
 
     public class RepositorySettingsVM : ObservableObject
     {
