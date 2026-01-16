@@ -3,6 +3,7 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Domain.DtoGenerator;
+    using Xunit;
 
     [Collection(nameof(GenerateTestFixtureCollection_5_0_0))]
     public sealed class GenerateOptionTest(GenerateTestFixture_5_0_0 fixture)
