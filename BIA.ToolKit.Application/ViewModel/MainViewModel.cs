@@ -156,7 +156,7 @@
         {
             waitAddTemplateRepository = true;
             waitAddCompanyFilesRepository = false;
-            var repo = new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, eventBroker, consoleWriter);
+            var repo = new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, messenger, eventBroker, consoleWriter);
             messenger.Send(new OpenRepositoryFormRequestMessage(repo, RepositoryFormMode.Create));
             eventBroker.RequestOpenRepositoryForm(repo, RepositoryFormMode.Create); // Dual support
         }
@@ -165,7 +165,7 @@
         {
             waitAddCompanyFilesRepository = true;
             waitAddTemplateRepository = false;
-            var repo = new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, eventBroker, consoleWriter);
+            var repo = new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, messenger, eventBroker, consoleWriter);
             messenger.Send(new OpenRepositoryFormRequestMessage(repo, RepositoryFormMode.Create));
             eventBroker.RequestOpenRepositoryForm(repo, RepositoryFormMode.Create); // Dual support
         }
@@ -190,13 +190,13 @@
             {
                 if (repository is RepositoryGit repositoryGit)
                 {
-                    var viewModel = new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter) { CanBeVersionXYZ = true };
+                    var viewModel = new RepositoryGitViewModel(repositoryGit, gitService, messenger, eventBroker, consoleWriter) { CanBeVersionXYZ = true };
                     TemplateRepositories.Add(viewModel);
                 }
 
                 if (repository is RepositoryFolder repositoryFolder)
                 {
-                    TemplateRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter));
+                    TemplateRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, messenger, eventBroker, consoleWriter));
                 }
             }
 
@@ -205,19 +205,19 @@
             {
                 if (repository is RepositoryGit repositoryGit)
                 {
-                    CompanyFilesRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter));
+                    CompanyFilesRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService, messenger, eventBroker, consoleWriter));
                 }
 
                 if (repository is RepositoryFolder repositoryFolder)
                 {
-                    CompanyFilesRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter));
+                    CompanyFilesRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, messenger, eventBroker, consoleWriter));
                 }
             }
 
             ToolkitRepository = settings.ToolkitRepository switch
             {
-                RepositoryGit repositoryGit => new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter),
-                RepositoryFolder repositoryFolder => new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter),
+                RepositoryGit repositoryGit => new RepositoryGitViewModel(repositoryGit, gitService, messenger, eventBroker, consoleWriter),
+                RepositoryFolder repositoryFolder => new RepositoryFolderViewModel(repositoryFolder, gitService, messenger, eventBroker, consoleWriter),
                 _ => throw new NotImplementedException()
             };
             ToolkitRepository.IsVisibleCompanyName = false;

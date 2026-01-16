@@ -9,8 +9,9 @@
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
+    using CommunityToolkit.Mvvm.Messaging;
 
-    public class RepositoryFormViewModel(RepositoryViewModel repository, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter) : ObservableObject
+    public class RepositoryFormViewModel(RepositoryViewModel repository, GitService gitService, IMessenger messenger, UIEventBroker eventBroker, IConsoleWriter consoleWriter) : ObservableObject
     {
         public RepositoryViewModel Repository
         {
@@ -41,6 +42,7 @@
                             projectName: repository.ProjectName,
                             useRepository: repository.UseRepository),
                         gitService,
+                        messenger,
                         eventBroker,
                         consoleWriter)
                     { 
@@ -56,6 +58,7 @@
                             projectName: repository.ProjectName,
                             useRepository: repository.UseRepository),
                         gitService,
+                        messenger,
                         eventBroker,
                         consoleWriter)
                     {

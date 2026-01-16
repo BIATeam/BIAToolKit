@@ -89,7 +89,7 @@
 
         private void UiEventBroker_OnRepositoryFormOpened(RepositoryViewModel repository, RepositoryFormMode mode)
         {
-            var form = new RepositoryFormUC(repository, gitService, uiEventBroker, consoleWriter) { Owner = this };
+            var form = new RepositoryFormUC(repository, gitService, WeakReferenceMessenger.Default, uiEventBroker, consoleWriter) { Owner = this };
             if (form.ShowDialog() == true)
             {
                 switch (mode)

@@ -17,6 +17,7 @@
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Helper;
+    using CommunityToolkit.Mvvm.Messaging;
 
     /// <summary>
     /// Interaction logic for RepositoryFormUC.xaml
@@ -25,9 +26,9 @@
     {
         public RepositoryFormViewModel ViewModel => DataContext as RepositoryFormViewModel;
 
-        public RepositoryFormUC(RepositoryViewModel repository, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
+        public RepositoryFormUC(RepositoryViewModel repository, GitService gitService, IMessenger messenger, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
         {
-            DataContext = new RepositoryFormViewModel(repository, gitService, eventBroker, consoleWriter);
+            DataContext = new RepositoryFormViewModel(repository, gitService, messenger, eventBroker, consoleWriter);
             InitializeComponent();
         }
 
