@@ -11,9 +11,10 @@
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Settings;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using Octokit;
 
-    public class MainViewModel : ObservableObject
+    public partial class MainViewModel : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
     {
         private readonly Version applicationVersion;
         private readonly UIEventBroker eventBroker;
@@ -148,11 +149,7 @@
         public RepositoryViewModel ToolkitRepository
         {
             get => toolkitRepository;
-            set
-            {
-                toolkitRepository = value;
-                RaisePropertyChanged(nameof(ToolkitRepository));
-            }
+            set => SetProperty(ref toolkitRepository, value);
         }
 
         public void UpdateRepositories(IBIATKSettings settings)
@@ -210,11 +207,11 @@
                 firstTimeSettingsUpdated = false;
             }
 
-            RaisePropertyChanged(nameof(Settings_RootProjectsPath));
-            RaisePropertyChanged(nameof(Settings_CreateCompanyName));
-            RaisePropertyChanged(nameof(Settings_UseCompanyFiles));
-            RaisePropertyChanged(nameof(Settings_AutoUpdate));
-            RaisePropertyChanged(nameof(ToolkitRepository));
+            OnPropertyChanged(nameof(Settings_RootProjectsPath));
+            OnPropertyChanged(nameof(Settings_CreateCompanyName));
+            OnPropertyChanged(nameof(Settings_UseCompanyFiles));
+            OnPropertyChanged(nameof(Settings_AutoUpdate));
+            OnPropertyChanged(nameof(ToolkitRepository));
         }
 
         public string Settings_RootProjectsPath
@@ -267,15 +264,7 @@
 
         public string ApplicationVersion => $"V{applicationVersion.Major}.{applicationVersion.Minor}.{applicationVersion.Build}";
 
+        [ObservableProperty]
         private bool _updateAvailable;
-        public bool UpdateAvailable
-        {
-            get => _updateAvailable;
-            set
-            {
-                _updateAvailable = value;
-                RaisePropertyChanged(nameof(UpdateAvailable));
-            }
-        }
     }
 }
