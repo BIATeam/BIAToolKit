@@ -3,10 +3,11 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.Settings;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -44,10 +45,10 @@
 
         private void EventBroker_OnSettingsUpdated(IBIATKSettings settings)
         {
-            RaisePropertyChanged(nameof(RootProjectsPath));
+            OnPropertyChanged(nameof(RootProjectsPath));
         }
 
-        public ICommand RefreshProjectInformationsCommand => new RelayCommand((_) => RefreshProjectInformations());
+        public ICommand RefreshProjectInformationsCommand => new RelayCommand(RefreshProjectInformations);
         public ModifyProject ModifyProject { get; set; }
 
         private bool _isFileGeneratorServiceInit;
@@ -57,7 +58,7 @@
             set
             {
                 _isFileGeneratorServiceInit = value;
-                RaisePropertyChanged(nameof(IsFileGeneratorServiceInit));
+                OnPropertyChanged(nameof(IsFileGeneratorServiceInit));
             }
         }
 
@@ -69,7 +70,7 @@
             set
             {
                 isProjectCompatibleCrudGenerator = value;
-                RaisePropertyChanged(nameof(IsProjectCompatibleCrudGenerator));
+                OnPropertyChanged(nameof(IsProjectCompatibleCrudGenerator));
             }
         }
 
@@ -84,7 +85,7 @@
                 {
                     projects = value;
                     ModifyProject.Projects = [.. value];
-                    RaisePropertyChanged(nameof(Projects));
+                    OnPropertyChanged(nameof(Projects));
                 }
             }
         }
@@ -181,7 +182,7 @@
                         await ParseProject(currentProject);
                     }
 
-                    RaisePropertyChanged(nameof(Folder));
+                    OnPropertyChanged(nameof(Folder));
                 });
             }
         }
@@ -276,11 +277,11 @@
 
         private void RefreshUI()
         {
-            RaisePropertyChanged(nameof(FrameworkVersion));
-            RaisePropertyChanged(nameof(CompanyName));
-            RaisePropertyChanged(nameof(Name));
-            RaisePropertyChanged(nameof(IsProjectSelected));
-            RaisePropertyChanged(nameof(BIAFronts));
+            OnPropertyChanged(nameof(FrameworkVersion));
+            OnPropertyChanged(nameof(CompanyName));
+            OnPropertyChanged(nameof(Name));
+            OnPropertyChanged(nameof(IsProjectSelected));
+            OnPropertyChanged(nameof(BIAFronts));
             if ((!IsProjectCompatibleCrudGenerator && !IsFileGeneratorServiceInit) 
                 || (SelectedTabIndex == 2 && !IsFileGeneratorServiceInit))
             {
@@ -336,7 +337,7 @@
             set 
             { 
                 selectedTabIndex = value;
-                RaisePropertyChanged(nameof(SelectedTabIndex));
+                OnPropertyChanged(nameof(SelectedTabIndex));
             }
         }
 

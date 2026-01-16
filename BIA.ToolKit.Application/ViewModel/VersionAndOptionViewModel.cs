@@ -2,9 +2,10 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.Work;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using Humanizer;
     using System;
     using System.Collections.Generic;
@@ -44,7 +45,7 @@
                 if (VersionAndOption.WorkTemplates != value)
                 {
                     VersionAndOption.WorkTemplates = value;
-                    RaisePropertyChanged(nameof(WorkTemplates));
+                    OnPropertyChanged(nameof(WorkTemplates));
                 }
             }
         }
@@ -65,7 +66,7 @@
                             WorkCompanyFile = workCompanyFile;
                         }
                     }
-                    RaisePropertyChanged(nameof(WorkTemplate));
+                    OnPropertyChanged(nameof(WorkTemplate));
                 }
             }
         }
@@ -78,7 +79,7 @@
                 if (VersionAndOption.Profiles != value)
                 {
                     VersionAndOption.Profiles = value;
-                    RaisePropertyChanged(nameof(Profiles));
+                    OnPropertyChanged(nameof(Profiles));
                 }
             }
         }
@@ -91,7 +92,7 @@
                 if (VersionAndOption.Profile != value)
                 {
                     VersionAndOption.Profile = value;
-                    RaisePropertyChanged(nameof(Profile));
+                    OnPropertyChanged(nameof(Profile));
                 }
             }
         }
@@ -104,7 +105,7 @@
                 if (VersionAndOption.WorkCompanyFiles != value)
                 {
                     VersionAndOption.WorkCompanyFiles = value;
-                    RaisePropertyChanged(nameof(WorkCompanyFiles));
+                    OnPropertyChanged(nameof(WorkCompanyFiles));
                 }
             }
         }
@@ -163,7 +164,7 @@
                             }
                         });
                     }
-                    RaisePropertyChanged(nameof(WorkCompanyFile));
+                    OnPropertyChanged(nameof(WorkCompanyFile));
                 }
             }
         }
@@ -175,8 +176,8 @@
             set
             {
                 settingsUseCompanyFiles = value;
-                RaisePropertyChanged(nameof(SettingsUseCompanyFiles));
-                RaisePropertyChanged(nameof(SettingsNotUseCompanyFiles));
+                OnPropertyChanged(nameof(SettingsUseCompanyFiles));
+                OnPropertyChanged(nameof(SettingsNotUseCompanyFiles));
             }
         }
 
@@ -191,8 +192,8 @@
                 if (VersionAndOption.UseCompanyFiles != value)
                 {
                     VersionAndOption.UseCompanyFiles = value;
-                    RaisePropertyChanged(nameof(UseCompanyFiles));
-                    RaisePropertyChanged(nameof(NotUseCompanyFiles));
+                    OnPropertyChanged(nameof(UseCompanyFiles));
+                    OnPropertyChanged(nameof(NotUseCompanyFiles));
                 }
             }
         }
@@ -210,7 +211,7 @@
                 if (VersionAndOption.Options != value)
                 {
                     VersionAndOption.Options = value;
-                    RaisePropertyChanged(nameof(Options));
+                    OnPropertyChanged(nameof(Options));
                 }
             }
         }
@@ -237,7 +238,7 @@
                     featureSettings = value ?? [];
                     HasFeature = featureSettings.Any();
                     AreFeatureInitialized = true;
-                    RaisePropertyChanged(nameof(FeatureSettings));
+                    OnPropertyChanged(nameof(FeatureSettings));
                     VersionAndOption.FeatureSettings = featureSettings.Select(x => x.FeatureSetting).ToList();
                 }
             }
@@ -269,9 +270,9 @@
                 if (hasFeature != value)
                 {
                     hasFeature = value;
-                    RaisePropertyChanged(nameof(HasFeature));
-                    RaisePropertyChanged(nameof(AreFeatureVisible));
-                    RaisePropertyChanged(nameof(IsVisibileNoFeature));
+                    OnPropertyChanged(nameof(HasFeature));
+                    OnPropertyChanged(nameof(AreFeatureVisible));
+                    OnPropertyChanged(nameof(IsVisibileNoFeature));
                 }
             }
         }
@@ -284,10 +285,10 @@
                 if (areFeatureInitialized != value)
                 {
                     areFeatureInitialized = value;
-                    RaisePropertyChanged(nameof(AreFeatureInitialized));
-                    RaisePropertyChanged(nameof(AreFeatureVisible));
-                    RaisePropertyChanged(nameof(AreFeatureLoading));
-                    RaisePropertyChanged(nameof(IsVisibileNoFeature));
+                    OnPropertyChanged(nameof(AreFeatureInitialized));
+                    OnPropertyChanged(nameof(AreFeatureVisible));
+                    OnPropertyChanged(nameof(AreFeatureLoading));
+                    OnPropertyChanged(nameof(IsVisibileNoFeature));
                 }
             }
         }
@@ -304,7 +305,7 @@
 
         public bool IsVisibileNoFeature => !AreFeatureVisible;
 
-        public ICommand OnFeatureSettingSelectionChangedCommand => new RelayCommand(_ => OnFeatureSettingSelectionChanged());
+        public ICommand OnFeatureSettingSelectionChangedCommand => new RelayCommand(OnFeatureSettingSelectionChanged);
 
         private void OnFeatureSettingSelectionChanged()
         {
