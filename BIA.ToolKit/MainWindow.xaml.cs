@@ -27,6 +27,7 @@
     using BIA.ToolKit.Common.Helpers;
     using System.Configuration;
     using CommunityToolkit.Mvvm.Messaging;
+    using BIA.ToolKit.Application.Messages;
 
 
     /// <summary>
@@ -43,6 +44,7 @@
         private readonly SettingsService settingsService;
         private readonly FileGeneratorService fileGeneratorService;
         private readonly UIEventBroker uiEventBroker;
+        private readonly IMessenger messenger;
         private readonly UpdateService updateService;
         private readonly GenerateFilesService generateFilesService;
         private readonly ConsoleWriter consoleWriter;
@@ -59,6 +61,7 @@
             SettingsService settingsService,
             IConsoleWriter consoleWriter, 
             FileGeneratorService fileGeneratorService, 
+            IMessenger messenger,
             UIEventBroker uiEventBroker, 
             UpdateService updateService)
         {
@@ -68,6 +71,7 @@
 
             this.repositoryService = repositoryService;
             this.gitService = gitService;
+            this.messenger = messenger;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
             this.settingsService = settingsService;
@@ -77,6 +81,13 @@
             this.generateFilesService = genFilesService;
 
             uiEventBroker.OnExecuteActionWithWaiterAsyncRequest += async (action) => await ExecuteTaskWithWaiterAsync(action);
+
+            // IMessenger subscriptions (dual support during migration)
+            messenger.Register<ExecuteActionWithWaiterMessage>(this, async (r, m) => await ExecuteTaskWithWaiterAsync(m.Action));
+            messenger.Register<NewVersionAvailableMessage>(this, (r, m) => UiEventBroker_OnNewVersionAvailable());
+            messenger.Register<SettingsUpdatedMessage>(this, (r, m) => UiEventBroker_OnSettingsUpdated(m.Settings));
+            messenger.Register<RepositoriesUpdatedMessage>(this, (r, m) => UiEventBroker_OnRepositoriesUpdated());
+            messenger.Register<OpenRepositoryFormRequestMessage>(this, (r, m) => UiEventBroker_OnRepositoryFormOpened(m.Repository, m.Mode));
 
             InitializeComponent();
 
