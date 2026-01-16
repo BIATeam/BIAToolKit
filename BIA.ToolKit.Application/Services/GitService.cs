@@ -14,7 +14,7 @@
     using System.Text.RegularExpressions;
     using BIA.ToolKit.Domain;
 
-    public class GitService
+    public class GitService : IGitService
     {
         private IConsoleWriter outPut;
         private readonly UIEventBroker eventBroker;

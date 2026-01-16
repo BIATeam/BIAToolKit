@@ -18,7 +18,7 @@
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using static BIA.ToolKit.Common.Constants;
 
-    public class ProjectCreatorService
+    public class ProjectCreatorService : IProjectCreatorService
     {
         private readonly IConsoleWriter consoleWriter;
         private readonly RepositoryService repositoryService;

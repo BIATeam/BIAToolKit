@@ -17,7 +17,7 @@
     using System.Linq;
     using System.Text.RegularExpressions;
 
-    public class ZipParserService
+    public class ZipParserService : IZipParserService
     {
         private readonly IConsoleWriter consoleWriter;
         private readonly CSharpParserService service;

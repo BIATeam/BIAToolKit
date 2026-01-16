@@ -13,7 +13,7 @@
     using System.Collections.Generic;
     using BIA.ToolKit.Domain;
 
-    public class RepositoryService
+    public class RepositoryService : IRepositoryService
     {
         private readonly IConsoleWriter outPut;
 
