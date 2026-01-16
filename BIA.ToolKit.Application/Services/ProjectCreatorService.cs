@@ -214,7 +214,7 @@
         {
             foreach (FeatureSetting featureSetting in projectParameters.VersionAndOption.FeatureSettings)
             {
-                await Task.Run(() => FileTransform.ReplaceInFileAndFileName(projectPath, "BIAToolkit_FeatureSetting_" + featureSetting.DisplayName, featureSetting.IsSelected ? "true" : "false", FileTransform.projectFileExtensions));
+                await Task.Run(() => FileTransform.ReplaceInFileAndFileName(projectPath, "BIAToolkit_FeatureSetting_" + featureSetting.Name ?? featureSetting.DisplayName, featureSetting.IsSelected ? "true" : "false", FileTransform.projectFileExtensions));
             }
         }
 
