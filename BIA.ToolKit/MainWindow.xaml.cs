@@ -47,9 +47,20 @@
         private readonly GenerateFilesService generateFilesService;
         private readonly ConsoleWriter consoleWriter;
 
-        public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
-            ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService)
+        public MainWindow(
+            MainViewModel mainViewModel,
+            RepositoryService repositoryService, 
+            GitService gitService, 
+            CSharpParserService cSharpParserService, 
+            GenerateFilesService genFilesService,
+            ProjectCreatorService projectCreatorService, 
+            ZipParserService zipParserService, 
+            GenerateCrudService crudService, 
+            SettingsService settingsService,
+            IConsoleWriter consoleWriter, 
+            FileGeneratorService fileGeneratorService, 
+            UIEventBroker uiEventBroker, 
+            UpdateService updateService)
         {
 
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
@@ -78,7 +89,8 @@
 
             txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
 
-            ViewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version, WeakReferenceMessenger.Default, uiEventBroker, settingsService, gitService, consoleWriter);
+            // Inject MainViewModel instead of creating it
+            ViewModel = mainViewModel;
             DataContext = ViewModel;
 
             uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
