@@ -7,12 +7,14 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Messaging;
 
     public class RepositoryFormViewModel(RepositoryViewModel repository, GitService gitService, IMessenger messenger, UIEventBroker eventBroker, IConsoleWriter consoleWriter) : ObservableObject
     {
+        protected void RaisePropertyChanged(string propertyName) => OnPropertyChanged(propertyName);
+
         public RepositoryViewModel Repository
         {
             get => repository;

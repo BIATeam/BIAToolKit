@@ -6,21 +6,31 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using CommunityToolkit.Mvvm.Messaging;
     using BIA.ToolKit.Application.Messages;
 
     public abstract class RepositoryViewModel : ObservableObject
     {
+        protected void RaisePropertyChanged(string propertyName) => OnPropertyChanged(propertyName);
+
         private readonly Repository repository;
         protected readonly GitService gitService;
         protected readonly UIEventBroker eventBroker;
         protected readonly IMessenger messenger;
         protected readonly IConsoleWriter consoleWriter;
+
+        public IRelayCommand SynchronizeCommand { get; }
+        public IRelayCommand OpenSourceCommand { get; }
+        public IRelayCommand OpenSynchronizedFolderCommand { get; }
+        public IRelayCommand GetReleasesDataCommand { get; }
+        public IRelayCommand CleanReleasesCommand { get; }
+        public IRelayCommand OpenFormCommand { get; }
+        public IRelayCommand DeleteCommand { get; }
 
         protected RepositoryViewModel(Repository repository, GitService gitService, IMessenger messenger, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
         {
@@ -30,6 +40,14 @@
             this.messenger = messenger;
             this.eventBroker = eventBroker;
             this.consoleWriter = consoleWriter;
+
+            SynchronizeCommand = new RelayCommand(Synchronize);
+            OpenSourceCommand = new RelayCommand(OpenSource);
+            OpenSynchronizedFolderCommand = new RelayCommand(OpenSynchronizedFolder);
+            GetReleasesDataCommand = new RelayCommand(GetReleasesData);
+            CleanReleasesCommand = new RelayCommand(CleanReleases);
+            OpenFormCommand = new RelayCommand(OpenForm);
+            DeleteCommand = new RelayCommand(Delete);
             
             // IMessenger subscription
             messenger.Register<RepositoryViewModelVersionXYZChangedMessage>(this, (r, m) => 
@@ -55,21 +73,6 @@
         public IRepository Model => repository;
         public bool IsGitRepository => repository.RepositoryType == Domain.RepositoryType.Git;
         public bool IsFolderRepository => repository.RepositoryType == Domain.RepositoryType.Folder;
-        public ICommand SynchronizeCommand => new RelayCommand((_) => Synchronize());
-        public ICommand OpenSourceCommand => new RelayCommand((_) => OpenSource());
-        public ICommand OpenSynchronizedFolderCommand => new RelayCommand((_) => OpenSynchronizedFolder());
-        public ICommand GetReleasesDataCommand => new RelayCommand((_) => GetReleasesData());
-        public ICommand CleanReleasesCommand => new RelayCommand((_) => CleanReleases());
-        public ICommand OpenFormCommand => new RelayCommand((_) =>
-        {
-            messenger.Send(new OpenRepositoryFormRequestMessage(this, RepositoryFormMode.Edit));
-            eventBroker.RequestOpenRepositoryForm(this, RepositoryFormMode.Edit); // Legacy
-        });
-        public ICommand DeleteCommand => new RelayCommand((_) =>
-        {
-            messenger.Send(new RepositoryViewModelDeletedMessage(this));
-            eventBroker.NotifyRepositoryViewModelDeleted(this); // Legacy
-        });
 
         public bool IsValid => !string.IsNullOrWhiteSpace(Name) && EnsureIsValid();
         public bool IsVisibleCompanyName { get; set; } = true;
@@ -316,6 +319,18 @@
                     await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = repoGit.Url, UseShellExecute = true }));
                 }
             }); // Legacy
+        }
+
+        private void OpenForm()
+        {
+            messenger.Send(new OpenRepositoryFormRequestMessage(this, RepositoryFormMode.Edit));
+            eventBroker.RequestOpenRepositoryForm(this, RepositoryFormMode.Edit); // Legacy
+        }
+
+        private void Delete()
+        {
+            messenger.Send(new RepositoryViewModelDeletedMessage(this));
+            eventBroker.NotifyRepositoryViewModelDeleted(this); // Legacy
         }
     }
 }

@@ -9,10 +9,10 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Settings;
     using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using CommunityToolkit.Mvvm.Messaging;
     using Octokit;
 
@@ -48,6 +48,10 @@
             eventBroker.OnRepositoryViewModelChanged += EventBroker_OnRepositoryChanged;
             eventBroker.OnRepositoryViewModelDeleted += EventBroker_OnRepositoryViewModelDeleted;
             eventBroker.OnRepositoryViewModelAdded += EventBroker_OnRepositoryViewModelAdded;
+            
+            OpenToolkitRepositorySettingsCommand = new RelayCommand(OpenToolkitRepositorySettings);
+            AddTemplateRepositoryCommand = new RelayCommand(AddTemplateRepository);
+            AddCompanyFilesRepositoryCommand = new RelayCommand(AddCompanyFilesRepository);
         }
 
         private void EventBroker_OnRepositoryViewModelAdded(RepositoryViewModel repository)
@@ -142,15 +146,17 @@
             settingsService.SetTemplateRepositories(TemplateRepositories.Select(x => x.Model).ToList());
         }
 
-        public ICommand OpenToolkitRepositorySettingsCommand => new RelayCommand((_) => 
+        private void OpenToolkitRepositorySettings()
         {
             messenger.Send(new OpenRepositoryFormRequestMessage(ToolkitRepository, RepositoryFormMode.Edit));
             eventBroker.RequestOpenRepositoryForm(ToolkitRepository, RepositoryFormMode.Edit); // Dual support
-        });
+        }
 
-        public ICommand AddTemplateRepositoryCommand => new RelayCommand((_) => AddTemplateRepository());
+        public IRelayCommand OpenToolkitRepositorySettingsCommand { get; }
 
-        public ICommand AddCompanyFilesRepositoryCommand => new RelayCommand((_) => AddCompanyFilesRepository());
+        public IRelayCommand AddTemplateRepositoryCommand { get; }
+
+        public IRelayCommand AddCompanyFilesRepositoryCommand { get; }
 
         private void AddTemplateRepository()
         {
