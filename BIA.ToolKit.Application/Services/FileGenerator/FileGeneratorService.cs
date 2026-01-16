@@ -92,7 +92,7 @@
                     IsInit = true;
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _consoleWriter.AddMessageLine($"File generator : {ex.Message}", "red");
             }
@@ -157,7 +157,7 @@
 
         public void SetPrettierAngularProjectPath(string path)
         {
-            if(!Directory.Exists(path))
+            if (!Directory.Exists(path))
             {
                 throw new Exception($"Unable to init prettier from unexisting front folder {path}");
             }
@@ -289,10 +289,10 @@
             var csharpFiles = _currentContext.GenerationReport.TemplatesGenerated
                 .Select(x => GetDotNetTemplateOutputPath(x.OutputPath, _currentContext, _currentProject.Folder))
                 .Where(x => Path.GetExtension(x).Equals(".cs"));
-            
-            foreach(var file in csharpFiles)
+
+            foreach (var file in csharpFiles)
             {
-                if(FileTransform.OrderUsingFromFile(file))
+                if (FileTransform.OrderUsingFromFile(file))
                 {
                     _consoleWriter.AddMessageLine($"-> Usings ordered in {file}", "green");
                 }
@@ -321,7 +321,7 @@
         private async Task GenerateAngularTemplates(IEnumerable<Manifest.Feature.Template> templates, object model)
         {
             var angularProjectFolder = Path.Combine(_currentProject.Folder, _currentContext.AngularFront);
-            
+
             if (!_fromUnitTest)
             {
                 SetPrettierAngularProjectPath(angularProjectFolder);
@@ -393,7 +393,7 @@
             var process = new Process();
             process.StartInfo.WorkingDirectory = _prettierAngularProjectPath;
             process.StartInfo.FileName = "cmd.exe";
-            process.StartInfo.Arguments = $"/C npx prettier --write {path} --plugin=prettier-plugin-organize-imports --config \"{Path.Combine(_prettierAngularProjectPath, ".prettierrc")}\"";
+            process.StartInfo.Arguments = $"/C npx prettier --write \"{path}\" --plugin=prettier-plugin-organize-imports --config \"{Path.Combine(_prettierAngularProjectPath, ".prettierrc")}\"";
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
 
@@ -422,7 +422,7 @@
         {
             var relativeOutputPath = outputPath.Replace(_currentProject.Folder, string.Empty);
             var relativeTemplatePath = templatePath.Replace(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), string.Empty);
-            var logMessagePrefix = $"Generation of {(template.IsPartial ? $"partial content '{template.PartialInsertionMarkup}' into" : "file")} '{relativeOutputPath}'" ;
+            var logMessagePrefix = $"Generation of {(template.IsPartial ? $"partial content '{template.PartialInsertionMarkup}' into" : "file")} '{relativeOutputPath}'";
 #if DEBUG
             logMessagePrefix += $" from template file '{relativeTemplatePath}'";
 #endif
@@ -550,7 +550,7 @@
 
             return (
                 AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupPartialBeginPattern, partialInsertionMarkup, template.UseDomainPartialInsertionMarkup ? context.DomainName : context.EntityName), outputPath),
-                AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupPartialEndPattern, partialInsertionMarkup, template.UseDomainPartialInsertionMarkup ? context.DomainName :  context.EntityName), outputPath)
+                AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupPartialEndPattern, partialInsertionMarkup, template.UseDomainPartialInsertionMarkup ? context.DomainName : context.EntityName), outputPath)
                 );
         }
 

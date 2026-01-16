@@ -5,8 +5,9 @@
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
+    using Xunit;
 
-    [Collection(nameof(GenerateTestFixtureCollection))]
+    [Collection(nameof(GenerateTestFixtureCollection_5_0_0))]
     public sealed class GenerateDtoTest(GenerateTestFixture_5_0_0 fixture)
     {
         /// <summary>
