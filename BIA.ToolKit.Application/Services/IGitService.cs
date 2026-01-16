@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using BIA.ToolKit.Domain;
 
 namespace BIA.ToolKit.Application.Services
@@ -36,40 +38,5 @@ namespace BIA.ToolKit.Application.Services
         /// Merge rejected files after a failed patch application
         /// </summary>
         Task MergeRejected(bool actionFinishedAtEnd, GitService.MergeParameter param);
-
-        /// <summary>
-        /// Check if local path has uncommitted changes
-        /// </summary>
-        Task<bool> IsLocalProjectUncommittedChanges(string localPath);
-
-        /// <summary>
-        /// Get current branch name
-        /// </summary>
-        Task<string> GetCurrentBranchNameAsync(string localPath);
-
-        /// <summary>
-        /// Get list of branches
-        /// </summary>
-        Task<List<string>> GetBranchesAsync(string localPath);
-
-        /// <summary>
-        /// Commit all changes
-        /// </summary>
-        Task CommitAllAsync(string projectPath, string message);
-
-        /// <summary>
-        /// Create a new branch
-        /// </summary>
-        Task CreateBranchAsync(string projectPath, string branchName);
-
-        /// <summary>
-        /// Checkout a branch
-        /// </summary>
-        Task CheckoutAsync(string projectPath, string branchName);
-
-        /// <summary>
-        /// Get tags from repository
-        /// </summary>
-        Task<List<string>> GetTagsAsync(IRepositoryGit repositoryGit);
     }
 }

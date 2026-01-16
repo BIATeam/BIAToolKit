@@ -35,6 +35,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
 		<PackageReference Include="MaterialDesignThemes" Version="5.2.1" />
 		<PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.14.28" ExcludeAssets="runtime" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
@@ -81,6 +82,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\BIA.ToolKit.Application\BIA.ToolKit.Application.csproj" />
+		<ProjectReference Include="..\BIA.ToolKit.Infrastructure\BIA.ToolKit.Infrastructure.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,4 +1,6 @@
-using BIA.ToolKit.Domain.CRUDGenerator;
+using System.Collections.Generic;
+using BIA.ToolKit.Application.Settings;
+using BIA.ToolKit.Application.ViewModel;
 using BIA.ToolKit.Domain.ModifyProject;
 using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
 

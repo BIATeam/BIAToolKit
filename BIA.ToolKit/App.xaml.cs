@@ -3,7 +3,13 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Dialogs;
+    using BIA.ToolKit.Domain.Services;
     using BIA.ToolKit.Helper;
+    using BIA.ToolKit.Infrastructure.Services;
+    using BIA.ToolKit.UserControls;
+    using CommunityToolkit.Mvvm.Messaging;
     using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.Configuration;
@@ -30,19 +36,58 @@
 
         private void ConfigureServices(ServiceCollection services)
         {
+            // Infrastructure Services
+            services.AddSingleton<IFileSystemService, FileSystemService>();
+            
+            // Application Services with Interfaces
             services.AddSingleton<IConsoleWriter, ConsoleWriter>();
-            services.AddSingleton<UIEventBroker>();
-            services.AddSingleton<MainWindow>();
-            services.AddSingleton<RepositoryService>();
-            services.AddSingleton<GitService>();
-            services.AddSingleton<ProjectCreatorService>();
+            services.AddSingleton<IRepositoryService, RepositoryService>();
+            services.AddSingleton<IGitService, GitService>();
+            services.AddSingleton<IProjectCreatorService, ProjectCreatorService>();
+            services.AddSingleton<IZipParserService, ZipParserService>();
+            
+            // Other Application Services
             services.AddSingleton<GenerateFilesService>();
             services.AddSingleton<CSharpParserService>();
-            services.AddSingleton<ZipParserService>();
             services.AddSingleton<GenerateCrudService>();
             services.AddSingleton<SettingsService>();
             services.AddSingleton<FileGeneratorService>();
             services.AddSingleton<UpdateService>();
+            
+            // Messaging
+            services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+            services.AddSingleton<UIEventBroker>(); // Keep for now during migration
+            
+            // ViewModels
+            services.AddTransient<MainViewModel>();
+            services.AddTransient<ModifyProjectViewModel>();
+            services.AddTransient<DtoGeneratorViewModel>();
+            services.AddTransient<OptionGeneratorViewModel>();
+            services.AddTransient<VersionAndOptionViewModel>();
+            services.AddTransient<RepositoryFormViewModel>();
+            services.AddTransient<RepositoryGitViewModel>();
+            services.AddTransient<RepositoryFolderViewModel>();
+            services.AddTransient<RepositoriesSettingsVM>();
+            services.AddTransient<RepositorySettingsVM>();
+            
+            // UserControls
+            services.AddTransient<CRUDGeneratorUC>();
+            services.AddTransient<DtoGeneratorUC>();
+            services.AddTransient<ModifyProjectUC>();
+            services.AddTransient<OptionGeneratorUC>();
+            services.AddTransient<VersionAndOptionUserControl>();
+            services.AddTransient<RepositoryResumeUC>();
+            services.AddTransient<LabeledField>();
+            
+            // Dialogs
+            services.AddTransient<RepositoryFormUC>();
+            services.AddTransient<CustomRepoTemplateUC>();
+            services.AddTransient<CustomsRepoTemplateUC>();
+            services.AddTransient<LogDetailUC>();
+            
+            // Main Window
+            services.AddSingleton<MainWindow>();
+            
             services.AddLogging();
         }
         private async void OnStartup(object sender, StartupEventArgs e)
