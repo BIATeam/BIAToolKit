@@ -5,6 +5,7 @@
     using System.Diagnostics;
     using System.IO.Compression;
     using System.Linq;
+    using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
@@ -26,6 +27,8 @@
         private string referenceProjectPath;
         private string testProjectPath;
         private Project referenceProject;
+        private string prettierAngularProjectPath;
+        private ConsoleWriterTest consoleWriter;
         private readonly Stopwatch stopwatch = new();
         public Feature CurrentTestFeature { get; private set; }
         public Project TestProject { get; private set; }
@@ -33,7 +36,7 @@
 
         protected void Init(string biaDemoArchiveName, Project biaDemoProject)
         {
-            var consoleWriter = new ConsoleWriterTest(stopwatch, this.GetType().Name);
+            consoleWriter = new ConsoleWriterTest(stopwatch, this.GetType().Name);
             stopwatch.Start();
 
             var biaDemoZipPath = $"..\\..\\..\\..\\BIADemoVersions\\{biaDemoArchiveName}.zip";
@@ -83,9 +86,9 @@
 
             if (referenceProject.BIAFronts.Count != 0)
             {
-                var referenceProjetAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
-                FileGeneratorService.SetPrettierAngularProjectPath(referenceProjetAngularPath);
-                FileGeneratorService.CreateTemporaryPrettierToolProject().Wait();
+                var referenceProjectAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
+                CreateUnitTestPrettierToolProject(referenceProjectAngularPath);
+                FileGeneratorService.SetPrettierAngularProjectPath(prettierAngularProjectPath);
             }
 
             consoleWriter.AddMessageLine($"Ready");
@@ -94,7 +97,7 @@
         public void Dispose()
         {
             stopwatch.Stop();
-            FileGeneratorService.CleanupTemporaryPrettierToolProject();
+            CleanupTemporaryPrettierToolProject(prettierAngularProjectPath);
         }
 
         public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext, List<string> partialMarkupIdentifiersToIgnore = null)
@@ -129,6 +132,79 @@
                         context.ComputeAngularParentLocation(referenceProjectPath);
                     }
                 });
+        }
+
+        private void CreateUnitTestPrettierToolProject(string referenceProjectAngularPath)
+        {
+            prettierAngularProjectPath = Path.Combine(Path.GetTempPath(), $"BIAToolKit_Prettier_{Guid.NewGuid()}");
+
+            try
+            {
+                Directory.CreateDirectory(prettierAngularProjectPath);
+
+                var prettierrcSourcePath = Path.Combine(referenceProjectAngularPath, ".prettierrc");
+                if (!File.Exists(prettierrcSourcePath))
+                {
+                    throw new Exception($"Unable to find .prettierrc into {prettierrcSourcePath}");
+                }
+
+                File.Copy(prettierrcSourcePath, Path.Combine(prettierAngularProjectPath, ".prettierrc"));
+
+                var packageJson = @"{
+  ""name"": ""biatoolkit-prettier-temp"",
+  ""version"": ""1.0.0"",
+  ""private"": true,
+  ""dependencies"": {},
+  ""devDependencies"": {
+    ""prettier"": ""~3.6.2"",
+    ""prettier-plugin-organize-imports"": ""~4.3.0"",
+    ""typescript"": ""~5.9.3""
+  }
+}";
+                File.WriteAllText(Path.Combine(prettierAngularProjectPath, "package.json"), packageJson);
+
+                var npmInstallProcess = new Process();
+                npmInstallProcess.StartInfo.WorkingDirectory = prettierAngularProjectPath;
+                npmInstallProcess.StartInfo.FileName = "cmd.exe";
+                npmInstallProcess.StartInfo.Arguments = "/C npm install";
+                npmInstallProcess.StartInfo.UseShellExecute = false;
+                npmInstallProcess.StartInfo.CreateNoWindow = false;
+
+                consoleWriter.AddMessageLine($"Installing prettier packages in temporary project...");
+                npmInstallProcess.Start();
+                npmInstallProcess.WaitForExit(TimeSpan.FromSeconds(30));
+
+                if (npmInstallProcess.ExitCode != 0)
+                {
+                    throw new Exception($"npm install failed");
+                }
+
+                consoleWriter.AddMessageLine($"Prettier tool project ready at {prettierAngularProjectPath}");
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Failed to create temporary prettier project: {ex.Message}");
+                CleanupTemporaryPrettierToolProject(prettierAngularProjectPath);
+                throw;
+            }
+        }
+
+        private void CleanupTemporaryPrettierToolProject(string prettierAngularProjectPath)
+        {
+            if (string.IsNullOrEmpty(prettierAngularProjectPath) || !Directory.Exists(prettierAngularProjectPath))
+            {
+                return;
+            }
+
+            try
+            {
+                Directory.Delete(prettierAngularProjectPath, true);
+                consoleWriter.AddMessageLine($"Cleaned up temporary prettier project");
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Failed to cleanup temporary prettier project: {ex.Message}");
+            }
         }
 
         private async Task RunTestGenerateAllFilesEqualsAsync<TContext>(
