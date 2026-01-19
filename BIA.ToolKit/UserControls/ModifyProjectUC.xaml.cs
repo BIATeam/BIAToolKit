@@ -36,6 +36,7 @@
         CRUDSettings crudSettings;
         IMessenger messenger;
         SettingsService settingsService;
+        Infrastructure.Services.IFileDialogService fileDialogService;
 
         public ModifyProjectUC()
         {
@@ -45,7 +46,7 @@
 
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            FileGeneratorService fileGeneratorService, IMessenger messenger)
+            FileGeneratorService fileGeneratorService, IMessenger messenger, Infrastructure.Services.IFileDialogService fileDialogService = null)
         {
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
@@ -59,6 +60,7 @@
             this.crudSettings = new(settingsService);
             this.messenger = messenger;
             this.settingsService = settingsService;
+            this.fileDialogService = fileDialogService ?? new Infrastructure.Services.FileDialogService();
             _viewModel.Inject(messenger, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
 
             messenger.Register<SettingsUpdatedMessage>(this, (r, m) => UiEventBroker_OnSettingsUpdated(m.Settings));
@@ -364,7 +366,14 @@
         }
 
         private void ModifyProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
-        {
+        {var selectedPath = fileDialogService.BrowseFolder(
+                _viewModel.RootProjectsPath,
+                "Choose modify project root path");
+
+            if (!string.IsNullOrEmpty(selectedPath))
+            {
+                _viewModel.RootProjectsPath = selectedPath;
+            }
             _viewModel.RootProjectsPath = FileDialog.BrowseFolder(_viewModel.RootProjectsPath, "Choose modify project root path");
         }
 

@@ -96,7 +96,8 @@
 
             CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, messenger);
             ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, messenger);
+                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, messenger,
+                new Infrastructure.Services.FileDialogService());
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
