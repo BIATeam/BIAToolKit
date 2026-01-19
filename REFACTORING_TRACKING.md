@@ -2,7 +2,31 @@
 
 **Date de Création**: 19 janvier 2026  
 **Dernière Mise à Jour**: 22 janvier 2026  
-**Statut Global**: 🎉 Phases 1-2 Complétées, Phase 3 ✅ COMPLÉTÉE (8/8 étapes - 100%)
+**Statut Global**: ⚠️ Phases 1-3 Incomplètes - Phases 4-6 REQUISES
+
+---
+
+## ⚠️ CONSTAT IMPORTANT - Architecture Non Conforme
+
+### Problèmes Identifiés Après Phase 3
+
+Bien que les phases 1-3 aient créé l'infrastructure (helpers, services), **la transformation MVVM n'est PAS complète**:
+
+**❌ Violations Clean Architecture:**
+- 5 méthodes `Inject()` présentes (anti-pattern Service Locator)
+- ~2,000 lignes de logique métier toujours dans code-behind
+- Helpers appelés depuis code-behind au lieu de ViewModels
+- 16+ event handlers avec logique métier (devrait être Commands)
+- ViewModels incomplets ou absents
+
+**✅ Ce Qui Fonctionne:**
+- Infrastructure services (IFileDialogService, ITextParsingService, IDialogService)
+- Helpers créés (MainWindowHelper, CRUDGeneratorHelper, etc.)
+- DI configuration de base
+
+**📋 Nouveau Plan:**
+Phases 4-6 ajoutées pour transformation MVVM complète.  
+Voir: **[REFACTORING_PHASE_4_6_PLAN.md](REFACTORING_PHASE_4_6_PLAN.md)**
 
 ---
 
@@ -453,6 +477,71 @@ TOTAL: ~28 heures
 
 ---
 
+## 📋 PHASES 4-6: Transformation MVVM Complète
+
+**Voir document détaillé**: [REFACTORING_PHASE_4_6_PLAN.md](REFACTORING_PHASE_4_6_PLAN.md)
+
+### PHASE 4: ViewModels Complets (Étapes 27-32)
+
+| # | Étape | Description | Statut | Effort | Commit |
+|---|-------|-------------|--------|--------|--------|
+| 27 | MainWindowViewModel | Commands + logique métier complète | ⬜ À faire | 1j | - |
+| 28 | CRUDGeneratorViewModel | Commands + Observable Properties | ⬜ À faire | 1j | - |
+| 29 | OptionGeneratorViewModel | Commands + Observable Properties | ⬜ À faire | 1j | - |
+| 30 | DtoGeneratorViewModel | Finaliser + Commands | ⬜ À faire | 0.5j | - |
+| 31 | ModifyProjectViewModel | Commands complets | ⬜ À faire | 0.5j | - |
+| 32 | VersionAndOptionViewModel | Commands + éliminer event handlers | ⬜ À faire | 0.5j | - |
+
+**Estimation Phase 4**: 4.5 jours
+
+---
+
+### PHASE 5: Éliminer Service Locator Pattern (Étapes 33-38)
+
+| # | Étape | Description | Statut | Effort | Commit |
+|---|-------|-------------|--------|--------|--------|
+| 33 | MainWindow - Éliminer Inject() | Constructor DI pure | ⬜ À faire | 0.5j | - |
+| 34 | CRUDGeneratorUC - Éliminer Inject() | Constructor DI + DI Container | ⬜ À faire | 0.5j | - |
+| 35 | OptionGeneratorUC - Éliminer Inject() | Constructor DI + DI Container | ⬜ À faire | 0.5j | - |
+| 36 | DtoGeneratorUC - Éliminer Inject() | Constructor DI + DI Container | ⬜ À faire | 0.25j | - |
+| 37 | ModifyProjectUC - Éliminer Inject() | Constructor DI + DI Container | ⬜ À faire | 0.25j | - |
+| 38 | App.xaml.cs - DI Complet | Configuration DI centralisée | ⬜ À faire | 0.5j | - |
+
+**Estimation Phase 5**: 2.5 jours
+
+---
+
+### PHASE 6: XAML Refactoring (Étapes 39-44)
+
+| # | Étape | Description | Statut | Effort | Commit |
+|---|-------|-------------|--------|--------|--------|
+| 39 | MainWindow.xaml | Events → Command bindings | ⬜ À faire | 0.5j | - |
+| 40 | CRUDGeneratorUC.xaml | Events → Command bindings | ⬜ À faire | 0.5j | - |
+| 41 | OptionGeneratorUC.xaml | Events → Command bindings | ⬜ À faire | 0.5j | - |
+| 42 | DtoGeneratorUC.xaml | Events → Command bindings | ⬜ À faire | 0.25j | - |
+| 43 | ModifyProjectUC.xaml | Events → Command bindings | ⬜ À faire | 0.25j | - |
+| 44 | VersionAndOption.xaml | Events → Command bindings | ⬜ À faire | 0.25j | - |
+
+**Estimation Phase 6**: 2.25 jours
+
+---
+
+### 📊 Métriques Attendues Phases 4-6
+
+| Métrique | Avant | Après | Amélioration |
+|----------|-------|-------|--------------|
+| Code-Behind Total | 2,560 | 195 | **-92%** |
+| MainWindow.xaml.cs | 534 | 50 | -91% |
+| CRUDGeneratorUC.xaml.cs | 706 | 30 | -96% |
+| OptionGeneratorUC.xaml.cs | 488 | 30 | -94% |
+| DtoGeneratorUC.xaml.cs | 199 | 25 | -87% |
+| ModifyProjectUC.xaml.cs | 400 | 30 | -92% |
+| Méthodes Inject() | 5 | 0 | -100% |
+| Event Handlers | 16+ | 0 | -100% |
+| Commands MVVM | 0 | 30+ | +∞ |
+
+---
+
 ## 🎬 Getting Started
 
 ### Jour 1 (Lundi)
@@ -486,6 +575,7 @@ TOTAL: ~28 heures
 - [ ] QA Lead
 
 ### Notes d'Approbation
+
 
 ```
 PO: ________________ Date: _________

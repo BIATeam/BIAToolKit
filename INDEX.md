@@ -1,42 +1,90 @@
 # 📚 Index de la Documentation de Refactorisation
 
-**Généré le**: 19 janvier 2026  
+**Dernière Mise à Jour**: 22 janvier 2026  
 **Projet**: BIA.ToolKit  
-**Objectif**: Déport Code-Behind → ViewModels + Bonnes Pratiques (SOLID, DRY, KISS, YAGNI)
+**Objectif**: Transformation Clean Architecture + MVVM Complet
+
+---
+
+## 🚨 NOUVEAU PLAN - Phases 4-6 Requises
+
+**Constat**: Phases 1-3 ont créé l'infrastructure mais la transformation MVVM n'est **pas complète**.  
+**Solution**: Phases 4-6 pour éliminer TOUTE la logique métier des code-behind.
+
+➡️ **COMMENCEZ ICI**: [ANALYSIS_AND_NEW_PLAN_SUMMARY.md](ANALYSIS_AND_NEW_PLAN_SUMMARY.md)
 
 ---
 
 ## 📖 Navigation Rapide
 
-### Pour commencers
-👉 **Lire en premier**: [REFACTORING_SUMMARY.md](REFACTORING_SUMMARY.md)
-- Synthèse executive en 2 pages
-- Objectifs, impact, timeline
-- Vision globale du projet
+### Pour Nouveaux Développeurs
 
-### Pour les détails techniques
-📘 **Lire ensuite**: [REFACTORING_PLAN.md](REFACTORING_PLAN.md)
-- Plan complet 26 étapes
-- Chaque étape détaillée
-- Code examples avant/après
+1. **📊 Vue d'ensemble du nouveau plan**  
+   → [ANALYSIS_AND_NEW_PLAN_SUMMARY.md](ANALYSIS_AND_NEW_PLAN_SUMMARY.md)
+   - Problèmes identifiés après Phase 3
+   - Phases 4-6 expliquées
+   - Métriques attendues
 
-### Pour les patterns réutilisables
-🎯 **Consulter pendant implémentation**: [REFACTORING_PATTERNS.md](REFACTORING_PATTERNS.md)
-- 7 patterns courants
-- Chaque pattern avec exemple
-- Checklist d'implémentation
+2. **🏛️ Principes d'architecture**  
+   → [ARCHITECTURE_PRINCIPLES.md](ARCHITECTURE_PRINCIPLES.md)
+   - Clean Architecture layers
+   - MVVM strict pattern
+   - SOLID principles
+   - Patterns CommunityToolkit.Mvvm
 
-### Pour l'analyse du code-behind actuel
-🔍 **Comprendre l'existant**: [ANALYSIS_CODE_BEHIND.md](ANALYSIS_CODE_BEHIND.md)
-- Analyse fichier par fichier
-- Violations identifiées
-- Anti-patterns détectés
+3. **🚀 Guide de démarrage Phases 4-6**  
+   → [PHASE_4_6_GETTING_STARTED.md](PHASE_4_6_GETTING_STARTED.md)
+   - Roadmap détaillé jour par jour
+   - Template code pour chaque ViewModel
+   - Checklist avant démarrage
 
-### Pour le suivi d'implémentation
-📋 **Tracker la progression**: [REFACTORING_TRACKING.md](REFACTORING_TRACKING.md)
-- 26 étapes avec checkboxes
-- Timeline détaillée
-- Métriques à tracker
+---
+
+### Pour la Refactorisation
+
+4. **📋 Plan détaillé Phases 4-6** (18 étapes)  
+   → [REFACTORING_PHASE_4_6_PLAN.md](REFACTORING_PHASE_4_6_PLAN.md)
+   - Étapes 27-44 détaillées
+   - Objectifs par phase
+   - Patterns à appliquer
+
+5. **🔍 Analyse détaillée code-behind**  
+   → [CODE_BEHIND_DETAILED_ANALYSIS.md](CODE_BEHIND_DETAILED_ANALYSIS.md)
+   - Analyse ligne par ligne
+   - Violations MVVM identifiées
+   - Code avant/après exemples
+
+6. **📊 Suivi de progression**  
+   → [REFACTORING_TRACKING.md](REFACTORING_TRACKING.md)
+   - Phases 1-3 status
+   - Phases 4-6 tracking
+   - Métriques par étape
+
+---
+
+### Documents Historiques (Phases 1-3)
+
+7. **🎯 Plan original (Phases 1-3)**  
+   → [REFACTORING_PLAN.md](REFACTORING_PLAN.md)
+   - 26 étapes initiales
+   - Infrastructure services
+   - Helpers création
+
+8. **🎯 Patterns réutilisables**  
+   → [REFACTORING_PATTERNS.md](REFACTORING_PATTERNS.md)
+   - Patterns Phase 1-3
+   - Service extraction
+   - Helper patterns
+
+9. **📝 Analyse code-behind initial**  
+   → [ANALYSIS_CODE_BEHIND.md](ANALYSIS_CODE_BEHIND.md)
+   - État avant refactorisation
+   - Violations identifiées
+
+10. **📋 Résumé Phase 1-3**  
+    → [REFACTORING_SUMMARY.md](REFACTORING_SUMMARY.md)
+    - Vue d'ensemble Phases 1-3
+    - Ce qui a été fait
 
 ---
 
@@ -44,10 +92,28 @@
 
 ```
 BIA.ToolKit/
-├── REFACTORING_SUMMARY.md
-│   └── Vue d'ensemble executive (3 pages)
-│       ├── Objectifs & impact
-│       ├── Timeline estimée
+├── 🚀 NOUVEAU PLAN (Phases 4-6)
+│   ├── ANALYSIS_AND_NEW_PLAN_SUMMARY.md ⭐ START HERE
+│   ├── ARCHITECTURE_PRINCIPLES.md
+│   ├── PHASE_4_6_GETTING_STARTED.md
+│   ├── REFACTORING_PHASE_4_6_PLAN.md
+│   └── CODE_BEHIND_DETAILED_ANALYSIS.md
+│
+├── 📊 SUIVI
+│   └── REFACTORING_TRACKING.md (mis à jour avec Phases 4-6)
+│
+├── 📚 HISTORIQUE (Phases 1-3)
+│   ├── REFACTORING_PLAN.md
+│   ├── REFACTORING_PATTERNS.md
+│   ├── REFACTORING_SUMMARY.md
+│   └── ANALYSIS_CODE_BEHIND.md
+│
+└── 📖 AUTRES
+    ├── INDEX.md (ce fichier)
+    ├── 00_START_HERE.md
+    ├── CHANGELOG.md
+    └── MIGRATION_VERIFICATION.md
+```
 │       ├── Dépendances
 │       └── Métriques de succès
 │
