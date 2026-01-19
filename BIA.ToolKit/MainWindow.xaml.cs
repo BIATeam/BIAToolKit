@@ -48,6 +48,7 @@
         private readonly GenerateFilesService generateFilesService;
         private readonly ConsoleWriter consoleWriter;
         private readonly ViewModels.MainWindowHelper mainWindowHelper;
+        private readonly Infrastructure.Services.IFileDialogService fileDialogService;
 
         public MainWindow(
             MainViewModel mainViewModel,
@@ -62,7 +63,8 @@
             IConsoleWriter consoleWriter, 
             FileGeneratorService fileGeneratorService, 
             IMessenger messenger,
-            UpdateService updateService)
+            UpdateService updateService,
+            Infrastructure.Services.IFileDialogService fileDialogService)
         {
 
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
@@ -77,6 +79,7 @@
             this.fileGeneratorService = fileGeneratorService;
             this.updateService = updateService;
             this.generateFilesService = genFilesService;
+            this.fileDialogService = fileDialogService;
 
             // Create MainWindowHelper for refactored logic
             this.mainWindowHelper = new ViewModels.MainWindowHelper(
@@ -318,7 +321,11 @@
 
         private void CreateProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Settings_RootProjectsPath = FileDialog.BrowseFolder(ViewModel.Settings_RootProjectsPath, "Choose create project root path");
+            var selectedPath = fileDialogService.BrowseFolder(ViewModel.Settings_RootProjectsPath, "Choose create project root path");
+            if (!string.IsNullOrEmpty(selectedPath))
+            {
+                ViewModel.Settings_RootProjectsPath = selectedPath;
+            }
         }
 
         private void OnTabModifySelected(object sender, RoutedEventArgs e)
@@ -366,7 +373,7 @@
             }
 
             string projectPath = settingsService.Settings.CreateProjectRootProjectsPath + "\\" + CreateProjectName.Text;
-            if (Directory.Exists(projectPath) && !FileDialog.IsDirectoryEmpty(projectPath))
+            if (Directory.Exists(projectPath) && !fileDialogService.IsDirectoryEmpty(projectPath))
             {
                 MessageBox.Show("The project path is not empty : " + projectPath);
                 return;
@@ -482,7 +489,7 @@
 
         private async void ImportConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            var configFile = FileDialog.BrowseFile(string.Empty, "btksettings");
+            var configFile = fileDialogService.BrowseFile("btksettings");
             if (string.IsNullOrWhiteSpace(configFile) || !File.Exists(configFile))
                 return;
 
@@ -509,7 +516,7 @@
 
         private void ExportConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            var targetDirectory = FileDialog.BrowseFolder(string.Empty, "Choose export folder target");
+            var targetDirectory = fileDialogService.BrowseFolder(string.Empty, "Choose export folder target");
             if (string.IsNullOrWhiteSpace(targetDirectory))
                 return;
 

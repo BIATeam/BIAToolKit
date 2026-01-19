@@ -69,5 +69,14 @@ namespace BIA.ToolKit.Infrastructure.Services
 
             return null;
         }
+
+        /// <inheritdoc/>
+        public bool IsDirectoryEmpty(string path)
+        {
+            if (!System.IO.Directory.Exists(path))
+                return true;
+
+            return !System.IO.Directory.EnumerateFileSystemEntries(path).Any();
+        }
     }
 }

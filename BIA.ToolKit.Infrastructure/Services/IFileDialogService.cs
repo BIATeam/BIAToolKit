@@ -28,5 +28,12 @@ namespace BIA.ToolKit.Infrastructure.Services
         /// <param name="filter">File filter (e.g., "Text Files (*.txt)|*.txt").</param>
         /// <returns>Selected file path, or null if user cancels.</returns>
         string SaveFile(string fileName, string filter);
+
+        /// <summary>
+        /// Checks if a directory is empty.
+        /// </summary>
+        /// <param name="path">Directory path to check.</param>
+        /// <returns>True if directory is empty, false otherwise.</returns>
+        bool IsDirectoryEmpty(string path);
     }
 }

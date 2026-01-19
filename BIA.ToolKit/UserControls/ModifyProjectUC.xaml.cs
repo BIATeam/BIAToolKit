@@ -131,7 +131,7 @@
                 MessageBox.Show("Select a project before click migrate.");
                 return -1;
             }
-            if (!Directory.Exists(_viewModel.ModifyProject.CurrentProject.Folder) || FileDialog.IsDirectoryEmpty(_viewModel.ModifyProject.CurrentProject.Folder))
+            if (!Directory.Exists(_viewModel.ModifyProject.CurrentProject.Folder) || fileDialogService.IsDirectoryEmpty(_viewModel.ModifyProject.CurrentProject.Folder))
             {
                 MessageBox.Show("The project path is empty : " + _viewModel.ModifyProject.CurrentProject.Folder);
                 return -1;
@@ -366,7 +366,8 @@
         }
 
         private void ModifyProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
-        {var selectedPath = fileDialogService.BrowseFolder(
+        {
+            var selectedPath = fileDialogService.BrowseFolder(
                 _viewModel.RootProjectsPath,
                 "Choose modify project root path");
 
@@ -374,7 +375,6 @@
             {
                 _viewModel.RootProjectsPath = selectedPath;
             }
-            _viewModel.RootProjectsPath = FileDialog.BrowseFolder(_viewModel.RootProjectsPath, "Choose modify project root path");
         }
 
         private void RefreshProjectFolderList_Click(object sender, RoutedEventArgs e)
