@@ -1,8 +1,8 @@
 # Plan de Refactorisation - Suivi d'Implémentation
 
 **Date de Création**: 19 janvier 2026  
-**Dernière Mise à Jour**: 22 janvier 2026 - **Phase 4 Step 27 INTEGRATED & COMPILED**  
-**Statut Global**: 🚀 Phases 4-6 EN COURS - Step 27 ✅ TERMINÉ
+**Dernière Mise à Jour**: 22 janvier 2026 - **Phase 4 Steps 28-32 COMPLETED & COMPILED**  
+**Statut Global**: 🚀 Phases 4-6 EN COURS - Steps 27-32 ✅ TERMINÉS
 
 ---
 
@@ -100,12 +100,12 @@ Voir: **[REFACTORING_PHASE_4_6_PLAN.md](REFACTORING_PHASE_4_6_PLAN.md)**
 
 | # | Étape | Description | Statut | Effort | Commits |
 |---|-------|-------------|--------|--------|---------|
-| 27 | MainWindowViewModel | 11 Commands, 6 Observable Properties | ✅ Terminé | 4h | 18d65fe, d096cfe |
-| 28 | CRUDGeneratorViewModel | 4 Commands (Generate, Delete, Refresh, DeleteAnnotations) | ⬜ Pas Commencé | 3h | - |
-| 29 | OptionGeneratorViewModel | 3 Commands (Generate, Delete, Refresh) | ⬜ Pas Commencé | 3h | - |
-| 30 | DtoGeneratorViewModel | 2 Commands (Generate, BrowseFile) | ⬜ Pas Commencé | 2h | - |
-| 31 | ModifyProjectViewModel | 5 Commands (Browse, Modify, UpdateZip, DeleteAllGen) | ⬜ Pas Commencé | 3h | - |
-| 32 | VersionAndOptionViewModel | 2 Commands (SaveBefore, SaveAfter) | ⬜ Pas Commencé | 1.5h | - |
+| 27 | MainWindowViewModel | 11 Commands, 6 Observable Properties | ✅ Terminé | 4h | 18d65fe, d096cfe, 21eb07b, c50e2e0 |
+| 28 | CRUDGeneratorViewModel | 4 Commands (Generate, Delete, Refresh, DeleteAnnotations) | ✅ Terminé | 3h | 7e64c3f |
+| 29 | OptionGeneratorViewModel | 3 Commands (Generate, Delete, Refresh) | ✅ Terminé | 3h | 7e64c3f |
+| 30 | DtoGeneratorViewModel | 2 Commands (Generate, BrowseFile) | ✅ Terminé | 2h | 7e64c3f |
+| 31 | ModifyProjectViewModel | 5 Commands (Browse, Modify, UpdateZip, DeleteAllGen) | ✅ Terminé | 3h | 7e64c3f |
+| 32 | VersionAndOptionViewModel | 2 Commands (SaveBefore, SaveAfter) | ✅ Terminé | 1.5h | 7e64c3f |
 
 **Estimation Phase 4 (Nouveau)**: 16.5 heures (≈ 2 jours)
 
