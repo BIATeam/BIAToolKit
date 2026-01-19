@@ -1,10 +1,10 @@
-﻿namespace BIA.ToolKit.Dialogs
+namespace BIA.ToolKit.Dialogs
 {
     using System;
     using System.Windows;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModels;
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.Infrastructure.Services;
     using CommunityToolkit.Mvvm.Messaging;

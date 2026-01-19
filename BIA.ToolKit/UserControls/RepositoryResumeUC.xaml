@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIA.ToolKit.UserControls"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             xmlns:viewModel="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
+             xmlns:viewModel="clr-namespace:BIA.ToolKit.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewModel:RepositoryViewModel, IsDesignTimeCreatable=False}" Height="auto" d:Width="500">
 

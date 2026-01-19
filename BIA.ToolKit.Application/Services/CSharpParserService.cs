@@ -1,4 +1,4 @@
-ï»¿namespace BIA.ToolKit.Application.Services
+namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Extensions;
     using BIA.ToolKit.Application.Helper;
@@ -294,14 +294,14 @@ using Roslyn.Services;*/
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            // Compilation (nÃ©cessaire pour symboles/semantics)
+            // Compilation (nécessaire pour symboles/semantics)
             var compilation = await project.GetCompilationAsync().ConfigureAwait(false);
             if (compilation is null)
             {
                 return (result, project.Name, 0, 0);
             }
 
-            // Ã‰numÃ©rer tous les types nommÃ©s
+            // Énumérer tous les types nommés
             var allTypes = RoslynHelper.GetAllNamedTypes(compilation.Assembly.GlobalNamespace)
                 .Where(t =>
                     t.TypeKind == TypeKind.Class
@@ -320,7 +320,7 @@ using Roslyn.Services;*/
                     .Select(RoslynHelper.ToAttributeInfo)
                     .ToList();
 
-                // PropriÃ©tÃ©s publiques accessibles (hÃ©ritage inclus)
+                // Propriétés publiques accessibles (héritage inclus)
                 var properties = RoslynHelper.GetAllAccessiblePublicProperties(cls)
                     .Select(p => new Domain.ProjectAnalysis.PropertyInfo(
                         TypeName: RoslynHelper.Display(p.Type),
@@ -330,19 +330,19 @@ using Roslyn.Services;*/
                     ))
                     .ToList();
 
-                // ChaÃ®ne de bases
+                // Chaîne de bases
                 var baseChain = RoslynHelper.GetBaseTypes(cls)
                     .Select(RoslynHelper.ToInheritedTypeInfo)
                     .ToList();
 
-                // Interfaces (transitives, dÃ©dupliquÃ©es par nom complet)
+                // Interfaces (transitives, dédupliquées par nom complet)
                 var interfaces = cls.AllInterfaces
                     .Distinct<INamedTypeSymbol>(SymbolEqualityComparer.Default)
                     .Select(RoslynHelper.ToInheritedTypeInfo)
                     .ToList();
 
                 result.Add(new ClassInfo(
-                    ClassName: RoslynHelper.Display(cls), // inclut gÃ©nÃ©riques si prÃ©sents
+                    ClassName: RoslynHelper.Display(cls), // inclut génériques si présents
                     FilePath: filePath,
                     Namespace: cls.ContainingNamespace?.ToDisplayString() ?? "",
                     IsGeneric: cls.IsGenericType,

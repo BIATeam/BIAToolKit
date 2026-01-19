@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services
+namespace BIA.ToolKit.Application.Services
 {
     using System;
     using System.Collections.Generic;
@@ -8,7 +8,7 @@
     using System.Threading.Tasks;
     using System.Xml.Linq;
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Mapper;
+    using BIA.ToolKit.Application.Extensions;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Common.Helpers;
     using BIA.ToolKit.Domain.Model;
@@ -173,8 +173,7 @@
                     }
 
                     string projectGenerationFile = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
-                    VersionAndOptionDto versionAndOptionDto = new VersionAndOptionDto();
-                    VersionAndOptionMapper.ModelToDto(projectParameters.VersionAndOption, versionAndOptionDto);
+                    VersionAndOptionDto versionAndOptionDto = projectParameters.VersionAndOption.ToDto();
                     CommonTools.SerializeToJsonFile(versionAndOptionDto, projectGenerationFile);
                 });
 

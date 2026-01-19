@@ -1,4 +1,4 @@
-ï»¿namespace BIA.ToolKit.Domain.ProjectAnalysis
+namespace BIA.ToolKit.Domain.ProjectAnalysis
 {
     using System;
     using System.Collections.Generic;
@@ -7,7 +7,7 @@
     using System.Threading.Tasks;
 
     public sealed record InheritedTypeInfo(
-        string DisplayName,       // Avec gÃ©nÃ©riques
+        string DisplayName,       // Avec génériques
         bool HasGenerics,
         IReadOnlyList<string> GenericArguments // Format affichable
     );

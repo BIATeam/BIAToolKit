@@ -1,5 +1,6 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.ViewModels
 {
+    using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;

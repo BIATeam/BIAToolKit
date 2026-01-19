@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Test.Templates.Assertions
+namespace BIA.ToolKit.Test.Templates.Assertions
 {
     using System;
     using System.Text;

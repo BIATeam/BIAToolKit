@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BIA.ToolKit.Application.ViewModel;
+using BIA.ToolKit.ViewModels;
 using BIA.ToolKit.Domain;
 using BIA.ToolKit.Domain.Model;
 using BIA.ToolKit.Domain.ModifyProject;

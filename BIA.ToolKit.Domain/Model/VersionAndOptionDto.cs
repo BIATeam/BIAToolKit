@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.Model
+namespace BIA.ToolKit.Domain.Model
 {
     using BIA.ToolKit.Domain.Work;
     using System;

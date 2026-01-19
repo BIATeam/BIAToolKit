@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.ModifyProject
+namespace BIA.ToolKit.Domain.ModifyProject
 {
     public class ModifyProject
     {

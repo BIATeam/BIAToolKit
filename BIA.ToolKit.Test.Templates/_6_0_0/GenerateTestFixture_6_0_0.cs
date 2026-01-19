@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Test.Templates._6_0_0
+namespace BIA.ToolKit.Test.Templates._6_0_0
 {
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Test.Templates;

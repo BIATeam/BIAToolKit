@@ -1,6 +1,6 @@
-﻿namespace BIA.ToolKit.Application.Mapper
+namespace BIA.ToolKit.Mapper
 {
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModels;
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.Work;
     using System.Collections.Generic;

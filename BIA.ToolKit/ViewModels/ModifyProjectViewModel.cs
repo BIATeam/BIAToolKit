@@ -1,0 +1,347 @@
+namespace BIA.ToolKit.ViewModels
+{
+    using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain.ModifyProject;
+    using BIA.ToolKit.Domain.Settings;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
+    using CommunityToolkit.Mvvm.Messaging;
+    using BIA.ToolKit.Application.Messages;
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Linq;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+    using System.Windows.Input;
+
+    public class ModifyProjectViewModel : ObservableObject
+    {
+        private IMessenger messenger;
+        private FileGeneratorService fileGeneratorService;
+        private IConsoleWriter consoleWriter;
+        private SettingsService settingsService;
+        private CSharpParserService parserService;
+
+        public ModifyProjectViewModel()
+        {
+            ModifyProject = new ModifyProject();
+            OverwriteBIAFromOriginal = true;
+        }
+
+        public void Inject(IMessenger messenger, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService, CSharpParserService parserService)
+        {
+            this.messenger = messenger;
+            this.fileGeneratorService = fileGeneratorService;
+            this.consoleWriter = consoleWriter;
+            this.settingsService = settingsService;
+            this.parserService = parserService;
+
+            messenger.Register<SettingsUpdatedMessage>(this, (_, m) => OnSettingsUpdated(m.Settings));
+        }
+
+        private void OnSettingsUpdated(IBIATKSettings settings)
+        {
+            OnPropertyChanged(nameof(RootProjectsPath));
+        }
+
+        public ICommand RefreshProjectInformationsCommand => new RelayCommand(RefreshProjectInformations);
+        public ModifyProject ModifyProject { get; set; }
+
+        private bool _isFileGeneratorServiceInit;
+        public bool IsFileGeneratorServiceInit
+        {
+            get => _isFileGeneratorServiceInit;
+            set
+            {
+                _isFileGeneratorServiceInit = value;
+                OnPropertyChanged(nameof(IsFileGeneratorServiceInit));
+            }
+        }
+
+        private bool isProjectCompatibleCrudGenerator;
+
+        public bool IsProjectCompatibleCrudGenerator
+        {
+            get { return isProjectCompatibleCrudGenerator; }
+            set
+            {
+                isProjectCompatibleCrudGenerator = value;
+                OnPropertyChanged(nameof(IsProjectCompatibleCrudGenerator));
+            }
+        }
+
+
+        private ObservableCollection<string> projects = [];
+        public ObservableCollection<string> Projects
+        {
+            get => projects;
+            set
+            {
+                if (projects != value)
+                {
+                    projects = value;
+                    ModifyProject.Projects = [.. value];
+                    OnPropertyChanged(nameof(Projects));
+                }
+            }
+        }
+
+        public void RefreshProjetsList()
+        {
+            List<string> newProjects = null;
+
+            if (!Directory.Exists(RootProjectsPath))
+                return;
+
+            DirectoryInfo di = new(RootProjectsPath);
+            // Create an array representing the files in the current directory.
+            DirectoryInfo[] versionDirectories = di.GetDirectories("*", SearchOption.TopDirectoryOnly);
+
+            newProjects = new();
+            foreach (DirectoryInfo dir in versionDirectories)
+            {
+                //Add and select the last added
+                newProjects.Add(dir.Name);
+            }
+
+            if (!newProjects.Select(x => Path.Combine(RootProjectsPath, x)).Contains(CurrentProject?.Folder))
+            {
+                Folder = null;
+            }
+
+            for (int i = 0; i < newProjects.Count; i++)
+            {
+                var existingProjectInNewProjects = Projects.FirstOrDefault(x => x == newProjects[i]);
+                if (existingProjectInNewProjects is not null)
+                    continue;
+
+                Projects.Insert(i, newProjects[i]);
+            }
+
+            for (int i = 0; i < Projects.Count; i++)
+            {
+                var newProjectInExistingProjects = newProjects.FirstOrDefault(x => x == Projects[i]);
+                if (newProjectInExistingProjects is not null)
+                    continue;
+
+                Projects.RemoveAt(i);
+                i--;
+            }
+        }
+
+        public string CurrentRootProjectsPath { get; set; }
+        public string RootProjectsPath
+        {
+            get => settingsService?.Settings?.ModifyProjectRootProjectsPath;
+            set
+            {
+                if (settingsService.Settings.ModifyProjectRootProjectsPath != value)
+                {
+                    CurrentRootProjectsPath = value;
+                    settingsService.SetModifyProjectRootProjectPath(value);
+                    RefreshProjetsList();
+                }
+            }
+        }
+
+        public Dictionary<string, NamesAndVersionResolver> CurrentProjectDetections { get; set; }
+
+        public string Folder
+        {
+            get { return Path.GetFileName(ModifyProject.CurrentProject?.Folder); }
+            set
+            {
+                if (value == Folder)
+                    return;
+
+                messenger.Send(new ExecuteActionWithWaiterMessage(async () =>
+                {
+                    IsFileGeneratorServiceInit = false;
+                    IsProjectCompatibleCrudGenerator = false;
+
+                    Project currentProject = null;
+                    if (value is not null)
+                    {
+                        currentProject = new Project
+                        {
+                            Name = value,
+                            Folder = Path.Combine(RootProjectsPath, value)
+                        };
+                        await LoadProject(currentProject);
+                    }
+
+                    await InitFileGeneratorServiceFromProject(currentProject);
+                    CurrentProject = currentProject;
+
+                    if (CurrentProject is not null)
+                    {
+                        await ParseProject(currentProject);
+                    }
+
+                    OnPropertyChanged(nameof(Folder));
+                }));
+            }
+        }
+
+        private async Task InitFileGeneratorServiceFromProject(Project currentProject)
+        {
+            await fileGeneratorService.Init(currentProject);
+            IsFileGeneratorServiceInit = fileGeneratorService.IsInit;
+            IsProjectCompatibleCrudGenerator = GenerateCrudService.IsProjectCompatible(currentProject);
+        }
+
+        private async Task LoadProject(Project project)
+        {
+            try
+            {
+                consoleWriter.AddMessageLine($"Loading project {project.Name}", "pink");
+
+                consoleWriter.AddMessageLine("List project's files...", "darkgray");
+                await project.ListProjectFiles();
+                project.SolutionPath = project.ProjectFiles.FirstOrDefault(path => path.EndsWith($"{project.Name}.sln", StringComparison.InvariantCultureIgnoreCase));
+                consoleWriter.AddMessageLine("Project's files listed", "lightgreen");
+
+                consoleWriter.AddMessageLine("Resolving names and version...", "darkgray");
+                NamesAndVersionResolver nvResolverOldVersions = new()
+                {
+                    ConstantFileRegExpPath = @"\\.*\\(.*)\.(.*)\.Common\\Constants\.cs$",
+                    ConstantFileNameSearchPattern = "Constants.cs",
+                    ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
+                    ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
+                    FrontFileRegExpPath = null,
+                    FrontFileUsingBiaNg = null,
+                    FrontFileBiaNgImportRegExp = null,
+                    FrontFileNameSearchPattern = null
+                };
+
+                NamesAndVersionResolver nvResolver = new()
+                {
+                    ConstantFileRegExpPath = @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$",
+                    ConstantFileNameSearchPattern = "Constants.cs",
+                    ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
+                    ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
+                    FrontFileRegExpPath =
+                    [
+                        @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$",
+                    @"\\(.*)\\packages\\bia-ng\\core\\bia-core.module\.ts$"
+                    ],
+                    FrontFileUsingBiaNg = @"\\(?!.*(?:\\node_modules\\|\\dist\\|\\\.angular\\))(.*)\\package\.json$",
+                    FrontFileBiaNgImportRegExp = "\"bia-ng\":",
+                    FrontFileNameSearchPattern = "bia-core.module.ts"
+                };
+
+                var resolverTask = Task.Run(() => nvResolver.ResolveNamesAndVersion(project));
+                var resolverOldVersionsTask = Task.Run(() => nvResolverOldVersions.ResolveNamesAndVersion(project));
+                await Task.WhenAll(resolverTask, resolverOldVersionsTask);
+
+                consoleWriter.AddMessageLine("Names and version resolved", "lightgreen");
+
+                if (project.BIAFronts.Count == 0)
+                {
+                    consoleWriter.AddMessageLine("Unable to find any BIA front folder for this project", "orange");
+                }
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error while loading project : {ex.Message}", "red");
+            }
+        }
+
+        private async Task ParseProject(Project currentProject)
+        {
+            try
+            {
+                await parserService.LoadSolution(currentProject.SolutionPath);
+                await parserService.ParseSolutionClasses();
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error while loading project solution : {ex.Message}", "red");
+            }
+        }
+
+        private void RefreshProjectInformations()
+        {
+            messenger.Send(new ExecuteActionWithWaiterMessage(async () =>
+            {
+                await LoadProject(CurrentProject);
+                await InitFileGeneratorServiceFromProject(CurrentProject);
+                await ParseProject(CurrentProject);
+                RefreshUI();
+            }));
+        }
+
+        private void RefreshUI()
+        {
+            OnPropertyChanged(nameof(FrameworkVersion));
+            OnPropertyChanged(nameof(CompanyName));
+            OnPropertyChanged(nameof(Name));
+            OnPropertyChanged(nameof(IsProjectSelected));
+            OnPropertyChanged(nameof(BIAFronts));
+            if ((!IsProjectCompatibleCrudGenerator && !IsFileGeneratorServiceInit) 
+                || (SelectedTabIndex == 2 && !IsFileGeneratorServiceInit))
+            {
+                SelectedTabIndex = 0;
+            }
+        }
+
+        public string FrameworkVersion
+        {
+            get { return String.IsNullOrEmpty(ModifyProject.CurrentProject?.FrameworkVersion) ? "???" : ModifyProject.CurrentProject.FrameworkVersion; }
+        }
+
+        public string CompanyName
+        {
+            get { return String.IsNullOrEmpty(ModifyProject.CurrentProject?.CompanyName) ? "???" : ModifyProject.CurrentProject.CompanyName; }
+        }
+
+        public string Name
+        {
+            get { return String.IsNullOrEmpty(ModifyProject.CurrentProject?.Name) ? "???" : ModifyProject.CurrentProject.Name; }
+        }
+
+        public string BIAFronts => ModifyProject.CurrentProject?.BIAFronts != null && ModifyProject.CurrentProject?.BIAFronts.Count > 0 ?
+            string.Join(", ", ModifyProject.CurrentProject.BIAFronts) :
+            "???";
+
+        public Project CurrentProject
+        {
+            get { return ModifyProject.CurrentProject; }
+            set
+            {
+                if (ModifyProject.CurrentProject != value)
+                {
+                    ModifyProject.CurrentProject = value;
+                    RefreshUI();
+                    messenger.Send(new ProjectChangedMessage(value));
+                }
+            }
+        }
+
+        public bool OverwriteBIAFromOriginal
+        {
+            get; set;
+        }
+
+        public bool IsProjectSelected => CurrentProject != null;
+
+        private int selectedTabIndex = 0;
+
+        public int SelectedTabIndex
+        {
+            get { return selectedTabIndex; }
+            set 
+            { 
+                selectedTabIndex = value;
+                OnPropertyChanged(nameof(SelectedTabIndex));
+            }
+        }
+
+    }
+}

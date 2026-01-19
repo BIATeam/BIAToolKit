@@ -1,4 +1,4 @@
-Ôªønamespace BIA.ToolKit.Application.Helper
+namespace BIA.ToolKit.Application.Helper
 {
     using System;
     using System.Collections.Generic;
@@ -22,7 +22,7 @@
         }
 
         // ---------------------------------------------------------------------
-        // Helpers ‚Äì conversion des valeurs vers des litt√©raux/expressions Roslyn
+        // Helpers ñ conversion des valeurs vers des littÈraux/expressions Roslyn
         // ---------------------------------------------------------------------
         private static ExpressionSyntax ToExpression(object value) => value switch
         {
@@ -47,7 +47,7 @@
                               SyntaxFactory.IdentifierName(e.ToString())),
             ExpressionSyntax es => es,
             _ => throw new NotSupportedException(
-                              $"Type de valeur non g√©r√© : {value.GetType().FullName}")
+                              $"Type de valeur non gÈrÈ : {value.GetType().FullName}")
         };
 
         public static IEnumerable<INamedTypeSymbol> GetAllNamedTypes(INamespaceSymbol ns)
@@ -61,7 +61,7 @@
                 }
                 else if (member is INamedTypeSymbol nt)
                 {
-                    // Inclut types imbriqu√©s
+                    // Inclut types imbriquÈs
                     foreach (var nested in GetSelfAndNested(nt))
                         yield return nested;
                 }
@@ -117,7 +117,7 @@
                 var items = tc.Values.Select(TypedConstantToString);
                 return $"[{string.Join(", ", items)}]";
             }
-            // Affichage format√© des types et enums
+            // Affichage formatÈ des types et enums
             return tc.Value switch
             {
                 ITypeSymbol t => Display(t),
@@ -139,27 +139,27 @@
 
         public static IEnumerable<IPropertySymbol> GetAllAccessiblePublicProperties(INamedTypeSymbol type)
         {
-            // Propri√©t√©s publiques d√©clar√©es
+            // PropriÈtÈs publiques dÈclarÈes
             IEnumerable<IPropertySymbol> own = type.GetMembers()
                 .OfType<IPropertySymbol>()
                 .Where(p => p.DeclaredAccessibility == Accessibility.Public || p.ExplicitInterfaceImplementations.Length > 0);
 
-            // Propri√©t√©s publiques des bases
+            // PropriÈtÈs publiques des bases
             IEnumerable<IPropertySymbol> bases = GetBaseTypes(type)
                 .SelectMany(bt => bt.GetMembers().OfType<IPropertySymbol>()
                     .Where(p => p.DeclaredAccessibility == Accessibility.Public));
 
-            // Propri√©t√©s des interfaces (explicites ou non)
+            // PropriÈtÈs des interfaces (explicites ou non)
             IEnumerable<IPropertySymbol> ifaces = type.AllInterfaces
                 .SelectMany(i => i.GetMembers().OfType<IPropertySymbol>());
 
-            // Union + d√©duplication par ‚Äúsignature lisible‚Äù
+            // Union + dÈduplication par ìsignature lisibleî
             var map = new Dictionary<string, (IPropertySymbol prop, int depth)>(StringComparer.Ordinal);
 
             void consider(IPropertySymbol p, int depth)
             {
                 var key = $"{Display(p.Type)} {p.Name}";
-                // Garder la plus d√©riv√©e (depth plus petit = plus proche du type courant)
+                // Garder la plus dÈrivÈe (depth plus petit = plus proche du type courant)
                 if (!map.TryGetValue(key, out var existing) || depth < existing.depth)
                     map[key] = (p, depth);
             }
@@ -174,7 +174,7 @@
                     consider(p, d);
                 d++;
             }
-            // interfaces : profondeur ‚Äúinfinie‚Äù pour ne jamais √©craser impl√©mentations concr√®tes
+            // interfaces : profondeur ìinfinieî pour ne jamais Ècraser implÈmentations concrËtes
             foreach (var p in ifaces) consider(p, int.MaxValue / 2);
 
             return map.Values.Select(v => v.prop);

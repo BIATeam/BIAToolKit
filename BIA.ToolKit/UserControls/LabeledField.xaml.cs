@@ -1,4 +1,4 @@
-ï»¿namespace BIA.ToolKit.UserControls
+namespace BIA.ToolKit.UserControls
 {
     using System;
     using System.Collections.Generic;
@@ -19,7 +19,7 @@
     /// <summary>
     /// Interaction logic for LabeledField.xaml
     /// </summary>
-    [ContentProperty(nameof(FieldContent))]          // rend lâ€™Ã©criture XAML naturelle
+    [ContentProperty(nameof(FieldContent))]          // rend l’écriture XAML naturelle
     public partial class LabeledField : UserControl
     {
         public LabeledField() => InitializeComponent();

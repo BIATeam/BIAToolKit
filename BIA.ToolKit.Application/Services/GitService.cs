@@ -1,4 +1,4 @@
-ï»¿namespace BIA.ToolKit.Application.Services
+namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
     using System.Collections.Generic;
@@ -264,7 +264,7 @@
         static async Task<string> HashObjectAsync(string path, string repoRoot)
         {
             var (e, outp, err) = await RunCaptureAsync("git", $"hash-object -w \"{path}\"", workingDir: repoRoot);
-            if (e != 0) throw new InvalidOperationException($"hash-object a Ã©chouÃ© pour {path}: {err}");
+            if (e != 0) throw new InvalidOperationException($"hash-object a échoué pour {path}: {err}");
             var oid = outp.Trim();
             await EnsureBlobExistsAsync(oid, repoRoot);
             return oid;
@@ -319,12 +319,12 @@
             return (p.ExitCode, stdoutTask.Result, stderrTask.Result);
         }
 
-        // SpÃ©cifique Git: renvoie stdout.Trim() ou lÃ¨ve en cas dâ€™erreur
+        // Spécifique Git: renvoie stdout.Trim() ou lève en cas d’erreur
         static async Task<string> GitOutAsync(string args, string? stdin = null)
         {
             var (exit, stdout, stderr) = await RunCaptureAsync("git", args, stdin: stdin);
             if (exit != 0)
-                throw new InvalidOperationException($"git {args} a Ã©chouÃ© ({exit}): {stderr}");
+                throw new InvalidOperationException($"git {args} a échoué ({exit}): {stderr}");
             return stdout.Trim();
         }
 

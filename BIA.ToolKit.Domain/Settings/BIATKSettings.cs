@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.Settings
+namespace BIA.ToolKit.Domain.Settings
 {
     using System;
     using System.Collections.Generic;

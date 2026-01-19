@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.UserControls
+namespace BIA.ToolKit.UserControls
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Messages;
@@ -6,7 +6,7 @@
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModels;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -46,9 +46,9 @@
 
         private readonly OptionGeneratorViewModel vm;
         private OptionGeneration optionGenerationHistory;
-        private string optionHistoryFileName;
         private readonly List<FeatureGenerationSettings> backSettingsList;
         private readonly List<FeatureGenerationSettings> frontSettingsList;
+        private OptionGeneratorHelper optionHelper;
 
         /// <summary>
         /// Constructor
@@ -141,12 +141,12 @@
             vm.Domain = null;
             vm.EntityNamePlural = null;
 
-            if (this.optionGenerationHistory != null)
+            if (this.optionGenerationHistory != null && optionHelper != null)
             {
                 string entityName = GetEntitySelectedPath();
                 if (!string.IsNullOrEmpty(entityName))
                 {
-                    var history = optionGenerationHistory.OptionGenerationHistory.FirstOrDefault(h => h.Mapping.Entity == entityName);
+                    var history = optionHelper.LoadEntityHistory(optionGenerationHistory, entityName);
 
                     if (history != null)
                     {
@@ -159,9 +159,7 @@
                 }
 
                 // Get generated options
-                var histories = optionGenerationHistory.OptionGenerationHistory.Where(h =>
-                    (h.Mapping.Entity != entityName) &&
-                    h.Generation.Any(g => g.FeatureType == FeatureType.Option.ToString())).ToList();
+                var histories = optionHelper.GetGeneratedOptions(optionGenerationHistory, entityName);
             }
 
             OptionAlreadyGeneratedLabel.Visibility = msgVisibility;
@@ -232,7 +230,7 @@
             try
             {
                 // Get last generation history
-                var history = optionGenerationHistory?.OptionGenerationHistory?.FirstOrDefault(h => h.Mapping.Entity == GetEntitySelectedPath());
+                var history = optionHelper.LoadEntityHistory(optionGenerationHistory, GetEntitySelectedPath());
                 if (history == null)
                 {
                     consoleWriter.AddMessageLine($"No previous '{vm.Entity.Name}' generation found.", "Orange");
@@ -322,69 +320,24 @@
 
         private void SetGenerationSettings()
         {
-            // Get files/folders name
-            string dotnetBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, Constants.FolderBia);
-            string backSettingsFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, settings.GenerationSettingsFileName);
-            this.optionHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.OptionGenerationHistoryFileName);
-
-            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            if (optionHelper == null)
             {
-                this.optionGenerationHistory = CommonTools.DeserializeJsonFile<OptionGeneration>(this.optionHistoryFileName);
-                return;
+                optionHelper = new OptionGeneratorHelper(settings, fileGeneratorService, vm.CurrentProject);
             }
 
-            // Load BIA settings
-            if (File.Exists(backSettingsFileName))
-            {
-                backSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(backSettingsFileName));
-                foreach (var setting in backSettingsList)
-                {
-                    var featureType = Enum.Parse<FeatureType>(setting.Type);
-                    if (featureType != FeatureType.Option)
-                        continue;
-
-                    var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths, setting.FeatureDomain)
-                    {
-                        IsChecked = true
-                    };
-                    vm.ZipFeatureTypeList.Add(zipFeatureType);
-                }
-            }
-
-            // Load generation history
-            this.optionGenerationHistory = CommonTools.DeserializeJsonFile<OptionGeneration>(this.optionHistoryFileName);
+            var (backSettings, frontSettings, history) = optionHelper.InitializeSettings(vm.ZipFeatureTypeList);
+            backSettingsList.Clear();
+            backSettingsList.AddRange(backSettings);
+            frontSettingsList.Clear();
+            frontSettingsList.AddRange(frontSettings);
+            optionGenerationHistory = history;
         }
 
         private void SetFrontGenerationSettings(string biaFront)
         {
-            this.frontSettingsList.Clear();
-            vm.ZipFeatureTypeList.RemoveAll(x => x.GenerationType == GenerationType.Front);
-
-            string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
-            string frontSettingsFileName = Path.Combine(vm.CurrentProject.Folder, biaFront, settings.GenerationSettingsFileName);
-
-            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
-            {
-                return;
-            }
-
-            if (File.Exists(frontSettingsFileName))
-            {
-                frontSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(frontSettingsFileName));
-                foreach (var setting in frontSettingsList)
-                {
-                    var featureType = Enum.Parse<FeatureType>(setting.Type);
-                    if (featureType != FeatureType.Option)
-                        continue;
-
-                    var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths, setting.FeatureDomain)
-                    {
-                        IsChecked = true
-                    };
-
-                    vm.ZipFeatureTypeList.Add(zipFeatureType);
-                }
-            }
+            var frontSettings = optionHelper.LoadFrontSettings(biaFront, vm.ZipFeatureTypeList);
+            frontSettingsList.Clear();
+            frontSettingsList.AddRange(frontSettings);
         }
 
         /// <summary>
@@ -438,18 +391,8 @@
                     }
                 });
 
-                // Get existing to verify if previous generation for same entity name was already done
-                var genFound = this.optionGenerationHistory.OptionGenerationHistory.FirstOrDefault(gen => gen.EntityNameSingular == history.EntityNameSingular);
-                if (genFound != null)
-                {
-                    // Remove last generation to replace by new generation
-                    this.optionGenerationHistory.OptionGenerationHistory.Remove(genFound);
-                }
-
-                this.optionGenerationHistory.OptionGenerationHistory.Add(history);
-
-                // Generate history file
-                CommonTools.SerializeToJsonFile(this.optionGenerationHistory, this.optionHistoryFileName);
+                // Use helper to save history
+                optionHelper.UpdateHistory(this.optionGenerationHistory, history);
             }
             catch (Exception ex)
             {
@@ -462,11 +405,7 @@
         /// </summary>
         private void DeleteLastGenerationHistory(OptionGenerationHistory history)
         {
-            // Delete GenerationHistory
-            optionGenerationHistory?.OptionGenerationHistory?.Remove(history);
-
-            // Generate history file
-            CommonTools.SerializeToJsonFile(this.optionGenerationHistory, this.optionHistoryFileName);
+            optionHelper.DeleteHistory(optionGenerationHistory, history);
         }
 
         /// <summary>

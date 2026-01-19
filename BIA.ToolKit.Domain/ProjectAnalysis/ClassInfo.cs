@@ -1,4 +1,4 @@
-ï»¿namespace BIA.ToolKit.Domain.ProjectAnalysis
+namespace BIA.ToolKit.Domain.ProjectAnalysis
 {
     using System;
     using System.Collections.Generic;
@@ -12,8 +12,8 @@
         string Namespace,
         bool IsGeneric,
         IReadOnlyList<AttributeInfo> Attributes,
-        IReadOnlyList<PropertyInfo> PublicProperties,      // DÃ©dupliquÃ©es et hÃ©ritÃ©es incluses
-        IReadOnlyList<InheritedTypeInfo> BaseClassesChain, // De la plus proche Ã  System.Object (exclue)
+        IReadOnlyList<PropertyInfo> PublicProperties,      // Dédupliquées et héritées incluses
+        IReadOnlyList<InheritedTypeInfo> BaseClassesChain, // De la plus proche à System.Object (exclue)
         IReadOnlyList<InheritedTypeInfo> AllInterfaces     // Transitivement
     );
 }

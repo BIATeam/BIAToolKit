@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Test.Templates._6_0_0
+namespace BIA.ToolKit.Test.Templates._6_0_0
 {
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;

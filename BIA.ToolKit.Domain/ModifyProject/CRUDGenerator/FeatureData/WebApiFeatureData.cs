@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData
+namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData
 {
     using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.DtoGenerator;

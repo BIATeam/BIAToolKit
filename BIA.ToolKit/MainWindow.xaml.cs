@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit
+namespace BIA.ToolKit
 {
     using BIA.ToolKit.Helper;
     using System.IO;
@@ -12,7 +12,7 @@
     using System;
     using System.Diagnostics;
     using BIA.ToolKit.UserControls;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModels;
     using BIA.ToolKit.Dialogs;
     using System.Text.Json;
     using BIA.ToolKit.Common;

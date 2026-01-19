@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Test.Templates._5_0_0
+namespace BIA.ToolKit.Test.Templates._5_0_0
 {
     using System;
     using System.Collections.Generic;

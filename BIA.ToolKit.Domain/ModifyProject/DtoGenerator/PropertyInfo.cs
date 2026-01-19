@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.DtoGenerator
+namespace BIA.ToolKit.Domain.DtoGenerator
 {
     using BIA.ToolKit.Common;
     using Microsoft.CodeAnalysis.CSharp.Syntax;

@@ -1,8 +1,8 @@
 # Plan de Refactorisation - Suivi d'Implémentation
 
 **Date de Création**: 19 janvier 2026  
-**Dernière Mise à Jour**: 21 janvier 2026  
-**Statut Global**: 🚀 En Cours - Phase 1 Complétée
+**Dernière Mise à Jour**: 22 janvier 2026  
+**Statut Global**: 🚀 En Cours - Phases 1-2 Complétées, Phase 3 en cours (3/8 étapes)
 
 ---
 
@@ -90,14 +90,48 @@
 |---|-------|-------------|--------|--------|-------|
 | 11 | Refactoriser CRUDGeneratorUC | 795 → 200 lignes (75% réduction) | ⬜ Pas Commencé | 5j | **CRITIQUE** |
 | 12 | Refactoriser DtoGeneratorUC | 650 → 180 lignes (72% réduction) | ⬜ Pas Commencé | 4j | **CRITIQUE** |
-| 13 | Refactoriser OptionGeneratorUC | 500 → 150 lignes (70% réduction) | ⬜ Pas Commencé | 3j | **IMPORTANTE** |
-| 14 | Refactoriser ModifyProjectUC | Ajouter IFileDialogService | ⬜ Pas Commencé | 2j | Moyenne priorité |
-| 15 | Refactoriser RepositoryFormUC | 60 → 20 lignes (67% réduction) | ⬜ Pas Commencé | 0.5j | Simple |
+| 13 | Refactoriser OptionGeneratorUC | 549 → 488 lignes (11% réduction) | ✅ Terminé | 3j | **IMPORTANTE** - Helper créé |
+| 14 | Refactoriser ModifyProjectUC | Ajouter IFileDialogService | ✅ Terminé | 2j | Moyenne priorité |
+| 15 | Refactoriser RepositoryFormUC | 60 → 20 lignes (67% réduction) | ✅ Terminé | 0.5j | Simple |
 | 16 | Refactoriser VersionAndOptionUserControl | DRY cleanup | ⬜ Pas Commencé | 1j | Simple |
 | 17 | Refactoriser LabeledField | Documentation (peu de changements) | ⬜ Pas Commencé | 0.25j | OK déjà |
 | 18 | Refactoriser Dialog Controls | LogDetail, CustomTemplate* | ⬜ Pas Commencé | 1j | YAGNI included |
 
 **Estimation Phase 3**: 16.75 jours (équivalent: ~3 semaines)
+
+#### 📝 Détails Étape 13: OptionGeneratorUC (Terminé)
+
+**Objectif**: Refactoriser OptionGeneratorUC.xaml.cs en extrayant la logique de gestion des historiques et paramètres
+
+**Travail Effectué**:
+1. ✅ Création de [OptionGeneratorHelper.cs](BIA.ToolKit/ViewModels/OptionGeneratorHelper.cs) (235 lignes)
+   - `InitializeSettings()`: Charge settings back/front + historique
+   - `LoadFrontSettings()`: Charge paramètres Angular front
+   - `LoadEntityHistory()`: Récupère historique pour une entité
+   - `UpdateHistory()`: Sauvegarde historique de génération
+   - `DeleteHistory()`: Supprime entrée historique
+   - `GetGeneratedOptions()`: Liste options déjà générées
+
+2. ✅ Refactorisation [OptionGeneratorUC.xaml.cs](BIA.ToolKit/UserControls/OptionGeneratorUC.xaml.cs)
+   - Suppression du champ `optionHistoryFileName`
+   - Ajout du champ `optionHelper` (OptionGeneratorHelper)
+   - `SetGenerationSettings()`: Délègue à `optionHelper.InitializeSettings()`
+   - `SetFrontGenerationSettings()`: Délègue à `optionHelper.LoadFrontSettings()`
+   - `ModifyEntity_SelectionChange()`: Utilise `LoadEntityHistory()` et `GetGeneratedOptions()`
+   - `UpdateOptionGenerationHistory()`: Simplifié avec `optionHelper.UpdateHistory()`
+   - `DeleteLastGenerationHistory()`: Délègue à `optionHelper.DeleteHistory()`
+   - `DeleteLastGeneration_Click()`: Utilise `LoadEntityHistory()`
+
+**Résultats**:
+- Code-Behind: **549 → 488 lignes** (61 lignes supprimées, 11% réduction)
+- Helper créé: 235 lignes de logique testable
+- **Principes appliqués**: SRP (Single Responsibility), DRY (Don't Repeat Yourself)
+- Compilation: ✅ Sans erreurs
+
+**Prochaines Étapes**:
+- Tests unitaires pour OptionGeneratorHelper
+- Tests d'intégration pour OptionGeneratorUC
+- Documentation XML complète
 
 ---
 

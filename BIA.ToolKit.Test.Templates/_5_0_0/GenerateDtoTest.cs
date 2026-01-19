@@ -1,9 +1,9 @@
-﻿namespace BIA.ToolKit.Test.Templates._5_0_0
+namespace BIA.ToolKit.Test.Templates._5_0_0
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.Services.FileGenerator.Models;
     using BIA.ToolKit.Domain.DtoGenerator;
     using Xunit;
 

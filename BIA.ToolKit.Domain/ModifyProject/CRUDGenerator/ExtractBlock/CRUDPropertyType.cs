@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.ExtractBlock
+namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.ExtractBlock
 {
     public class CRUDPropertyType
     {

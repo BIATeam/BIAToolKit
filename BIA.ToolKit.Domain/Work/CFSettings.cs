@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.Work
+namespace BIA.ToolKit.Domain.Work
 {
     using System.Collections.Generic;
 

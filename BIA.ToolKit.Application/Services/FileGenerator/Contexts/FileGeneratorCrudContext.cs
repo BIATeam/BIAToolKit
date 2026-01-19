@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.FileGenerator.Contexts
+namespace BIA.ToolKit.Application.Services.FileGenerator.Contexts
 {
     using System;
     using System.Collections.Generic;
@@ -6,7 +6,6 @@
     using System.Text;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Templates.Common.Enum;
-    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.DtoGenerator;
 
     public sealed class FileGeneratorCrudContext : FileGeneratorContext

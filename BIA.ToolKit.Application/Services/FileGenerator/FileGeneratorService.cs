@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.FileGenerator
+namespace BIA.ToolKit.Application.Services.FileGenerator
 {
     using System;
     using System.Collections.Generic;
@@ -13,7 +13,7 @@
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Services.FileGenerator.ModelProviders;
     using BIA.ToolKit.Application.Templates;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.Services.FileGenerator.Models;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;

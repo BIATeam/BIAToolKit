@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData
+namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData
 {
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.ExtractBlock;

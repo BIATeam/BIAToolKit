@@ -1,4 +1,4 @@
-﻿using BIA.ToolKit.Application.Helper;
+using BIA.ToolKit.Application.Helper;
 using BIA.ToolKit.Common;
 using System;
 using System.Collections.Generic;

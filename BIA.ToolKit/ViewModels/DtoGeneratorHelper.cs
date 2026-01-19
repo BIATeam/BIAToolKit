@@ -5,7 +5,7 @@ namespace BIA.ToolKit.ViewModels
     using System.Linq;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Settings;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModels;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;

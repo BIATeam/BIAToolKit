@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.UserControls
+namespace BIA.ToolKit.UserControls
 {
     using System;
     using System.Collections.Generic;
@@ -8,10 +8,10 @@
     using System.Threading.Tasks;
     using System.Windows.Controls;
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Mapper;
+    using BIA.ToolKit.Mapper;
     using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModels;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Model;

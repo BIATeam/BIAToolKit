@@ -1,5 +1,5 @@
 using BIA.ToolKit.Application.Services;
-using BIA.ToolKit.Application.ViewModel;
+using BIA.ToolKit.ViewModels;
 
 namespace BIA.ToolKit.Application.Messages
 {
