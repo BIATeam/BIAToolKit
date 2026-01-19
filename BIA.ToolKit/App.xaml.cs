@@ -64,14 +64,13 @@ namespace BIA.ToolKit
             services.AddSingleton<UIEventBroker>(); // Keep for now during migration
             
             // ViewModels
-            services.AddTransient<MainViewModel>();
-            services.AddTransient<Application.ViewModel.MainWindowViewModel>(); // NEW: Phase 4 ViewModel
+            services.AddTransient<Application.ViewModel.MainWindowViewModel>(); // Phase 4 ViewModel - replaces MainViewModel
             services.AddTransient<ModifyProjectViewModel>();
             services.AddTransient<DtoGeneratorViewModel>();
             services.AddTransient<OptionGeneratorViewModel>();
             services.AddTransient<VersionAndOptionViewModel>();
             services.AddTransient<RepositoryFormViewModel>();
-            // RepositoryGitViewModel and RepositoryFolderViewModel are created manually in MainViewModel
+            // RepositoryGitViewModel and RepositoryFolderViewModel are created manually
             services.AddTransient<RepositoriesSettingsVM>();
             services.AddTransient<RepositorySettingsVM>();
             
