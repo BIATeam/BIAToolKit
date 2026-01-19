@@ -40,9 +40,9 @@ namespace BIA.ToolKit.UserControls
 
         private readonly CRUDGeneratorViewModel vm;
         private CRUDGeneration crudHistory;
-        private string crudHistoryFileName;
         private readonly List<FeatureGenerationSettings> backSettingsList;
         private List<FeatureGenerationSettings> frontSettingsList;
+        private CRUDGeneratorHelper crudHelper;
 
         /// <summary>
         /// Constructor
@@ -166,12 +166,12 @@ namespace BIA.ToolKit.UserControls
                 }
             }
 
-            if (this.crudHistory != null)
+            if (this.crudHistory != null && crudHelper != null)
             {
                 string dtoName = GetDtoSelectedPath();
                 if (!string.IsNullOrEmpty(dtoName))
                 {
-                    CRUDGenerationHistory history = crudHistory.CRUDGenerationHistory.FirstOrDefault(h => h.Mapping.Dto == dtoName);
+                    CRUDGenerationHistory history = crudHelper.LoadDtoHistory(crudHistory, dtoName);
 
                     if (history != null)
                     {
@@ -223,9 +223,7 @@ namespace BIA.ToolKit.UserControls
                 }
 
                 // Get generated options
-                List<CRUDGenerationHistory> histories = crudHistory.CRUDGenerationHistory.Where(h =>
-                    (h.Mapping.Dto != dtoName) &&
-                    h.Generation.Any(g => g.FeatureType == FeatureType.Option.ToString())).ToList();
+                List<CRUDGenerationHistory> histories = crudHelper.GetGeneratedOptions(crudHistory, dtoName);
             }
 
             CrudAlreadyGeneratedLabel.Visibility = msgVisibility;
@@ -342,7 +340,7 @@ namespace BIA.ToolKit.UserControls
             try
             {
                 // Get last generation history
-                CRUDGenerationHistory history = crudHistory?.CRUDGenerationHistory?.FirstOrDefault(h => h.Mapping.Dto == GetDtoSelectedPath());
+                CRUDGenerationHistory history = crudHelper.LoadDtoHistory(crudHistory, GetDtoSelectedPath());
                 if (history == null)
                 {
                     consoleWriter.AddMessageLine($"No previous '{vm.CRUDNameSingular}' generation found.", "Orange");
@@ -350,7 +348,7 @@ namespace BIA.ToolKit.UserControls
                 }
 
                 // Get generation histories used by options
-                List<CRUDGenerationHistory> historyOptions = crudHistory?.CRUDGenerationHistory?.Where(h => h.OptionItems.Contains(vm.CRUDNameSingular)).ToList();
+                List<CRUDGenerationHistory> historyOptions = crudHelper.GetHistoriesUsingOption(crudHistory, vm.CRUDNameSingular);
 
                 // Delete last generation
                 crudService.DeleteLastGeneration(vm.ZipFeatureTypeList, vm.CurrentProject, history, vm.FeatureNameSelected, new CrudParent { Exists = history.HasParent, Domain = history.Domain, Name = history.ParentName, NamePlural = history.ParentNamePlural }, historyOptions);
@@ -438,62 +436,32 @@ namespace BIA.ToolKit.UserControls
 
         private void SetGenerationSettings(Project project)
         {
-            // Get files/folders name
-            string dotnetBiaFolderPath = Path.Combine(project.Folder, Constants.FolderDotNet, Constants.FolderBia);
-            string backSettingsFileName = Path.Combine(project.Folder, Constants.FolderDotNet, settings.GenerationSettingsFileName);
-            this.crudHistoryFileName = Path.Combine(project.Folder, Constants.FolderBia, settings.CrudGenerationHistoryFileName);
-
-            // Handle old path of CRUD history file
-            var oldCrudHistoryFilePath = Path.Combine(project.Folder, settings.CrudGenerationHistoryFileName);
-            if (File.Exists(oldCrudHistoryFilePath))
+            if (crudHelper == null)
             {
-                File.Move(oldCrudHistoryFilePath, this.crudHistoryFileName);
+                crudHelper = new CRUDGeneratorHelper(settings, fileGeneratorService, project);
             }
 
-            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            var (backSettings, frontSettings, featureNames, history, useFileGenerator) = 
+                crudHelper.InitializeSettings(vm.ZipFeatureTypeList);
+            
+            backSettingsList.Clear();
+            backSettingsList.AddRange(backSettings);
+            frontSettingsList.Clear();
+            frontSettingsList.AddRange(frontSettings);
+            
+            vm.FeatureNames.Clear();
+            foreach (var featureName in featureNames)
             {
-                vm.UseFileGenerator = true;
-                vm.FeatureNames.Add("CRUD");
+                vm.FeatureNames.Add(featureName);
+            }
+            
+            if (useFileGenerator)
+            {
                 vm.FeatureNameSelected = "CRUD";
-                this.crudHistory = CommonTools.DeserializeJsonFile<CRUDGeneration>(this.crudHistoryFileName);
             }
-            else
-            {
-                vm.UseFileGenerator = false;
-
-                // Load BIA settings
-                if (File.Exists(backSettingsFileName))
-                {
-                    backSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(backSettingsFileName));
-                    if (project.FrameworkVersion == "3.9.0")
-                    {
-                        var crudPlanesFeature = backSettingsList.FirstOrDefault(x => x.Feature == "crud-planes");
-                        if (crudPlanesFeature != null)
-                        {
-                            crudPlanesFeature.Feature = "planes";
-                        }
-                    }
-                }
-
-                foreach (var setting in backSettingsList)
-                {
-                    var featureType = Enum.Parse<FeatureType>(setting.Type);
-                    if (featureType == FeatureType.Option)
-                        continue;
-
-                    var zipFeatureType = new ZipFeatureType(featureType, GenerationType.WebApi, setting.ZipName, dotnetBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths, setting.FeatureDomain);
-                    vm.ZipFeatureTypeList.Add(zipFeatureType);
-                }
-
-                foreach (var featureName in vm.ZipFeatureTypeList.Select(x => x.Feature).Distinct())
-                {
-                    vm.FeatureNames.Add(featureName);
-                }
-
-                // Load generation history
-                this.crudHistory = CommonTools.DeserializeJsonFile<CRUDGeneration>(this.crudHistoryFileName);
-            }
-
+            
+            crudHistory = history;
+            vm.UseFileGenerator = useFileGenerator;
             vm.CurrentProject = project;
             vm.IsProjectChosen = true;
 
@@ -505,36 +473,9 @@ namespace BIA.ToolKit.UserControls
 
         private void SetFrontGenerationSettings(string biaFront)
         {
-            this.frontSettingsList.Clear();
-            vm.ZipFeatureTypeList.RemoveAll(x => x.GenerationType == GenerationType.Front);
-
-            string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
-            string frontSettingsFileName = Path.Combine(vm.CurrentProject.Folder, biaFront, settings.GenerationSettingsFileName);
-
-            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
-            {
-                return;
-            }
-
-            if (File.Exists(frontSettingsFileName))
-            {
-                frontSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(frontSettingsFileName));
-                if (vm.CurrentProject.FrameworkVersion == "3.9.0")
-                {
-                    var featuresToRemove = frontSettingsList.Where(x => x.Feature == "planes-full-code" || x.Feature == "aircraft-maintenance-companies");
-                    frontSettingsList = frontSettingsList.Except(featuresToRemove).ToList();
-                }
-            }
-
-            foreach (var setting in frontSettingsList)
-            {
-                var featureType = Enum.Parse<FeatureType>(setting.Type);
-                if (featureType == FeatureType.Option)
-                    continue;
-
-                var zipFeatureType = new ZipFeatureType(featureType, GenerationType.Front, setting.ZipName, angularBiaFolderPath, setting.Feature, setting.Parents, setting.NeedParent, setting.AdaptPaths, setting.FeatureDomain);
-                vm.ZipFeatureTypeList.Add(zipFeatureType);
-            }
+            var frontSettings = crudHelper.LoadFrontSettings(biaFront, vm.ZipFeatureTypeList);
+            frontSettingsList.Clear();
+            frontSettingsList = frontSettings;
         }
 
         /// <summary>
@@ -635,18 +576,8 @@ namespace BIA.ToolKit.UserControls
                     });
                 }
 
-                // Get existing to verify if previous generation for same entity name was already done
-                CRUDGenerationHistory genFound = this.crudHistory.CRUDGenerationHistory.FirstOrDefault(gen => gen.EntityNameSingular == history.EntityNameSingular);
-                if (genFound != null)
-                {
-                    // Remove last generation to replace by new generation
-                    this.crudHistory.CRUDGenerationHistory.Remove(genFound);
-                }
-
-                this.crudHistory.CRUDGenerationHistory.Add(history);
-
-                // Generate history file
-                CommonTools.SerializeToJsonFile<CRUDGeneration>(this.crudHistory, this.crudHistoryFileName);
+                // Use helper to save history
+                crudHelper.UpdateHistory(this.crudHistory, history);
             }
             catch (Exception ex)
             {
@@ -659,17 +590,7 @@ namespace BIA.ToolKit.UserControls
         /// </summary>
         private void DeleteLastGenerationHistory(CRUDGenerationHistory history)
         {
-            // Delete CRUDGenerationHistory
-            crudHistory?.CRUDGenerationHistory?.Remove(history);
-
-            // Delete in options
-            foreach (CRUDGenerationHistory optionHistory in crudHistory?.CRUDGenerationHistory)
-            {
-                optionHistory.OptionItems.Remove(history.EntityNameSingular);
-            }
-
-            // Generate history file
-            CommonTools.SerializeToJsonFile<CRUDGeneration>(this.crudHistory, this.crudHistoryFileName);
+            crudHelper.DeleteHistory(crudHistory, history);
         }
 
         /// <summary>
