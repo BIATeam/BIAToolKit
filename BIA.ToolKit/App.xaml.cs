@@ -65,6 +65,7 @@ namespace BIA.ToolKit
             
             // ViewModels
             services.AddTransient<MainViewModel>();
+            services.AddTransient<Application.ViewModel.MainWindowViewModel>(); // NEW: Phase 4 ViewModel
             services.AddTransient<ModifyProjectViewModel>();
             services.AddTransient<DtoGeneratorViewModel>();
             services.AddTransient<OptionGeneratorViewModel>();
@@ -73,6 +74,9 @@ namespace BIA.ToolKit
             // RepositoryGitViewModel and RepositoryFolderViewModel are created manually in MainViewModel
             services.AddTransient<RepositoriesSettingsVM>();
             services.AddTransient<RepositorySettingsVM>();
+            
+            // Helpers (Phase 4)
+            services.AddTransient<BIA.ToolKit.Application.Helper.MainWindowHelper>();
             
             // UserControls
             services.AddTransient<CRUDGeneratorUC>();
