@@ -312,7 +312,8 @@ namespace BIA.ToolKit
         {
             if (sender is TabItem)
             {
-                EnsureValidRepositoriesConfiguration();
+                // Phase 6 Step 39: Delegate to ViewModel Method
+                ViewModel?.OnCreateProjectTabSelected();
             }
         }
 
@@ -323,7 +324,8 @@ namespace BIA.ToolKit
         {
             if (sender is TabItem)
             {
-                EnsureValidRepositoriesConfiguration();
+                // Phase 6 Step 39: Delegate to ViewModel Method
+                ViewModel?.OnModifyProjectTabSelected();
             }
         }
     }

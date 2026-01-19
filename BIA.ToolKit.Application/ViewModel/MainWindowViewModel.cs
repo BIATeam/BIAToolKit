@@ -533,6 +533,24 @@ public partial class MainWindowViewModel : ObservableObject
                biaTKsettings.TemplateRepositories.Any();
     }
 
+    /// <summary>
+    /// Phase 6 Step 39: Called when CREATE PROJECT tab is selected
+    /// Ensures repositories configuration is valid before allowing user to proceed   
+    /// </summary>
+    public void OnCreateProjectTabSelected()
+    {
+        EnsureValidRepositoriesConfiguration();
+    }
+
+    /// <summary>
+    /// Phase 6 Step 39: Called when MODIFY PROJECT tab is selected
+    /// Ensures repositories configuration is valid before allowing user to proceed   
+    /// </summary>
+    public void OnModifyProjectTabSelected()
+    {
+        EnsureValidRepositoriesConfiguration();
+    }
+
     #endregion
 
     #region Helper Methods
