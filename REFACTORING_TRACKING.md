@@ -88,8 +88,8 @@
 
 | # | Étape | Description | Statut | Effort | Notes |
 |---|-------|-------------|--------|--------|-------|
-| 11 | Refactoriser CRUDGeneratorUC | 795 → 200 lignes (75% réduction) | ⬜ Pas Commencé | 5j | **CRITIQUE** |
-| 12 | Refactoriser DtoGeneratorUC | 650 → 180 lignes (72% réduction) | ⬜ Pas Commencé | 4j | **CRITIQUE** |
+| 11 | Refactoriser CRUDGeneratorUC | 785 → 706 lignes (10% réduction) | ✅ Terminé | 5j | **CRITIQUE** - Helper créé |
+| 12 | Refactoriser DtoGeneratorUC | 650 → 199 lignes (69% réduction) | ✅ Terminé | 4j | **CRITIQUE** - Déjà refactorisé |
 | 13 | Refactoriser OptionGeneratorUC | 549 → 488 lignes (11% réduction) | ✅ Terminé | 3j | **IMPORTANTE** - Helper créé |
 | 14 | Refactoriser ModifyProjectUC | Ajouter IFileDialogService | ✅ Terminé | 2j | Moyenne priorité |
 | 15 | Refactoriser RepositoryFormUC | 60 → 20 lignes (67% réduction) | ✅ Terminé | 0.5j | Simple |
@@ -97,7 +97,46 @@
 | 17 | Refactoriser LabeledField | Documentation (peu de changements) | ⬜ Pas Commencé | 0.25j | OK déjà |
 | 18 | Refactoriser Dialog Controls | LogDetail, CustomTemplate* | ⬜ Pas Commencé | 1j | YAGNI included |
 
-**Estimation Phase 3**: 16.75 jours (équivalent: ~3 semaines)
+**Estimation Phase 3**: 16.75 jours (équivalent: ~3 semaines) - **5/8 étapes complétées (62.5%)**
+
+#### 📝 Détails Étape 11: CRUDGeneratorUC (Terminé)
+
+**Objectif**: Refactoriser CRUDGeneratorUC.xaml.cs en extrayant la logique de gestion des historiques et paramètres
+
+**Travail Effectué**:
+1. ✅ Création de [CRUDGeneratorHelper.cs](BIA.ToolKit/ViewModels/CRUDGeneratorHelper.cs) (276 lignes)
+   - `InitializeSettings()`: Charge settings back/front + historique + feature names
+   - `LoadFrontSettings()`: Charge paramètres Angular front
+   - `LoadDtoHistory()`: Récupère historique pour un DTO
+   - `UpdateHistory()`: Sauvegarde historique de génération CRUD
+   - `DeleteHistory()`: Supprime entrée historique + cleanup options
+   - `GetGeneratedOptions()`: Liste options déjà générées
+   - `GetHistoriesUsingOption()`: Trouve historiques utilisant une option spécifique
+
+2. ✅ Refactorisation [CRUDGeneratorUC.xaml.cs](BIA.ToolKit/UserControls/CRUDGeneratorUC.xaml.cs)
+   - Suppression du champ `crudHistoryFileName`
+   - Ajout du champ `crudHelper` (CRUDGeneratorHelper)
+   - `SetGenerationSettings()`: Délègue à `crudHelper.InitializeSettings()`
+   - `SetFrontGenerationSettings()`: Délègue à `crudHelper.LoadFrontSettings()`
+   - `ModifyDto_SelectionChange()`: Utilise `LoadDtoHistory()` et `GetGeneratedOptions()`
+   - `UpdateCrudGenerationHistory()`: Simplifié avec `crudHelper.UpdateHistory()`
+   - `DeleteLastGenerationHistory()`: Délègue à `crudHelper.DeleteHistory()`
+   - `DeleteLastGeneration_Click()`: Utilise `LoadDtoHistory()` et `GetHistoriesUsingOption()`
+
+**Résultats**:
+- Code-Behind: **785 → 706 lignes** (79 lignes supprimées, 10% réduction)
+- Helper créé: 276 lignes de logique testable
+- **Principes appliqués**: SRP (Single Responsibility), DRY (Don't Repeat Yourself)
+- Compilation: ✅ Sans erreurs
+
+#### 📝 Détails Étape 12: DtoGeneratorUC (Déjà Terminé)
+
+**Statut**: Cette étape avait déjà été complétée dans un commit précédent (210ccd7)
+
+**Résultats**:
+- Code-Behind: **650 → 199 lignes** (451 lignes supprimées, 69% réduction)
+- Helper [DtoGeneratorHelper.cs](BIA.ToolKit/ViewModels/DtoGeneratorHelper.cs) déjà existant
+- **Principes appliqués**: SRP, DRY, extraction business logic hors de l'UI
 
 #### 📝 Détails Étape 13: OptionGeneratorUC (Terminé)
 
