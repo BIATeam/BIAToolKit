@@ -1,8 +1,8 @@
 # Plan de Refactorisation - Suivi d'Implémentation
 
 **Date de Création**: 19 janvier 2026  
-**Dernière Mise à Jour**: 22 janvier 2026  
-**Statut Global**: ⚠️ Phases 1-3 Incomplètes - Phases 4-6 REQUISES
+**Dernière Mise à Jour**: 22 janvier 2026 - **Phase 4 Step 27 COMPLETE**  
+**Statut Global**: ⚠️ Phases 1-3 Incomplètes - Phases 4-6 EN COURS
 
 ---
 
@@ -91,6 +91,96 @@ Voir: **[REFACTORING_PHASE_4_6_PLAN.md](REFACTORING_PHASE_4_6_PLAN.md)**
 | 26 | Appliquer ISP | Interfaces ciblées, pas génériques | ⬜ Pas Commencé | 1h | IRepository split |
 
 **Estimation Phase 4**: 15 heures
+
+---
+
+### PHASE 4 (NOUVEAU): ViewModels Complets - MVVM Transformation (Étapes 27-32)
+
+**Objectif**: Créer tous les ViewModels avec Commands, éliminer event handlers du code-behind
+
+| # | Étape | Description | Statut | Effort | Commits |
+|---|-------|-------------|--------|--------|---------|
+| 27 | MainWindowViewModel | 11 Commands, 6 Observable Properties | ✅ Terminé | 4h | 18d65fe, d096cfe |
+| 28 | CRUDGeneratorViewModel | 4 Commands (Generate, Delete, Refresh, DeleteAnnotations) | ⬜ Pas Commencé | 3h | - |
+| 29 | OptionGeneratorViewModel | 3 Commands (Generate, Delete, Refresh) | ⬜ Pas Commencé | 3h | - |
+| 30 | DtoGeneratorViewModel | 2 Commands (Generate, BrowseFile) | ⬜ Pas Commencé | 2h | - |
+| 31 | ModifyProjectViewModel | 5 Commands (Browse, Modify, UpdateZip, DeleteAllGen) | ⬜ Pas Commencé | 3h | - |
+| 32 | VersionAndOptionViewModel | 2 Commands (SaveBefore, SaveAfter) | ⬜ Pas Commencé | 1.5h | - |
+
+**Estimation Phase 4 (Nouveau)**: 16.5 heures (≈ 2 jours)
+
+**Détails Step 27 - MainWindowViewModel** (✅ TERMINÉ):
+- **Fichier**: [MainWindowViewModel.cs](BIA.ToolKit/Application/ViewModel/MainWindowViewModel.cs)
+- **Lignes**: 555 lignes
+- **Commands**:
+  1. `BrowseCreateProjectRootFolderCommand` - Browse root projects folder
+  2. `CreateProjectCommand` - Create new project (async)
+  3. `BrowseFileGeneratorFolderCommand` - Browse file generator folder
+  4. `BrowseFileGeneratorFileCommand` - Browse file generator file
+  5. `GenerateFilesCommand` - Generate files from template (async)
+  6. `UpdateCommand` - Update BIA framework (async)
+  7. `CheckForUpdatesCommand` - Check for updates (async)
+  8. `CopyConsoleToClipboardCommand` - Copy console output
+  9. `ClearConsoleCommand` - Clear console
+  10. `ImportConfigCommand` - Import configuration (async)
+  11. `ExportConfigCommand` - Export configuration (async)
+- **Observable Properties**:
+  - `IsWaiterVisible` - Loading indicator
+  - `CreateProjectName` - Project name input
+  - `Settings_RootProjectsPath` - Root projects path
+  - `FileGeneratorFolder` - Generator folder path
+  - `FileGeneratorFile` - Generator file path
+  - `IsFileGeneratorGenerateEnabled` - Generate button enabled state
+- **Services Injected**: 13 dependencies (RepositoryService, GitService, CSharpParserService, GenerateFilesService, ProjectCreatorService, SettingsService, IConsoleWriter, FileGeneratorService, IMessenger, UpdateService, IFileDialogService, IDialogService, ILogger)
+- **Commits**: 
+  - `18d65fe` - Initial MainWindowViewModel creation
+  - `d096cfe` - Fixed IFileDialogService ambiguity & Clean Architecture violations
+- **Architecture Compliance**: ✅ No UI dependencies (System.Windows, System.Windows.Forms)
+
+---
+
+### PHASE 5 (NOUVEAU): Élimination Inject() Anti-Pattern (Étapes 33-38)
+
+**Objectif**: Remplacer 5 méthodes `Inject()` par Constructor Injection propre
+
+| # | Étape | Description | Statut | Effort | Commits |
+|---|-------|-------------|--------|--------|---------|
+| 33 | Éliminer MainWindow.Inject() | Constructor injection (13 params) | ⬜ Pas Commencé | 1h | - |
+| 34 | Éliminer CRUDGeneratorUC.Inject() | Constructor injection (8 params) | ⬜ Pas Commencé | 1h | - |
+| 35 | Éliminer DtoGeneratorUC.Inject() | Constructor injection (6 params) | ⬜ Pas Commencé | 1h | - |
+| 36 | Éliminer OptionGeneratorUC.Inject() | Constructor injection (6 params) | ⬜ Pas Commencé | 1h | - |
+| 37 | Éliminer ModifyProjectUC.Inject() | Constructor injection (10 params) | ⬜ Pas Commencé | 1h | - |
+| 38 | Update App.xaml.cs DI Registration | Register all ViewModels in DI container | ⬜ Pas Commencé | 0.5h | - |
+
+**Estimation Phase 5**: 5.5 heures
+
+---
+
+### PHASE 6 (NOUVEAU): XAML Command Bindings & Finalization (Étapes 39-44)
+
+**Objectif**: Câbler Commands dans XAML, éliminer tous les event handlers Click
+
+| # | Étape | Description | Statut | Effort | Commits |
+|---|-------|-------------|--------|--------|---------|
+| 39 | Update MainWindow.xaml | Replace 11 Click events with Command bindings | ⬜ Pas Commencé | 2h | - |
+| 40 | Update CRUDGeneratorUC.xaml | Replace 4 Click events with Command bindings | ⬜ Pas Commencé | 1h | - |
+| 41 | Update OptionGeneratorUC.xaml | Replace 3 Click events with Command bindings | ⬜ Pas Commencé | 1h | - |
+| 42 | Update DtoGeneratorUC.xaml | Replace 2 Click events with Command bindings | ⬜ Pas Commencé | 0.5h | - |
+| 43 | Update ModifyProjectUC.xaml | Replace 5 Click events with Command bindings | ⬜ Pas Commencé | 1h | - |
+| 44 | Final Cleanup & Testing | Remove unused event handlers, test all Commands | ⬜ Pas Commencé | 1.5h | - |
+
+**Estimation Phase 6**: 7 heures
+
+---
+
+**TOTAL PHASES 4-6**: 29 heures (≈ 3.5 jours)
+
+**Métriques Cibles**:
+- 92% code-behind reduction (2,560 → 195 lignes)
+- 0 Inject() methods (actuellement 5)
+- 0 event handlers avec logique (actuellement 16+)
+- 30+ Commands across 6 ViewModels
+- 95% testability (ViewModels testables sans UI)
 
 ---
 
