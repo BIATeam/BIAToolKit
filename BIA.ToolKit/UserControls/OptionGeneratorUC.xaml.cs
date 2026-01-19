@@ -42,6 +42,7 @@
         private CRUDSettings settings;
         private IMessenger messenger;
         private FileGeneratorService fileGeneratorService;
+        private ITextParsingService textParsingService;
 
         private readonly OptionGeneratorViewModel vm;
         private OptionGeneration optionGenerationHistory;
@@ -64,7 +65,7 @@
         /// Injection of services.
         /// </summary>
         public void Inject(CSharpParserService service, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, IMessenger messenger, FileGeneratorService fileGeneratorService)
+            IConsoleWriter consoleWriter, IMessenger messenger, FileGeneratorService fileGeneratorService, ITextParsingService textParsingService = null)
         {
             this.consoleWriter = consoleWriter;
             this.service = service;
@@ -75,6 +76,7 @@
             messenger.Register<ProjectChangedMessage>(this, (r, m) => UIEventBroker_OnProjectChanged(m.Project));
             messenger.Register<SolutionClassesParsedMessage>(this, (r, m) => UiEventBroker_OnSolutionClassesParsed());
             this.fileGeneratorService = fileGeneratorService;
+            this.textParsingService = textParsingService ?? new TextParsingService();
         }
 
         private void UiEventBroker_OnSolutionClassesParsed()
@@ -508,7 +510,9 @@
                 }
 
                 // Set by default previous generation selected value
-                var history = this.optionGenerationHistory?.OptionGenerationHistory?.FirstOrDefault(gh => (vm.Entity.Name == Path.GetFileNameWithoutExtension(gh.Mapping.Entity)));
+                var history = this.optionGenerationHistory?
+                    .OptionGenerationHistory?
+                    .FirstOrDefault(gh => vm.Entity.Name == textParsingService.ExtractClassNameFromFile(gh.Mapping.Entity));
                 vm.EntityDisplayItemSelected = history?.DisplayItem;
 
                 return true;

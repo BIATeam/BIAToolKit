@@ -56,7 +56,7 @@
             MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, messenger);
             MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, messenger);
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, messenger, fileGeneratorService, textParsingService);
-            OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, messenger, fileGeneratorService);
+            OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, messenger, fileGeneratorService, textParsingService);
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, messenger);
             this.crudSettings = new(settingsService);
             this.messenger = messenger;

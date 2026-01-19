@@ -124,6 +124,19 @@ namespace BIA.ToolKit.Application.Services
         }
 
         /// <summary>
+        /// Extracts the class name from a file path (without extension).
+        /// </summary>
+        public string ExtractClassNameFromFile(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                return null;
+            }
+
+            return System.IO.Path.GetFileNameWithoutExtension(filePath);
+        }
+
+        /// <summary>
         /// Extracts the entity name from a DTO file path.
         /// Example: "C:\Project\UserDto.cs" -> "User"
         /// </summary>
