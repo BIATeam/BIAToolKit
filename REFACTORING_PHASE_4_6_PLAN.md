@@ -468,6 +468,65 @@ private async Task GenerateAsync()
 
 ---
 
+## � Phase 6 Progress - Event Handlers to ViewModel Methods
+
+### Step 39: MainWindow Event Handlers ✅ COMPLETED (Commit f6a5092)
+
+**Status**: ✅ Step 39 SUCCESSFULLY COMPLETED and compiled
+
+**EventHandlers converted**:
+1. `OnTabCreateSelected` (MainWindow.xaml.cs line 315)
+   - ✅ Created `OnCreateProjectTabSelected()` method in MainWindowViewModel (public)
+   - ✅ Event handler now delegates to method: `ViewModel?.OnCreateProjectTabSelected();`
+   - Logic: Validates repositories configuration when CREATE PROJECT tab selected
+
+2. `OnTabModifySelected` (MainWindow.xaml.cs line 323)
+   - ✅ Created `OnModifyProjectTabSelected()` method in MainWindowViewModel (public)
+   - ✅ Event handler now delegates to method: `ViewModel?.OnModifyProjectTabSelected();`
+   - Logic: Validates repositories configuration when MODIFY PROJECT tab selected
+
+**Approach**: Pragmatic Delegation Pattern
+- Event handlers call simple public methods on ViewModel (not RelayCommand)
+- Methods encapsulate logic and make it testable and reusable
+- Avoids MVVM Toolkit source generation issues with WPF temp projects
+- Maintains MVVM separation: UI events → ViewModel methods → business logic
+
+---
+
+### Step 40: CRUDGeneratorUC Event Handlers ⏳ DEFERRED
+
+**Status**: ⚠️ COMPILATION BLOCKER - Hit WPF project temp compilation issue
+
+**Issue Identified**: 
+- BIA.ToolKit.csproj compiles using a temporary .csproj file
+- Temp project doesn't properly resolve public methods from referenced BIA.ToolKit.Application.dll at compile-time
+- Even though BIA.ToolKit.Application builds successfully with public methods added
+- BIA.ToolKit compilation fails with "cannot find definition" for public methods
+- Same issue affects RelayCommand source generation
+
+**Technical Root Cause**:
+- WPF XAML compilation generates a temporary `.csproj` file with embedded references
+- This temp project has stale or incomplete metadata about referenced assemblies
+- Projects built as temp projects have limited visibility into referenced DLL contents
+- Requires either: project restart, clean rebuild, or architectural change
+
+**EventHandlers identified in CRUDGeneratorUC** (7 total):
+1. `ModifyDto_SelectionChange` - Complex DTO parsing and history loading
+2. `ModifyEntitySingular_TextChange` - Clear CrudNamePlural
+3. `ModifyEntityPlural_TextChange` - Set IsSelectionChange = true
+4. `RefreshDtoList_Click` - Call ListDtoFiles()
+5. `Generate_Click` - Already has GenerateAsync() RelayCommand
+6. `DeleteLastGeneration_Click` - Already has DeleteLastGenerationAsync() RelayCommand
+7. `BiaFront_SelectionChanged` - Call SetFrontGenerationSettings() and ParseFrontDomains()
+
+**Resolution Options** (for future Phase):
+- Option A: Force IDE/Visual Studio cache clear and rebuild
+- Option B: Restructure solution to avoid temp project compilation
+- Option C: Use direct method calls in XAML (not ideal for MVVM)
+- Option D: Keep in code-behind temporarily with comments explaining blocker
+
+---
+
 ## 📝 Checklist par Étape
 
 Chaque étape doit:
@@ -482,4 +541,6 @@ Chaque étape doit:
 ---
 
 *Plan créé le 22 janvier 2026*  
-*Prêt pour exécution Phase 4-6*
+*Prêt pour exécution Phase 4-6*  
+*Phase 6 Step 39 ✅ COMPLETED et compilé avec succès*  
+*Phase 6 Step 40 ⏳ BLOQUER par problème WPF temp project compilation*
