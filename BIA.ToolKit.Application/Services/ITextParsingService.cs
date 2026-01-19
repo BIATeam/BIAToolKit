@@ -41,5 +41,14 @@ namespace BIA.ToolKit.Application.Services
         /// <param name="name">The name to process.</param>
         /// <returns>The name without 'Dto' suffix.</returns>
         string RemoveDtoSuffix(string name);
+
+        /// <summary>
+        /// Extracts the entity name from a DTO file path.
+        /// Handles both file names and full paths.
+        /// Example: "C:\Project\UserDto.cs" -> "User"
+        /// </summary>
+        /// <param name="dtoFilePath">The DTO file path or name.</param>
+        /// <returns>The extracted entity name.</returns>
+        string ExtractEntityNameFromDtoFile(string dtoFilePath);
     }
 }

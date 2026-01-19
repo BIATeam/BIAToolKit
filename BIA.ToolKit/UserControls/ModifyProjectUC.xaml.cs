@@ -46,7 +46,8 @@
 
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            FileGeneratorService fileGeneratorService, IMessenger messenger, Infrastructure.Services.IFileDialogService fileDialogService = null)
+            FileGeneratorService fileGeneratorService, IMessenger messenger, Infrastructure.Services.IFileDialogService fileDialogService = null,
+            ITextParsingService textParsingService = null)
         {
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
@@ -54,7 +55,7 @@
             this.projectCreatorService = projectCreatorService;
             MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, messenger);
             MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, messenger);
-            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, messenger, fileGeneratorService);
+            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, messenger, fileGeneratorService, textParsingService);
             OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, messenger, fileGeneratorService);
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, messenger);
             this.crudSettings = new(settingsService);

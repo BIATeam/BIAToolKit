@@ -36,6 +36,7 @@
         private CRUDSettings settings;
         private IMessenger messenger;
         private FileGeneratorService fileGeneratorService;
+    private ITextParsingService textParsingService;
 
         private readonly CRUDGeneratorViewModel vm;
         private CRUDGeneration crudHistory;
@@ -58,7 +59,7 @@
         /// Injection of services.
         /// </summary>
         public void Inject(CSharpParserService service, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, IMessenger messenger, FileGeneratorService fileGeneratorService)
+            IConsoleWriter consoleWriter, IMessenger messenger, FileGeneratorService fileGeneratorService, ITextParsingService textParsingService = null)
         {
             this.consoleWriter = consoleWriter;
             this.service = service;
@@ -66,6 +67,7 @@
             this.crudService = crudService;
             this.settings = new(settingsService);
             this.messenger = messenger;
+            this.textParsingService = textParsingService ?? new TextParsingService();
             this.messenger.Register<ProjectChangedMessage>(this, (r, m) => UiEventBroker_OnProjectChanged(m.Project));
             this.messenger.Register<SolutionClassesParsedMessage>(this, (r, m) => UiEventBroker_OnSolutionClassesParsed());
             this.fileGeneratorService = fileGeneratorService;
@@ -134,7 +136,7 @@
                 return;
 
             vm.IsDtoParsed = ParseDtoFile();
-            vm.CRUDNameSingular = GetEntityNameFromDto(vm.DtoEntity?.Name);
+            vm.CRUDNameSingular = textParsingService.ExtractEntityNameFromDtoFile(vm.DtoEntity?.Name);
             vm.IsTeam = vm.DtoEntity?.IsTeam == true;
             vm.IsVersioned = vm.DtoEntity?.IsVersioned == true;
             vm.IsFixable = vm.DtoEntity?.IsFixable == true;
@@ -755,19 +757,7 @@
         /// <summary>
         /// Extract the entity name form Dto file name.
         /// </summary>
-        private static string GetEntityNameFromDto(string dtoFileName)
-        {
-            if(string.IsNullOrWhiteSpace(dtoFileName)) 
-                return null;
-
-            var fileName = Path.GetFileNameWithoutExtension(dtoFileName);
-            if (!string.IsNullOrWhiteSpace(fileName) && fileName.ToLower().EndsWith("dto"))
-            {
-                return fileName[..^3];   // name without 'dto' suffix
-            }
-
-            return fileName;
-        }
+        // REMOVED: This method is now replaced by ITextParsingService.ExtractEntityNameFromDtoFile()
 
         /// <summary>
         /// Get the Dto path from select dto file.

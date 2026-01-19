@@ -122,5 +122,25 @@ namespace BIA.ToolKit.Application.Services
 
             return name;
         }
+
+        /// <summary>
+        /// Extracts the entity name from a DTO file path.
+        /// Example: "C:\Project\UserDto.cs" -> "User"
+        /// </summary>
+        public string ExtractEntityNameFromDtoFile(string dtoFilePath)
+        {
+            if (string.IsNullOrWhiteSpace(dtoFilePath))
+            {
+                return null;
+            }
+
+            var fileName = System.IO.Path.GetFileNameWithoutExtension(dtoFilePath);
+            if (!string.IsNullOrWhiteSpace(fileName) && fileName.EndsWith("Dto", StringComparison.Ordinal))
+            {
+                return fileName.Substring(0, fileName.Length - 3);
+            }
+
+            return fileName;
+        }
     }
 }
