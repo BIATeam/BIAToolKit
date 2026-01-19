@@ -63,8 +63,15 @@ namespace BIA.ToolKit
             services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
             services.AddSingleton<UIEventBroker>(); // Keep for now during migration
             
-            // ViewModels
-            services.AddTransient<Application.ViewModel.MainWindowViewModel>(); // Phase 4 ViewModel - replaces MainViewModel
+            // ViewModels - Phase 4 MVVM Transformation
+            services.AddTransient<Application.ViewModel.MainWindowViewModel>(); // Phase 4 Step 27
+            services.AddTransient<Application.ViewModel.CRUDGeneratorViewModel>(); // Phase 4 Step 28
+            services.AddTransient<Application.ViewModel.OptionGeneratorViewModel>(); // Phase 4 Step 29
+            services.AddTransient<Application.ViewModel.DtoGeneratorViewModel>(); // Phase 4 Step 30
+            services.AddTransient<Application.ViewModel.ModifyProjectViewModel>(); // Phase 4 Step 31
+            services.AddTransient<Application.ViewModel.VersionAndOptionViewModel>(); // Phase 4 Step 32
+            
+            // Legacy ViewModels (for backward compatibility)
             services.AddTransient<ModifyProjectViewModel>();
             services.AddTransient<DtoGeneratorViewModel>();
             services.AddTransient<OptionGeneratorViewModel>();
