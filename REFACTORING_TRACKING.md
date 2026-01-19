@@ -1,8 +1,8 @@
 # Plan de Refactorisation - Suivi d'Implémentation
 
 **Date de Création**: 19 janvier 2026  
-**Dernière Mise à Jour**: 22 janvier 2026 - **Phase 4 Step 27 COMPLETE**  
-**Statut Global**: ⚠️ Phases 1-3 Incomplètes - Phases 4-6 EN COURS
+**Dernière Mise à Jour**: 22 janvier 2026 - **Phase 4 Step 27 INTEGRATED & COMPILED**  
+**Statut Global**: 🚀 Phases 4-6 EN COURS - Step 27 ✅ TERMINÉ
 
 ---
 
@@ -127,15 +127,18 @@ Voir: **[REFACTORING_PHASE_4_6_PLAN.md](REFACTORING_PHASE_4_6_PLAN.md)**
 - **Observable Properties**:
   - `IsWaiterVisible` - Loading indicator
   - `CreateProjectName` - Project name input
-  - `Settings_RootProjectsPath` - Root projects path
+  - `Settings_RootProjectsPath` - Root projects path (2-way binding)
   - `FileGeneratorFolder` - Generator folder path
   - `FileGeneratorFile` - Generator file path
   - `IsFileGeneratorGenerateEnabled` - Generate button enabled state
-- **Services Injected**: 13 dependencies (RepositoryService, GitService, CSharpParserService, GenerateFilesService, ProjectCreatorService, SettingsService, IConsoleWriter, FileGeneratorService, IMessenger, UpdateService, IFileDialogService, IDialogService, ILogger)
+- **Services Injected**: 13 dependencies
+- **XAML Integration**: ✅ 11 Command bindings in MainWindow.xaml, 11 Click events replaced
 - **Commits**: 
   - `18d65fe` - Initial MainWindowViewModel creation
-  - `d096cfe` - Fixed IFileDialogService ambiguity & Clean Architecture violations
-- **Architecture Compliance**: ✅ No UI dependencies (System.Windows, System.Windows.Forms)
+  - `d096cfe` - Fixed IFileDialogService ambiguity
+  - `21eb07b` - Integrate MainWindowViewModel with MainWindow (FINAL)
+- **Architecture Compliance**: ✅ No UI dependencies in Application layer
+- **Compilation**: ✅ BUILD SUCCESS (0 errors, 22 warnings)
 
 ---
 
