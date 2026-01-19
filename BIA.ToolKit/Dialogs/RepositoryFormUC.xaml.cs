@@ -6,7 +6,6 @@ namespace BIA.ToolKit.Dialogs
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.ViewModels;
     using BIA.ToolKit.Helper;
-    using BIA.ToolKit.Infrastructure.Services;
     using CommunityToolkit.Mvvm.Messaging;
 
     /// <summary>
@@ -25,7 +24,7 @@ namespace BIA.ToolKit.Dialogs
             IConsoleWriter consoleWriter,
             IFileDialogService fileDialogService = null)
         {
-            this.fileDialogService = fileDialogService ?? new FileDialogService();
+            this.fileDialogService = fileDialogService ?? new Infrastructure.Services.FileDialogService();
             DataContext = new RepositoryFormViewModel(repository, gitService, messenger, consoleWriter);
             InitializeComponent();
         }

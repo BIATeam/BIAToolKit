@@ -36,7 +36,7 @@ namespace BIA.ToolKit.UserControls
         CRUDSettings crudSettings;
         IMessenger messenger;
         SettingsService settingsService;
-        Infrastructure.Services.IFileDialogService fileDialogService;
+        IFileDialogService fileDialogService;
 
         public ModifyProjectUC()
         {
@@ -46,7 +46,7 @@ namespace BIA.ToolKit.UserControls
 
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            FileGeneratorService fileGeneratorService, IMessenger messenger, Infrastructure.Services.IFileDialogService fileDialogService = null,
+            FileGeneratorService fileGeneratorService, IMessenger messenger, IFileDialogService fileDialogService = null,
             ITextParsingService textParsingService = null)
         {
             this.gitService = gitService;

@@ -75,9 +75,6 @@ namespace BIA.ToolKit
             services.AddTransient<RepositoriesSettingsVM>();
             services.AddTransient<RepositorySettingsVM>();
             
-            // Helpers (Phase 4)
-            services.AddTransient<BIA.ToolKit.Application.Helper.MainWindowHelper>();
-            
             // UserControls
             services.AddTransient<CRUDGeneratorUC>();
             services.AddTransient<DtoGeneratorUC>();

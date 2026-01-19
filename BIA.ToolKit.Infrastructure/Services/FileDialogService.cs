@@ -2,6 +2,7 @@ namespace BIA.ToolKit.Infrastructure.Services
 {
     using System;
     using System.Windows.Forms;
+    using BIA.ToolKit.Application.Services;
 
     /// <summary>
     /// Implementation of IFileDialogService using WinForms dialogs.

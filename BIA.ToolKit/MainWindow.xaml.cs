@@ -48,7 +48,7 @@ namespace BIA.ToolKit
         private readonly GenerateFilesService generateFilesService;
         private readonly ConsoleWriter consoleWriter;
         private readonly ViewModels.MainWindowHelper mainWindowHelper;
-        private readonly Infrastructure.Services.IFileDialogService fileDialogService;
+        private readonly IFileDialogService fileDialogService;
 
         public MainWindow(
             MainViewModel mainViewModel,
@@ -64,7 +64,7 @@ namespace BIA.ToolKit
             FileGeneratorService fileGeneratorService, 
             IMessenger messenger,
             UpdateService updateService,
-            Infrastructure.Services.IFileDialogService fileDialogService)
+            IFileDialogService fileDialogService)
         {
 
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));

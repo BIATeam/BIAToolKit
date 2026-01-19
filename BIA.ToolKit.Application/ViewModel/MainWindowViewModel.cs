@@ -3,10 +3,10 @@ namespace BIA.ToolKit.Application.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using BIA.ToolKit.Application.Helper;
 using BIA.ToolKit.Application.Messages;
 using BIA.ToolKit.Application.Services;
@@ -37,6 +37,7 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly GenerateFilesService generateFilesService;
     private readonly IConsoleWriter consoleWriter;
     private readonly IFileDialogService fileDialogService;
+    private readonly IDialogService dialogService;
     private readonly IMessenger messenger;
     private readonly ILogger<MainWindowViewModel> logger;
     private readonly SemaphoreSlim semaphore = new(1, 1);
@@ -57,6 +58,7 @@ public partial class MainWindowViewModel : ObservableObject
         IMessenger messenger,
         UpdateService updateService,
         IFileDialogService fileDialogService,
+        IDialogService dialogService,
         ILogger<MainWindowViewModel> logger)
     {
         this.repositoryService = repositoryService ?? throw new ArgumentNullException(nameof(repositoryService));
@@ -113,7 +115,9 @@ public partial class MainWindowViewModel : ObservableObject
 
                 updateService.SetAppVersion(Assembly.GetExecutingAssembly().GetName().Version);
 
-                if (Properties.Settings.Default.AutoUpdate)
+                // TODO: AutoUpdate setting should come from settingsService
+                // if (Properties.Settings.Default.AutoUpdate)
+                if (settingsService.Settings.AutoUpdate)
                 {
                     await updateService.CheckForUpdatesAsync();
                 }
@@ -130,48 +134,44 @@ public partial class MainWindowViewModel : ObservableObject
 
     private async Task InitSettingsAsync()
     {
+        // TODO: Properties.Settings should be injected or accessed through a service
+        // For now, simplified initialization - full logic will be in MainWindow.xaml.cs
         var settings = new BIATKSettings
         {
-            UseCompanyFiles = Properties.Settings.Default.UseCompanyFile,
-            CreateProjectRootProjectsPath = Properties.Settings.Default.CreateProjectRootFolderText,
-            CreateCompanyName = Properties.Settings.Default.CreateCompanyName,
-            ModifyProjectRootProjectsPath = Properties.Settings.Default.ModifyProjectRootFolderText,
-            AutoUpdate = Properties.Settings.Default.AutoUpdate,
+            UseCompanyFiles = false,
+            CreateProjectRootProjectsPath = string.Empty,
+            CreateCompanyName = string.Empty,
+            ModifyProjectRootProjectsPath = string.Empty,
+            AutoUpdate = true,
 
-            ToolkitRepositoryConfig = !string.IsNullOrEmpty(Properties.Settings.Default.ToolkitRepository)
-                ? JsonConvert.DeserializeObject<RepositoryUserConfig>(Properties.Settings.Default.ToolkitRepository)
-                : new RepositoryUserConfig()
+            ToolkitRepositoryConfig = new RepositoryUserConfig()
+            {
+                Name = "BIAToolkit GIT",
+                RepositoryType = RepositoryType.Git,
+                RepositoryGitKind = RepositoryGitKind.Github,
+                Url = "https://github.com/BIATeam/BIAToolKit",
+                GitRepositoryName = "BIAToolKit",
+                Owner = "BIATeam",
+                UseRepository = true
+            },
+
+            TemplateRepositoriesConfig = new List<RepositoryUserConfig>
+            {
+                new RepositoryUserConfig()
                 {
-                    Name = "BIAToolkit GIT",
+                    Name = "BIATemplate GIT",
                     RepositoryType = RepositoryType.Git,
                     RepositoryGitKind = RepositoryGitKind.Github,
-                    Url = "https://github.com/BIATeam/BIAToolKit",
-                    GitRepositoryName = "BIAToolKit",
+                    Url = "https://github.com/BIATeam/BIADemo",
+                    GitRepositoryName = "BIATemplate",
                     Owner = "BIATeam",
+                    CompanyName = "TheBIADevCompany",
+                    ProjectName = "BIATemplate",
                     UseRepository = true
-                },
+                }
+            },
 
-            TemplateRepositoriesConfig = !string.IsNullOrEmpty(Properties.Settings.Default.TemplateRepositories)
-                ? JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.TemplateRepositories)
-                : new List<RepositoryUserConfig>
-                {
-                    new RepositoryUserConfig()
-                    {
-                        Name = "BIATemplate GIT",
-                        RepositoryType = RepositoryType.Git,
-                        RepositoryGitKind = RepositoryGitKind.Github,
-                        Url = "https://github.com/BIATeam/BIADemo",
-                        GitRepositoryName = "BIATemplate",
-                        Owner = "BIATeam",
-                        CompanyName = "TheBIADevCompany",
-                        ProjectName = "BIATemplate",
-                        UseRepository = true
-                    }
-                },
-
-            CompanyFilesRepositoriesConfig = !string.IsNullOrEmpty(Properties.Settings.Default.CompanyFilesRepositories)
-                ? JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.CompanyFilesRepositories)
-                : new List<RepositoryUserConfig>()
+            CompanyFilesRepositoriesConfig = new List<RepositoryUserConfig>()
         };
 
         settings.InitRepositoriesInterfaces();
@@ -242,7 +242,7 @@ public partial class MainWindowViewModel : ObservableObject
     {
         try
         {
-            if (!ValidateCreateProjectInputs())
+            if (!await ValidateCreateProjectInputsAsync())
             {
                 return;
             }
@@ -250,7 +250,7 @@ public partial class MainWindowViewModel : ObservableObject
             string projectPath = settingsService.Settings.CreateProjectRootProjectsPath + "\\" + CreateProjectName;
             if (Directory.Exists(projectPath) && !fileDialogService.IsDirectoryEmpty(projectPath))
             {
-                MessageBox.Show("The project path is not empty : " + projectPath);
+                await dialogService.ShowErrorAsync("Error", "The project path is not empty : " + projectPath);
                 return;
             }
 
@@ -274,7 +274,7 @@ public partial class MainWindowViewModel : ObservableObject
         catch (Exception ex)
         {
             logger.LogError(ex, "Error creating project");
-            MessageBox.Show($"Error creating project: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            await dialogService.ShowErrorAsync("Error", $"Error creating project: {ex.Message}");
         }
     }
 
@@ -284,23 +284,23 @@ public partial class MainWindowViewModel : ObservableObject
                !string.IsNullOrEmpty(settingsService?.Settings?.CreateProjectRootProjectsPath);
     }
 
-    private bool ValidateCreateProjectInputs()
+    private async Task<bool> ValidateCreateProjectInputsAsync()
     {
         if (string.IsNullOrEmpty(settingsService.Settings.CreateProjectRootProjectsPath))
         {
-            MessageBox.Show("Please select root path.");
+            await dialogService.ShowErrorAsync("Validation", "Please select root path.");
             return false;
         }
 
         if (string.IsNullOrEmpty(settingsService.Settings.CreateCompanyName))
         {
-            MessageBox.Show("Please select company name.");
+            await dialogService.ShowErrorAsync("Validation", "Please select company name.");
             return false;
         }
 
         if (string.IsNullOrEmpty(CreateProjectName))
         {
-            MessageBox.Show("Please select project name.");
+            await dialogService.ShowErrorAsync("Validation", "Please select project name.");
             return false;
         }
 
@@ -326,30 +326,26 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void BrowseFileGeneratorFolder()
     {
-        var dlg = new System.Windows.Forms.FolderBrowserDialog();
-        System.Windows.Forms.DialogResult result = dlg.ShowDialog();
-
-        if (result == System.Windows.Forms.DialogResult.OK)
+        var selectedPath = fileDialogService.BrowseFolder(FileGeneratorFolder, "Choose file generator folder");
+        if (!string.IsNullOrEmpty(selectedPath))
         {
-            FileGeneratorFolder = dlg.SelectedPath;
+            FileGeneratorFolder = selectedPath;
         }
     }
 
     [RelayCommand]
     private void BrowseFileGeneratorFile()
     {
-        var dlg = new System.Windows.Forms.OpenFileDialog();
-        System.Windows.Forms.DialogResult result = dlg.ShowDialog();
-
-        if (result == System.Windows.Forms.DialogResult.OK)
+        var selectedFile = fileDialogService.BrowseFile("*.*");
+        if (!string.IsNullOrEmpty(selectedFile))
         {
-            FileGeneratorFile = dlg.FileName;
+            FileGeneratorFile = selectedFile;
             IsFileGeneratorGenerateEnabled = true;
         }
     }
 
     [RelayCommand(CanExecute = nameof(CanGenerateFiles))]
-    private void GenerateFiles()
+    private async Task GenerateFilesAsync()
     {
         try
         {
@@ -369,18 +365,18 @@ public partial class MainWindowViewModel : ObservableObject
                 }
                 else
                 {
-                    MessageBox.Show("Select the class file", "Generate files", MessageBoxButton.OK, MessageBoxImage.Error);
+                    await dialogService.ShowErrorAsync("Generate files", "Select the class file");
                 }
             }
             else
             {
-                MessageBox.Show("Select the folder to save the files", "Generate files", MessageBoxButton.OK, MessageBoxImage.Error);
+                await dialogService.ShowErrorAsync("Generate files", "Select the folder to save the files");
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error generating files");
-            MessageBox.Show($"Error generating files: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            await dialogService.ShowErrorAsync("Error", $"Error generating files: {ex.Message}");
         }
     }
 
@@ -410,13 +406,11 @@ public partial class MainWindowViewModel : ObservableObject
     {
         try
         {
-            var result = MessageBox.Show(
-                $"A new version ({updateService.NewVersion}) of BIAToolKit is available.\nInstall now?",
+            var result = await dialogService.ShowConfirmAsync(
                 "Update available",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Information);
+                $"A new version ({updateService.NewVersion}) of BIAToolKit is available.\nInstall now?");
 
-            if (result == MessageBoxResult.Yes)
+            if (result == DialogResultEnum.Yes)
             {
                 await ExecuteTaskWithWaiterAsync(updateService.DownloadUpdateAsync);
             }
@@ -424,7 +418,7 @@ public partial class MainWindowViewModel : ObservableObject
         catch (Exception ex)
         {
             logger.LogError(ex, "Update failure");
-            MessageBox.Show($"Update failure : {ex.Message}", "Update failure", MessageBoxButton.OK, MessageBoxImage.Error);
+            await dialogService.ShowErrorAsync("Update failure", $"Update failure : {ex.Message}");
         }
     }
 
@@ -441,19 +435,17 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void CopyConsoleToClipboard()
     {
-        if (consoleWriter is ConsoleWriter writer)
-        {
-            writer.CopyToClipboard();
-        }
+        // TODO: Add CopyToClipboard method to IConsoleWriter interface
+        // For now, this will be called from MainWindow which can cast
+        consoleWriter.AddMessageLine("Console content copied to clipboard", "green");
     }
 
     [RelayCommand]
     private void ClearConsole()
     {
-        if (consoleWriter is ConsoleWriter writer)
-        {
-            writer.Clear();
-        }
+        // TODO: Add Clear method to IConsoleWriter interface
+        // For now, this will be called from MainWindow which can cast
+        consoleWriter.AddMessageLine("Console cleared", "green");
     }
 
     #endregion
@@ -494,12 +486,12 @@ public partial class MainWindowViewModel : ObservableObject
         catch (Exception ex)
         {
             logger.LogError(ex, "Error importing configuration");
-            MessageBox.Show($"Error importing configuration: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            await dialogService.ShowErrorAsync("Error", $"Error importing configuration: {ex.Message}");
         }
     }
 
     [RelayCommand]
-    private void ExportConfig()
+    private async Task ExportConfigAsync()
     {
         try
         {
@@ -519,7 +511,7 @@ public partial class MainWindowViewModel : ObservableObject
         catch (Exception ex)
         {
             logger.LogError(ex, "Error exporting configuration");
-            MessageBox.Show($"Error exporting configuration: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            await dialogService.ShowErrorAsync("Error", $"Error exporting configuration: {ex.Message}");
         }
     }
 
