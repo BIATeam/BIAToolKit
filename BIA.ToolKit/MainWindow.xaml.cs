@@ -47,6 +47,7 @@
         private readonly UpdateService updateService;
         private readonly GenerateFilesService generateFilesService;
         private readonly ConsoleWriter consoleWriter;
+        private readonly ViewModels.MainWindowHelper mainWindowHelper;
 
         public MainWindow(
             MainViewModel mainViewModel,
@@ -76,6 +77,15 @@
             this.fileGeneratorService = fileGeneratorService;
             this.updateService = updateService;
             this.generateFilesService = genFilesService;
+
+            // Create MainWindowHelper for refactored logic
+            this.mainWindowHelper = new ViewModels.MainWindowHelper(
+                updateService,
+                cSharpParserService,
+                settingsService,
+                gitService,
+                repositoryService,
+                consoleWriter);
 
             // IMessenger subscriptions for message handling
             messenger.Register<ExecuteActionWithWaiterMessage>(this, async (r, m) => await ExecuteTaskWithWaiterAsync(m.Action));
@@ -252,14 +262,12 @@
 
         public bool EnsureValidRepositoriesConfiguration()
         {
-            var templatesConfigurationValid = CheckTemplateRepositoriesConfiguration();
-            var companyFilesConfigurationValid = CheckCompanyFilesRepositoriesConfiguration();
-            return templatesConfigurationValid && companyFilesConfigurationValid;
+            return mainWindowHelper.ValidateRepositoriesConfiguration(settingsService.Settings);
         }
 
         public bool CheckTemplateRepositoriesConfiguration()
         {
-            if (!CheckTemplateRepositories(settingsService.Settings))
+            if (!mainWindowHelper.ValidateTemplateRepositories(settingsService.Settings))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
                 return false;
@@ -269,7 +277,7 @@
 
         public bool CheckCompanyFilesRepositoriesConfiguration()
         {
-            if (!CheckCompanyFilesRepositories(settingsService.Settings))
+            if (!mainWindowHelper.ValidateCompanyFilesRepositories(settingsService.Settings))
             {
                 Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
                 return false;
@@ -277,53 +285,15 @@
             return true;
         }
 
+        // Legacy methods - kept for backward compatibility but delegating to MainWindowHelper
         public bool CheckTemplateRepositories(IBIATKSettings biaTKsettings)
         {
-            if (!biaTKsettings.TemplateRepositories.Where(r => r.UseRepository).Any())
-            {
-                consoleWriter.AddMessageLine("You must use at least one Templates repository", "red");
-                return false;
-            }
-
-            foreach (var repository in biaTKsettings.TemplateRepositories.Where(r => r.UseRepository))
-            {
-                if (!repositoryService.CheckRepoFolder(repository))
-                {
-                    return false;
-                }
-            }
-
-            var repositoryVersionXYZ = biaTKsettings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
-            if(repositoryVersionXYZ is not null)
-            {
-                if (!repositoryService.CheckRepoFolder(repositoryVersionXYZ))
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return mainWindowHelper.ValidateTemplateRepositories(biaTKsettings);
         }
 
         public bool CheckCompanyFilesRepositories(IBIATKSettings biaTKsettings)
         {
-            if (biaTKsettings.UseCompanyFiles)
-            {
-                if (!biaTKsettings.CompanyFilesRepositories.Where(r => r.UseRepository).Any())
-                {
-                    consoleWriter.AddMessageLine("You must use at least one Company Files repository", "red");
-                    return false;
-                }
-
-                foreach (var repository in biaTKsettings.CompanyFilesRepositories.Where(r => r.UseRepository))
-                {
-                    if (!repositoryService.CheckRepoFolder(repository))
-                    {
-                        return false;
-                    }
-                }
-            }
-            return true;
+            return mainWindowHelper.ValidateCompanyFilesRepositories(biaTKsettings);
         }
 
         private readonly SemaphoreSlim semaphore = new(1, 1);

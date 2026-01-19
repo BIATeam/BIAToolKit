@@ -1,33 +1,31 @@
 ﻿namespace BIA.ToolKit.Dialogs
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using System.Windows;
-    using System.Windows.Controls;
-    using System.Windows.Data;
-    using System.Windows.Documents;
-    using System.Windows.Input;
-    using System.Windows.Media;
-    using System.Windows.Media.Imaging;
-    using System.Windows.Shapes;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Helper;
+    using BIA.ToolKit.Infrastructure.Services;
     using CommunityToolkit.Mvvm.Messaging;
 
     /// <summary>
     /// Interaction logic for RepositoryFormUC.xaml
+    /// Refactored to use IFileDialogService (SOLID principle).
     /// </summary>
     public partial class RepositoryFormUC : Window
     {
         public RepositoryFormViewModel ViewModel => DataContext as RepositoryFormViewModel;
+        private readonly IFileDialogService fileDialogService;
 
-        public RepositoryFormUC(RepositoryViewModel repository, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter)
+        public RepositoryFormUC(
+            RepositoryViewModel repository,
+            GitService gitService,
+            IMessenger messenger,
+            IConsoleWriter consoleWriter,
+            IFileDialogService fileDialogService = null)
         {
+            this.fileDialogService = fileDialogService ?? new FileDialogService();
             DataContext = new RepositoryFormViewModel(repository, gitService, messenger, consoleWriter);
             InitializeComponent();
         }
@@ -41,7 +39,14 @@
         {
             if(ViewModel.Repository is RepositoryGitViewModel repositoryGit)
             {
-                repositoryGit.LocalClonedFolderPath = FileDialog.BrowseFolder(repositoryGit.LocalClonedFolderPath, "Choose local cloned folder");
+                var selectedPath = fileDialogService.BrowseFolder(
+                    repositoryGit.LocalClonedFolderPath,
+                    "Choose local cloned folder");
+
+                if (!string.IsNullOrEmpty(selectedPath))
+                {
+                    repositoryGit.LocalClonedFolderPath = selectedPath;
+                }
             }
         }
 
@@ -49,7 +54,14 @@
         {
             if (ViewModel.Repository is RepositoryFolderViewModel repositoryFolder)
             {
-                repositoryFolder.Path = FileDialog.BrowseFolder(repositoryFolder.Path, "Choose source folder");
+                var selectedPath = fileDialogService.BrowseFolder(
+                    repositoryFolder.Path,
+                    "Choose source folder");
+
+                if (!string.IsNullOrEmpty(selectedPath))
+                {
+                    repositoryFolder.Path = selectedPath;
+                }
             }
         }
     }

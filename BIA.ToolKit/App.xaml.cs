@@ -38,6 +38,7 @@
         {
             // Infrastructure Services
             services.AddSingleton<IFileSystemService, FileSystemService>();
+            services.AddScoped<IFileDialogService, FileDialogService>();
             
             // Application Services with Interfaces
             services.AddSingleton<IConsoleWriter, ConsoleWriter>();
@@ -45,6 +46,10 @@
             services.AddSingleton<IGitService, GitService>();
             services.AddSingleton<IProjectCreatorService, ProjectCreatorService>();
             services.AddSingleton<IZipParserService, ZipParserService>();
+            
+            // Application Services - Text Parsing and Dialog
+            services.AddScoped<ITextParsingService, TextParsingService>();
+            services.AddScoped<IDialogService, DialogService>();
             
             // Other Application Services
             services.AddSingleton<GenerateFilesService>();
