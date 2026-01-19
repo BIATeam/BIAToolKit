@@ -1,7 +1,8 @@
 # Plan de Refactorisation - Suivi d'Implémentation
 
 **Date de Création**: 19 janvier 2026  
-**Statut Global**: 📋 Plan Finalisé - En Attente d'Approbation
+**Dernière Mise à Jour**: 21 janvier 2026  
+**Statut Global**: 🚀 En Cours - Phase 1 Complétée
 
 ---
 
@@ -11,13 +12,44 @@
 
 | # | Étape | Description | Statut | Effort | Notes |
 |---|-------|-------------|--------|--------|-------|
-| 1 | Créer IFileDialogService | Interface abstraite pour file browse | ⬜ Pas Commencé | 2h | Dépendance: aucune |
-| 2 | Implémenter FileDialogService | Implementation enveloppes FileDialog | ⬜ Pas Commencé | 2h | Après étape 1 |
-| 3 | Créer ITextParsingService | Service parsage texte/noms | ⬜ Pas Commencé | 2h | Dépendance: aucune |
-| 4 | Créer IDialogService | Service gestion dialogs | ⬜ Pas Commencé | 3h | Dépendance: aucune |
-| 5 | Enregistrer services DI | Configuration DI (App.xaml.cs) | ⬜ Pas Commencé | 1h | Après 1-4 |
+| 1 | Créer IFileDialogService | Interface abstraite pour file browse | ✅ Terminé | 2h | Commit: 3eeee2a |
+| 2 | Implémenter FileDialogService | Implementation enveloppes FileDialog | ✅ Terminé | 2h | Commit: 3eeee2a |
+| 3 | Créer ITextParsingService | Service parsage texte/noms | ✅ Terminé | 2h | Commit: 3eeee2a |
+| 4 | Créer IDialogService | Service gestion dialogs | ✅ Terminé | 3h | Commit: 3eeee2a |
+| 5 | Enregistrer services DI | Configuration DI (App.xaml.cs) | ✅ Terminé | 1h | Commit: 3eeee2a |
 
-**Estimation Phase 1**: 10 heures
+**Estimation Phase 1**: 10 heures ✅ **COMPLÉTÉ**
+
+---
+
+### PHASE 2: ViewModel Refactoring - MainWindow (Étapes 6-10)
+
+| # | Étape | Description | Statut | Effort | Notes |
+|---|-------|-------------|--------|--------|-------|
+| 6 | Analyser MainWindow.xaml.cs | Documenter responsabilités | ✅ Terminé | 1h | Voir ANALYSIS_CODE_BEHIND.md |
+| 7 | Créer MainWindowHelper | Extraction logique métier (230 lignes) | ✅ Terminé | 3h | Commit: 3eeee2a |
+| 8 | Extraire RepositoryValidation | Validation repositories (DRY) | ✅ Terminé | 2h | Commit: 3eeee2a |
+| 9 | Refactoriser MainWindow.xaml.cs | 566 → ~490 lignes (13% réduction) | ✅ Terminé | 3h | Commits: 3eeee2a, a2d5e0d |
+| 10 | Inject IFileDialogService | Éliminer dépendances statiques | ✅ Terminé | 1h | Commit: a2d5e0d |
+
+**Estimation Phase 2**: 10 heures ✅ **COMPLÉTÉ**
+
+---
+
+### PHASE 3: ViewModel Refactoring - UserControls (Étapes 11-18)
+
+| # | Étape | Description | Statut | Effort | Notes |
+|---|-------|-------------|--------|--------|-------|
+| 14 | Refactoriser ModifyProjectUC | Ajouter IFileDialogService | ✅ Terminé | 2h | Commits: 6980291, a2d5e0d |
+| 15 | Refactoriser RepositoryFormUC | IFileDialogService injection | ✅ Terminé | 0.5h | Commit: 3eeee2a |
+| 11 | Refactoriser CRUDGeneratorUC | 795 → TBD lignes | ⬜ Pas Commencé | 5j | **PROCHAIN** |
+| 12 | Refactoriser DtoGeneratorUC | 650 → 180 lignes (72% réduction) | ⬜ Pas Commencé | 4j | **CRITIQUE** |
+| 13 | Refactoriser OptionGeneratorUC | 500 → 150 lignes (70% réduction) | ⬜ Pas Commencé | 3j | **IMPORTANTE** |
+| 16 | Refactoriser VersionAndOptionUserControl | DRY cleanup | ⬜ Pas Commencé | 1j | Simple |
+| 17 | Refactoriser LabeledField | Documentation (peu de changements) | ⬜ Pas Commencé | 0.25j | OK déjà |
+| 18 | Refactoriser Dialog Controls | LogDetail, CustomTemplate* | ⬜ Pas Commencé | 1j | YAGNI included |
+
+**Estimation Phase 3**: 16.75 jours (3/8 étapes complétées = 37.5%)
 
 ---
 
