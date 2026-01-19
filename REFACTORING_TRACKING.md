@@ -2,7 +2,7 @@
 
 **Date de Création**: 19 janvier 2026  
 **Dernière Mise à Jour**: 22 janvier 2026  
-**Statut Global**: 🚀 En Cours - Phases 1-2 Complétées, Phase 3: 5/8 étapes (62.5%)
+**Statut Global**: 🎉 Phases 1-2 Complétées, Phase 3 ✅ COMPLÉTÉE (8/8 étapes - 100%)
 
 ---
 
@@ -93,11 +93,61 @@
 | 13 | Refactoriser OptionGeneratorUC | 549 → 488 lignes (11% réduction) | ✅ Terminé | 3j | **IMPORTANTE** - Helper créé |
 | 14 | Refactoriser ModifyProjectUC | Ajouter IFileDialogService | ✅ Terminé | 2j | Moyenne priorité |
 | 15 | Refactoriser RepositoryFormUC | 60 → 20 lignes (67% réduction) | ✅ Terminé | 0.5j | Simple |
-| 16 | Refactoriser VersionAndOptionUserControl | DRY cleanup | ⬜ Pas Commencé | 1j | Simple |
-| 17 | Refactoriser LabeledField | Documentation (peu de changements) | ⬜ Pas Commencé | 0.25j | OK déjà |
-| 18 | Refactoriser Dialog Controls | LogDetail, CustomTemplate* | ⬜ Pas Commencé | 1j | YAGNI included |
+| 16 | Refactoriser VersionAndOptionUserControl | DRY cleanup | ✅ Terminé | 1j | LoadRepositoriesFromSettings helper |
+| 17 | Refactoriser LabeledField | Documentation (peu de changements) | ✅ Terminé | 0.25j | Déjà bien fait (47 lignes) |
+| 18 | Refactoriser Dialog Controls | LogDetail, CustomTemplate* | ✅ Terminé | 1j | YAGNI: -82 lignes commentées |
 
-**Estimation Phase 3**: 16.75 jours (équivalent: ~3 semaines) - **5/8 étapes complétées (62.5%)**
+**Estimation Phase 3**: 16.75 jours (équivalent: ~3 semaines) - **✅ 8/8 étapes COMPLÉTÉES (100%)**
+
+#### 📝 Détails Étape 16: VersionAndOptionUserControl (Terminé)
+
+**Objectif**: Appliquer DRY cleanup pour éliminer duplications
+
+**Travail Effectué**:
+1. ✅ Création de `LoadRepositoriesFromSettings()` - Méthode helper pour charger repositories
+2. ✅ Refactorisation `RefreshConfiguration()` - Élimination duplication de foreach
+3. ✅ Simplification assignation `useCompanyFiles` - Variable locale pour DRY
+
+**Résultats**:
+- Code-Behind: **230 → 233 lignes** (+3 lignes pour abstraction DRY)
+- **Principes appliqués**: DRY (Don't Repeat Yourself), méthode helper réutilisable
+- Amélioration: Lisibilité et maintenabilité accrue
+
+#### 📝 Détails Étape 17: LabeledField (Déjà OK)
+
+**Statut**: Fichier déjà bien structuré, pas de refactorisation nécessaire
+
+**Résultats**:
+- Code-Behind: **47 lignes** - Simple et propre
+- DependencyProperties bien définies
+- ContentProperty correctement implémentée
+
+#### 📝 Détails Étape 18: Dialog Controls (Terminé)
+
+**Objectif**: Nettoyer code YAGNI (code mort/commenté)
+
+**Travail Effectué**:
+1. ✅ [CustomTemplatesRepositoriesSettingsUC.xaml.cs](BIA.ToolKit/Dialogs/CustomTemplatesRepositoriesSettingsUC.xaml.cs)
+   - Suppression code commenté (ShowDialog, edit, delete, sync methods)
+   - Nettoyage usings inutilisés (12 → 4 usings)
+   - Ajout TODOs pour fonctionnalités futures
+   
+2. ✅ [CustomTemplateRepositorySettingsUC.xaml.cs](BIA.ToolKit/Dialogs/CustomTemplateRepositorySettingsUC.xaml.cs)
+   - Suppression ShowDialog commenté
+   - Nettoyage usings inutilisés (13 → 1 using)
+   
+3. ✅ [LogDetailUC.xaml.cs](BIA.ToolKit/Dialogs/LogDetailUC.xaml.cs)
+   - Amélioration commentaire XML
+   - Nettoyage usings inutilisés (11 → 4 usings)
+
+**Résultats**:
+- CustomTemplatesRepositoriesSettingsUC: **107 → 55 lignes** (-52 lignes, 49%)
+- CustomTemplateRepositorySettingsUC: **42 → 22 lignes** (-20 lignes, 48%)
+- LogDetailUC: **51 → 41 lignes** (-10 lignes, 20%)
+- **Total réduit**: -82 lignes de code mort/usings inutiles
+- **Principes appliqués**: YAGNI (You Aren't Gonna Need It)
+
+---
 
 #### 📝 Détails Étape 11: CRUDGeneratorUC (Terminé)
 

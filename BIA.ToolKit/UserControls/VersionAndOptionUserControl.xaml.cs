@@ -159,13 +159,7 @@ namespace BIA.ToolKit.UserControls
 
         private void RefreshConfiguration()
         {
-            var listCompanyFiles = new List<WorkRepository>();
-            var listWorkTemplates = new List<WorkRepository>();
-
-            foreach (var repository in settingsService.Settings.TemplateRepositories.Where(r => r.UseRepository))
-            {
-                AddTemplatesVersion(listWorkTemplates, repository);
-            }
+            var listWorkTemplates = LoadRepositoriesFromSettings(settingsService.Settings.TemplateRepositories);
 
             var hasVersionXYZ = false;
             var repositoryVersionXYZ = settingsService.Settings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
@@ -181,20 +175,29 @@ namespace BIA.ToolKit.UserControls
                 vm.WorkTemplate = hasVersionXYZ && listWorkTemplates.Count >= 2 ? listWorkTemplates[^2] : listWorkTemplates[^1];
             }
 
-            vm.SettingsUseCompanyFiles = settingsService.Settings.UseCompanyFiles;
-            vm.UseCompanyFiles = settingsService.Settings.UseCompanyFiles;
-            if (settingsService.Settings.UseCompanyFiles)
+            bool useCompanyFiles = settingsService.Settings.UseCompanyFiles;
+            vm.SettingsUseCompanyFiles = useCompanyFiles;
+            vm.UseCompanyFiles = useCompanyFiles;
+            
+            if (useCompanyFiles)
             {
-                foreach (var repository in settingsService.Settings.CompanyFilesRepositories.Where(r => r.UseRepository))
-                {
-                    AddTemplatesVersion(listCompanyFiles, repository);
-                }
+                var listCompanyFiles = LoadRepositoriesFromSettings(settingsService.Settings.CompanyFilesRepositories);
                 vm.WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
                 if (vm.WorkCompanyFiles.Count >= 1 && vm.WorkTemplate is not null)
                 {
                     vm.WorkCompanyFile = vm.GetWorkCompanyFile(vm.WorkTemplate.Version);
                 }
             }
+        }
+
+        private List<WorkRepository> LoadRepositoriesFromSettings(IEnumerable<IRepository> repositories)
+        {
+            var workRepositories = new List<WorkRepository>();
+            foreach (var repository in repositories.Where(r => r.UseRepository))
+            {
+                AddTemplatesVersion(workRepositories, repository);
+            }
+            return workRepositories;
         }
 
         private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, IRepository repository)
