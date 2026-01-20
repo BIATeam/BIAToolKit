@@ -5,11 +5,11 @@ namespace BIA.ToolKit.UserControls
     using Microsoft.Xaml.Behaviors;
     using BIA.ToolKit.Behaviors;
     using System.Linq;
-    using System.Windows;
     using System.Windows.Input;
 
     /// <summary>
     /// Interaction logic for DtoGenerator.xaml
+    /// Refactored: Removed callback/delegate pattern, using Behavior binding instead.
     /// </summary>
     public partial class DtoGeneratorUC : UserControl
     {
@@ -20,21 +20,7 @@ namespace BIA.ToolKit.UserControls
             InitializeComponent();
 
             vm = viewModel;
-            vm.RequestResetMappingColumnsWidths = ResetMappingColumnsWidths;
             DataContext = vm;
-        }
-
-        private void ResetMappingColumnsWidths()
-        {
-            var gridView = PropertiesListView.View as GridView;
-            if (gridView != null)
-            {
-                foreach (var column in gridView.Columns)
-                {
-                    column.Width = 0;
-                    column.Width = double.NaN;
-                }
-            }
         }
 
         private void MappingPropertyTextBox_TextChanged(object sender, TextChangedEventArgs e)

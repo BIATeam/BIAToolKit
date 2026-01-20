@@ -134,6 +134,7 @@
                     <ListView Name="PropertiesListView" ItemsSource="{Binding MappingEntityProperties}" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
                         <i:Interaction.Behaviors>
                             <behaviors:ListViewDragDropBehavior MoveCommand="{Binding MoveMappedPropertyCommand}" />
+                            <behaviors:ResetColumnsWidthBehavior ResetTrigger="{Binding ResetMappingColumnsWidthsTrigger, Mode=OneWay}" />
                         </i:Interaction.Behaviors>
                         <ListView.ItemContainerStyle>
                             <Style TargetType="ListViewItem" BasedOn="{StaticResource MaterialDesignGridViewItem}">

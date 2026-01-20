@@ -283,7 +283,25 @@ namespace BIA.ToolKit.ViewModels
         public IAsyncRelayCommand GenerateDtoCommand { get; }
         public IRelayCommand OnEntitySelectedCommand { get; }
 
-        public Action RequestResetMappingColumnsWidths { get; set; }
+        private bool resetMappingColumnsWidthsTrigger;
+        /// <summary>
+        /// When set to true, triggers column width reset in the UI via behavior binding.
+        /// Automatically resets to false after the UI handles it.
+        /// </summary>
+        public bool ResetMappingColumnsWidthsTrigger
+        {
+            get => resetMappingColumnsWidthsTrigger;
+            set
+            {
+                resetMappingColumnsWidthsTrigger = value;
+                RaisePropertyChanged(nameof(ResetMappingColumnsWidthsTrigger));
+                // Auto-reset to false after notifying, so it can be triggered again
+                if (value)
+                {
+                    resetMappingColumnsWidthsTrigger = false;
+                }
+            }
+        }
 
         public DtoGeneratorViewModel(
             CSharpParserService parserService,
@@ -311,7 +329,7 @@ namespace BIA.ToolKit.ViewModels
         private void SelectProperties()
         {
             RefreshMappingProperties();
-            RequestResetMappingColumnsWidths?.Invoke();
+            ResetMappingColumnsWidthsTrigger = true;
             ComputePropertiesValidity();
         }
 
