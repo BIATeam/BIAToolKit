@@ -7,11 +7,9 @@
              xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
              xmlns:c="clr-namespace:BIA.ToolKit.Controls"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d" 
              d:DesignHeight="430" d:DesignWidth="1400">
-    <UserControl.DataContext>
-        <local:CRUDGeneratorViewModel />
-    </UserControl.DataContext>
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
         <Thickness x:Key="FormFirstRowMargin">0,0,0,5</Thickness>
@@ -50,11 +48,23 @@
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="DTO Entity File" ItemsSource="{Binding DtoEntities}" SelectedItem="{Binding DtoEntity}" IsEnabled="{Binding IsProjectChosen}" SelectionChanged="ModifyDto_SelectionChange" ItemTemplate="{StaticResource EntityDisplayTemplate}"/>
+                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="DTO Entity File" ItemsSource="{Binding DtoEntities}" SelectedItem="{Binding DtoEntity}" IsEnabled="{Binding IsProjectChosen}" ItemTemplate="{StaticResource EntityDisplayTemplate}">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="SelectionChanged">
+                            <i:InvokeCommandAction Command="{Binding OnDtoSelectedCommand}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </ComboBox>
                 <Label Grid.Row="1" Name="CrudAlreadyGeneratedLabel" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="Collapsed" d:Visibility="Visible" />
             </Grid>
             <ComboBox Grid.Column="0" Grid.Row="1" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Generation" ItemsSource="{Binding FeatureNames}" SelectedItem="{Binding FeatureNameSelected}" IsEnabled="{Binding IsDtoParsed}"/>
-            <TextBox Grid.Column="0" Grid.Row="2" Margin="{StaticResource FormGroupFirstRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Entity Name Singular" Text="{Binding CRUDNameSingular,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" TextChanged="ModifyEntitySingular_TextChange" IsEnabled="{Binding IsDtoParsed}"/>
+            <TextBox Grid.Column="0" Grid.Row="2" Margin="{StaticResource FormGroupFirstRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Entity Name Singular" Text="{Binding CRUDNameSingular,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" IsEnabled="{Binding IsDtoParsed}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="TextChanged">
+                        <i:InvokeCommandAction Command="{Binding OnEntitySingularNameChangedCommand}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </TextBox>
             <TextBox Grid.Column="0" Grid.Row="3" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Domain" Text="{Binding Domain,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" IsEnabled="{Binding IsDtoParsed}"/>
             <ComboBox Grid.Column="0" Grid.Row="4" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Items" ItemsSource="{Binding OptionItems}" IsEnabled="{Binding IsOptionItemEnable}" Text="{Binding SelectedOptionItems, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" IsReadOnly="True">
                 <ComboBox.ItemTemplate>
@@ -74,7 +84,13 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Base Key Type"  ItemsSource="{Binding BaseKeyTypeItems}" SelectedValue="{Binding SelectedBaseKeyType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsDtoParsed}"/>
-                <ComboBox Grid.Column="2" Grid.Row="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="BIA Front" x:Name="BiaFront" ItemsSource="{Binding BiaFronts}" SelectedValue="{Binding BiaFront}" IsEnabled="{Binding IsFrontSelected}" SelectionChanged="BiaFront_SelectionChanged"/>
+                <ComboBox Grid.Column="2" Grid.Row="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="BIA Front" x:Name="BiaFront" ItemsSource="{Binding BiaFronts}" SelectedValue="{Binding BiaFront}" IsEnabled="{Binding IsFrontSelected}">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="SelectionChanged">
+                            <i:InvokeCommandAction Command="{Binding OnBiaFrontSelectedCommand}" CommandParameter="{Binding SelectedValue, RelativeSource={RelativeSource AncestorType=ComboBox}}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </ComboBox>
             </Grid>
             <Grid Grid.Column="2" Grid.Row="1" Margin="{StaticResource FormRowMargin}">
                 <Grid.RowDefinitions>
@@ -90,7 +106,13 @@
                 <CheckBox Margin="10,0,0,0" Grid.Column="0" Grid.Row="1" Content="Web Api" Foreground="White" IsChecked="{Binding IsWebApiSelected}" IsEnabled="{Binding IsWebApiAvailable}"/>
                 <CheckBox Grid.Column="2" Grid.Row="1" Content="Front" Foreground="White" IsChecked="{Binding IsFrontSelected}" IsEnabled="{Binding IsFrontAvailable}"/>
             </Grid>
-            <TextBox Grid.Column="2" Margin="{StaticResource FormGroupFirstRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Entity Name Plural" Text="{Binding CRUDNamePlural,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" TextChanged="ModifyEntityPlural_TextChange" IsEnabled="{Binding IsDtoParsed}"/>
+            <TextBox Grid.Column="2" Margin="{StaticResource FormGroupFirstRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Entity Name Plural" Text="{Binding CRUDNamePlural,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" IsEnabled="{Binding IsDtoParsed}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="TextChanged">
+                        <i:InvokeCommandAction Command="{Binding OnEntityPluralNameChangedCommand}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </TextBox>
             <ComboBox Grid.Column="2" Grid.Row="3" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Display Property Name" ItemsSource="{Binding DtoDisplayItems}" SelectedValue="{Binding DtoDisplayItemSelected}" IsEnabled="{Binding IsDtoParsed}"/>
             <TextBox Grid.Column="2" Margin="{StaticResource FormRowMargin}" Grid.Row="6" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Parent Name Plural"  Text="{Binding ParentNamePlural,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap"  IsEnabled="{Binding HasParent}"/>
             <!--#endregion-->
@@ -193,16 +215,16 @@
                 <RowDefinition Height="auto"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <Button Grid.Row="0" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Content="Generate" IsEnabled="{Binding IsButtonGenerateCrudEnable}" x:Name="GenerateCrud" Height="50"  Click="Generate_Click"/>
+            <Button Grid.Row="0" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Content="Generate" IsEnabled="{Binding IsButtonGenerateCrudEnable}" x:Name="GenerateCrud" Height="50" Command="{Binding GenerateCrudCommand}"/>
             <Grid Grid.Row="1" VerticalAlignment="Bottom">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <Button Visibility="Hidden" Grid.Row="0" Content="Delete previous generation" x:Name="DeleteGeneration"  Click="DeleteLastGeneration_Click" IsEnabled="{Binding IsDtoParsed}"/>
+                <Button Visibility="Hidden" Grid.Row="0" Content="Delete previous generation" x:Name="DeleteGeneration" Command="{Binding DeleteLastGenerationCommand}" IsEnabled="{Binding IsDtoParsed}"/>
                 <Label Margin="0,10,0,0" Grid.Row="1" Content="After generation :" Foreground="White" HorizontalAlignment="Center"/>
-                <Button Grid.Row="2" Content="Delete annotations" x:Name="DeleteAnnotations" Click="DeleteBIAToolkitAnnotations_Click" IsEnabled="{Binding IsProjectChosen}"/>
+                <Button Grid.Row="2" Content="Delete annotations" x:Name="DeleteAnnotations" Command="{Binding DeleteAnnotationsCommand}" IsEnabled="{Binding IsProjectChosen}"/>
             </Grid>
         </Grid>
     </Grid>

@@ -113,7 +113,10 @@ namespace BIA.ToolKit
 
             var mainWindow = serviceProvider.GetService<MainWindow>();
             mainWindow.Show();
-            await mainWindow.Init();
+            if (mainWindow?.ViewModel is not null)
+            {
+                await mainWindow.ViewModel.InitializeAsync();
+            }
         }
     }
 }

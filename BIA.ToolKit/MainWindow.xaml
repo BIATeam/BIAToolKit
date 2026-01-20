@@ -184,7 +184,7 @@
                             <Button Grid.Column="2" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Height="50" Width="150" Content="Create" HorizontalAlignment="Right" Command="{Binding CreateProjectCommand}" VerticalAlignment="Top"/>
                         </Grid>
 
-                        <uc:VersionAndOptionUserControl Grid.Row="1" VerticalAlignment="Bottom" x:Name="CreateVersionAndOption" Margin="10" Height="auto"/>
+                        <ContentControl Grid.Row="1" VerticalAlignment="Bottom" x:Name="CreateVersionAndOptionHost" Margin="10" Height="auto"/>
                     </Grid>
                 </TabItem>
                 <TabItem Header="MODIFY EXISTING PROJECT" Selector.Selected="OnTabModifySelected">
@@ -192,7 +192,7 @@
                         <Grid.Background>
                             <ImageBrush Opacity="0.3" ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
                         </Grid.Background>
-                        <uc:ModifyProjectUC x:Name="ModifyProject"/>
+                        <ContentControl x:Name="ModifyProjectHost"/>
                     </Grid>
                 </TabItem>
                 <TabItem Header="File Generator" Visibility="Collapsed">

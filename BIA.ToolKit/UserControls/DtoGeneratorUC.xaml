@@ -2,9 +2,9 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:BIA.ToolKit.ViewModels" 
-             xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:local="clr-namespace:BIA.ToolKit.ViewModels"
              xmlns:behaviors="clr-namespace:BIA.ToolKit.Behaviors"
              xmlns:helpers="clr-namespace:BIA.ToolKit.Helper"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
@@ -47,7 +47,13 @@
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
-                    <ComboBox Grid.Column="0" Grid.Row="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Entity" x:Name="EntitiesComboBox" ItemsSource="{Binding Entities}" SelectedItem="{Binding Entity, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsProjectChosen}" SelectionChanged="EntitiesComboBox_SelectionChanged" ItemTemplate="{StaticResource EntityDisplayTemplate}"/>
+                    <ComboBox Grid.Column="0" Grid.Row="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Entity" x:Name="EntitiesComboBox" ItemsSource="{Binding Entities}" SelectedItem="{Binding Entity, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsProjectChosen}" ItemTemplate="{StaticResource EntityDisplayTemplate}">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="SelectionChanged">
+                                <i:InvokeCommandAction Command="{Binding OnEntitySelectedCommand}" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </ComboBox>
                     <Label Grid.Column="0" Grid.Row="1" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="{Binding WasAlreadyGenerated, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible"/>
                 </Grid>
                 <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Domain" Text="{Binding EntityDomain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsEntitySelected}"/>
@@ -75,7 +81,7 @@
                 <CheckBox Grid.Column="1" Grid.Row="1" Content="Use dedicated audit" Foreground="White" IsChecked="{Binding UseDedicatedAudit,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsAuditable}" Visibility="{Binding IsVisibleUseDedicatedAudit, Converter={StaticResource BoolToVisConverter}}"/>
             </Grid>
 
-            <Button VerticalAlignment="Top" Grid.Column="6" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" x:Name="GenerateButton" Content="Generate" Height="50" Click="GenerateButton_Click" IsEnabled="{Binding IsGenerationEnabled}"></Button>
+            <Button VerticalAlignment="Top" Grid.Column="6" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" x:Name="GenerateButton" Content="Generate" Height="50" Command="{Binding GenerateDtoCommand}" IsEnabled="{Binding IsGenerationEnabled}"></Button>
         </Grid>
 
         <Grid Grid.Row="1" Margin="0,10,0,0">
@@ -113,8 +119,8 @@
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <Button Grid.Row="0" Margin="0,0,0,5" Content="Map to ➜" x:Name="SelectProperties"  Click="SelectProperties_Click" ToolTip="Select properties" IsEnabled="{Binding IsEntitySelected}"></Button>
-                <Button Grid.Row="1" Margin="0,5" Content="Remove all" x:Name="RemoveAllMappingProperties" Click="RemoveAllMappingProperties_Click" ToolTip="Select properties" IsEnabled="{Binding HasMappingProperties}"></Button>
+                <Button Grid.Row="0" Margin="0,0,0,5" Content="Map to ➜" x:Name="SelectProperties" Command="{Binding SelectPropertiesCommand}" ToolTip="Select properties" IsEnabled="{Binding IsEntitySelected}"></Button>
+                <Button Grid.Row="1" Margin="0,5" Content="Remove all" x:Name="RemoveAllMappingProperties" Command="{Binding RemoveAllMappingPropertiesCommand}" ToolTip="Select properties" IsEnabled="{Binding HasMappingProperties}"></Button>
             </Grid>
 
             <Grid Grid.Column="2">

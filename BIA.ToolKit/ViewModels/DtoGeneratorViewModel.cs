@@ -1,13 +1,19 @@
 namespace BIA.ToolKit.ViewModels
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Services.FileGenerator.Models;
+    using BIA.ToolKit.Application.Settings;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
+    using CommunityToolkit.Mvvm.Messaging;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -19,14 +25,19 @@ namespace BIA.ToolKit.ViewModels
     using System.Threading.Tasks;
     using System.Windows.Input;
 
-    public class DtoGeneratorViewModel : ObservableObject
+    public partial class DtoGeneratorViewModel : ObservableObject
     {
         // Helper to keep existing RaisePropertyChanged calls after migrating to CommunityToolkit
         protected void RaisePropertyChanged(string propertyName) => OnPropertyChanged(propertyName);
 
+        private readonly CSharpParserService parserService;
+        private readonly FileGeneratorService fileGeneratorService;
+        private readonly IConsoleWriter consoleWriter;
+        private readonly SettingsService settingsService;
+        private readonly IMessenger messenger;
+        private readonly DtoGeneratorHelper helper;
+        private readonly CRUDSettings settings;
         private Project project;
-        private FileGeneratorService fileGeneratorService;
-        private IConsoleWriter consoleWriter;
         private readonly List<string> optionCollectionsMappingTypes = new()
         {
             "icollection",
@@ -266,6 +277,43 @@ namespace BIA.ToolKit.ViewModels
         public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>(RemoveMappingProperty);
         public ICommand MoveMappedPropertyCommand => new RelayCommand<MoveItemArgs>(x => MoveMappedProperty(x.OldIndex, x.NewIndex));
         public ICommand SetMappedPropertyIsParentCommand => new RelayCommand<MappingEntityProperty>(SetMappedPropertyIsParent);
+        public ICommand SelectPropertiesCommand => new RelayCommand(SelectProperties);
+        public ICommand RemoveAllMappingPropertiesCommand => new RelayCommand(RemoveAllMappingProperties);
+        public IAsyncRelayCommand RefreshEntitiesListCommand { get; }
+        public IAsyncRelayCommand GenerateDtoCommand { get; }
+        public IRelayCommand OnEntitySelectedCommand { get; }
+
+        public Action RequestResetMappingColumnsWidths { get; set; }
+
+        public DtoGeneratorViewModel(
+            CSharpParserService parserService,
+            SettingsService settingsService,
+            IConsoleWriter consoleWriter,
+            FileGeneratorService fileGeneratorService,
+            IMessenger messenger)
+        {
+            this.parserService = parserService ?? throw new ArgumentNullException(nameof(parserService));
+            this.settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+            this.consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
+            this.fileGeneratorService = fileGeneratorService ?? throw new ArgumentNullException(nameof(fileGeneratorService));
+            this.messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+            this.settings = new CRUDSettings(settingsService);
+            this.helper = new DtoGeneratorHelper(parserService, settings, consoleWriter);
+
+            RefreshEntitiesListCommand = new AsyncRelayCommand(RefreshEntitiesListAsync);
+            GenerateDtoCommand = new AsyncRelayCommand(GenerateDtoAsync);
+            OnEntitySelectedCommand = new RelayCommand(OnEntitySelected);
+
+            messenger.Register<ProjectChangedMessage>(this, (r, m) => SetCurrentProject(m.Project));
+            messenger.Register<SolutionClassesParsedMessage>(this, async (r, m) => await OnSolutionClassesParsed());
+        }
+
+        private void SelectProperties()
+        {
+            RefreshMappingProperties();
+            RequestResetMappingColumnsWidths?.Invoke();
+            ComputePropertiesValidity();
+        }
 
         public void SetProject(Project project)
         {
@@ -276,10 +324,71 @@ namespace BIA.ToolKit.ViewModels
             RaisePropertyChanged(nameof(IsVisibleUseDedicatedAudit));
         }
 
-        public void Inject(FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter)
+        public void SetCurrentProject(Project project)
         {
-            this.fileGeneratorService = fileGeneratorService;
-            this.consoleWriter = consoleWriter;
+            if (project == this.project)
+                return;
+
+            IsProjectChosen = false;
+            Clear();
+
+            if (project is null)
+                return;
+
+            InitProject(project);
+        }
+
+        public async Task OnSolutionClassesParsed()
+        {
+            await RefreshEntitiesListAsync();
+        }
+
+        private void InitProject(Project project)
+        {
+            this.project = project;
+            helper.InitProject(project, this);
+        }
+
+        private async Task RefreshEntitiesListAsync()
+        {
+            if (project is null)
+                return;
+
+            await helper.ListEntitiesAsync(project, this);
+        }
+
+        private void OnEntitySelected()
+        {
+            if (Entity is null)
+                return;
+
+            helper.LoadFromHistory(Entity, this);
+        }
+
+        private async Task GenerateDtoAsync()
+        {
+            if (project is null)
+                return;
+
+            helper.UpdateHistoryFile(this);
+            await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext
+            {
+                CompanyName = project.CompanyName,
+                ProjectName = project.Name,
+                DomainName = EntityDomain,
+                EntityName = Entity.Name,
+                EntityNamePlural = Entity.NamePluralized,
+                BaseKeyType = SelectedBaseKeyType,
+                Properties = [.. MappingEntityProperties],
+                IsTeam = IsTeam,
+                IsVersioned = IsVersioned,
+                IsArchivable = IsArchivable,
+                IsFixable = IsFixable,
+                AncestorTeamName = AncestorTeam,
+                HasAncestorTeam = !string.IsNullOrEmpty(AncestorTeam),
+                GenerateBack = true,
+                HasAudit = UseDedicatedAudit
+            });
         }
 
         public void SetEntities(List<EntityInfo> entities)

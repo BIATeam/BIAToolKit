@@ -30,8 +30,8 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <TextBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Projects Parent Path" Text="{Binding RootProjectsPath}" TextWrapping="Wrap" TextChanged="ModifyProjectRootFolderText_TextChanged"/>
-                <Button Grid.Column="1" Margin="5,0" Content="..." x:Name="ModifyProjectRootFolderBrowse" Click="ModifyProjectRootFolderBrowse_Click"/>
+                <TextBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Projects Parent Path" Text="{Binding RootProjectsPath}" TextWrapping="Wrap"/>
+                <Button Grid.Column="1" Margin="5,0" Content="..." x:Name="ModifyProjectRootFolderBrowse" Command="{Binding BrowseFolderCommand}"/>
             </Grid>
             <Grid Grid.Column="1" Margin="10,0">
                 <Grid.ColumnDefinitions>
@@ -43,7 +43,7 @@
                     <RowDefinition />
                 </Grid.RowDefinitions>
                 <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Project Folder" ItemsSource="{Binding Projects}" SelectedValue="{Binding Folder}"/>
-                <Button Grid.Column="1" x:Name="RefreshDtoList" Click="RefreshProjectFolderList_Click" ToolTip="Refresh project folder list" Padding="5" Margin="5,0">
+                <Button Grid.Column="1" x:Name="RefreshDtoList" Command="{Binding RefreshProjectFolderListCommand}" ToolTip="Refresh project folder list" Padding="5" Margin="5,0">
                     <Image Source="/Images/rafraichir-32.png" />
                 </Button>
                 <Button Style="{StaticResource MaterialDesignPaperDarkButton}" Margin="0,5,0,0" Grid.Row="1" IsEnabled="{Binding IsProjectSelected}" Command="{Binding RefreshProjectInformationsCommand}">
@@ -90,10 +90,10 @@
                                     <RowDefinition Height="auto"/>
                                 </Grid.RowDefinitions>
                                 <GroupBox Header="Original" Margin="10" Foreground="White" x:Name="CompanyFileGroup" Grid.Row="0" Style="{StaticResource MaterialDesignGroupBox}" materialDesign:ColorZoneAssist.Mode="Custom" materialDesign:ColorZoneAssist.Background="#608000" materialDesign:ColorZoneAssist.Foreground="White">
-                                    <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption"/>
+                                    <ContentControl x:Name="MigrateOriginVersionAndOptionHost"/>
                                 </GroupBox>
                                 <GroupBox Margin="10" Header="Target"  Foreground="White" Grid.Row="1" Style="{StaticResource MaterialDesignGroupBox}" materialDesign:ColorZoneAssist.Mode="Custom" materialDesign:ColorZoneAssist.Background="#608000" materialDesign:ColorZoneAssist.Foreground="White">
-                                    <uc:VersionAndOptionUserControl x:Name="MigrateTargetVersionAndOption"/>
+                                    <ContentControl x:Name="MigrateTargetVersionAndOptionHost"/>
                                 </GroupBox>
                             </Grid>
                         </ScrollViewer>
@@ -105,15 +105,15 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <CheckBox Grid.Row="0" Content="Overwrite BIA first" HorizontalAlignment="Center" Foreground="White" Name="CFOverwriteBIAFirst" IsChecked="{Binding Path=OverwriteBIAFromOriginal, Mode=TwoWay}"/>
-                            <Button Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Margin="0,10" Height="50" Grid.Row="1" HorizontalAlignment="Stretch" Content="Migrate" x:Name="Migrate" Click="Migrate_Click" IsEnabled="{Binding IsProjectSelected}"/>
+                            <Button Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Margin="0,10" Height="50" Grid.Row="1" HorizontalAlignment="Stretch" Content="Migrate" x:Name="Migrate" Command="{Binding MigrateCommand}" IsEnabled="{Binding IsProjectSelected}"/>
                             <Label Grid.Row="2" Content="Or by step :" Foreground="White" HorizontalAlignment="Center"/>
                             <StackPanel Grid.Row="3" Margin="0,10">
-                                <Button Margin="0,3" Content="1 - Generate Only" x:Name="MigrateGenerateOnly" Click="MigrateGenerateOnly_Click" IsEnabled="{Binding IsProjectSelected}"/>
-                                <Button Margin="0,3" Content="2 - Open Folder" x:Name="MigrateOpenFolder" Click="MigrateOpenFolder_Click" IsEnabled="False"/>
-                                <Button Margin="0,3" Content="3 - Apply Diff" x:Name="MigrateApplyDiff" Click="MigrateApplyDiff_Click" IsEnabled="False"/>
-                                <Button Margin="0,3" Content="4 - Merge Rejected" x:Name="MigrateMergeRejected" Click="MigrateMergeRejected_Click" IsEnabled="False"/>
-                                <Button Margin="0,3" Content="5 - Overwrite '\BIA-.*'" x:Name="MigrateOverwriteBIAFolder" Click="MigrateOverwriteBIAFolder_Click" IsEnabled="{Binding IsProjectSelected}"/>
-                                <Button Margin="0,3" Content="6 - Fix Usings" x:Name="FixUsings" Click="FixUsings_Click" IsEnabled="{Binding IsProjectSelected}"/>
+                                <Button Margin="0,3" Content="1 - Generate Only" x:Name="MigrateGenerateOnly" Command="{Binding MigrateGenerateOnlyCommand}" IsEnabled="{Binding IsProjectSelected}"/>
+                                <Button Margin="0,3" Content="2 - Open Folder" x:Name="MigrateOpenFolder" Command="{Binding MigrateOpenFolderCommand}" IsEnabled="{Binding CanOpenFolder}"/>
+                                <Button Margin="0,3" Content="3 - Apply Diff" x:Name="MigrateApplyDiff" Command="{Binding MigrateApplyDiffCommand}" IsEnabled="{Binding CanApplyDiff}"/>
+                                <Button Margin="0,3" Content="4 - Merge Rejected" x:Name="MigrateMergeRejected" Command="{Binding MigrateMergeRejectedCommand}" IsEnabled="{Binding CanMergeRejected}"/>
+                                <Button Margin="0,3" Content="5 - Overwrite '\BIA-.*'" x:Name="MigrateOverwriteBIAFolder" Command="{Binding MigrateOverwriteBIAFolderCommand}" IsEnabled="{Binding IsProjectSelected}"/>
+                                <Button Margin="0,3" Content="6 - Fix Usings" x:Name="FixUsings" Command="{Binding FixUsingsCommand}" IsEnabled="{Binding IsProjectSelected}"/>
                             </StackPanel>
                         </Grid>
                     </Grid>
@@ -122,21 +122,21 @@
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <Grid>
                             <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
-                            <uc:OptionGeneratorUC x:Name="OptionGenerator" Margin="10" />
+                            <ContentControl x:Name="OptionGeneratorHost" Margin="10" />
                         </Grid>
                     </ScrollViewer>
                 </TabItem>
                 <TabItem x:Name="TabDtoGenerator" Header="DTO Generator" IsEnabled="{Binding IsFileGeneratorServiceInit, Mode=OneWay}">
                     <Grid>
                         <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
-                        <uc:DtoGeneratorUC x:Name="DtoGenerator" Margin="10"/>
+                        <ContentControl x:Name="DtoGeneratorHost" Margin="10"/>
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="TabCrudGenerator" Header="CRUD Generator" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <Grid>
                             <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
-                            <uc:CRUDGeneratorUC x:Name="CRUDGenerator" Margin="10"/>
+                            <ContentControl x:Name="CRUDGeneratorHost" Margin="10"/>
                         </Grid>
                     </ScrollViewer>
                 </TabItem>

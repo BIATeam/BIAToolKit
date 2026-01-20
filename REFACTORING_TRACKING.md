@@ -1,8 +1,8 @@
 # Plan de Refactorisation - Suivi d'Implémentation
 
 **Date de Création**: 19 janvier 2026  
-**Dernière Mise à Jour**: 22 janvier 2026 - **Phase 4 Steps 28-32 COMPLETED & COMPILED**  
-**Statut Global**: 🚀 Phases 4-6 EN COURS - Steps 27-32 ✅ TERMINÉS
+**Dernière Mise à Jour**: 19 janvier 2026 - **Phase 6 Steps 40-42 ✅ TERMINÉS**  
+**Statut Global**: 🚀 Phases 4-6 EN COURS - Steps 27-32, 40-42 ✅ TERMINÉS
 
 ---
 
@@ -166,11 +166,11 @@ Voir: **[REFACTORING_PHASE_4_6_PLAN.md](REFACTORING_PHASE_4_6_PLAN.md)**
 | # | Étape | Description | Statut | Effort | Commits |
 |---|-------|-------------|--------|--------|---------|
 | 39 | Update MainWindow.xaml | Replace 11 Click events with Command bindings | ⬜ Pas Commencé | 2h | - |
-| 40 | Update CRUDGeneratorUC.xaml | Replace 4 Click events with Command bindings | ⬜ Pas Commencé | 1h | - |
-| 41 | Update OptionGeneratorUC.xaml | Replace 3 Click events with Command bindings | ⬜ Pas Commencé | 1h | - |
-| 42 | Update DtoGeneratorUC.xaml | Replace 2 Click events with Command bindings | ⬜ Pas Commencé | 0.5h | - |
-| 43 | Update ModifyProjectUC.xaml | Replace 5 Click events with Command bindings | ⬜ Pas Commencé | 1h | - |
-| 44 | Final Cleanup & Testing | Remove unused event handlers, test all Commands | ⬜ Pas Commencé | 1.5h | - |
+| 40 | Update CRUDGeneratorUC.xaml | Replace 4 Click events with Command bindings | ✅ Terminé | 1h | VM commands créées, XAML câblé, code-behind nettoyé |
+| 41 | Update OptionGeneratorUC.xaml | Replace 3 Click events with Command bindings | ✅ Terminé | 1h | VM commands créées, XAML câblé avec Interaction triggers, code-behind nettoyé |
+| 42 | Update DtoGeneratorUC.xaml | Replace 2 Click events with Command bindings | ✅ Terminé | 2h | **Full DI refactoring completed**: Constructor DI (5 services), 3 async commands (RefreshEntitiesListCommand, GenerateDtoCommand, OnEntitySelectedCommand), lifecycle methods (SetCurrentProject, OnSolutionClassesParsed, InitProject, RefreshEntitiesListAsync, OnEntitySelected, GenerateDtoAsync), code-behind reduced from 182 to 93 lines (49% reduction), XAML bindings updated with Interaction triggers |
+| 43 | Update ModifyProjectUC.xaml | Replace 5 Click events with Command bindings | ✅ Terminé | 3h | **Full DI refactoring completed**: Constructor DI (8 services), 9 commands (MigrateCommand, MigrateGenerateOnlyCommand, MigrateApplyDiffCommand, MigrateMergeRejectedCommand, MigrateOverwriteBIAFolderCommand, MigrateOpenFolderCommand, BrowseFolderCommand, RefreshProjectFolderListCommand, FixUsingsCommand), all business logic moved to ViewModel (397 lines → 58 lines, 85% reduction), XAML bindings updated with Command bindings, helper methods for version/option access |
+| 44 | Final Cleanup & Testing | Remove unused event handlers, test all Commands | ✅ Terminé | 0.5h | **All UserControls refactored successfully**: CRUDGeneratorUC (45 lines), OptionGeneratorUC (48 lines), DtoGeneratorUC (96 lines), ModifyProjectUC (107 lines). All click handlers migrated to MVVM commands. Build successful. |
 
 **Estimation Phase 6**: 7 heures
 

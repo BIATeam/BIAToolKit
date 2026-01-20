@@ -1,9 +1,14 @@
 namespace BIA.ToolKit.ViewModels
 {
+    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Common;
+    using CommunityToolkit.Mvvm.Messaging;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
@@ -15,22 +20,72 @@ namespace BIA.ToolKit.ViewModels
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
+    using System.Windows;
 
-    public class CRUDGeneratorViewModel : ObservableObject
+    public partial class CRUDGeneratorViewModel : ObservableObject
     {
+        private const string DOTNET_TYPE = "DotNet";
+        private const string ANGULAR_TYPE = "Angular";
+
+        private readonly CSharpParserService parserService;
+        private readonly ZipParserService zipService;
+        private readonly GenerateCrudService crudService;
+        private readonly CRUDSettings settings;
+        private readonly IMessenger messenger;
+        private readonly FileGeneratorService fileGeneratorService;
+        private readonly IConsoleWriter consoleWriter;
+        private readonly ITextParsingService textParsingService;
+
+        private readonly List<FeatureGenerationSettings> backSettingsList = [];
+        private List<FeatureGenerationSettings> frontSettingsList = [];
+        private CRUDGeneratorHelper crudHelper;
+        private CRUDGeneration crudHistory;
+
         // Helper to keep existing RaisePropertyChanged calls after migrating to CommunityToolkit
         protected void RaisePropertyChanged(string propertyName) => OnPropertyChanged(propertyName);
 
         /// <summary>  
         /// Constructor.
         /// </summary>
-        public CRUDGeneratorViewModel()
+        public CRUDGeneratorViewModel(
+            CSharpParserService parserService,
+            ZipParserService zipService,
+            GenerateCrudService crudService,
+            SettingsService settingsService,
+            IConsoleWriter consoleWriter,
+            IMessenger messenger,
+            FileGeneratorService fileGeneratorService,
+            ITextParsingService textParsingService)
         {
+            this.parserService = parserService ?? throw new ArgumentNullException(nameof(parserService));
+            this.zipService = zipService ?? throw new ArgumentNullException(nameof(zipService));
+            this.crudService = crudService ?? throw new ArgumentNullException(nameof(crudService));
+            this.settings = new CRUDSettings(settingsService ?? throw new ArgumentNullException(nameof(settingsService)));
+            this.consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
+            this.messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+            this.fileGeneratorService = fileGeneratorService ?? throw new ArgumentNullException(nameof(fileGeneratorService));
+            this.textParsingService = textParsingService ?? new TextParsingService();
+
             OptionItems = [];
             ZipFeatureTypeList = [];
             FeatureNames = [];
             DtoEntities = [];
+
+            OnDtoSelectedCommand = new RelayCommand(OnDtoSelected);
+            OnEntitySingularNameChangedCommand = new RelayCommand(OnEntitySingularNameChanged);
+            OnEntityPluralNameChangedCommand = new RelayCommand(OnEntityPluralNameChanged);
+            OnBiaFrontSelectedCommand = new RelayCommand<string>(OnBiaFrontSelected);
+
+            RefreshDtoListCommand = new RelayCommand(ListDtoFiles);
+            GenerateCrudCommand = new AsyncRelayCommand(GenerateCrudAsync);
+            DeleteLastGenerationCommand = new RelayCommand(DeleteLastGeneration);
+            DeleteAnnotationsCommand = new AsyncRelayCommand(DeleteAnnotationsAsync);
+
+            messenger.Register<ProjectChangedMessage>(this, (r, m) => SetCurrentProject(m.Project));
+            messenger.Register<SolutionClassesParsedMessage>(this, (r, m) => OnSolutionClassesParsed());
         }
 
         #region CurrentProject
@@ -714,6 +769,523 @@ namespace BIA.ToolKit.ViewModels
                     zipFeatureTypeList = value;
                 }
             }
+        }
+        #endregion
+
+        #region Commands (Phase 6 - Step 40)
+        public IRelayCommand OnDtoSelectedCommand { get; }
+
+        public IRelayCommand OnEntitySingularNameChangedCommand { get; }
+
+        public IRelayCommand OnEntityPluralNameChangedCommand { get; }
+
+        public IRelayCommand OnBiaFrontSelectedCommand { get; }
+
+        public IRelayCommand RefreshDtoListCommand { get; }
+
+        public IRelayCommand GenerateCrudCommand { get; }
+
+        public IRelayCommand DeleteLastGenerationCommand { get; }
+
+        public IRelayCommand DeleteAnnotationsCommand { get; }
+
+        private void OnDtoSelected()
+        {
+            if (CurrentProject is null)
+                return;
+
+            IsDtoParsed = ParseDtoFile();
+            CRUDNameSingular = textParsingService.ExtractEntityNameFromDtoFile(DtoEntity?.Name);
+            IsTeam = DtoEntity?.IsTeam == true;
+            IsVersioned = DtoEntity?.IsVersioned == true;
+            IsFixable = DtoEntity?.IsFixable == true;
+            IsArchivable = DtoEntity?.IsArchivable == true;
+            AncestorTeam = DtoEntity?.AncestorTeamName;
+            SelectedBaseKeyType = DtoEntity?.BaseKeyType;
+            var isBackSelected = IsWebApiAvailable;
+            var isFrontSelected = IsFrontAvailable;
+
+            foreach (var optionItem in OptionItems)
+            {
+                optionItem.Check = false;
+            }
+
+            if (DtoEntity != null)
+            {
+                foreach (var property in DtoEntity.Properties.Where(p => p.IsOptionDto))
+                {
+                    var optionType = property.Annotations.FirstOrDefault(a => a.Key == "Type").Value;
+                    if (string.IsNullOrEmpty(optionType))
+                        continue;
+
+                    var optionItem = OptionItems.FirstOrDefault(oi => oi.OptionName == optionType);
+                    if (optionItem is null)
+                        continue;
+
+                    optionItem.Check = true;
+                }
+            }
+
+            if (crudHistory != null && crudHelper != null)
+            {
+                string dtoName = GetDtoSelectedPath();
+                if (!string.IsNullOrEmpty(dtoName))
+                {
+                    CRUDGenerationHistory history = crudHelper.LoadDtoHistory(crudHistory, dtoName);
+
+                    if (history != null)
+                    {
+                        CRUDNameSingular = history.EntityNameSingular;
+                        CRUDNamePlural = history.EntityNamePlural;
+                        DtoDisplayItemSelected = history.DisplayItem;
+                        FeatureNameSelected = history.Feature;
+                        HasParent = history.HasParent;
+                        ParentName = history.ParentName;
+                        ParentNamePlural = history.ParentNamePlural;
+                        Domain = history.Domain;
+                        BiaFront = history.BiaFront;
+                        IsTeam = history.IsTeam;
+                        TeamTypeId = history.TeamTypeId;
+                        TeamRoleId = history.TeamRoleId;
+                        UseHubClient = history.UseHubClient;
+                        HasCustomRepository = history.UseCustomRepository;
+                        HasFormReadOnlyMode = history.HasFormReadOnlyMode;
+                        UseImport = history.UseImport;
+                        IsFixable = history.IsFixable;
+                        HasFixableParent = history.HasFixableParent;
+                        UseAdvancedFilter = history.HasAdvancedFilter;
+                        AncestorTeam = history.AncestorTeam;
+                        SelectedFormReadOnlyMode = history.FormReadOnlyMode;
+                        IsVersioned = history.IsVersioned;
+                        IsArchivable = history.IsArchivable;
+                        SelectedBaseKeyType = history.EntityBaseKeyType;
+                        DisplayHistorical = history.DisplayHistorical;
+                        UseDomainUrl = history.UseDomainUrl;
+
+                        foreach (var optionItem in OptionItems)
+                        {
+                            optionItem.Check = history.OptionItems?.Contains(optionItem.OptionName) == true;
+                        }
+                    }
+                    else
+                    {
+                        IsDtoGenerated = false;
+                    }
+                }
+            }
+
+            IsDtoGenerated = crudHistory?.CRUDGenerationHistory?.Any(h => h.EntityNameSingular == CRUDNameSingular) == true;
+            IsWebApiSelected = isBackSelected;
+            IsFrontSelected = isFrontSelected;
+        }
+
+        private void OnEntitySingularNameChanged()
+        {
+            CRUDNamePlural = string.Empty;
+        }
+
+        private void OnEntityPluralNameChanged()
+        {
+            IsSelectionChange = true;
+        }
+
+        private void OnBiaFrontSelected(string selectedFront)
+        {
+            if (string.IsNullOrWhiteSpace(selectedFront) || crudHelper == null)
+                return;
+
+            SetFrontGenerationSettings(selectedFront);
+            ParseFrontDomains();
+        }
+
+        private void DeleteLastGeneration()
+        {
+            try
+            {
+                CRUDGenerationHistory history = crudHelper.LoadDtoHistory(crudHistory, GetDtoSelectedPath());
+                if (history == null)
+                {
+                    consoleWriter.AddMessageLine($"No previous '{CRUDNameSingular}' generation found.", "Orange");
+                    return;
+                }
+
+                List<CRUDGenerationHistory> historyOptions = crudHelper.GetHistoriesUsingOption(crudHistory, CRUDNameSingular);
+
+                crudService.DeleteLastGeneration(ZipFeatureTypeList, CurrentProject, history, FeatureNameSelected, new CrudParent { Exists = history.HasParent, Domain = history.Domain, Name = history.ParentName, NamePlural = history.ParentNamePlural }, historyOptions);
+
+                DeleteLastGenerationHistory(history);
+                IsDtoGenerated = false;
+
+                consoleWriter.AddMessageLine($"End of '{CRUDNameSingular}' suppression.", "Purple");
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error on deleting last '{CRUDNameSingular}' generation: {ex.Message}", "Red");
+            }
+        }
+
+        private async Task DeleteAnnotationsAsync()
+        {
+            try
+            {
+                var result = MessageBox.Show(
+                    "Do you want to permanently remove all BIAToolkit annotations in code?\nAfter that you will no longer be able to regenerate old CRUDs.\n\nBe careful, this action is irreversible.",
+                    "Warning",
+                    MessageBoxButton.OKCancel,
+                    MessageBoxImage.Warning,
+                    MessageBoxResult.Cancel);
+
+                if (result == MessageBoxResult.OK)
+                {
+                    List<string> folders = [
+                        Path.Combine(CurrentProject.Folder, Constants.FolderDotNet),
+                        Path.Combine(CurrentProject.Folder, BiaFront, "src",  "app")
+                    ];
+
+                    await crudService.DeleteBIAToolkitAnnotations(folders);
+                }
+
+                consoleWriter.AddMessageLine($"End of annotations suppression.", "Purple");
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error on cleaning annotations for project '{CurrentProject?.Name}': {ex.Message}", "Red");
+            }
+        }
+        #endregion
+
+        #region Lifecycle & helpers
+        public void SetCurrentProject(Project project)
+        {
+            if (project == CurrentProject)
+                return;
+
+            CurrentProject = project;
+            InitProjectTask(project);
+        }
+
+        public void OnSolutionClassesParsed()
+        {
+            if (CurrentProject is not null)
+            {
+                InitProjectTask(CurrentProject);
+                ListDtoFiles();
+            }
+        }
+
+        private void InitProjectTask(Project project)
+        {
+            ClearAll();
+
+            if (project is not null)
+            {
+                InitProject(project);
+            }
+        }
+
+        private void ClearAll()
+        {
+            backSettingsList.Clear();
+            frontSettingsList.Clear();
+            OptionItems?.Clear();
+            ZipFeatureTypeList.Clear();
+            FeatureNames.Clear();
+
+            DtoEntity = null;
+            DtoEntities.Clear();
+            IsWebApiSelected = false;
+            IsFrontSelected = false;
+            FeatureNameSelected = null;
+            BiaFronts.Clear();
+            BiaFront = null;
+            IsTeam = false;
+            DisplayHistorical = false;
+            UseDomainUrl = false;
+
+            crudHistory = null;
+        }
+
+        private void InitProject(Project project)
+        {
+            try
+            {
+                SetGenerationSettings(project);
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error on initializing project: {ex.Message}", "Red");
+            }
+        }
+
+        private void SetGenerationSettings(Project project)
+        {
+            if (crudHelper == null)
+            {
+                crudHelper = new CRUDGeneratorHelper(settings, fileGeneratorService, project);
+            }
+
+            var (backSettings, frontSettings, featureNames, history, useFileGenerator) =
+                crudHelper.InitializeSettings(ZipFeatureTypeList);
+
+            backSettingsList.Clear();
+            backSettingsList.AddRange(backSettings);
+            frontSettingsList.Clear();
+            frontSettingsList.AddRange(frontSettings);
+
+            FeatureNames.Clear();
+            foreach (var featureName in featureNames)
+            {
+                FeatureNames.Add(featureName);
+            }
+
+            if (useFileGenerator)
+            {
+                FeatureNameSelected = "CRUD";
+            }
+
+            crudHistory = history;
+            UseFileGenerator = useFileGenerator;
+            CurrentProject = project;
+            IsProjectChosen = true;
+
+            crudService.CurrentProject = project;
+            crudService.CrudNames = new(backSettingsList, frontSettingsList);
+        }
+
+        private void SetFrontGenerationSettings(string biaFront)
+        {
+            var frontSettings = crudHelper.LoadFrontSettings(biaFront, ZipFeatureTypeList);
+            frontSettingsList.Clear();
+            frontSettingsList = frontSettings;
+        }
+
+        private void UpdateCrudGenerationHistory()
+        {
+            try
+            {
+                crudHistory ??= new();
+
+                CRUDGenerationHistory history = new()
+                {
+                    Date = DateTime.Now,
+                    EntityNameSingular = CRUDNameSingular,
+                    EntityNamePlural = CRUDNamePlural,
+                    DisplayItem = DtoDisplayItemSelected,
+                    OptionItems = OptionItems?.Where(o => o.Check).Select(o => o.OptionName).ToList(),
+                    Feature = FeatureNameSelected,
+                    HasParent = HasParent,
+                    ParentName = ParentName,
+                    ParentNamePlural = ParentNamePlural,
+                    Domain = Domain,
+                    BiaFront = BiaFront,
+                    IsTeam = IsTeam,
+                    TeamTypeId = TeamTypeId,
+                    TeamRoleId = TeamRoleId,
+                    UseHubClient = UseHubClient,
+                    UseCustomRepository = HasCustomRepository,
+                    HasFormReadOnlyMode = HasFormReadOnlyMode,
+                    UseImport = UseImport,
+                    IsFixable = IsFixable,
+                    HasFixableParent = HasFixableParent,
+                    HasAdvancedFilter = UseAdvancedFilter,
+                    AncestorTeam = AncestorTeam,
+                    FormReadOnlyMode = SelectedFormReadOnlyMode,
+                    IsVersioned = IsVersioned,
+                    IsArchivable = IsArchivable,
+                    EntityBaseKeyType = SelectedBaseKeyType,
+                    DisplayHistorical = DisplayHistorical,
+                    UseDomainUrl = UseDomainUrl,
+                };
+
+                var feature = ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected);
+
+                if (feature != null)
+                {
+                    feature.ToList().ForEach(f =>
+                    {
+                        if (f.IsChecked)
+                        {
+                            Generation crudGeneration = new()
+                            {
+                                GenerationType = f.GenerationType.ToString(),
+                                FeatureType = f.FeatureType.ToString(),
+                                Template = f.ZipName
+                            };
+                            if (f.GenerationType == GenerationType.WebApi)
+                            {
+                                crudGeneration.Type = DOTNET_TYPE;
+                                crudGeneration.Folder = Constants.FolderDotNet;
+                            }
+                            else if (f.GenerationType == GenerationType.Front)
+                            {
+                                crudGeneration.Type = ANGULAR_TYPE;
+                                crudGeneration.Folder = BiaFront;
+                            }
+                            history.Generation.Add(crudGeneration);
+                        }
+                    });
+                }
+
+                crudHelper.UpdateHistory(crudHistory, history);
+                IsDtoGenerated = true;
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error on CRUD generation history: {ex.Message}", "Red");
+            }
+        }
+
+        private void DeleteLastGenerationHistory(CRUDGenerationHistory history)
+        {
+            crudHelper.DeleteHistory(crudHistory, history);
+        }
+
+        private void ListDtoFiles()
+        {
+            if (CurrentProject is null)
+                return;
+
+            List<EntityInfo> dtoEntities = [];
+
+            string dtoFolder = $"{CurrentProject.CompanyName}.{CurrentProject.Name}.Domain.Dto";
+            string dtoFolderPath = Path.Combine(CurrentProject.Folder, Constants.FolderDotNet, dtoFolder);
+
+            try
+            {
+                if (Directory.Exists(dtoFolderPath))
+                {
+                    foreach (var dtoClass in parserService.CurrentSolutionClasses.Where(x =>
+                        x.FilePath.StartsWith(dtoFolderPath, StringComparison.InvariantCultureIgnoreCase)
+                        && x.FilePath.EndsWith("Dto.cs")))
+                    {
+                        dtoEntities.Add(new EntityInfo(dtoClass));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine(ex.Message, "Red");
+            }
+
+            DtoEntities = new(dtoEntities.OrderBy(x => x.Name));
+        }
+
+        private bool ParseDtoFile()
+        {
+            try
+            {
+                if (DtoEntity is null)
+                    return false;
+
+                List<string> displayItems = [];
+                foreach(var property in DtoEntity.Properties.OrderBy(x => x.Name))
+                {
+                    displayItems.Add(property.Name);
+                }
+
+                DtoDisplayItems = displayItems;
+                DtoDisplayItemSelected = DtoEntity.Properties.FirstOrDefault(p => p.Type.StartsWith("string", StringComparison.CurrentCultureIgnoreCase))?.Name;
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error on parsing Dto File: {ex.Message}", "Red");
+            }
+            return false;
+        }
+
+        private string GetDtoSelectedPath()
+        {
+            if (DtoEntity is null || CurrentProject is null)
+                return null;
+
+            string dotNetPath = Path.Combine(CurrentProject.Folder, Constants.FolderDotNet);
+            return DtoEntity.Path.Replace(dotNetPath, string.Empty).TrimStart(Path.DirectorySeparatorChar);
+        }
+
+        private void ParseFrontDomains()
+        {
+            const string suffix = "-option";
+            const string domainsPath = @"src\app\domains";
+            List<string> foldersName = [];
+
+            string folderPath = Path.Combine(CurrentProject.Folder, BiaFront, domainsPath);
+            if(!Directory.Exists(folderPath))
+                return;
+
+            List<string> folders = [.. Directory.GetDirectories(folderPath, $"*{suffix}", SearchOption.AllDirectories)];
+            folders.ForEach(f => foldersName.Add(new DirectoryInfo(f).Name.Replace(suffix, "")));
+
+            AddOptionItems(foldersName.Select(x => new OptionItem(CommonTools.ConvertKebabToPascalCase(x))));
+        }
+
+        private async Task GenerateCrudAsync()
+        {
+            if (CurrentProject is null)
+                return;
+
+            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            {
+                await fileGeneratorService.GenerateCRUDAsync(new FileGeneratorCrudContext
+                {
+                    CompanyName = CurrentProject.CompanyName,
+                    ProjectName = CurrentProject.Name,
+                    DomainName = Domain,
+                    EntityName = CRUDNameSingular,
+                    EntityNamePlural = CRUDNamePlural,
+                    BaseKeyType = SelectedBaseKeyType,
+                    IsTeam = IsTeam,
+                    Properties = [.. DtoEntity.Properties],
+                    OptionItems = [.. OptionItems.Where(x => x.Check).Select(x => x.OptionName)],
+                    HasParent = HasParent,
+                    ParentName = ParentName,
+                    ParentNamePlural = ParentNamePlural,
+                    AncestorTeamName = AncestorTeam,
+                    HasAncestorTeam = !string.IsNullOrWhiteSpace(AncestorTeam),
+                    AngularFront = BiaFront,
+                    GenerateBack = IsWebApiSelected,
+                    GenerateFront = IsFrontSelected,
+                    DisplayItemName = DtoDisplayItemSelected,
+                    TeamTypeId = TeamTypeId,
+                    TeamRoleId = TeamRoleId,
+                    UseHubForClient = UseHubClient,
+                    HasCustomRepository = HasCustomRepository,
+                    HasReadOnlyMode = HasFormReadOnlyMode,
+                    CanImport = UseImport,
+                    IsFixable = IsFixable,
+                    HasFixableParent = HasFixableParent,
+                    HasAdvancedFilter = UseAdvancedFilter,
+                    FormReadOnlyMode = SelectedFormReadOnlyMode,
+                    IsVersioned = IsVersioned,
+                    IsArchivable = IsArchivable,
+                    DisplayHistorical = DisplayHistorical,
+                    UseDomainUrl = UseDomainUrl,
+                });
+
+                UpdateCrudGenerationHistory();
+                return;
+            }
+
+            if (!zipService.ParseZips(ZipFeatureTypeList, CurrentProject, BiaFront, settings))
+                return;
+
+            var crudParent = new CrudParent
+            {
+                Exists = HasParent,
+                Name = ParentName,
+                NamePlural = ParentNamePlural,
+                Domain = Domain
+            };
+
+            crudService.CrudNames.InitRenameValues(CRUDNameSingular, CRUDNamePlural);
+
+            List<string> optionsItems = OptionItems.Any() ? OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
+            IsDtoGenerated = crudService.GenerateFiles(DtoEntity, ZipFeatureTypeList, DtoDisplayItemSelected, optionsItems, crudParent, FeatureNameSelected, Domain, BiaFront);
+
+            UpdateCrudGenerationHistory();
+
+            consoleWriter.AddMessageLine($"End of '{CRUDNameSingular}' generation.", "Blue");
         }
         #endregion
 

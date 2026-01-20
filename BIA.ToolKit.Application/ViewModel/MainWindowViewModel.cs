@@ -42,6 +42,9 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly ILogger<MainWindowViewModel> logger;
     private readonly SemaphoreSlim semaphore = new(1, 1);
 
+    public event Func<Func<Task>, Task> WaiterRequested = async action => await action();
+    public event Action<IBIATKSettings> PersistSettingsRequested = delegate { };
+
     #endregion
 
     #region Constructor
@@ -74,6 +77,11 @@ public partial class MainWindowViewModel : ObservableObject
 
         this.fileDialogService = fileDialogService ?? throw new ArgumentNullException(nameof(fileDialogService));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        messenger.Register<ExecuteActionWithWaiterMessage>(this, async (r, m) => await OnExecuteActionWithWaiterMessage(m.Action));
+        messenger.Register<NewVersionAvailableMessage>(this, (r, m) => OnNewVersionAvailable());
+        messenger.Register<SettingsUpdatedMessage>(this, (r, m) => OnSettingsUpdated(m.Settings));
+        messenger.Register<RepositoriesUpdatedMessage>(this, (r, m) => OnRepositoriesUpdated());
     }
 
     #endregion
@@ -224,6 +232,34 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     #endregion
+
+    private async Task OnExecuteActionWithWaiterMessage(Func<Task> action)
+    {
+        if (WaiterRequested != null)
+        {
+            await WaiterRequested(action);
+        }
+        else
+        {
+            await action();
+        }
+    }
+
+
+    private void OnSettingsUpdated(IBIATKSettings settings)
+    {
+        PersistSettingsRequested?.Invoke(settings);
+    }
+
+    private void OnRepositoriesUpdated()
+    {
+        messenger.Send(new SettingsUpdatedMessage(settingsService.Settings));
+    }
+
+    private void OnNewVersionAvailable()
+    {
+        // Hook for future UX when a new version is available
+    }
 
     #region Commands - Create Project
 

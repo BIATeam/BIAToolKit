@@ -2,7 +2,11 @@ namespace BIA.ToolKit.ViewModels
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Mapper;
+    using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Model;
+    using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Domain.Work;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
@@ -14,29 +18,34 @@ namespace BIA.ToolKit.ViewModels
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
     using System.Text.Json;
     using System.Windows.Input;
 
     public class VersionAndOptionViewModel : ObservableObject
     {
         public VersionAndOption VersionAndOption { get; set; }
-        public RepositoryService repositoryService;
-        IConsoleWriter consoleWriter;
-        private IMessenger messenger;
+        private readonly RepositoryService repositoryService;
+        private readonly IConsoleWriter consoleWriter;
+        private readonly IMessenger messenger;
+        private readonly SettingsService settingsService;
+        private string currentProjectPath;
+        private List<FeatureSetting> originFeatureSettings;
 
         private bool hasFeature = false;
         private bool areFeatureInitialized = false;
 
-        public VersionAndOptionViewModel()
-        {
-            VersionAndOption = new VersionAndOption();
-        }
-
-        public void Inject(RepositoryService repositoryService, IConsoleWriter consoleWriter, IMessenger messenger)
+        public VersionAndOptionViewModel(RepositoryService repositoryService, SettingsService settingsService, IConsoleWriter consoleWriter, IMessenger messenger)
         {
             this.repositoryService = repositoryService;
+            this.settingsService = settingsService;
             this.consoleWriter = consoleWriter;
             this.messenger = messenger;
+            VersionAndOption = new VersionAndOption();
+
+            messenger.Register<SettingsUpdatedMessage>(this, (r, m) => OnSettingsUpdated(m.Settings));
+            messenger.Register<RepositoryViewModelReleaseDataUpdatedMessage>(this, (r, m) => OnRepositoryReleaseDataUpdated());
+            messenger.Register<OriginFeatureSettingsChangedMessage>(this, (r, m) => OnOriginFeatureSettingsChanged(m.FeatureSettings));
         }
 
         public ObservableCollection<WorkRepository> WorkTemplates
@@ -316,6 +325,181 @@ namespace BIA.ToolKit.ViewModels
             {
                 FeatureSettings.Single(x => x.FeatureSetting.Id == notSelectedFeature.Id).IsSelected = false;
             }
+        }
+
+        private void OnSettingsUpdated(IBIATKSettings settings)
+        {
+            SettingsUseCompanyFiles = settings.UseCompanyFiles;
+            RefreshConfiguration();
+        }
+
+        private void OnRepositoryReleaseDataUpdated()
+        {
+            RefreshConfiguration();
+        }
+
+        private void OnOriginFeatureSettingsChanged(List<FeatureSetting> featureSettings)
+        {
+            originFeatureSettings = featureSettings;
+            LoadVersionAndOption(false, false);
+        }
+
+        public void SelectVersion(string version)
+        {
+            WorkTemplate = WorkTemplates?.FirstOrDefault(workTemplate => workTemplate.Version == $"V{version}");
+        }
+
+        public void SetCurrentProjectPath(string path, bool mapCompanyFileVersion, bool mapFrameworkVersion, IEnumerable<FeatureSetting> originFeatureSettings = null)
+        {
+            currentProjectPath = path;
+            LoadFeatureSetting();
+
+            if (originFeatureSettings != null)
+            {
+                this.originFeatureSettings = new List<FeatureSetting>(originFeatureSettings);
+            }
+
+            LoadVersionAndOption(mapCompanyFileVersion, mapFrameworkVersion);
+        }
+
+        public void LoadVersionAndOption(bool mapCompanyFileVersion, bool mapFrameworkVersion)
+        {
+            if (string.IsNullOrWhiteSpace(currentProjectPath))
+                return;
+
+            string projectGenerationFile = Path.Combine(currentProjectPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
+            if (!File.Exists(projectGenerationFile))
+                return;
+
+            try
+            {
+                VersionAndOptionDto versionAndOptionDto = CommonTools.DeserializeJsonFile<VersionAndOptionDto>(projectGenerationFile);
+                VersionAndOptionMapper.DtoToModel(versionAndOptionDto, this, mapCompanyFileVersion, mapFrameworkVersion, originFeatureSettings);
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error when reading {projectGenerationFile} : {ex.Message}", "red");
+            }
+        }
+
+        private void LoadFeatureSetting()
+        {
+            List<FeatureSetting> featureSettings = FeatureSettingHelper.Get(WorkTemplate?.VersionFolderPath);
+            List<FeatureSetting> projectFeatureSettings = FeatureSettingHelper.Get(currentProjectPath);
+
+            if (featureSettings?.Any() == true && projectFeatureSettings?.Any() == true)
+            {
+                foreach (FeatureSetting featureSetting in featureSettings)
+                {
+                    FeatureSetting projectFeatureSetting = projectFeatureSettings.Find(x => x.Id == featureSetting.Id);
+
+                    if (projectFeatureSetting != null)
+                    {
+                        featureSetting.IsSelected = projectFeatureSetting.IsSelected;
+                    }
+                }
+            }
+
+            featureSettings = featureSettings ?? [];
+            var featureSettingViewModels = new ObservableCollection<FeatureSettingViewModel>(featureSettings.Select(x => new FeatureSettingViewModel(x)));
+            foreach (var featureSettingViewModel in featureSettingViewModels)
+            {
+                if (featureSettingViewModel.FeatureSetting.DisabledFeatures.Count != 0)
+                {
+                    featureSettingViewModel.DisabledFeatures = string.Join(", ", featureSettings
+                        .Where(x => featureSettingViewModel.FeatureSetting.DisabledFeatures.Contains(x.Id))
+                        .Select(x => x.DisplayName));
+                }
+            }
+
+            FeatureSettings = featureSettingViewModels;
+        }
+
+        public async Task FillVersionFolderPathAsync()
+        {
+            if (WorkTemplate?.Repository != null)
+            {
+                if (WorkTemplate.Version == "VX.Y.Z")
+                {
+                    WorkTemplate.VersionFolderPath = WorkTemplate.Repository.LocalPath;
+                }
+                else
+                {
+                    WorkTemplate.VersionFolderPath = await repositoryService.PrepareVersionFolder(WorkTemplate.Repository, WorkTemplate.Version);
+                }
+            }
+        }
+
+        public void RefreshConfiguration()
+        {
+            var listWorkTemplates = LoadRepositoriesFromSettings(settingsService.Settings.TemplateRepositories);
+
+            var hasVersionXYZ = false;
+            var repositoryVersionXYZ = settingsService.Settings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
+            if (repositoryVersionXYZ is not null)
+            {
+                listWorkTemplates.Add(new WorkRepository(repositoryVersionXYZ, "VX.Y.Z"));
+                hasVersionXYZ = true;
+            }
+
+            WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
+            if (listWorkTemplates.Count >= 1)
+            {
+                WorkTemplate = hasVersionXYZ && listWorkTemplates.Count >= 2 ? listWorkTemplates[^2] : listWorkTemplates[^1];
+            }
+
+            bool useCompanyFiles = settingsService.Settings.UseCompanyFiles;
+            SettingsUseCompanyFiles = useCompanyFiles;
+            UseCompanyFiles = useCompanyFiles;
+            
+            if (useCompanyFiles)
+            {
+                var listCompanyFiles = LoadRepositoriesFromSettings(settingsService.Settings.CompanyFilesRepositories);
+                WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
+                if (WorkCompanyFiles.Count >= 1 && WorkTemplate is not null)
+                {
+                    WorkCompanyFile = GetWorkCompanyFile(WorkTemplate.Version);
+                }
+            }
+        }
+
+        private List<WorkRepository> LoadRepositoriesFromSettings(IEnumerable<IRepository> repositories)
+        {
+            var workRepositories = new List<WorkRepository>();
+            foreach (var repository in repositories.Where(r => r.UseRepository))
+            {
+                AddTemplatesVersion(workRepositories, repository);
+            }
+            return workRepositories;
+        }
+
+        private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, IRepository repository)
+        {
+            foreach (var release in repository.Releases)
+            {
+                WorkTemplates.Add(new WorkRepository(repository, release.Name));
+            }
+
+            WorkTemplates.Sort(new WorkRepository.VersionComparer());
+        }
+
+        public void HandleFrameworkVersionSelectionChanged()
+        {
+            messenger.Send(new ExecuteActionWithWaiterMessage(async () =>
+            {
+                await FillVersionFolderPathAsync();
+                LoadFeatureSetting();
+                LoadVersionAndOption(false, false);
+                if (originFeatureSettings is null)
+                {
+                    messenger.Send(new OriginFeatureSettingsChangedMessage(FeatureSettings.Select(x => x.FeatureSetting).ToList()));
+                }
+            }));
+        }
+
+        public void HandleCompanyFilesSelectionChanged()
+        {
+            LoadVersionAndOption(false, false);
         }
     }
 }
