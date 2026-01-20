@@ -1,0 +1,216 @@
+# 📊 EXTRACTION_MAPPING - Cartographie Logique Métier à Extraire
+# Date: 20 janvier 2026
+# Phase 1 du Plan de Refactorisation MVVM WPF
+
+================================================================================
+## 1. CRUDGeneratorViewModel.cs (1410 lignes → 150-200 lignes)
+================================================================================
+
+### LOGIQUE À EXTRAIRE VERS ICRUDGenerationService:
+
+1. **Parsing DTO** (~150 lignes)
+   - Méthodes: ListDtoFiles(), ParseDtoFile(), GetDtoSelectedPath()
+   - Lignes: 1145-1200
+   - Destination: ICRUDGenerationService.ParseDtoFilesAsync()
+
+2. **Génération CRUD** (~200 lignes)
+   - Méthode: GenerateCrudAsync()
+   - Lignes: 1217-1275
+   - Dépendances: FileGeneratorService, ZipParserService, GenerateCrudService
+   - Destination: ICRUDGenerationService.GenerateAsync()
+
+3. **Gestion Historique** (~150 lignes)
+   - Méthodes: UpdateCrudGenerationHistory(), DeleteLastGenerationHistory()
+   - Lignes: 1025-1090
+   - Destination: CRUDHistoryService (existant CRUDGeneratorHelper)
+
+4. **Configuration Features/Settings** (~100 lignes)
+   - Méthodes: SetGenerationSettings(), InitProject(), SetFrontGenerationSettings()
+   - Lignes: 970-1020
+   - Destination: ICRUDGenerationService ou Helper
+
+5. **Logique Features ZIP** (~100 lignes)
+   - Méthodes: ParseFrontDomains(), UpdateFeatureSelection()
+   - Destination: ICRUDGenerationService
+
+### À GARDER DANS LE VIEWMODEL:
+
+- Propriétés ObservableProperty: DtoEntity, DtoEntities, CRUDNameSingular, etc.
+- Commandes RelayCommand: GenerateCrudCommand, RefreshDtoListCommand, etc.
+- Logique UI: IsButtonGenerateCrudEnable, IsOptionItemEnable
+- Event handlers simples: OnDtoSelected, OnBiaFrontSelected
+- SetCurrentProject (juste délégation)
+
+### HELPERS EXISTANTS À DÉPLACER:
+- BIA.ToolKit/ViewModels/CRUDGeneratorHelper.cs → BIA.ToolKit.Application/Helper/CRUD/
+
+================================================================================
+## 2. DtoGeneratorViewModel.cs (767 lignes → 150-200 lignes)
+================================================================================
+
+### LOGIQUE À EXTRAIRE VERS IDtoGenerationService:
+
+1. **Parsing Entities** (~100 lignes)
+   - Méthode: RefreshEntitiesListAsync(), RefreshEntityPropertiesTreeView()
+   - Lignes: 360-430
+   - Destination: IDtoGenerationService.ParseEntitiesAsync()
+
+2. **Génération DTO** (~50 lignes)
+   - Méthode: GenerateDtoAsync()
+   - Lignes: 370-400
+   - Destination: IDtoGenerationService.GenerateAsync()
+
+3. **Mapping Properties** (~200 lignes)
+   - Méthodes: RefreshMappingProperties(), AddMappingProperties(), ComputeMappingType()
+   - Lignes: 501-650
+   - Destination: IDtoGenerationService.ComputeMappingAsync()
+
+4. **Validation Properties** (~50 lignes)
+   - Méthode: ComputePropertiesValidity()
+   - Destination: IDtoGenerationService ou Helper
+
+### À GARDER DANS LE VIEWMODEL:
+
+- Propriétés: Entity, Entities, MappingEntityProperties, EntityProperties
+- Commandes: GenerateDtoCommand, RefreshEntitiesListCommand
+- Logique UI: IsGenerationEnabled, IsEntitySelected, HasMappingProperties
+- Handlers UI: SelectProperties, RemoveMappingProperty, MoveMappedProperty
+
+### HELPERS EXISTANTS À DÉPLACER:
+- BIA.ToolKit/ViewModels/DtoGeneratorHelper.cs → BIA.ToolKit.Application/Helper/DTO/
+
+================================================================================
+## 3. ModifyProjectViewModel.cs (675 lignes → 150-200 lignes)
+================================================================================
+
+### LOGIQUE À EXTRAIRE VERS IProjectMigrationService:
+
+1. **Chargement Projet** (~80 lignes)
+   - Méthode: LoadProject()
+   - Lignes: 245-300
+   - Destination: IProjectMigrationService.LoadProjectAsync()
+
+2. **Parsing Projet** (~30 lignes)
+   - Méthode: ParseProject()
+   - Lignes: 300-320
+   - Destination: IProjectMigrationService (ou existant CSharpParserService)
+
+3. **Migration Complète** (~100 lignes)
+   - Méthodes: MigrateAsync(), MigrateGenerateOnlyAsync(), MigrateApplyDiffAsync()
+   - Lignes: 385-450
+   - Destination: IProjectMigrationService.MigrateAsync()
+
+4. **Application Diff** (~80 lignes)
+   - Méthodes: ApplyDiffAsync(), HandleDeletedFilesFailedAsync()
+   - Lignes: 540-615
+   - Destination: IProjectMigrationService.ApplyDiffAsync()
+
+5. **Merge Rejected** (~60 lignes)
+   - Méthode: MigrateMergeRejectedAsync(), MergeRejectedAsync()
+   - Lignes: 450-505
+   - Destination: IProjectMigrationService.MergeRejectedAsync()
+
+6. **Overwrite BIA Folder** (~30 lignes)
+   - Méthode: OverwriteBIAFolderAsync()
+   - Destination: IProjectMigrationService
+
+### À GARDER DANS LE VIEWMODEL:
+
+- Propriétés: CurrentProject, Folder, Projects, IsFileGeneratorServiceInit
+- Commandes: MigrateCommand, BrowseFolderCommand, RefreshProjectFolderListCommand
+- Logique UI: RefreshUI(), RefreshProjetsList()
+- Navigation/UI: SelectedTabIndex, IsProjectSelected
+
+### HELPERS À DÉPLACER:
+- BIA.ToolKit/ViewModels/MainWindowHelper.cs → BIA.ToolKit.Application/Helper/
+
+================================================================================
+## 4. OptionGeneratorViewModel.cs (612 lignes → 120-150 lignes)
+================================================================================
+
+### LOGIQUE À EXTRAIRE VERS IOptionGenerationService:
+
+1. **Génération Option** (~50 lignes)
+   - Méthode: GenerateOptionAsync()
+   - Lignes: 370-420
+   - Destination: IOptionGenerationService.GenerateAsync()
+
+2. **Gestion Historique** (~60 lignes)
+   - Méthodes: UpdateOptionGenerationHistory(), DeleteLastGenerationHistory()
+   - Lignes: 470-530
+   - Destination: OptionHistoryService (ou Helper)
+
+3. **Parsing Entity** (~40 lignes)
+   - Méthodes: ListEntityFiles(), ParseEntityFile()
+   - Lignes: 545-600
+   - Destination: IOptionGenerationService.ParseEntityAsync()
+
+4. **Configuration Settings** (~40 lignes)
+   - Méthodes: SetGenerationSettings(), SetFrontGenerationSettings()
+   - Lignes: 440-470
+   - Destination: IOptionGenerationService ou Helper
+
+### À GARDER DANS LE VIEWMODEL:
+
+- Propriétés: Entity, Entities, EntityDisplayItems, Domain
+- Commandes: GenerateOptionCommand, RefreshEntitiesListCommand
+- Logique UI: IsButtonGenerateOptionEnable, IsEntityParsed
+- Handlers: OnEntitySelected, OnBiaFrontSelected
+
+### HELPERS EXISTANTS À DÉPLACER:
+- BIA.ToolKit/ViewModels/OptionGeneratorHelper.cs → BIA.ToolKit.Application/Helper/Option/
+
+================================================================================
+## 5. VersionAndOptionViewModel.cs
+================================================================================
+
+### ANALYSE REQUISE:
+- Ce ViewModel gère les versions et options de projet
+- Logique potentiellement partagée avec ModifyProjectViewModel
+- À analyser pour extraction vers services existants
+
+================================================================================
+## SERVICES APPLICATION EXISTANTS (BIA.ToolKit.Application/Services/)
+================================================================================
+
+### Services déjà présents:
+- CSharpParserService.cs - Parsing code C#
+- GenerateCrudService.cs - Génération CRUD existante  
+- GitService.cs - Opérations Git
+- ZipParserService.cs - Parsing ZIP templates
+- FileGeneratorService.cs (dans FileGenerator/) - Génération fichiers
+- ProjectCreatorService.cs - Création projet
+- SettingsService.cs - Gestion paramètres
+- TextParsingService.cs - Parsing texte
+
+### Services à CRÉER:
+1. CRUD/ICRUDGenerationService.cs + CRUDGenerationService.cs
+2. DTO/IDtoGenerationService.cs + DtoGenerationService.cs
+3. Project/IProjectMigrationService.cs + ProjectMigrationService.cs
+4. Option/IOptionGenerationService.cs + OptionGenerationService.cs
+
+================================================================================
+## HELPERS À DÉPLACER
+================================================================================
+
+### Source → Destination:
+- ViewModels/CRUDGeneratorHelper.cs → Application/Helper/CRUD/CRUDGeneratorHelper.cs
+- ViewModels/DtoGeneratorHelper.cs → Application/Helper/DTO/DtoGeneratorHelper.cs  
+- ViewModels/OptionGeneratorHelper.cs → Application/Helper/Option/OptionGeneratorHelper.cs
+- ViewModels/MainWindowHelper.cs → Application/Helper/MainWindowHelper.cs
+
+================================================================================
+## RÉSUMÉ EXTRACTION
+================================================================================
+
+| ViewModel | Lignes Avant | Lignes Après | Réduction |
+|-----------|--------------|--------------|-----------|
+| CRUDGeneratorViewModel | 1410 | ~180 | -87% |
+| DtoGeneratorViewModel | 767 | ~170 | -78% |
+| ModifyProjectViewModel | 675 | ~180 | -73% |
+| OptionGeneratorViewModel | 612 | ~140 | -77% |
+| TOTAL | 3464 | ~670 | -81% |
+
+================================================================================
+## PROCHAINE ÉTAPE: Phase 2 - Créer Services Métier
+================================================================================
