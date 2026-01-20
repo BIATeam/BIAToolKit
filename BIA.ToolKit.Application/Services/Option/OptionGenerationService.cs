@@ -198,15 +198,15 @@ namespace BIA.ToolKit.Application.Services.Option
                 return true;
             }
 
-            if (!zipService.ParseZips(request.ZipFeatureTypeList, CurrentProject, request.BiaFront, settings))
+            if (!zipService.ParseZips(zipFeatureTypeList, CurrentProject, request.BiaFront, settings))
                 return false;
 
             crudService.CrudNames.InitRenameValues(request.Entity.Name, request.EntityNamePlural);
 
-            var featureName = request.ZipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Option)?.Feature;
+            var featureName = zipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Option)?.Feature;
             var result = crudService.GenerateFiles(
                 request.Entity,
-                request.ZipFeatureTypeList,
+                zipFeatureTypeList,
                 request.DisplayItem,
                 null,
                 null,
@@ -227,7 +227,7 @@ namespace BIA.ToolKit.Application.Services.Option
                 var crudParent = new CrudParent { Domain = request.Domain };
 
                 crudService.DeleteLastGeneration(
-                    request.ZipFeatureTypeList,
+                    zipFeatureTypeList,
                     CurrentProject,
                     request.History,
                     FeatureType.Option.ToString(),

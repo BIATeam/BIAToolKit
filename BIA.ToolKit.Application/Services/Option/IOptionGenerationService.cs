@@ -118,7 +118,6 @@ namespace BIA.ToolKit.Application.Services.Option
         public string DisplayItem { get; set; }
         public string Domain { get; set; }
         public string BiaFront { get; set; }
-        public List<ZipFeatureType> ZipFeatureTypeList { get; set; } = [];
     }
 
     /// <summary>
@@ -128,6 +127,5 @@ namespace BIA.ToolKit.Application.Services.Option
     {
         public OptionGenerationHistory History { get; set; }
         public string Domain { get; set; }
-        public List<ZipFeatureType> ZipFeatureTypeList { get; set; } = [];
     }
 }
