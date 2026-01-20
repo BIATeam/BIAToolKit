@@ -179,8 +179,12 @@
                                                 <TextBox
                                                         Padding="5" MinWidth="100"
                                                 x:Name="MappingPropertyTextBox"
-                                                Text="{Binding MappingName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                                TextChanged="MappingPropertyTextBox_TextChanged">
+                                                Text="{Binding MappingName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                                                    <i:Interaction.Triggers>
+                                                        <i:EventTrigger EventName="TextChanged">
+                                                            <i:InvokeCommandAction Command="{Binding DataContext.ComputePropertiesValidityCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                                        </i:EventTrigger>
+                                                    </i:Interaction.Triggers>
                                                     <TextBox.Style>
                                                         <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignFilledTextBox}">
                                                             <Style.Triggers>
@@ -255,8 +259,13 @@
                                                 x:Name="MappingOptionId"
                                                 ItemsSource="{Binding OptionEntityIdProperties}" 
                                                 SelectedValue="{Binding OptionEntityIdProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                                Visibility="{Binding IsOption, Converter={StaticResource BoolToVisConverter}}"
-                                                SelectionChanged="MappingOptionId_SelectionChanged"></ComboBox>
+                                                Visibility="{Binding IsOption, Converter={StaticResource BoolToVisConverter}}">
+                                                    <i:Interaction.Triggers>
+                                                        <i:EventTrigger EventName="SelectionChanged">
+                                                            <i:InvokeCommandAction Command="{Binding DataContext.ComputePropertiesValidityCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                                        </i:EventTrigger>
+                                                    </i:Interaction.Triggers>
+                                                </ComboBox>
                                             </Grid>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>

@@ -317,6 +317,8 @@ namespace BIA.ToolKit.ViewModels
         public bool IsVisibileNoFeature => !AreFeatureVisible;
 
         public ICommand OnFeatureSettingSelectionChangedCommand => new RelayCommand(OnFeatureSettingSelectionChanged);
+        public ICommand FrameworkVersionSelectionChangedCommand => new RelayCommand(HandleFrameworkVersionSelectionChanged);
+        public ICommand CompanyFilesSelectionChangedCommand => new RelayCommand(HandleCompanyFilesSelectionChanged);
 
         private void OnFeatureSettingSelectionChanged()
         {

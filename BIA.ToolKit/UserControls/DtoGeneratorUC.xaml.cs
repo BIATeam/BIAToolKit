@@ -9,7 +9,7 @@ namespace BIA.ToolKit.UserControls
 
     /// <summary>
     /// Interaction logic for DtoGenerator.xaml
-    /// Refactored: Removed callback/delegate pattern, using Behavior binding instead.
+    /// MVVM Pure: All event handlers replaced by Commands via EventTriggers in XAML.
     /// </summary>
     public partial class DtoGeneratorUC : UserControl
     {
@@ -21,16 +21,6 @@ namespace BIA.ToolKit.UserControls
 
             vm = viewModel;
             DataContext = vm;
-        }
-
-        private void MappingPropertyTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            vm?.ComputePropertiesValidity();
-        }
-
-        private void MappingOptionId_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            vm?.ComputePropertiesValidity();
         }
 
         private void DragHandle_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)

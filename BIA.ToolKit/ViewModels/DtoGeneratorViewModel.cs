@@ -279,6 +279,7 @@ namespace BIA.ToolKit.ViewModels
         public ICommand SetMappedPropertyIsParentCommand => new RelayCommand<MappingEntityProperty>(SetMappedPropertyIsParent);
         public ICommand SelectPropertiesCommand => new RelayCommand(SelectProperties);
         public ICommand RemoveAllMappingPropertiesCommand => new RelayCommand(RemoveAllMappingProperties);
+        public ICommand ComputePropertiesValidityCommand => new RelayCommand(ComputePropertiesValidity);
         public IAsyncRelayCommand RefreshEntitiesListCommand { get; }
         public IAsyncRelayCommand GenerateDtoCommand { get; }
         public IRelayCommand OnEntitySelectedCommand { get; }

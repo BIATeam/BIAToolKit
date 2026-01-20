@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:local="clr-namespace:BIA.ToolKit.ViewModels"
              xmlns:gif="http://wpfanimatedgif.codeplex.com"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
@@ -24,9 +25,14 @@
         <ComboBox Grid.Column="0" ItemsSource="{Binding WorkTemplates}" 
                   DisplayMemberPath="VersionLabel"
                   SelectedItem="{Binding WorkTemplate}"
-                  SelectionChanged="FrameworkVersion_SelectionChanged"
                   Style="{StaticResource MaterialDesignFilledComboBox}"
-                  materialDesign:HintAssist.Hint="Framework Version" VerticalAlignment="Top"/>
+                  materialDesign:HintAssist.Hint="Framework Version" VerticalAlignment="Top">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="SelectionChanged">
+                    <i:InvokeCommandAction Command="{Binding FrameworkVersionSelectionChangedCommand}" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </ComboBox>
 
         <GroupBox Margin="10,0" Grid.Column="1" Header="Feature Settings" Foreground="White" Name="FeatureSettingsGroup" VerticalAlignment="Top" Background="#323232" d:Visibility="Visible">
             <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="135">
@@ -79,10 +85,15 @@
                                     ItemsSource="{Binding WorkCompanyFiles}" 
                                     DisplayMemberPath="VersionLabel"
                                     SelectedItem="{Binding WorkCompanyFile}"
-                                    SelectionChanged="CFVersion_SelectionChanged"
                                     Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}"
                                     Style="{StaticResource MaterialDesignFilledComboBox}"
-                                    materialDesign:HintAssist.Hint="Company File Version" />
+                                    materialDesign:HintAssist.Hint="Company File Version">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged">
+                                    <i:InvokeCommandAction Command="{Binding CompanyFilesSelectionChangedCommand}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </ComboBox>
                         <ComboBox Grid.Row="2" Margin="0,5" ItemsSource="{Binding Profiles}" SelectedItem="{Binding Profile}" 
                                     Style="{StaticResource MaterialDesignFilledComboBox}"
                                       Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}"
