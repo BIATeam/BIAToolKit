@@ -13,14 +13,12 @@ namespace BIA.ToolKit.Dialogs
         GitService gitService;
         public RepositoriesSettingsVM vm;
         private RepositoryService repositoryService;
-        private readonly UIEventBroker uiEventBroker;
 
-        public CustomsRepoTemplateUC(GitService gitService, RepositoryService repositoryService, UIEventBroker uiEventBroker)
+        public CustomsRepoTemplateUC(GitService gitService, RepositoryService repositoryService)
         {
             InitializeComponent();
             this.gitService = gitService;
             this.repositoryService = repositoryService;
-            this.uiEventBroker = uiEventBroker;
             vm = (RepositoriesSettingsVM)base.DataContext;
         }
 

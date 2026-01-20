@@ -57,12 +57,12 @@ namespace BIA.ToolKit
             DataContext = ViewModel;
 
             ViewModel.WaiterRequested += ExecuteTaskWithWaiterAsync;
-            ViewModel.PersistSettingsRequested += UiEventBroker_OnSettingsUpdated;
+            ViewModel.PersistSettingsRequested += OnSettingsUpdated;
 
-            messenger.Register<OpenRepositoryFormRequestMessage>(this, (r, m) => UiEventBroker_OnRepositoryFormOpened(m.Repository, m.Mode));
+            messenger.Register<OpenRepositoryFormRequestMessage>(this, (r, m) => OnRepositoryFormOpened(m.Repository, m.Mode));
         }
 
-        private void UiEventBroker_OnRepositoryFormOpened(RepositoryViewModel repository, RepositoryFormMode mode)
+        private void OnRepositoryFormOpened(RepositoryViewModel repository, RepositoryFormMode mode)
         {
             var form = new RepositoryFormUC(repository, gitService, messenger, consoleWriter, fileDialogService) { Owner = this };
             if (form.ShowDialog() == true)
@@ -81,7 +81,7 @@ namespace BIA.ToolKit
             }
         }
 
-        private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
+        private void OnSettingsUpdated(IBIATKSettings settings)
         {
             Properties.Settings.Default.UseCompanyFile = settings.UseCompanyFiles;
             Properties.Settings.Default.CreateProjectRootFolderText = settings.CreateProjectRootProjectsPath;

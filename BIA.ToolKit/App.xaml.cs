@@ -61,7 +61,6 @@ namespace BIA.ToolKit
             
             // Messaging
             services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
-            services.AddSingleton<UIEventBroker>(); // Keep for now during migration
             
             // ViewModels - Phase 4 MVVM Transformation
             services.AddTransient<Application.ViewModel.MainWindowViewModel>(); // Phase 4 Step 27
