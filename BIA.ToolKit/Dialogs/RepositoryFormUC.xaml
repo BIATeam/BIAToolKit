@@ -40,7 +40,7 @@
                         <ColumnDefinition Width="auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBox Grid.Column="0" Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Local Cloned Folder Path" Text="{Binding LocalClonedFolderPath}" TextWrapping="Wrap"/>
-                    <Button Grid.Column="1" x:Name="BrowseLocalClonedFolderButton" Style="{StaticResource MaterialDesignPaperButton}" Padding="5,0" Margin="5,0,0,5" Click="BrowseLocalClonedFolderButton_Click">
+                    <Button Grid.Column="1" x:Name="BrowseLocalClonedFolderButton" Style="{StaticResource MaterialDesignPaperButton}" Padding="5,0" Margin="5,0,0,5" Command="{Binding DataContext.BrowseLocalClonedFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}">
                         <materialDesign:PackIcon Kind="FolderSearch" Height="25" Width="25" />
                     </Button>
                 </Grid>
@@ -64,7 +64,7 @@
                         <ColumnDefinition Width="auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBox Grid.Column="0" Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Path" Text="{Binding Path}" TextWrapping="Wrap"/>
-                    <Button Grid.Column="1" x:Name="BrowseRepositoryFolderButton" Style="{StaticResource MaterialDesignPaperButton}" Padding="5,0" Margin="5,0,0,5" Click="BrowseRepositoryFolderButton_Click">
+                    <Button Grid.Column="1" x:Name="BrowseRepositoryFolderButton" Style="{StaticResource MaterialDesignPaperButton}" Padding="5,0" Margin="5,0,0,5" Command="{Binding DataContext.BrowseRepositoryFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}">
                         <materialDesign:PackIcon Kind="FolderSearch" Height="25" Width="25" />
                     </Button>
                 </Grid>

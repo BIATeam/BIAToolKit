@@ -28,12 +28,14 @@ namespace BIA.ToolKit
         private readonly ConsoleWriter consoleWriter;
         private readonly GitService gitService;
         private readonly IMessenger messenger;
+        private readonly IFileDialogService fileDialogService;
 
         public MainWindow(
             MainWindowViewModel mainWindowViewModel,
             GitService gitService,
             IConsoleWriter consoleWriter,
             IMessenger messenger,
+            IFileDialogService fileDialogService,
             ModifyProjectUC modifyProjectUC,
             VersionAndOptionUserControl createVersionAndOptionUC)
         {
@@ -42,6 +44,7 @@ namespace BIA.ToolKit
 
             this.gitService = gitService;
             this.messenger = messenger;
+            this.fileDialogService = fileDialogService;
             this.consoleWriter = (ConsoleWriter)consoleWriter;
 
             CreateVersionAndOptionHost.Content = createVersionAndOptionUC;
@@ -61,7 +64,7 @@ namespace BIA.ToolKit
 
         private void UiEventBroker_OnRepositoryFormOpened(RepositoryViewModel repository, RepositoryFormMode mode)
         {
-            var form = new RepositoryFormUC(repository, gitService, messenger, consoleWriter) { Owner = this };
+            var form = new RepositoryFormUC(repository, gitService, messenger, consoleWriter, fileDialogService) { Owner = this };
             if (form.ShowDialog() == true)
             {
                 switch (mode)
