@@ -1,14 +1,12 @@
 namespace BIA.ToolKit.ViewModels
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.CRUD;
     using BIA.ToolKit.Application.Services.FileGenerator;
-    using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
-    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Common;
-    using CommunityToolkit.Mvvm.Messaging;
-    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
@@ -16,6 +14,7 @@ namespace BIA.ToolKit.ViewModels
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
+    using CommunityToolkit.Mvvm.Messaging;
     using Humanizer;
     using System;
     using System.Collections.Generic;
@@ -30,228 +29,100 @@ namespace BIA.ToolKit.ViewModels
         private const string DOTNET_TYPE = "DotNet";
         private const string ANGULAR_TYPE = "Angular";
 
-        private readonly CSharpParserService parserService;
-        private readonly ZipParserService zipService;
+        private readonly ICRUDGenerationService crudGenerationService;
         private readonly GenerateCrudService crudService;
-        private readonly CRUDSettings settings;
         private readonly IMessenger messenger;
         private readonly FileGeneratorService fileGeneratorService;
         private readonly IConsoleWriter consoleWriter;
         private readonly ITextParsingService textParsingService;
 
-        private readonly List<FeatureGenerationSettings> backSettingsList = [];
-        private List<FeatureGenerationSettings> frontSettingsList = [];
-        private CRUDGeneratorHelper crudHelper;
         private CRUDGeneration crudHistory;
-
-        // Helper to keep existing RaisePropertyChanged calls after migrating to CommunityToolkit
-        protected void RaisePropertyChanged(string propertyName) => OnPropertyChanged(propertyName);
 
         /// <summary>  
         /// Constructor.
         /// </summary>
         public CRUDGeneratorViewModel(
-            CSharpParserService parserService,
-            ZipParserService zipService,
+            ICRUDGenerationService crudGenerationService,
             GenerateCrudService crudService,
-            SettingsService settingsService,
             IConsoleWriter consoleWriter,
             IMessenger messenger,
             FileGeneratorService fileGeneratorService,
             ITextParsingService textParsingService)
         {
-            this.parserService = parserService ?? throw new ArgumentNullException(nameof(parserService));
-            this.zipService = zipService ?? throw new ArgumentNullException(nameof(zipService));
+            this.crudGenerationService = crudGenerationService ?? throw new ArgumentNullException(nameof(crudGenerationService));
             this.crudService = crudService ?? throw new ArgumentNullException(nameof(crudService));
-            this.settings = new CRUDSettings(settingsService ?? throw new ArgumentNullException(nameof(settingsService)));
             this.consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
             this.messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             this.fileGeneratorService = fileGeneratorService ?? throw new ArgumentNullException(nameof(fileGeneratorService));
             this.textParsingService = textParsingService ?? new TextParsingService();
-
-            OptionItems = [];
-            ZipFeatureTypeList = [];
-            FeatureNames = [];
-            DtoEntities = [];
-
-            OnDtoSelectedCommand = new RelayCommand(OnDtoSelected);
-            OnEntitySingularNameChangedCommand = new RelayCommand(OnEntitySingularNameChanged);
-            OnEntityPluralNameChangedCommand = new RelayCommand(OnEntityPluralNameChanged);
-            OnBiaFrontSelectedCommand = new RelayCommand<string>(OnBiaFrontSelected);
-
-            RefreshDtoListCommand = new RelayCommand(ListDtoFiles);
-            GenerateCrudCommand = new AsyncRelayCommand(GenerateCrudAsync);
-            DeleteLastGenerationCommand = new RelayCommand(DeleteLastGeneration);
-            DeleteAnnotationsCommand = new AsyncRelayCommand(DeleteAnnotationsAsync);
 
             messenger.Register<ProjectChangedMessage>(this, (r, m) => SetCurrentProject(m.Project));
             messenger.Register<SolutionClassesParsedMessage>(this, (r, m) => OnSolutionClassesParsed());
         }
 
         #region CurrentProject
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsProjectCompatibleV6))]
         private Project currentProject;
-        public Project CurrentProject
-        {
-            get => currentProject;
-            set
-            {
-                currentProject = value;
 
-                BiaFronts.Clear();
-                if(currentProject != null)
+        partial void OnCurrentProjectChanged(Project value)
+        {
+            BiaFronts.Clear();
+            if (value != null)
+            {
+                foreach (var biaFront in value.BIAFronts)
                 {
-                    foreach(var biaFront in currentProject.BIAFronts)
-                    {
-                        BiaFronts.Add(biaFront);
-                    }
-                    BiaFront = BiaFronts.FirstOrDefault();
+                    BiaFronts.Add(biaFront);
                 }
-
-                RaisePropertyChanged(nameof(IsProjectCompatibleV6));
+                BiaFront = BiaFronts.FirstOrDefault();
             }
         }
 
+        [ObservableProperty]
         private bool isProjectChosen;
-        public bool IsProjectChosen
-        {
-            get => isProjectChosen;
-            set
-            {
-                isProjectChosen = value;
-                RaisePropertyChanged(nameof(IsProjectChosen));
-            }
-        }
 
-        private bool _useFileGenerator;
-        public bool UseFileGenerator
-        {
-            get => _useFileGenerator;
-            set
-            {
-                _useFileGenerator = value;
-                RaisePropertyChanged(nameof(UseFileGenerator));
-            }
-        }
+        [ObservableProperty]
+        private bool useFileGenerator;
         #endregion
 
         #region Dto
+        [ObservableProperty]
         private EntityInfo dtoEntity;
-        public EntityInfo DtoEntity
+
+        partial void OnDtoEntityChanged(EntityInfo value)
         {
-            get => dtoEntity;
-            set
-            {
-                if (dtoEntity != value)
-                {
-                    dtoEntity = value;
-                    UpdateParentPreSelection();
-                    UpdateDomainPreSelection();
-                }
-            }
+            UpdateParentPreSelection();
+            UpdateDomainPreSelection();
         }
 
-        private ObservableCollection<EntityInfo> dtoEntities;
-        public ObservableCollection<EntityInfo> DtoEntities
-        {
-            get => dtoEntities;
-            set
-            {
-                if (dtoEntities != value)
-                {
-                    dtoEntities = value;
-                    RaisePropertyChanged(nameof(DtoEntities));
-                }
-            }
-        }
+        [ObservableProperty]
+        private ObservableCollection<EntityInfo> dtoEntities = [];
 
+        [ObservableProperty]
         private List<string> dtoDisplayItems;
-        public List<string> DtoDisplayItems
-        {
-            get => dtoDisplayItems;
-            set
-            {
-                if (dtoDisplayItems != value)
-                {
-                    dtoDisplayItems = value;
-                    RaisePropertyChanged(nameof(DtoDisplayItems));
-                }
-            }
-        }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
+        [NotifyPropertyChangedFor(nameof(IsOptionItemEnable))]
         private bool isDtoParsed = false;
-        public bool IsDtoParsed
-        {
-            get => isDtoParsed;
-            set
-            {
-                if (isDtoParsed != value)
-                {
-                    isDtoParsed = value;
-                    RaisePropertyChanged(nameof(IsDtoParsed));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                    RaisePropertyChanged(nameof(IsOptionItemEnable));
-                }
-            }
-        }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private string dtoDisplayItemSelected;
-        public string DtoDisplayItemSelected
-        {
-            get => dtoDisplayItemSelected;
-            set
-            {
-                if (dtoDisplayItemSelected != value)
-                {
-                    dtoDisplayItemSelected = value;
-                    RaisePropertyChanged(nameof(DtoDisplayItemSelected));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                }
-            }
-        }
 
+        [ObservableProperty]
         private ObservableCollection<OptionItem> optionItems = [];
-        public ObservableCollection<OptionItem> OptionItems
-        {
-            get => optionItems;
-            set
-            {
-                if (optionItems != value)
-                {
-                    optionItems = value;
-                    RaisePropertyChanged(nameof(OptionItems));
-                }
-            }
-        }
 
         public static IEnumerable<string> BaseKeyTypeItems => Constants.PrimitiveTypes;
-        private string selectedBaseKeyType;
 
-        public string SelectedBaseKeyType
-        {
-            get { return selectedBaseKeyType; }
-            set
-            {
-                selectedBaseKeyType = value;
-                RaisePropertyChanged(nameof(SelectedBaseKeyType));
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-            }
-        }
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
+        private string selectedBaseKeyType;
 
         public string SelectedOptionItems => string.Join(", ", OptionItems.Where(x => x.Check).Select(x => x.OptionName));
 
+        [ObservableProperty]
         private bool isDtoGenerated = false;
-        public bool IsDtoGenerated
-        {
-            get => isDtoGenerated;
-            set
-            {
-                if (isDtoGenerated != value)
-                {
-                    isDtoGenerated = value;
-                    RaisePropertyChanged(nameof(IsDtoGenerated));
-                }
-            }
-        }
 
         public void AddOptionItems(IEnumerable<OptionItem> optionItems)
         {
@@ -268,66 +139,48 @@ namespace BIA.ToolKit.ViewModels
 
         private void OptionItem_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            RaisePropertyChanged(nameof(SelectedOptionItems));
+            OnPropertyChanged(nameof(SelectedOptionItems));
         }
         #endregion
 
         #region Feature
-        private ObservableCollection<string> featureNames;
-        public ObservableCollection<string> FeatureNames
-        {
-            get => featureNames;
-            set
-            {
-                if (featureNames != value)
-                {
-                    featureNames = value;
-                    RaisePropertyChanged(nameof(FeatureNames));
-                }
-            }
-        }
+        [ObservableProperty]
+        private ObservableCollection<string> featureNames = [];
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsOptionItemEnable))]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
+        [NotifyPropertyChangedFor(nameof(IsWebApiAvailable))]
+        [NotifyPropertyChangedFor(nameof(IsFrontAvailable))]
         private string featureNameSelected;
-        public string FeatureNameSelected
-        {
-            get => featureNameSelected;
-            set
-            {
-                if (featureNameSelected != value)
-                {
-                    featureNameSelected = value;
-                    RaisePropertyChanged(nameof(FeatureNameSelected));
-                    RaisePropertyChanged(nameof(IsOptionItemEnable));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                    RaisePropertyChanged(nameof(IsWebApiAvailable));
-                    RaisePropertyChanged(nameof(IsFrontAvailable));
-                    IsWebApiSelected = IsWebApiAvailable;
-                    IsFrontSelected = IsFrontAvailable;
-                    UpdateParentPreSelection();
-                    UpdateDomainPreSelection();
 
-                    if (!UseFileGenerator)
-                    {
-                        IsTeam = IsTeam || featureNameSelected == "Team";
-                    }
-                }
+        partial void OnFeatureNameSelectedChanged(string value)
+        {
+            IsWebApiSelected = IsWebApiAvailable;
+            IsFrontSelected = IsFrontAvailable;
+            UpdateParentPreSelection();
+            UpdateDomainPreSelection();
+
+            if (!UseFileGenerator)
+            {
+                IsTeam = IsTeam || value == "Team";
             }
         }
 
         private void UpdateFeatureSelection()
         {
-            ZipFeatureTypeList.ForEach(x => x.IsChecked = false);
-            if (string.IsNullOrEmpty(featureNameSelected))
+            ZipFeatureTypeList?.ForEach(x => x.IsChecked = false);
+            if (string.IsNullOrEmpty(FeatureNameSelected))
                 return;
 
             foreach (var zipFeatureType in ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected))
             {
-                if (zipFeatureType.GenerationType == GenerationType.WebApi && isWebApiSelected)
+                if (zipFeatureType.GenerationType == GenerationType.WebApi && IsWebApiSelected)
                 {
                     zipFeatureType.IsChecked = true;
                     continue;
                 }
-                if (zipFeatureType.GenerationType == GenerationType.Front && isFrontSelected)
+                if (zipFeatureType.GenerationType == GenerationType.Front && IsFrontSelected)
                 {
                     zipFeatureType.IsChecked = true;
                     continue;
@@ -338,34 +191,18 @@ namespace BIA.ToolKit.ViewModels
         #endregion
 
         #region CRUD Name
-        private string entityNameSingular;
-        public string CRUDNameSingular
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
+        private string cRUDNameSingular;
+
+        partial void OnCRUDNameSingularChanged(string value)
         {
-            get => entityNameSingular;
-            set
-            {
-                if (entityNameSingular != value)
-                {
-                    entityNameSingular = value;
-                    RaisePropertyChanged(nameof(CRUDNameSingular));
-                    CRUDNamePlural = value.Pluralize();
-                }
-            }
+            CRUDNamePlural = value?.Pluralize();
         }
 
-        private string entityNamePlural;
-        public string CRUDNamePlural
-        {
-            get => entityNamePlural;
-            set
-            {
-                if (entityNamePlural != value)
-                {
-                    entityNamePlural = value;
-                    RaisePropertyChanged(nameof(CRUDNamePlural));
-                }
-            }
-        }
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
+        private string cRUDNamePlural;
         #endregion
 
         #region Parent
@@ -373,10 +210,8 @@ namespace BIA.ToolKit.ViewModels
         {
             get
             {
-                if(UseFileGenerator)
-                {
+                if (UseFileGenerator)
                     return true;
-                }
 
                 // CRUD feature always disable
                 if (!string.IsNullOrEmpty(FeatureNameSelected) && FeatureNameSelected.Equals("CRUD"))
@@ -391,76 +226,39 @@ namespace BIA.ToolKit.ViewModels
             }
         }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private bool hasParent;
-        public bool HasParent
-        {
-            get { return hasParent; }
-            set
-            {
-                if (hasParent != value)
-                {
-                    hasParent = value;
-                    RaisePropertyChanged(nameof(HasParent));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
 
-                    if (value == false)
-                    {
-                        ParentName = null;
-                        ParentNamePlural = null;
-                    }
-                    else
-                    {
-                        UpdateParentPreSelection();
-                    }
-                }
+        partial void OnHasParentChanged(bool value)
+        {
+            if (value == false)
+            {
+                ParentName = null;
+                ParentNamePlural = null;
+            }
+            else
+            {
+                UpdateParentPreSelection();
             }
         }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private string domain;
-        public string Domain
-        {
-            get { return domain; }
-            set
-            {
-                if (domain != value)
-                {
-                    domain = value;
-                    RaisePropertyChanged(nameof(Domain));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                }
-            }
-        }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private string parentName;
-        public string ParentName
+
+        partial void OnParentNameChanged(string value)
         {
-            get { return parentName; }
-            set
-            {
-                if (parentName != value)
-                {
-                    parentName = value;
-                    RaisePropertyChanged(nameof(ParentName));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                    ParentNamePlural = value.Pluralize();
-                }
-            }
+            ParentNamePlural = value?.Pluralize();
         }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private string parentNamePlural;
-        public string ParentNamePlural
-        {
-            get { return parentNamePlural; }
-            set
-            {
-                if (parentNamePlural != value)
-                {
-                    parentNamePlural = value;
-                    RaisePropertyChanged(nameof(ParentNamePlural));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                }
-            }
-        }
 
         private void UpdateParentPreSelection()
         {
@@ -490,7 +288,7 @@ namespace BIA.ToolKit.ViewModels
                 HasParent = selectedFeaturesWithParent.Any(x => x.NeedParent);
             }
 
-            RaisePropertyChanged(nameof(IsCheckboxParentEnable));
+            OnPropertyChanged(nameof(IsCheckboxParentEnable));
         }
 
         private void UpdateDomainPreSelection()
@@ -517,94 +315,40 @@ namespace BIA.ToolKit.ViewModels
         #endregion
 
         #region CheckBox
-        private readonly bool isSelectionChange = false;
-        public bool IsSelectionChange
-        {
-            get => isSelectionChange;
-            set
-            {
-                if (isSelectionChange != value)
-                {
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                }
-            }
-        }
-
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private bool isWebApiSelected;
-        public bool IsWebApiSelected
+
+        partial void OnIsWebApiSelectedChanged(bool value)
         {
-            get => isWebApiSelected;
-            set
-            {
-                if (isWebApiSelected != value)
-                {
-                    isWebApiSelected = value;
-                    RaisePropertyChanged(nameof(IsWebApiSelected));
-                }
-                UpdateFeatureSelection();
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-            }
+            UpdateFeatureSelection();
         }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private bool isFrontSelected;
-        public bool IsFrontSelected
+
+        partial void OnIsFrontSelectedChanged(bool value)
         {
-            get => isFrontSelected;
-            set
-            {
-                if (isFrontSelected != value)
-                {
-                    isFrontSelected = value;
-                    RaisePropertyChanged(nameof(IsFrontSelected));
-                    if(value == false)
-                    {
-                        BiaFront = null;
-                    }
-                }
-                UpdateFeatureSelection();
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-            }
+            if (value == false)
+                BiaFront = null;
+            UpdateFeatureSelection();
         }
 
-        private string _biaFront;
-        public string BiaFront
-        {
-            get => _biaFront;
-            set
-            {
-                _biaFront = value;
-                RaisePropertyChanged(nameof(BiaFront));
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-            }
-        }
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
+        private string biaFront;
 
-        private ObservableCollection<string> _biaFronts = [];
-        public ObservableCollection<string> BiaFronts
-        {
-            get => _biaFronts;
-            set
-            {
-                _biaFronts = value;
-                RaisePropertyChanged(nameof(BiaFronts));
-            }
-        }
+        [ObservableProperty]
+        private ObservableCollection<string> biaFronts = [];
 
         public bool IsWebApiAvailable => UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.WebApi));
         public bool IsFrontAvailable => UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.Front));
 
-        private bool _isTeam;
-
-        public bool IsTeam
-        {
-            get => _isTeam;
-            set
-            {
-                _isTeam = value;
-                RaisePropertyChanged(nameof(IsTeam));
-                RaisePropertyChanged(nameof(IsCheckBoxIsTeamEnable));
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-            }
-        }
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsCheckBoxIsTeamEnable))]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
+        private bool isTeam;
 
         public bool IsCheckBoxIsTeamEnable
         {
@@ -620,175 +364,54 @@ namespace BIA.ToolKit.ViewModels
             }
         }
 
-        private bool _useHubClient;
+        [ObservableProperty]
+        private bool useHubClient;
 
-        public bool UseHubClient
+        [ObservableProperty]
+        private bool hasCustomRepository;
+
+        [ObservableProperty]
+        private bool hasFormReadOnlyMode;
+
+        partial void OnHasFormReadOnlyModeChanged(bool value)
         {
-            get { return _useHubClient; }
-            set 
-            { 
-                _useHubClient = value; 
-                RaisePropertyChanged(nameof(UseHubClient));
-            }
+            SelectedFormReadOnlyMode = value ? FormReadOnlyModes.First() : string.Empty;
         }
 
-        private bool _hasCustomRepository;
+        [ObservableProperty]
+        private bool useImport;
 
-        public bool HasCustomRepository
-        {
-            get { return _hasCustomRepository; }
-            set
-            {
-                _hasCustomRepository = value;
-                RaisePropertyChanged(nameof(HasCustomRepository));
-            }
-        }
+        [ObservableProperty]
+        private bool isFixable;
 
-        private bool _hasFormReadOnlyMode;
+        [ObservableProperty]
+        private bool hasFixableParent;
 
-        public bool HasFormReadOnlyMode
-        {
-            get { return _hasFormReadOnlyMode; }
-            set
-            {
-                _hasFormReadOnlyMode = value;
-                RaisePropertyChanged(nameof(HasFormReadOnlyMode));
-                SelectedFormReadOnlyMode = value ? FormReadOnlyModes.First() : string.Empty;
-            }
-        }
+        [ObservableProperty]
+        private bool isVersioned;
 
-        private bool _useImport;
+        [ObservableProperty]
+        private bool isArchivable;
 
-        public bool UseImport
-        {
-            get { return _useImport; }
-            set
-            {
-                _useImport = value;
-                RaisePropertyChanged(nameof(UseImport));
-            }
-        }
-
-        private bool _isFixable;
-
-        public bool IsFixable
-        {
-            get { return _isFixable; }
-            set
-            {
-                _isFixable = value;
-                RaisePropertyChanged(nameof(IsFixable));
-            }
-        }
-
-        private bool _hasFixableParent;
-
-        public bool HasFixableParent
-        {
-            get { return _hasFixableParent; }
-            set
-            {
-                _hasFixableParent = value;
-                RaisePropertyChanged(nameof(HasFixableParent));
-            }
-        }
-
-        private bool _isVersioned;
-
-        public bool IsVersioned
-        {
-            get { return _isVersioned; }
-            set
-            {
-                _isVersioned = value;
-                RaisePropertyChanged(nameof(IsVersioned));
-            }
-        }
-
-        private bool _isArchivable;
-
-        public bool IsArchivable
-        {
-            get { return _isArchivable; }
-            set
-            {
-                _isArchivable = value;
-                RaisePropertyChanged(nameof(IsArchivable));
-            }
-        }
-
-
-
-        private bool _useAdvancedFilter;
-
-        public bool UseAdvancedFilter
-        {
-            get { return _useAdvancedFilter; }
-            set
-            {
-                _useAdvancedFilter = value;
-                RaisePropertyChanged(nameof(UseAdvancedFilter));
-            }
-        }
+        [ObservableProperty]
+        private bool useAdvancedFilter;
 
         public bool IsProjectCompatibleV6 => Version.TryParse(CurrentProject?.FrameworkVersion, out var version) && version.Major >= 6;
 
+        [ObservableProperty]
         private bool displayHistorical;
-        public bool DisplayHistorical
-        {
-            get { return displayHistorical; }
-            set
-            {
-                displayHistorical = value;
-                RaisePropertyChanged(nameof(DisplayHistorical));
-            }
-        }
 
+        [ObservableProperty]
         private bool useDomainUrl;
-        public bool UseDomainUrl
-        {
-            get { return useDomainUrl; }
-            set
-            {
-                useDomainUrl = value;
-                RaisePropertyChanged(nameof(UseDomainUrl));
-            }
-        }
-
         #endregion
 
         #region ZipFile
-        private List<ZipFeatureType> zipFeatureTypeList;
-        public List<ZipFeatureType> ZipFeatureTypeList
-        {
-            get => zipFeatureTypeList;
-            set
-            {
-                if (zipFeatureTypeList != value)
-                {
-                    zipFeatureTypeList = value;
-                }
-            }
-        }
+        [ObservableProperty]
+        private List<ZipFeatureType> zipFeatureTypeList = [];
         #endregion
 
-        #region Commands (Phase 6 - Step 40)
-        public IRelayCommand OnDtoSelectedCommand { get; }
-
-        public IRelayCommand OnEntitySingularNameChangedCommand { get; }
-
-        public IRelayCommand OnEntityPluralNameChangedCommand { get; }
-
-        public IRelayCommand OnBiaFrontSelectedCommand { get; }
-
-        public IRelayCommand RefreshDtoListCommand { get; }
-
-        public IRelayCommand GenerateCrudCommand { get; }
-
-        public IRelayCommand DeleteLastGenerationCommand { get; }
-
-        public IRelayCommand DeleteAnnotationsCommand { get; }
-
+        #region Commands
+        [RelayCommand]
         private void OnDtoSelected()
         {
             if (CurrentProject is null)
@@ -826,12 +449,12 @@ namespace BIA.ToolKit.ViewModels
                 }
             }
 
-            if (crudHistory != null && crudHelper != null)
+            if (crudHistory != null)
             {
                 string dtoName = GetDtoSelectedPath();
                 if (!string.IsNullOrEmpty(dtoName))
                 {
-                    CRUDGenerationHistory history = crudHelper.LoadDtoHistory(crudHistory, dtoName);
+                    CRUDGenerationHistory history = crudGenerationService.LoadDtoHistory(crudHistory, dtoName);
 
                     if (history != null)
                     {
@@ -879,44 +502,54 @@ namespace BIA.ToolKit.ViewModels
             IsFrontSelected = isFrontSelected;
         }
 
+        [RelayCommand]
         private void OnEntitySingularNameChanged()
         {
             CRUDNamePlural = string.Empty;
         }
 
+        [RelayCommand]
         private void OnEntityPluralNameChanged()
         {
-            IsSelectionChange = true;
+            // Trigger property changed for button enable
+            OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
         }
 
+        [RelayCommand]
         private void OnBiaFrontSelected(string selectedFront)
         {
-            if (string.IsNullOrWhiteSpace(selectedFront) || crudHelper == null)
+            if (string.IsNullOrWhiteSpace(selectedFront))
                 return;
 
             SetFrontGenerationSettings(selectedFront);
             ParseFrontDomains();
         }
 
+        [RelayCommand]
         private void DeleteLastGeneration()
         {
             try
             {
-                CRUDGenerationHistory history = crudHelper.LoadDtoHistory(crudHistory, GetDtoSelectedPath());
+                CRUDGenerationHistory history = crudGenerationService.LoadDtoHistory(crudHistory, GetDtoSelectedPath());
                 if (history == null)
                 {
                     consoleWriter.AddMessageLine($"No previous '{CRUDNameSingular}' generation found.", "Orange");
                     return;
                 }
 
-                List<CRUDGenerationHistory> historyOptions = crudHelper.GetHistoriesUsingOption(crudHistory, CRUDNameSingular);
+                var request = new CRUDDeletionRequest
+                {
+                    History = history,
+                    FeatureName = FeatureNameSelected,
+                    ParentDomain = history.Domain,
+                    ParentName = history.ParentName,
+                    ParentNamePlural = history.ParentNamePlural,
+                    HasParent = history.HasParent,
+                    ZipFeatureTypeList = ZipFeatureTypeList
+                };
 
-                crudService.DeleteLastGeneration(ZipFeatureTypeList, CurrentProject, history, FeatureNameSelected, new CrudParent { Exists = history.HasParent, Domain = history.Domain, Name = history.ParentName, NamePlural = history.ParentNamePlural }, historyOptions);
-
-                DeleteLastGenerationHistory(history);
+                crudGenerationService.DeleteLastGeneration(request);
                 IsDtoGenerated = false;
-
-                consoleWriter.AddMessageLine($"End of '{CRUDNameSingular}' suppression.", "Purple");
             }
             catch (Exception ex)
             {
@@ -924,6 +557,7 @@ namespace BIA.ToolKit.ViewModels
             }
         }
 
+        [RelayCommand]
         private async Task DeleteAnnotationsAsync()
         {
             try
@@ -937,15 +571,14 @@ namespace BIA.ToolKit.ViewModels
 
                 if (result == MessageBoxResult.OK)
                 {
-                    List<string> folders = [
+                    List<string> folders =
+                    [
                         Path.Combine(CurrentProject.Folder, Constants.FolderDotNet),
-                        Path.Combine(CurrentProject.Folder, BiaFront, "src",  "app")
+                        Path.Combine(CurrentProject.Folder, BiaFront, "src", "app")
                     ];
 
-                    await crudService.DeleteBIAToolkitAnnotations(folders);
+                    await crudGenerationService.DeleteAnnotationsAsync(folders);
                 }
-
-                consoleWriter.AddMessageLine($"End of annotations suppression.", "Purple");
             }
             catch (Exception ex)
             {
@@ -985,18 +618,16 @@ namespace BIA.ToolKit.ViewModels
 
         private void ClearAll()
         {
-            backSettingsList.Clear();
-            frontSettingsList.Clear();
             OptionItems?.Clear();
-            ZipFeatureTypeList.Clear();
-            FeatureNames.Clear();
+            ZipFeatureTypeList?.Clear();
+            FeatureNames?.Clear();
 
             DtoEntity = null;
-            DtoEntities.Clear();
+            DtoEntities?.Clear();
             IsWebApiSelected = false;
             IsFrontSelected = false;
             FeatureNameSelected = null;
-            BiaFronts.Clear();
+            BiaFronts?.Clear();
             BiaFront = null;
             IsTeam = false;
             DisplayHistorical = false;
@@ -1017,54 +648,38 @@ namespace BIA.ToolKit.ViewModels
             }
         }
 
-        private void SetGenerationSettings(Project project)
+        private async void SetGenerationSettings(Project project)
         {
-            if (crudHelper == null)
-            {
-                crudHelper = new CRUDGeneratorHelper(settings, fileGeneratorService, project);
-            }
+            var initResult = await crudGenerationService.InitializeAsync(project);
 
-            var (backSettings, frontSettings, featureNames, history, useFileGenerator) =
-                crudHelper.InitializeSettings(ZipFeatureTypeList);
-
-            backSettingsList.Clear();
-            backSettingsList.AddRange(backSettings);
-            frontSettingsList.Clear();
-            frontSettingsList.AddRange(frontSettings);
+            ZipFeatureTypeList = initResult.ZipFeatureTypeList;
 
             FeatureNames.Clear();
-            foreach (var featureName in featureNames)
+            foreach (var featureName in initResult.FeatureNames)
             {
                 FeatureNames.Add(featureName);
             }
 
-            if (useFileGenerator)
+            if (initResult.UseFileGenerator)
             {
                 FeatureNameSelected = "CRUD";
             }
 
-            crudHistory = history;
-            UseFileGenerator = useFileGenerator;
+            crudHistory = initResult.History;
+            UseFileGenerator = initResult.UseFileGenerator;
             CurrentProject = project;
             IsProjectChosen = true;
-
-            crudService.CurrentProject = project;
-            crudService.CrudNames = new(backSettingsList, frontSettingsList);
         }
 
         private void SetFrontGenerationSettings(string biaFront)
         {
-            var frontSettings = crudHelper.LoadFrontSettings(biaFront, ZipFeatureTypeList);
-            frontSettingsList.Clear();
-            frontSettingsList = frontSettings;
+            crudGenerationService.LoadFrontSettings(biaFront);
         }
 
         private void UpdateCrudGenerationHistory()
         {
             try
             {
-                crudHistory ??= new();
-
                 CRUDGenerationHistory history = new()
                 {
                     Date = DateTime.Now,
@@ -1097,7 +712,7 @@ namespace BIA.ToolKit.ViewModels
                     UseDomainUrl = UseDomainUrl,
                 };
 
-                var feature = ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected);
+                var feature = ZipFeatureTypeList?.Where(x => x.Feature == FeatureNameSelected);
 
                 if (feature != null)
                 {
@@ -1126,7 +741,7 @@ namespace BIA.ToolKit.ViewModels
                     });
                 }
 
-                crudHelper.UpdateHistory(crudHistory, history);
+                crudGenerationService.UpdateHistory(history);
                 IsDtoGenerated = true;
             }
             catch (Exception ex)
@@ -1135,64 +750,25 @@ namespace BIA.ToolKit.ViewModels
             }
         }
 
-        private void DeleteLastGenerationHistory(CRUDGenerationHistory history)
-        {
-            crudHelper.DeleteHistory(crudHistory, history);
-        }
-
+        [RelayCommand]
         private void ListDtoFiles()
         {
             if (CurrentProject is null)
                 return;
 
-            List<EntityInfo> dtoEntities = [];
-
-            string dtoFolder = $"{CurrentProject.CompanyName}.{CurrentProject.Name}.Domain.Dto";
-            string dtoFolderPath = Path.Combine(CurrentProject.Folder, Constants.FolderDotNet, dtoFolder);
-
-            try
-            {
-                if (Directory.Exists(dtoFolderPath))
-                {
-                    foreach (var dtoClass in parserService.CurrentSolutionClasses.Where(x =>
-                        x.FilePath.StartsWith(dtoFolderPath, StringComparison.InvariantCultureIgnoreCase)
-                        && x.FilePath.EndsWith("Dto.cs")))
-                    {
-                        dtoEntities.Add(new EntityInfo(dtoClass));
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine(ex.Message, "Red");
-            }
-
-            DtoEntities = new(dtoEntities.OrderBy(x => x.Name));
+            var entities = crudGenerationService.ListDtoFiles(CurrentProject);
+            DtoEntities = new(entities);
         }
 
         private bool ParseDtoFile()
         {
-            try
-            {
-                if (DtoEntity is null)
-                    return false;
+            var result = crudGenerationService.ParseDtoFile(DtoEntity);
+            if (!result.Success)
+                return false;
 
-                List<string> displayItems = [];
-                foreach(var property in DtoEntity.Properties.OrderBy(x => x.Name))
-                {
-                    displayItems.Add(property.Name);
-                }
-
-                DtoDisplayItems = displayItems;
-                DtoDisplayItemSelected = DtoEntity.Properties.FirstOrDefault(p => p.Type.StartsWith("string", StringComparison.CurrentCultureIgnoreCase))?.Name;
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine($"Error on parsing Dto File: {ex.Message}", "Red");
-            }
-            return false;
+            DtoDisplayItems = result.DisplayItems;
+            DtoDisplayItemSelected = result.DefaultDisplayItem;
+            return true;
         }
 
         private string GetDtoSelectedPath()
@@ -1206,86 +782,56 @@ namespace BIA.ToolKit.ViewModels
 
         private void ParseFrontDomains()
         {
-            const string suffix = "-option";
-            const string domainsPath = @"src\app\domains";
-            List<string> foldersName = [];
-
-            string folderPath = Path.Combine(CurrentProject.Folder, BiaFront, domainsPath);
-            if(!Directory.Exists(folderPath))
-                return;
-
-            List<string> folders = [.. Directory.GetDirectories(folderPath, $"*{suffix}", SearchOption.AllDirectories)];
-            folders.ForEach(f => foldersName.Add(new DirectoryInfo(f).Name.Replace(suffix, "")));
-
-            AddOptionItems(foldersName.Select(x => new OptionItem(CommonTools.ConvertKebabToPascalCase(x))));
+            var domains = crudGenerationService.ParseFrontDomains(BiaFront);
+            AddOptionItems(domains.Select(x => new OptionItem(x)));
         }
 
+        [RelayCommand]
         private async Task GenerateCrudAsync()
         {
             if (CurrentProject is null)
                 return;
 
-            if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+            var request = new CRUDGenerationRequest
             {
-                await fileGeneratorService.GenerateCRUDAsync(new FileGeneratorCrudContext
-                {
-                    CompanyName = CurrentProject.CompanyName,
-                    ProjectName = CurrentProject.Name,
-                    DomainName = Domain,
-                    EntityName = CRUDNameSingular,
-                    EntityNamePlural = CRUDNamePlural,
-                    BaseKeyType = SelectedBaseKeyType,
-                    IsTeam = IsTeam,
-                    Properties = [.. DtoEntity.Properties],
-                    OptionItems = [.. OptionItems.Where(x => x.Check).Select(x => x.OptionName)],
-                    HasParent = HasParent,
-                    ParentName = ParentName,
-                    ParentNamePlural = ParentNamePlural,
-                    AncestorTeamName = AncestorTeam,
-                    HasAncestorTeam = !string.IsNullOrWhiteSpace(AncestorTeam),
-                    AngularFront = BiaFront,
-                    GenerateBack = IsWebApiSelected,
-                    GenerateFront = IsFrontSelected,
-                    DisplayItemName = DtoDisplayItemSelected,
-                    TeamTypeId = TeamTypeId,
-                    TeamRoleId = TeamRoleId,
-                    UseHubForClient = UseHubClient,
-                    HasCustomRepository = HasCustomRepository,
-                    HasReadOnlyMode = HasFormReadOnlyMode,
-                    CanImport = UseImport,
-                    IsFixable = IsFixable,
-                    HasFixableParent = HasFixableParent,
-                    HasAdvancedFilter = UseAdvancedFilter,
-                    FormReadOnlyMode = SelectedFormReadOnlyMode,
-                    IsVersioned = IsVersioned,
-                    IsArchivable = IsArchivable,
-                    DisplayHistorical = DisplayHistorical,
-                    UseDomainUrl = UseDomainUrl,
-                });
-
-                UpdateCrudGenerationHistory();
-                return;
-            }
-
-            if (!zipService.ParseZips(ZipFeatureTypeList, CurrentProject, BiaFront, settings))
-                return;
-
-            var crudParent = new CrudParent
-            {
-                Exists = HasParent,
-                Name = ParentName,
-                NamePlural = ParentNamePlural,
-                Domain = Domain
+                DtoEntity = DtoEntity,
+                CRUDNameSingular = CRUDNameSingular,
+                CRUDNamePlural = CRUDNamePlural,
+                DisplayItem = DtoDisplayItemSelected,
+                Domain = Domain,
+                FeatureName = FeatureNameSelected,
+                HasParent = HasParent,
+                ParentName = ParentName,
+                ParentNamePlural = ParentNamePlural,
+                BiaFront = BiaFront,
+                IsWebApiSelected = IsWebApiSelected,
+                IsFrontSelected = IsFrontSelected,
+                IsTeam = IsTeam,
+                TeamTypeId = TeamTypeId,
+                TeamRoleId = TeamRoleId,
+                UseHubClient = UseHubClient,
+                HasCustomRepository = HasCustomRepository,
+                HasFormReadOnlyMode = HasFormReadOnlyMode,
+                FormReadOnlyMode = SelectedFormReadOnlyMode,
+                UseImport = UseImport,
+                IsFixable = IsFixable,
+                HasFixableParent = HasFixableParent,
+                IsVersioned = IsVersioned,
+                IsArchivable = IsArchivable,
+                UseAdvancedFilter = UseAdvancedFilter,
+                AncestorTeam = AncestorTeam,
+                BaseKeyType = SelectedBaseKeyType,
+                DisplayHistorical = DisplayHistorical,
+                UseDomainUrl = UseDomainUrl,
+                SelectedOptions = OptionItems?.Where(o => o.Check).Select(o => o.OptionName).ToList() ?? [],
+                ZipFeatureTypeList = ZipFeatureTypeList
             };
 
-            crudService.CrudNames.InitRenameValues(CRUDNameSingular, CRUDNamePlural);
-
-            List<string> optionsItems = OptionItems.Any() ? OptionItems.Where(o => o.Check).Select(o => o.OptionName).ToList() : null;
-            IsDtoGenerated = crudService.GenerateFiles(DtoEntity, ZipFeatureTypeList, DtoDisplayItemSelected, optionsItems, crudParent, FeatureNameSelected, Domain, BiaFront);
-
-            UpdateCrudGenerationHistory();
-
-            consoleWriter.AddMessageLine($"End of '{CRUDNameSingular}' generation.", "Blue");
+            IsDtoGenerated = await crudGenerationService.GenerateAsync(request);
+            if (IsDtoGenerated)
+            {
+                UpdateCrudGenerationHistory();
+            }
         }
         #endregion
 
@@ -1294,7 +840,7 @@ namespace BIA.ToolKit.ViewModels
         {
             get
             {
-                return isDtoParsed && UseFileGenerator || (!string.IsNullOrEmpty(featureNameSelected) && !ZipFeatureTypeList.Any(x => x.Feature == featureNameSelected && x.FeatureType == FeatureType.Option));
+                return IsDtoParsed && UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && !ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option));
             }
         }
 
@@ -1306,10 +852,10 @@ namespace BIA.ToolKit.ViewModels
                     && !string.IsNullOrWhiteSpace(CRUDNameSingular)
                     && !string.IsNullOrWhiteSpace(CRUDNamePlural)
                     && !string.IsNullOrEmpty(Domain)
-                    && (!string.IsNullOrWhiteSpace(dtoDisplayItemSelected) || ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option))
+                    && (!string.IsNullOrWhiteSpace(DtoDisplayItemSelected) || ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option))
                     && ((IsWebApiSelected && !IsFrontSelected) || (IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)) || (!IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)))
-                    && !string.IsNullOrEmpty(featureNameSelected)
-                    && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural)))
+                    && !string.IsNullOrEmpty(FeatureNameSelected)
+                    && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(ParentNamePlural)))
                     && (!IsTeam || (IsTeam && !UseFileGenerator) || (UseFileGenerator && IsTeam && TeamRoleId > 0 && TeamTypeId > 0))
                     && !string.IsNullOrWhiteSpace(SelectedBaseKeyType);
             }
@@ -1317,86 +863,30 @@ namespace BIA.ToolKit.ViewModels
         #endregion
 
         #region Team
-        private string _ancestorTeam;
+        [ObservableProperty]
+        private string ancestorTeam;
 
-        public string AncestorTeam
-        {
-            get { return _ancestorTeam; }
-            set 
-            { 
-                _ancestorTeam = value;
-                RaisePropertyChanged(nameof(AncestorTeam));
-            }
-        }
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
+        private int teamTypeId;
 
-        private int _teamTypeId;
-
-        public int TeamTypeId
-        {
-            get { return _teamTypeId; }
-            set 
-            { 
-                _teamTypeId = value; 
-                RaisePropertyChanged(nameof(TeamTypeId));
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-            }
-        }
-
-        private int _teamRoleId;
-
-        public int TeamRoleId
-        {
-            get { return _teamRoleId; }
-            set
-            {
-                _teamRoleId = value;
-                RaisePropertyChanged(nameof(TeamRoleId));
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-            }
-        }
-
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
+        private int teamRoleId;
         #endregion
 
         #region FormReadOnly
-        private List<string> _formReadOnlyModes;
+        public List<string> FormReadOnlyModes { get; } = new(Enum.GetNames<FormReadOnlyMode>());
 
-        public List<string> FormReadOnlyModes
-        {
-            get
-            {
-                _formReadOnlyModes ??= new List<string>(Enum.GetNames<FormReadOnlyMode>());
-                return _formReadOnlyModes;
-            }
-        }
-
-        private string _selectedFormReadOnlyMode;
-
-        public string SelectedFormReadOnlyMode
-        {
-            get { return _selectedFormReadOnlyMode; }
-            set 
-            { 
-                _selectedFormReadOnlyMode = value; 
-                RaisePropertyChanged(nameof(SelectedFormReadOnlyMode));
-            }
-        }
+        [ObservableProperty]
+        private string selectedFormReadOnlyMode;
         #endregion
     }
 
-    public class OptionItem : ObservableObject
+    public partial class OptionItem : ObservableObject
     {
-        protected void RaisePropertyChanged(string propertyName) => OnPropertyChanged(propertyName);
-
+        [ObservableProperty]
         private bool check;
-        public bool Check
-        {
-            get => check;
-            set
-            {
-                check = value;
-                RaisePropertyChanged(nameof(Check));
-            }
-        }
 
         public string OptionName { get; set; }
 

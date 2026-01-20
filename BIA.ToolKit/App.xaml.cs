@@ -75,6 +75,7 @@ namespace BIA.ToolKit
             services.AddTransient<Application.ViewModel.VersionAndOptionViewModel>(); // Phase 4 Step 32
             
             // Legacy ViewModels (for backward compatibility)
+            services.AddTransient<ViewModels.CRUDGeneratorViewModel>();
             services.AddTransient<ModifyProjectViewModel>();
             services.AddTransient<DtoGeneratorViewModel>();
             services.AddTransient<OptionGeneratorViewModel>();
