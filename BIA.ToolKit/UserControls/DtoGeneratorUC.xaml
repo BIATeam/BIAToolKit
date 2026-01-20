@@ -13,11 +13,6 @@
     <UserControl.DataContext>
         <local:DtoGeneratorViewModel />
     </UserControl.DataContext>
-    <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
-        <Thickness x:Key="FormFirstRowMargin">0,0,0,5</Thickness>
-        <Thickness x:Key="FormRowMargin">0,5</Thickness>
-    </UserControl.Resources>
 
     <Grid Margin="10" IsEnabled="{Binding IsFileGeneratorInit}">
         <Grid.RowDefinitions>
@@ -28,11 +23,7 @@
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
-                <ColumnDefinition Width="0.1*"/>
                 <ColumnDefinition />
-                <ColumnDefinition Width="0.1*"/>
-                <ColumnDefinition />
-                <ColumnDefinition Width="0.1*"/>
                 <ColumnDefinition Width="160"/>
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="0">
@@ -60,7 +51,7 @@
                 <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Ancestor Team" Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
             </Grid>
 
-            <Grid Grid.Column="2">
+            <Grid Grid.Column="1" Margin="{StaticResource FormColumnSpacing}">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
@@ -81,7 +72,7 @@
                 <CheckBox Grid.Column="1" Grid.Row="1" Content="Use dedicated audit" Foreground="White" IsChecked="{Binding UseDedicatedAudit,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsAuditable}" Visibility="{Binding IsVisibleUseDedicatedAudit, Converter={StaticResource BoolToVisConverter}}"/>
             </Grid>
 
-            <Button VerticalAlignment="Top" Grid.Column="6" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" x:Name="GenerateButton" Content="Generate" Height="50" Command="{Binding GenerateDtoCommand}" IsEnabled="{Binding IsGenerationEnabled}"></Button>
+            <Button VerticalAlignment="Top" Grid.Column="2" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" x:Name="GenerateButton" Content="Generate" Height="50" Command="{Binding GenerateDtoCommand}" IsEnabled="{Binding IsGenerationEnabled}"></Button>
         </Grid>
 
         <Grid Grid.Row="1" Margin="0,10,0,0">

@@ -2,87 +2,185 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:BIA.ToolKit.Dialogs"
-        xmlns:viewModel="clr-namespace:BIA.ToolKit.ViewModels"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        mc:Ignorable="d"
-        Title="Repository Details" Height="auto"
-        MinHeight="200"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModel="clr-namespace:BIA.ToolKit.ViewModels"
+        Title="Repository Details"
+        Height="Auto"
         MinWidth="800"
+        MinHeight="200"
         MaxWidth="800"
-        SizeToContent="WidthAndHeight"
+        d:DataContext="{d:DesignInstance Type=viewModel:RepositoryFormViewModel,
+                                         IsDesignTimeCreatable=False}"
+        mc:Ignorable="d"
         ResizeMode="NoResize"
-        WindowStartupLocation="CenterOwner"
+        SizeToContent="WidthAndHeight"
         Style="{StaticResource MaterialDesignWindow}"
-        d:DataContext="{d:DesignInstance Type=viewModel:RepositoryFormViewModel, IsDesignTimeCreatable=False}">
+        WindowStartupLocation="CenterOwner">
+
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
         <Thickness x:Key="FormFieldMargin">0,0,0,8</Thickness>
 
+        <!--  Common Fields Template  -->
         <DataTemplate x:Key="CommonFields" DataType="{x:Type viewModel:RepositoryViewModel}">
             <StackPanel>
-                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Name" Text="{Binding Name}" TextWrapping="Wrap"/>
-                <ComboBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Repository Type" ItemsSource="{Binding Source={x:Reference Form}, Path=DataContext.RepositoryTypes}" SelectedItem="{Binding Source={x:Reference Form}, Path=DataContext.RepositoryType}"/>
-                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Company Name Template Value (Optionnal)" Text="{Binding CompanyName}" TextWrapping="Wrap" Visibility="{Binding IsVisibleCompanyName, Converter={StaticResource BoolToVisConverter}}"/>
-                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Project Name Template Value (Optionnal)" Text="{Binding ProjectName}" TextWrapping="Wrap" Visibility="{Binding IsVisibleProjectName, Converter={StaticResource BoolToVisConverter}}"/>
+                <TextBox Margin="{StaticResource FormFieldMargin}"
+                         materialDesign:HintAssist.Hint="Name"
+                         Style="{StaticResource MaterialDesignFilledTextBox}"
+                         Text="{Binding Name}"
+                         TextWrapping="Wrap" />
+                <ComboBox Margin="{StaticResource FormFieldMargin}"
+                          materialDesign:HintAssist.Hint="Repository Type"
+                          ItemsSource="{Binding Source={x:Reference Form}, Path=DataContext.RepositoryTypes}"
+                          SelectedItem="{Binding Source={x:Reference Form}, Path=DataContext.RepositoryType}"
+                          Style="{StaticResource MaterialDesignFilledComboBox}" />
+                <TextBox Margin="{StaticResource FormFieldMargin}"
+                         materialDesign:HintAssist.Hint="Company Name Template Value (Optionnal)"
+                         Style="{StaticResource MaterialDesignFilledTextBox}"
+                         Text="{Binding CompanyName}"
+                         TextWrapping="Wrap"
+                         Visibility="{Binding IsVisibleCompanyName, Converter={StaticResource BoolToVisConverter}}" />
+                <TextBox Margin="{StaticResource FormFieldMargin}"
+                         materialDesign:HintAssist.Hint="Project Name Template Value (Optionnal)"
+                         Style="{StaticResource MaterialDesignFilledTextBox}"
+                         Text="{Binding ProjectName}"
+                         TextWrapping="Wrap"
+                         Visibility="{Binding IsVisibleProjectName, Converter={StaticResource BoolToVisConverter}}" />
             </StackPanel>
         </DataTemplate>
 
+        <!--  Git Repository Template  -->
         <DataTemplate DataType="{x:Type viewModel:RepositoryGitViewModel}">
             <StackPanel>
-                <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource CommonFields}"/>
-                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Url" Text="{Binding Url}" TextWrapping="Wrap"/>
-                <CheckBox Margin="{StaticResource FormFieldMargin}" IsChecked="{Binding UseLocalClonedFolder}" Content="Use Local Cloned Folder"/>
+                <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource CommonFields}" />
+                <TextBox Margin="{StaticResource FormFieldMargin}"
+                         materialDesign:HintAssist.Hint="Url"
+                         Style="{StaticResource MaterialDesignFilledTextBox}"
+                         Text="{Binding Url}"
+                         TextWrapping="Wrap" />
+                <CheckBox Margin="{StaticResource FormFieldMargin}"
+                          Content="Use Local Cloned Folder"
+                          IsChecked="{Binding UseLocalClonedFolder}" />
                 <Grid Visibility="{Binding UseLocalClonedFolder, Converter={StaticResource BoolToVisConverter}}">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Local Cloned Folder Path" Text="{Binding LocalClonedFolderPath}" TextWrapping="Wrap"/>
-                    <Button Grid.Column="1" x:Name="BrowseLocalClonedFolderButton" Style="{StaticResource MaterialDesignPaperButton}" Padding="5,0" Margin="5,0,0,5" Command="{Binding DataContext.BrowseLocalClonedFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}">
-                        <materialDesign:PackIcon Kind="FolderSearch" Height="25" Width="25" />
+                    <TextBox Grid.Column="0"
+                             Margin="{StaticResource FormFieldMargin}"
+                             materialDesign:HintAssist.Hint="Local Cloned Folder Path"
+                             Style="{StaticResource MaterialDesignFilledTextBox}"
+                             Text="{Binding LocalClonedFolderPath}"
+                             TextWrapping="Wrap" />
+                    <Button x:Name="BrowseLocalClonedFolderButton"
+                            Grid.Column="1"
+                            Margin="5,0,0,5"
+                            Padding="5,0"
+                            Command="{Binding DataContext.BrowseLocalClonedFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            Style="{StaticResource MaterialDesignPaperButton}">
+                        <materialDesign:PackIcon Width="25"
+                                                 Height="25"
+                                                 Kind="FolderSearch" />
                     </Button>
                 </Grid>
-                <CheckBox Margin="{StaticResource FormFieldMargin}" IsChecked="{Binding IsVersionXYZ}" Content="Use as version X.Y.Z" Visibility="{Binding CanBeVersionXYZ, Converter={StaticResource BoolToVisConverter}}"/>
-                <ComboBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Release Type" ItemsSource="{Binding ReleaseTypes}" SelectedItem="{Binding ReleaseType}"/>
-                <!-- Release type GIT -->
-                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="GIT Repository Name" Text="{Binding GitRepositoryName}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeGit, Converter={StaticResource BoolToVisConverter}}"/>
-                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="GIT Repository Owner" Text="{Binding Owner}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeGit, Converter={StaticResource BoolToVisConverter}}"/>
-                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="GIT Repository URL Release (Optionnal)" Text="{Binding UrlRelease}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeGit, Converter={StaticResource BoolToVisConverter}}"/>
-                <!-- Release type Folder -->
-                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Release Regex Pattern (Optionnal)" Text="{Binding ReleasesFolderRegexPattern}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeFolder, Converter={StaticResource BoolToVisConverter}}"/>
+                <CheckBox Margin="{StaticResource FormFieldMargin}"
+                          Content="Use as version X.Y.Z"
+                          IsChecked="{Binding IsVersionXYZ}"
+                          Visibility="{Binding CanBeVersionXYZ, Converter={StaticResource BoolToVisConverter}}" />
+                <ComboBox Margin="{StaticResource FormFieldMargin}"
+                          materialDesign:HintAssist.Hint="Release Type"
+                          ItemsSource="{Binding ReleaseTypes}"
+                          SelectedItem="{Binding ReleaseType}"
+                          Style="{StaticResource MaterialDesignFilledComboBox}" />
+                <!--  Release type GIT  -->
+                <TextBox Margin="{StaticResource FormFieldMargin}"
+                         materialDesign:HintAssist.Hint="GIT Repository Name"
+                         Style="{StaticResource MaterialDesignFilledTextBox}"
+                         Text="{Binding GitRepositoryName}"
+                         TextWrapping="Wrap"
+                         Visibility="{Binding IsReleaseTypeGit, Converter={StaticResource BoolToVisConverter}}" />
+                <TextBox Margin="{StaticResource FormFieldMargin}"
+                         materialDesign:HintAssist.Hint="GIT Repository Owner"
+                         Style="{StaticResource MaterialDesignFilledTextBox}"
+                         Text="{Binding Owner}"
+                         TextWrapping="Wrap"
+                         Visibility="{Binding IsReleaseTypeGit, Converter={StaticResource BoolToVisConverter}}" />
+                <TextBox Margin="{StaticResource FormFieldMargin}"
+                         materialDesign:HintAssist.Hint="GIT Repository URL Release (Optionnal)"
+                         Style="{StaticResource MaterialDesignFilledTextBox}"
+                         Text="{Binding UrlRelease}"
+                         TextWrapping="Wrap"
+                         Visibility="{Binding IsReleaseTypeGit, Converter={StaticResource BoolToVisConverter}}" />
+                <!--  Release type Folder  -->
+                <TextBox Margin="{StaticResource FormFieldMargin}"
+                         materialDesign:HintAssist.Hint="Release Regex Pattern (Optionnal)"
+                         Style="{StaticResource MaterialDesignFilledTextBox}"
+                         Text="{Binding ReleasesFolderRegexPattern}"
+                         TextWrapping="Wrap"
+                         Visibility="{Binding IsReleaseTypeFolder, Converter={StaticResource BoolToVisConverter}}" />
             </StackPanel>
         </DataTemplate>
 
+        <!--  Folder Repository Template  -->
         <DataTemplate DataType="{x:Type viewModel:RepositoryFolderViewModel}">
             <StackPanel>
-                <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource CommonFields}"/>
+                <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource CommonFields}" />
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Path" Text="{Binding Path}" TextWrapping="Wrap"/>
-                    <Button Grid.Column="1" x:Name="BrowseRepositoryFolderButton" Style="{StaticResource MaterialDesignPaperButton}" Padding="5,0" Margin="5,0,0,5" Command="{Binding DataContext.BrowseRepositoryFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}">
-                        <materialDesign:PackIcon Kind="FolderSearch" Height="25" Width="25" />
+                    <TextBox Grid.Column="0"
+                             Margin="{StaticResource FormFieldMargin}"
+                             materialDesign:HintAssist.Hint="Path"
+                             Style="{StaticResource MaterialDesignFilledTextBox}"
+                             Text="{Binding Path}"
+                             TextWrapping="Wrap" />
+                    <Button x:Name="BrowseRepositoryFolderButton"
+                            Grid.Column="1"
+                            Margin="5,0,0,5"
+                            Padding="5,0"
+                            Command="{Binding DataContext.BrowseRepositoryFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            Style="{StaticResource MaterialDesignPaperButton}">
+                        <materialDesign:PackIcon Width="25"
+                                                 Height="25"
+                                                 Kind="FolderSearch" />
                     </Button>
                 </Grid>
-                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Release Regex Pattern (Optionnal)" Text="{Binding ReleasesFolderRegexPattern}" TextWrapping="Wrap"/>
+                <TextBox Margin="{StaticResource FormFieldMargin}"
+                         materialDesign:HintAssist.Hint="Release Regex Pattern (Optionnal)"
+                         Style="{StaticResource MaterialDesignFilledTextBox}"
+                         Text="{Binding ReleasesFolderRegexPattern}"
+                         TextWrapping="Wrap" />
             </StackPanel>
         </DataTemplate>
     </Window.Resources>
 
     <Grid Margin="10">
         <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition Height="auto"/>
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <ContentControl x:Name="Form" Grid.Row="0" Content="{Binding Repository}"/>
-        <StackPanel Margin="0,5,0,0" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Margin="5" x:Name="SubmitButton" IsDefault="True" Click="SubmitButton_Click" IsEnabled="{Binding Repository.IsValid}">OK</Button>
-            <Button Margin="5" IsCancel="True">Cancel</Button>
+        <ContentControl x:Name="Form"
+                        Grid.Row="0"
+                        Content="{Binding Repository}" />
+
+        <StackPanel Grid.Row="1"
+                    Margin="0,5,0,0"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal">
+            <Button x:Name="SubmitButton"
+                    Margin="5"
+                    Click="SubmitButton_Click"
+                    Content="OK"
+                    IsDefault="True"
+                    IsEnabled="{Binding Repository.IsValid}" />
+            <Button Margin="5"
+                    Content="Cancel"
+                    IsCancel="True" />
         </StackPanel>
     </Grid>
+
 </Window>

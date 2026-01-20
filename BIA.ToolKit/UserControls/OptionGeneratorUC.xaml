@@ -9,17 +9,10 @@
              mc:Ignorable="d" 
              d:DesignHeight="430" d:DesignWidth="1400">
 
-    <UserControl.Resources>
-        <Thickness x:Key="FormFirstRowMargin">0,0,0,5</Thickness>
-        <Thickness x:Key="FormRowMargin">0,5</Thickness>
-    </UserControl.Resources>
-
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
-            <ColumnDefinition Width="0.1*"/>
             <ColumnDefinition />
-            <ColumnDefinition Width="0.1*"/>
             <ColumnDefinition Width="160"/>
         </Grid.ColumnDefinitions>
 
@@ -53,7 +46,7 @@
             </ComboBox>
         </Grid>
 
-        <Grid Grid.Column="2">
+        <Grid Grid.Column="1" Margin="{StaticResource FormColumnSpacing}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
@@ -62,7 +55,7 @@
             <ComboBox Grid.Row="1" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Display Property" ItemsSource="{Binding EntityDisplayItems}" SelectedValue="{Binding EntityDisplayItemSelected}" IsEnabled="{Binding IsEntityParsed}"/>
         </Grid>
 
-        <Grid Grid.Column="4">
+        <Grid Grid.Column="2" Margin="{StaticResource FormColumnSpacing}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition/>

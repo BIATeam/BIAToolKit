@@ -10,26 +10,17 @@
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d" 
              d:DesignHeight="430" d:DesignWidth="1400">
-    <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
-        <Thickness x:Key="FormFirstRowMargin">0,0,0,5</Thickness>
-        <Thickness x:Key="FormRowMargin">0,5</Thickness>
-        <Thickness x:Key="FormGroupFirstRowMargin">0,10,0,5</Thickness>
-    </UserControl.Resources>
 
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
-            <ColumnDefinition Width="0.03*"/>
             <ColumnDefinition Width="160"/>
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Column="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
-                <ColumnDefinition Width="0.1*"/>
                 <ColumnDefinition/>
-                <ColumnDefinition Width="0.1*"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
@@ -76,15 +67,14 @@
             <CheckBox Grid.Column="0" Grid.Row="5" Margin="{StaticResource FormGroupFirstRowMargin}" Content="Has parent" Foreground="White" IsChecked="{Binding HasParent,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsCheckboxParentEnable}"/>
             <TextBox Grid.Column="0" Grid.Row="6" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Parent Name Singular" Text="{Binding ParentName,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" IsEnabled="{Binding HasParent}"/>
             <!--#endregion-->
-            <!--#region Column 2 -->
-            <Grid Grid.Column="2" Grid.Row="0" Margin="{StaticResource FormFirstRowMargin}">
+            <!-- Column 1 -->
+            <Grid Grid.Column="1" Grid.Row="0" Margin="{StaticResource FormColumnSpacing}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="0.8*"/>
-                    <ColumnDefinition Width="0.1*"/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Base Key Type"  ItemsSource="{Binding BaseKeyTypeItems}" SelectedValue="{Binding SelectedBaseKeyType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsDtoParsed}"/>
-                <ComboBox Grid.Column="2" Grid.Row="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="BIA Front" x:Name="BiaFront" ItemsSource="{Binding BiaFronts}" SelectedValue="{Binding BiaFront}" IsEnabled="{Binding IsFrontSelected}">
+                <ComboBox Grid.Column="1" Margin="{StaticResource FormColumnSpacing}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="BIA Front" x:Name="BiaFront" ItemsSource="{Binding BiaFronts}" SelectedValue="{Binding BiaFront}" IsEnabled="{Binding IsFrontSelected}">
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="SelectionChanged">
                             <i:InvokeCommandAction Command="{Binding OnBiaFrontSelectedCommand}" CommandParameter="{Binding SelectedValue, RelativeSource={RelativeSource AncestorType=ComboBox}}" />
@@ -92,33 +82,32 @@
                     </i:Interaction.Triggers>
                 </ComboBox>
             </Grid>
-            <Grid Grid.Column="2" Grid.Row="1" Margin="{StaticResource FormRowMargin}">
+            <Grid Grid.Column="1" Grid.Row="1" Margin="{StaticResource FormColumnSpacing}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
-                    <ColumnDefinition Width="0.1*"/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <Label Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" Content="Generation Type:" Foreground="White" FontWeight="Bold" />
+                <Label Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" Content="Generation Type:" Foreground="White" FontWeight="Bold" />
                 <CheckBox Margin="10,0,0,0" Grid.Column="0" Grid.Row="1" Content="Web Api" Foreground="White" IsChecked="{Binding IsWebApiSelected}" IsEnabled="{Binding IsWebApiAvailable}"/>
-                <CheckBox Grid.Column="2" Grid.Row="1" Content="Front" Foreground="White" IsChecked="{Binding IsFrontSelected}" IsEnabled="{Binding IsFrontAvailable}"/>
+                <CheckBox Grid.Column="1" Grid.Row="1" Margin="{StaticResource FormColumnSpacing}" Content="Front" Foreground="White" IsChecked="{Binding IsFrontSelected}" IsEnabled="{Binding IsFrontAvailable}"/>
             </Grid>
-            <TextBox Grid.Column="2" Margin="{StaticResource FormGroupFirstRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Entity Name Plural" Text="{Binding CRUDNamePlural,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" IsEnabled="{Binding IsDtoParsed}">
+            <TextBox Grid.Column="1" Margin="15,10,0,5" Grid.Row="2" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Entity Name Plural" Text="{Binding CRUDNamePlural,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" IsEnabled="{Binding IsDtoParsed}">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="TextChanged">
                         <i:InvokeCommandAction Command="{Binding OnEntityPluralNameChangedCommand}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </TextBox>
-            <ComboBox Grid.Column="2" Grid.Row="3" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Display Property Name" ItemsSource="{Binding DtoDisplayItems}" SelectedValue="{Binding DtoDisplayItemSelected}" IsEnabled="{Binding IsDtoParsed}"/>
-            <TextBox Grid.Column="2" Margin="{StaticResource FormRowMargin}" Grid.Row="6" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Parent Name Plural"  Text="{Binding ParentNamePlural,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap"  IsEnabled="{Binding HasParent}"/>
+            <ComboBox Grid.Column="1" Grid.Row="3" Margin="{StaticResource FormColumnSpacing}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Display Property Name" ItemsSource="{Binding DtoDisplayItems}" SelectedValue="{Binding DtoDisplayItemSelected}" IsEnabled="{Binding IsDtoParsed}"/>
+            <TextBox Grid.Column="1" Margin="{StaticResource FormColumnSpacing}" Grid.Row="6" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Parent Name Plural"  Text="{Binding ParentNamePlural,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap"  IsEnabled="{Binding HasParent}"/>
             <!--#endregion-->
-            <!--#region Column 4 -->
-            <CheckBox Grid.Column="4" Grid.Row="0" Margin="{StaticResource FormFirstRowMargin}"  Content="Team" Foreground="White" IsChecked="{Binding IsTeam,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsCheckBoxIsTeamEnable}"/>
-            <Grid Grid.Column="4" Grid.Row="1" Grid.RowSpan="6" Visibility="{Binding UseFileGenerator, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible">
+            <!-- Column 2 -->
+            <CheckBox Grid.Column="2" Grid.Row="0" Margin="{StaticResource FormColumnSpacing}" Content="Team" Foreground="White" IsChecked="{Binding IsTeam,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsCheckBoxIsTeamEnable}"/>
+            <Grid Grid.Column="2" Grid.Row="1" Grid.RowSpan="6" Margin="{StaticResource FormColumnSpacing}" Visibility="{Binding UseFileGenerator, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
@@ -128,11 +117,10 @@
                 <Grid Grid.Row="0" Margin="{StaticResource FormRowMargin}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
-                        <ColumnDefinition Width="0.1*"/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <materialDesign:NumericUpDown Grid.Column="0" Style="{StaticResource MaterialDesignFilledNumericUpDown}" materialDesign:HintAssist.Hint="Team Type ID" Value="{Binding TeamTypeId}" IsEnabled="{Binding IsTeam}"/>
-                    <materialDesign:NumericUpDown Grid.Column="2" Style="{StaticResource MaterialDesignFilledNumericUpDown}" materialDesign:HintAssist.Hint="Team Role Type ID" Value="{Binding TeamRoleId}" IsEnabled="{Binding IsTeam}"/>
+                    <materialDesign:NumericUpDown Grid.Column="1" Margin="{StaticResource FormColumnSpacing}" Style="{StaticResource MaterialDesignFilledNumericUpDown}" materialDesign:HintAssist.Hint="Team Role Type ID" Value="{Binding TeamRoleId}" IsEnabled="{Binding IsTeam}"/>
                 </Grid>
                 <TextBox Grid.Row="1" Margin="{StaticResource FormGroupFirstRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Ancestor Team" Text="{Binding AncestorTeam}"/>
                 <Grid Grid.Row="3" Margin="{StaticResource FormGroupFirstRowMargin}">
@@ -153,56 +141,50 @@
                         <Grid Grid.Row="0" Margin="{StaticResource FormRowMargin}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
-                                <ColumnDefinition Width="0.1*"/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <CheckBox Grid.Column="0" Content="Versioned" Foreground="White" IsChecked="{Binding IsVersioned}"/>
-                            <CheckBox Grid.Column="2" Content="Fixable" Foreground="White" IsChecked="{Binding IsFixable}"/>
+                            <CheckBox Grid.Column="1" Content="Fixable" Foreground="White" IsChecked="{Binding IsFixable}"/>
                         </Grid>
                         <Grid Grid.Row="1" Margin="{StaticResource FormRowMargin}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
-                                <ColumnDefinition Width="0.1*"/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <CheckBox Grid.Column="0" Content="Archivable" Foreground="White" IsChecked="{Binding IsArchivable}"/>
-                            <CheckBox Grid.Column="2" Content="Fixable Parent" Foreground="White" IsChecked="{Binding HasFixableParent}"/>
+                            <CheckBox Grid.Column="1" Content="Fixable Parent" Foreground="White" IsChecked="{Binding HasFixableParent}"/>
                         </Grid>
                         <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
-                                <ColumnDefinition Width="0.1*"/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0"  Content="Form Read Only" Foreground="White" IsChecked="{Binding HasFormReadOnlyMode}"/>
-                            <ComboBox Grid.Column="2" Style="{StaticResource MaterialDesignFilledComboBox}" Height="38" IsEnabled="{Binding HasFormReadOnlyMode}" ItemsSource="{Binding FormReadOnlyModes}" SelectedValue="{Binding SelectedFormReadOnlyMode}"/>
+                            <CheckBox Grid.Column="0" Content="Form Read Only" Foreground="White" IsChecked="{Binding HasFormReadOnlyMode}"/>
+                            <ComboBox Grid.Column="1" Style="{StaticResource MaterialDesignFilledComboBox}" Height="38" IsEnabled="{Binding HasFormReadOnlyMode}" ItemsSource="{Binding FormReadOnlyModes}" SelectedValue="{Binding SelectedFormReadOnlyMode}"/>
                         </Grid>
                         <Grid Grid.Row="3" Margin="{StaticResource FormRowMargin}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
-                                <ColumnDefinition Width="0.1*"/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <CheckBox Grid.Column="0" Content="Custom Repository" Foreground="White" IsChecked="{Binding HasCustomRepository}"/>
-                            <CheckBox Grid.Column="2" Content="Import" Foreground="White" IsChecked="{Binding UseImport}"/>
+                            <CheckBox Grid.Column="1" Content="Import" Foreground="White" IsChecked="{Binding UseImport}"/>
                         </Grid>
                         <Grid Grid.Row="4" Margin="{StaticResource FormRowMargin}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
-                                <ColumnDefinition Width="0.1*"/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <CheckBox Grid.Column="0" Content="Advanced Filter" Foreground="White" IsChecked="{Binding UseAdvancedFilter}"/>
-                            <CheckBox Grid.Column="2" Content="Use HUB client" Foreground="White" IsChecked="{Binding UseHubClient}"/>
+                            <CheckBox Grid.Column="1" Content="Use HUB client" Foreground="White" IsChecked="{Binding UseHubClient}"/>
                         </Grid>
                         <Grid Grid.Row="5" Margin="{StaticResource FormRowMargin}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
-                                <ColumnDefinition Width="0.1*"/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <CheckBox Grid.Column="0" Content="Display Historical" Foreground="White" IsChecked="{Binding DisplayHistorical}" Visibility="{Binding IsProjectCompatibleV6, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible"/>
-                            <CheckBox Grid.Column="2" Content="Use Domain URL" Foreground="White" IsChecked="{Binding UseDomainUrl}" Visibility="{Binding IsProjectCompatibleV6, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible"/>
+                            <CheckBox Grid.Column="1" Content="Use Domain URL" Foreground="White" IsChecked="{Binding UseDomainUrl}" Visibility="{Binding IsProjectCompatibleV6, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible"/>
                         </Grid>
                     </Grid>
                 </Grid>
@@ -210,7 +192,7 @@
             <!--#endregion-->
         </Grid>
 
-        <Grid Grid.Column="6">
+        <Grid Grid.Column="1" Margin="{StaticResource FormColumnSpacing}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition/>

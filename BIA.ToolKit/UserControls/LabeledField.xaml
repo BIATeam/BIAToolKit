@@ -8,18 +8,20 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <Label Content="{Binding Label, ElementName=Root}"
                ContentStringFormat="{}{0}:"
-               Foreground="White" FontWeight="Bold"/>
+               FontWeight="Bold"
+               Foreground="White" />
 
         <ContentPresenter Grid.Row="1"
-                          Content="{Binding FieldContent, ElementName=Root}"
                           Margin="20,0,0,0"
                           HorizontalAlignment="Stretch"
-                          VerticalAlignment="Top"/>
+                          VerticalAlignment="Top"
+                          Content="{Binding FieldContent, ElementName=Root}" />
     </Grid>
+
 </UserControl>
