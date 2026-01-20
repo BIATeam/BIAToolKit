@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:BIA.ToolKit.Dialogs"
+        xmlns:viewModel="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
         mc:Ignorable="d"
         Title="Log Detail" Height="200" Width="300"
         MinHeight="500"
@@ -12,7 +12,8 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         MaxHeight="765" MaxWidth="1035"
-        Style="{StaticResource MaterialDesignWindow}">
+        Style="{StaticResource MaterialDesignWindow}"
+        d:DataContext="{d:DesignInstance Type=viewModel:LogDetailViewModel, IsDesignTimeCreatable=False}">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -22,6 +23,6 @@
             <TextBlock Name="OutputDetailText" TextWrapping="Wrap" LineHeight="10" Padding="5" Background="#1a1a1a">
             </TextBlock>
         </ScrollViewer>
-        <Button Grid.Row="1" Style="{StaticResource MaterialDesignOutlinedButton}" Name="copyToClipboard" VerticalAlignment="Top" HorizontalAlignment="Right" Click="CopyToClipboard_Click">Copy to clipboard</Button>
+        <Button Grid.Row="1" Style="{StaticResource MaterialDesignOutlinedButton}" Name="copyToClipboard" VerticalAlignment="Top" HorizontalAlignment="Right" Command="{Binding CopyToClipboardCommand}">Copy to clipboard</Button>
     </Grid>
 </Window>
