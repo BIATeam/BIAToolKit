@@ -63,6 +63,9 @@ namespace BIA.ToolKit
             // Application Services - Business Logic (Phase 2 - MVVM Refactoring)
             services.AddApplicationServices();
             
+            // Helper Services
+            services.AddSingleton<MainWindowHelper>();
+            
             // Messaging
             services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
             

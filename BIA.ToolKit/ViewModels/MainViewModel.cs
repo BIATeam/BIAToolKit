@@ -23,22 +23,19 @@ namespace BIA.ToolKit.ViewModels
         private readonly SettingsService settingsService;
         private readonly GitService gitService;
         private readonly IConsoleWriter consoleWriter;
+        private readonly MainWindowHelper mainWindowHelper;
         private bool firstTimeSettingsUpdated = true;
         private bool waitAddTemplateRepository;
         private bool waitAddCompanyFilesRepository;
 
-#pragma warning disable CS0067
-        public event EventHandler<WaiterEventArgs> WaiterRequested;
-        public event EventHandler<PersistSettingsEventArgs> PersistSettingsRequested;
-#pragma warning restore CS0067
-
-        public MainViewModel(Version applicationVersion, IMessenger messenger, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter)
+        public MainViewModel(Version applicationVersion, IMessenger messenger, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter, MainWindowHelper mainWindowHelper)
         {
             this.applicationVersion = applicationVersion;
             this.messenger = messenger;
             this.settingsService = settingsService;
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
+            this.mainWindowHelper = mainWindowHelper;
             
             messenger.Register<SettingsUpdatedMessage>(this, (r, m) => EventBroker_OnSettingsUpdated(m.Settings));
             messenger.Register<RepositoryViewModelChangedMessage>(this, (r, m) => EventBroker_OnRepositoryChanged(m.OldRepository, m.NewRepository));
@@ -58,14 +55,20 @@ namespace BIA.ToolKit.ViewModels
 
         public void OnCreateProjectTabSelected()
         {
-            // Handle Create Project tab selection
-            // Validate or configure repositories as needed
+            // Validate template repositories configuration before allowing Create Project operations
+            if (!mainWindowHelper.ValidateTemplateRepositories(settingsService.Settings))
+            {
+                consoleWriter.AddMessageLine("Create Project tab cannot be accessed: Template repositories are not properly configured", "red");
+            }
         }
 
         public void OnModifyProjectTabSelected()
         {
-            // Handle Modify Project tab selection
-            // Validate or configure repositories as needed
+            // Validate all repositories configuration before allowing Modify Project operations
+            if (!mainWindowHelper.ValidateRepositoriesConfiguration(settingsService.Settings))
+            {
+                consoleWriter.AddMessageLine("Modify Project tab cannot be accessed: Repository configuration is not valid", "red");
+            }
         }
 
         private void EventBroker_OnRepositoryViewModelAdded(RepositoryViewModel repository)
@@ -303,25 +306,5 @@ namespace BIA.ToolKit.ViewModels
 
         [ObservableProperty]
         private bool _updateAvailable;
-    }
-
-    public class WaiterEventArgs : EventArgs
-    {
-        public Func<Task> Task { get; set; }
-
-        public WaiterEventArgs(Func<Task> task)
-        {
-            Task = task;
-        }
-    }
-
-    public class PersistSettingsEventArgs : EventArgs
-    {
-        public IBIATKSettings Settings { get; set; }
-
-        public PersistSettingsEventArgs(IBIATKSettings settings)
-        {
-            Settings = settings;
-        }
     }
 }

@@ -55,9 +55,9 @@ namespace BIA.ToolKit
             ViewModel = mainViewModel;
             DataContext = ViewModel;
 
-            ViewModel.WaiterRequested += (sender, args) => ExecuteTaskWithWaiterAsync(args.Task);
-            ViewModel.PersistSettingsRequested += (sender, args) => OnSettingsUpdated(args.Settings);
-
+            // Subscribe to messages instead of events
+            messenger.Register<ExecuteActionWithWaiterMessage>(this, (r, m) => ExecuteTaskWithWaiterAsync(m.Action));
+            messenger.Register<SettingsUpdatedMessage>(this, (r, m) => OnSettingsUpdated(m.Settings));
             messenger.Register<OpenRepositoryFormRequestMessage>(this, (r, m) => OnRepositoryFormOpened(m.Repository, m.Mode));
         }
 
