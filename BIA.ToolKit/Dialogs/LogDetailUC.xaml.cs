@@ -1,6 +1,6 @@
 namespace BIA.ToolKit.Dialogs
 {
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModels;
     using BIA.ToolKit.Helper;
     using System.Collections.Generic;
     using System.Windows;

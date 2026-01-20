@@ -27,6 +27,11 @@ namespace BIA.ToolKit.ViewModels
         private bool waitAddTemplateRepository;
         private bool waitAddCompanyFilesRepository;
 
+#pragma warning disable CS0067
+        public event EventHandler<WaiterEventArgs> WaiterRequested;
+        public event EventHandler<PersistSettingsEventArgs> PersistSettingsRequested;
+#pragma warning restore CS0067
+
         public MainViewModel(Version applicationVersion, IMessenger messenger, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter)
         {
             this.applicationVersion = applicationVersion;
@@ -43,6 +48,24 @@ namespace BIA.ToolKit.ViewModels
             OpenToolkitRepositorySettingsCommand = new RelayCommand(OpenToolkitRepositorySettings);
             AddTemplateRepositoryCommand = new RelayCommand(AddTemplateRepository);
             AddCompanyFilesRepositoryCommand = new RelayCommand(AddCompanyFilesRepository);
+        }
+
+        public async Task InitializeAsync()
+        {
+            // Load settings asynchronously if needed
+            await Task.CompletedTask;
+        }
+
+        public void OnCreateProjectTabSelected()
+        {
+            // Handle Create Project tab selection
+            // Validate or configure repositories as needed
+        }
+
+        public void OnModifyProjectTabSelected()
+        {
+            // Handle Modify Project tab selection
+            // Validate or configure repositories as needed
         }
 
         private void EventBroker_OnRepositoryViewModelAdded(RepositoryViewModel repository)
@@ -280,5 +303,25 @@ namespace BIA.ToolKit.ViewModels
 
         [ObservableProperty]
         private bool _updateAvailable;
+    }
+
+    public class WaiterEventArgs : EventArgs
+    {
+        public Func<Task> Task { get; set; }
+
+        public WaiterEventArgs(Func<Task> task)
+        {
+            Task = task;
+        }
+    }
+
+    public class PersistSettingsEventArgs : EventArgs
+    {
+        public IBIATKSettings Settings { get; set; }
+
+        public PersistSettingsEventArgs(IBIATKSettings settings)
+        {
+            Settings = settings;
+        }
     }
 }

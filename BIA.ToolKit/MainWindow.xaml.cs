@@ -9,7 +9,6 @@ namespace BIA.ToolKit
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Dialogs;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
@@ -23,7 +22,7 @@ namespace BIA.ToolKit
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindowViewModel ViewModel { get; private set; }
+        public MainViewModel ViewModel { get; private set; }
 
         private readonly ConsoleWriter consoleWriter;
         private readonly GitService gitService;
@@ -31,7 +30,7 @@ namespace BIA.ToolKit
         private readonly IFileDialogService fileDialogService;
 
         public MainWindow(
-            MainWindowViewModel mainWindowViewModel,
+            MainViewModel mainViewModel,
             GitService gitService,
             IConsoleWriter consoleWriter,
             IMessenger messenger,
@@ -52,12 +51,12 @@ namespace BIA.ToolKit
 
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
 
-            // Use MainWindowViewModel as DataContext
-            ViewModel = mainWindowViewModel;
+            // Use MainViewModel as DataContext
+            ViewModel = mainViewModel;
             DataContext = ViewModel;
 
-            ViewModel.WaiterRequested += ExecuteTaskWithWaiterAsync;
-            ViewModel.PersistSettingsRequested += OnSettingsUpdated;
+            ViewModel.WaiterRequested += (sender, args) => ExecuteTaskWithWaiterAsync(args.Task);
+            ViewModel.PersistSettingsRequested += (sender, args) => OnSettingsUpdated(args.Settings);
 
             messenger.Register<OpenRepositoryFormRequestMessage>(this, (r, m) => OnRepositoryFormOpened(m.Repository, m.Mode));
         }
