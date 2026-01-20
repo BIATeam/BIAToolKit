@@ -1,5 +1,6 @@
 namespace BIA.ToolKit
 {
+    using BIA.ToolKit.Application.Extensions;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
@@ -58,6 +59,9 @@ namespace BIA.ToolKit
             services.AddSingleton<SettingsService>();
             services.AddSingleton<FileGeneratorService>();
             services.AddSingleton<UpdateService>();
+            
+            // Application Services - Business Logic (Phase 2 - MVVM Refactoring)
+            services.AddApplicationServices();
             
             // Messaging
             services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
