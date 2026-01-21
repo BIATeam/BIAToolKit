@@ -100,7 +100,7 @@
         /// </summary>
         private void CurrentProjectChange(Project project)
         {
-            if (project is null || project.BIAFronts.Count == 0)
+            if (project is null)
                 return;
 
             InitProjectTask(project);
