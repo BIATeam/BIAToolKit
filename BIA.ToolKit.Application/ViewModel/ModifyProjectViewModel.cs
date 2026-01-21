@@ -229,7 +229,7 @@
                     @"\\(.*)\\packages\\bia-ng\\core\\bia-core.module\.ts$"
                     ],
                     FrontFileUsingBiaNg = @"\\(?!.*(?:\\node_modules\\|\\dist\\|\\\.angular\\))(.*)\\package\.json$",
-                    FrontFileBiaNgImportRegExp = "\"bia-ng\":",
+                    FrontFileBiaNgImportRegExp = "\"@bia-team/bia-ng\":",
                     FrontFileNameSearchPattern = "bia-core.module.ts"
                 };
 
