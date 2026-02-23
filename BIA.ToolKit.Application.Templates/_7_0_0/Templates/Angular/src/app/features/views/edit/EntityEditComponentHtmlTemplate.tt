@@ -1,0 +1,29 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_7_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".html" #>
+@if (crudItemService.crudItem$ | async; as crudItem) {
+<app-<#= ModelInstance.EntityName.ToKebabCase() #>-form
+  [crudItem]="crudItem"
+  [fields]="crudConfiguration.fieldsConfig.columns"
+  [formLayoutConfig]="crudConfiguration.formLayoutConfig"
+  [formReadOnlyMode]="formReadOnlyMode"
+  [dictOptionDtos]="(<#= ModelInstance.EntityName.ToCamelCase() #>Service.optionsService.dictOptionDtos$ | async) ?? []"
+  [isCrudItemOutdated]="isCrudItemOutdated"
+  [showFixableState]="crudConfiguration.isFixable"
+  [canFix]="canFix"
+  (cancelled)="onCancelled()"
+  (save)="onSubmitted($event)"
+  (fixedChanged)="crudItemService.updateFixedStatus(crudItem.id, $event)"
+  [showPopupButton]="showPopupButton"
+  [showSplitButton]="showSplitButton"
+  [showFullPageButton]="showFullPageButton"
+  (layoutChanged)="notifyLayoutChange($event)"
+<#  if(ModelInstance.DisplayHistorical) { #>
+  [displayHistorical]="crudConfiguration.displayHistorical"
+  [historicalEntries]="(<#= ModelInstance.EntityName.ToCamelCase() #>Service.crudItemHistorical$ | async) ?? []"
+<#  } #>
+  ></app-<#= ModelInstance.EntityName.ToKebabCase() #>-form>
+}
+@if (<#= ModelInstance.EntityName.ToCamelCase() #>Service.loadingGet$ | async) {
+  <bia-spinner [overlay]="true"></bia-spinner>
+}

@@ -1,0 +1,3 @@
+﻿<#@ include file="Template.ttinclude" #>
+<#@ parameter type="BIA.ToolKit.Application.Templates._7_0_0.Models.EntityOptionModel" name="Model" #>
+<# var ModelInstance = Model ?? new EntityOptionMock(); #>
