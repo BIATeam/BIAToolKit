@@ -61,7 +61,6 @@ export const ROUTES: Routes = [
         component: <#= ModelInstance.EntityName #>NewComponent,
         canActivate: [PermissionGuard],
       },
-<#  if(ModelInstance.DisplayHistorical || !ModelInstance.HasReadOnlyMode) { #>
 <#    if(ModelInstance.CanImport) { #>
       {
         path: 'import',
@@ -80,48 +79,17 @@ export const ROUTES: Routes = [
         component: <#= ModelInstance.EntityName #>ImportComponent,
         canActivate: [PermissionGuard],
       },
-<#    } #>
-      {
-        path: 'view',
-        data: {
-          featureConfiguration: <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration,
-          featureServiceType: <#= ModelInstance.EntityName #>Service,
-          leftWidth: 60,
-        },
-        loadChildren: () =>
-          import('<#= ModelInstance.HasParent ? "../../../../" : "../../" #>shared/bia-shared/view.module').then(m => m.ViewModule),
-      },
-<#  } else { #>
-      {
-        path: 'view',
-        data: {
-          featureConfiguration: <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration,
-          featureServiceType: <#= ModelInstance.EntityName #>Service,
-          leftWidth: 60,
-        },
-        loadChildren: () =>
-          import('<#= ModelInstance.HasParent ? "../../../../" : "../../" #>shared/bia-shared/view.module').then(m => m.ViewModule),
-      },
-<#    if(ModelInstance.CanImport) { #>
-      {
-        path: 'import',
-        data: {
-          breadcrumb: '<#= ModelInstance.EntityName.ToCamelCase() #>.import',
-          canNavigate: false,
-          layoutMode: LayoutMode.popup,
-          style: {
-            minWidth: '80vw',
-            maxWidth: '80vw',
-            maxHeight: '80vh',
-          },
-          permission: Permission.<#= ModelInstance.EntityName #>_Save,
-          title: '<#= ModelInstance.EntityName.ToCamelCase() #>.import',
-        },
-        component: <#= ModelInstance.EntityName #>ImportComponent,
-        canActivate: [PermissionGuard],
-      },
-<#    } #>
 <#  } #>
+      {
+        path: 'view',
+        data: {
+          featureConfiguration: <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration,
+          featureServiceType: <#= ModelInstance.EntityName #>Service,
+          leftWidth: 60,
+        },
+        loadChildren: () =>
+          import('../../<#= ModelInstance.AngularDeepRelativePath #>shared/bia-shared/view.module').then(m => m.ViewModule),
+      },
       {
         path: ':crudItemId',
         data: {

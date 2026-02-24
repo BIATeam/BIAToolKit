@@ -52,7 +52,7 @@ const ROUTES: Routes = [
           leftWidth: 60,
         },
         loadChildren: () =>
-          import('../../../../../../shared/bia-shared/view.module').then(
+          import('../../../../<#= ModelInstance.AngularDeepRelativePath #>shared/bia-shared/view.module').then(
             m => m.ViewModule
           ),
       },
