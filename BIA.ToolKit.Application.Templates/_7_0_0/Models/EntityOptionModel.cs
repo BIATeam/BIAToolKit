@@ -4,5 +4,6 @@
 
     public class EntityOptionModel : _6_0_0.Models.EntityOptionModel
     {
+        public override bool UseHubForClient { get; set; }
     }
 }

@@ -1,11 +1,27 @@
-﻿import { Injectable } from '@angular/core';
+﻿
+
+
+
+
+
+
+
+
+
+
+
+
+
+import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import {
+  BiaDataChangeService,
   BiaMessageService,
   BiaOnlineOfflineService,
 } from '@bia-team/bia-ng/core';
 import { of } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap } from 'rxjs/operators';
+import { enableSignalrRefresh, storeKey } from '../airport-option.constants';
 import { MyCountryOptionDas } from '../services/my-country-option-das.service';
 import { DomainMyCountryOptionsActions } from './my-country-options-actions';
 /**
@@ -24,6 +40,11 @@ export class MyCountryOptionsEffects {
       /* Hit the MyCountries Index endpoint of our REST API */
       /* Dispatch LoadAllSuccess action to the central store with id list returned by the backend as id*/
       /* 'MyCountries Reducers' will take care of the rest */
+      filter(
+        () =>
+          enableSignalrRefresh !== true ||
+          this.dataChangeService.needsReload(storeKey) === true
+      ),
       switchMap(() =>
         this.myCountryOptionDas
           .getList({
@@ -31,13 +52,14 @@ export class MyCountryOptionsEffects {
             offlineMode: BiaOnlineOfflineService.isModeEnabled,
           })
           .pipe(
-            map(myCountries =>
-              DomainMyCountryOptionsActions.loadAllSuccess({
+            map(myCountries => {
+              this.dataChangeService.markReloaded(storeKey);
+              return DomainMyCountryOptionsActions.loadAllSuccess({
                 myCountries: myCountries?.sort((a, b) =>
                   a.display.localeCompare(b.display)
                 ),
-              })
-            ),
+              });
+            }),
             catchError(err => {
               if (
                 BiaOnlineOfflineService.isModeEnabled !== true ||
@@ -55,6 +77,7 @@ export class MyCountryOptionsEffects {
   constructor(
     private actions$: Actions,
     private myCountryOptionDas: MyCountryOptionDas,
-    private biaMessageService: BiaMessageService
+    private biaMessageService: BiaMessageService,
+    private dataChangeService: BiaDataChangeService
   ) {}
 }

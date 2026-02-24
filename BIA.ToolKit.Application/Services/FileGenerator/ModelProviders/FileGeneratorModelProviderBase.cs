@@ -140,6 +140,7 @@
 
             model.DomainName = optionContext.DomainName;
             model.OptionDisplayName = optionContext.DisplayName;
+            model.UseHubForClient = optionContext.UseHubForClient;
 
             return model;
         }
