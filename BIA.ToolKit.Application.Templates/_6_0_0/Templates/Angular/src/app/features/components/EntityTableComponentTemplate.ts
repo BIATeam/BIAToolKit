@@ -11,15 +11,16 @@ import {
   UntypedFormBuilder,
 } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { AuthService, BiaMessageService } from 'bia-ng/core';
+import { AuthService, BiaMessageService } from '@bia-team/bia-ng/core';
 import {
+  BiaCalcTableCellComponent,
   BiaFrozenColumnDirective,
   BiaTableFilterComponent,
   BiaTableFooterControllerComponent,
   BiaTableInputComponent,
   BiaTableOutputComponent,
   CrudItemTableComponent,
-} from 'bia-ng/shared';
+} from '@bia-team/bia-ng/shared';
 import { PrimeTemplate } from 'primeng/api';
 import { Skeleton } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
@@ -29,9 +30,9 @@ import { Plane } from '../../model/plane';
 @Component({
   selector: 'app-plane-table',
   templateUrl:
-    '@bia-team/bia-ng/templates/components/table/bia-calc-table/bia-calc-table.component.html',
+    '../../../../../../node_modules/@bia-team/bia-ng/templates/components/table/bia-calc-table/bia-calc-table.component.html',
   styleUrls: [
-    '@bia-team/bia-ng/templates/components/table/bia-calc-table/bia-calc-table.component.scss',
+    '../../../../../../node_modules/@bia-team/bia-ng/templates/components/table/bia-calc-table/bia-calc-table.component.scss',
   ],
   imports: [
     FormsModule,
@@ -50,6 +51,7 @@ import { Plane } from '../../model/plane';
     BiaTableOutputComponent,
     BiaTableFooterControllerComponent,
     BiaFrozenColumnDirective,
+    BiaCalcTableCellComponent,
   ],
 })
 export class PlaneTableComponent extends CrudItemTableComponent<Plane> {
