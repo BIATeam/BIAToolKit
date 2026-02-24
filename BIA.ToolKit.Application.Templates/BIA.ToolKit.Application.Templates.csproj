@@ -364,13 +364,13 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <None Include="_6_0_0\Templates\DotNet\CrosscuttingCommon\PartialCrudRightsTemplate.cs">
-      <DependentUpon>PartialCrudRightsTemplate.tt</DependentUpon>
+    <None Include="_6_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudPermissionIdTemplate.cs">
+      <DependentUpon>PartialCrudPermissionIdTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <None Include="_6_0_0\Templates\DotNet\CrosscuttingCommon\PartialOptionRightsTemplate.cs">
-      <DependentUpon>PartialOptionRightsTemplate.tt</DependentUpon>
+    <None Include="_6_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialOptionPermissionIdTemplate.cs">
+      <DependentUpon>PartialOptionPermissionIdTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
@@ -2287,16 +2287,16 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="_6_0_0\Templates\DotNet\CrosscuttingCommon\PartialCrudRightsTemplate.tt">
+    <EmbeddedResource Include="_6_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudPermissionIdTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PartialCrudRightsTemplate.cs</LastGenOutput>
+      <LastGenOutput>PartialCrudPermissionIdTemplate.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="_6_0_0\Templates\DotNet\CrosscuttingCommon\PartialOptionRightsTemplate.tt">
+    <EmbeddedResource Include="_6_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialOptionPermissionIdTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PartialOptionRightsTemplate.cs</LastGenOutput>
+      <LastGenOutput>PartialOptionPermissionIdTemplate.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
