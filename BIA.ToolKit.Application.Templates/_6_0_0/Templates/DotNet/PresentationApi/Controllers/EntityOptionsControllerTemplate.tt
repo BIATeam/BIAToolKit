@@ -43,7 +43,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Roles = Rights.<#= ModelInstance.EntityName #>Options.Options)]
+        [Authorize(Roles = nameof(PermissionId.<#= ModelInstance.EntityName #>_Options))]
         public async Task<IActionResult> GetAllOptions()
         {
             var results = await this.<#= ModelInstance.EntityName.ToCamelCase() #>OptionService.GetAllOptionsAsync();
