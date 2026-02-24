@@ -19,6 +19,7 @@
         public string Domain { get; set; }
         public EntityMapping Mapping { get; set; }
         public string BiaFront { get; set; }
+        public bool UseHubClient { get; set; }
     }
 
     public class EntityMapping
