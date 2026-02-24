@@ -20,6 +20,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Fleet
     using Microsoft.AspNetCore.Mvc;
     using TheBIADevCompany.BIADemo.Application.Fleet;
     using TheBIADevCompany.BIADemo.Crosscutting.Common;
+    using TheBIADevCompany.BIADemo.Crosscutting.Common.Enum;
     using TheBIADevCompany.BIADemo.Domain.Dto.Fleet;
 
     /// <summary>

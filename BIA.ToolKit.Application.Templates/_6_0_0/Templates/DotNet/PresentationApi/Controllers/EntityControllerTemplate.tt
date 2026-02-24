@@ -26,6 +26,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
     using Microsoft.AspNetCore.Mvc;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.DomainName #>;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common.Enum;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
 
     /// <summary>
