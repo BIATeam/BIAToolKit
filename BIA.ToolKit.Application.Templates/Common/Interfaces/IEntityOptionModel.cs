@@ -3,5 +3,7 @@
     public interface IEntityOptionModel : IEntityModel
     {
         string OptionDisplayName { get; set; }
+
+        bool UseHubForClient { get; set; }
     }
 }

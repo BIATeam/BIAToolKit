@@ -9,5 +9,7 @@
     public sealed class FileGeneratorOptionContext : FileGeneratorContext
     {
         public string DisplayName { get; set; }
+
+        public bool UseHubForClient { get; set; }
     }
 }
