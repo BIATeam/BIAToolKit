@@ -213,7 +213,7 @@
                     OptionType = "PlaneType",
                     OptionIdProperty = "Id",
                     OptionDisplayProperty = "Title",
-                    OptionRelationPropertyComposite = "SimilarPlanePlaneType",
+                    OptionRelationPropertyComposite = "SimilarPlanePlaneTypes",
                     OptionRelationType = "PlanePlaneType",
                     OptionRelationFirstIdProperty = "PlaneId",
                     OptionRelationSecondIdProperty = "PlaneTypeId",
