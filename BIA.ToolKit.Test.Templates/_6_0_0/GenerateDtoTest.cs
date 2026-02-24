@@ -208,12 +208,12 @@
                 },
                 new()
                 {
-                    EntityCompositeName = "SimilarTypes",
+                    EntityCompositeName = "SimilarPlaneTypes",
                     EntityType = "ICollection<OptionDto>",
                     OptionType = "PlaneType",
                     OptionIdProperty = "Id",
                     OptionDisplayProperty = "Title",
-                    OptionRelationPropertyComposite = "SimilarPlaneType",
+                    OptionRelationPropertyComposite = "SimilarPlanePlaneTypes",
                     OptionRelationType = "PlanePlaneType",
                     OptionRelationFirstIdProperty = "PlaneId",
                     OptionRelationSecondIdProperty = "PlaneTypeId",

@@ -1,24 +1,24 @@
 ﻿import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { PermissionGuard } from 'bia-ng/core';
+import { PermissionGuard } from '@bia-team/bia-ng/core';
 import {
   DynamicLayoutComponent,
   LayoutMode,
-} from 'bia-ng/shared';
+} from '@bia-team/bia-ng/shared';
 import { Permission } from 'src/app/shared/permission';
-import { PlaneItemComponent } from './views/plane-item/plane-item.component';
-import { PlanesIndexComponent } from './views/planes-index/planes-index.component';
-import { EngineOptionModule } from 'src/app/domains/engine-option/engine-option.module';
-import { PlaneTypeOptionModule } from 'src/app/domains/plane-type-option/plane-type-option.module';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreModule } from '@ngrx/store';
+import { EngineOptionModule } from 'src/app/domains/engine-option/engine-option.module';
+import { PlaneTypeOptionModule } from 'src/app/domains/plane-type-option/plane-type-option.module';
 import { planeCRUDConfiguration } from './plane.constants';
+import { PlaneService } from './services/plane.service';
 import { FeaturePlanesStore } from './store/plane.state';
 import { PlanesEffects } from './store/planes-effects';
 import { PlaneEditComponent } from './views/plane-edit/plane-edit.component';
-import { PlaneImportComponent } from './views/plane-import/plane-import.component';
-import { PlaneNewComponent } from './views/plane-new/plane-new.component';
 import { PlaneHistoricalComponent } from './views/plane-historical/plane-historical.component';
+import { PlaneNewComponent } from './views/plane-new/plane-new.component';
+import { PlaneItemComponent } from './views/plane-item/plane-item.component';
+import { PlanesIndexComponent } from './views/planes-index/planes-index.component';
 
 export const ROUTES: Routes = [
   {
@@ -43,6 +43,16 @@ export const ROUTES: Routes = [
         },
         component: PlaneNewComponent,
         canActivate: [PermissionGuard],
+      },
+      {
+        path: 'view',
+        data: {
+          featureConfiguration: planeCRUDConfiguration,
+          featureServiceType: PlaneService,
+          leftWidth: 60,
+        },
+        loadChildren: () =>
+          import('../../shared/bia-shared/view.module').then(m => m.ViewModule),
       },
       {
         path: ':crudItemId',
