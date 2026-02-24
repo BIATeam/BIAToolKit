@@ -5,20 +5,45 @@
       // <#= ModelInstance.EntityName #>
 <#  if(!ModelInstance.IsTeam) { #>
       {
-        "Names": [ "<#= ModelInstance.EntityName #>_List_Access", "<#= ModelInstance.EntityName #>_Read" ],
-        "Roles": [ "Admin", "Site_Member" ]
+        "Names": [
+          "<#= ModelInstance.EntityName #>_List_Access",
+          "<#= ModelInstance.EntityName #>_Read"
+        ],
+        "Roles": [
+          "Admin",
+          "Site_Member"
+        ]
       },
       {
-        "Names": [ "<#= ModelInstance.EntityName #>_Update", "<#= ModelInstance.EntityName #>_Save" ],
-        "Roles": [ "Site_Admin" ]
+        "Names": [
+          "<#= ModelInstance.EntityName #>_Update",
+          "<#= ModelInstance.EntityName #>_Save"
+        ],
+        "Roles": [
+          "Site_Admin"
+        ]
       },
       {
-        "Names": [ "<#= ModelInstance.EntityName #>_Create", "<#= ModelInstance.EntityName #>_Delete"<# if (ModelInstance.IsFixable) { #>, "<#= ModelInstance.EntityName #>_Fix"<# } #> ],
-        "Roles": [ "Site_Admin" ]
+        "Names": [
+          "<#= ModelInstance.EntityName #>_Create",
+<# if (ModelInstance.IsFixable) { #>
+          "<#= ModelInstance.EntityName #>_Fix",
+<# } #>
+          "<#= ModelInstance.EntityName #>_Delete"
+        ],
+        "Roles": [
+          "Site_Admin"
+        ]
       },
 <#  } else { #>
       {
-        "Names": [ "<#= ModelInstance.EntityName #>_Create", "<#= ModelInstance.EntityName #>_Delete"<# if (ModelInstance.IsFixable) { #>, "<#= ModelInstance.EntityName #>_Fix"<# } #> ],
+        "Names": [
+          "<#= ModelInstance.EntityName #>_Create",
+<# if (ModelInstance.IsFixable) { #>
+          "<#= ModelInstance.EntityName #>_Fix",
+<# } #>
+          "<#= ModelInstance.EntityName #>_Delete"
+        ],
         "Roles": [
 <#  if(ModelInstance.HasParent) { #>
           "Admin",
@@ -29,7 +54,10 @@
         ]
       },
       {
-        "Names": [ "<#= ModelInstance.EntityName #>_Update", "<#= ModelInstance.EntityName #>_Save" ],
+        "Names": [
+          "<#= ModelInstance.EntityName #>_Update",
+          "<#= ModelInstance.EntityName #>_Save"
+        ],
         "Roles": [
           "Admin",
 <#  if(ModelInstance.HasParent) { #>
@@ -39,7 +67,9 @@
         ]
       },
       {
-        "Names": [ "<#= ModelInstance.EntityName #>_List_Access" ],
+        "Names": [
+          "<#= ModelInstance.EntityName #>_List_Access"
+        ],
         "Roles": [
           "Admin",
 <#  if(ModelInstance.HasParent) { #>
@@ -49,7 +79,10 @@
         ]
       },
       {
-        "Names": [ "<#= ModelInstance.EntityName #>_Read", "<#= ModelInstance.EntityName #>_Member_List_Access" ],
+        "Names": [
+          "<#= ModelInstance.EntityName #>_Read",
+          "<#= ModelInstance.EntityName #>_Member_List_Access"
+        ],
         "Roles": [
           "Admin",
 <#  if(ModelInstance.HasParent) { #>
@@ -59,7 +92,13 @@
         ]
       },
       {
-        "Names": [ "<#= ModelInstance.EntityName #>_Member_Create", "<#= ModelInstance.EntityName #>_Member_Read", "<#= ModelInstance.EntityName #>_Member_Update", "<#= ModelInstance.EntityName #>_Member_Delete", "<#= ModelInstance.EntityName #>_Member_Save" ],
+        "Names": [
+          "<#= ModelInstance.EntityName #>_Member_Create",
+          "<#= ModelInstance.EntityName #>_Member_Read",
+          "<#= ModelInstance.EntityName #>_Member_Update",
+          "<#= ModelInstance.EntityName #>_Member_Delete",
+          "<#= ModelInstance.EntityName #>_Member_Save"
+        ],
         "Roles": [
           "Admin",
 <#  if(ModelInstance.HasParent) { #>
@@ -69,7 +108,12 @@
         ]
       },
       {
-        "Names": [ "<#= ModelInstance.EntityName #>_View_Add_TeamView", "<#= ModelInstance.EntityName #>_View_Update_TeamView", "<#= ModelInstance.EntityName #>_View_Set_Default_TeamView", "<#= ModelInstance.EntityName #>_View_Assign_To_Team" ],
+        "Names": [
+          "<#= ModelInstance.EntityName #>_View_Add_TeamView",
+          "<#= ModelInstance.EntityName #>_View_Update_TeamView",
+          "<#= ModelInstance.EntityName #>_View_Set_Default_TeamView",
+          "<#= ModelInstance.EntityName #>_View_Assign_To_Team"
+        ],
         "Roles": [
           "Admin",
 <#  if(ModelInstance.HasParent) { #>

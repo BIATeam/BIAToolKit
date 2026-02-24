@@ -2,6 +2,9 @@
       // MyCountry
       {
         "Name": "MyCountry_Options",
-        "Roles": [ "Admin", "User" ]
+        "Roles": [
+          "Admin",
+          "User"
+        ]
       },
       // BIAToolKit - End Partial ConfigForOption MyCountry
