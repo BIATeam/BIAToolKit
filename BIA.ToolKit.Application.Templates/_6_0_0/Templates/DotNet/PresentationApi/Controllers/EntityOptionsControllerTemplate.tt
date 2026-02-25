@@ -14,6 +14,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
     using Microsoft.AspNetCore.Mvc;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.DomainName #>;
     using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common.Enum;
 
     /// <summary>
     /// The API controller used to manage <#= ModelInstance.EntityName.ToLiteral() #> options.
@@ -43,7 +44,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Roles = Rights.<#= ModelInstance.EntityName #>Options.Options)]
+        [Authorize(Roles = nameof(PermissionId.<#= ModelInstance.EntityName #>_Options))]
         public async Task<IActionResult> GetAllOptions()
         {
             var results = await this.<#= ModelInstance.EntityName.ToCamelCase() #>OptionService.GetAllOptionsAsync();

@@ -40,6 +40,8 @@
                     }
                     BiaFront = BiaFronts.FirstOrDefault();
                 }
+
+                RaisePropertyChanged(nameof(IsProjectCompatibleV7));
             }
         }
 
@@ -227,6 +229,24 @@
                     && !string.IsNullOrEmpty(Domain);
             }
         }
+        #endregion
+
+        #region CheckBox
+
+        public bool IsProjectCompatibleV7 => Version.TryParse(CurrentProject?.FrameworkVersion, out var version) && version.Major >= 7;
+
+        private bool _useHubClient;
+
+        public bool UseHubClient
+        {
+            get { return _useHubClient; }
+            set
+            {
+                _useHubClient = value;
+                RaisePropertyChanged(nameof(UseHubClient));
+            }
+        }
+
         #endregion
     }
 }

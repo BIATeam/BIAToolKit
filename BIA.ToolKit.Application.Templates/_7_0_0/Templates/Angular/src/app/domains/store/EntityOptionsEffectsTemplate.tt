@@ -1,0 +1,72 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_7_0_0)\TemplateOption.ttinclude" #>
+<#@ output extension=".ts" #>
+import { Injectable } from '@angular/core';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
+import {
+  BiaDataChangeService,
+  BiaMessageService,
+  BiaOnlineOfflineService,
+} from '@bia-team/bia-ng/core';
+import { of } from 'rxjs';
+import { catchError, filter, map, switchMap } from 'rxjs/operators';
+import { enableSignalrRefresh, storeKey } from '../airport-option.constants';
+import { <#= ModelInstance.EntityName #>OptionDas } from '../services/<#= ModelInstance.EntityName.ToKebabCase() #>-option-das.service';
+import { Domain<#= ModelInstance.EntityName #>OptionsActions } from './<#= ModelInstance.EntityName.ToKebabCase() #>-options-actions';
+/**
+ * Effects file is for isolating and managing side effects of the application in one place
+ * Http requests, Sockets, Routing, LocalStorage, etc
+ */
+
+@Injectable()
+export class <#= ModelInstance.EntityName #>OptionsEffects {
+  loadAll$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(
+        Domain<#= ModelInstance.EntityName #>OptionsActions.loadAll
+      ) /* When action is dispatched */,
+      /* startWith(loadAll()), */
+      /* Hit the <#= ModelInstance.EntityNamePlural #> Index endpoint of our REST API */
+      /* Dispatch LoadAllSuccess action to the central store with id list returned by the backend as id*/
+      /* '<#= ModelInstance.EntityNamePlural #> Reducers' will take care of the rest */
+      filter(
+        () =>
+          enableSignalrRefresh !== true ||
+          this.dataChangeService.needsReload(storeKey) === true
+      ),
+      switchMap(() =>
+        this.<#= ModelInstance.EntityName.ToCamelCase() #>OptionDas
+          .getList({
+            endpoint: 'allOptions',
+            offlineMode: BiaOnlineOfflineService.isModeEnabled,
+          })
+          .pipe(
+            map(<#= ModelInstance.EntityNamePlural.ToCamelCase() #> => {
+              this.dataChangeService.markReloaded(storeKey);
+              return Domain<#= ModelInstance.EntityName #>OptionsActions.loadAllSuccess({
+                <#= ModelInstance.EntityNamePlural.ToCamelCase() #>: <#= ModelInstance.EntityNamePlural.ToCamelCase() #>?.sort((a, b) =>
+                  a.display.localeCompare(b.display)
+                ),
+              });
+            }),
+            catchError(err => {
+              if (
+                BiaOnlineOfflineService.isModeEnabled !== true ||
+                BiaOnlineOfflineService.isServerAvailable(err) === true
+              ) {
+                this.biaMessageService.showErrorHttpResponse(err);
+              }
+              return of(Domain<#= ModelInstance.EntityName #>OptionsActions.failure({ error: err }));
+            })
+          )
+      )
+    )
+  );
+
+  constructor(
+    private actions$: Actions,
+    private <#= ModelInstance.EntityName.ToCamelCase() #>OptionDas: <#= ModelInstance.EntityName #>OptionDas,
+    private biaMessageService: BiaMessageService,
+    private dataChangeService: BiaDataChangeService
+  ) {}
+}

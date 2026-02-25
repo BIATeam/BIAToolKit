@@ -12,6 +12,7 @@
     </UserControl.DataContext>
 
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
         <Thickness x:Key="FormFirstRowMargin">0,0,0,5</Thickness>
         <Thickness x:Key="FormRowMargin">0,5</Thickness>
     </UserControl.Resources>
@@ -47,9 +48,24 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
             <TextBox Grid.Row="0" Margin="{StaticResource FormFirstRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Entity Name Plural" Text="{Binding EntityNamePlural, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextWrapping="Wrap" IsEnabled="{Binding IsEntityParsed}"/>
             <ComboBox Grid.Row="1" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Display Property" ItemsSource="{Binding EntityDisplayItems}" SelectedValue="{Binding EntityDisplayItemSelected}" IsEnabled="{Binding IsEntityParsed}"/>
+            <!--<CheckBox Grid.Row="2" Margin="{StaticResource FormRowMargin}" Content="Use HUB client" IsChecked="{Binding UseHubClient}"/>-->
+            <Grid Grid.Row="2" Margin="{StaticResource FormRowMargin}" Visibility="{Binding IsProjectCompatibleV7, Converter={StaticResource BoolToVisConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="0.1*"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" Content="Feature" Foreground="White" FontWeight="Bold" />
+                <CheckBox Margin="10,0,0,0" Grid.Column="0" Grid.Row="1" Content="Use HUB client" Foreground="White" IsChecked="{Binding UseHubClient}" IsEnabled="{Binding IsProjectChosen}" />
+            </Grid>
         </Grid>
 
         <Grid Grid.Column="4">

@@ -151,6 +151,7 @@
                         vm.EntityNamePlural = history.EntityNamePlural;
                         vm.Domain = history.Domain;
                         vm.BiaFront = history.BiaFront;
+                        vm.UseHubClient = history.UseHubClient;
                         msgVisibility = Visibility.Visible;
                     }
                 }
@@ -198,6 +199,7 @@
                         BaseKeyType = vm.Entity.BaseKeyType,
                         DisplayName = vm.EntityDisplayItemSelected,
                         AngularFront = vm.BiaFront,
+                        UseHubForClient = vm.UseHubClient,
                         GenerateFront = true,
                         GenerateBack = true,
                     });
@@ -401,6 +403,7 @@
                     DisplayItem = vm.EntityDisplayItemSelected,
                     Domain = vm.Domain,
                     BiaFront = vm.BiaFront,
+                    UseHubClient = vm.UseHubClient,
 
                     // Create "Mapping" part
                     Mapping = new()

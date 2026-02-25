@@ -5,5 +5,7 @@
     public class EntityOptionModel : Common.Models.EntityModel, IEntityOptionModel
     {
         public string OptionDisplayName { get => throw new System.NotImplementedException(); set; }
+
+        public virtual bool UseHubForClient { get => throw new System.NotImplementedException(); set; }
     }
 }

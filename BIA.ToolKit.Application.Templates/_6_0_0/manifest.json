@@ -91,10 +91,10 @@
           "outputPath": "{Project}.Domain\\{Domain}\\Mappers\\{Entity}OptionMapper.cs"
         },
         {
-          "inputPath": "CrosscuttingCommon\\PartialOptionRightsTemplate.tt",
-          "outputPath": "{Project}.Crosscutting.Common\\Rights.cs",
+          "inputPath": "CrosscuttingCommon\\Enum\\PartialOptionPermissionIdTemplate.tt",
+          "outputPath": "{Project}.Crosscutting.Common\\Enum\\PermissionId.cs",
           "isPartial": true,
-          "partialInsertionMarkup": "RightsForOption"
+          "partialInsertionMarkup": "PermissionIdForOption"
         },
         {
           "inputPath": "PresentationApi\\PartialOptionBianetconfigTemplate.tt",
@@ -124,10 +124,10 @@
           "outputPath": "{Project}.Domain\\{Domain}\\Specifications\\{Entity}Specification.cs"
         },
         {
-          "inputPath": "CrosscuttingCommon\\PartialCrudRightsTemplate.tt",
-          "outputPath": "{Project}.Crosscutting.Common\\Rights.cs",
+          "inputPath": "CrosscuttingCommon\\Enum\\PartialCrudPermissionIdTemplate.tt",
+          "outputPath": "{Project}.Crosscutting.Common\\Enum\\PermissionId.cs",
           "isPartial": true,
-          "partialInsertionMarkup": "Rights"
+          "partialInsertionMarkup": "PermissionId"
         },
         {
           "inputPath": "PresentationApi\\PartialCrudBianetconfigTemplate.tt",
