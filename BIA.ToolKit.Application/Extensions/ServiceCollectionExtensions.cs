@@ -18,7 +18,7 @@ namespace BIA.ToolKit.Application.Extensions
         /// <returns>The service collection for chaining.</returns>
         public static IServiceCollection AddCRUDServices(this IServiceCollection services)
         {
-            services.AddScoped<ICRUDGenerationService, CRUDGenerationService>();
+            services.AddSingleton<ICRUDGenerationService, CRUDGenerationService>();
             return services;
         }
 
@@ -29,7 +29,7 @@ namespace BIA.ToolKit.Application.Extensions
         /// <returns>The service collection for chaining.</returns>
         public static IServiceCollection AddDtoServices(this IServiceCollection services)
         {
-            services.AddScoped<IDtoGenerationService, DtoGenerationService>();
+            services.AddSingleton<IDtoGenerationService, DtoGenerationService>();
             return services;
         }
 
@@ -40,7 +40,7 @@ namespace BIA.ToolKit.Application.Extensions
         /// <returns>The service collection for chaining.</returns>
         public static IServiceCollection AddProjectServices(this IServiceCollection services)
         {
-            services.AddScoped<IProjectMigrationService, ProjectMigrationService>();
+            services.AddSingleton<IProjectMigrationService, ProjectMigrationService>();
             return services;
         }
 
@@ -51,7 +51,7 @@ namespace BIA.ToolKit.Application.Extensions
         /// <returns>The service collection for chaining.</returns>
         public static IServiceCollection AddOptionServices(this IServiceCollection services)
         {
-            services.AddScoped<IOptionGenerationService, OptionGenerationService>();
+            services.AddSingleton<IOptionGenerationService, OptionGenerationService>();
             return services;
         }
 

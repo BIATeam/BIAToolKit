@@ -11,6 +11,7 @@ namespace BIA.ToolKit.ViewModels
     using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.Settings;
@@ -464,31 +465,44 @@ namespace BIA.ToolKit.ViewModels
         {
             if (string.IsNullOrWhiteSpace(Settings_RootProjectsPath))
             {
-                MessageBox.Show("Please select a projects parent path.", "Create Project", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please select root path.", "Create Project", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(settingsService.Settings.CreateCompanyName))
+            {
+                MessageBox.Show("Please select company name.", "Create Project", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(CreateProjectName))
             {
-                MessageBox.Show("Please enter a project name.", "Create Project", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please select project name.", "Create Project", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            if (CreateVersionAndOptionViewModel == null)
+            if (CreateVersionAndOptionViewModel?.VersionAndOption?.WorkTemplate == null)
             {
-                MessageBox.Show("Version and option control is not initialized.", "Create Project", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Please select framework version.", "Create Project", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             var projectPath = Path.Combine(Settings_RootProjectsPath, CreateProjectName);
+            if (Directory.Exists(projectPath) && !fileDialogService.IsDirectoryEmpty(projectPath))
+            {
+                MessageBox.Show("The project path is not empty : " + projectPath, "Create Project", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var projectParameters = new ProjectParameters
             {
                 CompanyName = settingsService.Settings.CreateCompanyName,
                 ProjectName = CreateProjectName,
                 VersionAndOption = CreateVersionAndOptionViewModel.VersionAndOption,
+                AngularFronts = new System.Collections.Generic.List<string> { Constants.FolderAngular },
             };
 
-            await projectCreatorService.Create(false, projectPath, projectParameters);
+            await projectCreatorService.Create(true, projectPath, projectParameters);
         }
 
         private void BrowseFileGeneratorFolder()

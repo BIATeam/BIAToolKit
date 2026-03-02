@@ -52,9 +52,8 @@ namespace BIA.ToolKit
             services.AddSingleton<IProjectCreatorService, ProjectCreatorService>();
             services.AddSingleton<IZipParserService, ZipParserService>();
             
-            // Application Services - Text Parsing and Dialog
-            services.AddScoped<ITextParsingService, TextParsingService>();
-            services.AddScoped<IDialogService, DialogService>();
+            // Application Services - Text Parsing
+            services.AddSingleton<ITextParsingService, TextParsingService>();
             
             // Other Application Services
             services.AddSingleton<GenerateFilesService>();
