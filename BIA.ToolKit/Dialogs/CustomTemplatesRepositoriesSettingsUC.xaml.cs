@@ -36,17 +36,16 @@ namespace BIA.ToolKit.Dialogs
 
         private void editButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Implement edit functionality when needed
+            var dialog = new CustomRepoTemplateUC { Owner = this };
+            dialog.ShowDialog();
         }
 
         private void deleteButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Implement delete functionality when needed
         }
 
         private void synchronizeButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Implement synchronize functionality when needed
         }
     }
 }

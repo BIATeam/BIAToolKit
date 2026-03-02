@@ -21,6 +21,14 @@ public interface IFileDialogService
     string? BrowseFile(string filter);
 
     /// <summary>
+    /// Opens a save file dialog
+    /// </summary>
+    /// <param name="fileName">Default file name</param>
+    /// <param name="filter">File extension filter</param>
+    /// <returns>Selected file path, or null if cancelled</returns>
+    string? SaveFile(string fileName, string filter);
+
+    /// <summary>
     /// Checks if a directory is empty
     /// </summary>
     /// <param name="path">Directory path to check</param>

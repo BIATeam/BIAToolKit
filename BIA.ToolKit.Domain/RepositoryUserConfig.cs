@@ -48,21 +48,12 @@ namespace BIA.ToolKit.Domain
 
         public bool IsVersionXYZ { get; set; }
 
-        public bool UseDownloadedReleases => throw new NotImplementedException();
+        public bool UseDownloadedReleases => false;
 
-        public void Clean()
-        {
-            throw new NotImplementedException();
-        }
+        public void Clean() { }
 
-        public void CleanReleases()
-        {
-            throw new NotImplementedException();
-        }
+        public void CleanReleases() { }
 
-        public Task FillReleasesAsync()
-        {
-            throw new NotImplementedException();
-        }
+        public Task FillReleasesAsync() => Task.CompletedTask;
     }
 }
