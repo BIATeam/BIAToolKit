@@ -160,7 +160,7 @@ namespace BIA.ToolKit.Test.Templates
   ""private"": true,
   ""dependencies"": {},
   ""devDependencies"": {
-    ""prettier"": ""~3.6.2"",
+    ""prettier"": ""~3.8.1"",
     ""prettier-plugin-organize-imports"": ""~4.3.0"",
     ""typescript"": ""~5.9.3""
   }

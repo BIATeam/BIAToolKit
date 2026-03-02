@@ -7,12 +7,12 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
     {
         public GenerateTestFixture_6_0_0()
         {
-            Init("BIADemo_6.0.1", new Project
+            Init("BIADemo_6.1.0", new Project
             {
                 Name = "BIADemo",
                 CompanyName = "TheBIADevCompany",
                 BIAFronts = ["Angular"],
-                FrameworkVersion = "6.0.1"
+                FrameworkVersion = "6.1.0"
             });
         }
     }

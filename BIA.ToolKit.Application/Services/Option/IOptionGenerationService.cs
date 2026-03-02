@@ -118,6 +118,7 @@ namespace BIA.ToolKit.Application.Services.Option
         public string DisplayItem { get; set; }
         public string Domain { get; set; }
         public string BiaFront { get; set; }
+        public bool UseHubForClient { get; set; }
     }
 
     /// <summary>

@@ -191,6 +191,7 @@ namespace BIA.ToolKit.Application.Services.Option
                     BaseKeyType = request.Entity.BaseKeyType,
                     DisplayName = request.DisplayItem,
                     AngularFront = request.BiaFront,
+                    UseHubForClient = request.UseHubForClient,
                     GenerateFront = true,
                     GenerateBack = true,
                 });

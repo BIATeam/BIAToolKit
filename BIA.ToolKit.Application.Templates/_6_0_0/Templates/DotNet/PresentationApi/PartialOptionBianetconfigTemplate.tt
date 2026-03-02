@@ -5,6 +5,9 @@
       // <#= ModelInstance.EntityName #>
       {
         "Name": "<#= ModelInstance.EntityName #>_Options",
-        "Roles": [ "Admin", "User" ]
+        "Roles": [
+          "Admin",
+          "User"
+        ]
       },
       // BIAToolKit - End Partial ConfigForOption <#= ModelInstance.EntityName #>

@@ -63,6 +63,7 @@ namespace BIA.ToolKit.ViewModels
         #region CurrentProject
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsProjectCompatibleV6))]
+        [NotifyPropertyChangedFor(nameof(IsFrontAvailable))]
         private Project currentProject;
 
         partial void OnCurrentProjectChanged(Project value)
@@ -343,7 +344,7 @@ namespace BIA.ToolKit.ViewModels
         private ObservableCollection<string> biaFronts = [];
 
         public bool IsWebApiAvailable => UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.WebApi));
-        public bool IsFrontAvailable => UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.Front));
+        public bool IsFrontAvailable => (UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.Front))) && (CurrentProject != null && CurrentProject.BIAFronts.Count > 0);
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsCheckBoxIsTeamEnable))]

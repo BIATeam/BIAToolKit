@@ -1,50 +1,31 @@
-﻿      // BIAToolKit - Begin Partial Config MaintenanceTeam
-      // MaintenanceTeam
+﻿      // BIAToolKit - Begin Partial Config Plane
+      // Plane
       {
-        "Names": [ "MaintenanceTeam_Create", "MaintenanceTeam_Delete" ],
+        "Names": [
+          "Plane_List_Access",
+          "Plane_Read"
+        ],
         "Roles": [
           "Admin",
-          "AircraftMaintenanceCompany_Admin"
+          "Site_Member"
         ]
       },
       {
-        "Names": [ "MaintenanceTeam_Update", "MaintenanceTeam_Save" ],
+        "Names": [
+          "Plane_Update",
+          "Plane_Save"
+        ],
         "Roles": [
-          "Admin",
-          "AircraftMaintenanceCompany_Admin",
-          "MaintenanceTeam_Admin"
+          "Site_Admin"
         ]
       },
       {
-        "Names": [ "MaintenanceTeam_List_Access" ],
+        "Names": [
+          "Plane_Create",
+          "Plane_Delete"
+        ],
         "Roles": [
-          "Admin",
-          "AircraftMaintenanceCompany_Member",
-          "MaintenanceTeam_MemberOfOne"
+          "Site_Admin"
         ]
       },
-      {
-        "Names": [ "MaintenanceTeam_Read", "MaintenanceTeam_Member_List_Access" ],
-        "Roles": [
-          "Admin",
-          "AircraftMaintenanceCompany_Member",
-          "MaintenanceTeam_Member"
-        ]
-      },
-      {
-        "Names": [ "MaintenanceTeam_Member_Create", "MaintenanceTeam_Member_Read", "MaintenanceTeam_Member_Update", "MaintenanceTeam_Member_Delete", "MaintenanceTeam_Member_Save" ],
-        "Roles": [
-          "Admin",
-          "AircraftMaintenanceCompany_Admin",
-          "MaintenanceTeam_Admin"
-        ]
-      },
-      {
-        "Names": [ "MaintenanceTeam_View_Add_TeamView", "MaintenanceTeam_View_Update_TeamView", "MaintenanceTeam_View_Set_Default_TeamView", "MaintenanceTeam_View_Assign_To_Team" ],
-        "Roles": [
-          "Admin",
-          "AircraftMaintenanceCompany_Admin",
-          "MaintenanceTeam_Admin"
-        ]
-      },
-      // BIAToolKit - End Partial Config MaintenanceTeam
+      // BIAToolKit - End Partial Config Plane

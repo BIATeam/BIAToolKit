@@ -1,5 +1,5 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
-<#@ include file="$(T4Includes_6_0_0)\TemplateCrud.ttinclude" #>
+<#@ include file="$(T4Includes_7_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".cs" #>
         // BIAToolKit - Begin Partial Rights <#= ModelInstance.EntityName #>
 

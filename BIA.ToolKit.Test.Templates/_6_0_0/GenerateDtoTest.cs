@@ -208,12 +208,12 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
                 },
                 new()
                 {
-                    EntityCompositeName = "SimilarTypes",
+                    EntityCompositeName = "SimilarPlaneTypes",
                     EntityType = "ICollection<OptionDto>",
                     OptionType = "PlaneType",
                     OptionIdProperty = "Id",
                     OptionDisplayProperty = "Title",
-                    OptionRelationPropertyComposite = "SimilarPlaneType",
+                    OptionRelationPropertyComposite = "SimilarPlanePlaneTypes",
                     OptionRelationType = "PlanePlaneType",
                     OptionRelationFirstIdProperty = "PlaneId",
                     OptionRelationSecondIdProperty = "PlaneTypeId",

@@ -1,0 +1,6 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_7_0_0)\TemplateOption.ttinclude" #>
+<#@ output extension=".ts" #>
+// IMPORTANT: this key should be unique in all the application. Use the path of the feature.
+export const storeKey = 'domain-<#= ModelInstance.EntityName.ToKebabCase() #>-options';
+export const enableSignalrRefresh = <#= ModelInstance.UseHubForClient.ToString().ToKebabCase() #>;

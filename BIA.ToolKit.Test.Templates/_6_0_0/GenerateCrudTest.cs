@@ -124,7 +124,7 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
                 new("decimal", "OriginalPrice", [RoslynHelper.CreateAttributeArgument("Required", true)]),
                 new("decimal?", "EstimatedPrice", [RoslynHelper.CreateAttributeArgument("Required", false)]),
                 new("OptionDto", "PlaneType", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("ItemType", "PlaneType")]),
-                new("ICollection<OptionDto>", "SimilarTypes", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("ItemType", "PlaneType")]),
+                new("ICollection<OptionDto>", "SimilarPlaneTypes", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("ItemType", "PlaneType")]),
                 new("OptionDto", "CurrentAirport", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("ItemType", "Airport")]),
                 new("ICollection<OptionDto>", "ConnectingAirports", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("ItemType", "Airport")])
             };

@@ -52,6 +52,7 @@ namespace BIA.ToolKit.ViewModels
         #region Observable Properties
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsButtonGenerateOptionEnable))]
+        [NotifyPropertyChangedFor(nameof(IsProjectCompatibleV7))]
         private Project _currentProject;
 
         [ObservableProperty]
@@ -91,6 +92,9 @@ namespace BIA.ToolKit.ViewModels
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsButtonGenerateOptionEnable))]
         private string _domain;
+
+        [ObservableProperty]
+        private bool _useHubClient;
         #endregion
 
         #region Computed Properties
@@ -99,6 +103,8 @@ namespace BIA.ToolKit.ViewModels
             && !string.IsNullOrWhiteSpace(EntityNamePlural)
             && !string.IsNullOrWhiteSpace(EntityDisplayItemSelected)
             && !string.IsNullOrEmpty(Domain);
+
+        public bool IsProjectCompatibleV7 => Version.TryParse(CurrentProject?.FrameworkVersion, out var version) && version.Major >= 7;
         #endregion
 
         #region Commands
@@ -119,6 +125,7 @@ namespace BIA.ToolKit.ViewModels
                     EntityNamePlural = history.EntityNamePlural;
                     Domain = history.Domain;
                     BiaFront = history.BiaFront;
+                    UseHubClient = history.UseHubClient;
                     IsGenerated = true;
                 }
             }
@@ -173,7 +180,8 @@ namespace BIA.ToolKit.ViewModels
                 EntityNamePlural = EntityNamePlural,
                 DisplayItem = EntityDisplayItemSelected,
                 Domain = Domain,
-                BiaFront = BiaFront
+                BiaFront = BiaFront,
+                UseHubForClient = UseHubClient,
             };
 
             IsGenerated = await _optionService.GenerateAsync(request);
@@ -317,6 +325,7 @@ namespace BIA.ToolKit.ViewModels
                     DisplayItem = EntityDisplayItemSelected,
                     Domain = Domain,
                     BiaFront = BiaFront,
+                    UseHubClient = UseHubClient,
                     Mapping = new EntityMapping
                     {
                         Entity = GetEntitySelectedPath(),
