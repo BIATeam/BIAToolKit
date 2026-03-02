@@ -74,6 +74,23 @@ namespace BIA.ToolKit.ViewModels
         }
 
         /// <summary>
+        /// Initializes application runtime state (settings, update check, MSBuild registration).
+        /// </summary>
+        public async Task InitializeApplicationAsync(Version applicationVersion)
+        {
+            var settings = await InitializeSettingsAsync();
+            settingsService.Init(settings);
+
+            updateService.SetAppVersion(applicationVersion);
+            if (settings.AutoUpdate)
+            {
+                await updateService.CheckForUpdatesAsync();
+            }
+
+            await Task.Run(() => cSharpParserService.RegisterMSBuild(consoleWriter));
+        }
+
+        /// <summary>
         /// Fetches release data for all active repositories (DRY principle).
         /// </summary>
         public async Task FetchReleaseDataAsync(BIATKSettings settings, bool syncBefore = false)

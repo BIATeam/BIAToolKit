@@ -49,8 +49,7 @@ namespace BIA.ToolKit.ViewModels
 
         public async Task InitializeAsync()
         {
-            // Load settings asynchronously if needed
-            await Task.CompletedTask;
+            await mainWindowHelper.InitializeApplicationAsync(applicationVersion);
         }
 
         public void OnCreateProjectTabSelected()
