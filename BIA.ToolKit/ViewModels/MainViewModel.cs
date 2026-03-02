@@ -15,6 +15,7 @@ namespace BIA.ToolKit.ViewModels
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
     using CommunityToolkit.Mvvm.Messaging;
+    using Newtonsoft.Json;
     using Octokit;
 
     public partial class MainViewModel : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
@@ -220,7 +221,7 @@ namespace BIA.ToolKit.ViewModels
                     return;
 
                 var json = File.ReadAllText(filePath);
-                var importedConfig = Newtonsoft.Json.JsonConvert.DeserializeObject<Domain.Settings.BIATKSettings>(json);
+                var importedConfig = JsonConvert.DeserializeObject<Domain.Settings.BIATKSettings>(json);
                 if (importedConfig == null)
                 {
                     consoleWriter.AddMessageLine("Invalid configuration file.", "red");
@@ -260,7 +261,7 @@ namespace BIA.ToolKit.ViewModels
                     CompanyFilesRepositoriesConfig = settings.CompanyFilesRepositories?.Select(r => r.ToRepositoryConfig()).ToList(),
                 };
 
-                var json = Newtonsoft.Json.JsonConvert.SerializeObject(exportData, Newtonsoft.Json.Formatting.Indented);
+                var json = JsonConvert.SerializeObject(exportData, Formatting.Indented);
                 File.WriteAllText(filePath, json);
                 consoleWriter.AddMessageLine($"Configuration exported to {Path.GetFileName(filePath)}", "green");
             }
@@ -322,7 +323,7 @@ namespace BIA.ToolKit.ViewModels
                     return;
                 }
 
-                consoleWriter.AddMessageLine("Project creation initiated. Please use the version and options panel below to proceed.", "yellow");
+                consoleWriter.AddMessageLine("Configuration validated. Select version and options below, then proceed with project creation.", "green");
             }
             catch (Exception ex)
             {
