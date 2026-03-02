@@ -670,6 +670,21 @@ namespace BIA.ToolKit.ViewModels
             UseFileGenerator = initResult.UseFileGenerator;
             CurrentProject = project;
             IsProjectChosen = true;
+
+            // Repopulate BiaFronts since ClearAll() may have cleared them and
+            // OnCurrentProjectChanged won't fire if CurrentProject hasn't changed.
+            BiaFronts.Clear();
+            if (project != null)
+            {
+                foreach (var biaFront in project.BIAFronts)
+                {
+                    BiaFronts.Add(biaFront);
+                }
+                if (BiaFront == null || !BiaFronts.Contains(BiaFront))
+                {
+                    BiaFront = BiaFronts.FirstOrDefault();
+                }
+            }
         }
 
         private void SetFrontGenerationSettings(string biaFront)

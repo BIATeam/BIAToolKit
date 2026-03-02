@@ -27,14 +27,14 @@
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Entity" ItemsSource="{Binding Entities}" SelectedItem="{Binding Entity}" IsEnabled="{Binding IsProjectChosen}" ItemTemplate="{StaticResource EntityDisplayTemplate}">
+                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Entity" ItemsSource="{Binding Entities}" SelectedItem="{Binding Entity, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsProjectChosen}" ItemTemplate="{StaticResource EntityDisplayTemplate}">
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="SelectionChanged">
                             <i:InvokeCommandAction Command="{Binding OnEntitySelectedCommand}" />
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
                 </ComboBox>
-                <Label Grid.Row="1" Name="OptionAlreadyGeneratedLabel" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="Collapsed" d:Visibility="Visible" />
+                <Label Grid.Row="1" Name="OptionAlreadyGeneratedLabel" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="{Binding IsGenerated, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible" />
             </Grid>
             <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Domain" Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextWrapping="Wrap" IsEnabled="{Binding IsEntityParsed}"/>
             <ComboBox Margin="{StaticResource FormRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="BIA Front" x:Name="BIAFront" ItemsSource="{Binding BiaFronts}" SelectedValue="{Binding BiaFront}" IsEnabled="{Binding IsProjectChosen}">
@@ -50,9 +50,18 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
             <TextBox Grid.Row="0" Margin="{StaticResource FormFirstRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Entity Name Plural" Text="{Binding EntityNamePlural, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextWrapping="Wrap" IsEnabled="{Binding IsEntityParsed}"/>
             <ComboBox Grid.Row="1" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Display Property" ItemsSource="{Binding EntityDisplayItems}" SelectedValue="{Binding EntityDisplayItemSelected}" IsEnabled="{Binding IsEntityParsed}"/>
+            <Grid Grid.Row="2" Margin="{StaticResource FormRowMargin}" Visibility="{Binding IsProjectCompatibleV7, Converter={StaticResource BoolToVisConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Content="Feature" Foreground="White" FontWeight="Bold" />
+                <CheckBox Margin="10,0,0,0" Grid.Row="1" Content="Use HUB client" Foreground="White" IsChecked="{Binding UseHubClient}" IsEnabled="{Binding IsProjectChosen}" />
+            </Grid>
         </Grid>
 
         <Grid Grid.Column="2" Margin="{StaticResource FormColumnSpacing}">

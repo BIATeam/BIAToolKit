@@ -112,6 +112,7 @@ namespace BIA.ToolKit.ViewModels
         private void OnEntitySelected()
         {
             IsEntityParsed = false;
+            IsGenerated = false;
             EntityDisplayItems.Clear();
             Domain = null;
             EntityNamePlural = null;
