@@ -40,7 +40,7 @@
             <ComboBox Margin="{StaticResource FormRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="BIA Front" x:Name="BIAFront" ItemsSource="{Binding BiaFronts}" SelectedValue="{Binding BiaFront}" IsEnabled="{Binding IsProjectChosen}">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="SelectionChanged">
-                        <i:InvokeCommandAction Command="{Binding OnBiaFrontSelectedCommand}" CommandParameter="{Binding BiaFront}" />
+                        <i:InvokeCommandAction Command="{Binding OnBiaFrontSelectedCommand}" CommandParameter="{Binding SelectedValue, RelativeSource={RelativeSource AncestorType=ComboBox}}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </ComboBox>

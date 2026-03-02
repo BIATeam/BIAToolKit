@@ -139,6 +139,11 @@ namespace BIA.ToolKit.ViewModels
         private bool _resetMappingColumnsWidthsTrigger;
         #endregion
 
+        partial void OnEntityChanged(EntityInfo value)
+        {
+            OnEntitySelected();
+        }
+
         #region Computed Properties
         public string ProjectDomainNamespace { get; private set; }
         public bool IsFileGeneratorInit => _fileGeneratorService?.IsInit == true;

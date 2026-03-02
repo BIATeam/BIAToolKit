@@ -94,6 +94,7 @@ namespace BIA.ToolKit.ViewModels
         {
             UpdateParentPreSelection();
             UpdateDomainPreSelection();
+            OnDtoSelected();
         }
 
         [ObservableProperty]

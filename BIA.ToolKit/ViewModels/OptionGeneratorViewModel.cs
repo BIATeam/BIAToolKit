@@ -97,6 +97,11 @@ namespace BIA.ToolKit.ViewModels
         private bool _useHubClient;
         #endregion
 
+        partial void OnEntityChanged(EntityInfo value)
+        {
+            OnEntitySelected();
+        }
+
         #region Computed Properties
         public bool IsButtonGenerateOptionEnable =>
             IsEntityParsed
