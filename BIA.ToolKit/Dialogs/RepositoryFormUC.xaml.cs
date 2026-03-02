@@ -16,7 +16,7 @@ namespace BIA.ToolKit.Dialogs
 
         public RepositoryFormUC(
             RepositoryViewModel repository,
-            GitService gitService,
+            IGitService gitService,
             IMessenger messenger,
             IConsoleWriter consoleWriter,
             IFileDialogService fileDialogService)

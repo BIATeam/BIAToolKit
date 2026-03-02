@@ -13,5 +13,10 @@ namespace BIA.ToolKit.Application.Services
         /// Create a new project from template
         /// </summary>
         Task Create(bool actionFinishedAtEnd, string projectPath, ProjectParameters projectParameters);
+
+        /// <summary>
+        /// Overwrite BIA folders from source to target
+        /// </summary>
+        Task OverwriteBIAFolder(string sourceFolder, string targetFolder, bool actionFinishedAtEnd);
     }
 }

@@ -28,8 +28,8 @@ namespace BIA.ToolKit.ViewModels
         private readonly IConsoleWriter consoleWriter;
         private readonly SettingsService settingsService;
         private readonly CSharpParserService parserService;
-        private readonly GitService gitService;
-        private readonly ProjectCreatorService projectCreatorService;
+        private readonly IGitService gitService;
+        private readonly IProjectCreatorService projectCreatorService;
         private readonly CRUDSettings crudSettings;
         private readonly IFileDialogService fileDialogService;
         private bool firstSettingsUpdate = true;
@@ -42,8 +42,8 @@ namespace BIA.ToolKit.ViewModels
             IConsoleWriter consoleWriter,
             SettingsService settingsService,
             CSharpParserService parserService,
-            GitService gitService,
-            ProjectCreatorService projectCreatorService,
+            IGitService gitService,
+            IProjectCreatorService projectCreatorService,
             IFileDialogService fileDialogService)
         {
             this.messenger = messenger;

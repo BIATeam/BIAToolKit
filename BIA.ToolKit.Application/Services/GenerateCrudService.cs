@@ -35,7 +35,7 @@ namespace BIA.ToolKit.Application.Services
         private const int FRAMEWORK_VERSION_MINIMUM = 390;
 
         private readonly IConsoleWriter consoleWriter;
-        private readonly ZipParserService zipParserService;
+        private readonly IZipParserService zipParserService;
 
         public CrudNames CrudNames { get; set; }
         public Project CurrentProject { get; set; }
@@ -51,7 +51,7 @@ namespace BIA.ToolKit.Application.Services
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GenerateCrudService(IConsoleWriter consoleWriter, ZipParserService zipParserService)
+        public GenerateCrudService(IConsoleWriter consoleWriter, IZipParserService zipParserService)
         {
             this.consoleWriter = consoleWriter;
             this.zipParserService = zipParserService;

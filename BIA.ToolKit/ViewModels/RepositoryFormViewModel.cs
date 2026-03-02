@@ -14,7 +14,7 @@ namespace BIA.ToolKit.ViewModels
     /// </summary>
     public partial class RepositoryFormViewModel : ObservableObject
     {
-        private readonly GitService gitService;
+        private readonly IGitService gitService;
         private readonly IMessenger messenger;
         private readonly IConsoleWriter consoleWriter;
         private readonly IFileDialogService fileDialogService;
@@ -24,7 +24,7 @@ namespace BIA.ToolKit.ViewModels
 
         public RepositoryFormViewModel(
             RepositoryViewModel repository,
-            GitService gitService,
+            IGitService gitService,
             IMessenger messenger,
             IConsoleWriter consoleWriter,
             IFileDialogService fileDialogService)

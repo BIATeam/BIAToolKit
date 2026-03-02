@@ -19,7 +19,7 @@ namespace BIA.ToolKit.ViewModels
         protected void RaisePropertyChanged(string propertyName) => OnPropertyChanged(propertyName);
 
         private readonly Repository repository;
-        protected readonly GitService gitService;
+        protected readonly IGitService gitService;
         protected readonly IMessenger messenger;
         protected readonly IConsoleWriter consoleWriter;
 
@@ -31,7 +31,7 @@ namespace BIA.ToolKit.ViewModels
         public IRelayCommand OpenFormCommand { get; }
         public IRelayCommand DeleteCommand { get; }
 
-        protected RepositoryViewModel(Repository repository, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter)
+        protected RepositoryViewModel(Repository repository, IGitService gitService, IMessenger messenger, IConsoleWriter consoleWriter)
         {
             ArgumentNullException.ThrowIfNull(repository, nameof(repository));
             this.repository = repository;

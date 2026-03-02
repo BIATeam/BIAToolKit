@@ -19,16 +19,16 @@ namespace BIA.ToolKit.ViewModels
         private readonly UpdateService updateService;
         private readonly CSharpParserService cSharpParserService;
         private readonly SettingsService settingsService;
-        private readonly GitService gitService;
-        private readonly RepositoryService repositoryService;
+        private readonly IGitService gitService;
+        private readonly IRepositoryService repositoryService;
         private readonly IConsoleWriter consoleWriter;
 
         public MainWindowHelper(
             UpdateService updateService,
             CSharpParserService cSharpParserService,
             SettingsService settingsService,
-            GitService gitService,
-            RepositoryService repositoryService,
+            IGitService gitService,
+            IRepositoryService repositoryService,
             IConsoleWriter consoleWriter)
         {
             this.updateService = updateService;

@@ -25,7 +25,7 @@ namespace BIA.ToolKit.Application.Services.Option
         private const string ANGULAR_TYPE = "Angular";
 
         private readonly CSharpParserService parserService;
-        private readonly ZipParserService zipService;
+        private readonly IZipParserService zipService;
         private readonly GenerateCrudService crudService;
         private readonly CRUDSettings settings;
         private readonly FileGeneratorService fileGeneratorService;
@@ -42,7 +42,7 @@ namespace BIA.ToolKit.Application.Services.Option
 
         public OptionGenerationService(
             CSharpParserService parserService,
-            ZipParserService zipService,
+            IZipParserService zipService,
             GenerateCrudService crudService,
             SettingsService settingsService,
             FileGeneratorService fileGeneratorService,

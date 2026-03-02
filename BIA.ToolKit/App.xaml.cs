@@ -37,6 +37,10 @@ namespace BIA.ToolKit
 
         private void ConfigureServices(ServiceCollection services)
         {
+            // Application Version
+            var version = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0, 0);
+            services.AddSingleton(version);
+            
             // Infrastructure Services
             services.AddSingleton<IFileSystemService, FileSystemService>();
             services.AddScoped<IFileDialogService, FileDialogService>();

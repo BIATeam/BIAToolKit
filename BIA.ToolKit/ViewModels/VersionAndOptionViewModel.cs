@@ -25,7 +25,7 @@ namespace BIA.ToolKit.ViewModels
     public class VersionAndOptionViewModel : ObservableObject
     {
         public VersionAndOption VersionAndOption { get; set; }
-        private readonly RepositoryService repositoryService;
+        private readonly IRepositoryService repositoryService;
         private readonly IConsoleWriter consoleWriter;
         private readonly IMessenger messenger;
         private readonly SettingsService settingsService;
@@ -35,7 +35,7 @@ namespace BIA.ToolKit.ViewModels
         private bool hasFeature = false;
         private bool areFeatureInitialized = false;
 
-        public VersionAndOptionViewModel(RepositoryService repositoryService, SettingsService settingsService, IConsoleWriter consoleWriter, IMessenger messenger)
+        public VersionAndOptionViewModel(IRepositoryService repositoryService, SettingsService settingsService, IConsoleWriter consoleWriter, IMessenger messenger)
         {
             this.repositoryService = repositoryService;
             this.settingsService = settingsService;

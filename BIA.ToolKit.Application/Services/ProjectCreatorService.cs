@@ -21,13 +21,13 @@ namespace BIA.ToolKit.Application.Services
     public class ProjectCreatorService : IProjectCreatorService
     {
         private readonly IConsoleWriter consoleWriter;
-        private readonly RepositoryService repositoryService;
+        private readonly IRepositoryService repositoryService;
         private readonly CSharpParserService parserService;
         private readonly SettingsService settingsService;
 
 
         public ProjectCreatorService(IConsoleWriter consoleWriter,
-            RepositoryService repositoryService,
+            IRepositoryService repositoryService,
             SettingsService settingsService,
             CSharpParserService parserService)
         {

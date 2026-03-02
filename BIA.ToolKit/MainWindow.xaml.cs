@@ -25,19 +25,21 @@ namespace BIA.ToolKit
         public MainViewModel ViewModel { get; private set; }
 
         private readonly ConsoleWriter consoleWriter;
-        private readonly GitService gitService;
+        private readonly IGitService gitService;
         private readonly IMessenger messenger;
         private readonly IFileDialogService fileDialogService;
 
         public MainWindow(
             MainViewModel mainViewModel,
-            GitService gitService,
+            IGitService gitService,
             IConsoleWriter consoleWriter,
             IMessenger messenger,
             IFileDialogService fileDialogService,
             ModifyProjectUC modifyProjectUC,
             VersionAndOptionUserControl createVersionAndOptionUC)
         {
+            InitializeComponent();
+
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
 

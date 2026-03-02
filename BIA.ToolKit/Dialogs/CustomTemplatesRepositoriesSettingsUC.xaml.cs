@@ -10,11 +10,11 @@ namespace BIA.ToolKit.Dialogs
     /// </summary>
     public partial class CustomsRepoTemplateUC : Window
     {
-        GitService gitService;
+        IGitService gitService;
         public RepositoriesSettingsVM vm;
-        private RepositoryService repositoryService;
+        private IRepositoryService repositoryService;
 
-        public CustomsRepoTemplateUC(GitService gitService, RepositoryService repositoryService)
+        public CustomsRepoTemplateUC(IGitService gitService, IRepositoryService repositoryService)
         {
             InitializeComponent();
             this.gitService = gitService;

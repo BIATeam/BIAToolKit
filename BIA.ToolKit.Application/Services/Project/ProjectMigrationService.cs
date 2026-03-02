@@ -22,8 +22,8 @@ namespace BIA.ToolKit.Application.Services.ProjectMigration
         private readonly IConsoleWriter consoleWriter;
         private readonly SettingsService settingsService;
         private readonly CSharpParserService parserService;
-        private readonly GitService gitService;
-        private readonly ProjectCreatorService projectCreatorService;
+        private readonly IGitService gitService;
+        private readonly IProjectCreatorService projectCreatorService;
         private readonly CRUDSettings crudSettings;
 
         public Project CurrentProject { get; set; }
@@ -33,8 +33,8 @@ namespace BIA.ToolKit.Application.Services.ProjectMigration
             IConsoleWriter consoleWriter,
             SettingsService settingsService,
             CSharpParserService parserService,
-            GitService gitService,
-            ProjectCreatorService projectCreatorService)
+            IGitService gitService,
+            IProjectCreatorService projectCreatorService)
         {
             this.fileGeneratorService = fileGeneratorService ?? throw new ArgumentNullException(nameof(fileGeneratorService));
             this.consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));

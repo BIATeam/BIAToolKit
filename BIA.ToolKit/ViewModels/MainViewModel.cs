@@ -21,14 +21,14 @@ namespace BIA.ToolKit.ViewModels
         private readonly Version applicationVersion;
         private readonly IMessenger messenger;
         private readonly SettingsService settingsService;
-        private readonly GitService gitService;
+        private readonly IGitService gitService;
         private readonly IConsoleWriter consoleWriter;
         private readonly MainWindowHelper mainWindowHelper;
         private bool firstTimeSettingsUpdated = true;
         private bool waitAddTemplateRepository;
         private bool waitAddCompanyFilesRepository;
 
-        public MainViewModel(Version applicationVersion, IMessenger messenger, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter, MainWindowHelper mainWindowHelper)
+        public MainViewModel(Version applicationVersion, IMessenger messenger, SettingsService settingsService, IGitService gitService, IConsoleWriter consoleWriter, MainWindowHelper mainWindowHelper)
         {
             this.applicationVersion = applicationVersion;
             this.messenger = messenger;

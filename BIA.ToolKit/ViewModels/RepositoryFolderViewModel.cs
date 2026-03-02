@@ -9,7 +9,7 @@ namespace BIA.ToolKit.ViewModels
     using BIA.ToolKit.Domain;
     using CommunityToolkit.Mvvm.Messaging;
 
-    public sealed class RepositoryFolderViewModel(RepositoryFolder repositoryFolder, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter)
+    public sealed class RepositoryFolderViewModel(RepositoryFolder repositoryFolder, IGitService gitService, IMessenger messenger, IConsoleWriter consoleWriter)
         : RepositoryViewModel(repositoryFolder, gitService, messenger, consoleWriter)
     {
         public string Path

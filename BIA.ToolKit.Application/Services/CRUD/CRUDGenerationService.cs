@@ -22,7 +22,7 @@ namespace BIA.ToolKit.Application.Services.CRUD
     public class CRUDGenerationService : ICRUDGenerationService
     {
         private readonly CSharpParserService parserService;
-        private readonly ZipParserService zipService;
+        private readonly IZipParserService zipService;
         private readonly GenerateCrudService crudService;
         private readonly CRUDSettings settings;
         private readonly FileGeneratorService fileGeneratorService;
@@ -39,7 +39,7 @@ namespace BIA.ToolKit.Application.Services.CRUD
 
         public CRUDGenerationService(
             CSharpParserService parserService,
-            ZipParserService zipService,
+            IZipParserService zipService,
             GenerateCrudService crudService,
             SettingsService settingsService,
             FileGeneratorService fileGeneratorService,
