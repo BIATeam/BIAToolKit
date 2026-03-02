@@ -57,6 +57,9 @@ namespace BIA.ToolKit
             ViewModel = mainViewModel;
             DataContext = ViewModel;
 
+            // Link the create project VersionAndOptionViewModel to MainViewModel
+            ViewModel.CreateVersionAndOptionViewModel = createVersionAndOptionUC.ViewModel;
+
             // Subscribe to messages instead of events
             messenger.Register<ExecuteActionWithWaiterMessage>(this, (r, m) => ExecuteTaskWithWaiterAsync(m.Action));
             messenger.Register<SettingsUpdatedMessage>(this, (r, m) => OnSettingsUpdated(m.Settings));

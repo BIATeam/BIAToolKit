@@ -43,7 +43,7 @@ namespace BIA.ToolKit
             
             // Infrastructure Services
             services.AddSingleton<IFileSystemService, FileSystemService>();
-            services.AddScoped<IFileDialogService, FileDialogService>();
+            services.AddSingleton<IFileDialogService, FileDialogService>();
             
             // Application Services with Interfaces
             services.AddSingleton<IConsoleWriter, ConsoleWriter>();

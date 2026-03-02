@@ -11,6 +11,8 @@ namespace BIA.ToolKit.UserControls
     {
         private readonly VersionAndOptionViewModel vm;
 
+        public VersionAndOptionViewModel ViewModel => vm;
+
         public VersionAndOptionUserControl(VersionAndOptionViewModel viewModel)
         {
             InitializeComponent();

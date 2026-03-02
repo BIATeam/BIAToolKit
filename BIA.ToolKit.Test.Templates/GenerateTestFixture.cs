@@ -21,6 +21,10 @@ namespace BIA.ToolKit.Test.Templates
             {
                 Console.WriteLine($"[{fixtureName} {stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}]\t{message}");
             }
+
+            public void Clear() { }
+
+            public void CopyToClipboard() { }
         }
 
         public FileGeneratorService FileGeneratorService { get; private set; }
