@@ -1,5 +1,6 @@
 namespace BIA.ToolKit.UserControls
 {
+    using System;
     using System.Collections.ObjectModel;
     using System.Linq;
     using System.Threading.Tasks;
@@ -37,11 +38,20 @@ namespace BIA.ToolKit.UserControls
             this.consoleWriter = consoleWriter;
 
             uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
+            uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
         }
 
         private void UIEventBroker_OnProjectChanged(Project project)
         {
             SetCurrentProject(project);
+        }
+
+        private void UiEventBroker_OnSolutionClassesParsed()
+        {
+            if (currentProject != null)
+            {
+                LoadEntities(currentProject);
+            }
         }
 
         public void SetCurrentProject(Project project)
@@ -61,14 +71,26 @@ namespace BIA.ToolKit.UserControls
 
         private void LoadEntities(Project project)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            _ = LoadEntitiesAsync(project);
+        }
+
+        private async Task LoadEntitiesAsync(Project project)
+        {
+            try
             {
                 var entities = await Task.Run(() => discoveryService.DiscoverRegenerableEntities(project));
+                if (project != currentProject)
+                    return;
+
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     vm.Entities = new ObservableCollection<RegenerableEntity>(entities);
                 });
-            });
+            }
+            catch (Exception ex)
+            {
+                consoleWriter?.AddMessageLine($"Error loading regenerable entities: {ex.Message}", "orange");
+            }
         }
 
         private void SelectAll_Click(object sender, RoutedEventArgs e)
