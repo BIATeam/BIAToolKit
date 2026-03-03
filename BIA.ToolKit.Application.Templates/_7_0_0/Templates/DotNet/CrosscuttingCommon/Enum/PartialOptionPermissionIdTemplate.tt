@@ -1,0 +1,11 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_7_0_0)\TemplateOption.ttinclude" #>
+<#@ output extension=".cs" #>
+        // BIAToolKit - Begin Partial PermissionIdForOption <#= ModelInstance.EntityName #>
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> Options.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_Options,
+
+        // BIAToolKit - End Partial PermissionIdForOption <#= ModelInstance.EntityName #>
