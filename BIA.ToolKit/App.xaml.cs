@@ -44,6 +44,7 @@
             services.AddSingleton<FileGeneratorService>();
             services.AddSingleton<UpdateService>();
             services.AddSingleton<Application.Services.RegenerateFeatures.RegenerateFeaturesDiscoveryService>();
+            services.AddSingleton<Application.Services.RegenerateFeatures.FeatureMigrationGeneratorService>();
             services.AddLogging();
         }
         private async void OnStartup(object sender, StartupEventArgs e)

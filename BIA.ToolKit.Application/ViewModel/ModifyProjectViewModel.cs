@@ -339,6 +339,11 @@
             get; set;
         }
 
+        public bool IncludeFeatureMigration
+        {
+            get; set;
+        }
+
         public bool IsProjectSelected => CurrentProject != null;
 
         private int selectedTabIndex = 0;
