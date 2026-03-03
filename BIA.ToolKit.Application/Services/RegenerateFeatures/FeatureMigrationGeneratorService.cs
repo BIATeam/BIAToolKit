@@ -42,14 +42,14 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             {
                 CompanyName = currentProject.CompanyName,
                 Name = currentProject.Name,
-                FrameworkVersion = targetVersion,
+                FrameworkVersion = targetVersion[1..],
                 Folder = targetFolderPath,
                 BIAFronts = [.. currentProject.BIAFronts],
             };
 
             var fileGenerator = new FileGeneratorService(consoleWriter);
             // fromUnitTest=true skips Angular prettier calls (not available in temp migration folders)
-            await fileGenerator.Init(targetProject, fromUnitTest: true);
+            await fileGenerator.Init(targetProject, fromUnitTest: false);
 
             if (!fileGenerator.IsInit)
             {
