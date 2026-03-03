@@ -17,6 +17,7 @@
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Dialogs;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
@@ -35,6 +36,7 @@
         CRUDSettings crudSettings;
         UIEventBroker uiEventBroker;
         SettingsService settingsService;
+        RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService;
 
         public ModifyProjectUC()
         {
@@ -55,7 +57,7 @@
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
-            RegenerateFeatures.Inject(regenerateFeaturesDiscoveryService, uiEventBroker, consoleWriter);
+            this.regenerateFeaturesDiscoveryService = regenerateFeaturesDiscoveryService;
             this.crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.settingsService = settingsService;
@@ -381,6 +383,13 @@
         private async Task FixUsings_Run()
         {
             await cSharpParserService.FixUsings();
+        }
+
+        private void RegenerateFeaturesStep_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new RegenerateFeaturesDialog(_viewModel.CurrentProject, regenerateFeaturesDiscoveryService, uiEventBroker, consoleWriter);
+            dialog.Owner = Window.GetWindow(this);
+            dialog.ShowDialog();
         }
     }
 }

@@ -128,7 +128,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                 if (entry.Mapping?.Dto == null)
                     return RegenerableFeatureStatus.Missing;
 
-                string filePath = Path.Combine(project.Folder, entry.Mapping.Dto);
+                string filePath = Path.Combine(project.Folder, Constants.FolderDotNet, entry.Mapping.Dto);
                 return File.Exists(filePath) ? RegenerableFeatureStatus.Ready : RegenerableFeatureStatus.Missing;
             }
             catch
@@ -141,11 +141,12 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         {
             try
             {
-                if (entry.Mapping?.Entity == null)
+                if (string.IsNullOrEmpty(entry.EntityNameSingular) || string.IsNullOrEmpty(entry.Domain))
                     return RegenerableFeatureStatus.Missing;
 
-                string filePath = Path.Combine(project.Folder, entry.Mapping.Entity);
-                return File.Exists(filePath) ? RegenerableFeatureStatus.Ready : RegenerableFeatureStatus.Missing;
+                string domainFolder = $"{project.CompanyName}.{project.Name}.Domain";
+                string entityPath = Path.Combine(project.Folder, Constants.FolderDotNet, domainFolder, entry.Domain, "Entities", $"{entry.EntityNameSingular}.cs");
+                return File.Exists(entityPath) ? RegenerableFeatureStatus.Ready : RegenerableFeatureStatus.Missing;
             }
             catch
             {
@@ -157,13 +158,12 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         {
             try
             {
-                if (string.IsNullOrEmpty(entry.EntityName))
+                if (string.IsNullOrEmpty(entry.EntityName) || string.IsNullOrEmpty(entry.Domain))
                     return RegenerableFeatureStatus.Missing;
 
-                string dtoFileName = $"{entry.EntityName}Dto.cs";
-                string dtoFolder = $"{project.CompanyName}.{project.Name}.Domain.Dto";
-                string filePath = Path.Combine(project.Folder, Constants.FolderDotNet, dtoFolder, dtoFileName);
-                return File.Exists(filePath) ? RegenerableFeatureStatus.Ready : RegenerableFeatureStatus.Missing;
+                string domainFolder = $"{project.CompanyName}.{project.Name}.Domain";
+                string entityPath = Path.Combine(project.Folder, Constants.FolderDotNet, domainFolder, entry.Domain, "Entities", $"{entry.EntityName}.cs");
+                return File.Exists(entityPath) ? RegenerableFeatureStatus.Ready : RegenerableFeatureStatus.Missing;
             }
             catch
             {
