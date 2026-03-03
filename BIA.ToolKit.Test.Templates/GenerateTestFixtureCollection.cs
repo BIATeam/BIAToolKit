@@ -2,6 +2,7 @@ namespace BIA.ToolKit.Test.Templates
 {
     using BIA.ToolKit.Test.Templates._5_0_0;
     using BIA.ToolKit.Test.Templates._6_0_0;
+    using BIA.ToolKit.Test.Templates._7_0_0;
     using Xunit;
 
     [CollectionDefinition(nameof(GenerateTestFixtureCollection_5_0_0), DisableParallelization = true)]
@@ -13,6 +14,12 @@ namespace BIA.ToolKit.Test.Templates
     [CollectionDefinition(nameof(GenerateTestFixtureCollection_6_0_0), DisableParallelization = true)]
     public class GenerateTestFixtureCollection_6_0_0 :
         ICollectionFixture<GenerateTestFixture_6_0_0>
+    {
+    }
+
+    [CollectionDefinition(nameof(GenerateTestFixtureCollection_7_0_0), DisableParallelization = true)]
+    public class GenerateTestFixtureCollection_7_0_0 :
+        ICollectionFixture<GenerateTestFixture_7_0_0>
     {
     }
 }

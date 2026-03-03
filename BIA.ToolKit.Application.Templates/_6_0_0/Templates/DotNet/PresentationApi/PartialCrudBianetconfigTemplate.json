@@ -16,6 +16,7 @@
           "Plane_Save"
         ],
         "Roles": [
+          "Admin",
           "Site_Admin"
         ]
       },
@@ -25,6 +26,7 @@
           "Plane_Delete"
         ],
         "Roles": [
+          "Admin",
           "Site_Admin"
         ]
       },
