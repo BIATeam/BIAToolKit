@@ -39,13 +39,7 @@
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="DTO Entity File" ItemsSource="{Binding DtoEntities}" SelectedItem="{Binding DtoEntity, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsProjectChosen}" ItemTemplate="{StaticResource EntityDisplayTemplate}">
-                    <i:Interaction.Triggers>
-                        <i:EventTrigger EventName="SelectionChanged">
-                            <i:InvokeCommandAction Command="{Binding OnDtoSelectedCommand}" />
-                        </i:EventTrigger>
-                    </i:Interaction.Triggers>
-                </ComboBox>
+                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="DTO Entity File" ItemsSource="{Binding DtoEntities}" SelectedItem="{Binding DtoEntity, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsProjectChosen}" ItemTemplate="{StaticResource EntityDisplayTemplate}"/>
                 <Label Grid.Row="1" Name="CrudAlreadyGeneratedLabel" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="{Binding IsDtoGenerated, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible" />
             </Grid>
             <ComboBox Grid.Column="0" Grid.Row="1" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Generation" ItemsSource="{Binding FeatureNames}" SelectedItem="{Binding FeatureNameSelected}" IsEnabled="{Binding IsDtoParsed}"/>
@@ -74,13 +68,7 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Base Key Type"  ItemsSource="{Binding BaseKeyTypeItems}" SelectedValue="{Binding SelectedBaseKeyType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsDtoParsed}"/>
-                <ComboBox Grid.Column="1" Margin="{StaticResource FormColumnSpacing}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="BIA Front" x:Name="BiaFront" ItemsSource="{Binding BiaFronts}" SelectedValue="{Binding BiaFront}" IsEnabled="{Binding IsFrontSelected}">
-                    <i:Interaction.Triggers>
-                        <i:EventTrigger EventName="SelectionChanged">
-                            <i:InvokeCommandAction Command="{Binding OnBiaFrontSelectedCommand}" CommandParameter="{Binding SelectedValue, RelativeSource={RelativeSource AncestorType=ComboBox}}" />
-                        </i:EventTrigger>
-                    </i:Interaction.Triggers>
-                </ComboBox>
+                <ComboBox Grid.Column="1" Margin="{StaticResource FormColumnSpacing}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="BIA Front" x:Name="BiaFront" ItemsSource="{Binding BiaFronts}" SelectedValue="{Binding BiaFront}" IsEnabled="{Binding IsFrontSelected}"/>
             </Grid>
             <Grid Grid.Column="1" Grid.Row="1" Margin="{StaticResource FormColumnSpacing}">
                 <Grid.RowDefinitions>

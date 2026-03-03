@@ -94,22 +94,14 @@ namespace BIA.ToolKit.ViewModels
             await mainWindowHelper.InitializeApplicationAsync(applicationVersion);
         }
 
-        public void OnCreateProjectTabSelected()
+        public bool OnCreateProjectTabSelected()
         {
-            // Validate template repositories configuration before allowing Create Project operations
-            if (!mainWindowHelper.ValidateTemplateRepositories(settingsService.Settings))
-            {
-                consoleWriter.AddMessageLine("Create Project tab cannot be accessed: Template repositories are not properly configured", "red");
-            }
+            return mainWindowHelper.ValidateRepositoriesConfiguration(settingsService.Settings);
         }
 
-        public void OnModifyProjectTabSelected()
+        public bool OnModifyProjectTabSelected()
         {
-            // Validate all repositories configuration before allowing Modify Project operations
-            if (!mainWindowHelper.ValidateRepositoriesConfiguration(settingsService.Settings))
-            {
-                consoleWriter.AddMessageLine("Modify Project tab cannot be accessed: Repository configuration is not valid", "red");
-            }
+            return mainWindowHelper.ValidateRepositoriesConfiguration(settingsService.Settings);
         }
 
         private void EventBroker_OnRepositoryViewModelAdded(RepositoryViewModel repository)

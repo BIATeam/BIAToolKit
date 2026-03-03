@@ -341,6 +341,11 @@ namespace BIA.ToolKit.ViewModels
         [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private string biaFront;
 
+        partial void OnBiaFrontChanged(string value)
+        {
+            OnBiaFrontSelected(value);
+        }
+
         [ObservableProperty]
         private ObservableCollection<string> biaFronts = [];
 

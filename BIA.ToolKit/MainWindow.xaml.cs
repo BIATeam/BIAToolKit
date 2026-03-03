@@ -124,8 +124,10 @@ namespace BIA.ToolKit
         {
             if (sender is TabItem)
             {
-                // Phase 6 Step 39: Delegate to ViewModel Method
-                ViewModel?.OnCreateProjectTabSelected();
+                if (ViewModel?.OnCreateProjectTabSelected() == false)
+                {
+                    Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
+                }
             }
         }
 
@@ -136,8 +138,10 @@ namespace BIA.ToolKit
         {
             if (sender is TabItem)
             {
-                // Phase 6 Step 39: Delegate to ViewModel Method
-                ViewModel?.OnModifyProjectTabSelected();
+                if (ViewModel?.OnModifyProjectTabSelected() == false)
+                {
+                    Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
+                }
             }
         }
     }
