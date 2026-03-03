@@ -34,6 +34,7 @@
         private const string IS_REQUIRED_PROPERTY = "isRequired:";
 
         private const int FRAMEWORK_VERSION_MINIMUM = 390;
+        private const int REGENERATE_FEATURES_VERSION_MINIMUM = 600; // V6.0.0
 
         private readonly IConsoleWriter consoleWriter;
         private readonly ZipParserService zipParserService;
@@ -67,6 +68,20 @@
                 if (int.TryParse(version, out int value))
                 {
                     return value >= FRAMEWORK_VERSION_MINIMUM;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsProjectCompatibleForRegenerateFeatures(Project project)
+        {
+            if (!string.IsNullOrEmpty(project?.FrameworkVersion))
+            {
+                string version = project.FrameworkVersion.Replace(".", "");
+                if (int.TryParse(version, out int value))
+                {
+                    return value >= REGENERATE_FEATURES_VERSION_MINIMUM;
                 }
             }
 

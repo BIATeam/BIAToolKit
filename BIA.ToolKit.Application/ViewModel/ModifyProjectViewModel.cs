@@ -73,6 +73,18 @@
             }
         }
 
+        private bool isProjectCompatibleRegenerateFeatures;
+
+        public bool IsProjectCompatibleRegenerateFeatures
+        {
+            get { return isProjectCompatibleRegenerateFeatures; }
+            set
+            {
+                isProjectCompatibleRegenerateFeatures = value;
+                RaisePropertyChanged(nameof(IsProjectCompatibleRegenerateFeatures));
+            }
+        }
+
 
         private ObservableCollection<string> projects = [];
         public ObservableCollection<string> Projects
@@ -191,6 +203,7 @@
             await fileGeneratorService.Init(currentProject);
             IsFileGeneratorServiceInit = fileGeneratorService.IsInit;
             IsProjectCompatibleCrudGenerator = GenerateCrudService.IsProjectCompatible(currentProject);
+            IsProjectCompatibleRegenerateFeatures = GenerateCrudService.IsProjectCompatibleForRegenerateFeatures(currentProject);
         }
 
         private async Task LoadProject(Project project)

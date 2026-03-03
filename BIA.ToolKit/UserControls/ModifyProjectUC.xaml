@@ -140,6 +140,12 @@
                         </Grid>
                     </ScrollViewer>
                 </TabItem>
+                <TabItem x:Name="TabRegenerateFeatures" Header="Regenerate Features" IsEnabled="{Binding IsProjectCompatibleRegenerateFeatures, Mode=OneWay}">
+                    <Grid>
+                        <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
+                        <uc:RegenerateFeaturesUC x:Name="RegenerateFeatures" Margin="10"/>
+                    </Grid>
+                </TabItem>
             </TabControl>
         </Grid>
     </Grid>

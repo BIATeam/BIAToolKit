@@ -1,0 +1,109 @@
+namespace BIA.ToolKit.UserControls
+{
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using System.Windows;
+    using System.Windows.Controls;
+    using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.RegenerateFeatures;
+    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Domain.ModifyProject;
+    using BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures;
+
+    /// <summary>
+    /// Interaction logic for RegenerateFeaturesUC.xaml
+    /// </summary>
+    public partial class RegenerateFeaturesUC : UserControl
+    {
+        private readonly RegenerateFeaturesViewModel vm;
+
+        private RegenerateFeaturesDiscoveryService discoveryService;
+        private UIEventBroker uiEventBroker;
+        private IConsoleWriter consoleWriter;
+        private Project currentProject;
+
+        public RegenerateFeaturesUC()
+        {
+            InitializeComponent();
+            vm = (RegenerateFeaturesViewModel)DataContext;
+        }
+
+        public void Inject(RegenerateFeaturesDiscoveryService discoveryService, UIEventBroker uiEventBroker, IConsoleWriter consoleWriter)
+        {
+            this.discoveryService = discoveryService;
+            this.uiEventBroker = uiEventBroker;
+            this.consoleWriter = consoleWriter;
+
+            uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
+        }
+
+        private void UIEventBroker_OnProjectChanged(Project project)
+        {
+            SetCurrentProject(project);
+        }
+
+        public void SetCurrentProject(Project project)
+        {
+            if (project == currentProject)
+                return;
+
+            currentProject = project;
+            vm.DeselectAll();
+            vm.Entities = [];
+
+            if (project == null)
+                return;
+
+            LoadEntities(project);
+        }
+
+        private void LoadEntities(Project project)
+        {
+            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            {
+                var entities = await Task.Run(() => discoveryService.DiscoverRegenerableEntities(project));
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    vm.Entities = new ObservableCollection<RegenerableEntity>(entities);
+                });
+            });
+        }
+
+        private void SelectAll_Click(object sender, RoutedEventArgs e)
+        {
+            vm.SelectAll();
+            EntitiesItemsControl.Items.Refresh();
+        }
+
+        private void DeselectAll_Click(object sender, RoutedEventArgs e)
+        {
+            vm.DeselectAll();
+            EntitiesItemsControl.Items.Refresh();
+        }
+
+        private void EntityCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            vm.RefreshRegenerateEnabled();
+        }
+
+        private void Cancel_Click(object sender, RoutedEventArgs e)
+        {
+            vm.DeselectAll();
+            EntitiesItemsControl.Items.Refresh();
+        }
+
+        private void Regenerate_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedEntities = vm.SelectedEntities;
+            if (!selectedEntities.Any())
+            {
+                consoleWriter.AddMessageLine("No entities selected for regeneration.", "orange");
+                return;
+            }
+
+            consoleWriter.AddMessageLine($"Regenerate features: {selectedEntities.Count} entities selected (regeneration execution is out of scope for Phase 1).", "blue");
+        }
+    }
+}
