@@ -1,12 +1,16 @@
 namespace BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures
 {
     using System;
+    using System.ComponentModel;
+    using System.Runtime.CompilerServices;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
 
-    public class RegenerableEntity
+    public class RegenerableEntity : INotifyPropertyChanged
     {
         private bool isSelected;
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public string EntityNameSingular { get; set; }
         public string EntityNamePlural { get; set; }
@@ -22,7 +26,14 @@ namespace BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures
         public bool IsSelected
         {
             get => isSelected;
-            set => isSelected = value;
+            set
+            {
+                if (isSelected != value)
+                {
+                    isSelected = value;
+                    OnPropertyChanged();
+                }
+            }
         }
 
         public bool HasCrudHistory => CrudHistory != null;
@@ -55,6 +66,11 @@ namespace BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures
                     latest = DtoHistory.DateTime;
                 return latest;
             }
+        }
+
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

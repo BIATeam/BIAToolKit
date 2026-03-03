@@ -74,13 +74,11 @@ namespace BIA.ToolKit.UserControls
         private void SelectAll_Click(object sender, RoutedEventArgs e)
         {
             vm.SelectAll();
-            EntitiesItemsControl.Items.Refresh();
         }
 
         private void DeselectAll_Click(object sender, RoutedEventArgs e)
         {
             vm.DeselectAll();
-            EntitiesItemsControl.Items.Refresh();
         }
 
         private void EntityCheckBox_Click(object sender, RoutedEventArgs e)
@@ -91,7 +89,6 @@ namespace BIA.ToolKit.UserControls
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
             vm.DeselectAll();
-            EntitiesItemsControl.Items.Refresh();
         }
 
         private void Regenerate_Click(object sender, RoutedEventArgs e)

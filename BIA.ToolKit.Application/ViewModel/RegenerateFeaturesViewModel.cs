@@ -107,8 +107,8 @@ namespace BIA.ToolKit.Application.ViewModel
 
         public void RefreshRegenerateEnabled()
         {
-            IsRegenerateEnabled = SelectedEntities.Any() &&
-                (RegenerateCrud || RegenerateOption || RegenerateDto);
+            IsRegenerateEnabled = (RegenerateCrud || RegenerateOption || RegenerateDto) &&
+                Entities.Any(e => e.IsSelected && e.CanSelectEntity);
         }
 
         public string GetBlockageReason(RegenerableEntity entity, RegenerateFeatureType featureType)
