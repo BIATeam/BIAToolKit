@@ -13,6 +13,7 @@ import {
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService, BiaMessageService } from '@bia-team/bia-ng/core';
 import {
+  BiaCalcTableCellComponent,
   BiaFrozenColumnDirective,
   BiaTableFilterComponent,
   BiaTableFooterControllerComponent,
@@ -50,6 +51,7 @@ import { Plane } from '../../model/plane';
     BiaTableOutputComponent,
     BiaTableFooterControllerComponent,
     BiaFrozenColumnDirective,
+    BiaCalcTableCellComponent,
   ],
 })
 export class PlaneTableComponent extends CrudItemTableComponent<Plane> {

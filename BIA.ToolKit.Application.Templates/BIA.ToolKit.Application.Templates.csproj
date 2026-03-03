@@ -131,6 +131,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
+    <None Include="_7_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudPermissionIdTemplate.cs">
+      <DependentUpon>PartialCrudPermissionIdTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_7_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudRoleIdTemplate.cs">
       <DependentUpon>PartialCrudRoleIdTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -141,13 +146,8 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <None Include="_7_0_0\Templates\DotNet\CrosscuttingCommon\PartialCrudRightsTemplate.cs">
-      <DependentUpon>PartialCrudRightsTemplate.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </None>
-    <None Include="_7_0_0\Templates\DotNet\CrosscuttingCommon\PartialOptionRightsTemplate.cs">
-      <DependentUpon>PartialOptionRightsTemplate.tt</DependentUpon>
+    <None Include="_7_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialOptionPermissionIdTemplate.cs">
+      <DependentUpon>PartialOptionPermissionIdTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
@@ -2815,6 +2815,11 @@
       <LastGenOutput>PartialEntityAppServiceTemplate_UpdateFixedChildren.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="_7_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudPermissionIdTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudPermissionIdTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="_7_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialCrudRoleIdTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PartialCrudRoleIdTemplate.cs</LastGenOutput>
@@ -2825,14 +2830,9 @@
       <LastGenOutput>PartialCrudTeamTypeIdTemplate.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="_7_0_0\Templates\DotNet\CrosscuttingCommon\PartialCrudRightsTemplate.tt">
+    <EmbeddedResource Include="_7_0_0\Templates\DotNet\CrosscuttingCommon\Enum\PartialOptionPermissionIdTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PartialCrudRightsTemplate.cs</LastGenOutput>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="_7_0_0\Templates\DotNet\CrosscuttingCommon\PartialOptionRightsTemplate.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PartialOptionRightsTemplate.cs</LastGenOutput>
+      <LastGenOutput>PartialOptionPermissionIdTemplate.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="_7_0_0\Templates\DotNet\Domain\Entities\EntityAuditTemplate.tt">

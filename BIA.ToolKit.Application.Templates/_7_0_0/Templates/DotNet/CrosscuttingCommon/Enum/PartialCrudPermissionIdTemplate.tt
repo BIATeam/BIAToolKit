@@ -1,0 +1,95 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_7_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+        // BIAToolKit - Begin Partial PermissionId <#= ModelInstance.EntityName #>
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> Create.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_Create,
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> Delete.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_Delete,
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> List Access.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_List_Access,
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> Read.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_Read,
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> Save.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_Save,
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> Update.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_Update,
+<#  if(ModelInstance.IsTeam) { #>
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> Member Update.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_Member_Update,
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> Member Delete.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_Member_Delete,
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> Member Save.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_Member_Save,
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> Member Create.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_Member_Create,
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> Member Read.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_Member_Read,
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> Member List Access.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_Member_List_Access,
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> View Add Team View.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_View_Add_TeamView,
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> View Update Team View.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_View_Update_TeamView,
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> View Set Default Team View.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_View_Set_Default_TeamView,
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> View Assign To Team.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_View_Assign_To_Team,
+<#  } #>
+<#  if(ModelInstance.IsFixable) { #>
+
+        /// <summary>
+        /// <#= ModelInstance.EntityName.ToLiteral(true) #> Fix.
+        /// </summary>
+        <#= ModelInstance.EntityName #>_Fix,
+<#  } #>
+
+        // BIAToolKit - End Partial PermissionId <#= ModelInstance.EntityName #>
