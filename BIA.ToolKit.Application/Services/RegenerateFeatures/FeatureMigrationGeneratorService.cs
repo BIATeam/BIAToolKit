@@ -18,6 +18,14 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
 
     public class FeatureMigrationGeneratorService
     {
+        private class MutedConsoleWriter: IConsoleWriter
+        {
+            public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
+            {
+                return;
+            }
+        }
+
         private readonly IConsoleWriter consoleWriter;
 
         public FeatureMigrationGeneratorService(IConsoleWriter consoleWriter)
@@ -47,8 +55,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                 BIAFronts = [.. currentProject.BIAFronts],
             };
 
-            var fileGenerator = new FileGeneratorService(consoleWriter);
-            // fromUnitTest=true skips Angular prettier calls (not available in temp migration folders)
+            var fileGenerator = new FileGeneratorService(new MutedConsoleWriter());
             await fileGenerator.Init(targetProject, fromUnitTest: false);
 
             if (!fileGenerator.IsInit)
@@ -57,12 +64,12 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                 return;
             }
 
-            foreach (var entity in entities.Where(e => e.CanSelectEntity))
-            {
-                await GenerateEntityFeaturesAsync(entity, currentProject, targetProject, fileGenerator, parserService);
-            }
+            var generateEntityFeaturesTasks = entities.Where(e => e.CanSelectEntity)
+                .Select(entity => GenerateEntityFeaturesAsync(entity, currentProject, targetProject, fileGenerator, parserService))
+                .ToList();
+            await Task.WhenAll(generateEntityFeaturesTasks);
 
-            consoleWriter.AddMessageLine("Feature migration: Features generated.", "pink");
+            consoleWriter.AddMessageLine($"Feature migration: Completed generating features for version {targetVersion} into {targetFolderPath}", "green");
         }
 
         private async Task GenerateEntityFeaturesAsync(
@@ -72,20 +79,23 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             FileGeneratorService fileGenerator,
             CSharpParserService parserService)
         {
+            var tasks = new List<Task>();
             if (entity.OptionHistory != null && entity.OptionStatus == RegenerableFeatureStatus.Ready)
             {
-                await TryGenerateOptionAsync(entity.OptionHistory, currentProject, targetProject, fileGenerator, parserService);
+                tasks.Add(TryGenerateOptionAsync(entity.OptionHistory, currentProject, targetProject, fileGenerator, parserService));
             }
 
             if (entity.DtoHistory != null && entity.DtoStatus == RegenerableFeatureStatus.Ready)
             {
-                await TryGenerateDtoAsync(entity.DtoHistory, targetProject, fileGenerator);
+                tasks.Add(TryGenerateDtoAsync(entity.DtoHistory, targetProject, fileGenerator));
             }
 
             if (entity.CrudHistory != null && entity.CrudStatus == RegenerableFeatureStatus.Ready)
             {
-                await TryGenerateCrudAsync(entity.CrudHistory, currentProject, targetProject, fileGenerator, parserService);
+                tasks.Add(TryGenerateCrudAsync(entity.CrudHistory, currentProject, targetProject, fileGenerator, parserService));
             }
+
+            await Task.WhenAll(tasks);
         }
 
         private async Task TryGenerateOptionAsync(
