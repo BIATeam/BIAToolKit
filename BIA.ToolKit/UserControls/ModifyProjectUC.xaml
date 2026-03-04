@@ -119,7 +119,6 @@
                                 <Button Margin="0,3" Content="4 - Merge Rejected" x:Name="MigrateMergeRejected" Click="MigrateMergeRejected_Click" IsEnabled="False"/>
                                 <Button Margin="0,3" Content="5 - Overwrite '\BIA-.*'" x:Name="MigrateOverwriteBIAFolder" Click="MigrateOverwriteBIAFolder_Click" IsEnabled="{Binding IsProjectSelected}"/>
                                 <Button Margin="0,3" Content="6 - Fix Usings" x:Name="FixUsings" Click="FixUsings_Click" IsEnabled="{Binding IsProjectSelected}"/>
-                                <Button Margin="0,3" Content="7 - Regenerate Features" x:Name="RegenerateFeaturesStep" Click="RegenerateFeaturesStep_Click" IsEnabled="{Binding IsProjectSelected}" Visibility="{Binding IsProjectCompatibleRegenerateFeatures, Converter={StaticResource BoolToVisConverter}}"/>
                             </StackPanel>
                         </Grid>
                     </Grid>

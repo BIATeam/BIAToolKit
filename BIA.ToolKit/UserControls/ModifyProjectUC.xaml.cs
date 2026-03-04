@@ -401,12 +401,5 @@
         {
             await cSharpParserService.FixUsings();
         }
-
-        private void RegenerateFeaturesStep_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new RegenerateFeaturesDialog(_viewModel.CurrentProject, regenerateFeaturesDiscoveryService, uiEventBroker, consoleWriter);
-            dialog.Owner = Window.GetWindow(this);
-            dialog.ShowDialog();
-        }
     }
 }
