@@ -152,13 +152,10 @@
 
                 if (validEntities.Count > 0)
                 {
-                    await Task.WhenAll(
-                        featureMigrationGeneratorService.GenerateFeaturesAsync(
-                        _viewModel.CurrentProject, projectOriginPath, projectOriginalVersion, validEntities, cSharpParserService),
-                        featureMigrationGeneratorService.GenerateFeaturesAsync(
-                        _viewModel.CurrentProject, projectTargetPath, projectTargetVersion, validEntities, cSharpParserService));
-
-                    consoleWriter.AddMessageLine("Feature migration: Features generated.", "pink");
+                    await featureMigrationGeneratorService.GenerateFeaturesAsync(
+                        _viewModel.CurrentProject, projectOriginPath, projectOriginalVersion, validEntities, cSharpParserService);
+                    await featureMigrationGeneratorService.GenerateFeaturesAsync(
+                      _viewModel.CurrentProject, projectTargetPath, projectTargetVersion, validEntities, cSharpParserService);
                 }
             }
 

@@ -34,7 +34,7 @@
         private const string IS_REQUIRED_PROPERTY = "isRequired:";
 
         private const int FRAMEWORK_VERSION_MINIMUM = 390;
-        private const int REGENERATE_FEATURES_VERSION_MINIMUM = 600; // V6.0.0
+        private const int REGENERATE_FEATURES_VERSION_MINIMUM = 500; // V6.0.0
 
         private readonly IConsoleWriter consoleWriter;
         private readonly ZipParserService zipParserService;

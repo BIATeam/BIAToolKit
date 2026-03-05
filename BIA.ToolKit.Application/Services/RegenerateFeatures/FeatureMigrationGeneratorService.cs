@@ -64,10 +64,12 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                 return;
             }
 
-            var generateEntityFeaturesTasks = entities.Where(e => e.CanSelectEntity)
-                .Select(entity => GenerateEntityFeaturesAsync(entity, currentProject, targetProject, fileGenerator, parserService))
-                .ToList();
-            await Task.WhenAll(generateEntityFeaturesTasks);
+            foreach (var entity in entities
+                .Where(e => e.CanSelectEntity)
+                .OrderBy(e => e.LastGenerationDate))
+            {
+                await GenerateEntityFeaturesAsync(entity, currentProject, targetProject, fileGenerator, parserService);
+            }
 
             consoleWriter.AddMessageLine($"Feature migration: Completed generating features for version {targetVersion} into {targetFolderPath}", "green");
         }
@@ -82,20 +84,18 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             var tasks = new List<Task>();
             if (entity.OptionHistory != null && entity.OptionStatus == RegenerableFeatureStatus.Ready)
             {
-                tasks.Add(TryGenerateOptionAsync(entity.OptionHistory, currentProject, targetProject, fileGenerator, parserService));
+                await TryGenerateOptionAsync(entity.OptionHistory, currentProject, targetProject, fileGenerator, parserService);
             }
 
             if (entity.DtoHistory != null && entity.DtoStatus == RegenerableFeatureStatus.Ready)
             {
-                tasks.Add(TryGenerateDtoAsync(entity.DtoHistory, targetProject, fileGenerator));
+                await TryGenerateDtoAsync(entity.DtoHistory, targetProject, fileGenerator);
             }
 
             if (entity.CrudHistory != null && entity.CrudStatus == RegenerableFeatureStatus.Ready)
             {
-                tasks.Add(TryGenerateCrudAsync(entity.CrudHistory, currentProject, targetProject, fileGenerator, parserService));
+                await TryGenerateCrudAsync(entity.CrudHistory, currentProject, targetProject, fileGenerator, parserService);
             }
-
-            await Task.WhenAll(tasks);
         }
 
         private async Task TryGenerateOptionAsync(
@@ -107,38 +107,18 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         {
             try
             {
-                string domainFolder = $"{currentProject.CompanyName}.{currentProject.Name}.Domain";
-                string entityFilePath = Path.Combine(currentProject.Folder, Constants.FolderDotNet, domainFolder, history.Domain, "Entities", $"{history.EntityNameSingular}.cs");
-                var classInfo = parserService.CurrentSolutionClasses
-                    .FirstOrDefault(c => string.Equals(c.FilePath, entityFilePath, StringComparison.OrdinalIgnoreCase));
-
-                string baseKeyType = "int";
-                bool isTeam = false;
-                if (classInfo != null)
-                {
-                    var entityInfo = new EntityInfo(classInfo);
-                    baseKeyType = entityInfo.BaseKeyType ?? "int";
-                    isTeam = entityInfo.IsTeam;
-                }
-
-                bool generateBack = history.Generation.Any(g => g.GenerationType == "WebApi");
-                bool generateFront = history.Generation.Any(g => g.GenerationType == "Front")
-                                     && !string.IsNullOrEmpty(history.BiaFront);
-
                 await fileGenerator.GenerateOptionAsync(new FileGeneratorOptionContext
                 {
                     CompanyName = targetProject.CompanyName,
                     ProjectName = targetProject.Name,
                     DomainName = history.Domain,
                     EntityName = history.EntityNameSingular,
-                    EntityNamePlural = history.EntityNamePlural ?? (history.EntityNameSingular + "s"),
-                    BaseKeyType = baseKeyType,
+                    EntityNamePlural = history.EntityNamePlural,
                     DisplayName = history.DisplayItem,
-                    AngularFront = generateFront ? history.BiaFront : null,
+                    AngularFront = history.BiaFront,
                     UseHubForClient = history.UseHubClient,
-                    GenerateBack = generateBack,
-                    GenerateFront = generateFront,
-                    IsTeam = isTeam,
+                    GenerateBack = true,
+                    GenerateFront = true,
                 });
             }
             catch (Exception ex)
@@ -189,7 +169,6 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     HasAncestorTeam = !string.IsNullOrEmpty(history.AncestorTeam),
                     HasAudit = history.UseDedicatedAudit,
                     GenerateBack = true,
-                    GenerateFront = false,
                 });
             }
             catch (Exception ex)
@@ -232,8 +211,8 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     ProjectName = targetProject.Name,
                     DomainName = history.Domain,
                     EntityName = history.EntityNameSingular,
-                    EntityNamePlural = history.EntityNamePlural ?? (history.EntityNameSingular + "s"),
-                    BaseKeyType = history.EntityBaseKeyType ?? entityInfo.BaseKeyType ?? "int",
+                    EntityNamePlural = history.EntityNamePlural,
+                    BaseKeyType = history.EntityBaseKeyType,
                     IsTeam = history.IsTeam,
                     Properties = [.. entityInfo.Properties],
                     OptionItems = history.OptionItems ?? [],
