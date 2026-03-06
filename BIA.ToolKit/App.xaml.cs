@@ -3,6 +3,8 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging;
     using BIA.ToolKit.Helper;
     using Microsoft.Extensions.DependencyInjection;
     using System;
@@ -31,6 +33,7 @@
         private void ConfigureServices(ServiceCollection services)
         {
             services.AddSingleton<IConsoleWriter, ConsoleWriter>();
+            services.AddSingleton<IMessenger, Messenger>();
             services.AddSingleton<UIEventBroker>();
             services.AddSingleton<MainWindow>();
             services.AddSingleton<RepositoryService>();
