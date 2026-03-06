@@ -3,6 +3,7 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.Messaging;
     using BIA.ToolKit.Helper;
@@ -36,6 +37,7 @@
             services.AddSingleton<IMessenger, Messenger>();
             services.AddSingleton<UIEventBroker>();
             services.AddSingleton<MainWindow>();
+            services.AddSingleton<ModifyProjectViewModel>();
             services.AddSingleton<RepositoryService>();
             services.AddSingleton<GitService>();
             services.AddSingleton<ProjectCreatorService>();

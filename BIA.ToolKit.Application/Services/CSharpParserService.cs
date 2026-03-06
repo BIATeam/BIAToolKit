@@ -4,6 +4,8 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Parser;
     using BIA.ToolKit.Application.Settings;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.DtoGenerator;
@@ -33,15 +35,17 @@ using Roslyn.Services;*/
         private readonly List<string> excludedEntitiesFilesSuffixes = new() { "Mapper", "Service", "Repository", "Customizer", "Specification", "Dto" };
         private readonly IConsoleWriter consoleWriter;
         private readonly UIEventBroker eventBroker;
+        private readonly IMessenger messenger;
         private Solution CurrentSolution;
         public IReadOnlyList<ClassInfo> CurrentSolutionClasses { get; private set; } = [];
 
         private MSBuildWorkspace Workspace { get; set; }
 
-        public CSharpParserService(IConsoleWriter consoleWriter, UIEventBroker eventBroker)
+        public CSharpParserService(IConsoleWriter consoleWriter, UIEventBroker eventBroker, IMessenger messenger)
         {
             this.consoleWriter = consoleWriter;
             this.eventBroker = eventBroker;
+            this.messenger = messenger;
         }
 
         public ClassDefinition ParseClassFile(string fileName)
@@ -283,6 +287,7 @@ using Roslyn.Services;*/
             }
             CurrentSolutionClasses = classesInfosReports.SelectMany(x => x.ClassesInfo).ToList();
             eventBroker.NotifySolutionClassesParsed();
+            messenger.Send(new SolutionParsedMessage());
             consoleWriter.AddMessageLine($"Classes parsed successfully", "lightgreen");
         }
 

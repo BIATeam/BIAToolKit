@@ -1,6 +1,8 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Settings;
     using System;
@@ -13,16 +15,18 @@
     {
         private readonly IConsoleWriter consoleWriter;
         private readonly UIEventBroker eventBroker;
+        private readonly IMessenger messenger;
         private BIATKSettings settings = new();
         public IBIATKSettings Settings => settings;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public SettingsService(IConsoleWriter consoleWriter, UIEventBroker eventBroker)
+        public SettingsService(IConsoleWriter consoleWriter, UIEventBroker eventBroker, IMessenger messenger)
         {
             this.consoleWriter = consoleWriter;
             this.eventBroker = eventBroker;
+            this.messenger = messenger;
         }
 
         /// <summary>
@@ -45,7 +49,7 @@
         public void Init(BIATKSettings settings)
         {
             this.settings = settings;
-            eventBroker.NotifySettingsUpdated(settings);
+            NotifySettingsUpdated();
         }
 
         public void SetUseCompanyFiles(bool use)
@@ -103,7 +107,13 @@
         private void ExecuteAndNotifySettingsUpdated(Action action)
         {
             action.Invoke();
+            NotifySettingsUpdated();
+        }
+
+        private void NotifySettingsUpdated()
+        {
             eventBroker.NotifySettingsUpdated(settings);
+            messenger.Send(new SettingsUpdatedMessage { Settings = settings });
         }
     }
 }

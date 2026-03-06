@@ -13,6 +13,7 @@
     using System.Diagnostics;
     using BIA.ToolKit.UserControls;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Dialogs;
     using System.Text.Json;
     using BIA.ToolKit.Common;
@@ -48,7 +49,8 @@
 
         public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService)
+            IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService,
+            IMessenger messenger, ModifyProjectViewModel modifyProjectViewModel)
         {
 
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
@@ -70,15 +72,17 @@
 
             CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
             ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, uiEventBroker);
+                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, uiEventBroker, modifyProjectViewModel);
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
 
             txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
 
-            ViewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version, uiEventBroker, settingsService, gitService, consoleWriter);
+            ViewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version, messenger, uiEventBroker, settingsService, gitService, consoleWriter);
             DataContext = ViewModel;
+            ViewModel.Initialize();
+            Closed += (_, _) => ViewModel.Cleanup();
 
             uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
@@ -233,7 +237,6 @@
 
         private async void UiEventBroker_OnNewVersionAvailable()
         {
-            ViewModel.UpdateAvailable = true;
             CheckUpdateButton.IsEnabled = false;
             await OnUpdateAvailable();
         }

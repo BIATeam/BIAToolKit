@@ -11,6 +11,8 @@
     using System.Threading.Tasks;
     using System.Windows;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain;
 
@@ -23,6 +25,7 @@
         private readonly UIEventBroker eventBroker;
         private readonly IConsoleWriter consoleWriter;
         private readonly SettingsService settingsService;
+        private readonly IMessenger messenger;
         private Version currentVersion;
         private Release lastRelease;
         public Version NewVersion
@@ -31,11 +34,12 @@
         }
         public bool HasNewVersion { get; private set; }
 
-        public UpdateService(UIEventBroker eventBroker, IConsoleWriter consoleWriter, SettingsService settingsService)
+        public UpdateService(UIEventBroker eventBroker, IConsoleWriter consoleWriter, SettingsService settingsService, IMessenger messenger)
         {
             this.eventBroker = eventBroker;
             this.consoleWriter = consoleWriter;
             this.settingsService = settingsService;
+            this.messenger = messenger;
         }
 
         public void SetAppVersion(Version version)
@@ -67,6 +71,7 @@
                         NewVersion = newVersion;
                         this.lastRelease = lastRelease;
                         eventBroker.NotifyNewVersionAvailable();
+                        messenger.Send(new NewVersionAvailableMessage());
                         return;
                     }
                 }

@@ -3,17 +3,19 @@
     using System;
     using System.Collections.ObjectModel;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
     using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.ViewModel.Base;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Settings;
     using Octokit;
 
-    public class MainViewModel : ObservableObject
+    public class MainViewModel : ViewModelBase
     {
         private readonly Version applicationVersion;
         private readonly UIEventBroker eventBroker;
@@ -24,17 +26,51 @@
         private bool waitAddTemplateRepository;
         private bool waitAddCompanyFilesRepository;
 
-        public MainViewModel(Version applicationVersion, UIEventBroker eventBroker, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter)
+        public MainViewModel(Version applicationVersion, IMessenger messenger, UIEventBroker eventBroker, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter)
+            : base(messenger)
         {
             this.applicationVersion = applicationVersion;
             this.eventBroker = eventBroker;
             this.settingsService = settingsService;
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
-            eventBroker.OnSettingsUpdated += EventBroker_OnSettingsUpdated;
             eventBroker.OnRepositoryViewModelChanged += EventBroker_OnRepositoryChanged;
             eventBroker.OnRepositoryViewModelDeleted += EventBroker_OnRepositoryViewModelDeleted;
             eventBroker.OnRepositoryViewModelAdded += EventBroker_OnRepositoryViewModelAdded;
+        }
+
+        /// <inheritdoc/>
+        public override void Initialize()
+        {
+            Messenger.Subscribe<SettingsUpdatedMessage>(OnSettingsUpdated);
+            Messenger.Subscribe<NewVersionAvailableMessage>(OnNewVersionAvailable);
+        }
+
+        /// <inheritdoc/>
+        public override void Cleanup()
+        {
+            Messenger.Unsubscribe<SettingsUpdatedMessage>(OnSettingsUpdated);
+            Messenger.Unsubscribe<NewVersionAvailableMessage>(OnNewVersionAvailable);
+        }
+
+        private void OnSettingsUpdated(SettingsUpdatedMessage message)
+        {
+            if (firstTimeSettingsUpdated)
+            {
+                UpdateRepositories(message.Settings);
+                firstTimeSettingsUpdated = false;
+            }
+
+            RaisePropertyChanged(nameof(Settings_RootProjectsPath));
+            RaisePropertyChanged(nameof(Settings_CreateCompanyName));
+            RaisePropertyChanged(nameof(Settings_UseCompanyFiles));
+            RaisePropertyChanged(nameof(Settings_AutoUpdate));
+            RaisePropertyChanged(nameof(ToolkitRepository));
+        }
+
+        private void OnNewVersionAvailable(NewVersionAvailableMessage message)
+        {
+            UpdateAvailable = true;
         }
 
         private void EventBroker_OnRepositoryViewModelAdded(RepositoryViewModel repository)
@@ -200,21 +236,6 @@
 
             TemplateRepositories.CollectionChanged += TemplateRepositories_CollectionChanged;
             CompanyFilesRepositories.CollectionChanged += CompanyFilesRepositories_CollectionChanged;
-        }
-
-        private void EventBroker_OnSettingsUpdated(IBIATKSettings settings)
-        {
-            if (firstTimeSettingsUpdated)
-            {
-                UpdateRepositories(settings);
-                firstTimeSettingsUpdated = false;
-            }
-
-            RaisePropertyChanged(nameof(Settings_RootProjectsPath));
-            RaisePropertyChanged(nameof(Settings_CreateCompanyName));
-            RaisePropertyChanged(nameof(Settings_UseCompanyFiles));
-            RaisePropertyChanged(nameof(Settings_AutoUpdate));
-            RaisePropertyChanged(nameof(ToolkitRepository));
         }
 
         public string Settings_RootProjectsPath

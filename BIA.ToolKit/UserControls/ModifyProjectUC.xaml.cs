@@ -17,7 +17,6 @@
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
-    using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.Properties;
 
@@ -38,12 +37,11 @@
         public ModifyProjectUC()
         {
             InitializeComponent();
-            _viewModel = (ModifyProjectViewModel)base.DataContext;
         }
 
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
+            FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, ModifyProjectViewModel modifyProjectViewModel)
         {
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
@@ -57,9 +55,13 @@
             this.crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.settingsService = settingsService;
-            _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
 
-            uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
+            _viewModel = modifyProjectViewModel;
+            DataContext = _viewModel;
+
+            Loaded += (_, _) => _viewModel.Initialize();
+            Unloaded += (_, _) => _viewModel.Cleanup();
+
             uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
         }
 
@@ -67,16 +69,6 @@
         {
             ParameterModifyChange();
             InitVersionAndOptionComponents();
-        }
-
-        private bool firstTimeSettingsUpdated = true;
-        private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
-        {
-            if (firstTimeSettingsUpdated)
-            {
-                _viewModel.RefreshProjetsList();
-                firstTimeSettingsUpdated = false;
-            }
         }
 
         private void InitVersionAndOptionComponents()

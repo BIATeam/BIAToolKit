@@ -3,35 +3,32 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.ViewModel.Base;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
-    using BIA.ToolKit.Domain.Settings;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Windows.Input;
 
-    public class ModifyProjectViewModel : ObservableObject
+    public class ModifyProjectViewModel : ViewModelBase
     {
-        private UIEventBroker eventBroker;
-        private FileGeneratorService fileGeneratorService;
-        private IConsoleWriter consoleWriter;
-        private SettingsService settingsService;
-        private CSharpParserService parserService;
+        private readonly UIEventBroker eventBroker;
+        private readonly FileGeneratorService fileGeneratorService;
+        private readonly IConsoleWriter consoleWriter;
+        private readonly SettingsService settingsService;
+        private readonly CSharpParserService parserService;
 
-        public ModifyProjectViewModel()
-        {
-            ModifyProject = new ModifyProject();
-            OverwriteBIAFromOriginal = true;
-        }
+        private bool firstTimeSettingsUpdated = true;
 
-        public void Inject(UIEventBroker eventBroker, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService, CSharpParserService parserService)
+        public ModifyProjectViewModel(IMessenger messenger, UIEventBroker eventBroker, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService, CSharpParserService parserService)
+            : base(messenger)
         {
             this.eventBroker = eventBroker;
             this.fileGeneratorService = fileGeneratorService;
@@ -39,11 +36,30 @@
             this.settingsService = settingsService;
             this.parserService = parserService;
 
-            eventBroker.OnSettingsUpdated += EventBroker_OnSettingsUpdated;
+            ModifyProject = new ModifyProject();
+            OverwriteBIAFromOriginal = true;
         }
 
-        private void EventBroker_OnSettingsUpdated(IBIATKSettings settings)
+        /// <inheritdoc/>
+        public override void Initialize()
         {
+            Messenger.Subscribe<SettingsUpdatedMessage>(OnSettingsUpdated);
+        }
+
+        /// <inheritdoc/>
+        public override void Cleanup()
+        {
+            Messenger.Unsubscribe<SettingsUpdatedMessage>(OnSettingsUpdated);
+        }
+
+        private void OnSettingsUpdated(SettingsUpdatedMessage message)
+        {
+            if (firstTimeSettingsUpdated)
+            {
+                RefreshProjetsList();
+                firstTimeSettingsUpdated = false;
+            }
+
             RaisePropertyChanged(nameof(RootProjectsPath));
         }
 
@@ -317,6 +333,7 @@
                     ModifyProject.CurrentProject = value;
                     RefreshUI();
                     eventBroker.NotifyProjectChanged(value);
+                    Messenger.Send(new ProjectChangedMessage { Project = value });
                 }
             }
         }
