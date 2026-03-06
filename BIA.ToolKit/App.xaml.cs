@@ -38,6 +38,9 @@
             services.AddSingleton<UIEventBroker>();
             services.AddSingleton<MainWindow>();
             services.AddSingleton<ModifyProjectViewModel>();
+            services.AddSingleton<CRUDGeneratorViewModel>();
+            services.AddSingleton<DtoGeneratorViewModel>();
+            services.AddSingleton<OptionGeneratorViewModel>();
             services.AddSingleton<RepositoryService>();
             services.AddSingleton<GitService>();
             services.AddSingleton<ProjectCreatorService>();

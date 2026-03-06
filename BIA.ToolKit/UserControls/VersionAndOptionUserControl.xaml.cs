@@ -11,6 +11,7 @@
     using BIA.ToolKit.Application.Mapper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Model;
@@ -34,31 +35,27 @@
         public VersionAndOptionUserControl()
         {
             InitializeComponent();
-            vm = (VersionAndOptionViewModel)base.DataContext;
         }
 
-        public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, SettingsService settingsService, UIEventBroker uiEventBroker)
+        public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, SettingsService settingsService, UIEventBroker uiEventBroker, IMessenger messenger)
         {
             this.gitService = gitService;
             this.repositoryService = repositoryService;
             this.settingsService = settingsService;
             this.uiEventBroker = uiEventBroker;
             this.consoleWriter = consoleWriter;
-            vm.Inject(repositoryService, consoleWriter, uiEventBroker);
 
-            uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
+            vm = new VersionAndOptionViewModel(messenger, repositoryService, consoleWriter, uiEventBroker, settingsService);
+            DataContext = vm;
+            Loaded += (_, _) => vm.Initialize();
+            Unloaded += (_, _) => vm.Cleanup();
+
             uiEventBroker.OnRepositoryViewModelReleaseDataUpdated += UiEventBroker_OnRepositoryViewModelReleaseDataUpdated;
         }
 
         private void UiEventBroker_OnRepositoryViewModelReleaseDataUpdated(RepositoryViewModel repository)
         {
-            RefreshConfiguration();
-        }
-
-        private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
-        {
-            RefreshConfiguration();
-            vm.SettingsUseCompanyFiles = settings.UseCompanyFiles;
+            vm.RefreshConfiguration();
         }
 
         public void SelectVersion(string version)
@@ -153,56 +150,6 @@
                     vm.WorkTemplate.VersionFolderPath = await this.repositoryService.PrepareVersionFolder(vm.WorkTemplate.Repository, vm.WorkTemplate.Version);
                 }
             }
-        }
-
-        private void RefreshConfiguration()
-        {
-            var listCompanyFiles = new List<WorkRepository>();
-            var listWorkTemplates = new List<WorkRepository>();
-
-            foreach (var repository in settingsService.Settings.TemplateRepositories.Where(r => r.UseRepository))
-            {
-                AddTemplatesVersion(listWorkTemplates, repository);
-            }
-
-            var hasVersionXYZ = false;
-            var repositoryVersionXYZ = settingsService.Settings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
-            if (repositoryVersionXYZ is not null)
-            {
-                listWorkTemplates.Add(new WorkRepository(repositoryVersionXYZ, "VX.Y.Z"));
-                hasVersionXYZ = true;
-            }
-
-            vm.WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
-            if (listWorkTemplates.Count >= 1)
-            {
-                vm.WorkTemplate = hasVersionXYZ && listWorkTemplates.Count >= 2 ? listWorkTemplates[^2] : listWorkTemplates[^1];
-            }
-
-            vm.SettingsUseCompanyFiles = settingsService.Settings.UseCompanyFiles;
-            vm.UseCompanyFiles = settingsService.Settings.UseCompanyFiles;
-            if (settingsService.Settings.UseCompanyFiles)
-            {
-                foreach (var repository in settingsService.Settings.CompanyFilesRepositories.Where(r => r.UseRepository))
-                {
-                    AddTemplatesVersion(listCompanyFiles, repository);
-                }
-                vm.WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
-                if (vm.WorkCompanyFiles.Count >= 1 && vm.WorkTemplate is not null)
-                {
-                    vm.WorkCompanyFile = vm.GetWorkCompanyFile(vm.WorkTemplate.Version);
-                }
-            }
-        }
-
-        private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, IRepository repository)
-        {
-            foreach (var release in repository.Releases)
-            {
-                WorkTemplates.Add(new WorkRepository(repository, release.Name));
-            }
-
-            WorkTemplates.Sort(new WorkRepository.VersionComparer());
         }
 
         private void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)

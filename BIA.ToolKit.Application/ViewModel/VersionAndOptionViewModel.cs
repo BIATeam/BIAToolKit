@@ -2,8 +2,13 @@
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.ViewModel.Base;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Model;
+    using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Domain.Work;
     using Humanizer;
     using System;
@@ -14,26 +19,91 @@
     using System.Text.Json;
     using System.Windows.Input;
 
-    public class VersionAndOptionViewModel : ObservableObject
+    public class VersionAndOptionViewModel : ViewModelBase
     {
         public VersionAndOption VersionAndOption { get; set; }
         public RepositoryService repositoryService;
         IConsoleWriter consoleWriter;
         private UIEventBroker eventBroker;
+        private SettingsService settingsService;
 
         private bool hasFeature = false;
         private bool areFeatureInitialized = false;
 
-        public VersionAndOptionViewModel()
+        public VersionAndOptionViewModel(IMessenger messenger, RepositoryService repositoryService, IConsoleWriter consoleWriter, UIEventBroker eventBroker, SettingsService settingsService)
+            : base(messenger)
         {
             VersionAndOption = new VersionAndOption();
-        }
-
-        public void Inject(RepositoryService repositoryService, IConsoleWriter consoleWriter, UIEventBroker eventBroker)
-        {
             this.repositoryService = repositoryService;
             this.consoleWriter = consoleWriter;
             this.eventBroker = eventBroker;
+            this.settingsService = settingsService;
+        }
+
+        public override void Initialize()
+        {
+            Messenger.Subscribe<SettingsUpdatedMessage>(OnSettingsUpdated);
+        }
+
+        public override void Cleanup()
+        {
+            Messenger.Unsubscribe<SettingsUpdatedMessage>(OnSettingsUpdated);
+        }
+
+        private void OnSettingsUpdated(SettingsUpdatedMessage msg)
+        {
+            RefreshConfiguration();
+            SettingsUseCompanyFiles = msg.Settings.UseCompanyFiles;
+        }
+
+        public void RefreshConfiguration()
+        {
+            var listCompanyFiles = new List<WorkRepository>();
+            var listWorkTemplates = new List<WorkRepository>();
+
+            foreach (var repository in settingsService.Settings.TemplateRepositories.Where(r => r.UseRepository))
+            {
+                AddTemplatesVersion(listWorkTemplates, repository);
+            }
+
+            var hasVersionXYZ = false;
+            var repositoryVersionXYZ = settingsService.Settings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
+            if (repositoryVersionXYZ is not null)
+            {
+                listWorkTemplates.Add(new WorkRepository(repositoryVersionXYZ, "VX.Y.Z"));
+                hasVersionXYZ = true;
+            }
+
+            WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
+            if (listWorkTemplates.Count >= 1)
+            {
+                WorkTemplate = hasVersionXYZ && listWorkTemplates.Count >= 2 ? listWorkTemplates[^2] : listWorkTemplates[^1];
+            }
+
+            SettingsUseCompanyFiles = settingsService.Settings.UseCompanyFiles;
+            UseCompanyFiles = settingsService.Settings.UseCompanyFiles;
+            if (settingsService.Settings.UseCompanyFiles)
+            {
+                foreach (var repository in settingsService.Settings.CompanyFilesRepositories.Where(r => r.UseRepository))
+                {
+                    AddTemplatesVersion(listCompanyFiles, repository);
+                }
+                WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
+                if (WorkCompanyFiles.Count >= 1 && WorkTemplate is not null)
+                {
+                    WorkCompanyFile = GetWorkCompanyFile(WorkTemplate.Version);
+                }
+            }
+        }
+
+        private void AddTemplatesVersion(List<WorkRepository> workTemplates, IRepository repository)
+        {
+            foreach (var release in repository.Releases)
+            {
+                workTemplates.Add(new WorkRepository(repository, release.Name));
+            }
+
+            workTemplates.Sort(new WorkRepository.VersionComparer());
         }
 
         public ObservableCollection<WorkRepository> WorkTemplates
