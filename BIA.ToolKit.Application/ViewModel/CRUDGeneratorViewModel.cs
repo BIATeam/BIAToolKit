@@ -385,7 +385,8 @@
                             history.OptionItems.ForEach(o =>
                             {
                                 OptionItem item = OptionItems.FirstOrDefault(x => x.OptionName == o);
-                                if (item != null) item.Check = true;
+                                if (item != null)
+                                    item.Check = true;
                             });
                         }
 

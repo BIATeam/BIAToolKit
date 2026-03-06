@@ -455,12 +455,6 @@
         public string CurrentProjectCompanyName => project?.CompanyName;
         public string CurrentProjectName => project?.Name;
 
-        [Obsolete("Services are now injected via the constructor. This method is kept for backward compatibility and will be removed in a future version.")]
-        public void Inject(FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter)
-        {
-            // Kept for backward compatibility - services now injected via constructor
-        }
-
         public void SetEntities(List<EntityInfo> entities)
         {
             WasAlreadyGenerated = false;
