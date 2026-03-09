@@ -22,7 +22,6 @@
         private const string UpdaterArchiveName = "BIAToolKitUpdater.zip";
         private const string UpdaterName = "BIA.ToolKit.Updater.exe";
 
-        private readonly UIEventBroker eventBroker;
         private readonly IConsoleWriter consoleWriter;
         private readonly SettingsService settingsService;
         private readonly IMessenger messenger;
@@ -34,9 +33,8 @@
         }
         public bool HasNewVersion { get; private set; }
 
-        public UpdateService(UIEventBroker eventBroker, IConsoleWriter consoleWriter, SettingsService settingsService, IMessenger messenger)
+        public UpdateService(IConsoleWriter consoleWriter, SettingsService settingsService, IMessenger messenger)
         {
-            this.eventBroker = eventBroker;
             this.consoleWriter = consoleWriter;
             this.settingsService = settingsService;
             this.messenger = messenger;
@@ -70,7 +68,6 @@
                         HasNewVersion = true;
                         NewVersion = newVersion;
                         this.lastRelease = lastRelease;
-                        eventBroker.NotifyNewVersionAvailable();
                         messenger.Send(new NewVersionAvailableMessage());
                         return;
                     }

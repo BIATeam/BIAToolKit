@@ -14,7 +14,6 @@
     public class SettingsService
     {
         private readonly IConsoleWriter consoleWriter;
-        private readonly UIEventBroker eventBroker;
         private readonly IMessenger messenger;
         private BIATKSettings settings = new();
         public IBIATKSettings Settings => settings;
@@ -22,10 +21,9 @@
         /// <summary>
         /// Constructor.
         /// </summary>
-        public SettingsService(IConsoleWriter consoleWriter, UIEventBroker eventBroker, IMessenger messenger)
+        public SettingsService(IConsoleWriter consoleWriter, IMessenger messenger)
         {
             this.consoleWriter = consoleWriter;
-            this.eventBroker = eventBroker;
             this.messenger = messenger;
         }
 
@@ -110,9 +108,8 @@
             NotifySettingsUpdated();
         }
 
-        private void NotifySettingsUpdated()
+        public void NotifySettingsUpdated()
         {
-            eventBroker.NotifySettingsUpdated(settings);
             messenger.Send(new SettingsUpdatedMessage { Settings = settings });
         }
     }
