@@ -1,33 +1,21 @@
-﻿namespace BIA.ToolKit
+namespace BIA.ToolKit
 {
-    using BIA.ToolKit.Helper;
-    using System.IO;
-    using System.Linq;
-    using System.Windows;
-    using System.Windows.Controls;
-    using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using System.Collections.Generic;
-    using System;
-    using System.Diagnostics;
-    using BIA.ToolKit.UserControls;
+    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Dialogs;
-    using System.Text.Json;
-    using BIA.ToolKit.Common;
-    using System.Threading.Tasks;
     using BIA.ToolKit.Domain.Settings;
-    using BIA.ToolKit.Application.Services.FileGenerator;
-    using System.Reflection;
-    using System.Threading;
-    using BIA.ToolKit.Domain;
-    using Microsoft.Extensions.DependencyInjection;
+    using BIA.ToolKit.Helper;
     using Newtonsoft.Json;
-    using BIA.ToolKit.Common.Helpers;
-    using System.Configuration;
-
+    using System;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using System.Windows;
+    using System.Windows.Controls;
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -36,59 +24,47 @@
     {
         public MainViewModel ViewModel { get; private set; }
 
-        private readonly RepositoryService repositoryService;
-        private readonly GitService gitService;
-        private readonly CSharpParserService cSharpParserService;
-        private readonly ProjectCreatorService projectCreatorService;
-        private readonly SettingsService settingsService;
-        private readonly FileGeneratorService fileGeneratorService;
         private readonly UIEventBroker uiEventBroker;
         private readonly UpdateService updateService;
-        private readonly GenerateFilesService generateFilesService;
+        private readonly GitService gitService;
         private readonly ConsoleWriter consoleWriter;
 
         public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
             IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService,
-            IMessenger messenger, ModifyProjectViewModel modifyProjectViewModel,
+            IMessenger messenger, MainViewModel mainViewModel, ModifyProjectViewModel modifyProjectViewModel,
             CRUDGeneratorViewModel crudGeneratorViewModel, DtoGeneratorViewModel dtoGeneratorViewModel, OptionGeneratorViewModel optionGeneratorViewModel)
         {
-
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
 
-            this.repositoryService = repositoryService;
-            this.gitService = gitService;
-            this.cSharpParserService = cSharpParserService;
-            this.projectCreatorService = projectCreatorService;
-            this.settingsService = settingsService;
-            this.fileGeneratorService = fileGeneratorService;
             this.uiEventBroker = uiEventBroker;
             this.updateService = updateService;
-            this.generateFilesService = genFilesService;
+            this.gitService = gitService;
 
             uiEventBroker.OnExecuteActionWithWaiterAsyncRequest += async (action) => await ExecuteTaskWithWaiterAsync(action);
 
             InitializeComponent();
 
-            CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, messenger);
-            ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
+            CreateVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, messenger);
+            ModifyProject.Inject(repositoryService, gitService, consoleWriter, cSharpParserService,
                 projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, uiEventBroker, modifyProjectViewModel,
                 crudGeneratorViewModel, dtoGeneratorViewModel, optionGeneratorViewModel, messenger);
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
 
-            txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
+            txtFileGenerator_Folder.Text = AppSettings.TmpFolderPath;
 
-            ViewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version, messenger, uiEventBroker, settingsService, gitService, consoleWriter);
+            ViewModel = mainViewModel;
+            ViewModel.CreateVersionAndOptionVm = CreateVersionAndOption.vm;
+            ViewModel.NavigateToSettingsTab = () => Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
             DataContext = ViewModel;
             ViewModel.Initialize();
             Closed += (_, _) => ViewModel.Cleanup();
 
             uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
-            uiEventBroker.OnRepositoriesUpdated += UiEventBroker_OnRepositoriesUpdated;
             uiEventBroker.OnOpenRepositoryFormRequest += UiEventBroker_OnRepositoryFormOpened;
         }
 
@@ -111,29 +87,31 @@
             }
         }
 
-        private void UiEventBroker_OnRepositoriesUpdated()
+        private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
         {
-            uiEventBroker.NotifySettingsUpdated(settingsService.Settings);
+            Properties.Settings.Default.UseCompanyFile = settings.UseCompanyFiles;
+            Properties.Settings.Default.CreateProjectRootFolderText = settings.CreateProjectRootProjectsPath;
+            Properties.Settings.Default.ModifyProjectRootFolderText = settings.ModifyProjectRootProjectsPath;
+            Properties.Settings.Default.CreateCompanyName = settings.CreateCompanyName;
+            Properties.Settings.Default.AutoUpdate = settings.AutoUpdate;
+            Properties.Settings.Default.ToolkitRepository = JsonConvert.SerializeObject(settings.ToolkitRepository);
+            Properties.Settings.Default.TemplateRepositories = JsonConvert.SerializeObject(settings.TemplateRepositories);
+            Properties.Settings.Default.CompanyFilesRepositories = JsonConvert.SerializeObject(settings.CompanyFilesRepositories);
+            Properties.Settings.Default.Save();
+        }
+
+        private async void UiEventBroker_OnNewVersionAvailable()
+        {
+            CheckUpdateButton.IsEnabled = false;
+            await OnUpdateAvailable();
         }
 
         public async Task Init()
         {
-            await ExecuteTaskWithWaiterAsync(async () =>
-            {
-                await InitSettings();
-
-                updateService.SetAppVersion(Assembly.GetExecutingAssembly().GetName().Version);
-
-                if (Properties.Settings.Default.AutoUpdate)
-                {
-                    await updateService.CheckForUpdatesAsync();
-                }
-
-                await Task.Run(() => cSharpParserService.RegisterMSBuild(consoleWriter));
-            });
+            await ExecuteTaskWithWaiterAsync(() => ViewModel.InitAsync(BuildSettingsFromUserPreferences()));
         }
 
-        private async Task InitSettings()
+        private BIATKSettings BuildSettingsFromUserPreferences()
         {
             var settings = new BIATKSettings
             {
@@ -157,7 +135,7 @@
                     },
 
                 TemplateRepositoriesConfig = !string.IsNullOrEmpty(Properties.Settings.Default.TemplateRepositories) ?
-                    JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.TemplateRepositories) :
+                    JsonConvert.DeserializeObject<System.Collections.Generic.List<RepositoryUserConfig>>(Properties.Settings.Default.TemplateRepositories) :
                     [
                         new RepositoryUserConfig()
                         {
@@ -174,149 +152,10 @@
                     ],
 
                 CompanyFilesRepositoriesConfig = !string.IsNullOrEmpty(Properties.Settings.Default.CompanyFilesRepositories) ?
-                    JsonConvert.DeserializeObject<List<RepositoryUserConfig>>(Properties.Settings.Default.CompanyFilesRepositories) : [],
+                    JsonConvert.DeserializeObject<System.Collections.Generic.List<RepositoryUserConfig>>(Properties.Settings.Default.CompanyFilesRepositories) : [],
             };
             settings.InitRepositoriesInterfaces();
-            await GetReleasesData(settings);
-
-            settingsService.Init(settings);
-        }
-
-        private async Task GetReleasesData(BIATKSettings settings, bool syncBefore = false)
-        {
-            var fillReleasesTasks = settings.TemplateRepositories
-                .Concat(settings.CompanyFilesRepositories)
-                .Where(r => r.UseRepository)
-                .Select(async (r) =>
-                {
-                    if (syncBefore)
-                    {
-                        try
-                        {
-                            if (r is IRepositoryGit repoGit)
-                            {
-                                consoleWriter.AddMessageLine($"Synchronizing repository {r.Name}...", "pink");
-                                await gitService.Synchronize(repoGit);
-                                consoleWriter.AddMessageLine($"Synchronized successfully of repository {r.Name}", "green");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            consoleWriter.AddMessageLine($"Error while synchronizing repository {r.Name} : {ex.Message}", "red");
-                        }
-                    }
-
-                    try
-                    {
-                        consoleWriter.AddMessageLine($"Getting releases data for repository {r.Name}...", "pink");
-                        await r.FillReleasesAsync();
-                        consoleWriter.AddMessageLine($"Releases data got successfully for repository {r.Name}", "green");
-                        if(r.UseDownloadedReleases)
-                        {
-                            consoleWriter.AddMessageLine($"WARNING: Releases data got from downloaded releases for repository {r.Name}", "orange");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        consoleWriter.AddMessageLine($"Error while getting releases data for repository {r.Name} : {ex.Message}", "red");
-                    }
-                });
-            await Task.WhenAll(fillReleasesTasks);
-        }
-
-        private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
-        {
-            Properties.Settings.Default.UseCompanyFile = settings.UseCompanyFiles;
-            Properties.Settings.Default.CreateProjectRootFolderText = settings.CreateProjectRootProjectsPath;
-            Properties.Settings.Default.ModifyProjectRootFolderText = settings.ModifyProjectRootProjectsPath;
-            Properties.Settings.Default.CreateCompanyName = settings.CreateCompanyName;
-            Properties.Settings.Default.AutoUpdate = settings.AutoUpdate;
-            Properties.Settings.Default.ToolkitRepository = JsonConvert.SerializeObject(settings.ToolkitRepository);
-            Properties.Settings.Default.TemplateRepositories = JsonConvert.SerializeObject(settings.TemplateRepositories);
-            Properties.Settings.Default.CompanyFilesRepositories = JsonConvert.SerializeObject(settings.CompanyFilesRepositories);
-            Properties.Settings.Default.Save();
-        }
-
-        private async void UiEventBroker_OnNewVersionAvailable()
-        {
-            CheckUpdateButton.IsEnabled = false;
-            await OnUpdateAvailable();
-        }
-
-        public bool EnsureValidRepositoriesConfiguration()
-        {
-            var templatesConfigurationValid = CheckTemplateRepositoriesConfiguration();
-            var companyFilesConfigurationValid = CheckCompanyFilesRepositoriesConfiguration();
-            return templatesConfigurationValid && companyFilesConfigurationValid;
-        }
-
-        public bool CheckTemplateRepositoriesConfiguration()
-        {
-            if (!CheckTemplateRepositories(settingsService.Settings))
-            {
-                Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
-                return false;
-            }
-            return true;
-        }
-
-        public bool CheckCompanyFilesRepositoriesConfiguration()
-        {
-            if (!CheckCompanyFilesRepositories(settingsService.Settings))
-            {
-                Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
-                return false;
-            }
-            return true;
-        }
-
-        public bool CheckTemplateRepositories(IBIATKSettings biaTKsettings)
-        {
-            if (!biaTKsettings.TemplateRepositories.Where(r => r.UseRepository).Any())
-            {
-                consoleWriter.AddMessageLine("You must use at least one Templates repository", "red");
-                return false;
-            }
-
-            foreach (var repository in biaTKsettings.TemplateRepositories.Where(r => r.UseRepository))
-            {
-                if (!repositoryService.CheckRepoFolder(repository))
-                {
-                    return false;
-                }
-            }
-
-            var repositoryVersionXYZ = biaTKsettings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
-            if(repositoryVersionXYZ is not null)
-            {
-                if (!repositoryService.CheckRepoFolder(repositoryVersionXYZ))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public bool CheckCompanyFilesRepositories(IBIATKSettings biaTKsettings)
-        {
-            if (biaTKsettings.UseCompanyFiles)
-            {
-                if (!biaTKsettings.CompanyFilesRepositories.Where(r => r.UseRepository).Any())
-                {
-                    consoleWriter.AddMessageLine("You must use at least one Company Files repository", "red");
-                    return false;
-                }
-
-                foreach (var repository in biaTKsettings.CompanyFilesRepositories.Where(r => r.UseRepository))
-                {
-                    if (!repositoryService.CheckRepoFolder(repository))
-                    {
-                        return false;
-                    }
-                }
-            }
-            return true;
+            return settings;
         }
 
         private readonly SemaphoreSlim semaphore = new(1, 1);
@@ -347,7 +186,7 @@
         {
             if (sender is TabItem)
             {
-                EnsureValidRepositoriesConfiguration();
+                ViewModel.EnsureValidRepositoriesConfiguration();
             }
         }
 
@@ -355,66 +194,19 @@
         {
             if (sender is TabItem)
             {
-                EnsureValidRepositoriesConfiguration();
+                ViewModel.EnsureValidRepositoriesConfiguration();
             }
         }
 
         private void Create_Click(object sender, RoutedEventArgs e)
         {
-            _ = Create_Run();
-        }
-
-        private async Task Create_Run()
-        {
-            if (string.IsNullOrEmpty(settingsService.Settings.CreateProjectRootProjectsPath))
-            {
-                MessageBox.Show("Please select root path.");
-                return;
-            }
-            if (string.IsNullOrEmpty(settingsService.Settings.CreateCompanyName))
-            {
-                MessageBox.Show("Please select company name.");
-                return;
-            }
-            if (string.IsNullOrEmpty(CreateProjectName.Text))
-            {
-                MessageBox.Show("Please select project name.");
-                return;
-            }
-            if (CreateVersionAndOption.vm.WorkTemplate == null)
-            {
-                MessageBox.Show("Please select framework version.");
-                return;
-            }
-
-            string projectPath = settingsService.Settings.CreateProjectRootProjectsPath + "\\" + CreateProjectName.Text;
-            if (Directory.Exists(projectPath) && !FileDialog.IsDirectoryEmpty(projectPath))
-            {
-                MessageBox.Show("The project path is not empty : " + projectPath);
-                return;
-            }
-
-            await ExecuteTaskWithWaiterAsync(async () =>
-            {
-                await this.projectCreatorService.Create(
-                    true,
-                    projectPath,
-                    new Domain.Model.ProjectParameters
-                    {
-                        CompanyName = settingsService.Settings.CreateCompanyName,
-                        ProjectName = CreateProjectName.Text,
-                        VersionAndOption = CreateVersionAndOption.vm.VersionAndOption,
-                        AngularFronts = new List<string> { Constants.FolderAngular }
-                    });
-            });
+            uiEventBroker.RequestExecuteActionWithWaiter(() => ViewModel.CreateProjectAsync(CreateProjectName.Text));
         }
 
         private void btnFileGenerator_OpenFolder_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new System.Windows.Forms.FolderBrowserDialog();
-            System.Windows.Forms.DialogResult result = dlg.ShowDialog();
-
-            if (result == System.Windows.Forms.DialogResult.OK)
+            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 txtFileGenerator_Folder.Text = dlg.SelectedPath;
             }
@@ -423,43 +215,28 @@
         private void btnFileGenerator_OpenFile_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new System.Windows.Forms.OpenFileDialog();
-            System.Windows.Forms.DialogResult result = dlg.ShowDialog();
-            // Get the selected file name and display in a TextBox 
-            if (result == System.Windows.Forms.DialogResult.OK)
+            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                // Open document 
-                string filename = dlg.FileName;
-                txtFileGenerator_File.Text = filename;
+                txtFileGenerator_File.Text = dlg.FileName;
                 btnFileGenerator_Generate.IsEnabled = true;
             }
         }
 
         private void btnFileGenerator_Generate_Click(object sender, RoutedEventArgs e)
         {
-            if (!string.IsNullOrEmpty(txtFileGenerator_Folder.Text))
-            {
-                if (!string.IsNullOrEmpty(txtFileGenerator_File.Text))
-                {
-                    string resultFolder = string.Empty;
-                    generateFilesService.GenerateFiles(txtFileGenerator_File.Text, txtFileGenerator_Folder.Text, ref resultFolder);
-                    ProcessStartInfo startInfo = new ProcessStartInfo(resultFolder)
-                    {
-                        UseShellExecute = true
-                    };
-
-                    Process.Start(startInfo);
-
-                }
-                else
-                {
-                    MessageBox.Show("Select the class file", "Generate files", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-
-            }
-            else
+            if (string.IsNullOrEmpty(txtFileGenerator_Folder.Text))
             {
                 MessageBox.Show("Select the folder to save the files", "Generate files", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
             }
+            if (string.IsNullOrEmpty(txtFileGenerator_File.Text))
+            {
+                MessageBox.Show("Select the class file", "Generate files", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            string resultFolder = ViewModel.GenerateFilesAndGetResultFolder(txtFileGenerator_File.Text, txtFileGenerator_Folder.Text);
+            Process.Start(new ProcessStartInfo(resultFolder) { UseShellExecute = true });
         }
 
         private async void UpdateButton_Click(object sender, RoutedEventArgs e)
@@ -472,9 +249,9 @@
             try
             {
                 var result = MessageBox.Show(
-                                    $"A new version ({updateService.NewVersion}) of BIAToolKit is available.\nInstall now?",
-                                    "Update available",
-                                    MessageBoxButton.YesNo, MessageBoxImage.Information);
+                    $"A new version ({updateService.NewVersion}) of BIAToolKit is available.\nInstall now?",
+                    "Update available",
+                    MessageBoxButton.YesNo, MessageBoxImage.Information);
 
                 if (result == MessageBoxResult.Yes)
                 {
@@ -489,17 +266,17 @@
 
         private void CopyConsoleContentToClipboard_Click(object sender, RoutedEventArgs e)
         {
-            this.consoleWriter.CopyToClipboard();
+            consoleWriter.CopyToClipboard();
         }
 
         private void ClearConsole_Click(object sender, RoutedEventArgs e)
         {
-            this.consoleWriter.Clear();
+            consoleWriter.Clear();
         }
 
         private async void CheckUpdateButton_Click(object sender, RoutedEventArgs e)
         {
-            await ExecuteTaskWithWaiterAsync(updateService.CheckForUpdatesAsync);
+            await ExecuteTaskWithWaiterAsync(ViewModel.CheckForUpdatesAsync);
         }
 
         private async void ImportConfigButton_Click(object sender, RoutedEventArgs e)
@@ -508,25 +285,7 @@
             if (string.IsNullOrWhiteSpace(configFile) || !File.Exists(configFile))
                 return;
 
-            var config = JsonConvert.DeserializeObject<BIATKSettings>(File.ReadAllText(configFile));
-            config.InitRepositoriesInterfaces();
-
-            consoleWriter.AddMessageLine($"New configuration imported from {configFile}", "yellow");
-
-            await ExecuteTaskWithWaiterAsync(async () =>
-            {
-                await GetReleasesData(config, true);
-
-                settingsService.SetToolkitRepository(config.ToolkitRepository);
-                settingsService.SetTemplateRepositories(config.TemplateRepositories);
-                settingsService.SetCompanyFilesRepositories(config.CompanyFilesRepositories);
-                settingsService.SetCreateProjectRootProjectPath(config.CreateProjectRootProjectsPath);
-                settingsService.SetModifyProjectRootProjectPath(config.ModifyProjectRootProjectsPath);
-                settingsService.SetAutoUpdate(config.AutoUpdate);
-                settingsService.SetUseCompanyFiles(config.UseCompanyFiles);
-
-                ViewModel.UpdateRepositories(settingsService.Settings);
-            });
+            await ExecuteTaskWithWaiterAsync(() => ViewModel.ImportConfigAsync(configFile));
         }
 
         private void ExportConfigButton_Click(object sender, RoutedEventArgs e)
@@ -535,14 +294,7 @@
             if (string.IsNullOrWhiteSpace(targetDirectory))
                 return;
 
-            var targetFile = Path.Combine(targetDirectory, "user.btksettings");
-            var settings = JsonConvert.SerializeObject(settingsService.Settings);
-            if(File.Exists(targetFile))
-                File.Delete(targetFile);
-
-            File.AppendAllText(targetFile, settings);
-
-            consoleWriter.AddMessageLine($"Configuration exported in {targetFile}", "yellow");
+            ViewModel.ExportConfig(Path.Combine(targetDirectory, "user.btksettings"));
         }
     }
 }
