@@ -4,13 +4,14 @@
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
 
     /// <summary>
     /// Interaction logic for VersionAndOptionView.xaml
     /// </summary>
     public partial class VersionAndOptionUserControl : UserControl
     {
-        private UIEventBroker uiEventBroker;
+        private IMessenger messenger;
         public VersionAndOptionViewModel vm;
 
         public VersionAndOptionUserControl()
@@ -18,31 +19,34 @@
             InitializeComponent();
         }
 
-        public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, SettingsService settingsService, UIEventBroker uiEventBroker, IMessenger messenger)
+        public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, SettingsService settingsService, IMessenger messenger)
         {
-            this.uiEventBroker = uiEventBroker;
+            this.messenger = messenger;
 
-            vm = new VersionAndOptionViewModel(messenger, repositoryService, consoleWriter, uiEventBroker, settingsService);
+            vm = new VersionAndOptionViewModel(messenger, repositoryService, consoleWriter, settingsService);
             DataContext = vm;
             Loaded += (_, _) => vm.Initialize();
             Unloaded += (_, _) => vm.Cleanup();
 
-            uiEventBroker.OnRepositoryViewModelReleaseDataUpdated += UiEventBroker_OnRepositoryViewModelReleaseDataUpdated;
+            messenger.Subscribe<RepositoryViewModelReleaseDataUpdatedMessage>(OnRepositoryViewModelReleaseDataUpdated);
         }
 
-        private void UiEventBroker_OnRepositoryViewModelReleaseDataUpdated(RepositoryViewModel repository)
+        private void OnRepositoryViewModelReleaseDataUpdated(RepositoryViewModelReleaseDataUpdatedMessage message)
         {
             vm.RefreshConfiguration();
         }
 
         private void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            messenger.Send(new ExecuteWithWaiterMessage
             {
-                await vm.FillVersionFolderPathAsync();
-                vm.LoadfeatureSetting();
-                vm.LoadVersionAndOption(false, false);
-                vm.NotifyOriginFeatureSettingsChanged();
+                Task = async () =>
+                {
+                    await vm.FillVersionFolderPathAsync();
+                    vm.LoadfeatureSetting();
+                    vm.LoadVersionAndOption(false, false);
+                    vm.NotifyOriginFeatureSettingsChanged();
+                }
             });
         }
 

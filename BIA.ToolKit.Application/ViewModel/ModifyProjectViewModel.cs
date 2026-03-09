@@ -22,7 +22,6 @@
 
     public class ModifyProjectViewModel : ViewModelBase
     {
-        private readonly UIEventBroker eventBroker;
         private readonly FileGeneratorService fileGeneratorService;
         private readonly IConsoleWriter consoleWriter;
         private readonly SettingsService settingsService;
@@ -33,10 +32,9 @@
 
         private bool firstTimeSettingsUpdated = true;
 
-        public ModifyProjectViewModel(IMessenger messenger, UIEventBroker eventBroker, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService, CSharpParserService parserService, GitService gitService, ProjectCreatorService projectCreatorService)
+        public ModifyProjectViewModel(IMessenger messenger, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService, CSharpParserService parserService, GitService gitService, ProjectCreatorService projectCreatorService)
             : base(messenger)
         {
-            this.eventBroker = eventBroker;
             this.fileGeneratorService = fileGeneratorService;
             this.consoleWriter = consoleWriter;
             this.settingsService = settingsService;
@@ -194,24 +192,26 @@
                 if (value == Folder)
                     return;
 
-                eventBroker.RequestExecuteActionWithWaiter(async () =>
+                Messenger.Send(new ExecuteWithWaiterMessage
                 {
-                    IsFileGeneratorServiceInit = false;
-                    IsProjectCompatibleCrudGenerator = false;
-
-                    Project currentProject = null;
-                    if (value is not null)
+                    Task = async () =>
                     {
-                        currentProject = new Project
-                        {
-                            Name = value,
-                            Folder = Path.Combine(RootProjectsPath, value)
-                        };
-                        await LoadProject(currentProject);
-                    }
+                        IsFileGeneratorServiceInit = false;
+                        IsProjectCompatibleCrudGenerator = false;
 
-                    await InitFileGeneratorServiceFromProject(currentProject);
-                    CurrentProject = currentProject;
+                        Project currentProject = null;
+                        if (value is not null)
+                        {
+                            currentProject = new Project
+                            {
+                                Name = value,
+                                Folder = Path.Combine(RootProjectsPath, value)
+                            };
+                            await LoadProject(currentProject);
+                        }
+
+                        await InitFileGeneratorServiceFromProject(currentProject);
+                        CurrentProject = currentProject;
 
                     if (CurrentProject is not null)
                     {
@@ -219,6 +219,7 @@
                     }
 
                     RaisePropertyChanged(nameof(Folder));
+                }
                 });
             }
         }
@@ -302,12 +303,15 @@
 
         private void RefreshProjectInformations()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            Messenger.Send(new ExecuteWithWaiterMessage
             {
-                await LoadProject(CurrentProject);
-                await InitFileGeneratorServiceFromProject(CurrentProject);
-                await ParseProject(CurrentProject);
-                RefreshUI();
+                Task = async () =>
+                {
+                    await LoadProject(CurrentProject);
+                    await InitFileGeneratorServiceFromProject(CurrentProject);
+                    await ParseProject(CurrentProject);
+                    RefreshUI();
+                }
             });
         }
 
@@ -353,7 +357,6 @@
                 {
                     ModifyProject.CurrentProject = value;
                     RefreshUI();
-                    eventBroker.NotifyProjectChanged(value);
                     Messenger.Send(new ProjectChangedMessage { Project = value });
                 }
             }

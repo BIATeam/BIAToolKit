@@ -6,6 +6,8 @@
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Behaviors;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
@@ -20,7 +22,6 @@
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
-    using static BIA.ToolKit.Application.Services.UIEventBroker;
 
     /// <summary>
     /// Interaction logic for DtoGenerator.xaml
@@ -30,7 +31,7 @@
         private DtoGeneratorViewModel vm;
 
         private FileGeneratorService fileGeneratorService;
-        private UIEventBroker uiEventBroker;
+        private IMessenger messenger;
         private bool processSelectProperties;
 
         public DtoGeneratorUC()
@@ -42,10 +43,10 @@
         /// Injection of services.
         /// </summary>
         public void Inject(SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
-            UIEventBroker uiEventBroker, DtoGeneratorViewModel dtoGeneratorViewModel)
+            IMessenger messenger, DtoGeneratorViewModel dtoGeneratorViewModel)
         {
             this.fileGeneratorService = fileGeneratorService;
-            this.uiEventBroker = uiEventBroker;
+            this.messenger = messenger;
             this.vm = dtoGeneratorViewModel;
             DataContext = vm;
             Loaded += (_, _) => vm.Initialize();
@@ -54,7 +55,7 @@
 
         private void RefreshEntitiesList_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(vm.ListEntities);
+            messenger.Send(new ExecuteWithWaiterMessage { Task = vm.ListEntities });
         }
 
         private void SelectProperties_Click(object sender, RoutedEventArgs e)
@@ -83,24 +84,27 @@
 
         private void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(() => vm.GenerateAsync(new FileGeneratorDtoContext
+            messenger.Send(new ExecuteWithWaiterMessage
             {
-                CompanyName = vm.CurrentProjectCompanyName,
-                ProjectName = vm.CurrentProjectName,
-                DomainName = vm.EntityDomain,
-                EntityName = vm.Entity.Name,
-                EntityNamePlural = vm.Entity.NamePluralized,
-                BaseKeyType = vm.SelectedBaseKeyType,
-                Properties = [.. vm.MappingEntityProperties],
-                IsTeam = vm.IsTeam,
-                IsVersioned = vm.IsVersioned,
-                IsArchivable = vm.IsArchivable,
-                IsFixable = vm.IsFixable,
-                AncestorTeamName = vm.AncestorTeam,
-                HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
-                GenerateBack = true,
-                HasAudit = vm.UseDedicatedAudit
-            }));
+                Task = () => vm.GenerateAsync(new FileGeneratorDtoContext
+                {
+                    CompanyName = vm.CurrentProjectCompanyName,
+                    ProjectName = vm.CurrentProjectName,
+                    DomainName = vm.EntityDomain,
+                    EntityName = vm.Entity.Name,
+                    EntityNamePlural = vm.Entity.NamePluralized,
+                    BaseKeyType = vm.SelectedBaseKeyType,
+                    Properties = [.. vm.MappingEntityProperties],
+                    IsTeam = vm.IsTeam,
+                    IsVersioned = vm.IsVersioned,
+                    IsArchivable = vm.IsArchivable,
+                    IsFixable = vm.IsFixable,
+                    AncestorTeamName = vm.AncestorTeam,
+                    HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
+                    GenerateBack = true,
+                    HasAudit = vm.UseDedicatedAudit
+                })
+            });
         }
 
         private void MappingPropertyTextBox_TextChanged(object sender, TextChangedEventArgs e)

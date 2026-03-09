@@ -13,6 +13,8 @@
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -27,7 +29,7 @@
         private const string DOTNET_TYPE = "DotNet";
         private const string ANGULAR_TYPE = "Angular";
 
-        private UIEventBroker uiEventBroker;
+        private IMessenger messenger;
         private CRUDGeneratorViewModel vm;
 
         /// <summary>
@@ -41,9 +43,9 @@
         /// <summary>
         /// Injection of services.
         /// </summary>
-        public void Inject(UIEventBroker uiEventBroker, CRUDGeneratorViewModel crudGeneratorViewModel)
+        public void Inject(IMessenger messenger, CRUDGeneratorViewModel crudGeneratorViewModel)
         {
-            this.uiEventBroker = uiEventBroker;
+            this.messenger = messenger;
             this.vm = crudGeneratorViewModel;
             DataContext = vm;
             Loaded += (_, _) => vm.Initialize();
@@ -83,10 +85,13 @@
         /// </summary>
         private void RefreshDtoList_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(() =>
+            messenger.Send(new ExecuteWithWaiterMessage
             {
-                vm.ListDtoFiles();
-                return System.Threading.Tasks.Task.CompletedTask;
+                Task = () =>
+                {
+                    vm.ListDtoFiles();
+                    return System.Threading.Tasks.Task.CompletedTask;
+                }
             });
         }
 
@@ -95,7 +100,7 @@
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(vm.GenerateCRUDAsync);
+            messenger.Send(new ExecuteWithWaiterMessage { Task = vm.GenerateCRUDAsync });
         }
 
         /// <summary>
@@ -106,10 +111,13 @@
             try
             {
                 var history = vm.GetCurrentDtoHistory();
-                uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+                messenger.Send(new ExecuteWithWaiterMessage
                 {
-                    await vm.DeleteLastGenerationAsync(history);
-                    CrudAlreadyGeneratedLabel.Visibility = Visibility.Collapsed;
+                    Task = async () =>
+                    {
+                        await vm.DeleteLastGenerationAsync(history);
+                        CrudAlreadyGeneratedLabel.Visibility = Visibility.Collapsed;
+                    }
                 });
             }
             catch (Exception ex)

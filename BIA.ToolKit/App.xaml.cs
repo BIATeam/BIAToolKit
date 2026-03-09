@@ -35,7 +35,6 @@
         {
             services.AddSingleton<IConsoleWriter, ConsoleWriter>();
             services.AddSingleton<IMessenger, Messenger>();
-            services.AddSingleton<UIEventBroker>();
             services.AddSingleton<RepositoryService>();
             services.AddSingleton<GitService>();
             services.AddSingleton<ProjectCreatorService>();
@@ -49,7 +48,6 @@
             services.AddSingleton<MainViewModel>(sp => new MainViewModel(
                 Assembly.GetExecutingAssembly().GetName().Version,
                 sp.GetRequiredService<IMessenger>(),
-                sp.GetRequiredService<UIEventBroker>(),
                 sp.GetRequiredService<SettingsService>(),
                 sp.GetRequiredService<GitService>(),
                 sp.GetRequiredService<IConsoleWriter>(),

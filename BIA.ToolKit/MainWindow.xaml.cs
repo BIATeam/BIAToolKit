@@ -5,6 +5,7 @@ namespace BIA.ToolKit
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Dialogs;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
@@ -24,31 +25,40 @@ namespace BIA.ToolKit
     {
         public MainViewModel ViewModel { get; private set; }
 
-        private readonly UIEventBroker uiEventBroker;
         private readonly UpdateService updateService;
         private readonly GitService gitService;
         private readonly ConsoleWriter consoleWriter;
+        private readonly IMessenger messenger;
+        private readonly Action<ExecuteWithWaiterMessage> executeWithWaiterHandler;
+        private readonly Action<NewVersionAvailableMessage> newVersionAvailableHandler;
+        private readonly Action<SettingsUpdatedMessage> settingsUpdatedHandler;
+        private readonly Action<OpenRepositoryFormRequestMessage> openRepositoryFormHandler;
 
         public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService,
+            IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UpdateService updateService,
             IMessenger messenger, MainViewModel mainViewModel, ModifyProjectViewModel modifyProjectViewModel,
             CRUDGeneratorViewModel crudGeneratorViewModel, DtoGeneratorViewModel dtoGeneratorViewModel, OptionGeneratorViewModel optionGeneratorViewModel)
         {
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
 
-            this.uiEventBroker = uiEventBroker;
             this.updateService = updateService;
             this.gitService = gitService;
+            this.messenger = messenger;
 
-            uiEventBroker.OnExecuteActionWithWaiterAsyncRequest += async (action) => await ExecuteTaskWithWaiterAsync(action);
+            executeWithWaiterHandler = async (msg) => await ExecuteTaskWithWaiterAsync(msg.Task);
+            newVersionAvailableHandler = OnNewVersionAvailable;
+            settingsUpdatedHandler = OnSettingsUpdated;
+            openRepositoryFormHandler = OnOpenRepositoryFormRequest;
+
+            messenger.Subscribe(executeWithWaiterHandler);
 
             InitializeComponent();
 
-            CreateVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, messenger);
+            CreateVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, messenger);
             ModifyProject.Inject(repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, uiEventBroker, modifyProjectViewModel,
+                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, modifyProjectViewModel,
                 crudGeneratorViewModel, dtoGeneratorViewModel, optionGeneratorViewModel, messenger);
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
@@ -61,25 +71,32 @@ namespace BIA.ToolKit
             ViewModel.NavigateToSettingsTab = () => Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0));
             DataContext = ViewModel;
             ViewModel.Initialize();
-            Closed += (_, _) => ViewModel.Cleanup();
+            Closed += (_, _) =>
+            {
+                ViewModel.Cleanup();
+                messenger.Unsubscribe(executeWithWaiterHandler);
+                messenger.Unsubscribe(newVersionAvailableHandler);
+                messenger.Unsubscribe(settingsUpdatedHandler);
+                messenger.Unsubscribe(openRepositoryFormHandler);
+            };
 
-            uiEventBroker.OnNewVersionAvailable += UiEventBroker_OnNewVersionAvailable;
-            uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
-            uiEventBroker.OnOpenRepositoryFormRequest += UiEventBroker_OnRepositoryFormOpened;
+            messenger.Subscribe(newVersionAvailableHandler);
+            messenger.Subscribe(settingsUpdatedHandler);
+            messenger.Subscribe(openRepositoryFormHandler);
         }
 
-        private void UiEventBroker_OnRepositoryFormOpened(RepositoryViewModel repository, RepositoryFormMode mode)
+        private void OnOpenRepositoryFormRequest(OpenRepositoryFormRequestMessage message)
         {
-            var form = new RepositoryFormUC(repository, gitService, uiEventBroker, consoleWriter) { Owner = this };
+            var form = new RepositoryFormUC(message.Repository, gitService, messenger, consoleWriter) { Owner = this };
             if (form.ShowDialog() == true)
             {
-                switch (mode)
+                switch (message.Mode)
                 {
                     case RepositoryFormMode.Edit:
-                        uiEventBroker.NotifyRepositoryViewModelChanged(repository, form.ViewModel.Repository);
+                        messenger.Send(new RepositoryViewModelChangedMessage { OldRepository = message.Repository, NewRepository = form.ViewModel.Repository });
                         break;
                     case RepositoryFormMode.Create:
-                        uiEventBroker.NotifyRepositoryViewModelAdded(form.ViewModel.Repository);
+                        messenger.Send(new RepositoryViewModelAddedMessage { Repository = form.ViewModel.Repository });
                         break;
                     default:
                         throw new NotImplementedException();
@@ -87,8 +104,9 @@ namespace BIA.ToolKit
             }
         }
 
-        private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
+        private void OnSettingsUpdated(SettingsUpdatedMessage message)
         {
+            var settings = message.Settings;
             Properties.Settings.Default.UseCompanyFile = settings.UseCompanyFiles;
             Properties.Settings.Default.CreateProjectRootFolderText = settings.CreateProjectRootProjectsPath;
             Properties.Settings.Default.ModifyProjectRootFolderText = settings.ModifyProjectRootProjectsPath;
@@ -100,7 +118,7 @@ namespace BIA.ToolKit
             Properties.Settings.Default.Save();
         }
 
-        private async void UiEventBroker_OnNewVersionAvailable()
+        private async void OnNewVersionAvailable(NewVersionAvailableMessage message)
         {
             CheckUpdateButton.IsEnabled = false;
             await OnUpdateAvailable();
@@ -200,7 +218,7 @@ namespace BIA.ToolKit
 
         private void Create_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(() => ViewModel.CreateProjectAsync(CreateProjectName.Text));
+            messenger.Send(new ExecuteWithWaiterMessage { Task = () => ViewModel.CreateProjectAsync(CreateProjectName.Text) });
         }
 
         private void btnFileGenerator_OpenFolder_Click(object sender, RoutedEventArgs e)

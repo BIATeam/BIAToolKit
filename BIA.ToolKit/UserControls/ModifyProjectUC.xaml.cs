@@ -10,6 +10,7 @@
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
 
@@ -19,7 +20,7 @@
     public partial class ModifyProjectUC : UserControl
     {
         ModifyProjectViewModel _viewModel;
-        UIEventBroker uiEventBroker;
+        IMessenger messenger;
 
         public ModifyProjectUC()
         {
@@ -28,16 +29,16 @@
 
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, ModifyProjectViewModel modifyProjectViewModel,
+            FileGeneratorService fileGeneratorService, ModifyProjectViewModel modifyProjectViewModel,
             CRUDGeneratorViewModel crudGeneratorViewModel, DtoGeneratorViewModel dtoGeneratorViewModel, OptionGeneratorViewModel optionGeneratorViewModel,
             IMessenger messenger)
         {
-            MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, messenger);
-            MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, messenger);
-            CRUDGenerator.Inject(uiEventBroker, crudGeneratorViewModel);
-            OptionGenerator.Inject(uiEventBroker, optionGeneratorViewModel);
-            DtoGenerator.Inject(settingsService, consoleWriter, fileGeneratorService, uiEventBroker, dtoGeneratorViewModel);
-            this.uiEventBroker = uiEventBroker;
+            MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, messenger);
+            MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, messenger);
+            CRUDGenerator.Inject(messenger, crudGeneratorViewModel);
+            OptionGenerator.Inject(messenger, optionGeneratorViewModel);
+            DtoGenerator.Inject(settingsService, consoleWriter, fileGeneratorService, messenger, dtoGeneratorViewModel);
+            this.messenger = messenger;
 
             _viewModel = modifyProjectViewModel;
             _viewModel.MigrateOriginVm = MigrateOriginVersionAndOption.vm;
@@ -66,27 +67,27 @@
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(_viewModel.MigrateAsync);
+            messenger.Send(new ExecuteWithWaiterMessage { Task = _viewModel.MigrateAsync });
         }
 
         private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(_viewModel.MigrateGenerateOnlyAsync);
+            messenger.Send(new ExecuteWithWaiterMessage { Task = _viewModel.MigrateGenerateOnlyAsync });
         }
 
         private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(_viewModel.MigrateApplyDiffAsync);
+            messenger.Send(new ExecuteWithWaiterMessage { Task = _viewModel.MigrateApplyDiffAsync });
         }
 
         private void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(_viewModel.MigrateMergeRejectedAsync);
+            messenger.Send(new ExecuteWithWaiterMessage { Task = _viewModel.MigrateMergeRejectedAsync });
         }
 
         private void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(_viewModel.MigrateOverwriteBIAFolderAsync);
+            messenger.Send(new ExecuteWithWaiterMessage { Task = _viewModel.MigrateOverwriteBIAFolderAsync });
         }
 
         private void MigrateOpenFolder_Click(object sender, RoutedEventArgs e)
@@ -106,7 +107,7 @@
 
         private void FixUsings_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(_viewModel.FixUsingsAsync);
+            messenger.Send(new ExecuteWithWaiterMessage { Task = _viewModel.FixUsingsAsync });
         }
     }
 }

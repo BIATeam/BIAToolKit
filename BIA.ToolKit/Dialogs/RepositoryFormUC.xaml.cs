@@ -16,6 +16,7 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Helper;
 
     /// <summary>
@@ -25,9 +26,9 @@
     {
         public RepositoryFormViewModel ViewModel => DataContext as RepositoryFormViewModel;
 
-        public RepositoryFormUC(RepositoryViewModel repository, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
+        public RepositoryFormUC(RepositoryViewModel repository, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter)
         {
-            DataContext = new RepositoryFormViewModel(repository, gitService, eventBroker, consoleWriter);
+            DataContext = new RepositoryFormViewModel(repository, gitService, messenger, consoleWriter);
             InitializeComponent();
         }
 

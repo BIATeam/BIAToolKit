@@ -27,21 +27,20 @@
         public VersionAndOption VersionAndOption { get; set; }
         public RepositoryService repositoryService;
         IConsoleWriter consoleWriter;
-        private UIEventBroker eventBroker;
         private SettingsService settingsService;
         private string currentProjectPath;
         private List<FeatureSetting> OriginFeatureSettings;
+        private bool isOriginFeatureSettingsListener = false;
 
         private bool hasFeature = false;
         private bool areFeatureInitialized = false;
 
-        public VersionAndOptionViewModel(IMessenger messenger, RepositoryService repositoryService, IConsoleWriter consoleWriter, UIEventBroker eventBroker, SettingsService settingsService)
+        public VersionAndOptionViewModel(IMessenger messenger, RepositoryService repositoryService, IConsoleWriter consoleWriter, SettingsService settingsService)
             : base(messenger)
         {
             VersionAndOption = new VersionAndOption();
             this.repositoryService = repositoryService;
             this.consoleWriter = consoleWriter;
-            this.eventBroker = eventBroker;
             this.settingsService = settingsService;
         }
 
@@ -53,6 +52,10 @@
         public override void Cleanup()
         {
             Messenger.Unsubscribe<SettingsUpdatedMessage>(OnSettingsUpdated);
+            if (isOriginFeatureSettingsListener)
+            {
+                Messenger.Unsubscribe<OriginFeatureSettingsChangedMessage>(OnOriginFeatureSettingsChanged);
+            }
         }
 
         private void OnSettingsUpdated(SettingsUpdatedMessage msg)
@@ -204,10 +207,12 @@
 
                     if (WorkCompanyFile != null)
                     {
-                        eventBroker.RequestExecuteActionWithWaiter(async () =>
+                        Messenger.Send(new ExecuteWithWaiterMessage
                         {
-                            try
+                            Task = async () =>
                             {
+                                try
+                                {
                                 WorkCompanyFile.VersionFolderPath = await repositoryService.PrepareVersionFolder(WorkCompanyFile.Repository, WorkCompanyFile.Version);
                                 string fileName = WorkCompanyFile.VersionFolderPath + "\\biaCompanyFiles.json";
 
@@ -231,10 +236,11 @@
                                 }
                                 Options = new ObservableCollection<CFOption>(options);
 
-                            }
-                            catch (Exception ex)
-                            {
-                                consoleWriter.AddMessageLine(ex.Message, "Red");
+                                }
+                                catch (Exception ex)
+                                {
+                                    consoleWriter.AddMessageLine(ex.Message, "Red");
+                                }
                             }
                         });
                     }
@@ -402,17 +408,20 @@
 
             if (originFeatureSettings != null)
             {
-                eventBroker.OnOriginFeatureSettingsChanged -= OnOriginFeatureSettingsChanged;
-                eventBroker.OnOriginFeatureSettingsChanged += OnOriginFeatureSettingsChanged;
+                if (!isOriginFeatureSettingsListener)
+                {
+                    Messenger.Subscribe<OriginFeatureSettingsChangedMessage>(OnOriginFeatureSettingsChanged);
+                    isOriginFeatureSettingsListener = true;
+                }
                 OriginFeatureSettings = new List<FeatureSetting>(originFeatureSettings);
             }
 
             LoadVersionAndOption(mapCompanyFileVersion, mapFrameworkVersion);
         }
 
-        private void OnOriginFeatureSettingsChanged(List<FeatureSetting> featureSettings)
+        private void OnOriginFeatureSettingsChanged(OriginFeatureSettingsChangedMessage message)
         {
-            OriginFeatureSettings = featureSettings;
+            OriginFeatureSettings = new List<FeatureSetting>(message.FeatureSettings);
             LoadVersionAndOption(false, false);
         }
 
@@ -483,7 +492,7 @@
         {
             if (OriginFeatureSettings is null)
             {
-                eventBroker.NotifyOriginFeatureSettingsChanged(FeatureSettings.Select(x => x.FeatureSetting).ToList());
+                Messenger.Send(new OriginFeatureSettingsChangedMessage { FeatureSettings = FeatureSettings.Select(x => x.FeatureSetting).ToList() });
             }
         }
     }

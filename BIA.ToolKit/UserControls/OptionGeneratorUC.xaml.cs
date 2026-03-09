@@ -6,6 +6,8 @@
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -23,14 +25,13 @@
     using System.Windows.Input;
     using System.Windows.Markup;
     using Windows.Data.Xml.Dom;
-    using static BIA.ToolKit.Application.Services.UIEventBroker;
 
     /// <summary>
     /// Interaction logic for OptionGenerator.xaml
     /// </summary>
     public partial class OptionGeneratorUC : UserControl
     {
-        private UIEventBroker uiEventBroker;
+        private IMessenger messenger;
         private OptionGeneratorViewModel vm;
 
         /// <summary>
@@ -44,9 +45,9 @@
         /// <summary>
         /// Injection of services.
         /// </summary>
-        public void Inject(UIEventBroker uiEventBroker, OptionGeneratorViewModel optionGeneratorViewModel)
+        public void Inject(IMessenger messenger, OptionGeneratorViewModel optionGeneratorViewModel)
         {
-            this.uiEventBroker = uiEventBroker;
+            this.messenger = messenger;
             this.vm = optionGeneratorViewModel;
             DataContext = vm;
             Loaded += (_, _) => vm.Initialize();
@@ -70,10 +71,13 @@
         /// </summary>
         private void RefreshEntitiesList_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(() =>
+            messenger.Send(new ExecuteWithWaiterMessage
             {
-                vm.ListEntityFiles();
-                return Task.CompletedTask;
+                Task = () =>
+                {
+                    vm.ListEntityFiles();
+                    return Task.CompletedTask;
+                }
             });
         }
 
@@ -82,7 +86,7 @@
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(vm.GenerateOptionAsync);
+            messenger.Send(new ExecuteWithWaiterMessage { Task = vm.GenerateOptionAsync });
         }
 
         /// <summary>
@@ -93,10 +97,13 @@
             try
             {
                 var history = vm.GetCurrentEntityHistory();
-                uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+                messenger.Send(new ExecuteWithWaiterMessage
                 {
-                    await vm.DeleteLastOptionAsync(history);
-                    OptionAlreadyGeneratedLabel.Visibility = Visibility.Hidden;
+                    Task = async () =>
+                    {
+                        await vm.DeleteLastOptionAsync(history);
+                        OptionAlreadyGeneratedLabel.Visibility = Visibility.Hidden;
+                    }
                 });
             }
             catch (Exception ex)
