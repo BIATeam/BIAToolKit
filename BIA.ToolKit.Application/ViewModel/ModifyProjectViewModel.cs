@@ -432,14 +432,16 @@
         {
             if (ModifyProject.CurrentProject == null)
             {
-                consoleWriter.AddMessageLine("Select a project before click migrate.", "red");
+                consoleWriter.AddMessageLine("Select a project before clicking migrate.", "red");
                 return -1;
             }
-            if (!Directory.Exists(ModifyProject.CurrentProject.Folder) || !Directory.EnumerateFileSystemEntries(ModifyProject.CurrentProject.Folder).Any())
+            var projectFolder = ModifyProject.CurrentProject.Folder;
+            if (!Directory.Exists(projectFolder) || !Directory.EnumerateFileSystemEntries(projectFolder).Any())
             {
-                consoleWriter.AddMessageLine("The project path is empty : " + ModifyProject.CurrentProject.Folder, "red");
+                consoleWriter.AddMessageLine("The project path is empty : " + projectFolder, "red");
                 return -1;
             }
+
 
             var paths = GetMigratePaths();
 
