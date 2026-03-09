@@ -441,9 +441,9 @@
                 return -1;
             }
 
-            MigratePreparePath(out _, out string projectOriginPath, out _, out _, out string projectTargetPath, out _);
+            var paths = GetMigratePaths();
 
-            await GenerateProjects(true, projectOriginPath, projectTargetPath);
+            await GenerateProjects(true, paths.OriginPath, paths.TargetPath);
 
             CanMigrateOpenFolder = true;
             CanMigrateApplyDiff = true;
@@ -452,14 +452,14 @@
 
         public async Task<bool> MigrateApplyDiffAsync()
         {
-            MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out _, out string projectTargetFolderName, out _, out _);
+            var paths = GetMigratePaths();
 
             if (OverwriteBIAFromOriginal == true)
             {
-                await projectCreatorService.OverwriteBIAFolder(projectOriginPath, ModifyProject.CurrentProject.Folder, false);
+                await projectCreatorService.OverwriteBIAFolder(paths.OriginPath, ModifyProject.CurrentProject.Folder, false);
             }
 
-            bool result = await ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName);
+            bool result = await ApplyDiff(true, paths.OriginalFolderName, paths.TargetFolderName);
 
             CanMigrateMergeRejected = true;
             return result;
@@ -497,8 +497,8 @@
                 var fileToCheck = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
                 if (!File.Exists(fileToCheck))
                 {
-                    MigratePreparePath(out _, out _, out _, out string projectTargetFolderName, out string projectTargetPath, out _);
-                    var fileToCopy = Path.Combine(projectTargetPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
+                    var paths = GetMigratePaths();
+                    var fileToCopy = Path.Combine(paths.TargetPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
                     File.Copy(fileToCopy, fileToCheck);
                 }
             });
@@ -514,15 +514,25 @@
             await parserService.FixUsings();
         }
 
-        private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion)
-        {
-            projectOriginalVersion = MigrateOriginVm.WorkTemplate.Version;
-            projectOriginalFolderName = Name + "_" + projectOriginalVersion + "_From";
-            projectOriginPath = AppSettings.TmpFolderPath + projectOriginalFolderName;
+        private record MigratePaths(
+            string OriginalFolderName,
+            string OriginPath,
+            string OriginalVersion,
+            string TargetFolderName,
+            string TargetPath,
+            string TargetVersion);
 
-            projectTargetVersion = MigrateTargetVm.WorkTemplate.Version;
-            projectTargetFolderName = Name + "_" + projectTargetVersion + "_To";
-            projectTargetPath = AppSettings.TmpFolderPath + projectTargetFolderName;
+        private MigratePaths GetMigratePaths()
+        {
+            string originalVersion = MigrateOriginVm.WorkTemplate.Version;
+            string originalFolderName = Name + "_" + originalVersion + "_From";
+            string originPath = AppSettings.TmpFolderPath + originalFolderName;
+
+            string targetVersion = MigrateTargetVm.WorkTemplate.Version;
+            string targetFolderName = Name + "_" + targetVersion + "_To";
+            string targetPath = AppSettings.TmpFolderPath + targetFolderName;
+
+            return new MigratePaths(originalFolderName, originPath, originalVersion, targetFolderName, targetPath, targetVersion);
         }
 
         private async Task GenerateProjects(bool actionFinishedAtEnd, string projectOriginPath, string projectTargetPath)
@@ -619,23 +629,23 @@
 
         private async Task MergeRejected(bool actionFinishedAtEnd)
         {
-            MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion);
+            var paths = GetMigratePaths();
 
             await gitService.MergeRejected(actionFinishedAtEnd, new GitService.MergeParameter()
             {
                 ProjectPath = ModifyProject.CurrentProject.Folder,
-                ProjectOriginPath = projectOriginPath,
-                ProjectOriginVersion = projectOriginalVersion,
-                ProjectTargetPath = projectTargetPath,
-                ProjectTargetVersion = projectTargetVersion,
-                MigrationPatchFilePath = GenerateMigrationPatchFilePath(projectOriginalFolderName, projectTargetFolderName)
+                ProjectOriginPath = paths.OriginPath,
+                ProjectOriginVersion = paths.OriginalVersion,
+                ProjectTargetPath = paths.TargetPath,
+                ProjectTargetVersion = paths.TargetVersion,
+                MigrationPatchFilePath = GenerateMigrationPatchFilePath(paths.OriginalFolderName, paths.TargetFolderName)
             });
         }
 
         private async Task OverwriteBIAFolder(bool actionFinishedAtEnd)
         {
-            MigratePreparePath(out _, out _, out _, out _, out string projectTargetPath, out _);
-            await projectCreatorService.OverwriteBIAFolder(projectTargetPath, ModifyProject.CurrentProject.Folder, actionFinishedAtEnd);
+            var paths = GetMigratePaths();
+            await projectCreatorService.OverwriteBIAFolder(paths.TargetPath, ModifyProject.CurrentProject.Folder, actionFinishedAtEnd);
         }
 
         private static string GenerateMigrationPatchFilePath(string projectOriginalFolderName, string projectTargetFolderName)
