@@ -9,7 +9,8 @@
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.ViewModel.Messaging.Messages;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -23,9 +24,8 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Windows.Input;
 
-    public class CRUDGeneratorViewModel : ViewModelBase
+    public partial class CRUDGeneratorViewModel : ViewModelBase
     {
         private const string DOTNET_TYPE = "DotNet";
         private const string ANGULAR_TYPE = "Angular";
@@ -680,8 +680,8 @@
                     BiaFront = BiaFronts.FirstOrDefault();
                 }
 
-                RaisePropertyChanged(nameof(IsProjectCompatibleV6));
-                RaisePropertyChanged(nameof(IsFrontAvailable));
+                OnPropertyChanged(nameof(IsProjectCompatibleV6));
+                OnPropertyChanged(nameof(IsFrontAvailable));
             }
         }
 
@@ -692,7 +692,7 @@
             set
             {
                 isProjectChosen = value;
-                RaisePropertyChanged(nameof(IsProjectChosen));
+                OnPropertyChanged(nameof(IsProjectChosen));
             }
         }
 
@@ -703,14 +703,20 @@
             set
             {
                 _useFileGenerator = value;
-                RaisePropertyChanged(nameof(UseFileGenerator));
+                OnPropertyChanged(nameof(UseFileGenerator));
             }
         }
         #endregion
 
         #region Commands
-        public ICommand GenerateCrudCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = GenerateCRUDAsync }));
-        public ICommand DeleteLastGenerationCommand => new RelayCommand(_ =>
+        [RelayCommand]
+        private void GenerateCrud()
+        {
+            Messenger.Send(new ExecuteWithWaiterMessage { Task = GenerateCRUDAsync });
+        }
+
+        [RelayCommand]
+        private void DeleteLastGeneration()
         {
             try
             {
@@ -728,7 +734,7 @@
             {
                 System.Windows.MessageBox.Show($"Error on deleting last '{CRUDNameSingular}' generation: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
-        });
+        }
         #endregion
 
         #region Dto
@@ -741,7 +747,7 @@
                 if (dtoEntity != value)
                 {
                     dtoEntity = value;
-                    RaisePropertyChanged(nameof(DtoEntity));
+                    OnPropertyChanged(nameof(DtoEntity));
                     UpdateParentPreSelection();
                     UpdateDomainPreSelection();
                     if (value is not null)
@@ -761,7 +767,7 @@
                 if (dtoEntities != value)
                 {
                     dtoEntities = value;
-                    RaisePropertyChanged(nameof(DtoEntities));
+                    OnPropertyChanged(nameof(DtoEntities));
                 }
             }
         }
@@ -775,7 +781,7 @@
                 if (dtoDisplayItems != value)
                 {
                     dtoDisplayItems = value;
-                    RaisePropertyChanged(nameof(DtoDisplayItems));
+                    OnPropertyChanged(nameof(DtoDisplayItems));
                 }
             }
         }
@@ -789,9 +795,9 @@
                 if (isDtoParsed != value)
                 {
                     isDtoParsed = value;
-                    RaisePropertyChanged(nameof(IsDtoParsed));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                    RaisePropertyChanged(nameof(IsOptionItemEnable));
+                    OnPropertyChanged(nameof(IsDtoParsed));
+                    OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                    OnPropertyChanged(nameof(IsOptionItemEnable));
                 }
             }
         }
@@ -805,8 +811,8 @@
                 if (dtoDisplayItemSelected != value)
                 {
                     dtoDisplayItemSelected = value;
-                    RaisePropertyChanged(nameof(DtoDisplayItemSelected));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                    OnPropertyChanged(nameof(DtoDisplayItemSelected));
+                    OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
                 }
             }
         }
@@ -820,7 +826,7 @@
                 if (optionItems != value)
                 {
                     optionItems = value;
-                    RaisePropertyChanged(nameof(OptionItems));
+                    OnPropertyChanged(nameof(OptionItems));
                 }
             }
         }
@@ -834,8 +840,8 @@
             set
             {
                 selectedBaseKeyType = value;
-                RaisePropertyChanged(nameof(SelectedBaseKeyType));
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                OnPropertyChanged(nameof(SelectedBaseKeyType));
+                OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
 
@@ -850,7 +856,7 @@
                 if (isDtoGenerated != value)
                 {
                     isDtoGenerated = value;
-                    RaisePropertyChanged(nameof(IsDtoGenerated));
+                    OnPropertyChanged(nameof(IsDtoGenerated));
                 }
             }
         }
@@ -870,7 +876,7 @@
 
         private void OptionItem_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            RaisePropertyChanged(nameof(SelectedOptionItems));
+            OnPropertyChanged(nameof(SelectedOptionItems));
         }
         #endregion
 
@@ -884,7 +890,7 @@
                 if (featureNames != value)
                 {
                     featureNames = value;
-                    RaisePropertyChanged(nameof(FeatureNames));
+                    OnPropertyChanged(nameof(FeatureNames));
                 }
             }
         }
@@ -898,11 +904,11 @@
                 if (featureNameSelected != value)
                 {
                     featureNameSelected = value;
-                    RaisePropertyChanged(nameof(FeatureNameSelected));
-                    RaisePropertyChanged(nameof(IsOptionItemEnable));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                    RaisePropertyChanged(nameof(IsWebApiAvailable));
-                    RaisePropertyChanged(nameof(IsFrontAvailable));
+                    OnPropertyChanged(nameof(FeatureNameSelected));
+                    OnPropertyChanged(nameof(IsOptionItemEnable));
+                    OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                    OnPropertyChanged(nameof(IsWebApiAvailable));
+                    OnPropertyChanged(nameof(IsFrontAvailable));
                     IsWebApiSelected = IsWebApiAvailable;
                     IsFrontSelected = IsFrontAvailable;
                     UpdateParentPreSelection();
@@ -949,7 +955,7 @@
                 if (entityNameSingular != value)
                 {
                     entityNameSingular = value;
-                    RaisePropertyChanged(nameof(CRUDNameSingular));
+                    OnPropertyChanged(nameof(CRUDNameSingular));
                     CRUDNamePlural = value.Pluralize();
                 }
             }
@@ -964,8 +970,8 @@
                 if (entityNamePlural != value)
                 {
                     entityNamePlural = value;
-                    RaisePropertyChanged(nameof(CRUDNamePlural));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                    OnPropertyChanged(nameof(CRUDNamePlural));
+                    OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
                 }
             }
         }
@@ -1003,8 +1009,8 @@
                 if (hasParent != value)
                 {
                     hasParent = value;
-                    RaisePropertyChanged(nameof(HasParent));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                    OnPropertyChanged(nameof(HasParent));
+                    OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
 
                     if (value == false)
                     {
@@ -1028,8 +1034,8 @@
                 if (domain != value)
                 {
                     domain = value;
-                    RaisePropertyChanged(nameof(Domain));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                    OnPropertyChanged(nameof(Domain));
+                    OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
                 }
             }
         }
@@ -1043,8 +1049,8 @@
                 if (parentName != value)
                 {
                     parentName = value;
-                    RaisePropertyChanged(nameof(ParentName));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                    OnPropertyChanged(nameof(ParentName));
+                    OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
                     ParentNamePlural = value.Pluralize();
                 }
             }
@@ -1059,8 +1065,8 @@
                 if (parentNamePlural != value)
                 {
                     parentNamePlural = value;
-                    RaisePropertyChanged(nameof(ParentNamePlural));
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                    OnPropertyChanged(nameof(ParentNamePlural));
+                    OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
                 }
             }
         }
@@ -1093,7 +1099,7 @@
                 HasParent = selectedFeaturesWithParent.Any(x => x.NeedParent);
             }
 
-            RaisePropertyChanged(nameof(IsCheckboxParentEnable));
+            OnPropertyChanged(nameof(IsCheckboxParentEnable));
         }
 
         private void UpdateDomainPreSelection()
@@ -1128,7 +1134,7 @@
             {
                 if (isSelectionChange != value)
                 {
-                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                    OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
                 }
             }
         }
@@ -1142,10 +1148,10 @@
                 if (isWebApiSelected != value)
                 {
                     isWebApiSelected = value;
-                    RaisePropertyChanged(nameof(IsWebApiSelected));
+                    OnPropertyChanged(nameof(IsWebApiSelected));
                 }
                 UpdateFeatureSelection();
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
 
@@ -1158,14 +1164,14 @@
                 if (isFrontSelected != value)
                 {
                     isFrontSelected = value;
-                    RaisePropertyChanged(nameof(IsFrontSelected));
+                    OnPropertyChanged(nameof(IsFrontSelected));
                     if(value == false)
                     {
                         BiaFront = null;
                     }
                 }
                 UpdateFeatureSelection();
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
 
@@ -1176,8 +1182,8 @@
             set
             {
                 _biaFront = value;
-                RaisePropertyChanged(nameof(BiaFront));
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                OnPropertyChanged(nameof(BiaFront));
+                OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
                 if (!string.IsNullOrEmpty(value) && CurrentProject != null)
                 {
                     SetFrontGenerationSettings(value);
@@ -1193,7 +1199,7 @@
             set
             {
                 _biaFronts = value;
-                RaisePropertyChanged(nameof(BiaFronts));
+                OnPropertyChanged(nameof(BiaFronts));
             }
         }
 
@@ -1208,9 +1214,9 @@
             set
             {
                 _isTeam = value;
-                RaisePropertyChanged(nameof(IsTeam));
-                RaisePropertyChanged(nameof(IsCheckBoxIsTeamEnable));
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                OnPropertyChanged(nameof(IsTeam));
+                OnPropertyChanged(nameof(IsCheckBoxIsTeamEnable));
+                OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
 
@@ -1236,7 +1242,7 @@
             set 
             { 
                 _useHubClient = value; 
-                RaisePropertyChanged(nameof(UseHubClient));
+                OnPropertyChanged(nameof(UseHubClient));
             }
         }
 
@@ -1248,7 +1254,7 @@
             set
             {
                 _hasCustomRepository = value;
-                RaisePropertyChanged(nameof(HasCustomRepository));
+                OnPropertyChanged(nameof(HasCustomRepository));
             }
         }
 
@@ -1260,7 +1266,7 @@
             set
             {
                 _hasFormReadOnlyMode = value;
-                RaisePropertyChanged(nameof(HasFormReadOnlyMode));
+                OnPropertyChanged(nameof(HasFormReadOnlyMode));
                 SelectedFormReadOnlyMode = value ? FormReadOnlyModes.First() : string.Empty;
             }
         }
@@ -1273,7 +1279,7 @@
             set
             {
                 _useImport = value;
-                RaisePropertyChanged(nameof(UseImport));
+                OnPropertyChanged(nameof(UseImport));
             }
         }
 
@@ -1285,7 +1291,7 @@
             set
             {
                 _isFixable = value;
-                RaisePropertyChanged(nameof(IsFixable));
+                OnPropertyChanged(nameof(IsFixable));
             }
         }
 
@@ -1297,7 +1303,7 @@
             set
             {
                 _hasFixableParent = value;
-                RaisePropertyChanged(nameof(HasFixableParent));
+                OnPropertyChanged(nameof(HasFixableParent));
             }
         }
 
@@ -1309,7 +1315,7 @@
             set
             {
                 _isVersioned = value;
-                RaisePropertyChanged(nameof(IsVersioned));
+                OnPropertyChanged(nameof(IsVersioned));
             }
         }
 
@@ -1321,7 +1327,7 @@
             set
             {
                 _isArchivable = value;
-                RaisePropertyChanged(nameof(IsArchivable));
+                OnPropertyChanged(nameof(IsArchivable));
             }
         }
 
@@ -1335,7 +1341,7 @@
             set
             {
                 _useAdvancedFilter = value;
-                RaisePropertyChanged(nameof(UseAdvancedFilter));
+                OnPropertyChanged(nameof(UseAdvancedFilter));
             }
         }
 
@@ -1348,7 +1354,7 @@
             set
             {
                 displayHistorical = value;
-                RaisePropertyChanged(nameof(DisplayHistorical));
+                OnPropertyChanged(nameof(DisplayHistorical));
             }
         }
 
@@ -1359,7 +1365,7 @@
             set
             {
                 useDomainUrl = value;
-                RaisePropertyChanged(nameof(UseDomainUrl));
+                OnPropertyChanged(nameof(UseDomainUrl));
             }
         }
 
@@ -1416,7 +1422,7 @@
             set 
             { 
                 _ancestorTeam = value;
-                RaisePropertyChanged(nameof(AncestorTeam));
+                OnPropertyChanged(nameof(AncestorTeam));
             }
         }
 
@@ -1428,8 +1434,8 @@
             set 
             { 
                 _teamTypeId = value; 
-                RaisePropertyChanged(nameof(TeamTypeId));
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                OnPropertyChanged(nameof(TeamTypeId));
+                OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
 
@@ -1441,8 +1447,8 @@
             set
             {
                 _teamRoleId = value;
-                RaisePropertyChanged(nameof(TeamRoleId));
-                RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                OnPropertyChanged(nameof(TeamRoleId));
+                OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
         }
 
@@ -1468,13 +1474,13 @@
             set 
             { 
                 _selectedFormReadOnlyMode = value; 
-                RaisePropertyChanged(nameof(SelectedFormReadOnlyMode));
+                OnPropertyChanged(nameof(SelectedFormReadOnlyMode));
             }
         }
         #endregion
     }
 
-    public class OptionItem : ObservableObject
+    public partial class OptionItem : ObservableObject
     {
         private bool check;
         public bool Check
@@ -1483,7 +1489,7 @@
             set
             {
                 check = value;
-                RaisePropertyChanged(nameof(Check));
+                OnPropertyChanged(nameof(Check));
             }
         }
 
