@@ -1,10 +1,10 @@
 namespace BIA.ToolKit.Application.ViewModel
 {
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using BIA.ToolKit.Common;
     using System.Collections.Generic;
 
-    public class MappingEntityProperty : ObservableObject
+    public partial class MappingEntityProperty : ObservableObject
     {
         public string EntityCompositeName { get; set; }
         public string EntityType { get; set; }
@@ -14,7 +14,7 @@ namespace BIA.ToolKit.Application.ViewModel
         {
             // Inteligent getter to simplify unitary test
             get { if (mappingName != null) { return mappingName; } else { return EntityCompositeName; } }
-            set { mappingName = value; RaisePropertyChanged(nameof(MappingName)); }
+            set { mappingName = value; OnPropertyChanged(nameof(MappingName)); }
         }
 
         private string mappingType = null;
@@ -30,42 +30,18 @@ namespace BIA.ToolKit.Application.ViewModel
         public bool IsOptionCollection => MappingType.Equals(Constants.BiaClassName.CollectionOptionDto);
         public string OptionType { get; set; }
 
+        [ObservableProperty]
         private bool isRequired;
-        public bool IsRequired
-        {
-            get => isRequired;
-            set
-            {
-                isRequired = value;
-                RaisePropertyChanged(nameof(IsRequired));
-            }
-        }
 
         public List<string> OptionIdProperties { get; set; } = new();
         public List<string> OptionDisplayProperties { get; set; } = new();
         public List<string> OptionEntityIdProperties { get; set; } = new();
 
+        [ObservableProperty]
         private string optionDisplayProperty;
-        public string OptionDisplayProperty
-        {
-            get => optionDisplayProperty;
-            set
-            {
-                optionDisplayProperty = value;
-                RaisePropertyChanged(nameof(OptionDisplayProperty));
-            }
-        }
 
+        [ObservableProperty]
         private string optionIdProperty;
-        public string OptionIdProperty
-        {
-            get => optionIdProperty;
-            set
-            {
-                optionIdProperty = value;
-                RaisePropertyChanged(nameof(OptionIdProperty));
-            }
-        }
 
         public bool IsVisibleOptionPropertiesComboBox => IsOption || IsOptionCollection;
         public string OptionEntityIdPropertyComposite { get; private set; }
@@ -80,7 +56,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 OptionEntityIdPropertyComposite = IsCompositeName ?
                     string.Join(".", EntityCompositeName.Split('.').SkipLast(1)) + $".{value}" :
                     value;
-                RaisePropertyChanged(nameof(OptionEntityIdProperty));
+                OnPropertyChanged(nameof(OptionEntityIdProperty));
             }
         }
         
@@ -89,16 +65,8 @@ namespace BIA.ToolKit.Application.ViewModel
         public string OptionRelationSecondIdProperty { get; set; }
         public string OptionRelationPropertyComposite { get; set; }
 
+        [ObservableProperty]
         private string mappingDateType;
-        public string MappingDateType
-        {
-            get => mappingDateType;
-            set
-            {
-                mappingDateType = value;
-                RaisePropertyChanged(nameof(MappingDateType));
-            }
-        }
 
         public List<string> MappingDateTypes { get; set; } = new();
         public bool IsVisibleDateTypesComboxBox => MappingDateTypes.Count > 0;
@@ -114,21 +82,13 @@ namespace BIA.ToolKit.Application.ViewModel
             set 
             { 
                 mappingNameError = value; 
-                RaisePropertyChanged(nameof(MappingNameError));
-                RaisePropertyChanged(nameof(HasMappingNameError));
+                OnPropertyChanged(nameof(MappingNameError));
+                OnPropertyChanged(nameof(HasMappingNameError));
             }
         }
 
+        [ObservableProperty]
         private bool isParent;
-        public bool IsParent
-        {
-            get => isParent;
-            set 
-            { 
-                isParent = value; 
-                RaisePropertyChanged(nameof(IsParent));
-            }
-        }
 
         public bool IsVisibleIsParentCheckbox => 
             EntityCompositeName.EndsWith("Id") 

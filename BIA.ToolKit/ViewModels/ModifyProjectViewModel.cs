@@ -8,7 +8,8 @@
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.ViewModel.Messaging.Messages;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.Settings;
@@ -21,7 +22,7 @@
     using System.Threading.Tasks;
     using System.Windows.Input;
 
-    public class ModifyProjectViewModel : ViewModelBase
+    public partial class ModifyProjectViewModel : ViewModelBase
     {
         private readonly FileGeneratorService fileGeneratorService;
         private readonly IConsoleWriter consoleWriter;
@@ -74,7 +75,7 @@
                 firstTimeSettingsUpdated = false;
             }
 
-            RaisePropertyChanged(nameof(RootProjectsPath));
+            OnPropertyChanged(nameof(RootProjectsPath));
         }
 
         private void OnSolutionParsed(SolutionParsedMessage msg)
@@ -83,14 +84,41 @@
             OnSolutionParsedAction?.Invoke();
         }
 
-        public ICommand RefreshProjectInformationsCommand => new RelayCommand((_) => RefreshProjectInformations());
-        public ICommand MigrateCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = MigrateAsync }));
-        public ICommand MigrateGenerateOnlyCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = async () => await MigrateGenerateOnlyAsync() }));
-        public ICommand MigrateApplyDiffCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = async () => await MigrateApplyDiffAsync() }));
-        public ICommand MigrateMergeRejectedCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = MigrateMergeRejectedAsync }));
-        public ICommand MigrateOverwriteBIAFolderCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = MigrateOverwriteBIAFolderAsync }));
-        public ICommand FixUsingsCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = FixUsingsAsync }));
-        public ICommand OpenMigrateFolderCommand => new RelayCommand(_ =>
+        [RelayCommand]
+        private void RefreshProjectInformations()
+        {
+            Messenger.Send(new ExecuteWithWaiterMessage
+            {
+                Task = async () =>
+                {
+                    await LoadProject(CurrentProject);
+                    await InitFileGeneratorServiceFromProject(CurrentProject);
+                    await ParseProject(CurrentProject);
+                    RefreshUI();
+                }
+            });
+        }
+
+        [RelayCommand]
+        private void Migrate() => Messenger.Send(new ExecuteWithWaiterMessage { Task = MigrateAsync });
+
+        [RelayCommand]
+        private void MigrateGenerateOnly() => Messenger.Send(new ExecuteWithWaiterMessage { Task = async () => await MigrateGenerateOnlyAsync() });
+
+        [RelayCommand]
+        private void MigrateApplyDiff() => Messenger.Send(new ExecuteWithWaiterMessage { Task = async () => await MigrateApplyDiffAsync() });
+
+        [RelayCommand]
+        private void MigrateMergeRejected() => Messenger.Send(new ExecuteWithWaiterMessage { Task = MigrateMergeRejectedAsync });
+
+        [RelayCommand]
+        private void MigrateOverwriteBIAFolder() => Messenger.Send(new ExecuteWithWaiterMessage { Task = MigrateOverwriteBIAFolderAsync });
+
+        [RelayCommand]
+        private void FixUsings() => Messenger.Send(new ExecuteWithWaiterMessage { Task = FixUsingsAsync });
+
+        [RelayCommand]
+        private void OpenMigrateFolder()
         {
             try
             {
@@ -100,32 +128,18 @@
             {
                 System.Windows.MessageBox.Show($"Error opening folder: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
-        });
-        public ICommand RefreshProjectsListCommand => new RelayCommand(_ => RefreshProjetsList());
+        }
+
+        [RelayCommand]
+        private void RefreshProjectsList() => RefreshProjetsList();
+
         public ModifyProject ModifyProject { get; set; }
 
+        [ObservableProperty]
         private bool _isFileGeneratorServiceInit;
-        public bool IsFileGeneratorServiceInit
-        {
-            get => _isFileGeneratorServiceInit;
-            set
-            {
-                _isFileGeneratorServiceInit = value;
-                RaisePropertyChanged(nameof(IsFileGeneratorServiceInit));
-            }
-        }
 
+        [ObservableProperty]
         private bool isProjectCompatibleCrudGenerator;
-
-        public bool IsProjectCompatibleCrudGenerator
-        {
-            get { return isProjectCompatibleCrudGenerator; }
-            set
-            {
-                isProjectCompatibleCrudGenerator = value;
-                RaisePropertyChanged(nameof(IsProjectCompatibleCrudGenerator));
-            }
-        }
 
 
         private ObservableCollection<string> projects = [];
@@ -134,11 +148,9 @@
             get => projects;
             set
             {
-                if (projects != value)
+                if (SetProperty(ref projects, value))
                 {
-                    projects = value;
                     ModifyProject.Projects = [.. value];
-                    RaisePropertyChanged(nameof(Projects));
                 }
             }
         }
@@ -237,7 +249,7 @@
                         await ParseProject(currentProject);
                     }
 
-                    RaisePropertyChanged(nameof(Folder));
+                    OnPropertyChanged(nameof(Folder));
                 }
                 });
             }
@@ -320,27 +332,13 @@
             }
         }
 
-        private void RefreshProjectInformations()
-        {
-            Messenger.Send(new ExecuteWithWaiterMessage
-            {
-                Task = async () =>
-                {
-                    await LoadProject(CurrentProject);
-                    await InitFileGeneratorServiceFromProject(CurrentProject);
-                    await ParseProject(CurrentProject);
-                    RefreshUI();
-                }
-            });
-        }
-
         private void RefreshUI()
         {
-            RaisePropertyChanged(nameof(FrameworkVersion));
-            RaisePropertyChanged(nameof(CompanyName));
-            RaisePropertyChanged(nameof(Name));
-            RaisePropertyChanged(nameof(IsProjectSelected));
-            RaisePropertyChanged(nameof(BIAFronts));
+            OnPropertyChanged(nameof(FrameworkVersion));
+            OnPropertyChanged(nameof(CompanyName));
+            OnPropertyChanged(nameof(Name));
+            OnPropertyChanged(nameof(IsProjectSelected));
+            OnPropertyChanged(nameof(BIAFronts));
             if ((!IsProjectCompatibleCrudGenerator && !IsFileGeneratorServiceInit) 
                 || (SelectedTabIndex == 2 && !IsFileGeneratorServiceInit))
             {
@@ -392,46 +390,18 @@
 
         public int SelectedTabIndex
         {
-            get { return selectedTabIndex; }
-            set 
-            { 
-                selectedTabIndex = value;
-                RaisePropertyChanged(nameof(SelectedTabIndex));
-            }
+            get => selectedTabIndex;
+            set => SetProperty(ref selectedTabIndex, value);
         }
 
+        [ObservableProperty]
         private bool canMigrateOpenFolder;
-        public bool CanMigrateOpenFolder
-        {
-            get => canMigrateOpenFolder;
-            set
-            {
-                canMigrateOpenFolder = value;
-                RaisePropertyChanged(nameof(CanMigrateOpenFolder));
-            }
-        }
 
+        [ObservableProperty]
         private bool canMigrateApplyDiff;
-        public bool CanMigrateApplyDiff
-        {
-            get => canMigrateApplyDiff;
-            set
-            {
-                canMigrateApplyDiff = value;
-                RaisePropertyChanged(nameof(CanMigrateApplyDiff));
-            }
-        }
 
+        [ObservableProperty]
         private bool canMigrateMergeRejected;
-        public bool CanMigrateMergeRejected
-        {
-            get => canMigrateMergeRejected;
-            set
-            {
-                canMigrateMergeRejected = value;
-                RaisePropertyChanged(nameof(CanMigrateMergeRejected));
-            }
-        }
 
         public void ParameterModifyChange()
         {

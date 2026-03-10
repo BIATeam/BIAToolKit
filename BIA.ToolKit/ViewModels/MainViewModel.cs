@@ -13,7 +13,8 @@
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.ViewModel.Messaging.Messages;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Common.Helpers;
     using BIA.ToolKit.Domain;
@@ -22,7 +23,7 @@
     using Newtonsoft.Json;
     using Octokit;
 
-    public class MainViewModel : ViewModelBase
+    public partial class MainViewModel : ViewModelBase
     {
         private readonly Version applicationVersion;
         private readonly SettingsService settingsService;
@@ -88,11 +89,11 @@
                 firstTimeSettingsUpdated = false;
             }
 
-            RaisePropertyChanged(nameof(Settings_RootProjectsPath));
-            RaisePropertyChanged(nameof(Settings_CreateCompanyName));
-            RaisePropertyChanged(nameof(Settings_UseCompanyFiles));
-            RaisePropertyChanged(nameof(Settings_AutoUpdate));
-            RaisePropertyChanged(nameof(ToolkitRepository));
+            OnPropertyChanged(nameof(Settings_RootProjectsPath));
+            OnPropertyChanged(nameof(Settings_CreateCompanyName));
+            OnPropertyChanged(nameof(Settings_UseCompanyFiles));
+            OnPropertyChanged(nameof(Settings_AutoUpdate));
+            OnPropertyChanged(nameof(ToolkitRepository));
         }
 
         private void OnNewVersionAvailable(NewVersionAvailableMessage message)
@@ -195,12 +196,10 @@
             settingsService.SetTemplateRepositories(TemplateRepositories.Select(x => x.Model).ToList());
         }
 
-        public ICommand OpenToolkitRepositorySettingsCommand => new RelayCommand((_) => Messenger.Send(new OpenRepositoryFormRequestMessage { Repository = ToolkitRepository, Mode = RepositoryFormMode.Edit }));
+        [RelayCommand]
+        private void OpenToolkitRepositorySettings() => Messenger.Send(new OpenRepositoryFormRequestMessage { Repository = ToolkitRepository, Mode = RepositoryFormMode.Edit });
 
-        public ICommand AddTemplateRepositoryCommand => new RelayCommand((_) => AddTemplateRepository());
-
-        public ICommand AddCompanyFilesRepositoryCommand => new RelayCommand((_) => AddCompanyFilesRepository());
-
+        [RelayCommand]
         private void AddTemplateRepository()
         {
             waitAddTemplateRepository = true;
@@ -208,6 +207,7 @@
             Messenger.Send(new OpenRepositoryFormRequestMessage { Repository = new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, Messenger, consoleWriter), Mode = RepositoryFormMode.Create });
         }
 
+        [RelayCommand]
         private void AddCompanyFilesRepository()
         {
             waitAddCompanyFilesRepository = true;
@@ -222,11 +222,7 @@
         public RepositoryViewModel ToolkitRepository
         {
             get => toolkitRepository;
-            set
-            {
-                toolkitRepository = value;
-                RaisePropertyChanged(nameof(ToolkitRepository));
-            }
+            set => SetProperty(ref toolkitRepository, value);
         }
 
         public void UpdateRepositories(IBIATKSettings settings)
@@ -326,16 +322,8 @@
 
         public string ApplicationVersion => $"V{applicationVersion.Major}.{applicationVersion.Minor}.{applicationVersion.Build}";
 
+        [ObservableProperty]
         private bool _updateAvailable;
-        public bool UpdateAvailable
-        {
-            get => _updateAvailable;
-            set
-            {
-                _updateAvailable = value;
-                RaisePropertyChanged(nameof(UpdateAvailable));
-            }
-        }
 
         /// <summary>Initializes the application: loads releases data, inits settings, checks for updates and registers MSBuild.</summary>
         public async Task InitAsync(BIATKSettings settings)

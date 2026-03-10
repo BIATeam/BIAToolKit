@@ -1,11 +1,11 @@
 ﻿namespace BIA.ToolKit.ViewModel
 {
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using BIA.ToolKit.Domain.Settings;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
 
-    public class RepositoriesSettingsVM : ObservableObject
+    public partial class RepositoriesSettingsVM : ObservableObject
     {
         //ObservableCollection<IRepositorySettings> repositoriesSettings;
 

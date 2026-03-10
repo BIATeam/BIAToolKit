@@ -1,14 +1,14 @@
 namespace BIA.ToolKit.Application.ViewModel.Base
 {
     using BIA.ToolKit.Application.ViewModel.Interfaces;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
 
     /// <summary>
     /// Abstract base class for all ViewModels.
     /// Combines <see cref="ObservableObject"/> (INotifyPropertyChanged) with
     /// <see cref="IViewModel"/> lifecycle hooks and access to <see cref="IMessenger"/>.
     /// </summary>
-    public abstract class ViewModelBase : ObservableObject, IViewModel
+    public abstract partial class ViewModelBase : ObservableObject, IViewModel
     {
         /// <summary>
         /// Gets the typed messenger used to publish and subscribe to messages.
