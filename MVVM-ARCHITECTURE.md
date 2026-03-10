@@ -9,45 +9,78 @@ BIAToolKit est une application WPF .NET dont l'architecture a été refactorisé
 ## 📁 Structure du projet
 
 ```
-BIA.ToolKit.Application/
+BIA.ToolKit.Application/          ← Couche Application
 ├── Services/                    ← Services métier (logique applicative)
 │   ├── CSharpParserService.cs
 │   ├── SettingsService.cs
 │   ├── UpdateService.cs
 │   └── ...
-├── ViewModel/
-│   ├── Interfaces/              ← Contrats MVVM
-│   │   ├── IViewModel.cs        ← Initialize() + Cleanup()
-│   │   └── IMessenger.cs        ← Pub/sub typé
-│   ├── Base/
-│   │   └── ViewModelBase.cs     ← Classe de base abstraite
-│   ├── Messaging/
-│   │   ├── Messenger.cs         ← Implémentation thread-safe
-│   │   └── Messages/            ← Messages typés
-│   │       ├── IMessage.cs
-│   │       ├── ProjectChangedMessage.cs
-│   │       ├── SettingsUpdatedMessage.cs
-│   │       ├── SolutionParsedMessage.cs
-│   │       ├── NewVersionAvailableMessage.cs
-│   │       └── ...
-│   ├── ModifyProjectViewModel.cs
+└── ViewModel/                   ← Infrastructure MVVM uniquement
+    ├── Interfaces/              ← Contrats MVVM
+    │   ├── IViewModel.cs        ← Initialize() + Cleanup()
+    │   └── IMessenger.cs        ← Pub/sub typé
+    ├── Base/
+    │   └── ViewModelBase.cs     ← Classe de base abstraite
+    ├── MicroMvvm/               ← ObservableObject, RelayCommand
+    ├── Messaging/
+    │   ├── Messenger.cs         ← Implémentation thread-safe
+    │   └── Messages/            ← Messages partagés (services → ViewModels)
+    │       ├── IMessage.cs
+    │       ├── SettingsUpdatedMessage.cs
+    │       ├── SolutionParsedMessage.cs
+    │       └── NewVersionAvailableMessage.cs
+    └── MappingEntityProperty.cs ← Modèle de propriété DTO
+
+BIA.ToolKit/                      ← Couche Présentation (WPF)
+├── App.xaml.cs                  ← Configuration IoC (DI centralisée)
+├── MainWindow.xaml              ← View principale
+├── MainWindow.xaml.cs           ← Code-behind (lifecycle + dialog requests)
+├── ViewModels/                  ← ViewModels de fonctionnalités
 │   ├── MainViewModel.cs
+│   ├── ModifyProjectViewModel.cs
 │   ├── CRUDGeneratorViewModel.cs
 │   ├── DtoGeneratorViewModel.cs
 │   ├── OptionGeneratorViewModel.cs
-│   └── VersionAndOptionViewModel.cs
-
-BIA.ToolKit/
-├── App.xaml.cs                  ← Configuration IoC (DI centralisée)
-├── MainWindow.xaml              ← View principale
-├── MainWindow.xaml.cs           ← Code-behind minimal (lifecycle seulement)
+│   ├── VersionAndOptionViewModel.cs
+│   ├── RepositoryViewModel.cs
+│   ├── RepositoryGitViewModel.cs
+│   ├── RepositoryFolderViewModel.cs
+│   ├── RepositoryFormViewModel.cs
+│   ├── RepositoryFormMode.cs
+│   ├── RepositoriesSettingsVM.cs
+│   ├── RepositorySettingsVM.cs
+│   ├── FeatureSettingViewModel.cs
+│   ├── VersionAndOptionMapper.cs
+│   └── Messaging/
+│       └── Messages/            ← Messages UI (entre ViewModels de présentation)
+│           ├── ExecuteWithWaiterMessage.cs
+│           ├── ProjectChangedMessage.cs
+│           ├── ClassesParsedMessage.cs
+│           ├── NotificationMessage.cs
+│           ├── OriginFeatureSettingsChangedMessage.cs
+│           ├── OpenRepositoryFormRequestMessage.cs
+│           ├── RepositoriesUpdatedMessage.cs
+│           ├── RepositoryViewModelAddedMessage.cs
+│           ├── RepositoryViewModelChangedMessage.cs
+│           ├── RepositoryViewModelDeletedMessage.cs
+│           ├── RepositoryViewModelReleaseDataUpdatedMessage.cs
+│           └── RepositoryViewModelVersionXYZChangedMessage.cs
 └── UserControls/
-    ├── ModifyProjectUC.xaml.cs  ← ~70 lignes (lifecycle + délégation VM)
-    ├── CRUDGeneratorUC.xaml.cs  ← ~162 lignes (lifecycle + délégation VM)
-    ├── DtoGeneratorUC.xaml.cs   ← ~146 lignes (lifecycle + délégation VM)
-    ├── OptionGeneratorUC.xaml.cs← ~145 lignes (lifecycle + délégation VM)
+    ├── ModifyProjectUC.xaml.cs
+    ├── CRUDGeneratorUC.xaml.cs
+    ├── DtoGeneratorUC.xaml.cs
+    ├── OptionGeneratorUC.xaml.cs
     └── VersionAndOptionUserControl.xaml.cs
 ```
+
+### Séparation des namespaces
+
+| Namespace | Contenu |
+|-----------|---------|
+| `BIA.ToolKit.Application.ViewModel` | Infrastructure MVVM : `IMessenger`, `IViewModel`, `ViewModelBase`, `MicroMvvm`, `Messenger`, `MappingEntityProperty` |
+| `BIA.ToolKit.Application.ViewModel.Messaging.Messages` | Messages partagés avec la couche Application : `IMessage`, `SettingsUpdatedMessage`, `SolutionParsedMessage`, `NewVersionAvailableMessage` |
+| `BIA.ToolKit.ViewModel` | ViewModels de fonctionnalités (couche présentation) |
+| `BIA.ToolKit.ViewModel.Messaging.Messages` | Messages UI entre ViewModels de présentation |
 
 ---
 
@@ -116,13 +149,31 @@ public class MyFeatureViewModel : ViewModelBase
 
 ## 📨 Messages disponibles
 
+### Messages Application (`BIA.ToolKit.Application.ViewModel.Messaging.Messages`)
+Ces messages sont émis par les services de la couche Application et reçus par les ViewModels.
+
 | Message | Quand est-il émis ? | Données |
 |---------|--------------------|---------| 
-| `ProjectChangedMessage` | Changement de projet courant (ModifyProjectViewModel) | `Project Project` |
 | `SettingsUpdatedMessage` | Changement de paramètres (SettingsService) | `IBIATKSettings Settings` |
 | `SolutionParsedMessage` | Fin de parsing de la solution C# (CSharpParserService) | _(aucune)_ |
 | `NewVersionAvailableMessage` | Nouvelle version disponible (UpdateService) | _(aucune)_ |
+
+### Messages Présentation (`BIA.ToolKit.ViewModel.Messaging.Messages`)
+Ces messages sont émis et reçus uniquement dans la couche présentation (entre ViewModels).
+
+| Message | Quand est-il émis ? | Données |
+|---------|--------------------|---------| 
+| `ProjectChangedMessage` | Changement de projet courant (ModifyProjectViewModel) | `Project Project` |
 | `NotificationMessage` | Notification utilisateur | `string Message`, `NotificationType Type` |
+| `ExecuteWithWaiterMessage` | Exécution d'une tâche async avec waiter UI | `Func<Task> Task` |
+| `ClassesParsedMessage` | Classes parsées depuis le projet | _(aucune)_ |
+| `OpenRepositoryFormRequestMessage` | Ouverture du formulaire repository | `RepositoryViewModel`, `RepositoryFormMode` |
+| `RepositoriesUpdatedMessage` | Collection de repositories modifiée | _(aucune)_ |
+| `RepositoryViewModelAddedMessage` | Nouveau repository créé | `RepositoryViewModel` |
+| `RepositoryViewModelChangedMessage` | Repository modifié | `OldRepository`, `NewRepository` |
+| `RepositoryViewModelDeletedMessage` | Repository supprimé | `RepositoryViewModel` |
+| `RepositoryViewModelReleaseDataUpdatedMessage` | Données de release mises à jour | `RepositoryViewModel` |
+| `RepositoryViewModelVersionXYZChangedMessage` | Flag IsVersionXYZ modifié | `RepositoryViewModel` |
 
 ---
 
@@ -132,16 +183,14 @@ public class MyFeatureViewModel : ViewModelBase
 public partial class MyFeatureUC : UserControl
 {
     private MyFeatureViewModel vm;
-    private UIEventBroker uiEventBroker; // conservé pour RequestExecuteActionWithWaiter
 
     public MyFeatureUC()
     {
         InitializeComponent();
     }
 
-    public void Inject(/* services nécessaires */, UIEventBroker uiEventBroker, MyFeatureViewModel viewModel)
+    public void Inject(/* services nécessaires */, IMessenger messenger, MyFeatureViewModel viewModel)
     {
-        this.uiEventBroker = uiEventBroker;
         this.vm = viewModel;
         DataContext = vm;
 
@@ -149,12 +198,21 @@ public partial class MyFeatureUC : UserControl
         Unloaded += (_, _) => vm.Cleanup();
     }
 
-    // Seuls les handlers UI purs restent ici
-    private void Generate_Click(object sender, RoutedEventArgs e)
+    // Seuls les handlers UI purs restent ici (dialogs de confirmation, opérations UI)
+    private async void DeleteWithConfirmation_Click(object sender, RoutedEventArgs e)
     {
-        uiEventBroker.RequestExecuteActionWithWaiter(vm.GenerateAsync);
+        if (MessageBox.Show("Confirmer ?", "Attention", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
+        {
+            await vm.DeleteAsync();
+        }
     }
 }
+```
+
+Les actions métier sont exposées comme `ICommand` dans le ViewModel et liées directement en XAML :
+
+```xaml
+<Button Command="{Binding GenerateCommand}" IsEnabled="{Binding IsGenerationEnabled}" Content="Generate"/>
 ```
 
 ---
@@ -168,7 +226,6 @@ private void ConfigureServices(ServiceCollection services)
 {
     // Infrastructure MVVM
     services.AddSingleton<IMessenger, Messenger>();
-    services.AddSingleton<UIEventBroker>();
 
     // ViewModels (singletons car ils vivent toute la session)
     services.AddSingleton<MainViewModel>(); // créé manuellement (Version arg)
@@ -198,20 +255,28 @@ private void ConfigureServices(ServiceCollection services)
 ### 1. Créer le ViewModel
 
 ```csharp
-// BIA.ToolKit.Application/ViewModel/MyNewViewModel.cs
-public class MyNewViewModel : ViewModelBase
+// BIA.ToolKit/ViewModels/MyNewViewModel.cs
+namespace BIA.ToolKit.ViewModel
 {
-    public MyNewViewModel(IMessenger messenger, IMyService service)
-        : base(messenger) { }
+    using BIA.ToolKit.Application.ViewModel.Base;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
+    using BIA.ToolKit.ViewModel.Messaging.Messages;
 
-    public override void Initialize()
+    public class MyNewViewModel : ViewModelBase
     {
-        Messenger.Subscribe<ProjectChangedMessage>(OnProjectChanged);
-    }
+        public MyNewViewModel(IMessenger messenger, IMyService service)
+            : base(messenger) { }
 
-    public override void Cleanup()
-    {
-        Messenger.Unsubscribe<ProjectChangedMessage>(OnProjectChanged);
+        public override void Initialize()
+        {
+            Messenger.Subscribe<ProjectChangedMessage>(OnProjectChanged);
+        }
+
+        public override void Cleanup()
+        {
+            Messenger.Unsubscribe<ProjectChangedMessage>(OnProjectChanged);
+        }
     }
 }
 ```
@@ -222,6 +287,7 @@ public class MyNewViewModel : ViewModelBase
 <!-- MyNewUC.xaml - DataContext défini en code-behind, PAS en XAML -->
 <UserControl x:Class="BIA.ToolKit.UserControls.MyNewUC" ...>
     <!-- Contenu XAML lié au ViewModel via bindings -->
+    <Button Command="{Binding DoSomethingCommand}" Content="Action"/>
 </UserControl>
 ```
 
@@ -233,7 +299,7 @@ public partial class MyNewUC : UserControl
 
     public MyNewUC() { InitializeComponent(); }
 
-    public void Inject(UIEventBroker uiEventBroker, MyNewViewModel viewModel)
+    public void Inject(IMessenger messenger, MyNewViewModel viewModel)
     {
         this.vm = viewModel;
         DataContext = vm;
@@ -253,6 +319,32 @@ services.AddSingleton<MyNewViewModel>();
 ### 4. Passer par injection
 
 Dans le parent (ex: MainWindow ou ModifyProjectUC), recevoir le ViewModel via le constructeur DI et le passer à `UC.Inject(...)`.
+
+---
+
+## ⚡ Pattern Commands dans un ViewModel
+
+Les actions déclenchées par les boutons UI sont exposées comme `ICommand` dans le ViewModel. Pour les opérations asynchrones avec indicateur de chargement (waiter), utiliser `ExecuteWithWaiterMessage` :
+
+```csharp
+public ICommand GenerateCrudCommand => new RelayCommand(_ =>
+    Messenger.Send(new ExecuteWithWaiterMessage { Task = GenerateCRUDAsync }));
+
+public ICommand DeleteLastGenerationCommand => new RelayCommand(_ =>
+{
+    var history = GetCurrentDtoHistory();
+    Messenger.Send(new ExecuteWithWaiterMessage
+    {
+        Task = async () => { await DeleteLastGenerationAsync(history); }
+    });
+});
+```
+
+Pour les opérations synchrones simples :
+
+```csharp
+public ICommand RefreshProjectsListCommand => new RelayCommand(_ => RefreshProjetsList());
+```
 
 ---
 
@@ -298,8 +390,11 @@ private void OnProjectChanged(ProjectChangedMessage msg)
 - [ ] Le DataContext est défini en code-behind (pas dans le XAML)
 - [ ] `Loaded` → `vm.Initialize()` et `Unloaded` → `vm.Cleanup()` sont câblés
 - [ ] Le ViewModel est enregistré comme singleton dans `App.xaml.cs`
-- [ ] Aucun `UIEventBroker.OnProjectChanged` ou `OnSolutionClassesParsed` en code-behind
-- [ ] Le code-behind ne contient pas de logique métier
+- [ ] Les actions métier sont exposées comme `ICommand` dans le ViewModel
+- [ ] Les boutons sont liés via `Command="{Binding ...}"` dans le XAML
+- [ ] Le code-behind ne contient pas de logique métier (uniquement UI : dialogs, drag-drop, redimensionnement)
+- [ ] Les ViewModels de fonctionnalités sont dans `BIA.ToolKit/ViewModels/` (namespace `BIA.ToolKit.ViewModel`)
+- [ ] Les messages UI sont dans `BIA.ToolKit/ViewModels/Messaging/Messages/` (namespace `BIA.ToolKit.ViewModel.Messaging.Messages`)
 
 ---
 
@@ -308,3 +403,4 @@ private void OnProjectChanged(ProjectChangedMessage msg)
 - [Microsoft WPF MVVM Patterns](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/)
 - [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet)
 - Issue EPIC : [#65 – Plan de Refactorisation MVVM – BIAToolKit](https://github.com/BIATeam/BIAToolKit/issues/65)
+

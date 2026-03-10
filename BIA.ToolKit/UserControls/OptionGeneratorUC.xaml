@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
+             xmlns:local="clr-namespace:BIA.ToolKit.ViewModel;assembly=BIA.ToolKit"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
              d:DesignHeight="430" d:DesignWidth="1400">
@@ -34,11 +34,11 @@
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Entity" ItemsSource="{Binding Entities}" SelectedItem="{Binding Entity}" SelectionChanged="ModifyEntity_SelectionChange" IsEnabled="{Binding IsProjectChosen}" ItemTemplate="{StaticResource EntityDisplayTemplate}"/>
-                <Label Grid.Row="1" Name="OptionAlreadyGeneratedLabel" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="Collapsed" d:Visibility="Visible" />
+                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Entity" ItemsSource="{Binding Entities}" SelectedItem="{Binding Entity}" IsEnabled="{Binding IsProjectChosen}" ItemTemplate="{StaticResource EntityDisplayTemplate}"/>
+                <Label Grid.Row="1" Name="OptionAlreadyGeneratedLabel" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="{Binding IsGenerated, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible" />
             </Grid>
             <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Domain" Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextWrapping="Wrap" IsEnabled="{Binding IsEntityParsed}"/>
-            <ComboBox Margin="{StaticResource FormRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="BIA Front" x:Name="BIAFront" ItemsSource="{Binding BiaFronts}" SelectedValue="{Binding BiaFront}" IsEnabled="{Binding IsProjectChosen}" SelectionChanged="BIAFront_SelectionChanged"/>
+            <ComboBox Margin="{StaticResource FormRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="BIA Front" x:Name="BIAFront" ItemsSource="{Binding BiaFronts}" SelectedValue="{Binding BiaFront}" IsEnabled="{Binding IsProjectChosen}"/>
         </Grid>
 
         <Grid Grid.Column="2">
@@ -70,14 +70,14 @@
                 <RowDefinition Height="auto"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <Button Grid.Row="0" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Content="Generate" IsEnabled="{Binding IsButtonGenerateOptionEnable}" x:Name="GenerateCrud" Height="50"  Click="Generate_Click"/>
+            <Button Grid.Row="0" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Content="Generate" IsEnabled="{Binding IsButtonGenerateOptionEnable}" x:Name="GenerateCrud" Height="50" Command="{Binding GenerateOptionCommand}"/>
             <Grid Grid.Row="1" VerticalAlignment="Bottom">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <Button Visibility="Hidden" Grid.Row="0" Content="Delete previous generation" x:Name="DeleteGeneration"  Click="DeleteLastGeneration_Click" IsEnabled="{Binding IsEntityParsed}"/>
+                <Button Visibility="Hidden" Grid.Row="0" Content="Delete previous generation" x:Name="DeleteGeneration" Command="{Binding DeleteLastGenerationCommand}" IsEnabled="{Binding IsEntityParsed}"/>
                 <Label Margin="0,10,0,0" Grid.Row="1" Content="After generation :" Foreground="White" HorizontalAlignment="Center"/>
                 <Button Grid.Row="2" Content="Delete annotations" x:Name="DeleteAnnotations" Click="DeleteBIAToolkitAnnotations_Click" IsEnabled="{Binding IsProjectChosen}"/>
             </Grid>

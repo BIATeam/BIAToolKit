@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+﻿namespace BIA.ToolKit.ViewModel
 {
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.Settings;

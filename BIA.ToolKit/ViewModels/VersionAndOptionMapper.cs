@@ -1,6 +1,5 @@
-﻿namespace BIA.ToolKit.Application.Mapper
+namespace BIA.ToolKit.ViewModel
 {
-    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.Work;
     using System.Collections.Generic;
@@ -38,30 +37,5 @@
                 }
             }
         }
-
-        public static void ModelToDto(VersionAndOption model, VersionAndOptionDto dto)
-        {
-            dto.FrameworkVersion = model.WorkTemplate?.Version;
-
-            // Feature
-            dto.Tags = model.FeatureSettings
-                .Where(f => f.IsSelected)
-                .SelectMany(f => f.Tags)
-                .Distinct()
-                .ToList();
-
-            dto.Folders = model.FeatureSettings
-                .Where(f => f.IsSelected)
-                .SelectMany(f => f.FoldersToExcludes)
-                .Distinct()
-                .ToList();
-
-            // Company Files
-            dto.UseCompanyFiles = model.UseCompanyFiles;
-            dto.CompanyFileVersion = model.WorkCompanyFile?.Version;
-            dto.Profile = model.Profile;
-            dto.Options = model.Options?.Where(o => o.IsChecked).Select(o => o.Key).ToList();
-        }
-
     }
 }

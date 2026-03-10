@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+﻿namespace BIA.ToolKit.ViewModel
 {
     using System;
     using System.Collections.Generic;
@@ -12,6 +12,7 @@
     using BIA.ToolKit.Application.ViewModel.Base;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
+    using BIA.ToolKit.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Common.Helpers;

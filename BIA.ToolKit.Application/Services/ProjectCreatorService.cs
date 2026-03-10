@@ -8,7 +8,7 @@
     using System.Threading.Tasks;
     using System.Xml.Linq;
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Mapper;
+
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Common.Helpers;
     using BIA.ToolKit.Domain.Model;
@@ -174,7 +174,14 @@
 
                     string projectGenerationFile = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
                     VersionAndOptionDto versionAndOptionDto = new VersionAndOptionDto();
-                    VersionAndOptionMapper.ModelToDto(projectParameters.VersionAndOption, versionAndOptionDto);
+                    var model = projectParameters.VersionAndOption;
+                    versionAndOptionDto.FrameworkVersion = model.WorkTemplate?.Version;
+                    versionAndOptionDto.Tags = model.FeatureSettings.Where(f => f.IsSelected).SelectMany(f => f.Tags).Distinct().ToList();
+                    versionAndOptionDto.Folders = model.FeatureSettings.Where(f => f.IsSelected).SelectMany(f => f.FoldersToExcludes).Distinct().ToList();
+                    versionAndOptionDto.UseCompanyFiles = model.UseCompanyFiles;
+                    versionAndOptionDto.CompanyFileVersion = model.WorkCompanyFile?.Version;
+                    versionAndOptionDto.Profile = model.Profile;
+                    versionAndOptionDto.Options = model.Options?.Where(o => o.IsChecked).Select(o => o.Key).ToList();
                     CommonTools.SerializeToJsonFile(versionAndOptionDto, projectGenerationFile);
                 });
 

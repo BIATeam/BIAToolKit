@@ -15,7 +15,7 @@
     using System.Windows.Shapes;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModel;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Helper;
 

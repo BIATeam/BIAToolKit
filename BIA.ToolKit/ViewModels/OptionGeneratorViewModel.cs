@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+﻿namespace BIA.ToolKit.ViewModel
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
@@ -8,6 +8,7 @@
     using BIA.ToolKit.Application.ViewModel.Base;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
+    using BIA.ToolKit.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
@@ -21,6 +22,7 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Windows.Input;
 
     public class OptionGeneratorViewModel : ViewModelBase
     {
@@ -395,6 +397,39 @@
             consoleWriter.AddMessageLine($"End of annotations suppression.", "Purple");
         }
 
+        public async Task DeleteAnnotationsAsync()
+        {
+            var folders = new List<string>
+            {
+                Path.Combine(CurrentProject.Folder, Constants.FolderDotNet),
+                Path.Combine(CurrentProject.Folder, BiaFront, "src", "app")
+            };
+            await DeleteAnnotationsAsync(folders);
+        }
+
+        #region Commands
+        public ICommand GenerateOptionCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = GenerateOptionAsync }));
+        public ICommand DeleteLastGenerationCommand => new RelayCommand(_ =>
+        {
+            try
+            {
+                var history = GetCurrentEntityHistory();
+                Messenger.Send(new ExecuteWithWaiterMessage
+                {
+                    Task = async () =>
+                    {
+                        await DeleteLastOptionAsync(history);
+                        IsGenerated = false;
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error on deleting last '{Entity?.Name}' generation: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+        });
+        #endregion
+
         public string GetEntitySelectedPath()
         {
             if (Entity is null)
@@ -445,6 +480,10 @@
             {
                 _biaFront = value;
                 RaisePropertyChanged(nameof(BiaFront));
+                if (!string.IsNullOrEmpty(value) && CurrentProject != null)
+                {
+                    SetFrontGenerationSettings(value);
+                }
             }
         }
 
@@ -471,6 +510,7 @@
                 {
                     entity = value;
                     RaisePropertyChanged(nameof(IsButtonGenerateOptionEnable));
+                    OnEntitySelected(value);
                 }
             }
         }

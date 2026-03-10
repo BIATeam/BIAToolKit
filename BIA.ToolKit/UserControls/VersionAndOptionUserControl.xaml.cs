@@ -2,9 +2,9 @@
 {
     using System.Windows.Controls;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModel;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
-    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
+    using BIA.ToolKit.ViewModel.Messaging.Messages;
 
     /// <summary>
     /// Interaction logic for VersionAndOptionView.xaml

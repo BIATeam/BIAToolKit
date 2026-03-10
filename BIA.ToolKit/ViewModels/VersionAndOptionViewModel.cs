@@ -1,11 +1,11 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+﻿namespace BIA.ToolKit.ViewModel
 {
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Mapper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel.Base;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
+    using BIA.ToolKit.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain;
