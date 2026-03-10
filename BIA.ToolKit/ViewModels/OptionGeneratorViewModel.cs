@@ -9,7 +9,8 @@
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.ViewModel.Messaging.Messages;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -22,9 +23,8 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Windows.Input;
 
-    public class OptionGeneratorViewModel : ViewModelBase
+    public partial class OptionGeneratorViewModel : ViewModelBase
     {
         private const string DOTNET_TYPE = "DotNet";
         private const string ANGULAR_TYPE = "Angular";
@@ -408,8 +408,14 @@
         }
 
         #region Commands
-        public ICommand GenerateOptionCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = GenerateOptionAsync }));
-        public ICommand DeleteLastGenerationCommand => new RelayCommand(_ =>
+        [RelayCommand]
+        private void GenerateOption()
+        {
+            Messenger.Send(new ExecuteWithWaiterMessage { Task = GenerateOptionAsync });
+        }
+
+        [RelayCommand]
+        private void DeleteLastGeneration()
         {
             try
             {
@@ -427,7 +433,7 @@
             {
                 System.Windows.MessageBox.Show($"Error on deleting last '{Entity?.Name}' generation: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
-        });
+        }
         #endregion
 
         public string GetEntitySelectedPath()
@@ -457,20 +463,12 @@
                     BiaFront = BiaFronts.FirstOrDefault();
                 }
 
-                RaisePropertyChanged(nameof(IsProjectCompatibleV7));
+                OnPropertyChanged(nameof(IsProjectCompatibleV7));
             }
         }
 
+        [ObservableProperty]
         private bool isProjectChosen;
-        public bool IsProjectChosen
-        {
-            get => isProjectChosen;
-            set
-            {
-                isProjectChosen = value;
-                RaisePropertyChanged(nameof(IsProjectChosen));
-            }
-        }
 
         private string _biaFront;
         public string BiaFront
@@ -479,7 +477,7 @@
             set
             {
                 _biaFront = value;
-                RaisePropertyChanged(nameof(BiaFront));
+                OnPropertyChanged(nameof(BiaFront));
                 if (!string.IsNullOrEmpty(value) && CurrentProject != null)
                 {
                     SetFrontGenerationSettings(value);
@@ -487,16 +485,9 @@
             }
         }
 
+        [ObservableProperty]
         private ObservableCollection<string> _biaFronts = new();
-        public ObservableCollection<string> BiaFronts
-        {
-            get => _biaFronts;
-            set
-            {
-                _biaFronts = value;
-                RaisePropertyChanged(nameof(BiaFronts));
-            }
-        }
+
         #endregion
 
         #region Entity
@@ -509,39 +500,17 @@
                 if (entity != value)
                 {
                     entity = value;
-                    RaisePropertyChanged(nameof(IsButtonGenerateOptionEnable));
+                    OnPropertyChanged(nameof(IsButtonGenerateOptionEnable));
                     OnEntitySelected(value);
                 }
             }
         }
 
+        [ObservableProperty]
         private ObservableCollection<EntityInfo> entities;
-        public ObservableCollection<EntityInfo> Entities
-        {
-            get => entities;
-            set
-            {
-                if (entities != value)
-                {
-                    entities = value;
-                    RaisePropertyChanged(nameof(Entities));
-                }
-            }
-        }
 
+        [ObservableProperty]
         private ObservableCollection<string> entityDisplayItems;
-        public ObservableCollection<string> EntityDisplayItems
-        {
-            get => entityDisplayItems;
-            set
-            {
-                if (entityDisplayItems != value)
-                {
-                    entityDisplayItems = value;
-                    RaisePropertyChanged(nameof(EntityDisplayItems));
-                }
-            }
-        }
 
         private bool isEntityParsed = false;
         public bool IsEntityParsed
@@ -552,8 +521,8 @@
                 if (isEntityParsed != value)
                 {
                     isEntityParsed = value;
-                    RaisePropertyChanged(nameof(IsEntityParsed));
-                    RaisePropertyChanged(nameof(IsButtonGenerateOptionEnable));
+                    OnPropertyChanged(nameof(IsEntityParsed));
+                    OnPropertyChanged(nameof(IsButtonGenerateOptionEnable));
                 }
             }
         }
@@ -567,42 +536,20 @@
                 if (entityDisplayItemSelected != value)
                 {
                     entityDisplayItemSelected = value;
-                    RaisePropertyChanged(nameof(EntityDisplayItemSelected));
-                    RaisePropertyChanged(nameof(IsButtonGenerateOptionEnable));
+                    OnPropertyChanged(nameof(EntityDisplayItemSelected));
+                    OnPropertyChanged(nameof(IsButtonGenerateOptionEnable));
                 }
             }
         }
 
-        private bool isGenerated = false;
-        public bool IsGenerated
-        {
-            get => isGenerated;
-            set
-            {
-                if (isGenerated != value)
-                {
-                    isGenerated = value;
-                    RaisePropertyChanged(nameof(IsGenerated));
-                }
-            }
-        }
+        [ObservableProperty]
+        private bool isGenerated;
         #endregion
 
         #region Entity Name
 
+        [ObservableProperty]
         private string entityNamePlural;
-        public string EntityNamePlural
-        {
-            get => entityNamePlural;
-            set
-            {
-                if (entityNamePlural != value)
-                {
-                    entityNamePlural = value;
-                    RaisePropertyChanged(nameof(EntityNamePlural));
-                }
-            }
-        }
         #endregion
 
         #region Domain
@@ -616,8 +563,8 @@
                 if (domain != value)
                 {
                     domain = value;
-                    RaisePropertyChanged(nameof(Domain));
-                    RaisePropertyChanged(nameof(IsButtonGenerateOptionEnable));
+                    OnPropertyChanged(nameof(Domain));
+                    OnPropertyChanged(nameof(IsButtonGenerateOptionEnable));
                 }
             }
         }
@@ -656,17 +603,8 @@
 
         public bool IsProjectCompatibleV7 => Version.TryParse(CurrentProject?.FrameworkVersion, out var version) && version.Major >= 7;
 
+        [ObservableProperty]
         private bool _useHubClient;
-
-        public bool UseHubClient
-        {
-            get { return _useHubClient; }
-            set
-            {
-                _useHubClient = value;
-                RaisePropertyChanged(nameof(UseHubClient));
-            }
-        }
 
         #endregion
     }
