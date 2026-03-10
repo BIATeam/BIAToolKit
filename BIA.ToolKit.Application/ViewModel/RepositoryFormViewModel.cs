@@ -7,10 +7,11 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
 
-    public class RepositoryFormViewModel(RepositoryViewModel repository, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter) : ObservableObject
+    public class RepositoryFormViewModel(RepositoryViewModel repository, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter) : ObservableObject
     {
         public RepositoryViewModel Repository
         {
@@ -41,7 +42,7 @@
                             projectName: repository.ProjectName,
                             useRepository: repository.UseRepository),
                         gitService,
-                        eventBroker,
+                        messenger,
                         consoleWriter)
                     { 
                         IsVisibleCompanyName = repository.IsVisibleCompanyName, 
@@ -56,7 +57,7 @@
                             projectName: repository.ProjectName,
                             useRepository: repository.UseRepository),
                         gitService,
-                        eventBroker,
+                        messenger,
                         consoleWriter)
                     {
                         IsVisibleCompanyName = repository.IsVisibleCompanyName,

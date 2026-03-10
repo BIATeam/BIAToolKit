@@ -7,10 +7,11 @@
     using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
 
-    public sealed class RepositoryGitViewModel(RepositoryGit repositoryGit, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter) : RepositoryViewModel(repositoryGit, gitService, eventBroker, consoleWriter)
+    public sealed class RepositoryGitViewModel(RepositoryGit repositoryGit, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter) : RepositoryViewModel(repositoryGit, gitService, messenger, consoleWriter)
     {
         public string GitRepositoryName
         {

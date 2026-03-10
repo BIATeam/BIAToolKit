@@ -9,9 +9,6 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
              d:DesignHeight="430" d:DesignWidth="1400">
-    <UserControl.DataContext>
-        <local:CRUDGeneratorViewModel />
-    </UserControl.DataContext>
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
         <Thickness x:Key="FormFirstRowMargin">0,0,0,5</Thickness>

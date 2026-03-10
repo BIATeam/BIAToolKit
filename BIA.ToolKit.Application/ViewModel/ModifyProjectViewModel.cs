@@ -3,6 +3,10 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Settings;
+    using BIA.ToolKit.Application.ViewModel.Base;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -10,41 +14,72 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Windows.Input;
 
-    public class ModifyProjectViewModel : ObservableObject
+    public class ModifyProjectViewModel : ViewModelBase
     {
-        private UIEventBroker eventBroker;
-        private FileGeneratorService fileGeneratorService;
-        private IConsoleWriter consoleWriter;
-        private SettingsService settingsService;
-        private CSharpParserService parserService;
+        private readonly FileGeneratorService fileGeneratorService;
+        private readonly IConsoleWriter consoleWriter;
+        private readonly SettingsService settingsService;
+        private readonly CSharpParserService parserService;
+        private readonly GitService gitService;
+        private readonly ProjectCreatorService projectCreatorService;
+        private readonly CRUDSettings crudSettings;
 
-        public ModifyProjectViewModel()
-        {
-            ModifyProject = new ModifyProject();
-            OverwriteBIAFromOriginal = true;
-        }
+        private bool firstTimeSettingsUpdated = true;
 
-        public void Inject(UIEventBroker eventBroker, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService, CSharpParserService parserService)
+        public ModifyProjectViewModel(IMessenger messenger, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService, CSharpParserService parserService, GitService gitService, ProjectCreatorService projectCreatorService)
+            : base(messenger)
         {
-            this.eventBroker = eventBroker;
             this.fileGeneratorService = fileGeneratorService;
             this.consoleWriter = consoleWriter;
             this.settingsService = settingsService;
             this.parserService = parserService;
+            this.gitService = gitService;
+            this.projectCreatorService = projectCreatorService;
+            this.crudSettings = new CRUDSettings(settingsService);
 
-            eventBroker.OnSettingsUpdated += EventBroker_OnSettingsUpdated;
+            ModifyProject = new ModifyProject();
+            OverwriteBIAFromOriginal = true;
         }
 
-        private void EventBroker_OnSettingsUpdated(IBIATKSettings settings)
+        public VersionAndOptionViewModel MigrateOriginVm { get; set; }
+        public VersionAndOptionViewModel MigrateTargetVm { get; set; }
+        public Action OnSolutionParsedAction { get; set; }
+
+        /// <inheritdoc/>
+        public override void Initialize()
         {
+            Messenger.Subscribe<SettingsUpdatedMessage>(OnSettingsUpdated);
+            Messenger.Subscribe<SolutionParsedMessage>(OnSolutionParsed);
+        }
+
+        /// <inheritdoc/>
+        public override void Cleanup()
+        {
+            Messenger.Unsubscribe<SettingsUpdatedMessage>(OnSettingsUpdated);
+            Messenger.Unsubscribe<SolutionParsedMessage>(OnSolutionParsed);
+        }
+
+        private void OnSettingsUpdated(SettingsUpdatedMessage message)
+        {
+            if (firstTimeSettingsUpdated)
+            {
+                RefreshProjetsList();
+                firstTimeSettingsUpdated = false;
+            }
+
             RaisePropertyChanged(nameof(RootProjectsPath));
+        }
+
+        private void OnSolutionParsed(SolutionParsedMessage msg)
+        {
+            ParameterModifyChange();
+            OnSolutionParsedAction?.Invoke();
         }
 
         public ICommand RefreshProjectInformationsCommand => new RelayCommand((_) => RefreshProjectInformations());
@@ -157,24 +192,26 @@
                 if (value == Folder)
                     return;
 
-                eventBroker.RequestExecuteActionWithWaiter(async () =>
+                Messenger.Send(new ExecuteWithWaiterMessage
                 {
-                    IsFileGeneratorServiceInit = false;
-                    IsProjectCompatibleCrudGenerator = false;
-
-                    Project currentProject = null;
-                    if (value is not null)
+                    Task = async () =>
                     {
-                        currentProject = new Project
-                        {
-                            Name = value,
-                            Folder = Path.Combine(RootProjectsPath, value)
-                        };
-                        await LoadProject(currentProject);
-                    }
+                        IsFileGeneratorServiceInit = false;
+                        IsProjectCompatibleCrudGenerator = false;
 
-                    await InitFileGeneratorServiceFromProject(currentProject);
-                    CurrentProject = currentProject;
+                        Project currentProject = null;
+                        if (value is not null)
+                        {
+                            currentProject = new Project
+                            {
+                                Name = value,
+                                Folder = Path.Combine(RootProjectsPath, value)
+                            };
+                            await LoadProject(currentProject);
+                        }
+
+                        await InitFileGeneratorServiceFromProject(currentProject);
+                        CurrentProject = currentProject;
 
                     if (CurrentProject is not null)
                     {
@@ -182,6 +219,7 @@
                     }
 
                     RaisePropertyChanged(nameof(Folder));
+                }
                 });
             }
         }
@@ -265,12 +303,15 @@
 
         private void RefreshProjectInformations()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            Messenger.Send(new ExecuteWithWaiterMessage
             {
-                await LoadProject(CurrentProject);
-                await InitFileGeneratorServiceFromProject(CurrentProject);
-                await ParseProject(CurrentProject);
-                RefreshUI();
+                Task = async () =>
+                {
+                    await LoadProject(CurrentProject);
+                    await InitFileGeneratorServiceFromProject(CurrentProject);
+                    await ParseProject(CurrentProject);
+                    RefreshUI();
+                }
             });
         }
 
@@ -316,7 +357,7 @@
                 {
                     ModifyProject.CurrentProject = value;
                     RefreshUI();
-                    eventBroker.NotifyProjectChanged(value);
+                    Messenger.Send(new ProjectChangedMessage { Project = value });
                 }
             }
         }
@@ -340,5 +381,281 @@
             }
         }
 
+        private bool canMigrateOpenFolder;
+        public bool CanMigrateOpenFolder
+        {
+            get => canMigrateOpenFolder;
+            set
+            {
+                canMigrateOpenFolder = value;
+                RaisePropertyChanged(nameof(CanMigrateOpenFolder));
+            }
+        }
+
+        private bool canMigrateApplyDiff;
+        public bool CanMigrateApplyDiff
+        {
+            get => canMigrateApplyDiff;
+            set
+            {
+                canMigrateApplyDiff = value;
+                RaisePropertyChanged(nameof(CanMigrateApplyDiff));
+            }
+        }
+
+        private bool canMigrateMergeRejected;
+        public bool CanMigrateMergeRejected
+        {
+            get => canMigrateMergeRejected;
+            set
+            {
+                canMigrateMergeRejected = value;
+                RaisePropertyChanged(nameof(CanMigrateMergeRejected));
+            }
+        }
+
+        public void ParameterModifyChange()
+        {
+            CanMigrateOpenFolder = false;
+            CanMigrateApplyDiff = false;
+            CanMigrateMergeRejected = false;
+        }
+
+        public async Task MigrateAsync()
+        {
+            var generated = await MigrateGenerateOnlyAsync();
+            var applyDiff = await MigrateApplyDiffAsync();
+            if (generated == 0 && applyDiff)
+            {
+                await MigrateMergeRejectedAsync();
+            }
+        }
+
+        public async Task<int> MigrateGenerateOnlyAsync()
+        {
+            if (ModifyProject.CurrentProject == null)
+            {
+                consoleWriter.AddMessageLine("Select a project before clicking migrate.", "red");
+                return -1;
+            }
+            var projectFolder = ModifyProject.CurrentProject.Folder;
+            if (!Directory.Exists(projectFolder) || !Directory.EnumerateFileSystemEntries(projectFolder).Any())
+            {
+                consoleWriter.AddMessageLine("The project path is empty : " + projectFolder, "red");
+                return -1;
+            }
+
+
+            var paths = GetMigratePaths();
+
+            await GenerateProjects(true, paths.OriginPath, paths.TargetPath);
+
+            CanMigrateOpenFolder = true;
+            CanMigrateApplyDiff = true;
+            return 0;
+        }
+
+        public async Task<bool> MigrateApplyDiffAsync()
+        {
+            var paths = GetMigratePaths();
+
+            if (OverwriteBIAFromOriginal == true)
+            {
+                await projectCreatorService.OverwriteBIAFolder(paths.OriginPath, ModifyProject.CurrentProject.Folder, false);
+            }
+
+            bool result = await ApplyDiff(true, paths.OriginalFolderName, paths.TargetFolderName);
+
+            CanMigrateMergeRejected = true;
+            return result;
+        }
+
+        public async Task MigrateMergeRejectedAsync()
+        {
+            await MergeRejected(true);
+
+            CanMigrateMergeRejected = false;
+
+            await Task.Run(() =>
+            {
+                foreach (var biaFront in ModifyProject.CurrentProject.BIAFronts)
+                {
+                    string path = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, ModifyProject.CurrentProject.Name, biaFront, crudSettings.PackageLockFileName);
+                    if (new FileInfo(path).Exists)
+                    {
+                        File.Delete(path);
+                    }
+                }
+
+                string rootBiaFolder = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, ModifyProject.CurrentProject.Name, Constants.FolderBia);
+                if (!Directory.Exists(rootBiaFolder))
+                {
+                    Directory.CreateDirectory(rootBiaFolder);
+                }
+
+                var fileToSuppress = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, ModifyProject.CurrentProject.Name, FeatureSettingHelper.fileName);
+                if (File.Exists(fileToSuppress))
+                {
+                    File.Delete(fileToSuppress);
+                }
+
+                var fileToCheck = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
+                if (!File.Exists(fileToCheck))
+                {
+                    var paths = GetMigratePaths();
+                    var fileToCopy = Path.Combine(paths.TargetPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
+                    File.Copy(fileToCopy, fileToCheck);
+                }
+            });
+        }
+
+        public async Task MigrateOverwriteBIAFolderAsync()
+        {
+            await OverwriteBIAFolder(true);
+        }
+
+        public async Task FixUsingsAsync()
+        {
+            await parserService.FixUsings();
+        }
+
+        private record MigratePaths(
+            string OriginalFolderName,
+            string OriginPath,
+            string OriginalVersion,
+            string TargetFolderName,
+            string TargetPath,
+            string TargetVersion);
+
+        private MigratePaths GetMigratePaths()
+        {
+            string originalVersion = MigrateOriginVm.WorkTemplate.Version;
+            string originalFolderName = Name + "_" + originalVersion + "_From";
+            string originPath = AppSettings.TmpFolderPath + originalFolderName;
+
+            string targetVersion = MigrateTargetVm.WorkTemplate.Version;
+            string targetFolderName = Name + "_" + targetVersion + "_To";
+            string targetPath = AppSettings.TmpFolderPath + targetFolderName;
+
+            return new MigratePaths(originalFolderName, originPath, originalVersion, targetFolderName, targetPath, targetVersion);
+        }
+
+        private async Task GenerateProjects(bool actionFinishedAtEnd, string projectOriginPath, string projectTargetPath)
+        {
+            if (Directory.Exists(projectOriginPath))
+            {
+                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectOriginPath));
+            }
+            await CreateProject(false, CompanyName, Name, projectOriginPath, MigrateOriginVm, ModifyProject.CurrentProject.BIAFronts);
+
+            if (Directory.Exists(projectTargetPath))
+            {
+                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectTargetPath));
+            }
+            await CreateProject(false, CompanyName, Name, projectTargetPath, MigrateTargetVm, ModifyProject.CurrentProject.BIAFronts);
+
+            consoleWriter.AddMessageLine("Generate projects finished.", actionFinishedAtEnd ? "Green" : "Blue");
+        }
+
+        private async Task CreateProject(bool actionFinishedAtEnd, string companyName, string projectName, string projectPath, VersionAndOptionViewModel versionAndOptionVm, List<string> fronts)
+        {
+            await projectCreatorService.Create(
+                actionFinishedAtEnd,
+                projectPath,
+                new Domain.Model.ProjectParameters
+                {
+                    CompanyName = companyName,
+                    ProjectName = projectName,
+                    VersionAndOption = versionAndOptionVm.VersionAndOption,
+                    AngularFronts = fronts
+                }
+            );
+        }
+
+        private async Task<bool> ApplyDiff(bool actionFinishedAtEnd, string projectOriginalFolderName, string projectTargetFolderName)
+        {
+            string migrateFilePath = GenerateMigrationPatchFilePath(projectOriginalFolderName, projectTargetFolderName);
+            if (!await gitService.DiffFolder(false, AppSettings.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath))
+            {
+                return false;
+            }
+            if (!await gitService.ApplyDiff(actionFinishedAtEnd, ModifyProject.CurrentProject.Folder, migrateFilePath))
+            {
+                return false;
+            }
+
+            await HandleDeletedFilesFailed(ModifyProject.CurrentProject, migrateFilePath, projectOriginalFolderName, projectTargetFolderName);
+            return true;
+        }
+
+        private async Task HandleDeletedFilesFailed(Project currentProject, string migrateFilePath, string projectOriginalFolder, string projectTargetFolder)
+        {
+            var migrateFileContent = (await File.ReadAllLinesAsync(migrateFilePath)).ToList();
+            var deleteFileInstructionIndexes = new List<int>();
+            for (int i = 0; i < migrateFileContent.Count; i++)
+            {
+                if (migrateFileContent[i].StartsWith("deleted file mode"))
+                    deleteFileInstructionIndexes.Add(i);
+            }
+
+            if (deleteFileInstructionIndexes.Count == 0)
+                return;
+
+            consoleWriter.AddMessageLine("Verify expected deleted files", "pink");
+            var filesToDelete = new List<string>();
+            var pathOfFileRegex = @"\sb/(.+)$";
+            foreach (var index in deleteFileInstructionIndexes)
+            {
+                var diffInstruction = migrateFileContent.ElementAt(index - 1);
+                var match = Regex.Match(diffInstruction, pathOfFileRegex);
+                if (match.Success)
+                {
+                    filesToDelete.Add(Path.Combine(currentProject.Folder, match.Groups[1].Value).Replace("/", "\\"));
+                }
+            }
+
+            var hasNotDeletedFiles = false;
+            foreach (var file in filesToDelete)
+            {
+                if (File.Exists(file))
+                {
+                    var originalFile = Path.Combine(AppSettings.TmpFolderPath, file.Replace(currentProject.Folder, projectOriginalFolder));
+                    consoleWriter.AddMessageLine($"File not deleted : {file}", "orange", false);
+                    consoleWriter.AddMessageLine($"code --diff {originalFile} {file}", "gray", false);
+                    hasNotDeletedFiles = true;
+                }
+            }
+
+            if (hasNotDeletedFiles)
+            {
+                consoleWriter.AddMessageLine("Some files have not been deleted. Check the previous details to launch diff command for each of them. Delete them manually if applicable.", "orange");
+            }
+        }
+
+        private async Task MergeRejected(bool actionFinishedAtEnd)
+        {
+            var paths = GetMigratePaths();
+
+            await gitService.MergeRejected(actionFinishedAtEnd, new GitService.MergeParameter()
+            {
+                ProjectPath = ModifyProject.CurrentProject.Folder,
+                ProjectOriginPath = paths.OriginPath,
+                ProjectOriginVersion = paths.OriginalVersion,
+                ProjectTargetPath = paths.TargetPath,
+                ProjectTargetVersion = paths.TargetVersion,
+                MigrationPatchFilePath = GenerateMigrationPatchFilePath(paths.OriginalFolderName, paths.TargetFolderName)
+            });
+        }
+
+        private async Task OverwriteBIAFolder(bool actionFinishedAtEnd)
+        {
+            var paths = GetMigratePaths();
+            await projectCreatorService.OverwriteBIAFolder(paths.TargetPath, ModifyProject.CurrentProject.Folder, actionFinishedAtEnd);
+        }
+
+        private static string GenerateMigrationPatchFilePath(string projectOriginalFolderName, string projectTargetFolderName)
+        {
+            return AppSettings.TmpFolderPath + $"Migration_{projectOriginalFolderName}-{projectTargetFolderName}.patch";
+        }
     }
 }

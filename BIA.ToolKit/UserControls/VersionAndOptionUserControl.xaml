@@ -10,10 +10,6 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     </UserControl.Resources>
-    <UserControl.DataContext>
-        <!-- Declaratively create an instance of our SongViewModel -->
-        <local:VersionAndOptionViewModel />
-    </UserControl.DataContext>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.4*"/>

@@ -6,11 +6,12 @@
     using System.Linq;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
 
-    public sealed class RepositoryFolderViewModel(RepositoryFolder repositoryFolder, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
-        : RepositoryViewModel(repositoryFolder, gitService, eventBroker, consoleWriter)
+    public sealed class RepositoryFolderViewModel(RepositoryFolder repositoryFolder, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter)
+        : RepositoryViewModel(repositoryFolder, gitService, messenger, consoleWriter)
     {
         public string Path
         {

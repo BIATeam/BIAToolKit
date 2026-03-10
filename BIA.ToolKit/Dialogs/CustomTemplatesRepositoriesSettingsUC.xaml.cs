@@ -2,6 +2,7 @@
 {
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Domain.Settings;
     using System;
     using System.Collections.Generic;
@@ -27,14 +28,14 @@
         GitService gitService;
         public RepositoriesSettingsVM vm;
         private RepositoryService repositoryService;
-        private readonly UIEventBroker uiEventBroker;
+        private readonly IMessenger messenger;
 
-        public CustomsRepoTemplateUC(GitService gitService, RepositoryService repositoryService, UIEventBroker uiEventBroker)
+        public CustomsRepoTemplateUC(GitService gitService, RepositoryService repositoryService, IMessenger messenger)
         {
             InitializeComponent();
             this.gitService = gitService;
             this.repositoryService = repositoryService;
-            this.uiEventBroker = uiEventBroker;
+            this.messenger = messenger;
             vm = (RepositoriesSettingsVM)base.DataContext;
         }
 

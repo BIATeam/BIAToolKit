@@ -9,6 +9,8 @@
     using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.ViewModel.Interfaces;
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
 
@@ -16,22 +18,22 @@
     {
         private readonly Repository repository;
         protected readonly GitService gitService;
-        protected readonly UIEventBroker eventBroker;
+        protected readonly IMessenger messenger;
         protected readonly IConsoleWriter consoleWriter;
 
-        protected RepositoryViewModel(Repository repository, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
+        protected RepositoryViewModel(Repository repository, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter)
         {
             ArgumentNullException.ThrowIfNull(repository, nameof(repository));
             this.repository = repository;
             this.gitService = gitService;
-            this.eventBroker = eventBroker;
+            this.messenger = messenger;
             this.consoleWriter = consoleWriter;
-            eventBroker.OnRepositoryViewModelVersionXYZChanged += EventBroker_OnRepositoryViewModelVersionXYZChanged;
+            messenger.Subscribe<RepositoryViewModelVersionXYZChangedMessage>(OnRepositoryViewModelVersionXYZChanged);
         }
 
-        private void EventBroker_OnRepositoryViewModelVersionXYZChanged(RepositoryViewModel repository)
+        private void OnRepositoryViewModelVersionXYZChanged(RepositoryViewModelVersionXYZChangedMessage message)
         {
-            if (repository == this)
+            if (message.Repository == this)
                 return;
 
             IsVersionXYZ = false;
@@ -47,8 +49,8 @@
         public ICommand OpenSynchronizedFolderCommand => new RelayCommand((_) => OpenSynchronizedFolder());
         public ICommand GetReleasesDataCommand => new RelayCommand((_) => GetReleasesData());
         public ICommand CleanReleasesCommand => new RelayCommand((_) => CleanReleases());
-        public ICommand OpenFormCommand => new RelayCommand((_) => eventBroker.RequestOpenRepositoryForm(this, RepositoryFormMode.Edit));
-        public ICommand DeleteCommand => new RelayCommand((_) => eventBroker.NotifyRepositoryViewModelDeleted(this));
+        public ICommand OpenFormCommand => new RelayCommand((_) => messenger.Send(new OpenRepositoryFormRequestMessage { Repository = this, Mode = RepositoryFormMode.Edit }));
+        public ICommand DeleteCommand => new RelayCommand((_) => messenger.Send(new RepositoryViewModelDeletedMessage { Repository = this }));
 
         public bool IsValid => !string.IsNullOrWhiteSpace(Name) && EnsureIsValid();
         public bool IsVisibleCompanyName { get; set; } = true;
@@ -66,7 +68,7 @@
                     RaisePropertyChanged(nameof(IsVersionXYZ));
                     if (value == true)
                     {
-                        eventBroker.NotifyViewModelVersionXYZChanged(this);
+                        messenger.Send(new RepositoryViewModelVersionXYZChangedMessage { Repository = this });
                     }
                 }
             }
@@ -127,98 +129,112 @@
             {
                 repository.UseRepository = value;
                 RaisePropertyChanged(nameof(UseRepository));
-                eventBroker.NotifyRepositoriesUpdated();
+                messenger.Send(new RepositoriesUpdatedMessage());
             }
         }
 
         private void Synchronize()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            messenger.Send(new ExecuteWithWaiterMessage
             {
-                try
+                Task = async () =>
                 {
-                    if (IsGitRepository && repository is RepositoryGit repositoryGit)
+                    try
                     {
-                        await gitService.Synchronize(repositoryGit);
+                        if (IsGitRepository && repository is RepositoryGit repositoryGit)
+                        {
+                            await gitService.Synchronize(repositoryGit);
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    consoleWriter.AddMessageLine($"Error : {ex.Message}", "red");
+                    catch (Exception ex)
+                    {
+                        consoleWriter.AddMessageLine($"Error : {ex.Message}", "red");
+                    }
                 }
             });
         }
 
         private void GetReleasesData()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            messenger.Send(new ExecuteWithWaiterMessage
             {
-                try
+                Task = async () =>
                 {
-                    consoleWriter.AddMessageLine("Getting releases data...", "pink");
-                    await repository.FillReleasesAsync();
-                    eventBroker.NotifyRepositoryViewModelReleaseDataUpdated(this);
-                    consoleWriter.AddMessageLine("Releases data got successfully", "green");
-                    if (repository.UseDownloadedReleases)
+                    try
                     {
-                        consoleWriter.AddMessageLine($"WARNING: Releases data got from downloaded releases", "orange");
+                        consoleWriter.AddMessageLine("Getting releases data...", "pink");
+                        await repository.FillReleasesAsync();
+                        messenger.Send(new RepositoryViewModelReleaseDataUpdatedMessage { Repository = this });
+                        consoleWriter.AddMessageLine("Releases data got successfully", "green");
+                        if (repository.UseDownloadedReleases)
+                        {
+                            consoleWriter.AddMessageLine($"WARNING: Releases data got from downloaded releases", "orange");
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    consoleWriter.AddMessageLine($"Error : {ex.Message}", "red");
+                    catch (Exception ex)
+                    {
+                        consoleWriter.AddMessageLine($"Error : {ex.Message}", "red");
+                    }
                 }
             });
         }
 
         private void CleanReleases()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            messenger.Send(new ExecuteWithWaiterMessage
             {
-                try
+                Task = async () =>
                 {
-                    consoleWriter.AddMessageLine($"Cleaning releases of repository {Name}...", "pink");
-                    await Task.Run(repository.CleanReleases);
-                    consoleWriter.AddMessageLine($"Releases cleaned", "green");
-                }
-                catch(Exception ex)
-                {
-                    consoleWriter.AddMessageLine($"Failed to clean releases : {ex.Message}");
+                    try
+                    {
+                        consoleWriter.AddMessageLine($"Cleaning releases of repository {Name}...", "pink");
+                        await Task.Run(repository.CleanReleases);
+                        consoleWriter.AddMessageLine($"Releases cleaned", "green");
+                    }
+                    catch (Exception ex)
+                    {
+                        consoleWriter.AddMessageLine($"Failed to clean releases : {ex.Message}");
+                    }
                 }
             });
         }
 
         private void OpenSynchronizedFolder()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            messenger.Send(new ExecuteWithWaiterMessage
             {
-                if (!Directory.Exists(Model.LocalPath))
+                Task = async () =>
                 {
-                    consoleWriter.AddMessageLine($"Synchronized folder {Model.LocalPath} not found");
-                }
+                    if (!Directory.Exists(Model.LocalPath))
+                    {
+                        consoleWriter.AddMessageLine($"Synchronized folder {Model.LocalPath} not found");
+                    }
 
-                await Task.Run(() => Process.Start("explorer.exe", Model.LocalPath));
+                    await Task.Run(() => Process.Start("explorer.exe", Model.LocalPath));
+                }
             });
-            
         }
 
         private void OpenSource()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            messenger.Send(new ExecuteWithWaiterMessage
             {
-                if (Model is RepositoryFolder repoFolder)
+                Task = async () =>
                 {
-                    if (!Directory.Exists(repoFolder.Path))
+                    if (Model is RepositoryFolder repoFolder)
                     {
-                        consoleWriter.AddMessageLine($"Source folder {repoFolder.Path} not found");
+                        if (!Directory.Exists(repoFolder.Path))
+                        {
+                            consoleWriter.AddMessageLine($"Source folder {repoFolder.Path} not found");
+                        }
+
+                        await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = Model.LocalPath, UseShellExecute = true }));
                     }
 
-                    await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = Model.LocalPath, UseShellExecute = true }));
-                }
-
-                if(Model is RepositoryGit repoGit)
-                {
-                    await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = repoGit.Url, UseShellExecute = true }));
+                    if (Model is RepositoryGit repoGit)
+                    {
+                        await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = repoGit.Url, UseShellExecute = true }));
+                    }
                 }
             });
         }
