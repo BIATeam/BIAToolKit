@@ -47,15 +47,22 @@
         public override void Initialize()
         {
             Messenger.Subscribe<SettingsUpdatedMessage>(OnSettingsUpdated);
+            Messenger.Subscribe<RepositoryViewModelReleaseDataUpdatedMessage>(OnRepositoryViewModelReleaseDataUpdated);
         }
 
         public override void Cleanup()
         {
             Messenger.Unsubscribe<SettingsUpdatedMessage>(OnSettingsUpdated);
+            Messenger.Unsubscribe<RepositoryViewModelReleaseDataUpdatedMessage>(OnRepositoryViewModelReleaseDataUpdated);
             if (isOriginFeatureSettingsListener)
             {
                 Messenger.Unsubscribe<OriginFeatureSettingsChangedMessage>(OnOriginFeatureSettingsChanged);
             }
+        }
+
+        private void OnRepositoryViewModelReleaseDataUpdated(RepositoryViewModelReleaseDataUpdatedMessage message)
+        {
+            RefreshConfiguration();
         }
 
         private void OnSettingsUpdated(SettingsUpdatedMessage msg)
@@ -144,8 +151,23 @@
                         }
                     }
                     OnPropertyChanged(nameof(WorkTemplate));
+                    OnFrameworkVersionChanged();
                 }
             }
+        }
+
+        private void OnFrameworkVersionChanged()
+        {
+            Messenger.Send(new ExecuteWithWaiterMessage
+            {
+                Task = async () =>
+                {
+                    await FillVersionFolderPathAsync();
+                    LoadfeatureSetting();
+                    LoadVersionAndOption(false, false);
+                    NotifyOriginFeatureSettingsChanged();
+                }
+            });
         }
 
         public ObservableCollection<string> Profiles
@@ -245,6 +267,7 @@
                         });
                     }
                     OnPropertyChanged(nameof(WorkCompanyFile));
+                    LoadVersionAndOption(false, false);
                 }
             }
         }

@@ -8,6 +8,7 @@
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.ViewModel.Messaging.Messages;
+    using BIA.ToolKit.Helper;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Common;
@@ -50,7 +51,6 @@
 
         public VersionAndOptionViewModel MigrateOriginVm { get; set; }
         public VersionAndOptionViewModel MigrateTargetVm { get; set; }
-        public Action OnSolutionParsedAction { get; set; }
 
         /// <inheritdoc/>
         public override void Initialize()
@@ -80,7 +80,10 @@
         private void OnSolutionParsed(SolutionParsedMessage msg)
         {
             ParameterModifyChange();
-            OnSolutionParsedAction?.Invoke();
+            MigrateOriginVm?.SelectVersion(CurrentProject?.FrameworkVersion);
+            MigrateOriginVm?.SetCurrentProjectPath(CurrentProject?.Folder, true, true);
+            MigrateTargetVm?.SetCurrentProjectPath(CurrentProject?.Folder, false, false,
+                CurrentProject is null ? null : MigrateOriginVm.FeatureSettings.Select(x => x.FeatureSetting));
         }
 
         [RelayCommand]
@@ -131,6 +134,12 @@
 
         [RelayCommand]
         private void RefreshProjectsList() => RefreshProjetsList();
+
+        [RelayCommand]
+        private void BrowseFolder()
+        {
+            RootProjectsPath = FileDialog.BrowseFolder(RootProjectsPath, "Choose modify project root path");
+        }
 
         public ModifyProject ModifyProject { get; set; }
 

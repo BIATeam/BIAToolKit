@@ -28,7 +28,7 @@
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <TextBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Projects Parent Path" Text="{Binding RootProjectsPath}" TextWrapping="Wrap" TextChanged="ModifyProjectRootFolderText_TextChanged"/>
-                <Button Grid.Column="1" Margin="5,0" Content="..." x:Name="ModifyProjectRootFolderBrowse" Click="ModifyProjectRootFolderBrowse_Click"/>
+                <Button Grid.Column="1" Margin="5,0" Content="..." x:Name="ModifyProjectRootFolderBrowse" Command="{Binding BrowseFolderCommand}"/>
             </Grid>
             <Grid Grid.Column="1" Margin="10,0">
                 <Grid.ColumnDefinitions>

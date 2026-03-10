@@ -25,7 +25,9 @@
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
+    using System.Windows;
 
     public partial class CRUDGeneratorViewModel : ViewModelBase
     {
@@ -661,6 +663,20 @@
                 Path.Combine(CurrentProject.Folder, BiaFront, "src", "app")
             };
             await DeleteAnnotationsAsync(folders);
+        }
+
+        [RelayCommand]
+        private async Task ConfirmDeleteAnnotations()
+        {
+            StringBuilder message = new();
+            message.AppendLine("Do you want to permanently remove all BIAToolkit annotations in code?");
+            message.AppendLine("After that you will no longer be able to regenerate old CRUDs.");
+            message.AppendLine();
+            message.AppendLine("Be careful, this action is irreversible.");
+            if (MessageBox.Show(message.ToString(), "Warning", MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel) == MessageBoxResult.OK)
+            {
+                await DeleteAnnotationsAsync();
+            }
         }
 
         #region CurrentProject

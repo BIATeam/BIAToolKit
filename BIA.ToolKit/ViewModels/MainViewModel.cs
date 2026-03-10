@@ -6,7 +6,9 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Windows;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel.Base;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
@@ -98,6 +100,8 @@
         private void OnNewVersionAvailable(NewVersionAvailableMessage message)
         {
             UpdateAvailable = true;
+            IsCheckUpdateEnabled = false;
+            ShowUpdateDialogCommand.Execute(null);
         }
 
         private void OnRepositoriesUpdated(RepositoriesUpdatedMessage message)
@@ -323,6 +327,86 @@
 
         [ObservableProperty]
         private bool _updateAvailable;
+
+        [ObservableProperty]
+        private bool _isCheckUpdateEnabled = true;
+
+        [ObservableProperty]
+        private string _newProjectName;
+
+        [ObservableProperty]
+        private int _selectedMainTabIndex;
+
+        partial void OnSelectedMainTabIndexChanged(int value)
+        {
+            if (value == 1 || value == 2)
+                EnsureValidRepositoriesConfiguration();
+        }
+
+        [RelayCommand]
+        private void BrowseCreateProjectFolder()
+        {
+            Settings_RootProjectsPath = FileDialog.BrowseFolder(Settings_RootProjectsPath, "Choose create project root path");
+        }
+
+        [RelayCommand]
+        private void CreateProject()
+        {
+            Messenger.Send(new ExecuteWithWaiterMessage { Task = () => CreateProjectAsync(NewProjectName) });
+        }
+
+        [RelayCommand]
+        private void CheckForUpdates()
+        {
+            Messenger.Send(new ExecuteWithWaiterMessage { Task = CheckForUpdatesAsync });
+        }
+
+        [RelayCommand]
+        private async Task ShowUpdateDialog()
+        {
+            try
+            {
+                var result = MessageBox.Show(
+                    $"A new version ({updateService.NewVersion}) of BIAToolKit is available.\nInstall now?",
+                    "Update available",
+                    MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    Messenger.Send(new ExecuteWithWaiterMessage { Task = updateService.DownloadUpdateAsync });
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Update failure : {ex.Message}", "Update failure", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        [RelayCommand]
+        private void ClearConsole() => consoleWriter.Clear();
+
+        [RelayCommand]
+        private void CopyConsoleToClipboard() => consoleWriter.CopyToClipboard();
+
+        [RelayCommand]
+        private void ImportConfig()
+        {
+            var configFile = FileDialog.BrowseFile(string.Empty, "btksettings");
+            if (string.IsNullOrWhiteSpace(configFile) || !File.Exists(configFile))
+                return;
+
+            Messenger.Send(new ExecuteWithWaiterMessage { Task = () => ImportConfigAsync(configFile) });
+        }
+
+        [RelayCommand]
+        private void ExportConfigToFolder()
+        {
+            var targetDirectory = FileDialog.BrowseFolder(string.Empty, "Choose export folder target");
+            if (string.IsNullOrWhiteSpace(targetDirectory))
+                return;
+
+            ExportConfig(Path.Combine(targetDirectory, "user.btksettings"));
+        }
 
         /// <summary>Initializes the application: loads releases data, inits settings, checks for updates and registers MSBuild.</summary>
         public async Task InitAsync(BIATKSettings settings)

@@ -33,7 +33,9 @@
 
         private void ConfigureServices(ServiceCollection services)
         {
-            services.AddSingleton<IConsoleWriter, ConsoleWriter>();
+            services.AddSingleton(_ => Assembly.GetExecutingAssembly().GetName().Version);
+            services.AddSingleton<ConsoleWriter>();
+            services.AddSingleton<IConsoleWriter>(sp => sp.GetRequiredService<ConsoleWriter>());
             services.AddSingleton<IMessenger, Messenger>();
             services.AddSingleton<RepositoryService>();
             services.AddSingleton<GitService>();
@@ -45,21 +47,12 @@
             services.AddSingleton<SettingsService>();
             services.AddSingleton<FileGeneratorService>();
             services.AddSingleton<UpdateService>();
-            services.AddSingleton<MainViewModel>(sp => new MainViewModel(
-                Assembly.GetExecutingAssembly().GetName().Version,
-                sp.GetRequiredService<IMessenger>(),
-                sp.GetRequiredService<SettingsService>(),
-                sp.GetRequiredService<GitService>(),
-                sp.GetRequiredService<IConsoleWriter>(),
-                sp.GetRequiredService<UpdateService>(),
-                sp.GetRequiredService<CSharpParserService>(),
-                sp.GetRequiredService<ProjectCreatorService>(),
-                sp.GetRequiredService<GenerateFilesService>(),
-                sp.GetRequiredService<RepositoryService>()));
+            services.AddSingleton<MainViewModel>();
             services.AddSingleton<ModifyProjectViewModel>();
             services.AddSingleton<CRUDGeneratorViewModel>();
             services.AddSingleton<DtoGeneratorViewModel>();
             services.AddSingleton<OptionGeneratorViewModel>();
+            services.AddTransient<VersionAndOptionViewModel>();
             services.AddSingleton<MainWindow>();
             services.AddLogging();
         }

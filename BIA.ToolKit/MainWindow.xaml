@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:gif="http://wpfanimatedgif.codeplex.com"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:local="clr-namespace:BIA.ToolKit.ViewModel"
         xmlns:uc="clr-namespace:BIA.ToolKit.UserControls" d:DataContext="{d:DesignInstance Type=local:MainViewModel}"
         mc:Ignorable="d"
@@ -27,7 +28,7 @@
                 <RowDefinition Height="0.02*"/>
             </Grid.RowDefinitions>
             <Grid Background="Black" Opacity="0.2"/>
-            <TabControl Grid.Row="0" Name="MainTab">
+            <TabControl Grid.Row="0" Name="MainTab" SelectedIndex="{Binding SelectedMainTabIndex}">
                 <TabItem Header="CONFIGURATION">
                     <Grid Background="#FF000000" x:Name="TabConfig">
                         <Grid>
@@ -49,13 +50,13 @@
                                         <RowDefinition/>
                                         <RowDefinition/>
                                     </Grid.RowDefinitions>
-                                    <Button x:Name="ImportConfigButton" Grid.Row="0" Height="35" Click="ImportConfigButton_Click">
+                                    <Button x:Name="ImportConfigButton" Grid.Row="0" Height="35" Command="{Binding ImportConfigCommand}">
                                         <StackPanel Orientation="Horizontal">
                                             <materialDesign:PackIcon Kind="Import" Height="25" Width="25"/>
                                             <Label Content="Import Configuration" Foreground="Black"/>
                                         </StackPanel>
                                     </Button>
-                                    <Button x:Name="ExportConfigButton" Grid.Row="1" Height="35" Style="{StaticResource MaterialDesignPaperButton}" Click="ExportConfigButton_Click">
+                                    <Button x:Name="ExportConfigButton" Grid.Row="1" Height="35" Style="{StaticResource MaterialDesignPaperButton}" Command="{Binding ExportConfigToFolderCommand}">
                                         <StackPanel Orientation="Horizontal">
                                             <Label Content="Export Configuration" Foreground="White"/>
                                             <materialDesign:PackIcon Kind="Export" Height="25" Width="25"/>
@@ -70,11 +71,11 @@
                                         <RowDefinition/>
                                     </Grid.RowDefinitions>
                                     <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
-                                        <Button Height="20" Padding="0" x:Name="UpdateButton" VerticalAlignment="Center" ToolTip="New version available !" Background="Transparent" Foreground="Transparent" BorderThickness="0" Cursor="Hand" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisConverter}}" Click="UpdateButton_Click">
+                                        <Button Height="20" Padding="0" x:Name="UpdateButton" VerticalAlignment="Center" ToolTip="New version available !" Background="Transparent" Foreground="Transparent" BorderThickness="0" Cursor="Hand" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisConverter}}" Command="{Binding ShowUpdateDialogCommand}">
                                             <Image Source="/Images/update.png" />
                                         </Button>
                                         <Label Grid.ColumnSpan="2" Content="{Binding ApplicationVersion}" VerticalAlignment="Center" Foreground="#FFF0F0F0" d:Content="V0.0.0.0"/>
-                                        <Button Height="18" x:Name="CheckUpdateButton" VerticalAlignment="Center" ToolTip="Check for update" Padding="1" Margin="2,0" Click="CheckUpdateButton_Click">
+                                        <Button Height="18" x:Name="CheckUpdateButton" VerticalAlignment="Center" ToolTip="Check for update" Padding="1" Margin="2,0" IsEnabled="{Binding IsCheckUpdateEnabled}" Command="{Binding CheckForUpdatesCommand}">
                                             <Image Source="/Images/rafraichir-32.png" Cursor="Hand" RenderOptions.BitmapScalingMode="Fant" />
                                         </Button>
                                     </StackPanel>
@@ -146,7 +147,7 @@
                         </Grid>
                     </Grid>
                 </TabItem>
-                <TabItem Header="CREATE PROJECT" Selector.Selected="OnTabCreateSelected">
+                <TabItem Header="CREATE PROJECT">
                     <Grid x:Name="TabCreate">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="0.5*"/>
@@ -171,7 +172,7 @@
                                     <RowDefinition Height="auto"/>
                                 </Grid.RowDefinitions>
                                 <TextBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Projects Parent Path" Text="{Binding Settings_RootProjectsPath}" TextWrapping="Wrap"/>
-                                <Button Grid.Column="1" Margin="5" Content="..." Click="CreateProjectRootFolderBrowse_Click"/>
+                                <Button Grid.Column="1" Margin="5" Content="..." Command="{Binding BrowseCreateProjectFolderCommand}"/>
                             </Grid>
                             <Grid Grid.Column="1" Margin="10,0">
                                 <Grid.RowDefinitions>
@@ -179,15 +180,15 @@
                                     <RowDefinition Height="auto"/>
                                 </Grid.RowDefinitions>
                                 <TextBox Grid.Row="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Company Name" Text="{Binding Settings_CreateCompanyName}" TextWrapping="Wrap"/>
-                                <TextBox Margin="0,10" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Project Name" Text="" TextWrapping="Wrap" x:Name="CreateProjectName" IsEnabled="True"/>
+                                <TextBox Margin="0,10" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Project Name" Text="{Binding NewProjectName, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" IsEnabled="True"/>
                             </Grid>
-                            <Button Grid.Column="2" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Height="50" Width="150" Content="Create" HorizontalAlignment="Right" Click="Create_Click" VerticalAlignment="Top"/>
+                            <Button Grid.Column="2" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Height="50" Width="150" Content="Create" HorizontalAlignment="Right" Command="{Binding CreateProjectCommand}" VerticalAlignment="Top"/>
                         </Grid>
 
                         <uc:VersionAndOptionUserControl Grid.Row="1" VerticalAlignment="Bottom" x:Name="CreateVersionAndOption" Margin="10" Height="auto"/>
                     </Grid>
                 </TabItem>
-                <TabItem Header="MODIFY EXISTING PROJECT" Selector.Selected="OnTabModifySelected">
+                <TabItem Header="MODIFY EXISTING PROJECT">
                     <Grid>
                         <Grid.Background>
                             <ImageBrush Opacity="0.3" ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
@@ -242,8 +243,8 @@
                 </TextBlock>
             </ScrollViewer>
             <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Right" Margin="0,5,0,0">
-                <Button Content="Clear" Margin="0,0,5,0"  Click="ClearConsole_Click" Style="{StaticResource MaterialDesignOutlinedSecondaryDarkButton}"/>
-                <Button Content="Copy to clipboard" Click="CopyConsoleContentToClipboard_Click" Style="{StaticResource MaterialDesignOutlinedSecondaryDarkButton}"/>
+                <Button Content="Clear" Margin="0,0,5,0" Command="{Binding ClearConsoleCommand}" Style="{StaticResource MaterialDesignOutlinedSecondaryDarkButton}"/>
+                <Button Content="Copy to clipboard" Command="{Binding CopyConsoleToClipboardCommand}" Style="{StaticResource MaterialDesignOutlinedSecondaryDarkButton}"/>
             </StackPanel>
         </Grid>
 

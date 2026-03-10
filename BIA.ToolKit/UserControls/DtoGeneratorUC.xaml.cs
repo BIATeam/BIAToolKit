@@ -1,10 +1,6 @@
 namespace BIA.ToolKit.UserControls
 {
-    using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.ViewModel;
-    using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Behaviors;
     using Microsoft.Xaml.Behaviors;
     using System.Linq;
@@ -27,8 +23,7 @@ namespace BIA.ToolKit.UserControls
         /// <summary>
         /// Injection of services.
         /// </summary>
-        public void Inject(SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
-            IMessenger messenger, DtoGeneratorViewModel dtoGeneratorViewModel)
+        public void Inject(DtoGeneratorViewModel dtoGeneratorViewModel)
         {
             this.vm = dtoGeneratorViewModel;
             DataContext = vm;
