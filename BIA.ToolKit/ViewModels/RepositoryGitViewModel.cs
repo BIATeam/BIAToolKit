@@ -4,7 +4,6 @@
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
-    using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel.Interfaces;

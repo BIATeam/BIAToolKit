@@ -15,7 +15,7 @@
         private bool _isSelected = featureSetting.IsSelected;
         public bool IsSelected
         {
-            get => _isSelected;
+            get => featureSetting.IsSelected;
             set
             {
                 if (SetProperty(ref _isSelected, value))
