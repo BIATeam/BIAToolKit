@@ -8,6 +8,7 @@ namespace BIA.ToolKit
     using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Dialogs;
+    using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
     using Newtonsoft.Json;

@@ -1,6 +1,7 @@
 namespace BIA.ToolKit.ViewModel.Messaging.Messages
 {
     using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
+    using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.ModifyProject;
     using System.Collections.Generic;
 

@@ -5,6 +5,7 @@
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
+    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Application.ViewModel.Base;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.Messaging.Messages;

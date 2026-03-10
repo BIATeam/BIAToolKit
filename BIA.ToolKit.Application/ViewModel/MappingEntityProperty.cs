@@ -3,6 +3,7 @@ namespace BIA.ToolKit.Application.ViewModel
     using CommunityToolkit.Mvvm.ComponentModel;
     using BIA.ToolKit.Common;
     using System.Collections.Generic;
+    using System.Linq;
 
     public partial class MappingEntityProperty : ObservableObject
     {

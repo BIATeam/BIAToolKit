@@ -1,5 +1,6 @@
 namespace BIA.ToolKit.UserControls
 {
+    using System.Linq;
     using System.Windows.Controls;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
