@@ -7,7 +7,7 @@ namespace BIA.ToolKit.Application.ViewModel.Messaging
 
     /// <summary>
     /// Thread-safe, typed publish/subscribe message broker.
-    /// Replaces the non-typed <see cref="BIA.ToolKit.Application.Services.UIEventBroker"/> event pattern.
+    /// Replaces the non-typed UIEventBroker event pattern.
     /// </summary>
     public class Messenger : IMessenger
     {

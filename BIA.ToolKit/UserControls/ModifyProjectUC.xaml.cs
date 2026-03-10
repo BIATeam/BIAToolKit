@@ -1,17 +1,11 @@
-﻿namespace BIA.ToolKit.UserControls
+namespace BIA.ToolKit.UserControls
 {
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Windows;
     using System.Windows.Controls;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
-    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
-    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
-    using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
 
     /// <summary>
@@ -19,8 +13,7 @@
     /// </summary>
     public partial class ModifyProjectUC : UserControl
     {
-        ModifyProjectViewModel _viewModel;
-        IMessenger messenger;
+        private ModifyProjectViewModel _viewModel;
 
         public ModifyProjectUC()
         {
@@ -38,7 +31,6 @@
             CRUDGenerator.Inject(messenger, crudGeneratorViewModel);
             OptionGenerator.Inject(messenger, optionGeneratorViewModel);
             DtoGenerator.Inject(settingsService, consoleWriter, fileGeneratorService, messenger, dtoGeneratorViewModel);
-            this.messenger = messenger;
 
             _viewModel = modifyProjectViewModel;
             _viewModel.MigrateOriginVm = MigrateOriginVersionAndOption.vm;
@@ -65,49 +57,9 @@
             _viewModel.ParameterModifyChange();
         }
 
-        private void Migrate_Click(object sender, RoutedEventArgs e)
-        {
-            messenger.Send(new ExecuteWithWaiterMessage { Task = _viewModel.MigrateAsync });
-        }
-
-        private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
-        {
-            messenger.Send(new ExecuteWithWaiterMessage { Task = _viewModel.MigrateGenerateOnlyAsync });
-        }
-
-        private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
-        {
-            messenger.Send(new ExecuteWithWaiterMessage { Task = _viewModel.MigrateApplyDiffAsync });
-        }
-
-        private void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
-        {
-            messenger.Send(new ExecuteWithWaiterMessage { Task = _viewModel.MigrateMergeRejectedAsync });
-        }
-
-        private void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
-        {
-            messenger.Send(new ExecuteWithWaiterMessage { Task = _viewModel.MigrateOverwriteBIAFolderAsync });
-        }
-
-        private void MigrateOpenFolder_Click(object sender, RoutedEventArgs e)
-        {
-            Process.Start("explorer.exe", AppSettings.TmpFolderPath);
-        }
-
-        private void ModifyProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
+        private void ModifyProjectRootFolderBrowse_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             _viewModel.RootProjectsPath = FileDialog.BrowseFolder(_viewModel.RootProjectsPath, "Choose modify project root path");
-        }
-
-        private void RefreshProjectFolderList_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.RefreshProjetsList();
-        }
-
-        private void FixUsings_Click(object sender, RoutedEventArgs e)
-        {
-            messenger.Send(new ExecuteWithWaiterMessage { Task = _viewModel.FixUsingsAsync });
         }
     }
 }

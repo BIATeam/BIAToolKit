@@ -22,6 +22,7 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Windows.Input;
 
     public class CRUDGeneratorViewModel : ViewModelBase
     {
@@ -649,6 +650,16 @@
             consoleWriter.AddMessageLine($"End of annotations suppression.", "Purple");
         }
 
+        public async Task DeleteAnnotationsAsync()
+        {
+            var folders = new List<string>
+            {
+                Path.Combine(CurrentProject.Folder, Constants.FolderDotNet),
+                Path.Combine(CurrentProject.Folder, BiaFront, "src", "app")
+            };
+            await DeleteAnnotationsAsync(folders);
+        }
+
         #region CurrentProject
         private Project currentProject;
         public Project CurrentProject
@@ -696,6 +707,29 @@
         }
         #endregion
 
+        #region Commands
+        public ICommand GenerateCrudCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = GenerateCRUDAsync }));
+        public ICommand DeleteLastGenerationCommand => new RelayCommand(_ =>
+        {
+            try
+            {
+                var history = GetCurrentDtoHistory();
+                Messenger.Send(new ExecuteWithWaiterMessage
+                {
+                    Task = async () =>
+                    {
+                        await DeleteLastGenerationAsync(history);
+                        IsDtoGenerated = false;
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error on deleting last '{CRUDNameSingular}' generation: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+        });
+        #endregion
+
         #region Dto
         private EntityInfo dtoEntity;
         public EntityInfo DtoEntity
@@ -706,8 +740,13 @@
                 if (dtoEntity != value)
                 {
                     dtoEntity = value;
+                    RaisePropertyChanged(nameof(DtoEntity));
                     UpdateParentPreSelection();
                     UpdateDomainPreSelection();
+                    if (value is not null)
+                    {
+                        OnDtoSelected(value);
+                    }
                 }
             }
         }
@@ -925,6 +964,7 @@
                 {
                     entityNamePlural = value;
                     RaisePropertyChanged(nameof(CRUDNamePlural));
+                    RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
                 }
             }
         }
@@ -1137,6 +1177,11 @@
                 _biaFront = value;
                 RaisePropertyChanged(nameof(BiaFront));
                 RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                if (!string.IsNullOrEmpty(value) && CurrentProject != null)
+                {
+                    SetFrontGenerationSettings(value);
+                    ParseFrontDomains();
+                }
             }
         }
 

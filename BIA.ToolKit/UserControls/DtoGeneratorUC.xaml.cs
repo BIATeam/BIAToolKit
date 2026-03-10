@@ -1,25 +1,11 @@
-﻿namespace BIA.ToolKit.UserControls
+namespace BIA.ToolKit.UserControls
 {
-    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.Services.FileGenerator;
-    using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
-    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
-    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Behaviors;
-    using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain.DtoGenerator;
-    using BIA.ToolKit.Domain.ModifyProject;
-    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
     using Microsoft.Xaml.Behaviors;
-    using System;
-    using System.Data.Common;
-    using System.IO;
     using System.Linq;
-    using System.Threading.Tasks;
-    using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
 
@@ -29,9 +15,6 @@
     public partial class DtoGeneratorUC : UserControl
     {
         private DtoGeneratorViewModel vm;
-
-        private FileGeneratorService fileGeneratorService;
-        private IMessenger messenger;
         private bool processSelectProperties;
 
         public DtoGeneratorUC()
@@ -45,31 +28,19 @@
         public void Inject(SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
             IMessenger messenger, DtoGeneratorViewModel dtoGeneratorViewModel)
         {
-            this.fileGeneratorService = fileGeneratorService;
-            this.messenger = messenger;
             this.vm = dtoGeneratorViewModel;
             DataContext = vm;
             Loaded += (_, _) => vm.Initialize();
             Unloaded += (_, _) => vm.Cleanup();
         }
 
-        private void RefreshEntitiesList_Click(object sender, RoutedEventArgs e)
-        {
-            messenger.Send(new ExecuteWithWaiterMessage { Task = vm.ListEntities });
-        }
-
-        private void SelectProperties_Click(object sender, RoutedEventArgs e)
+        private void SelectProperties_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             processSelectProperties = true;
             vm.RefreshMappingProperties();
             ResetMappingColumnsWidths();
             vm.ComputePropertiesValidity();
             processSelectProperties = false;
-        }
-
-        private void RemoveAllMappingProperties_Click(object sender, RoutedEventArgs e)
-        {
-            vm.RemoveAllMappingProperties();
         }
 
         private void ResetMappingColumnsWidths()
@@ -80,31 +51,6 @@
                 column.Width = 0;
                 column.Width = double.NaN;
             }
-        }
-
-        private void GenerateButton_Click(object sender, RoutedEventArgs e)
-        {
-            messenger.Send(new ExecuteWithWaiterMessage
-            {
-                Task = () => vm.GenerateAsync(new FileGeneratorDtoContext
-                {
-                    CompanyName = vm.CurrentProjectCompanyName,
-                    ProjectName = vm.CurrentProjectName,
-                    DomainName = vm.EntityDomain,
-                    EntityName = vm.Entity.Name,
-                    EntityNamePlural = vm.Entity.NamePluralized,
-                    BaseKeyType = vm.SelectedBaseKeyType,
-                    Properties = [.. vm.MappingEntityProperties],
-                    IsTeam = vm.IsTeam,
-                    IsVersioned = vm.IsVersioned,
-                    IsArchivable = vm.IsArchivable,
-                    IsFixable = vm.IsFixable,
-                    AncestorTeamName = vm.AncestorTeam,
-                    HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
-                    GenerateBack = true,
-                    HasAudit = vm.UseDedicatedAudit
-                })
-            });
         }
 
         private void MappingPropertyTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -118,14 +64,6 @@
                 return;
 
             vm.ComputePropertiesValidity();
-        }
-
-        private void EntitiesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (vm.Entity is null)
-                return;
-
-            vm.LoadFromHistory(vm.Entity);
         }
 
         private void DragHandle_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)

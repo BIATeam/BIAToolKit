@@ -83,6 +83,14 @@
         }
 
         public ICommand RefreshProjectInformationsCommand => new RelayCommand((_) => RefreshProjectInformations());
+        public ICommand MigrateCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = MigrateAsync }));
+        public ICommand MigrateGenerateOnlyCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = async () => { await MigrateGenerateOnlyAsync(); } }));
+        public ICommand MigrateApplyDiffCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = async () => { await MigrateApplyDiffAsync(); } }));
+        public ICommand MigrateMergeRejectedCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = MigrateMergeRejectedAsync }));
+        public ICommand MigrateOverwriteBIAFolderCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = MigrateOverwriteBIAFolderAsync }));
+        public ICommand FixUsingsCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = FixUsingsAsync }));
+        public ICommand OpenMigrateFolderCommand => new RelayCommand(_ => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", AppSettings.TmpFolderPath) { UseShellExecute = true }));
+        public ICommand RefreshProjectsListCommand => new RelayCommand(_ => RefreshProjetsList());
         public ModifyProject ModifyProject { get; set; }
 
         private bool _isFileGeneratorServiceInit;

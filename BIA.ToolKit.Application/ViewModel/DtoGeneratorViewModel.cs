@@ -300,6 +300,11 @@
                 IsArchivable = entity?.IsArchivable == true;
                 SelectedBaseKeyType = entity?.BaseKeyType;
                 UseDedicatedAudit = false;
+
+                if (entity is not null)
+                {
+                    LoadFromHistory(entity);
+                }
             }
         }
 
@@ -442,6 +447,29 @@
         public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>(RemoveMappingProperty);
         public ICommand MoveMappedPropertyCommand => new RelayCommand<MoveItemArgs>(x => MoveMappedProperty(x.OldIndex, x.NewIndex));
         public ICommand SetMappedPropertyIsParentCommand => new RelayCommand<MappingEntityProperty>(SetMappedPropertyIsParent);
+        public ICommand RefreshEntitiesListCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = ListEntities }));
+        public ICommand RemoveAllMappingPropertiesCommand => new RelayCommand(_ => RemoveAllMappingProperties());
+        public ICommand GenerateCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage
+        {
+            Task = () => GenerateAsync(new FileGeneratorDtoContext
+            {
+                CompanyName = CurrentProjectCompanyName,
+                ProjectName = CurrentProjectName,
+                DomainName = EntityDomain,
+                EntityName = Entity.Name,
+                EntityNamePlural = Entity.NamePluralized,
+                BaseKeyType = SelectedBaseKeyType,
+                Properties = [.. MappingEntityProperties],
+                IsTeam = IsTeam,
+                IsVersioned = IsVersioned,
+                IsArchivable = IsArchivable,
+                IsFixable = IsFixable,
+                AncestorTeamName = AncestorTeam,
+                HasAncestorTeam = !string.IsNullOrEmpty(AncestorTeam),
+                GenerateBack = true,
+                HasAudit = UseDedicatedAudit
+            })
+        }));
 
         public void SetProject(Project project)
         {
