@@ -40,12 +40,12 @@ BIA.ToolKit.Application/
 BIA.ToolKit/
 ├── App.xaml.cs                  ← Configuration IoC (DI centralisée)
 ├── MainWindow.xaml              ← View principale
-├── MainWindow.xaml.cs           ← Code-behind minimal (lifecycle seulement)
+├── MainWindow.xaml.cs           ← Code-behind (lifecycle + dialog requests)
 └── UserControls/
-    ├── ModifyProjectUC.xaml.cs  ← ~70 lignes (lifecycle + délégation VM)
-    ├── CRUDGeneratorUC.xaml.cs  ← ~162 lignes (lifecycle + délégation VM)
-    ├── DtoGeneratorUC.xaml.cs   ← ~146 lignes (lifecycle + délégation VM)
-    ├── OptionGeneratorUC.xaml.cs← ~145 lignes (lifecycle + délégation VM)
+    ├── ModifyProjectUC.xaml.cs  ← ~65 lignes (lifecycle + browse dialog)
+    ├── CRUDGeneratorUC.xaml.cs  ← ~59 lignes (lifecycle + confirmation dialog)
+    ├── DtoGeneratorUC.xaml.cs   ← ~88 lignes (lifecycle + drag-drop UI)
+    ├── OptionGeneratorUC.xaml.cs← ~51 lignes (lifecycle + confirmation dialog)
     └── VersionAndOptionUserControl.xaml.cs
 ```
 
@@ -132,16 +132,14 @@ public class MyFeatureViewModel : ViewModelBase
 public partial class MyFeatureUC : UserControl
 {
     private MyFeatureViewModel vm;
-    private UIEventBroker uiEventBroker; // conservé pour RequestExecuteActionWithWaiter
 
     public MyFeatureUC()
     {
         InitializeComponent();
     }
 
-    public void Inject(/* services nécessaires */, UIEventBroker uiEventBroker, MyFeatureViewModel viewModel)
+    public void Inject(/* services nécessaires */, IMessenger messenger, MyFeatureViewModel viewModel)
     {
-        this.uiEventBroker = uiEventBroker;
         this.vm = viewModel;
         DataContext = vm;
 
@@ -149,12 +147,21 @@ public partial class MyFeatureUC : UserControl
         Unloaded += (_, _) => vm.Cleanup();
     }
 
-    // Seuls les handlers UI purs restent ici
-    private void Generate_Click(object sender, RoutedEventArgs e)
+    // Seuls les handlers UI purs restent ici (dialogs de confirmation, opérations UI)
+    private async void DeleteWithConfirmation_Click(object sender, RoutedEventArgs e)
     {
-        uiEventBroker.RequestExecuteActionWithWaiter(vm.GenerateAsync);
+        if (MessageBox.Show("Confirmer ?", "Attention", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
+        {
+            await vm.DeleteAsync();
+        }
     }
 }
+```
+
+Les actions métier sont exposées comme `ICommand` dans le ViewModel et liées directement en XAML :
+
+```xaml
+<Button Command="{Binding GenerateCommand}" IsEnabled="{Binding IsGenerationEnabled}" Content="Generate"/>
 ```
 
 ---
@@ -168,7 +175,6 @@ private void ConfigureServices(ServiceCollection services)
 {
     // Infrastructure MVVM
     services.AddSingleton<IMessenger, Messenger>();
-    services.AddSingleton<UIEventBroker>();
 
     // ViewModels (singletons car ils vivent toute la session)
     services.AddSingleton<MainViewModel>(); // créé manuellement (Version arg)
@@ -222,6 +228,7 @@ public class MyNewViewModel : ViewModelBase
 <!-- MyNewUC.xaml - DataContext défini en code-behind, PAS en XAML -->
 <UserControl x:Class="BIA.ToolKit.UserControls.MyNewUC" ...>
     <!-- Contenu XAML lié au ViewModel via bindings -->
+    <Button Command="{Binding DoSomethingCommand}" Content="Action"/>
 </UserControl>
 ```
 
@@ -233,7 +240,7 @@ public partial class MyNewUC : UserControl
 
     public MyNewUC() { InitializeComponent(); }
 
-    public void Inject(UIEventBroker uiEventBroker, MyNewViewModel viewModel)
+    public void Inject(IMessenger messenger, MyNewViewModel viewModel)
     {
         this.vm = viewModel;
         DataContext = vm;
@@ -253,6 +260,32 @@ services.AddSingleton<MyNewViewModel>();
 ### 4. Passer par injection
 
 Dans le parent (ex: MainWindow ou ModifyProjectUC), recevoir le ViewModel via le constructeur DI et le passer à `UC.Inject(...)`.
+
+---
+
+## ⚡ Pattern Commands dans un ViewModel
+
+Les actions déclenchées par les boutons UI sont exposées comme `ICommand` dans le ViewModel. Pour les opérations asynchrones avec indicateur de chargement (waiter), utiliser `ExecuteWithWaiterMessage` :
+
+```csharp
+public ICommand GenerateCrudCommand => new RelayCommand(_ =>
+    Messenger.Send(new ExecuteWithWaiterMessage { Task = GenerateCRUDAsync }));
+
+public ICommand DeleteLastGenerationCommand => new RelayCommand(_ =>
+{
+    var history = GetCurrentDtoHistory();
+    Messenger.Send(new ExecuteWithWaiterMessage
+    {
+        Task = async () => { await DeleteLastGenerationAsync(history); }
+    });
+});
+```
+
+Pour les opérations synchrones simples :
+
+```csharp
+public ICommand RefreshProjectsListCommand => new RelayCommand(_ => RefreshProjetsList());
+```
 
 ---
 
@@ -298,8 +331,9 @@ private void OnProjectChanged(ProjectChangedMessage msg)
 - [ ] Le DataContext est défini en code-behind (pas dans le XAML)
 - [ ] `Loaded` → `vm.Initialize()` et `Unloaded` → `vm.Cleanup()` sont câblés
 - [ ] Le ViewModel est enregistré comme singleton dans `App.xaml.cs`
-- [ ] Aucun `UIEventBroker.OnProjectChanged` ou `OnSolutionClassesParsed` en code-behind
-- [ ] Le code-behind ne contient pas de logique métier
+- [ ] Les actions métier sont exposées comme `ICommand` dans le ViewModel
+- [ ] Les boutons sont liés via `Command="{Binding ...}"` dans le XAML
+- [ ] Le code-behind ne contient pas de logique métier (uniquement UI : dialogs, drag-drop, redimensionnement)
 
 ---
 
