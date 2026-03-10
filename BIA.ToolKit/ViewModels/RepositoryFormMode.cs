@@ -1,4 +1,4 @@
-namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.ViewModel
 {
     /// <summary>
     /// Specifies whether the repository form is being used to create or edit a repository.

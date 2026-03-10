@@ -3,7 +3,7 @@ namespace BIA.ToolKit.UserControls
     using System.Text;
     using System.Windows;
     using System.Windows.Controls;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModel;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
 
     /// <summary>

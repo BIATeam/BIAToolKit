@@ -1,5 +1,6 @@
-namespace BIA.ToolKit.Application.ViewModel.Messaging.Messages
+namespace BIA.ToolKit.ViewModel.Messaging.Messages
 {
+    using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     /// <summary>
     /// Severity level for a notification message.
     /// </summary>

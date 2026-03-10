@@ -1,7 +1,7 @@
 namespace BIA.ToolKit.UserControls
 {
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModel;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Behaviors;
     using Microsoft.Xaml.Behaviors;

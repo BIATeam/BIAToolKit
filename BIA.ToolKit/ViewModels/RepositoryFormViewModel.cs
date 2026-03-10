@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+﻿namespace BIA.ToolKit.ViewModel
 {
     using System;
     using System.Collections.Generic;

@@ -14,7 +14,7 @@
     using System.Windows.Media.Imaging;
     using System.Windows.Navigation;
     using System.Windows.Shapes;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModel;
 
     /// <summary>
     /// Interaction logic for RepositoryResumeUC.xaml

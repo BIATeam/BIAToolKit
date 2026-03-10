@@ -15,10 +15,10 @@ namespace BIA.ToolKit.Test.Templates.ViewModel
         [Fact]
         public void Subscribe_And_Send_DeliverMessageToHandler()
         {
-            ProjectChangedMessage received = null;
-            _messenger.Subscribe<ProjectChangedMessage>(m => received = m);
+            SolutionParsedMessage received = null;
+            _messenger.Subscribe<SolutionParsedMessage>(m => received = m);
 
-            var sent = new ProjectChangedMessage { Project = null };
+            var sent = new SolutionParsedMessage();
             _messenger.Send(sent);
 
             Assert.Same(sent, received);
@@ -27,7 +27,7 @@ namespace BIA.ToolKit.Test.Templates.ViewModel
         [Fact]
         public void Send_WithNoSubscribers_DoesNotThrow()
         {
-            var ex = Record.Exception(() => _messenger.Send(new ProjectChangedMessage { Project = null }));
+            var ex = Record.Exception(() => _messenger.Send(new SolutionParsedMessage()));
             Assert.Null(ex);
         }
 
@@ -35,12 +35,12 @@ namespace BIA.ToolKit.Test.Templates.ViewModel
         public void Unsubscribe_StopsDelivery()
         {
             int callCount = 0;
-            Action<ProjectChangedMessage> handler = _ => callCount++;
+            Action<SolutionParsedMessage> handler = _ => callCount++;
             _messenger.Subscribe(handler);
-            _messenger.Send(new ProjectChangedMessage { Project = null });
+            _messenger.Send(new SolutionParsedMessage());
 
             _messenger.Unsubscribe(handler);
-            _messenger.Send(new ProjectChangedMessage { Project = null });
+            _messenger.Send(new SolutionParsedMessage());
 
             Assert.Equal(1, callCount);
         }
@@ -49,10 +49,10 @@ namespace BIA.ToolKit.Test.Templates.ViewModel
         public void Subscribe_MultipleHandlers_AllReceiveMessage()
         {
             int callCount = 0;
-            _messenger.Subscribe<ProjectChangedMessage>(_ => callCount++);
-            _messenger.Subscribe<ProjectChangedMessage>(_ => callCount++);
+            _messenger.Subscribe<SolutionParsedMessage>(_ => callCount++);
+            _messenger.Subscribe<SolutionParsedMessage>(_ => callCount++);
 
-            _messenger.Send(new ProjectChangedMessage { Project = null });
+            _messenger.Send(new SolutionParsedMessage());
 
             Assert.Equal(2, callCount);
         }
@@ -60,34 +60,34 @@ namespace BIA.ToolKit.Test.Templates.ViewModel
         [Fact]
         public void Send_DifferentMessageTypes_OnlyMatchingHandlerCalled()
         {
-            bool projectChanged = false;
+            bool solutionParsed = false;
             bool newVersion = false;
 
-            _messenger.Subscribe<ProjectChangedMessage>(_ => projectChanged = true);
+            _messenger.Subscribe<SolutionParsedMessage>(_ => solutionParsed = true);
             _messenger.Subscribe<NewVersionAvailableMessage>(_ => newVersion = true);
 
-            _messenger.Send(new ProjectChangedMessage { Project = null });
+            _messenger.Send(new SolutionParsedMessage());
 
-            Assert.True(projectChanged);
+            Assert.True(solutionParsed);
             Assert.False(newVersion);
         }
 
         [Fact]
         public void Subscribe_NullHandler_ThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => _messenger.Subscribe<ProjectChangedMessage>(null));
+            Assert.Throws<ArgumentNullException>(() => _messenger.Subscribe<SolutionParsedMessage>(null));
         }
 
         [Fact]
         public void Unsubscribe_NullHandler_ThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => _messenger.Unsubscribe<ProjectChangedMessage>(null));
+            Assert.Throws<ArgumentNullException>(() => _messenger.Unsubscribe<SolutionParsedMessage>(null));
         }
 
         [Fact]
         public void Send_NullMessage_ThrowsArgumentNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => _messenger.Send<ProjectChangedMessage>(null));
+            Assert.Throws<ArgumentNullException>(() => _messenger.Send<SolutionParsedMessage>(null));
         }
     }
 }
