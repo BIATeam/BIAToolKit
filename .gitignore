@@ -341,5 +341,5 @@ ASALocalRun/
 package.json
 
 #BIADemo Version
-BIADemoVersions/.nuget/
+BIADemoVersions/
 .nuget/
