@@ -8,10 +8,10 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using BIA.ToolKit.Domain;
 
-    public class RepositoryFormViewModel(RepositoryViewModel repository, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter) : ObservableObject
+    public partial class RepositoryFormViewModel(RepositoryViewModel repository, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter) : ObservableObject
     {
         public RepositoryViewModel Repository
         {
@@ -19,7 +19,7 @@
             set
             {
                 repository = value;
-                RaisePropertyChanged(nameof(Repository));
+                OnPropertyChanged(nameof(Repository));
             }
         }
 
@@ -65,7 +65,7 @@
                     },
                         _ => throw new NotImplementedException(),
                 };
-                RaisePropertyChanged(nameof(RepositoryType));
+                OnPropertyChanged(nameof(RepositoryType));
             }
         }
     }

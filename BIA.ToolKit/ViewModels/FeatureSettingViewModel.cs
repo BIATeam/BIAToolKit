@@ -5,23 +5,24 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using BIA.ToolKit.Domain.Model;
 
-    public class FeatureSettingViewModel(FeatureSetting featureSetting) : ObservableObject
+    public partial class FeatureSettingViewModel(FeatureSetting featureSetting) : ObservableObject
     {
         public FeatureSetting FeatureSetting => featureSetting;
+
+        private bool _isSelected = featureSetting.IsSelected;
         public bool IsSelected
         {
-            get 
-            { 
-                return featureSetting.IsSelected; 
-            }
-            set 
-            { 
-                featureSetting.IsSelected = value; 
-                RaisePropertyChanged(nameof(IsSelected));
-                RaisePropertyChanged(nameof(DisplayDisabledFeatures));
+            get => featureSetting.IsSelected;
+            set
+            {
+                if (SetProperty(ref _isSelected, value))
+                {
+                    featureSetting.IsSelected = value;
+                    OnPropertyChanged(nameof(DisplayDisabledFeatures));
+                }
             }
         }
 

@@ -6,15 +6,15 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.ViewModel.Messaging.Messages;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Domain;
 
-    public abstract class RepositoryViewModel : ObservableObject
+    public abstract partial class RepositoryViewModel : ObservableObject
     {
         private readonly Repository repository;
         protected readonly GitService gitService;
@@ -44,13 +44,123 @@
         public IRepository Model => repository;
         public bool IsGitRepository => repository.RepositoryType == Domain.RepositoryType.Git;
         public bool IsFolderRepository => repository.RepositoryType == Domain.RepositoryType.Folder;
-        public ICommand SynchronizeCommand => new RelayCommand((_) => Synchronize());
-        public ICommand OpenSourceCommand => new RelayCommand((_) => OpenSource());
-        public ICommand OpenSynchronizedFolderCommand => new RelayCommand((_) => OpenSynchronizedFolder());
-        public ICommand GetReleasesDataCommand => new RelayCommand((_) => GetReleasesData());
-        public ICommand CleanReleasesCommand => new RelayCommand((_) => CleanReleases());
-        public ICommand OpenFormCommand => new RelayCommand((_) => messenger.Send(new OpenRepositoryFormRequestMessage { Repository = this, Mode = RepositoryFormMode.Edit }));
-        public ICommand DeleteCommand => new RelayCommand((_) => messenger.Send(new RepositoryViewModelDeletedMessage { Repository = this }));
+
+        [RelayCommand]
+        private void Synchronize()
+        {
+            messenger.Send(new ExecuteWithWaiterMessage
+            {
+                Task = async () =>
+                {
+                    try
+                    {
+                        if (IsGitRepository && repository is RepositoryGit repositoryGit)
+                        {
+                            await gitService.Synchronize(repositoryGit);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        consoleWriter.AddMessageLine($"Error : {ex.Message}", "red");
+                    }
+                }
+            });
+        }
+
+        [RelayCommand]
+        private void OpenSource()
+        {
+            messenger.Send(new ExecuteWithWaiterMessage
+            {
+                Task = async () =>
+                {
+                    if (Model is RepositoryFolder repoFolder)
+                    {
+                        if (!Directory.Exists(repoFolder.Path))
+                        {
+                            consoleWriter.AddMessageLine($"Source folder {repoFolder.Path} not found");
+                        }
+
+                        await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = Model.LocalPath, UseShellExecute = true }));
+                    }
+
+                    if (Model is RepositoryGit repoGit)
+                    {
+                        await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = repoGit.Url, UseShellExecute = true }));
+                    }
+                }
+            });
+        }
+
+        [RelayCommand]
+        private void OpenSynchronizedFolder()
+        {
+            messenger.Send(new ExecuteWithWaiterMessage
+            {
+                Task = async () =>
+                {
+                    if (!Directory.Exists(Model.LocalPath))
+                    {
+                        consoleWriter.AddMessageLine($"Synchronized folder {Model.LocalPath} not found");
+                    }
+
+                    await Task.Run(() => Process.Start("explorer.exe", Model.LocalPath));
+                }
+            });
+        }
+
+        [RelayCommand]
+        private void GetReleasesData()
+        {
+            messenger.Send(new ExecuteWithWaiterMessage
+            {
+                Task = async () =>
+                {
+                    try
+                    {
+                        consoleWriter.AddMessageLine("Getting releases data...", "pink");
+                        await repository.FillReleasesAsync();
+                        messenger.Send(new RepositoryViewModelReleaseDataUpdatedMessage { Repository = this });
+                        consoleWriter.AddMessageLine("Releases data got successfully", "green");
+                        if (repository.UseDownloadedReleases)
+                        {
+                            consoleWriter.AddMessageLine($"WARNING: Releases data got from downloaded releases", "orange");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        consoleWriter.AddMessageLine($"Error : {ex.Message}", "red");
+                    }
+                }
+            });
+        }
+
+        [RelayCommand]
+        private void CleanReleases()
+        {
+            messenger.Send(new ExecuteWithWaiterMessage
+            {
+                Task = async () =>
+                {
+                    try
+                    {
+                        consoleWriter.AddMessageLine($"Cleaning releases of repository {Name}...", "pink");
+                        await Task.Run(repository.CleanReleases);
+                        consoleWriter.AddMessageLine($"Releases cleaned", "green");
+                    }
+                    catch (Exception ex)
+                    {
+                        consoleWriter.AddMessageLine($"Failed to clean releases : {ex.Message}");
+                    }
+                }
+            });
+        }
+
+        [RelayCommand]
+        private void OpenForm() => messenger.Send(new OpenRepositoryFormRequestMessage { Repository = this, Mode = RepositoryFormMode.Edit });
+
+        [RelayCommand]
+        private void Delete() => messenger.Send(new RepositoryViewModelDeletedMessage { Repository = this });
 
         public bool IsValid => !string.IsNullOrWhiteSpace(Name) && EnsureIsValid();
         public bool IsVisibleCompanyName { get; set; } = true;
@@ -65,7 +175,7 @@
                 if (repository is RepositoryGit repositoryGit)
                 {
                     repositoryGit.IsVersionXYZ = value;
-                    RaisePropertyChanged(nameof(IsVersionXYZ));
+                    OnPropertyChanged(nameof(IsVersionXYZ));
                     if (value == true)
                     {
                         messenger.Send(new RepositoryViewModelVersionXYZChangedMessage { Repository = this });
@@ -80,7 +190,7 @@
             set
             {
                 repository.CompanyName = value;
-                RaisePropertyChanged(nameof(CompanyName));
+                OnPropertyChanged(nameof(CompanyName));
             }
         }
 
@@ -90,8 +200,8 @@
             set
             {
                 repository.Name = value;
-                RaisePropertyChanged(nameof(Name));
-                RaisePropertyChanged(nameof(IsValid));
+                OnPropertyChanged(nameof(Name));
+                OnPropertyChanged(nameof(IsValid));
             }
         }
 
@@ -101,7 +211,7 @@
             set
             {
                 repository.ProjectName = value;
-                RaisePropertyChanged(nameof(ProjectName));
+                OnPropertyChanged(nameof(ProjectName));
             }
         }
 
@@ -128,115 +238,9 @@
             set
             {
                 repository.UseRepository = value;
-                RaisePropertyChanged(nameof(UseRepository));
+                OnPropertyChanged(nameof(UseRepository));
                 messenger.Send(new RepositoriesUpdatedMessage());
             }
-        }
-
-        private void Synchronize()
-        {
-            messenger.Send(new ExecuteWithWaiterMessage
-            {
-                Task = async () =>
-                {
-                    try
-                    {
-                        if (IsGitRepository && repository is RepositoryGit repositoryGit)
-                        {
-                            await gitService.Synchronize(repositoryGit);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        consoleWriter.AddMessageLine($"Error : {ex.Message}", "red");
-                    }
-                }
-            });
-        }
-
-        private void GetReleasesData()
-        {
-            messenger.Send(new ExecuteWithWaiterMessage
-            {
-                Task = async () =>
-                {
-                    try
-                    {
-                        consoleWriter.AddMessageLine("Getting releases data...", "pink");
-                        await repository.FillReleasesAsync();
-                        messenger.Send(new RepositoryViewModelReleaseDataUpdatedMessage { Repository = this });
-                        consoleWriter.AddMessageLine("Releases data got successfully", "green");
-                        if (repository.UseDownloadedReleases)
-                        {
-                            consoleWriter.AddMessageLine($"WARNING: Releases data got from downloaded releases", "orange");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        consoleWriter.AddMessageLine($"Error : {ex.Message}", "red");
-                    }
-                }
-            });
-        }
-
-        private void CleanReleases()
-        {
-            messenger.Send(new ExecuteWithWaiterMessage
-            {
-                Task = async () =>
-                {
-                    try
-                    {
-                        consoleWriter.AddMessageLine($"Cleaning releases of repository {Name}...", "pink");
-                        await Task.Run(repository.CleanReleases);
-                        consoleWriter.AddMessageLine($"Releases cleaned", "green");
-                    }
-                    catch (Exception ex)
-                    {
-                        consoleWriter.AddMessageLine($"Failed to clean releases : {ex.Message}");
-                    }
-                }
-            });
-        }
-
-        private void OpenSynchronizedFolder()
-        {
-            messenger.Send(new ExecuteWithWaiterMessage
-            {
-                Task = async () =>
-                {
-                    if (!Directory.Exists(Model.LocalPath))
-                    {
-                        consoleWriter.AddMessageLine($"Synchronized folder {Model.LocalPath} not found");
-                    }
-
-                    await Task.Run(() => Process.Start("explorer.exe", Model.LocalPath));
-                }
-            });
-        }
-
-        private void OpenSource()
-        {
-            messenger.Send(new ExecuteWithWaiterMessage
-            {
-                Task = async () =>
-                {
-                    if (Model is RepositoryFolder repoFolder)
-                    {
-                        if (!Directory.Exists(repoFolder.Path))
-                        {
-                            consoleWriter.AddMessageLine($"Source folder {repoFolder.Path} not found");
-                        }
-
-                        await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = Model.LocalPath, UseShellExecute = true }));
-                    }
-
-                    if (Model is RepositoryGit repoGit)
-                    {
-                        await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = repoGit.Url, UseShellExecute = true }));
-                    }
-                }
-            });
         }
     }
 }

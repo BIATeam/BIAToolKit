@@ -4,22 +4,22 @@
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
-    using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using BIA.ToolKit.Domain;
 
-    public sealed class RepositoryGitViewModel(RepositoryGit repositoryGit, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter) : RepositoryViewModel(repositoryGit, gitService, messenger, consoleWriter)
+    public sealed partial class RepositoryGitViewModel(RepositoryGit repositoryGit, GitService gitService, IMessenger messenger, IConsoleWriter consoleWriter) : RepositoryViewModel(repositoryGit, gitService, messenger, consoleWriter)
     {
         public string GitRepositoryName
         {
             get => repositoryGit.GitRepositoryName;
             set
             {
-                repositoryGit.GitRepositoryName = value; RaisePropertyChanged(nameof(GitRepositoryName));
-                RaisePropertyChanged(nameof(IsValid));
+                repositoryGit.GitRepositoryName = value;
+                OnPropertyChanged(nameof(GitRepositoryName));
+                OnPropertyChanged(nameof(IsValid));
             }
         }
 
@@ -28,8 +28,9 @@
             get => repositoryGit.LocalClonedFolderPath;
             set
             {
-                repositoryGit.LocalClonedFolderPath = value; RaisePropertyChanged(nameof(LocalClonedFolderPath));
-                RaisePropertyChanged(nameof(IsValid));
+                repositoryGit.LocalClonedFolderPath = value;
+                OnPropertyChanged(nameof(LocalClonedFolderPath));
+                OnPropertyChanged(nameof(IsValid));
             }
         }
 
@@ -38,15 +39,20 @@
             get => repositoryGit.Owner;
             set
             {
-                repositoryGit.Owner = value; RaisePropertyChanged(nameof(Owner));
-                RaisePropertyChanged(nameof(IsValid));
+                repositoryGit.Owner = value;
+                OnPropertyChanged(nameof(Owner));
+                OnPropertyChanged(nameof(IsValid));
             }
         }
 
         public string ReleasesFolderRegexPattern
         {
             get => repositoryGit.ReleasesFolderRegexPattern;
-            set { repositoryGit.ReleasesFolderRegexPattern = value; RaisePropertyChanged(nameof(ReleasesFolderRegexPattern)); }
+            set
+            {
+                repositoryGit.ReleasesFolderRegexPattern = value;
+                OnPropertyChanged(nameof(ReleasesFolderRegexPattern));
+            }
         }
 
         public Array ReleaseTypes => Enum.GetValues<ReleaseType>();
@@ -57,11 +63,11 @@
             set
             {
                 repositoryGit.ReleaseType = value;
-                RaisePropertyChanged(nameof(ReleaseType));
-                RaisePropertyChanged(nameof(IsReleaseTypeGit));
-                RaisePropertyChanged(nameof(IsReleaseTypeFolder));
-                RaisePropertyChanged(nameof(IsReleaseTypeTag));
-                RaisePropertyChanged(nameof(IsValid));
+                OnPropertyChanged(nameof(ReleaseType));
+                OnPropertyChanged(nameof(IsReleaseTypeGit));
+                OnPropertyChanged(nameof(IsReleaseTypeFolder));
+                OnPropertyChanged(nameof(IsReleaseTypeTag));
+                OnPropertyChanged(nameof(IsValid));
             }
         }
 
@@ -74,8 +80,9 @@
             get => repositoryGit.Url;
             set
             {
-                repositoryGit.Url = value; RaisePropertyChanged(nameof(Url));
-                RaisePropertyChanged(nameof(IsValid));
+                repositoryGit.Url = value;
+                OnPropertyChanged(nameof(Url));
+                OnPropertyChanged(nameof(IsValid));
             }
         }
 
@@ -84,21 +91,30 @@
             get => repositoryGit.UseLocalClonedFolder;
             set
             {
-                repositoryGit.UseLocalClonedFolder = value; RaisePropertyChanged(nameof(UseLocalClonedFolder));
-                RaisePropertyChanged(nameof(IsValid));
+                repositoryGit.UseLocalClonedFolder = value;
+                OnPropertyChanged(nameof(UseLocalClonedFolder));
+                OnPropertyChanged(nameof(IsValid));
             }
         }
 
         public RepositoryGitKind RepositoryGitKind
         {
             get => repositoryGit.RepositoryGitKind;
-            set { repositoryGit.RepositoryGitKind = value; RaisePropertyChanged(nameof(RepositoryGitKind)); }
+            set
+            {
+                repositoryGit.RepositoryGitKind = value;
+                OnPropertyChanged(nameof(RepositoryGitKind));
+            }
         }
 
         public string UrlRelease
         {
             get => repositoryGit.UrlRelease;
-            set { repositoryGit.UrlRelease = value; RaisePropertyChanged(nameof(UrlRelease)); }
+            set
+            {
+                repositoryGit.UrlRelease = value;
+                OnPropertyChanged(nameof(UrlRelease));
+            }
         }
 
         protected override bool EnsureIsValid()

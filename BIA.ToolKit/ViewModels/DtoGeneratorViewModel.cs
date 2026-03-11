@@ -10,7 +10,8 @@
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.ViewModel.Messaging.Messages;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -24,9 +25,8 @@
     using System.Reflection.Metadata;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
-    using System.Windows.Input;
 
-    public class DtoGeneratorViewModel : ViewModelBase
+    public partial class DtoGeneratorViewModel : ViewModelBase
     {
         private Project project;
         private readonly FileGeneratorService fileGeneratorService;
@@ -83,8 +83,8 @@
             set
             {
                 isProjectChosen = value;
-                RaisePropertyChanged(nameof(IsProjectChosen));
-                RaisePropertyChanged(nameof(IsFileGeneratorInit));
+                OnPropertyChanged(nameof(IsProjectChosen));
+                OnPropertyChanged(nameof(IsFileGeneratorInit));
             }
         }
 
@@ -258,16 +258,8 @@
 
         public bool IsFileGeneratorInit => this.fileGeneratorService?.IsInit == true;
 
+        [ObservableProperty]
         private ObservableCollection<EntityInfo> entities = [];
-        public ObservableCollection<EntityInfo> Entities
-        {
-            get => entities;
-            set
-            {
-                entities = value;
-                RaisePropertyChanged(nameof(Entities));
-            }
-        }
 
         private EntityInfo entity;
         public EntityInfo Entity
@@ -276,7 +268,7 @@
             set
             {
                 entity = value;
-                RaisePropertyChanged(nameof(Entity));
+                OnPropertyChanged(nameof(Entity));
                 AncestorTeam = null;
                 EntityDomain = null;
 
@@ -290,8 +282,8 @@
                     }
                 }
 
-                RaisePropertyChanged(nameof(IsEntitySelected));
-                RaisePropertyChanged(nameof(IsAuditable));
+                OnPropertyChanged(nameof(IsEntitySelected));
+                OnPropertyChanged(nameof(IsAuditable));
 
                 RefreshEntityPropertiesTreeView();
                 RemoveAllMappingProperties();
@@ -317,22 +309,13 @@
             set
             {
                 entityDomain = value;
-                RaisePropertyChanged(nameof(EntityDomain));
-                RaisePropertyChanged(nameof(IsGenerationEnabled));
+                OnPropertyChanged(nameof(EntityDomain));
+                OnPropertyChanged(nameof(IsGenerationEnabled));
             }
         }
 
+        [ObservableProperty]
         private string ancestorTeam;
-
-        public string AncestorTeam
-        {
-            get => ancestorTeam;
-            set 
-            { 
-                ancestorTeam = value; 
-                RaisePropertyChanged(nameof(AncestorTeam));
-            }
-        }
 
         private ObservableCollection<EntityProperty> entityProperties = new();
         public ObservableCollection<EntityProperty> EntityProperties
@@ -350,65 +333,25 @@
             set
             {
                 mappingEntityProperties = value;
-                RaisePropertyChanged(nameof(MappingEntityProperties));
-                RaisePropertyChanged(nameof(IsGenerationEnabled));
+                OnPropertyChanged(nameof(MappingEntityProperties));
+                OnPropertyChanged(nameof(IsGenerationEnabled));
             }
         }
 
+        [ObservableProperty]
         private bool wasAlreadyGenerated;
-        public bool WasAlreadyGenerated
-        {
-            get => wasAlreadyGenerated;
-            set
-            {
-                wasAlreadyGenerated = value;
-                RaisePropertyChanged(nameof(WasAlreadyGenerated));
-            }
-        }
 
+        [ObservableProperty]
         private bool _isTeam;
-        public bool IsTeam
-        {
-            get => _isTeam;
-            set
-            {
-                _isTeam = value;
-                RaisePropertyChanged(nameof(IsTeam));
-            }
-        }
 
+        [ObservableProperty]
         private bool _isVersioned;
-        public bool IsVersioned
-        {
-            get => _isVersioned;
-            set
-            {
-                _isVersioned = value;
-                RaisePropertyChanged(nameof(IsVersioned));
-            }
-        }
 
+        [ObservableProperty]
         private bool _isArchivable;
-        public bool IsArchivable
-        {
-            get => _isArchivable;
-            set
-            {
-                _isArchivable = value;
-                RaisePropertyChanged(nameof(IsArchivable));
-            }
-        }
 
+        [ObservableProperty]
         private bool _isFixable;
-        public bool IsFixable
-        {
-            get => _isFixable;
-            set
-            {
-                _isFixable = value;
-                RaisePropertyChanged(nameof(IsFixable));
-            }
-        }
 
         public IEnumerable<string> BaseKeyTypeItems => Constants.PrimitiveTypes;
         private string selectedBaseKeyType;
@@ -419,22 +362,13 @@
             set 
             { 
                 selectedBaseKeyType = value; 
-                RaisePropertyChanged(nameof(SelectedBaseKeyType));
-                RaisePropertyChanged(nameof(IsGenerationEnabled));
+                OnPropertyChanged(nameof(SelectedBaseKeyType));
+                OnPropertyChanged(nameof(IsGenerationEnabled));
             }
         }
 
+        [ObservableProperty]
         private bool useDedicatedAudit;
-
-        public bool UseDedicatedAudit
-        {
-            get { return useDedicatedAudit; }
-            set 
-            { 
-                useDedicatedAudit = value; 
-                RaisePropertyChanged(nameof(UseDedicatedAudit));
-            }
-        }
 
         public string ProjectDomainNamespace { get; private set; }
         public bool IsEntitySelected => Entity != null;
@@ -446,32 +380,33 @@
         public bool IsAuditable => Entity?.IsAuditable == true;
         public bool IsVisibleUseDedicatedAudit => Version.TryParse(project?.FrameworkVersion, out var version) && version.Major >= 6;
 
-        public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>(RemoveMappingProperty);
-        public ICommand MoveMappedPropertyCommand => new RelayCommand<MoveItemArgs>(x => MoveMappedProperty(x.OldIndex, x.NewIndex));
-        public ICommand SetMappedPropertyIsParentCommand => new RelayCommand<MappingEntityProperty>(SetMappedPropertyIsParent);
-        public ICommand RefreshEntitiesListCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage { Task = ListEntities }));
-        public ICommand RemoveAllMappingPropertiesCommand => new RelayCommand(_ => RemoveAllMappingProperties());
-        public ICommand GenerateCommand => new RelayCommand(_ => Messenger.Send(new ExecuteWithWaiterMessage
-        {
-            Task = () => GenerateAsync(new FileGeneratorDtoContext
+        [RelayCommand]
+        private void RefreshEntitiesList() =>
+            Messenger.Send(new ExecuteWithWaiterMessage { Task = ListEntities });
+
+        [RelayCommand]
+        private void Generate() =>
+            Messenger.Send(new ExecuteWithWaiterMessage
             {
-                CompanyName = CurrentProjectCompanyName,
-                ProjectName = CurrentProjectName,
-                DomainName = EntityDomain,
-                EntityName = Entity.Name,
-                EntityNamePlural = Entity.NamePluralized,
-                BaseKeyType = SelectedBaseKeyType,
-                Properties = [.. MappingEntityProperties],
-                IsTeam = IsTeam,
-                IsVersioned = IsVersioned,
-                IsArchivable = IsArchivable,
-                IsFixable = IsFixable,
-                AncestorTeamName = AncestorTeam,
-                HasAncestorTeam = !string.IsNullOrEmpty(AncestorTeam),
-                GenerateBack = true,
-                HasAudit = UseDedicatedAudit
-            })
-        }));
+                Task = () => GenerateAsync(new FileGeneratorDtoContext
+                {
+                    CompanyName = CurrentProjectCompanyName,
+                    ProjectName = CurrentProjectName,
+                    DomainName = EntityDomain,
+                    EntityName = Entity.Name,
+                    EntityNamePlural = Entity.NamePluralized,
+                    BaseKeyType = SelectedBaseKeyType,
+                    Properties = [.. MappingEntityProperties],
+                    IsTeam = IsTeam,
+                    IsVersioned = IsVersioned,
+                    IsArchivable = IsArchivable,
+                    IsFixable = IsFixable,
+                    AncestorTeamName = AncestorTeam,
+                    HasAncestorTeam = !string.IsNullOrEmpty(AncestorTeam),
+                    GenerateBack = true,
+                    HasAudit = UseDedicatedAudit
+                })
+            });
 
         public void SetProject(Project project)
         {
@@ -479,7 +414,7 @@
             IsProjectChosen = true;
 
             this.project = project;
-            RaisePropertyChanged(nameof(IsVisibleUseDedicatedAudit));
+            OnPropertyChanged(nameof(IsVisibleUseDedicatedAudit));
         }
 
         public string CurrentProjectCompanyName => project?.CompanyName;
@@ -593,8 +528,8 @@
                 }
             }
 
-            RaisePropertyChanged(nameof(HasMappingProperties));
-            RaisePropertyChanged(nameof(IsGenerationEnabled));
+            OnPropertyChanged(nameof(HasMappingProperties));
+            OnPropertyChanged(nameof(IsGenerationEnabled));
         }
 
         private void AddMappingProperties(IEnumerable<EntityProperty> entityProperties, List<MappingEntityProperty> mappingEntityProperties)
@@ -744,16 +679,18 @@
             return regex.Match(optionType).Groups[1].Value;
         }
 
+        [RelayCommand]
         private void RemoveMappingProperty(MappingEntityProperty mappingEntityProperty)
         {
             MappingEntityProperties.Remove(mappingEntityProperty);
 
             ComputePropertiesValidity();
 
-            RaisePropertyChanged(nameof(HasMappingProperties));
-            RaisePropertyChanged(nameof(IsGenerationEnabled));
+            OnPropertyChanged(nameof(HasMappingProperties));
+            OnPropertyChanged(nameof(IsGenerationEnabled));
         }
 
+        [RelayCommand]
         private void SetMappedPropertyIsParent(MappingEntityProperty mappingEntityProperty)
         {
             var newValue = mappingEntityProperty.IsParent;
@@ -764,12 +701,13 @@
             mappingEntityProperty.IsParent = newValue;
         }
 
+        [RelayCommand]
         public void RemoveAllMappingProperties()
         {
             MappingEntityProperties.Clear();
 
-            RaisePropertyChanged(nameof(HasMappingProperties));
-            RaisePropertyChanged(nameof(IsGenerationEnabled));
+            OnPropertyChanged(nameof(HasMappingProperties));
+            OnPropertyChanged(nameof(IsGenerationEnabled));
         }
 
         public void ComputePropertiesValidity()
@@ -790,7 +728,7 @@
                 }
             }
 
-            RaisePropertyChanged(nameof(IsGenerationEnabled));
+            OnPropertyChanged(nameof(IsGenerationEnabled));
         }
 
         public void Clear()
@@ -801,6 +739,10 @@
             project = null;
         }
 
+        [RelayCommand]
+        private void MoveMappedProperty(MoveItemArgs args) =>
+            MoveMappedProperty(args.OldIndex, args.NewIndex);
+
         private void MoveMappedProperty(int oldIndex, int newIndex)
         {
             if (oldIndex == newIndex || oldIndex < 0 || newIndex < 0 || oldIndex >= MappingEntityProperties.Count || newIndex >= MappingEntityProperties.Count)
@@ -810,21 +752,13 @@
         }
     }
 
-    public class EntityProperty : ObservableObject
+    public partial class EntityProperty : ObservableObject
     {
         public string Name { get; set; }
         public string Type { get; set; }
 
+        [ObservableProperty]
         private bool isSelected;
-        public bool IsSelected
-        {
-            get => isSelected;
-            set
-            {
-                isSelected = value;
-                RaisePropertyChanged(nameof(IsSelected));
-            }
-        }
         public string CompositeName { get; set; }
         public List<EntityProperty> Properties { get; set; } = new();
         public string ParentType { get; set; }

@@ -6,7 +6,8 @@
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.ViewModel.Messaging.Messages;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Model;
@@ -20,9 +21,8 @@
     using System.Linq;
     using System.Text.Json;
     using System.Threading.Tasks;
-    using System.Windows.Input;
 
-    public class VersionAndOptionViewModel : ViewModelBase
+    public partial class VersionAndOptionViewModel : ViewModelBase
     {
         public VersionAndOption VersionAndOption { get; set; }
         public RepositoryService repositoryService;
@@ -47,15 +47,22 @@
         public override void Initialize()
         {
             Messenger.Subscribe<SettingsUpdatedMessage>(OnSettingsUpdated);
+            Messenger.Subscribe<RepositoryViewModelReleaseDataUpdatedMessage>(OnRepositoryViewModelReleaseDataUpdated);
         }
 
         public override void Cleanup()
         {
             Messenger.Unsubscribe<SettingsUpdatedMessage>(OnSettingsUpdated);
+            Messenger.Unsubscribe<RepositoryViewModelReleaseDataUpdatedMessage>(OnRepositoryViewModelReleaseDataUpdated);
             if (isOriginFeatureSettingsListener)
             {
                 Messenger.Unsubscribe<OriginFeatureSettingsChangedMessage>(OnOriginFeatureSettingsChanged);
             }
+        }
+
+        private void OnRepositoryViewModelReleaseDataUpdated(RepositoryViewModelReleaseDataUpdatedMessage message)
+        {
+            RefreshConfiguration();
         }
 
         private void OnSettingsUpdated(SettingsUpdatedMessage msg)
@@ -122,7 +129,7 @@
                 if (VersionAndOption.WorkTemplates != value)
                 {
                     VersionAndOption.WorkTemplates = value;
-                    RaisePropertyChanged(nameof(WorkTemplates));
+                    OnPropertyChanged(nameof(WorkTemplates));
                 }
             }
         }
@@ -143,9 +150,24 @@
                             WorkCompanyFile = workCompanyFile;
                         }
                     }
-                    RaisePropertyChanged(nameof(WorkTemplate));
+                    OnPropertyChanged(nameof(WorkTemplate));
+                    OnFrameworkVersionChanged();
                 }
             }
+        }
+
+        private void OnFrameworkVersionChanged()
+        {
+            Messenger.Send(new ExecuteWithWaiterMessage
+            {
+                Task = async () =>
+                {
+                    await FillVersionFolderPathAsync();
+                    LoadfeatureSetting();
+                    LoadVersionAndOption(false, false);
+                    NotifyOriginFeatureSettingsChanged();
+                }
+            });
         }
 
         public ObservableCollection<string> Profiles
@@ -156,7 +178,7 @@
                 if (VersionAndOption.Profiles != value)
                 {
                     VersionAndOption.Profiles = value;
-                    RaisePropertyChanged(nameof(Profiles));
+                    OnPropertyChanged(nameof(Profiles));
                 }
             }
         }
@@ -169,7 +191,7 @@
                 if (VersionAndOption.Profile != value)
                 {
                     VersionAndOption.Profile = value;
-                    RaisePropertyChanged(nameof(Profile));
+                    OnPropertyChanged(nameof(Profile));
                 }
             }
         }
@@ -182,7 +204,7 @@
                 if (VersionAndOption.WorkCompanyFiles != value)
                 {
                     VersionAndOption.WorkCompanyFiles = value;
-                    RaisePropertyChanged(nameof(WorkCompanyFiles));
+                    OnPropertyChanged(nameof(WorkCompanyFiles));
                 }
             }
         }
@@ -244,7 +266,8 @@
                             }
                         });
                     }
-                    RaisePropertyChanged(nameof(WorkCompanyFile));
+                    OnPropertyChanged(nameof(WorkCompanyFile));
+                    LoadVersionAndOption(false, false);
                 }
             }
         }
@@ -255,9 +278,10 @@
             get { return settingsUseCompanyFiles; }
             set
             {
-                settingsUseCompanyFiles = value;
-                RaisePropertyChanged(nameof(SettingsUseCompanyFiles));
-                RaisePropertyChanged(nameof(SettingsNotUseCompanyFiles));
+                if (SetProperty(ref settingsUseCompanyFiles, value))
+                {
+                    OnPropertyChanged(nameof(SettingsNotUseCompanyFiles));
+                }
             }
         }
 
@@ -272,8 +296,8 @@
                 if (VersionAndOption.UseCompanyFiles != value)
                 {
                     VersionAndOption.UseCompanyFiles = value;
-                    RaisePropertyChanged(nameof(UseCompanyFiles));
-                    RaisePropertyChanged(nameof(NotUseCompanyFiles));
+                    OnPropertyChanged(nameof(UseCompanyFiles));
+                    OnPropertyChanged(nameof(NotUseCompanyFiles));
                 }
             }
         }
@@ -291,7 +315,7 @@
                 if (VersionAndOption.Options != value)
                 {
                     VersionAndOption.Options = value;
-                    RaisePropertyChanged(nameof(Options));
+                    OnPropertyChanged(nameof(Options));
                 }
             }
         }
@@ -318,7 +342,7 @@
                     featureSettings = value ?? [];
                     HasFeature = featureSettings.Any();
                     AreFeatureInitialized = true;
-                    RaisePropertyChanged(nameof(FeatureSettings));
+                    OnPropertyChanged(nameof(FeatureSettings));
                     VersionAndOption.FeatureSettings = featureSettings.Select(x => x.FeatureSetting).ToList();
                 }
             }
@@ -347,12 +371,10 @@
             get { return hasFeature; }
             set
             {
-                if (hasFeature != value)
+                if (SetProperty(ref hasFeature, value))
                 {
-                    hasFeature = value;
-                    RaisePropertyChanged(nameof(HasFeature));
-                    RaisePropertyChanged(nameof(AreFeatureVisible));
-                    RaisePropertyChanged(nameof(IsVisibileNoFeature));
+                    OnPropertyChanged(nameof(AreFeatureVisible));
+                    OnPropertyChanged(nameof(IsVisibileNoFeature));
                 }
             }
         }
@@ -362,13 +384,11 @@
             get { return areFeatureInitialized; }
             set
             {
-                if (areFeatureInitialized != value)
+                if (SetProperty(ref areFeatureInitialized, value))
                 {
-                    areFeatureInitialized = value;
-                    RaisePropertyChanged(nameof(AreFeatureInitialized));
-                    RaisePropertyChanged(nameof(AreFeatureVisible));
-                    RaisePropertyChanged(nameof(AreFeatureLoading));
-                    RaisePropertyChanged(nameof(IsVisibileNoFeature));
+                    OnPropertyChanged(nameof(AreFeatureVisible));
+                    OnPropertyChanged(nameof(AreFeatureLoading));
+                    OnPropertyChanged(nameof(IsVisibileNoFeature));
                 }
             }
         }
@@ -385,8 +405,7 @@
 
         public bool IsVisibileNoFeature => !AreFeatureVisible;
 
-        public ICommand OnFeatureSettingSelectionChangedCommand => new RelayCommand(_ => OnFeatureSettingSelectionChanged());
-
+        [RelayCommand]
         private void OnFeatureSettingSelectionChanged()
         {
             var notSelectedFeatures = VersionAndOption.FeatureSettings.FilterNotSelectedFeatures();

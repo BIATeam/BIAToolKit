@@ -1,12 +1,14 @@
-﻿<UserControl x:Class="BIA.ToolKit.UserControls.ModifyProjectUC"
+﻿<uc:ViewModelUserControl x:Class="BIA.ToolKit.UserControls.ModifyProjectUC"
+             x:TypeArguments="local:ModifyProjectViewModel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:BIA.ToolKit.ViewModel;assembly=BIA.ToolKit"
+             xmlns:local="clr-namespace:BIA.ToolKit.ViewModel"
              xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=local:ModifyProjectViewModel, IsDesignTimeCreatable=False}"
              d:Height="550" d:Width="1280">
     <Grid x:Name="TabModify">
         <Grid.RowDefinitions>
@@ -28,7 +30,7 @@
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <TextBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Projects Parent Path" Text="{Binding RootProjectsPath}" TextWrapping="Wrap" TextChanged="ModifyProjectRootFolderText_TextChanged"/>
-                <Button Grid.Column="1" Margin="5,0" Content="..." x:Name="ModifyProjectRootFolderBrowse" Click="ModifyProjectRootFolderBrowse_Click"/>
+                <Button Grid.Column="1" Margin="5,0" Content="..." x:Name="ModifyProjectRootFolderBrowse" Command="{Binding BrowseFolderCommand}"/>
             </Grid>
             <Grid Grid.Column="1" Margin="10,0">
                 <Grid.ColumnDefinitions>
@@ -119,21 +121,21 @@
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <Grid>
                             <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
-                            <uc:OptionGeneratorUC x:Name="OptionGenerator" Margin="10" />
+                            <ContentControl Content="{Binding OptionGeneratorVm}" Margin="10"/>
                         </Grid>
                     </ScrollViewer>
                 </TabItem>
                 <TabItem x:Name="TabDtoGenerator" Header="DTO Generator" IsEnabled="{Binding IsFileGeneratorServiceInit, Mode=OneWay}">
                     <Grid>
                         <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
-                        <uc:DtoGeneratorUC x:Name="DtoGenerator" Margin="10"/>
+                        <ContentControl Content="{Binding DtoGeneratorVm}" Margin="10"/>
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="TabCrudGenerator" Header="CRUD Generator" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <Grid>
                             <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
-                            <uc:CRUDGeneratorUC x:Name="CRUDGenerator" Margin="10"/>
+                            <ContentControl Content="{Binding CRUDGeneratorVm}" Margin="10"/>
                         </Grid>
                     </ScrollViewer>
                 </TabItem>
@@ -141,4 +143,4 @@
         </Grid>
     </Grid>
 
-</UserControl>
+</uc:ViewModelUserControl>

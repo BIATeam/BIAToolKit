@@ -6,15 +6,18 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Windows.Input;
+    using System.Windows;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel.Base;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
     using BIA.ToolKit.ViewModel.Messaging.Messages;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Common;
+    using Microsoft.Extensions.DependencyInjection;
     using BIA.ToolKit.Common.Helpers;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Model;
@@ -22,7 +25,7 @@
     using Newtonsoft.Json;
     using Octokit;
 
-    public class MainViewModel : ViewModelBase
+    public partial class MainViewModel : ViewModelBase
     {
         private readonly Version applicationVersion;
         private readonly SettingsService settingsService;
@@ -38,7 +41,9 @@
         private bool waitAddCompanyFilesRepository;
 
         public MainViewModel(Version applicationVersion, IMessenger messenger, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter,
-            UpdateService updateService, CSharpParserService cSharpParserService, ProjectCreatorService projectCreatorService, GenerateFilesService generateFilesService, RepositoryService repositoryService)
+            UpdateService updateService, CSharpParserService cSharpParserService, ProjectCreatorService projectCreatorService, GenerateFilesService generateFilesService, RepositoryService repositoryService,
+            [FromKeyedServices("create")] VersionAndOptionViewModel createVersionAndOptionVm,
+            ModifyProjectViewModel modifyProjectVm)
             : base(messenger)
         {
             this.applicationVersion = applicationVersion;
@@ -50,13 +55,15 @@
             this.projectCreatorService = projectCreatorService;
             this.generateFilesService = generateFilesService;
             this.repositoryService = repositoryService;
+            CreateVersionAndOptionVm = createVersionAndOptionVm;
+            ModifyProjectVm = modifyProjectVm;
         }
 
-        /// <summary>Gets or sets the VersionAndOption ViewModel used for project creation.</summary>
-        public VersionAndOptionViewModel CreateVersionAndOptionVm { get; set; }
+        /// <summary>Gets the VersionAndOption ViewModel used for project creation.</summary>
+        public VersionAndOptionViewModel CreateVersionAndOptionVm { get; }
 
-        /// <summary>Gets or sets an action invoked to navigate to the Settings tab when repository configuration is invalid.</summary>
-        public Action NavigateToSettingsTab { get; set; }
+        /// <summary>Gets the Modify Project ViewModel.</summary>
+        public ModifyProjectViewModel ModifyProjectVm { get; }
 
         /// <inheritdoc/>
         public override void Initialize()
@@ -88,16 +95,18 @@
                 firstTimeSettingsUpdated = false;
             }
 
-            RaisePropertyChanged(nameof(Settings_RootProjectsPath));
-            RaisePropertyChanged(nameof(Settings_CreateCompanyName));
-            RaisePropertyChanged(nameof(Settings_UseCompanyFiles));
-            RaisePropertyChanged(nameof(Settings_AutoUpdate));
-            RaisePropertyChanged(nameof(ToolkitRepository));
+            OnPropertyChanged(nameof(Settings_RootProjectsPath));
+            OnPropertyChanged(nameof(Settings_CreateCompanyName));
+            OnPropertyChanged(nameof(Settings_UseCompanyFiles));
+            OnPropertyChanged(nameof(Settings_AutoUpdate));
+            OnPropertyChanged(nameof(ToolkitRepository));
         }
 
         private void OnNewVersionAvailable(NewVersionAvailableMessage message)
         {
             UpdateAvailable = true;
+            IsCheckUpdateEnabled = false;
+            ShowUpdateDialogCommand.Execute(null);
         }
 
         private void OnRepositoriesUpdated(RepositoriesUpdatedMessage message)
@@ -195,12 +204,10 @@
             settingsService.SetTemplateRepositories(TemplateRepositories.Select(x => x.Model).ToList());
         }
 
-        public ICommand OpenToolkitRepositorySettingsCommand => new RelayCommand((_) => Messenger.Send(new OpenRepositoryFormRequestMessage { Repository = ToolkitRepository, Mode = RepositoryFormMode.Edit }));
+        [RelayCommand]
+        private void OpenToolkitRepositorySettings() => Messenger.Send(new OpenRepositoryFormRequestMessage { Repository = ToolkitRepository, Mode = RepositoryFormMode.Edit });
 
-        public ICommand AddTemplateRepositoryCommand => new RelayCommand((_) => AddTemplateRepository());
-
-        public ICommand AddCompanyFilesRepositoryCommand => new RelayCommand((_) => AddCompanyFilesRepository());
-
+        [RelayCommand]
         private void AddTemplateRepository()
         {
             waitAddTemplateRepository = true;
@@ -208,6 +215,7 @@
             Messenger.Send(new OpenRepositoryFormRequestMessage { Repository = new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, Messenger, consoleWriter), Mode = RepositoryFormMode.Create });
         }
 
+        [RelayCommand]
         private void AddCompanyFilesRepository()
         {
             waitAddCompanyFilesRepository = true;
@@ -222,11 +230,7 @@
         public RepositoryViewModel ToolkitRepository
         {
             get => toolkitRepository;
-            set
-            {
-                toolkitRepository = value;
-                RaisePropertyChanged(nameof(ToolkitRepository));
-            }
+            set => SetProperty(ref toolkitRepository, value);
         }
 
         public void UpdateRepositories(IBIATKSettings settings)
@@ -326,15 +330,87 @@
 
         public string ApplicationVersion => $"V{applicationVersion.Major}.{applicationVersion.Minor}.{applicationVersion.Build}";
 
+        [ObservableProperty]
         private bool _updateAvailable;
-        public bool UpdateAvailable
+
+        [ObservableProperty]
+        private bool _isCheckUpdateEnabled = true;
+
+        [ObservableProperty]
+        private string _newProjectName;
+
+        [ObservableProperty]
+        private int _selectedMainTabIndex;
+
+        partial void OnSelectedMainTabIndexChanged(int value)
         {
-            get => _updateAvailable;
-            set
+            if (value == 1 || value == 2)
+                EnsureValidRepositoriesConfiguration();
+        }
+
+        [RelayCommand]
+        private void BrowseCreateProjectFolder()
+        {
+            Settings_RootProjectsPath = FileDialog.BrowseFolder(Settings_RootProjectsPath, "Choose create project root path");
+        }
+
+        [RelayCommand]
+        private void CreateProject()
+        {
+            Messenger.Send(new ExecuteWithWaiterMessage { Task = () => CreateProjectAsync(NewProjectName) });
+        }
+
+        [RelayCommand]
+        private void CheckForUpdates()
+        {
+            Messenger.Send(new ExecuteWithWaiterMessage { Task = CheckForUpdatesAsync });
+        }
+
+        [RelayCommand]
+        private async Task ShowUpdateDialog()
+        {
+            try
             {
-                _updateAvailable = value;
-                RaisePropertyChanged(nameof(UpdateAvailable));
+                var result = MessageBox.Show(
+                    $"A new version ({updateService.NewVersion}) of BIAToolKit is available.\nInstall now?",
+                    "Update available",
+                    MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    Messenger.Send(new ExecuteWithWaiterMessage { Task = updateService.DownloadUpdateAsync });
+                }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Update failure : {ex.Message}", "Update failure", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        [RelayCommand]
+        private void ClearConsole() => consoleWriter.Clear();
+
+        [RelayCommand]
+        private void CopyConsoleToClipboard() => consoleWriter.CopyToClipboard();
+
+        [RelayCommand]
+        private void ImportConfig()
+        {
+            var configFile = FileDialog.BrowseFile(string.Empty, "btksettings");
+            if (string.IsNullOrWhiteSpace(configFile) || !File.Exists(configFile))
+                return;
+
+            Messenger.Send(new ExecuteWithWaiterMessage { Task = () => ImportConfigAsync(configFile) });
+        }
+
+        [RelayCommand]
+        private void ExportConfigToFolder()
+        {
+            var targetDirectory = FileDialog.BrowseFolder(string.Empty, "Choose export folder target");
+            if (string.IsNullOrWhiteSpace(targetDirectory))
+                return;
+
+            ExportConfig(Path.Combine(targetDirectory, "user.btksettings"));
         }
 
         /// <summary>Initializes the application: loads releases data, inits settings, checks for updates and registers MSBuild.</summary>
@@ -451,7 +527,7 @@
             var companyFilesValid = CheckCompanyFilesRepositories(settingsService.Settings);
             if (!templatesValid || !companyFilesValid)
             {
-                NavigateToSettingsTab?.Invoke();
+                SelectedMainTabIndex = 0;
             }
             return templatesValid && companyFilesValid;
         }
