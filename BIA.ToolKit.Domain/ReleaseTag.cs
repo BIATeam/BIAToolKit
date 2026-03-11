@@ -9,7 +9,7 @@
     using BIA.ToolKit.Domain.Settings;
     using LibGit2Sharp;
 
-    public sealed class ReleaseTag(string name, IRepository repository) : Release(name, repository.Name)
+    public sealed class ReleaseTag(string name, IRepositoryGit repository) : Release(name, repository.Name)
     {
         public override ReleaseType ReleaseType => ReleaseType.Tag;
 
@@ -19,16 +19,68 @@
 
             await Task.Run(() =>
             {
-                LibGit2Sharp.Repository.Clone(repository.LocalPath, LocalPath);
-                using var gitRepository = new LibGit2Sharp.Repository(repository.LocalPath);
-                var tag = gitRepository.Tags.FirstOrDefault(t => t.FriendlyName == Name) 
-                    ?? throw new NotFoundException($"Tag {Name} not found in repository {repository.Name}");
-                var commit = tag.Target.Peel<Commit>()
-                    ?? throw new NotFoundException($"Tag {Name} does not resolve to a commit.");
-                Commands.Checkout(gitRepository, commit);
+
+                var gitCopyFolder = LocalPath;
+                if (!string.IsNullOrEmpty(repository.ReleasesTagContentFolder))
+                {
+                    gitCopyFolder = Path.Combine(Path.GetDirectoryName(LocalPath), "temp");
+                    CleanFolder(gitCopyFolder);
+                }
+
+
+                LibGit2Sharp.Repository.Clone(repository.LocalPath, gitCopyFolder);
+                using (var gitRepository = new LibGit2Sharp.Repository(gitCopyFolder))
+                {
+                    var tag = gitRepository.Tags.FirstOrDefault(t => t.FriendlyName == Name)
+                        ?? throw new NotFoundException($"Tag {Name} not found in repository {repository.Name}");
+                    var commit = tag.Target.Peel<Commit>()
+                        ?? throw new NotFoundException($"Tag {Name} does not resolve to a commit.");
+                    Commands.Checkout(gitRepository, commit);
+                }
+
+                if (!string.IsNullOrEmpty(repository.ReleasesTagContentFolder))
+                {
+                    CopyDirectory(Path.Combine(gitCopyFolder, repository.ReleasesTagContentFolder), LocalPath);
+                    CleanFolder(gitCopyFolder);
+                }
             });
 
             IsDownloaded = true;
+        }
+
+        private static void CleanFolder(string gitCopyFolder)
+        {
+            if (Directory.Exists(gitCopyFolder))
+            {
+                var dirInfo = new DirectoryInfo(gitCopyFolder);
+                foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                {
+                    file.Attributes = FileAttributes.Normal;
+                    File.Delete(file.FullName);
+                }
+
+                Directory.Delete(gitCopyFolder, true);
+            }
+        }
+
+        private static void CopyDirectory(string sourceDir, string destinationDir, bool recursive = true)
+        {
+            Directory.CreateDirectory(destinationDir);
+
+            foreach (var file in Directory.GetFiles(sourceDir))
+            {
+                string destFile = Path.Combine(destinationDir, Path.GetFileName(file));
+                File.Copy(file, destFile, overwrite: true);
+            }
+
+            if (recursive)
+            {
+                foreach (var subDir in Directory.GetDirectories(sourceDir))
+                {
+                    string destSubDir = Path.Combine(destinationDir, Path.GetFileName(subDir));
+                    CopyDirectory(subDir, destSubDir, recursive);
+                }
+            }
         }
     }
 }
