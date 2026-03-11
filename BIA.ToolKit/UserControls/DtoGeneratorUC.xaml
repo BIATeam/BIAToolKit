@@ -10,7 +10,8 @@
              xmlns:behaviors="clr-namespace:BIA.ToolKit.Behaviors"
              xmlns:helpers="clr-namespace:BIA.ToolKit.Helper"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=local:DtoGeneratorViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="1080" d:DesignWidth="1920">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
