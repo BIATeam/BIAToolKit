@@ -47,12 +47,14 @@
             services.AddSingleton<SettingsService>();
             services.AddSingleton<FileGeneratorService>();
             services.AddSingleton<UpdateService>();
-            services.AddSingleton<MainViewModel>();
-            services.AddSingleton<ModifyProjectViewModel>();
             services.AddSingleton<CRUDGeneratorViewModel>();
             services.AddSingleton<DtoGeneratorViewModel>();
             services.AddSingleton<OptionGeneratorViewModel>();
-            services.AddTransient<VersionAndOptionViewModel>();
+            services.AddKeyedTransient<VersionAndOptionViewModel>("create");
+            services.AddKeyedTransient<VersionAndOptionViewModel>("migrateOrigin");
+            services.AddKeyedTransient<VersionAndOptionViewModel>("migrateTarget");
+            services.AddSingleton<ModifyProjectViewModel>();
+            services.AddSingleton<MainViewModel>();
             services.AddSingleton<MainWindow>();
             services.AddLogging();
         }

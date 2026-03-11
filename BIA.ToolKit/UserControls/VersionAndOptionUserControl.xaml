@@ -1,4 +1,5 @@
-﻿<UserControl xmlns:UserControls="clr-namespace:BIA.ToolKit.UserControls"  x:Class="BIA.ToolKit.UserControls.VersionAndOptionUserControl"
+﻿<UserControls:ViewModelUserControl xmlns:UserControls="clr-namespace:BIA.ToolKit.UserControls"  x:Class="BIA.ToolKit.UserControls.VersionAndOptionUserControl"
+             x:TypeArguments="local:VersionAndOptionViewModel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -99,4 +100,4 @@
         </GroupBox>
         <Canvas/>
     </Grid>
-</UserControl>
+</UserControls:ViewModelUserControl>

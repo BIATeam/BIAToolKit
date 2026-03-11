@@ -10,9 +10,8 @@ namespace BIA.ToolKit.UserControls
     /// <summary>
     /// Interaction logic for DtoGenerator.xaml
     /// </summary>
-    public partial class DtoGeneratorUC : UserControl
+    public partial class DtoGeneratorUC : ViewModelUserControl<DtoGeneratorViewModel>
     {
-        private DtoGeneratorViewModel vm;
         private bool processSelectProperties;
 
         public DtoGeneratorUC()
@@ -20,23 +19,12 @@ namespace BIA.ToolKit.UserControls
             InitializeComponent();
         }
 
-        /// <summary>
-        /// Injection of services.
-        /// </summary>
-        public void Inject(DtoGeneratorViewModel dtoGeneratorViewModel)
-        {
-            this.vm = dtoGeneratorViewModel;
-            DataContext = vm;
-            Loaded += (_, _) => vm.Initialize();
-            Unloaded += (_, _) => vm.Cleanup();
-        }
-
         private void SelectProperties_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             processSelectProperties = true;
-            vm.RefreshMappingProperties();
+            ViewModel?.RefreshMappingProperties();
             ResetMappingColumnsWidths();
-            vm.ComputePropertiesValidity();
+            ViewModel?.ComputePropertiesValidity();
             processSelectProperties = false;
         }
 
@@ -52,7 +40,7 @@ namespace BIA.ToolKit.UserControls
 
         private void MappingPropertyTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            vm.ComputePropertiesValidity();
+            ViewModel?.ComputePropertiesValidity();
         }
 
         private void MappingOptionId_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -60,7 +48,7 @@ namespace BIA.ToolKit.UserControls
             if (processSelectProperties)
                 return;
 
-            vm.ComputePropertiesValidity();
+            ViewModel?.ComputePropertiesValidity();
         }
 
         private void DragHandle_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)

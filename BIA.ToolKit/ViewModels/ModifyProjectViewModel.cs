@@ -12,6 +12,7 @@
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Common;
+    using Microsoft.Extensions.DependencyInjection;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.Settings;
     using System;
@@ -34,7 +35,10 @@
 
         private bool firstTimeSettingsUpdated = true;
 
-        public ModifyProjectViewModel(IMessenger messenger, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService, CSharpParserService parserService, GitService gitService, ProjectCreatorService projectCreatorService)
+        public ModifyProjectViewModel(IMessenger messenger, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService, CSharpParserService parserService, GitService gitService, ProjectCreatorService projectCreatorService,
+            [FromKeyedServices("migrateOrigin")] VersionAndOptionViewModel migrateOriginVm,
+            [FromKeyedServices("migrateTarget")] VersionAndOptionViewModel migrateTargetVm,
+            CRUDGeneratorViewModel crudGeneratorVm, DtoGeneratorViewModel dtoGeneratorVm, OptionGeneratorViewModel optionGeneratorVm)
             : base(messenger)
         {
             this.fileGeneratorService = fileGeneratorService;
@@ -47,10 +51,19 @@
 
             ModifyProject = new ModifyProject();
             OverwriteBIAFromOriginal = true;
+
+            MigrateOriginVm = migrateOriginVm;
+            MigrateTargetVm = migrateTargetVm;
+            CRUDGeneratorVm = crudGeneratorVm;
+            DtoGeneratorVm = dtoGeneratorVm;
+            OptionGeneratorVm = optionGeneratorVm;
         }
 
-        public VersionAndOptionViewModel MigrateOriginVm { get; set; }
-        public VersionAndOptionViewModel MigrateTargetVm { get; set; }
+        public VersionAndOptionViewModel MigrateOriginVm { get; }
+        public VersionAndOptionViewModel MigrateTargetVm { get; }
+        public CRUDGeneratorViewModel CRUDGeneratorVm { get; }
+        public DtoGeneratorViewModel DtoGeneratorVm { get; }
+        public OptionGeneratorViewModel OptionGeneratorVm { get; }
 
         /// <inheritdoc/>
         public override void Initialize()

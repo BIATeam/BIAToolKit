@@ -1,10 +1,9 @@
 namespace BIA.ToolKit
 {
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.Services.FileGenerator;
-    using BIA.ToolKit.ViewModel;
     using BIA.ToolKit.Application.ViewModel.Interfaces;
     using BIA.ToolKit.Application.ViewModel.Messaging.Messages;
+    using BIA.ToolKit.ViewModel;
     using BIA.ToolKit.ViewModel.Messaging.Messages;
     using BIA.ToolKit.Dialogs;
     using BIA.ToolKit.Domain;
@@ -33,10 +32,7 @@ namespace BIA.ToolKit
         private readonly Action<SettingsUpdatedMessage> settingsUpdatedHandler;
         private readonly Action<OpenRepositoryFormRequestMessage> openRepositoryFormHandler;
 
-        public MainWindow(ConsoleWriter consoleWriter, GitService gitService, IMessenger messenger,
-            MainViewModel mainViewModel, ModifyProjectViewModel modifyProjectViewModel,
-            CRUDGeneratorViewModel crudGeneratorViewModel, DtoGeneratorViewModel dtoGeneratorViewModel, OptionGeneratorViewModel optionGeneratorViewModel,
-            VersionAndOptionViewModel createVersionAndOptionVm, VersionAndOptionViewModel migrateOriginVm, VersionAndOptionViewModel migrateTargetVm)
+        public MainWindow(ConsoleWriter consoleWriter, GitService gitService, IMessenger messenger, MainViewModel mainViewModel)
         {
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
@@ -52,17 +48,12 @@ namespace BIA.ToolKit
 
             InitializeComponent();
 
-            CreateVersionAndOption.Inject(createVersionAndOptionVm);
-            ModifyProject.Inject(modifyProjectViewModel, crudGeneratorViewModel, dtoGeneratorViewModel, optionGeneratorViewModel, migrateOriginVm, migrateTargetVm);
-
             this.consoleWriter = consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
 
             txtFileGenerator_Folder.Text = AppSettings.TmpFolderPath;
 
             ViewModel = mainViewModel;
-            ViewModel.CreateVersionAndOptionVm = CreateVersionAndOption.vm;
-            ViewModel.NavigateToSettingsTab = () => Dispatcher.BeginInvoke((Action)(() => ViewModel.SelectedMainTabIndex = 0));
             DataContext = ViewModel;
             ViewModel.Initialize();
             Closed += (_, _) =>

@@ -17,6 +17,7 @@
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Common;
+    using Microsoft.Extensions.DependencyInjection;
     using BIA.ToolKit.Common.Helpers;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Model;
@@ -40,7 +41,9 @@
         private bool waitAddCompanyFilesRepository;
 
         public MainViewModel(Version applicationVersion, IMessenger messenger, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter,
-            UpdateService updateService, CSharpParserService cSharpParserService, ProjectCreatorService projectCreatorService, GenerateFilesService generateFilesService, RepositoryService repositoryService)
+            UpdateService updateService, CSharpParserService cSharpParserService, ProjectCreatorService projectCreatorService, GenerateFilesService generateFilesService, RepositoryService repositoryService,
+            [FromKeyedServices("create")] VersionAndOptionViewModel createVersionAndOptionVm,
+            ModifyProjectViewModel modifyProjectVm)
             : base(messenger)
         {
             this.applicationVersion = applicationVersion;
@@ -52,13 +55,15 @@
             this.projectCreatorService = projectCreatorService;
             this.generateFilesService = generateFilesService;
             this.repositoryService = repositoryService;
+            CreateVersionAndOptionVm = createVersionAndOptionVm;
+            ModifyProjectVm = modifyProjectVm;
         }
 
-        /// <summary>Gets or sets the VersionAndOption ViewModel used for project creation.</summary>
-        public VersionAndOptionViewModel CreateVersionAndOptionVm { get; set; }
+        /// <summary>Gets the VersionAndOption ViewModel used for project creation.</summary>
+        public VersionAndOptionViewModel CreateVersionAndOptionVm { get; }
 
-        /// <summary>Gets or sets an action invoked to navigate to the Settings tab when repository configuration is invalid.</summary>
-        public Action NavigateToSettingsTab { get; set; }
+        /// <summary>Gets the Modify Project ViewModel.</summary>
+        public ModifyProjectViewModel ModifyProjectVm { get; }
 
         /// <inheritdoc/>
         public override void Initialize()
@@ -522,7 +527,7 @@
             var companyFilesValid = CheckCompanyFilesRepositories(settingsService.Settings);
             if (!templatesValid || !companyFilesValid)
             {
-                NavigateToSettingsTab?.Invoke();
+                SelectedMainTabIndex = 0;
             }
             return templatesValid && companyFilesValid;
         }
