@@ -263,6 +263,8 @@
                     AngularFronts = fronts
                 }
             );
+            string filePath = Path.Combine(projectPath, Constants.FolderNetCore, $"{CompanyName}.{ProjectName}.Presentation.Api", "biapermissions.json");
+            this.projectCreatorService.ClearPermissions(filePath);
         }
 
         private void MigrateOpenFolder_Click(object sender, RoutedEventArgs e)
