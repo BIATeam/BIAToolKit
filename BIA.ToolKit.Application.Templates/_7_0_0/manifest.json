@@ -98,7 +98,7 @@
         },
         {
           "inputPath": "PresentationApi\\PartialOptionBianetconfigTemplate.tt",
-          "outputPath": "{Project}.Presentation.Api\\bianetconfig.json",
+          "outputPath": "{Project}.Presentation.Api\\bianetpermissions.json",
           "isPartial": true,
           "partialInsertionMarkup": "ConfigForOption"
         }
@@ -131,7 +131,7 @@
         },
         {
           "inputPath": "PresentationApi\\PartialCrudBianetconfigTemplate.tt",
-          "outputPath": "{Project}.Presentation.Api\\bianetconfig.json",
+          "outputPath": "{Project}.Presentation.Api\\bianetpermissions.json",
           "isPartial": true,
           "partialInsertionMarkup": "Config"
         },
