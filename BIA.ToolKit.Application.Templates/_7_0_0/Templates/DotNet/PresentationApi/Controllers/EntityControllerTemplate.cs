@@ -1,18 +1,4 @@
-﻿
-
-
-
-
-
-
-
-
-
-
-
-
-
-// <copyright file="PlanesController.cs" company="TheBIADevCompany">
+﻿// <copyright file="PlanesController.cs" company="TheBIADevCompany">
 // Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 // #define UseHubForClientInPlane
@@ -28,7 +14,6 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Fleet
     using BIA.Net.Core.Common;
     using BIA.Net.Core.Common.Exceptions;
     using BIA.Net.Core.Domain.Dto.Base;
-
     using BIA.Net.Core.Presentation.Api.Controller.Base;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
@@ -110,9 +95,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Fleet
         [Authorize(Roles = nameof(PermissionId.Plane_Read))]
         public async Task<IActionResult> Get(int id)
         {
-
             if (id == 0)
-
             {
                 return this.BadRequest();
             }
@@ -145,9 +128,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Fleet
             {
                 var createdDto = await this.planeService.AddAsync(dto);
 #if UseHubForClientInPlane
-
                 await this.SendEntityChangedAsync(createdDto.SiteId.ToString());
-
 #endif
                 return this.CreatedAtAction("Get", new { id = createdDto.Id }, createdDto);
             }
@@ -177,9 +158,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Fleet
         [Authorize(Roles = nameof(PermissionId.Plane_Update))]
         public async Task<IActionResult> Update(int id, [FromBody] PlaneDto dto)
         {
-
             if (id == 0 || dto == null || dto.Id != id)
-
             {
                 return this.BadRequest();
             }
@@ -188,9 +167,7 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Fleet
             {
                 var updatedDto = await this.planeService.UpdateAsync(dto);
 #if UseHubForClientInPlane
-
                 await this.SendEntityChangedAsync(updatedDto.SiteId.ToString());
-
 #endif
                 return this.Ok(updatedDto);
             }
@@ -225,22 +202,16 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Fleet
         [Authorize(Roles = nameof(PermissionId.Plane_Delete))]
         public async Task<IActionResult> Remove(int id)
         {
-
             if (id == 0)
-
             {
                 return this.BadRequest();
             }
 
             try
             {
-
                 var deletedDto = await this.planeService.RemoveAsync(id);
-
 #if UseHubForClientInPlane
-
                 await this.SendEntityChangedAsync(deletedDto.SiteId.ToString());
-
 #endif
                 return this.Ok();
             }
@@ -270,13 +241,9 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Fleet
 
             try
             {
-
                 var deletedDtos = await this.planeService.RemoveAsync(ids);
-
 #if UseHubForClientInPlane
-
-                await this.SendEntityChangedAsync(parentKeys: deletedDtos.Select(m => m.SiteId).Distinct().ToList());
-
+                await this.SendEntityChangedAsync(parentKeys: deletedDtos.Select(m => m.SiteId.ToString()).Distinct().ToList());
 #endif
                 return this.Ok();
             }
@@ -309,13 +276,9 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Fleet
 
             try
             {
-
                 var savedDtos = await this.planeService.SaveAsync(dtoList);
-
 #if UseHubForClientInPlane
-
-                await this.SendEntityChangedAsync(parentKeys: savedDtos.Select(m => m.SiteId).Distinct().ToList());
-
+                await this.SendEntityChangedAsync(parentKeys: savedDtos.Select(m => m.SiteId.ToString()).Distinct().ToList());
 #endif
                 return this.Ok();
             }
@@ -346,8 +309,6 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Fleet
             return this.File(buffer, BiaConstants.Csv.ContentType + $";charset={BiaConstants.Csv.CharsetEncoding}", $"Planes{BiaConstants.Csv.Extension}");
         }
 
-
-
         /// <summary>
         /// Return the historical of an item by its id.
         /// </summary>
@@ -370,7 +331,6 @@ namespace TheBIADevCompany.BIADemo.Presentation.Api.Controllers.Fleet
                 return this.NotFound();
             }
         }
-
 
 #if UseHubForClientInPlane
         /// <summary>

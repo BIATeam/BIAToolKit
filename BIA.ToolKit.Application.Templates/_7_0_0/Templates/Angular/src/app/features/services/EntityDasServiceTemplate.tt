@@ -3,13 +3,13 @@
 <#@ output extension=".ts" #>
 import { Injectable, Injector } from '@angular/core';
 import { AbstractDas } from '@bia-team/bia-ng/core';
-import { <#= ModelInstance.EntityName #> } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+import { <#= ModelInstance.EntityName #>, <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
 
 @Injectable({
   providedIn: 'root',
 })
 export class <#= ModelInstance.EntityName #>Das extends AbstractDas<<#= ModelInstance.EntityName #>> {
   constructor(injector: Injector) {
-    super(injector, '<#= ModelInstance.EntityNamePlural #>');
+    super(injector, '<#= ModelInstance.EntityNamePlural #>', <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration);
   }
 }

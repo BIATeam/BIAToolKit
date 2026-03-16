@@ -327,7 +327,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
 <#  } #>
 #if UseHubForClientIn<#= ModelInstance.EntityName #>
 <#  if(ModelInstance.HasHubForClientParentKey) { #>
-                await this.SendEntityChangedAsync(parentKeys: deletedDtos.Select(m => m.<#= ModelInstance.GetHubForClientParentKey() #>).Distinct().ToList());
+                await this.SendEntityChangedAsync(parentKeys: deletedDtos.Select(m => m.<#= ModelInstance.GetHubForClientParentKey() #>.ToString()).Distinct().ToList());
 <#  } else { #>
                 await this.SendEntityChangedAsync();
 <#  } #>
@@ -370,7 +370,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Pres
 <#  } #>
 #if UseHubForClientIn<#= ModelInstance.EntityName #>
 <#  if(ModelInstance.HasHubForClientParentKey) { #>
-                await this.SendEntityChangedAsync(parentKeys: savedDtos.Select(m => m.<#= ModelInstance.GetHubForClientParentKey() #>).Distinct().ToList());
+                await this.SendEntityChangedAsync(parentKeys: savedDtos.Select(m => m.<#= ModelInstance.GetHubForClientParentKey() #>.ToString()).Distinct().ToList());
 <#  } else { #>
                 await this.SendEntityChangedAsync();
 <#  } #>
