@@ -1,0 +1,8 @@
+V6 :
+
+V7 :
+- Filename: IocContainer_V7
+=> Path in solution: \BIADemo\DotNet\TheBIADevCompany.BIADemo.Crosscutting.Ioc
+
+- Filename: IocContainer_v7_Bia
+=> Path in solution: \BIADemo\DotNet\TheBIADevCompany.BIADemo.Crosscutting.Ioc\Bia

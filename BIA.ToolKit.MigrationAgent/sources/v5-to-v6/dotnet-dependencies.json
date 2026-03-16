@@ -1,0 +1,8 @@
+{
+  "_comment": "TODO: Fill with actual .NET dependency changes between V5 and V6",
+  "targetFramework": {
+    "from": "TODO",
+    "to": "TODO"
+  },
+  "packages": {}
+}
