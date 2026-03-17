@@ -13,9 +13,11 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.RegenerateFeatures;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Dialogs;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
@@ -34,6 +36,8 @@
         CRUDSettings crudSettings;
         UIEventBroker uiEventBroker;
         SettingsService settingsService;
+        RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService;
+        FeatureMigrationGeneratorService featureMigrationGeneratorService;
 
         public ModifyProjectUC()
         {
@@ -43,7 +47,8 @@
 
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
+            FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
+            FeatureMigrationGeneratorService featureMigrationGeneratorService)
         {
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
@@ -54,6 +59,8 @@
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
+            this.regenerateFeaturesDiscoveryService = regenerateFeaturesDiscoveryService;
+            this.featureMigrationGeneratorService = featureMigrationGeneratorService;
             this.crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.settingsService = settingsService;
@@ -140,6 +147,20 @@
             {
                 consoleWriter.AddMessageLine("Generate projects failed.", "Red");
                 return false;
+            }
+
+            if (_viewModel.IncludeFeatureMigration && _viewModel.IsProjectCompatibleRegenerateFeatures)
+            {
+                var entities = regenerateFeaturesDiscoveryService.DiscoverRegenerableEntities(_viewModel.CurrentProject);
+                var validEntities = entities.Where(e => e.CanSelectEntity).ToList();
+
+                if (validEntities.Count > 0)
+                {
+                    await featureMigrationGeneratorService.GenerateFeaturesAsync(
+                        _viewModel.CurrentProject, projectOriginPath, projectOriginalVersion, validEntities, cSharpParserService);
+                    await featureMigrationGeneratorService.GenerateFeaturesAsync(
+                      _viewModel.CurrentProject, projectTargetPath, projectTargetVersion, validEntities, cSharpParserService);
+                }
             }
 
             MigrateOpenFolder.IsEnabled = true;
