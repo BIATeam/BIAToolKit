@@ -146,7 +146,7 @@
                         </Grid>
                     </Grid>
                 </TabItem>
-                <TabItem Header="CREATE PROJECT" Selector.Selected="OnTabCreateSelected">
+                <TabItem Header="CREATION" Selector.Selected="OnTabCreateSelected">
                     <Grid x:Name="TabCreate">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="0.5*"/>
@@ -187,12 +187,20 @@
                         <uc:VersionAndOptionUserControl Grid.Row="1" VerticalAlignment="Bottom" x:Name="CreateVersionAndOption" Margin="10" Height="auto"/>
                     </Grid>
                 </TabItem>
-                <TabItem Header="MODIFY EXISTING PROJECT" Selector.Selected="OnTabModifySelected">
+                <TabItem Header="MIGRATION" Selector.Selected="OnTabModifySelected">
                     <Grid>
                         <Grid.Background>
                             <ImageBrush Opacity="0.3" ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
                         </Grid.Background>
                         <uc:ModifyProjectUC x:Name="ModifyProject"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="GENERATION" Selector.Selected="OnTabGenerateSelected">
+                    <Grid>
+                        <Grid.Background>
+                            <ImageBrush Opacity="0.3" ImageSource="/Images/workOnComputer2.jpg" Stretch="UniformToFill"/>
+                        </Grid.Background>
+                        <uc:GenerateUC x:Name="GenerateProject"/>
                     </Grid>
                 </TabItem>
                 <TabItem Header="File Generator" Visibility="Collapsed">

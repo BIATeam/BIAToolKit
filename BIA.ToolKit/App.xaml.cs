@@ -45,6 +45,7 @@
             services.AddSingleton<UpdateService>();
             services.AddSingleton<Application.Services.RegenerateFeatures.RegenerateFeaturesDiscoveryService>();
             services.AddSingleton<Application.Services.RegenerateFeatures.FeatureMigrationGeneratorService>();
+            services.AddSingleton<Application.ViewModel.ProjectViewModel>();
             services.AddLogging();
         }
         private async void OnStartup(object sender, StartupEventArgs e)
