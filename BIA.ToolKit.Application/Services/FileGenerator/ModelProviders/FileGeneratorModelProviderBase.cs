@@ -121,6 +121,28 @@
             model.IsFixable = dtoContext.IsFixable;
             model.IsVersioned = dtoContext.IsVersioned;
             model.HasAudit = dtoContext.HasAudit;
+            model.HasListAndItemModels = dtoContext.HasListAndItemModels;
+            model.ListProperties = dtoContext.ListProperties.Select(x => new TPropertyDtoModel()
+            {
+                MappingName = x.MappingName,
+                EntityCompositeName = x.EntityCompositeName,
+                EntityType = x.EntityType,
+                MappingType = x.MappingType,
+                MappingDateType = x.MappingDateType,
+                IsOption = x.IsOption,
+                IsOptionCollection = x.IsOptionCollection,
+                OptionType = x.OptionType,
+                IsRequired = x.IsRequired,
+                OptionDisplayProperty = x.OptionDisplayProperty,
+                OptionIdProperty = x.OptionIdProperty,
+                OptionEntityIdPropertyComposite = x.OptionEntityIdPropertyComposite,
+                OptionRelationType = x.OptionRelationType,
+                OptionRelationPropertyComposite = x.OptionRelationPropertyComposite,
+                OptionRelationFirstIdProperty = x.OptionRelationFirstIdProperty,
+                OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty,
+                IsParent = x.IsParent,
+                AsLocalDateTime = x.AsLocalDateTime
+            }).ToList();
 
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {

@@ -606,7 +606,7 @@
                 },
                 new()
                 {
-                    EntityCompositeName = "FirstName",
+                    EntityCompositeName = "Name",
                     EntityType = "string",
                     IsRequired = true,
                 },

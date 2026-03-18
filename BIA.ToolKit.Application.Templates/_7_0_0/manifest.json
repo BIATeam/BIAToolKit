@@ -9,8 +9,16 @@
           "outputPath": "{Project}.Domain\\{Domain}\\Mappers\\{Entity}Mapper.cs"
         },
         {
+          "inputPath": "Domain\\Mappers\\EntityListMapperTemplate.tt",
+          "outputPath": "{Project}.Domain\\{Domain}\\Mappers\\{Entity}ListMapper.cs"
+        },
+        {
           "inputPath": "DomainDto\\EntityDtoTemplate.tt",
           "outputPath": "{Project}.Domain.Dto\\{Domain}\\{Entity}Dto.cs"
+        },
+        {
+          "inputPath": "DomainDto\\EntityListDtoTemplate.tt",
+          "outputPath": "{Project}.Domain.Dto\\{Domain}\\{Entity}ListDto.cs"
         },
         {
           "inputPath": "Domain\\Mappers\\EntityAuditMapperTemplate.tt",
@@ -242,8 +250,16 @@
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\{Entity}.constants.ts"
         },
         {
+          "inputPath": "src\\app\\features\\EntityListConstantsTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\{Entity}-list.constants.ts"
+        },
+        {
           "inputPath": "src\\app\\features\\model\\EntityTemplate.tt",
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\model\\{Entity}.ts"
+        },
+        {
+          "inputPath": "src\\app\\features\\model\\EntityListTemplate.tt",
+          "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\model\\{Entity}-list.ts"
         },
         {
           "inputPath": "src\\app\\features\\components\\EntityFormComponentTemplate.tt",

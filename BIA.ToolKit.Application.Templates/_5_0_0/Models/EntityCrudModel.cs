@@ -130,5 +130,8 @@
         public virtual bool UseDomainUrl { get => throw new System.NotImplementedException(); set; }
         public virtual bool HasListAndItemModels { get => throw new System.NotImplementedException(); set; }
         public virtual List<TPropertyCrudModel> ListProperties { get => throw new System.NotImplementedException(); set; }
+
+        public IEnumerable<TPropertyCrudModel> ListPropertiesToGenerate => ListProperties.Where(p => !ExcludedProperties.Contains(p.Name));
+        public IEnumerable<TPropertyCrudModel> ListBiaFieldConfigProperties => ListPropertiesToGenerate.Where(p => !p.IsParentIdentifier);
     }
 }
