@@ -7,9 +7,9 @@ namespace BIA.ToolKit.UserControls
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
+    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.RegenerateFeatures;
-    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.Model;
