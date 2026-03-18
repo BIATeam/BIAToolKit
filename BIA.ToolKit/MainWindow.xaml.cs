@@ -50,7 +50,8 @@
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
             IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService,
             Application.Services.RegenerateFeatures.RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
-            Application.Services.RegenerateFeatures.FeatureMigrationGeneratorService featureMigrationGeneratorService)
+            Application.Services.RegenerateFeatures.FeatureMigrationGeneratorService featureMigrationGeneratorService,
+            Application.ViewModel.ProjectViewModel projectViewModel)
         {
 
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
@@ -71,8 +72,10 @@
             InitializeComponent();
 
             CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
+            projectViewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
             ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, uiEventBroker, regenerateFeaturesDiscoveryService, featureMigrationGeneratorService);
+                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, uiEventBroker, regenerateFeaturesDiscoveryService, featureMigrationGeneratorService, projectViewModel);
+            GenerateProject.Inject(projectViewModel, cSharpParserService, zipParserService, crudService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
@@ -341,6 +344,14 @@
         }
 
         private void OnTabModifySelected(object sender, RoutedEventArgs e)
+        {
+            if (sender is TabItem)
+            {
+                EnsureValidRepositoriesConfiguration();
+            }
+        }
+
+        private void OnTabGenerateSelected(object sender, RoutedEventArgs e)
         {
             if (sender is TabItem)
             {
