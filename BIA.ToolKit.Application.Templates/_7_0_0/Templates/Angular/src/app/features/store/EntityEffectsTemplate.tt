@@ -16,6 +16,9 @@ import {
 } from 'rxjs/operators';
 import { AppState } from 'src/app/store/state';
 import { <#= ModelInstance.EntityName #> } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+<#  if (ModelInstance.HasListAndItemModels) { #>
+import { <#= ModelInstance.EntityName #>List } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>-list';
+<#  } #>
 import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
 import { <#= ModelInstance.EntityName #>Das } from '../services/<#= ModelInstance.EntityName.ToKebabCase() #>-das.service';
 import { Feature<#= ModelInstance.EntityNamePlural #>Store } from './<#= ModelInstance.EntityName.ToKebabCase() #>.state';
@@ -34,7 +37,11 @@ export class <#= ModelInstance.EntityNamePlural #>Effects {
       map(x => x?.event),
       switchMap(event =>
         this.<#= ModelInstance.EntityName.ToCamelCase() #>Das.getListByPost({ event: event }).pipe(
+<#  if (ModelInstance.HasListAndItemModels) { #>
+          map((result: DataResult<<#= ModelInstance.EntityName #>List[]>) =>
+<#  } else { #>
           map((result: DataResult<<#= ModelInstance.EntityName #>[]>) =>
+<#  } #>
             Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPostSuccess({
               result: result,
               event: event,

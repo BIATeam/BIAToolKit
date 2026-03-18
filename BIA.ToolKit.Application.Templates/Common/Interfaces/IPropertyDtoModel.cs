@@ -23,6 +23,7 @@
         string OptionRelationSecondIdProperty { get; set; }
         string OptionRelationType { get; set; }
         string OptionType { get; set; }
+        bool AsLocalDateTime { get; set; }
 
         string GenerateGetSetComment(string entityName);
         string GenerateMapperCSV();

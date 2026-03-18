@@ -4,6 +4,9 @@
 import { createEntityAdapter, EntityState } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
 import { <#= ModelInstance.EntityName #> } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+<#  if (ModelInstance.HasListAndItemModels) { #>
+import { <#= ModelInstance.EntityName #>List } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>-list';
+<#  } #>
 import { Feature<#= ModelInstance.EntityNamePlural #>Actions } from './<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-actions';
 import {
   CrudState,
@@ -14,12 +17,21 @@ import {
 } from '@bia-team/bia-ng/models';
 
 // This adapter will allow is to manipulate <#= ModelInstance.EntityNamePlural.ToCamelCase() #> (mostly CRUD operations)
+<#  if (ModelInstance.HasListAndItemModels) { #>
+export const <#= ModelInstance.EntityNamePlural.ToCamelCase() #>Adapter = createEntityAdapter<<#= ModelInstance.EntityName #>List>({
+  selectId: (<#= ModelInstance.EntityName.ToCamelCase() #>: <#= ModelInstance.EntityName #>List) => <#= ModelInstance.EntityName.ToCamelCase() #>.id,
+  sortComparer: false,
+});
+
+export interface State extends CrudState<<#= ModelInstance.EntityName #>>, EntityState<<#= ModelInstance.EntityName #>List> {
+<#  } else { #>
 export const <#= ModelInstance.EntityNamePlural.ToCamelCase() #>Adapter = createEntityAdapter<<#= ModelInstance.EntityName #>>({
   selectId: (<#= ModelInstance.EntityName.ToCamelCase() #>: <#= ModelInstance.EntityName #>) => <#= ModelInstance.EntityName.ToCamelCase() #>.id,
   sortComparer: false,
 });
 
 export interface State extends CrudState<<#= ModelInstance.EntityName #>>, EntityState<<#= ModelInstance.EntityName #>> {
+<#  } #>
   // additional props here
 <#  if(ModelInstance.DisplayHistorical) { #>
   currentItemHistorical: HistoricalEntryDto[];

@@ -65,8 +65,16 @@
             model.FormReadOnlyMode = crudContext.FormReadOnlyMode;
             model.DisplayHistorical = crudContext.DisplayHistorical;
             model.UseDomainUrl = crudContext.UseDomainUrl;
+            model.HasListAndItemModels = crudContext.HasListAndItemModels;
 
             model.Properties = crudContext.Properties.Select(x => new TPropertyCrudModel
+            {
+                Name = x.Name,
+                Type = x.Type,
+                BiaFieldAttributes = x.Annotations
+            }).ToList();
+
+            model.ListProperties = crudContext.ListProperties.Select(x => new TPropertyCrudModel
             {
                 Name = x.Name,
                 Type = x.Type,
@@ -106,6 +114,7 @@
                 OptionRelationFirstIdProperty = x.OptionRelationFirstIdProperty,
                 OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty,
                 IsParent = x.IsParent,
+                AsLocalDateTime = x.AsLocalDateTime
             }).ToList();
             model.IsTeamType = dtoContext.IsTeam;
             model.IsArchivable = dtoContext.IsArchivable;

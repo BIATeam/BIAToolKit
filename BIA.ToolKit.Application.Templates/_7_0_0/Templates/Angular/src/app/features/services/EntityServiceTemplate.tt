@@ -12,6 +12,9 @@ import { TeamTypeId } from 'src/app/shared/constants';
 <#  } #>
 import { AppState } from 'src/app/store/state';
 import { <#= ModelInstance.EntityName #> } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+<#  if (ModelInstance.HasListAndItemModels) { #>
+import { <#= ModelInstance.EntityName #>List } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>-list';
+<#  } #>
 import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
 import { Feature<#= ModelInstance.EntityNamePlural #>Store } from '../store/<#= ModelInstance.EntityName.ToKebabCase() #>.state';
 import { Feature<#= ModelInstance.EntityNamePlural #>Actions } from '../store/<#= ModelInstance.EntityNamePlural.ToKebabCase() #>-actions';
@@ -27,7 +30,11 @@ import { HistoricalEntryDto } from '@bia-team/bia-ng/models';
 @Injectable({
   providedIn: 'root',
 })
+<#  if (ModelInstance.HasListAndItemModels) { #>
+export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= ModelInstance.EntityName #>List, <#= ModelInstance.EntityName #>> {
+<#  } else { #>
 export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= ModelInstance.EntityName #>> {
+<#  } #>
   _updateSuccessActionType = Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost.type;
   _createSuccessActionType = Feature<#= ModelInstance.EntityNamePlural #>Actions.loadAllByPost.type;
   _updateFailureActionType = Feature<#= ModelInstance.EntityNamePlural #>Actions.failure.type;
@@ -35,7 +42,11 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
   constructor(
     private store: Store<AppState>,
     public dasService: <#= ModelInstance.EntityName #>Das,
+<#  if (ModelInstance.HasListAndItemModels) { #>
+    public signalRService: CrudItemSignalRService<<#= ModelInstance.EntityName #>List, <#= ModelInstance.EntityName #>>,
+<#  } else { #>
     public signalRService: CrudItemSignalRService<<#= ModelInstance.EntityName #>>,
+<#  } #>
 <#  if(ModelInstance.HasParent) { #>
     public <#=  ModelInstance.ParentName.ToCamelCase() #>Service: <#=  ModelInstance.ParentName #>Service,
 <#  } #>
@@ -84,7 +95,11 @@ export class <#= ModelInstance.EntityName #>Service extends CrudItemService<<#= 
     return <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.featureName;
   }
 
+<#  if (ModelInstance.HasListAndItemModels) { #>
+  public crudItems$: Observable<<#= ModelInstance.EntityName #>List[]> = this.store.select(
+<#  } else { #>
   public crudItems$: Observable<<#= ModelInstance.EntityName #>[]> = this.store.select(
+<#  } #>
     Feature<#= ModelInstance.EntityNamePlural #>Store.getAll<#= ModelInstance.EntityNamePlural #>
   );
   public totalCount$: Observable<number> = this.store.select(

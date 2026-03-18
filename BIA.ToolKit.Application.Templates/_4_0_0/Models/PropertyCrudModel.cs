@@ -35,5 +35,7 @@
         public string OptionItemType => throw new NotImplementedException();
 
         public string Type { get => throw new System.NotImplementedException(); set; }
+
+        public bool AsLocalDateTime => throw new NotImplementedException();
     }
 }

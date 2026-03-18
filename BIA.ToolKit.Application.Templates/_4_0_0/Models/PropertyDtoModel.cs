@@ -59,6 +59,8 @@
             }
         }
 
+        public bool AsLocalDateTime { get; set; }
+
         private string GenerateBiaDtoFieldAttributeProperties()
         {
             var attributeProperties = new List<string>
@@ -79,6 +81,11 @@
             if (!string.IsNullOrWhiteSpace(MappingDateType))
             {
                 attributeProperties.Add($"Type = \"{MappingDateType.ToLower()}\"");
+            }
+
+            if (AsLocalDateTime)
+            {
+                attributeProperties.Add($"AsLocalDateTime = true");
             }
 
             return string.Join(", ", attributeProperties);
@@ -113,14 +120,21 @@
                 switch (MappingDateType)
                 {
                     case "datetime":
-                        return $"CSVDateTime(x.{MappingName})";
+                        if (AsLocalDateTime)
+                        {
+                            return $"CSVDateTime(x.{MappingName}{(IsRequired ? "" : "?")}.UtcDateTime)";
+                        }
+                        else
+                        {
+                            return $"CSVDateTime(x.{MappingName})";
+                        }
                     case "date":
                         return $"CSVDate(x.{MappingName})";
                     case "time":
                         return $"CSVTime(x.{MappingName})";
                     default:
                         throw new InvalidOperationException($"Unable to get CSV method for mapping date type {MappingDateType}");
-                }
+                    }
             }
 
             if (nonNullMappingType == "string")

@@ -61,6 +61,9 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration: B
 <#  if(property.HasAngularValidators) { #>
       validators: [<#= property.AngularValidators #>],
 <#  } #>
+<#  if(property.AsLocalDateTime) { #>
+      asLocalDateTime: true,
+<#  } #>
     }),
 <# }  #>
 <#  if(ModelInstance.IsVersioned) { #>

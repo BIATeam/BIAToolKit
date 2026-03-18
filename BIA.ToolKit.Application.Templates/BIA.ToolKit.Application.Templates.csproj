@@ -1535,11 +1535,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </TypeScriptCompile>
-    <None Include="_7_0_0\Templates\Angular\src\app\features\EntityModuleTemplate.ts">
-      <DependentUpon>EntityModuleTemplate.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </None>
     <None Include="_7_0_0\Templates\Angular\src\app\features\model\EntityTemplate.ts">
       <DependentUpon>EntityTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -1600,6 +1595,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
+    <TypeScriptCompile Include="_7_0_0\Templates\Angular\src\app\features\EntityModuleTemplate.ts">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityModuleTemplate.tt</DependentUpon>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="_7_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentTsTemplate.ts">
       <DependentUpon>EntityIndexComponentTsTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -2490,6 +2490,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="_7_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.html">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityIndexComponentHtmlTemplate.tt</DependentUpon>
+    </Content>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityOptionConstantsTemplate.ts</LastGenOutput>
@@ -2567,8 +2572,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\EntityModuleTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityModuleTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>EntityModuleTemplate.ts</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\model\EntityTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -2642,14 +2647,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityIndexComponentHtmlTemplate.html</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>EntityIndexComponentHtmlTemplate.html</LastGenOutput>
     </EmbeddedResource>
-    <Content Include="_7_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.html">
-      <DependentUpon>EntityIndexComponentHtmlTemplate.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Content>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentScssTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityIndexComponentScssTemplate.scss</LastGenOutput>
