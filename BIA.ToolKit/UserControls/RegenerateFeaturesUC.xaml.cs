@@ -10,9 +10,12 @@ namespace BIA.ToolKit.UserControls
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.RegenerateFeatures;
+    using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
     using BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Domain.Work;
@@ -125,11 +128,6 @@ namespace BIA.ToolKit.UserControls
                 return;
             }
 
-            // Group selected features by their effective FROM version
-            var fromVersionGroups = viewModel.SelectedFeatures
-                .GroupBy(f => NormalizeVersion(f.EffectiveFromVersion), StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
             var workTemplates = GetAvailableVersions();
             string toVersionNorm = NormalizeVersion(currentProject.FrameworkVersion);
 
@@ -143,14 +141,15 @@ namespace BIA.ToolKit.UserControls
                 return;
             }
 
-            foreach (var group in fromVersionGroups)
+            // Process each feature individually so each gets its own isolated temp folders
+            foreach (var feature in viewModel.SelectedFeatures)
             {
-                string fromVersionNorm = group.Key;
+                string fromVersionNorm = NormalizeVersion(feature.EffectiveFromVersion);
 
                 if (string.Equals(fromVersionNorm, toVersionNorm, StringComparison.OrdinalIgnoreCase))
                 {
                     consoleWriter.AddMessageLine(
-                        $"FROM version ({fromVersionNorm}) equals current project version; skipping.", "gray");
+                        $"FROM version ({fromVersionNorm}) equals current project version for {feature.EntityNameSingular}/{feature.FeatureType}; skipping.", "gray");
                     continue;
                 }
 
@@ -160,18 +159,21 @@ namespace BIA.ToolKit.UserControls
                 if (fromWorkRepo == null)
                 {
                     consoleWriter.AddMessageLine(
-                        $"No template found for version '{fromVersionNorm}'. Skipping group.", "orange");
+                        $"No template found for version '{fromVersionNorm}'. Skipping {feature.EntityNameSingular}/{feature.FeatureType}.", "orange");
                     continue;
                 }
 
-                // Build entity list for this FROM-version group (only features matching this FROM version)
-                var entitiesForGroup = BuildEntitiesForGroup(group.ToList());
-                if (entitiesForGroup.Count == 0) continue;
+                var entity = BuildEntityForFeature(feature);
+                if (entity == null) continue;
 
+                // Folder names include entity name and feature type to distinguish feature-level
+                // regeneration from full-project regeneration
+                string safeEntity = feature.EntityNameSingular.Replace(" ", "_");
+                string safeFeatureType = feature.FeatureType;
                 string safeFrom = fromVersionNorm.Replace(".", "_");
                 string safeTo = toVersionNorm.Replace(".", "_");
-                string fromFolderName = $"{currentProject.Name}_{safeFrom}_From";
-                string toFolderName = $"{currentProject.Name}_{safeTo}_To";
+                string fromFolderName = $"{currentProject.Name}_{safeEntity}_{safeFeatureType}_{safeFrom}_From";
+                string toFolderName = $"{currentProject.Name}_{safeEntity}_{safeFeatureType}_{safeTo}_To";
                 string fromPath = Path.Combine(AppSettings.TmpFolderPath, fromFolderName);
                 string toPath = Path.Combine(AppSettings.TmpFolderPath, toFolderName);
 
@@ -184,21 +186,24 @@ namespace BIA.ToolKit.UserControls
                     await Task.Run(() => FileTransform.ForceDeleteDirectory(toPath));
                 Directory.CreateDirectory(toPath);
 
-                // Generate only the selected features into the isolated FROM and TO folders
+                // Generate only this feature into the isolated FROM and TO folders
                 await featureMigrationGeneratorService.GenerateFeaturesAsync(
-                    currentProject, fromPath, fromWorkRepo.Version, entitiesForGroup, cSharpParserService);
+                    currentProject, fromPath, fromWorkRepo.Version, [entity], cSharpParserService);
                 await featureMigrationGeneratorService.GenerateFeaturesAsync(
-                    currentProject, toPath, toWorkRepo.Version, entitiesForGroup, cSharpParserService);
+                    currentProject, toPath, toWorkRepo.Version, [entity], cSharpParserService);
 
                 // Apply 3-point diff to the current project
                 string patchFilePath = Path.Combine(AppSettings.TmpFolderPath,
                     $"Regen_{fromFolderName}-{toFolderName}.patch");
 
-                bool diffOk = await gitService.DiffFolder(
+                bool hasDiff = await gitService.DiffFolder(
                     false, AppSettings.TmpFolderPath, fromFolderName, toFolderName, patchFilePath);
-                if (!diffOk) continue;
+                if (hasDiff)
+                {
+                    await gitService.ApplyDiff(false, currentProject.Folder, patchFilePath);
+                }
 
-                await gitService.ApplyDiff(false, currentProject.Folder, patchFilePath);
+                UpdateHistoryFrameworkVersion(feature.EntityNameSingular, feature.FeatureType);
             }
 
             consoleWriter.AddMessageLine("Feature regeneration completed.", "green");
@@ -228,44 +233,97 @@ namespace BIA.ToolKit.UserControls
         }
 
         /// <summary>
-        /// Build a list of <see cref="RegenerableEntity"/> from the selected FeatureRegenerationItems
-        /// (all items in this group share the same FROM version).
+        /// Build a <see cref="RegenerableEntity"/> containing only the single feature described by
+        /// <paramref name="feature"/> (CRUD, Option, or DTO).
         /// </summary>
-        private List<RegenerableEntity> BuildEntitiesForGroup(List<FeatureRegenerationItem> groupItems)
+        private RegenerableEntity BuildEntityForFeature(FeatureRegenerationItem feature)
         {
-            var result = new List<RegenerableEntity>();
-
-            // Lookup entity rows by name
             var rowsByEntity = viewModel.EntityRows
                 .ToDictionary(r => r.EntityNameSingular, StringComparer.OrdinalIgnoreCase);
 
-            // Group items by entity
-            foreach (var entityGroup in groupItems.GroupBy(f => f.EntityNameSingular, StringComparer.OrdinalIgnoreCase))
+            if (!rowsByEntity.TryGetValue(feature.EntityNameSingular, out var row))
+                return null;
+
+            bool includeCrud = feature.FeatureType == "CRUD" && row.IsCrudEnabled;
+            bool includeOption = feature.FeatureType == "Option" && row.IsOptionEnabled;
+            bool includeDto = feature.FeatureType == "DTO" && row.IsDtoEnabled;
+
+            if (!includeCrud && !includeOption && !includeDto) return null;
+
+            return new RegenerableEntity
             {
-                if (!rowsByEntity.TryGetValue(entityGroup.Key, out var row))
-                    continue;
+                EntityNameSingular = row.Entity.EntityNameSingular,
+                EntityNamePlural = row.Entity.EntityNamePlural,
+                CrudHistory = includeCrud ? row.Entity.CrudHistory : null,
+                CrudStatus = includeCrud ? row.Entity.CrudStatus : RegenerableFeatureStatus.Missing,
+                OptionHistory = includeOption ? row.Entity.OptionHistory : null,
+                OptionStatus = includeOption ? row.Entity.OptionStatus : RegenerableFeatureStatus.Missing,
+                DtoHistory = includeDto ? row.Entity.DtoHistory : null,
+                DtoStatus = includeDto ? row.Entity.DtoStatus : RegenerableFeatureStatus.Missing,
+            };
+        }
 
-                bool includeCrud = entityGroup.Any(f => f.FeatureType == "CRUD") && row.IsCrudEnabled;
-                bool includeOption = entityGroup.Any(f => f.FeatureType == "Option") && row.IsOptionEnabled;
-                bool includeDto = entityGroup.Any(f => f.FeatureType == "DTO") && row.IsDtoEnabled;
-
-                if (!includeCrud && !includeOption && !includeDto) continue;
-
-                var entityCopy = new RegenerableEntity
+        /// <summary>
+        /// Updates the <c>FrameworkVersion</c> field of the history entry for 
+        /// <paramref name="entityName"/>/<paramref name="featureType"/> to the current project version
+        /// and persists the history file. Creates the property if it was not previously set.
+        /// </summary>
+        private void UpdateHistoryFrameworkVersion(string entityName, string featureType)
+        {
+            var crudSettings = new CRUDSettings(settingsService);
+            try
+            {
+                switch (featureType)
                 {
-                    EntityNameSingular = row.Entity.EntityNameSingular,
-                    EntityNamePlural = row.Entity.EntityNamePlural,
-                    CrudHistory = includeCrud ? row.Entity.CrudHistory : null,
-                    CrudStatus = includeCrud ? row.Entity.CrudStatus : RegenerableFeatureStatus.Missing,
-                    OptionHistory = includeOption ? row.Entity.OptionHistory : null,
-                    OptionStatus = includeOption ? row.Entity.OptionStatus : RegenerableFeatureStatus.Missing,
-                    DtoHistory = includeDto ? row.Entity.DtoHistory : null,
-                    DtoStatus = includeDto ? row.Entity.DtoStatus : RegenerableFeatureStatus.Missing,
-                };
-                result.Add(entityCopy);
+                    case "CRUD":
+                    {
+                        string historyFile = Path.Combine(currentProject.Folder, Constants.FolderBia, crudSettings.CrudGenerationHistoryFileName);
+                        var history = CommonTools.DeserializeJsonFile<CRUDGeneration>(historyFile);
+                        if (history == null) break;
+                        var entry = history.CRUDGenerationHistory
+                            .FirstOrDefault(h => string.Equals(h.EntityNameSingular, entityName, StringComparison.OrdinalIgnoreCase));
+                        if (entry != null)
+                        {
+                            entry.FrameworkVersion = currentProject.FrameworkVersion;
+                            CommonTools.SerializeToJsonFile(history, historyFile);
+                        }
+                        break;
+                    }
+                    case "Option":
+                    {
+                        string historyFile = Path.Combine(currentProject.Folder, Constants.FolderBia, crudSettings.OptionGenerationHistoryFileName);
+                        var history = CommonTools.DeserializeJsonFile<OptionGeneration>(historyFile);
+                        if (history == null) break;
+                        var entry = history.OptionGenerationHistory
+                            .FirstOrDefault(h => string.Equals(h.EntityNameSingular, entityName, StringComparison.OrdinalIgnoreCase));
+                        if (entry != null)
+                        {
+                            entry.FrameworkVersion = currentProject.FrameworkVersion;
+                            CommonTools.SerializeToJsonFile(history, historyFile);
+                        }
+                        break;
+                    }
+                    case "DTO":
+                    {
+                        string historyFile = Path.Combine(currentProject.Folder, Constants.FolderBia, crudSettings.DtoGenerationHistoryFileName);
+                        var history = CommonTools.DeserializeJsonFile<DtoGenerationHistory>(historyFile);
+                        if (history == null) break;
+                        var entry = history.Generations
+                            .FirstOrDefault(h => string.Equals(h.EntityName, entityName, StringComparison.OrdinalIgnoreCase));
+                        if (entry != null)
+                        {
+                            entry.FrameworkVersion = currentProject.FrameworkVersion;
+                            CommonTools.SerializeToJsonFile(history, historyFile);
+                        }
+                        break;
+                    }
+                }
             }
-
-            return result;
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine(
+                    $"Warning: Could not update FrameworkVersion in history for {entityName}/{featureType}: {ex.Message}", "orange");
+            }
         }
     }
 }
