@@ -29,6 +29,33 @@ namespace BIA.ToolKit.Application.ViewModel
         public bool NoEntities => IsLoaded && EntityRows.Count == 0;
         public bool HasSelectedFeatures => SelectedFeatures.Count > 0;
 
+        /// <summary>True when all selected features have an effective FROM version filled in.</summary>
+        public bool CanRegenerate => SelectedFeatures.Count > 0
+            && SelectedFeatures.All(f => !string.IsNullOrEmpty(f.EffectiveFromVersion));
+
+        /// <summary>
+        /// Three-state select-all for the entity list header.
+        /// Returns true when all enabled rows are fully selected, false when none are, null otherwise.
+        /// Setting to true selects all; setting to false (or null) deselects all.
+        /// </summary>
+        public bool? SelectAllEntities
+        {
+            get
+            {
+                if (EntityRows.Count == 0) return false;
+                bool allSel = EntityRows.All(r => r.IsEntitySelected == true);
+                bool noneSel = EntityRows.All(r => r.IsEntitySelected == false);
+                return allSel ? true : noneSel ? false : (bool?)null;
+            }
+            set
+            {
+                bool select = value == true;
+                foreach (var row in EntityRows)
+                    row.IsEntitySelected = select;
+                RaisePropertyChanged(nameof(SelectAllEntities));
+            }
+        }
+
         public Project CurrentProject { get; private set; }
 
         /// <summary>
@@ -68,6 +95,10 @@ namespace BIA.ToolKit.Application.ViewModel
         /// <summary>Refresh the summary list of features to regenerate from the current checkbox state.</summary>
         public void RefreshSelectedFeatures()
         {
+            // Unsubscribe previous items before clearing to avoid stale handlers
+            foreach (var item in SelectedFeatures)
+                item.PropertyChanged -= OnFeatureItemPropertyChanged;
+
             SelectedFeatures.Clear();
 
             // Ordered by dependency: DTO first, then Option, then CRUD
@@ -83,8 +114,20 @@ namespace BIA.ToolKit.Application.ViewModel
                     SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "CRUD", row.Entity.CrudHistory?.FrameworkVersion));
             }
 
+            // Subscribe to new items so CanRegenerate updates when user picks a FROM version
+            foreach (var item in SelectedFeatures)
+                item.PropertyChanged += OnFeatureItemPropertyChanged;
+
             RaisePropertyChanged(nameof(HasSelectedFeatures));
+            RaisePropertyChanged(nameof(CanRegenerate));
+            RaisePropertyChanged(nameof(SelectAllEntities));
             RaisePropertyChanged(nameof(SelectedFeatures));
+        }
+
+        private void OnFeatureItemPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(FeatureRegenerationItem.EffectiveFromVersion))
+                RaisePropertyChanged(nameof(CanRegenerate));
         }
 
         // ── helpers ───────────────────────────────────────────────────────────

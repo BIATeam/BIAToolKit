@@ -24,9 +24,9 @@
         <!-- Two-panel area -->
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*"/>
-                <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <!-- ── Left panel: generated features by entity ──────────────── -->
@@ -49,7 +49,9 @@
                             <ColumnDefinition Width="80"/>
                             <ColumnDefinition Width="80"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Entity" Foreground="White" FontWeight="Bold"/>
+                        <CheckBox Grid.Column="0" Content="Entity" Foreground="White" FontWeight="Bold"
+                                  IsChecked="{Binding SelectAllEntities, Mode=TwoWay}"
+                                  VerticalAlignment="Center"/>
                         <TextBlock Grid.Column="1" Text="CRUD" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
                         <TextBlock Grid.Column="2" Text="Option" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
                         <TextBlock Grid.Column="3" Text="DTO" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
@@ -133,9 +135,9 @@
                           materialDesign:DataGridAssist.ColumnHeaderPadding="8 4">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Entity" Binding="{Binding EntityNameSingular}" Width="*" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="Feature" Binding="{Binding FeatureType}" Width="70" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Feature" Binding="{Binding FeatureType}" Width="80" IsReadOnly="True"/>
                         <!-- From version: read-only label when stored in history, inline ComboBox when missing -->
-                        <DataGridTemplateColumn Header="From version" Width="100">
+                        <DataGridTemplateColumn Header="From version" Width="120">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
@@ -163,14 +165,14 @@
         <!-- ── Action buttons ─────────────────────────────────────────────── -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
             <Button x:Name="ReloadButton"
-                    Content="Reload"
+                    Content="Clear"
                     Margin="0,0,10,0"
                     Click="Reload_Click"/>
             <Button x:Name="RegenerateButton"
                     Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}"
                     Content="Regenerate selected features"
                     Height="40"
-                    IsEnabled="{Binding HasSelectedFeatures}"
+                    IsEnabled="{Binding CanRegenerate}"
                     Click="Regenerate_Click"/>
         </StackPanel>
     </Grid>

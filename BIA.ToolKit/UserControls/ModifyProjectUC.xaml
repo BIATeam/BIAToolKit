@@ -63,8 +63,8 @@
                         </Grid>
                     </Grid>
                 </TabItem>
-                <TabItem x:Name="TabRegenerateFeatures" Header="Regenerate Features"
-                         Visibility="{Binding IsProjectCompatibleRegenerateFeatures, Converter={StaticResource BoolToVisConverter}}">
+                <TabItem x:Name="TabRegenerateFeatures" Header="Features"
+                         IsEnabled="{Binding IsProjectSelected}">
                     <uc:RegenerateFeaturesUC x:Name="RegenerateFeatures"/>
                 </TabItem>
             </TabControl>
