@@ -197,6 +197,8 @@ Report to the developer:
 
 ## Phase 6: Resolve Rejected Hunks (.rej files)
 
+0. **Read migration-fixes**: before resolving any `.rej` file, read ALL files in `.github/copilot/migration-data/v6-to-v7/migration-fixes/`. Each file documents a real migration issue with its exact diff, root cause, and solution. Use these as reference when resolving similar patterns in `.rej` files.
+
 1. Find all `.rej` files in the project:
 
    ```
@@ -294,7 +296,7 @@ This phase tries to bring the project to a compilable state, then **commits ever
    dotnet build <solution-file>
    ```
 2. If there are errors:
-   - Read `.github/copilot/migration-data/v6-to-v7/breaking-changes.md` for known patterns
+   - Read ALL files in `.github/copilot/migration-data/v6-to-v7/migration-fixes/` — each file documents a real migration issue encountered on other projects, with the exact symptom, diff, and solution. Match build errors against these known patterns.
    - Common V6→V7 errors:
      - Missing `ParamIocContainer` → ensure `using BIA.Net.Core.Ioc.Param;` is present
      - Method signature mismatches in Startup/Program.cs → update callers to `new ParamIocContainer { ... }`
@@ -340,12 +342,12 @@ This commit is the **fixed reference point**: everything before it is the agent'
      ```
      git commit -m "chore: migrate BIA Framework from V6 to V7 [partial - manual fixes needed]"
      ```
-3. This is the **final agent commit**. Note its hash — Phase 11 will use it as the diff boundary.
+3. This is the **final agent commit**. Note its hash — it servira de frontière pour les rapports de correctifs.
 
    The full commit history on the migration branch will look like:
 
    ```
-   chore: migrate BIA Framework from V6 to V7 [...]  ← final agent commit (Phase 11 boundary)
+   chore: migrate BIA Framework from V6 to V7 [...]  ← final agent commit
    chore(migration): update dependencies and cleanup V6→V7
    chore(migration): resolve .rej files (X resolved, Y remaining)
    chore(migration): IocContainer split V6→V7 (partial class)
@@ -369,119 +371,111 @@ Then tell the developer:
 > The following require manual fixes (search `TODO: BIA Migration V6→V7` in the codebase):
 > {list of issues}
 >
-> Once you have fixed and committed your corrections, run **Phase 11** to generate the contribution feedback report.
+> **Documenter vos correctifs** : après chaque correction manuelle, tapez directement dans ce chat :
+> **Documente mon correctif** (+ optionnel : une explication, ex : "le merge du `<p-table>` a raté")
+>
+> Si vous avez fermé ce chat, vous pouvez aussi utiliser le prompt standalone `report-migration-fix.prompt.md`.
 >
 > To rollback if needed: `git checkout main && git branch -D migration/v6-to-v7`
 
 ---
 
-## Phase 11: Migration Feedback Report
+## Commande post-migration : "Documente mon correctif"
 
-This phase is invoked **after** the developer has made and committed all manual corrections following the migration. It uses git to detect exactly what changed after the agent's work, and produces a structured feedback file for contribution back to BIAToolKit.
+Après le handoff (Phase 10), le développeur reste dans le même chat. S'il tape **"Documente mon correctif"** (avec ou sans détail supplémentaire), exécuter la procédure suivante.
 
-> **When to run this phase**: after the developer has reviewed the migration, fixed any remaining issues manually, and committed those fixes. Do NOT run this phase immediately after Phase 9 — wait for the developer to signal they are done with manual corrections.
+Tu as déjà le contexte de migration (CompanyName, ProjectName, version, hash du commit agent). Pas besoin de re-détecter.
 
-### 11.1: Find the agent commit
-
-Run:
+### 1. Identifier le correctif
 
 ```
-git log --oneline
+git diff
 ```
 
-Find the commit whose message starts with `chore: migrate BIA Framework from V6 to V7`. Note its hash as `{agent-commit}`.
+Si vide, essayer `git diff --staged`, puis `git diff {agent-commit}..HEAD`.
 
-If there are multiple commits after it, they are the developer's manual corrections.
+Si le diff est vide partout : informer le dev qu'aucun changement n'est détecté.
 
-### 11.2: Detect manual corrections via git diff
+Si plusieurs fichiers sont modifiés, les lister et demander lesquels documenter.
 
-Run:
+### 2. Analyser la cause racine
 
-```
-git diff {agent-commit}..HEAD
-```
+Pour chaque correctif :
 
-This shows **exactly what the developer changed after the agent's work**. These are the manual corrections.
+1. Lire le diff attentivement
+2. Vérifier les fichiers dans `.github/copilot/migration-data/v6-to-v7/migration-fixes/` — le cas est-il déjà documenté ?
+3. Déterminer la catégorie :
+   - `patch-rejection` — un hunk `.rej` non résolu
+   - `build-error` — une erreur de build non corrigée
+   - `missing-migration-fix` — un cas absent de `migration-fixes/`
+   - `custom-code-conflict` — code custom du projet mal géré
+   - `dependency-issue` — version ou package incorrect
+   - `other`
 
-- If the diff is empty: the agent handled everything — generate a success report.
-- If the diff is non-empty: analyze each changed file and hunk to understand what was fixed.
+### 3. Confirmer avec le développeur
 
-### 11.3: Analyze each manual correction
+> **Mon analyse :**
+>
+> - **Fichier** : `{file}`
+> - **Catégorie** : `{category}`
+> - **Ce que je pense qu'il s'est passé** : {analyse en 2-3 phrases}
+>
+> **Est-ce correct ?** Voulez-vous corriger ou ajouter un commentaire ?
 
-For each file changed in the diff:
+Si le développeur a fourni un détail dans sa commande (ex : "Documente mon correctif : le merge du `<p-table>` a raté"), l'intégrer directement dans la section "Commentaire du développeur".
 
-1. Read the diff hunks carefully
-2. Determine **why** the agent missed this:
-   - Was it a `.rej` file the agent couldn't resolve?
-   - Was it a build error the agent didn't know how to fix?
-   - Was it a case not covered by `breaking-changes.md`?
-   - Was it a custom code pattern the agent misidentified?
-3. Formulate a **suggested improvement**: a concrete instruction or example that, if added to `breaking-changes.md` or the prompt, would let the agent handle this automatically next time.
+### 4. Générer le rapport
 
-### 11.4: Generate the feedback file
+Créer dans `.github/copilot/migration-fixes/` :
 
-Create `.github/copilot/migration-feedback-v6-to-v7.md`:
+**Nommage** : `fix-{YYYYMMDD}-{HHmmss}-{slug-court}.md`
 
 ````markdown
-# Migration Feedback: BIA Framework V6 → V7
+# Migration Fix: {Titre court}
 
-Date: {today's date}
-Project: {CompanyName}/{ProjectName}
-Agent result: {Success | Partial | Failed}
-Manual corrections: {number of changed files/hunks detected via git diff}
+- **Migration** : V6 → V7
+- **Date** : {date du jour}
+- **Catégorie** : {category}
+- **Fichier** : `{chemin du fichier}`
 
-## What the agent handled automatically
+## Symptôme
 
-{List phases that completed without issues, based on what happened during the migration}
+{Description du problème}
 
-## Manual corrections detected (from git diff)
-
-{For each file/hunk in the git diff:}
-
-### Fix #{n}: {short description}
-
-**File**: `{path to file}`
-**Diff**:
+## Diff du correctif
 
 ```diff
-{paste the relevant hunk from git diff exactly}
+{hunk exact du git diff}
 ```
 
-**Root cause**: {why the agent failed — .rej unresolved / build error not in breaking-changes / pattern not recognized / etc.}
-**Suggested improvement for breaking-changes.md or prompt**:
-{concrete text that could be added to fix this automatically}
+## Pourquoi l'agent a échoué
 
-## Remaining issues (not yet fixed)
+{Cause racine — factuel et précis}
 
-{Anything the developer still needs to do manually, if any}
+## Commentaire du développeur
 
-## Other observations
-
-{Any recurring pattern or edge case worth noting}
+{Texte fourni par le dev, ou "Aucun commentaire ajouté"}
 ````
 
-### 11.5: Commit the feedback file
+### 5. Commit et résumé
 
 ```
-git add .github/copilot/migration-feedback-v6-to-v7.md
-git commit -m "chore: add migration feedback for V6 to V7"
+git add .github/copilot/migration-fixes/
+git commit -m "docs: migration fix - {description courte}"
 ```
 
-### 11.6: Prompt the developer to contribute
+> **Correctif documenté** ✅
+> Fichier : `.github/copilot/migration-fixes/{nom}`
+>
+> Pour contribuer : joindre les fichiers de `.github/copilot/migration-fixes/` dans une issue/PR sur BIAToolKit.
+>
+> Vous pouvez taper **"Documente mon correctif"** à nouveau pour un autre fix.
 
-Tell the developer:
+### Règles
 
-> **Votre feedback améliore l'outil pour tous les développeurs.**
->
-> Le fichier `.github/copilot/migration-feedback-v6-to-v7.md` a été généré automatiquement depuis votre git diff. Il documente chaque correction manuelle que vous avez effectuée après la migration automatique.
->
-> Pour contribuer :
->
-> 1. Ouvrir une issue ou PR sur le repository BIAToolKit
-> 2. Joindre ou coller le contenu de ce fichier
-> 3. L'équipe BIA intègre vos corrections dans `breaking-changes.md` et le prompt
->
-> Chaque correction réelle rend la prochaine migration plus autonome.
+- **Un rapport par correctif** — proposer de découper si le diff touche plusieurs aspects.
+- **Copier le hunk exact** du diff, ne jamais paraphraser.
+- Si le cas est déjà dans `migration-fixes/` mais que l'agent l'a raté : le noter (c'est un bug du prompt).
 
 ---
 

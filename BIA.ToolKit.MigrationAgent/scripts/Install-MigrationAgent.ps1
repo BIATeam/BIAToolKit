@@ -33,12 +33,17 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# Resolve source path (default: script's parent = BIA.ToolKit.MigrationAgent/)
+# Resolve source path (default: script's parent = BIA.ToolKit.MigrationAgent/ or zip root)
 if (-not $SourcePath) {
-    $SourcePath = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-    $SourcePath = Join-Path $SourcePath "BIA.ToolKit.MigrationAgent"
-    if (-not (Test-Path $SourcePath)) {
-        $SourcePath = Split-Path -Parent $PSScriptRoot
+    # Try 1: repo structure (scripts/ is inside BIA.ToolKit.MigrationAgent/)
+    $SourcePath = Split-Path -Parent $PSScriptRoot
+
+    # Try 2: BIAToolKit repo root (BIA.ToolKit.MigrationAgent/ is a sibling)
+    if (-not (Test-Path (Join-Path $SourcePath "prompts"))) {
+        $candidate = Join-Path (Split-Path -Parent $SourcePath) "BIA.ToolKit.MigrationAgent"
+        if (Test-Path (Join-Path $candidate "prompts")) {
+            $SourcePath = $candidate
+        }
     }
 }
 
@@ -130,19 +135,39 @@ New-Item -ItemType Directory -Path $targetDataDir -Force | Out-Null
 Write-Host "Copying prompt file..." -ForegroundColor DarkGray
 Copy-Item -Path $promptFile -Destination $targetPromptsDir -Force
 
+# Copy report-migration-fix prompt (shared across all migration versions)
+$reportPromptFile = Join-Path $SourcePath "prompts\report-migration-fix.prompt.md"
+if (Test-Path $reportPromptFile) {
+    Copy-Item -Path $reportPromptFile -Destination $targetPromptsDir -Force
+    Write-Host "Copied report-migration-fix.prompt.md" -ForegroundColor DarkGray
+}
+
 # Copy migration data
 Write-Host "Copying migration data..." -ForegroundColor DarkGray
 Copy-Item -Path "$sourceDataPath\*" -Destination $targetDataDir -Recurse -Force
 
-# Configure VS Code settings (merge with existing)
+# Configure VS Code settings
 $vscodeDir = Join-Path $TargetProjectPath ".vscode"
 $settingsFile = Join-Path $vscodeDir "settings.json"
+$backupFile = Join-Path $vscodeDir "settings.json.migration-backup"
 
 if (-not (Test-Path $vscodeDir)) {
     New-Item -ItemType Directory -Path $vscodeDir -Force | Out-Null
 }
 
-# Migration-specific settings to inject
+# Backup original settings.json as a sidecar file (restored verbatim on uninstall)
+if (Test-Path $settingsFile) {
+    Copy-Item -Path $settingsFile -Destination $backupFile -Force
+    Write-Host "Backed up .vscode/settings.json → settings.json.migration-backup" -ForegroundColor DarkGray
+    $settings = Get-Content $settingsFile -Raw -Encoding UTF8 | ConvertFrom-Json
+}
+else {
+    Write-Host "No existing .vscode/settings.json — will create one" -ForegroundColor DarkGray
+    $settings = [PSCustomObject]@{}
+}
+
+# Migration-specific settings — always set, overwrite any existing values
+# The original values are safe in the .bak file
 $migrationSettings = @{
     "chat.promptFiles"                      = $true
     "chat.agent.maxRequests"                = 100
@@ -157,38 +182,26 @@ $migrationSettings = @{
     )
 }
 
-# Track which settings we added (for uninstall)
-$addedSettings = @()
-
-if (Test-Path $settingsFile) {
-    $settings = Get-Content $settingsFile -Raw | ConvertFrom-Json
-}
-else {
-    $settings = [PSCustomObject]@{}
-}
-
 foreach ($key in $migrationSettings.Keys) {
-    if (-not ($settings.PSObject.Properties.Name -contains $key)) {
+    if ($settings.PSObject.Properties.Name -contains $key) {
+        $settings.PSObject.Properties[$key].Value = $migrationSettings[$key]
+    }
+    else {
         $settings | Add-Member -NotePropertyName $key -NotePropertyValue $migrationSettings[$key]
-        $addedSettings += $key
     }
 }
 
 $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsFile -Encoding UTF8
-if ($addedSettings.Count -gt 0) {
-    Write-Host "Configured VS Code settings: $($addedSettings -join ', ')" -ForegroundColor DarkGray
-}
-else {
-    Write-Host "VS Code settings already configured" -ForegroundColor DarkGray
-}
+Write-Host "Configured VS Code settings: $($migrationSettings.Keys -join ', ')" -ForegroundColor DarkGray
 
 # Save a manifest of what was installed (for uninstall)
 $manifest = @{
     migrationVersion = $MigrationVersion
     installedDate    = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
     promptFile       = ".github\copilot\prompts\migration-$MigrationVersion.prompt.md"
+    reportPromptFile = ".github\copilot\prompts\report-migration-fix.prompt.md"
     dataFolder       = ".github\copilot\migration-data\$MigrationVersion"
-    addedSettings    = $addedSettings
+    settingsBackup   = if (Test-Path $backupFile) { ".vscode\settings.json.migration-backup" } else { $null }
 }
 $manifestPath = Join-Path $TargetProjectPath ".github\copilot\migration-manifest.json"
 $manifest | ConvertTo-Json -Depth 5 | Set-Content $manifestPath -Encoding UTF8
@@ -201,6 +214,7 @@ Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "Installed files:" -ForegroundColor White
 Write-Host "  Prompt:  $targetPromptsDir\migration-$MigrationVersion.prompt.md" -ForegroundColor Gray
+Write-Host "  Report:  $targetPromptsDir\report-migration-fix.prompt.md" -ForegroundColor Gray
 Write-Host "  Data:    $targetDataDir\" -ForegroundColor Gray
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Yellow
@@ -209,4 +223,8 @@ Write-Host "  2. Open Copilot Chat (Ctrl+Shift+I)" -ForegroundColor White
 Write-Host "  3. Switch to Agent mode" -ForegroundColor White
 Write-Host "  4. Attach the prompt: #file:.github/copilot/prompts/migration-$MigrationVersion.prompt.md" -ForegroundColor White
 Write-Host "  5. Type: 'Run this migration' or 'Migre mon projet'" -ForegroundColor White
+Write-Host ""
+Write-Host "After migration, to document manual fixes:" -ForegroundColor Yellow
+Write-Host "  Attach: #file:.github/copilot/prompts/report-migration-fix.prompt.md" -ForegroundColor White
+Write-Host "  Type: 'Documente mon correctif'" -ForegroundColor White
 Write-Host ""
