@@ -69,6 +69,10 @@
             ProjectSelector.Inject(projectViewModel);
             ProjectSelector.RootPathTextChanged += (_, _) => ParameterModifyChange();
 
+            RegenerateFeatures.Inject(consoleWriter, uiEventBroker, settingsService,
+                regenerateFeaturesDiscoveryService, featureMigrationGeneratorService,
+                gitService, cSharpParserService);
+
             uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
         }
 
