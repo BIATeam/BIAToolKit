@@ -12,7 +12,6 @@ namespace BIA.ToolKit.UserControls
     using BIA.ToolKit.Application.Services.RegenerateFeatures;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures;
     using BIA.ToolKit.Domain.Settings;
@@ -29,7 +28,6 @@ namespace BIA.ToolKit.UserControls
         private SettingsService settingsService;
         private RegenerateFeaturesDiscoveryService discoveryService;
         private FeatureMigrationGeneratorService featureMigrationGeneratorService;
-        private ProjectCreatorService projectCreatorService;
         private GitService gitService;
         private CSharpParserService cSharpParserService;
         private Project currentProject;
@@ -45,7 +43,6 @@ namespace BIA.ToolKit.UserControls
             SettingsService settingsService,
             RegenerateFeaturesDiscoveryService discoveryService,
             FeatureMigrationGeneratorService featureMigrationGeneratorService,
-            ProjectCreatorService projectCreatorService,
             GitService gitService,
             CSharpParserService cSharpParserService)
         {
@@ -54,7 +51,6 @@ namespace BIA.ToolKit.UserControls
             this.settingsService = settingsService;
             this.discoveryService = discoveryService;
             this.featureMigrationGeneratorService = featureMigrationGeneratorService;
-            this.projectCreatorService = projectCreatorService;
             this.gitService = gitService;
             this.cSharpParserService = cSharpParserService;
 
@@ -113,7 +109,7 @@ namespace BIA.ToolKit.UserControls
 
             // Validate all selected features have a FROM version
             var missingVersion = viewModel.SelectedFeatures
-                .Where(f => string.IsNullOrEmpty(f.FromVersion))
+                .Where(f => string.IsNullOrEmpty(f.EffectiveFromVersion))
                 .ToList();
 
             if (missingVersion.Count > 0)
@@ -123,20 +119,15 @@ namespace BIA.ToolKit.UserControls
                 return;
             }
 
-            var selectedRows = viewModel.EntityRows
-                .Where(r => r.IsCrudSelected || r.IsOptionSelected || r.IsDtoSelected)
-                .ToList();
-
-            if (selectedRows.Count == 0)
+            if (viewModel.SelectedFeatures.Count == 0)
             {
                 MessageBox.Show("No features selected for regeneration.");
                 return;
             }
 
             // Group selected features by their effective FROM version
-            var fromVersionGroups = selectedRows
-                .SelectMany(GetRowFromVersionEntries)
-                .GroupBy(x => NormalizeVersion(x.fromVersion), StringComparer.OrdinalIgnoreCase)
+            var fromVersionGroups = viewModel.SelectedFeatures
+                .GroupBy(f => NormalizeVersion(f.EffectiveFromVersion), StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
             var workTemplates = GetAvailableVersions();
@@ -173,35 +164,35 @@ namespace BIA.ToolKit.UserControls
                     continue;
                 }
 
-                var entitiesForGroup = BuildEntitiesForGroup(selectedRows, fromVersionNorm);
+                // Build entity list for this FROM-version group (only features matching this FROM version)
+                var entitiesForGroup = BuildEntitiesForGroup(group.ToList());
                 if (entitiesForGroup.Count == 0) continue;
 
                 string safeFrom = fromVersionNorm.Replace(".", "_");
                 string safeTo = toVersionNorm.Replace(".", "_");
                 string fromFolderName = $"{currentProject.Name}_{safeFrom}_From";
                 string toFolderName = $"{currentProject.Name}_{safeTo}_To";
-                string fromPath = AppSettings.TmpFolderPath + fromFolderName;
-                string toPath = AppSettings.TmpFolderPath + toFolderName;
+                string fromPath = Path.Combine(AppSettings.TmpFolderPath, fromFolderName);
+                string toPath = Path.Combine(AppSettings.TmpFolderPath, toFolderName);
 
-                // Create FROM project at original version
+                // Create isolated empty directories for feature generation
                 if (Directory.Exists(fromPath))
                     await Task.Run(() => FileTransform.ForceDeleteDirectory(fromPath));
-                await CreateProjectAtVersion(fromPath, fromWorkRepo);
+                Directory.CreateDirectory(fromPath);
 
-                // Create TO project at current project version
                 if (Directory.Exists(toPath))
                     await Task.Run(() => FileTransform.ForceDeleteDirectory(toPath));
-                await CreateProjectAtVersion(toPath, toWorkRepo);
+                Directory.CreateDirectory(toPath);
 
-                // Generate features in both FROM and TO projects
+                // Generate only the selected features into the isolated FROM and TO folders
                 await featureMigrationGeneratorService.GenerateFeaturesAsync(
                     currentProject, fromPath, fromWorkRepo.Version, entitiesForGroup, cSharpParserService);
                 await featureMigrationGeneratorService.GenerateFeaturesAsync(
                     currentProject, toPath, toWorkRepo.Version, entitiesForGroup, cSharpParserService);
 
                 // Apply 3-point diff to the current project
-                string patchFilePath = AppSettings.TmpFolderPath +
-                    $"Regen_{fromFolderName}-{toFolderName}.patch";
+                string patchFilePath = Path.Combine(AppSettings.TmpFolderPath,
+                    $"Regen_{fromFolderName}-{toFolderName}.patch");
 
                 bool diffOk = await gitService.DiffFolder(
                     false, AppSettings.TmpFolderPath, fromFolderName, toFolderName, patchFilePath);
@@ -211,30 +202,6 @@ namespace BIA.ToolKit.UserControls
             }
 
             consoleWriter.AddMessageLine("Feature regeneration completed.", "green");
-        }
-
-        private async Task CreateProjectAtVersion(string projectPath, WorkRepository workRepo)
-        {
-            await projectCreatorService.Create(
-                false,
-                projectPath,
-                new ProjectParameters
-                {
-                    CompanyName = currentProject.CompanyName,
-                    ProjectName = currentProject.Name,
-                    VersionAndOption = new VersionAndOption
-                    {
-                        WorkTemplate = workRepo,
-                        FeatureSettings = [],
-                    },
-                    AngularFronts = [.. currentProject.BIAFronts],
-                });
-
-            string permissionsFile = Path.Combine(
-                projectPath, Constants.FolderNetCore,
-                $"{currentProject.CompanyName}.{currentProject.Name}.Presentation.Api",
-                "biapermissions.json");
-            projectCreatorService.ClearPermissions(permissionsFile);
         }
 
         private List<WorkRepository> GetAvailableVersions()
@@ -260,35 +227,30 @@ namespace BIA.ToolKit.UserControls
             return "V" + stripped;
         }
 
-        private static IEnumerable<(string fromVersion, RegenerableEntityRowViewModel row, string featureType)>
-            GetRowFromVersionEntries(RegenerableEntityRowViewModel row)
-        {
-            if (row.IsCrudSelected && row.IsCrudEnabled && !string.IsNullOrEmpty(row.EffectiveCrudFromVersion))
-                yield return (row.EffectiveCrudFromVersion, row, "CRUD");
-            if (row.IsOptionSelected && row.IsOptionEnabled && !string.IsNullOrEmpty(row.EffectiveOptionFromVersion))
-                yield return (row.EffectiveOptionFromVersion, row, "Option");
-            if (row.IsDtoSelected && row.IsDtoEnabled && !string.IsNullOrEmpty(row.EffectiveDtoFromVersion))
-                yield return (row.EffectiveDtoFromVersion, row, "DTO");
-        }
-
-        private List<RegenerableEntity> BuildEntitiesForGroup(
-            List<RegenerableEntityRowViewModel> rows,
-            string fromVersionNorm)
+        /// <summary>
+        /// Build a list of <see cref="RegenerableEntity"/> from the selected FeatureRegenerationItems
+        /// (all items in this group share the same FROM version).
+        /// </summary>
+        private List<RegenerableEntity> BuildEntitiesForGroup(List<FeatureRegenerationItem> groupItems)
         {
             var result = new List<RegenerableEntity>();
 
-            foreach (var row in rows)
+            // Lookup entity rows by name
+            var rowsByEntity = viewModel.EntityRows
+                .ToDictionary(r => r.EntityNameSingular, StringComparer.OrdinalIgnoreCase);
+
+            // Group items by entity
+            foreach (var entityGroup in groupItems.GroupBy(f => f.EntityNameSingular, StringComparer.OrdinalIgnoreCase))
             {
-                bool includeCrud = row.IsCrudSelected && row.IsCrudEnabled &&
-                    string.Equals(NormalizeVersion(row.EffectiveCrudFromVersion), fromVersionNorm, StringComparison.OrdinalIgnoreCase);
-                bool includeOption = row.IsOptionSelected && row.IsOptionEnabled &&
-                    string.Equals(NormalizeVersion(row.EffectiveOptionFromVersion), fromVersionNorm, StringComparison.OrdinalIgnoreCase);
-                bool includeDto = row.IsDtoSelected && row.IsDtoEnabled &&
-                    string.Equals(NormalizeVersion(row.EffectiveDtoFromVersion), fromVersionNorm, StringComparison.OrdinalIgnoreCase);
+                if (!rowsByEntity.TryGetValue(entityGroup.Key, out var row))
+                    continue;
+
+                bool includeCrud = entityGroup.Any(f => f.FeatureType == "CRUD") && row.IsCrudEnabled;
+                bool includeOption = entityGroup.Any(f => f.FeatureType == "Option") && row.IsOptionEnabled;
+                bool includeDto = entityGroup.Any(f => f.FeatureType == "DTO") && row.IsDtoEnabled;
 
                 if (!includeCrud && !includeOption && !includeDto) continue;
 
-                // Create a copy with only the selected feature types for this FROM-version group
                 var entityCopy = new RegenerableEntity
                 {
                     EntityNameSingular = row.Entity.EntityNameSingular,

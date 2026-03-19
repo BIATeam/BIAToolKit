@@ -71,7 +71,7 @@
 
             RegenerateFeatures.Inject(consoleWriter, uiEventBroker, settingsService,
                 regenerateFeaturesDiscoveryService, featureMigrationGeneratorService,
-                projectCreatorService, gitService, cSharpParserService);
+                gitService, cSharpParserService);
 
             uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
         }

@@ -14,6 +14,7 @@ namespace BIA.ToolKit.Application.ViewModel
     public class RegenerateFeaturesViewModel : ObservableObject
     {
         private bool isLoaded;
+        private List<string> availableVersions = [];
 
         public ObservableCollection<RegenerableEntityRowViewModel> EntityRows { get; } = [];
         public ObservableCollection<FeatureRegenerationItem> SelectedFeatures { get; } = [];
@@ -34,13 +35,13 @@ namespace BIA.ToolKit.Application.ViewModel
         /// Load entities discovered from the project history files and the list of available framework versions.
         /// Only entities whose stored framework version is lower than the current project version (or has no stored version) are shown.
         /// </summary>
-        public void Initialize(Project project, IEnumerable<RegenerableEntity> allEntities, IEnumerable<string> availableVersions)
+        public void Initialize(Project project, IEnumerable<RegenerableEntity> allEntities, IEnumerable<string> versions)
         {
             CurrentProject = project;
+            availableVersions = versions.ToList();
             EntityRows.Clear();
             SelectedFeatures.Clear();
 
-            var versions = availableVersions.ToList();
             var projectVersion = ParseVersion(project?.FrameworkVersion);
 
             foreach (var entity in allEntities)
@@ -54,10 +55,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 if (!showCrud && !showOption && !showDto)
                     continue;
 
-                var row = new RegenerableEntityRowViewModel(entity)
-                {
-                    AvailableVersions = new ObservableCollection<string>(versions),
-                };
+                var row = new RegenerableEntityRowViewModel(entity);
                 row.SelectionChanged += (_, _) => RefreshSelectedFeatures();
                 EntityRows.Add(row);
             }
@@ -76,13 +74,13 @@ namespace BIA.ToolKit.Application.ViewModel
             foreach (var row in EntityRows.OrderBy(r => r.EntityNameSingular))
             {
                 if (row.IsDtoEnabled && row.IsDtoSelected)
-                    SelectedFeatures.Add(new FeatureRegenerationItem { EntityNameSingular = row.EntityNameSingular, FeatureType = "DTO", FromVersion = row.EffectiveDtoFromVersion, ToVersion = CurrentProject?.FrameworkVersion });
+                    SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "DTO", row.Entity.DtoHistory?.FrameworkVersion));
 
                 if (row.IsOptionEnabled && row.IsOptionSelected)
-                    SelectedFeatures.Add(new FeatureRegenerationItem { EntityNameSingular = row.EntityNameSingular, FeatureType = "Option", FromVersion = row.EffectiveOptionFromVersion, ToVersion = CurrentProject?.FrameworkVersion });
+                    SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "Option", row.Entity.OptionHistory?.FrameworkVersion));
 
                 if (row.IsCrudEnabled && row.IsCrudSelected)
-                    SelectedFeatures.Add(new FeatureRegenerationItem { EntityNameSingular = row.EntityNameSingular, FeatureType = "CRUD", FromVersion = row.EffectiveCrudFromVersion, ToVersion = CurrentProject?.FrameworkVersion });
+                    SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "CRUD", row.Entity.CrudHistory?.FrameworkVersion));
             }
 
             RaisePropertyChanged(nameof(HasSelectedFeatures));
@@ -90,6 +88,18 @@ namespace BIA.ToolKit.Application.ViewModel
         }
 
         // ── helpers ───────────────────────────────────────────────────────────
+
+        private FeatureRegenerationItem BuildItem(string entityName, string featureType, string storedVersion)
+        {
+            return new FeatureRegenerationItem
+            {
+                EntityNameSingular = entityName,
+                FeatureType = featureType,
+                StoredFromVersion = storedVersion,
+                ToVersion = CurrentProject?.FrameworkVersion,
+                AvailableVersions = new ObservableCollection<string>(availableVersions),
+            };
+        }
 
         private static bool IsEligible(string storedVersion, Version projectVersion)
         {

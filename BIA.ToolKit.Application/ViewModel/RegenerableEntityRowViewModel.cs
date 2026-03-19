@@ -1,7 +1,5 @@
 namespace BIA.ToolKit.Application.ViewModel
 {
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using System.ComponentModel;
     using System.Runtime.CompilerServices;
     using BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures;
@@ -15,15 +13,11 @@ namespace BIA.ToolKit.Application.ViewModel
         private bool isCrudSelected;
         private bool isOptionSelected;
         private bool isDtoSelected;
-        private string crudVersionOverride;
-        private string optionVersionOverride;
-        private string dtoVersionOverride;
         private bool updatingAll;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         public RegenerableEntity Entity { get; }
-        public ObservableCollection<string> AvailableVersions { get; set; } = [];
 
         public string EntityNameSingular => Entity.EntityNameSingular;
         public string EntityNamePlural => Entity.EntityNamePlural;
@@ -46,26 +40,6 @@ namespace BIA.ToolKit.Application.ViewModel
             }
         }
 
-        public string CrudStoredVersion => Entity.CrudHistory?.FrameworkVersion;
-        public bool IsCrudVersionStoredInHistory => !string.IsNullOrEmpty(CrudStoredVersion);
-        public bool IsCrudVersionNotStoredInHistory => string.IsNullOrEmpty(CrudStoredVersion);
-
-        public string CrudVersionOverride
-        {
-            get => crudVersionOverride;
-            set
-            {
-                if (crudVersionOverride != value)
-                {
-                    crudVersionOverride = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(EffectiveCrudFromVersion));
-                }
-            }
-        }
-
-        public string EffectiveCrudFromVersion => CrudStoredVersion ?? CrudVersionOverride;
-
         // ── Option ────────────────────────────────────────────────────────────
         public bool HasOption => Entity.HasOptionHistory;
         public bool IsOptionEnabled => Entity.CanRegenerateOption;
@@ -84,26 +58,6 @@ namespace BIA.ToolKit.Application.ViewModel
             }
         }
 
-        public string OptionStoredVersion => Entity.OptionHistory?.FrameworkVersion;
-        public bool IsOptionVersionStoredInHistory => !string.IsNullOrEmpty(OptionStoredVersion);
-        public bool IsOptionVersionNotStoredInHistory => string.IsNullOrEmpty(OptionStoredVersion);
-
-        public string OptionVersionOverride
-        {
-            get => optionVersionOverride;
-            set
-            {
-                if (optionVersionOverride != value)
-                {
-                    optionVersionOverride = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(EffectiveOptionFromVersion));
-                }
-            }
-        }
-
-        public string EffectiveOptionFromVersion => OptionStoredVersion ?? OptionVersionOverride;
-
         // ── DTO ───────────────────────────────────────────────────────────────
         public bool HasDto => Entity.HasDtoHistory;
         public bool IsDtoEnabled => Entity.CanRegenerateDto;
@@ -121,26 +75,6 @@ namespace BIA.ToolKit.Application.ViewModel
                 }
             }
         }
-
-        public string DtoStoredVersion => Entity.DtoHistory?.FrameworkVersion;
-        public bool IsDtoVersionStoredInHistory => !string.IsNullOrEmpty(DtoStoredVersion);
-        public bool IsDtoVersionNotStoredInHistory => string.IsNullOrEmpty(DtoStoredVersion);
-
-        public string DtoVersionOverride
-        {
-            get => dtoVersionOverride;
-            set
-            {
-                if (dtoVersionOverride != value)
-                {
-                    dtoVersionOverride = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(EffectiveDtoFromVersion));
-                }
-            }
-        }
-
-        public string EffectiveDtoFromVersion => DtoStoredVersion ?? DtoVersionOverride;
 
         // ── Entity-level selection ────────────────────────────────────────────
         public bool? IsEntitySelected

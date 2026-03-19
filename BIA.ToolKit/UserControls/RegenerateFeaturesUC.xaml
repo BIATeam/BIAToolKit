@@ -66,12 +66,6 @@
                                 <DataTemplate>
                                     <Border BorderBrush="#404040" BorderThickness="0,0,0,1" Padding="5,4">
                                         <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="auto"/>
-                                                <RowDefinition Height="auto"/>
-                                                <RowDefinition Height="auto"/>
-                                                <RowDefinition Height="auto"/>
-                                            </Grid.RowDefinitions>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="80"/>
@@ -79,15 +73,15 @@
                                                 <ColumnDefinition Width="80"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <!-- Entity name with select-all checkbox (row 0) -->
-                                            <CheckBox Grid.Row="0" Grid.Column="0"
+                                            <!-- Entity name with select-all checkbox -->
+                                            <CheckBox Grid.Column="0"
                                                       Foreground="White" FontWeight="Bold"
                                                       Content="{Binding EntityNameSingular}"
                                                       IsChecked="{Binding IsEntitySelected}"
                                                       VerticalAlignment="Center"/>
 
                                             <!-- CRUD checkbox -->
-                                            <CheckBox Grid.Row="0" Grid.Column="1"
+                                            <CheckBox Grid.Column="1"
                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
                                                       Foreground="White"
                                                       IsChecked="{Binding IsCrudSelected, Mode=TwoWay}"
@@ -95,7 +89,7 @@
                                                       Visibility="{Binding HasCrud, Converter={StaticResource BoolToVisConverter}}"/>
 
                                             <!-- Option checkbox -->
-                                            <CheckBox Grid.Row="0" Grid.Column="2"
+                                            <CheckBox Grid.Column="2"
                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
                                                       Foreground="White"
                                                       IsChecked="{Binding IsOptionSelected, Mode=TwoWay}"
@@ -103,60 +97,12 @@
                                                       Visibility="{Binding HasOption, Converter={StaticResource BoolToVisConverter}}"/>
 
                                             <!-- DTO checkbox -->
-                                            <CheckBox Grid.Row="0" Grid.Column="3"
+                                            <CheckBox Grid.Column="3"
                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
                                                       Foreground="White"
                                                       IsChecked="{Binding IsDtoSelected, Mode=TwoWay}"
                                                       IsEnabled="{Binding IsDtoEnabled}"
                                                       Visibility="{Binding HasDto, Converter={StaticResource BoolToVisConverter}}"/>
-
-                                            <!-- CRUD from version (row 1) -->
-                                            <Grid Grid.Row="1" Grid.Column="1" Margin="2,2,2,0"
-                                                  Visibility="{Binding HasCrud, Converter={StaticResource BoolToVisConverter}}">
-                                                <TextBlock Text="{Binding CrudStoredVersion}" Foreground="LightGray" FontSize="10" HorizontalAlignment="Center"
-                                                           Visibility="{Binding IsCrudVersionStoredInHistory, Converter={StaticResource BoolToVisConverter}}"
-                                                           ToolTip="Framework version at generation time"/>
-                                                <ComboBox ItemsSource="{Binding AvailableVersions}"
-                                                          SelectedItem="{Binding CrudVersionOverride, Mode=TwoWay}"
-                                                          FontSize="10" Width="72"
-                                                          materialDesign:HintAssist.Hint="From ver."
-                                                          Style="{StaticResource MaterialDesignComboBox}"
-                                                          Foreground="LightGray"
-                                                          Visibility="{Binding IsCrudVersionNotStoredInHistory, Converter={StaticResource BoolToVisConverter}}"
-                                                          ToolTip="Select the framework version used at generation time"/>
-                                            </Grid>
-
-                                            <!-- Option from version (row 2) -->
-                                            <Grid Grid.Row="1" Grid.Column="2" Margin="2,2,2,0"
-                                                  Visibility="{Binding HasOption, Converter={StaticResource BoolToVisConverter}}">
-                                                <TextBlock Text="{Binding OptionStoredVersion}" Foreground="LightGray" FontSize="10" HorizontalAlignment="Center"
-                                                           Visibility="{Binding IsOptionVersionStoredInHistory, Converter={StaticResource BoolToVisConverter}}"
-                                                           ToolTip="Framework version at generation time"/>
-                                                <ComboBox ItemsSource="{Binding AvailableVersions}"
-                                                          SelectedItem="{Binding OptionVersionOverride, Mode=TwoWay}"
-                                                          FontSize="10" Width="72"
-                                                          materialDesign:HintAssist.Hint="From ver."
-                                                          Style="{StaticResource MaterialDesignComboBox}"
-                                                          Foreground="LightGray"
-                                                          Visibility="{Binding IsOptionVersionNotStoredInHistory, Converter={StaticResource BoolToVisConverter}}"
-                                                          ToolTip="Select the framework version used at generation time"/>
-                                            </Grid>
-
-                                            <!-- DTO from version (row 3) -->
-                                            <Grid Grid.Row="1" Grid.Column="3" Margin="2,2,2,0"
-                                                  Visibility="{Binding HasDto, Converter={StaticResource BoolToVisConverter}}">
-                                                <TextBlock Text="{Binding DtoStoredVersion}" Foreground="LightGray" FontSize="10" HorizontalAlignment="Center"
-                                                           Visibility="{Binding IsDtoVersionStoredInHistory, Converter={StaticResource BoolToVisConverter}}"
-                                                           ToolTip="Framework version at generation time"/>
-                                                <ComboBox ItemsSource="{Binding AvailableVersions}"
-                                                          SelectedItem="{Binding DtoVersionOverride, Mode=TwoWay}"
-                                                          FontSize="10" Width="72"
-                                                          materialDesign:HintAssist.Hint="From ver."
-                                                          Style="{StaticResource MaterialDesignComboBox}"
-                                                          Foreground="LightGray"
-                                                          Visibility="{Binding IsDtoVersionNotStoredInHistory, Converter={StaticResource BoolToVisConverter}}"
-                                                          ToolTip="Select the framework version used at generation time"/>
-                                            </Grid>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -168,7 +114,7 @@
 
             <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" Background="#404040"/>
 
-            <!-- ── Right panel: summary ────────────────────────────────── -->
+            <!-- ── Right panel: summary with editable FROM version ────────── -->
             <GroupBox Grid.Column="2" Header="Selected for regeneration" Foreground="White"
                       Style="{StaticResource MaterialDesignGroupBox}"
                       materialDesign:ColorZoneAssist.Mode="Custom"
@@ -176,7 +122,6 @@
                       materialDesign:ColorZoneAssist.Foreground="White">
                 <DataGrid ItemsSource="{Binding SelectedFeatures}"
                           AutoGenerateColumns="False"
-                          IsReadOnly="True"
                           CanUserAddRows="False"
                           Background="#323232"
                           Foreground="White"
@@ -187,10 +132,29 @@
                           materialDesign:DataGridAssist.CellPadding="8 4"
                           materialDesign:DataGridAssist.ColumnHeaderPadding="8 4">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Entity" Binding="{Binding EntityNameSingular}" Width="*"/>
-                        <DataGridTextColumn Header="Feature" Binding="{Binding FeatureType}" Width="70"/>
-                        <DataGridTextColumn Header="From version" Binding="{Binding FromVersion}" Width="90"/>
-                        <DataGridTextColumn Header="To version" Binding="{Binding ToVersion}" Width="90"/>
+                        <DataGridTextColumn Header="Entity" Binding="{Binding EntityNameSingular}" Width="*" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Feature" Binding="{Binding FeatureType}" Width="70" IsReadOnly="True"/>
+                        <!-- From version: read-only label when stored in history, inline ComboBox when missing -->
+                        <DataGridTemplateColumn Header="From version" Width="100">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <!-- Stored version: displayed as text -->
+                                        <TextBlock Text="{Binding StoredFromVersion}" Foreground="White"
+                                                   Visibility="{Binding IsFromVersionFixed, Converter={StaticResource BoolToVisConverter}}"
+                                                   VerticalAlignment="Center"/>
+                                        <!-- No stored version: inline ComboBox -->
+                                        <ComboBox ItemsSource="{Binding AvailableVersions}"
+                                                  SelectedItem="{Binding FromVersionOverride, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                  Visibility="{Binding IsFromVersionEditable, Converter={StaticResource BoolToVisConverter}}"
+                                                  materialDesign:HintAssist.Hint="Select version"
+                                                  Style="{StaticResource MaterialDesignComboBox}"
+                                                  Foreground="White"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="To version" Binding="{Binding ToVersion}" Width="90" IsReadOnly="True"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </GroupBox>
