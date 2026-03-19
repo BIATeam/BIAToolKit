@@ -173,6 +173,7 @@
             generation ??= new DtoGeneration();
 
             generation.DateTime = DateTime.Now;
+            generation.FrameworkVersion = project?.FrameworkVersion;
             generation.EntityName = vm.Entity.Name;
             generation.EntityNamespace = vm.Entity.Namespace;
             generation.Domain = vm.EntityDomain;

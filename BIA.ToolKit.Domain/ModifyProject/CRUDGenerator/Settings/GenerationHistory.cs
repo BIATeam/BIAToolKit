@@ -8,6 +8,7 @@
         public DateTime Date { get; set; }
         public string EntityNameSingular { get; set; }
         public string EntityNamePlural { get; set; }
+        public string FrameworkVersion { get; set; }
         public List<Generation> Generation { get; }
 
         protected GenerationHistory()
