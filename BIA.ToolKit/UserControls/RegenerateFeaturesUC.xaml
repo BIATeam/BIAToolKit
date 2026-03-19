@@ -49,7 +49,7 @@
                             <ColumnDefinition Width="80"/>
                             <ColumnDefinition Width="80"/>
                         </Grid.ColumnDefinitions>
-                        <CheckBox Grid.Column="0" Content="Entity" Foreground="White" FontWeight="Bold"
+                        <CheckBox Grid.Column="0" Content="All" Foreground="White" FontWeight="Bold"
                                   IsChecked="{Binding SelectAllEntities, Mode=TwoWay}"
                                   VerticalAlignment="Center"/>
                         <TextBlock Grid.Column="1" Text="CRUD" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
@@ -62,7 +62,7 @@
                                Text="No features found that can be regenerated." Foreground="LightGray" FontStyle="Italic" VerticalAlignment="Top"/>
 
                     <!-- Entity rows -->
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="10,10,0,0">
                         <ItemsControl ItemsSource="{Binding EntityRows}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -171,7 +171,6 @@
             <Button x:Name="RegenerateButton"
                     Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}"
                     Content="Regenerate selected features"
-                    Height="40"
                     IsEnabled="{Binding CanRegenerate}"
                     Click="Regenerate_Click"/>
         </StackPanel>
