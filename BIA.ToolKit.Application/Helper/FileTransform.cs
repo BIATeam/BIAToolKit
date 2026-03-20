@@ -6,6 +6,8 @@
     using System.Linq;
     using System.Text;
     using System.Text.RegularExpressions;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     static public class FileTransform
     {
@@ -88,46 +90,60 @@
         /// <param name="oldString">old string.</param>
         /// <param name="newString">new string.</param>
         /// <param name="replaceInFileExtensions">types of files to include</param>
-        static public void ReplaceInFileAndFileName(string sourceDir, string oldString, string newString, IList<string> replaceInFileExtensions)
+        static public async Task ReplaceInFileAndFileName(string sourceDir, string oldString, string newString, IList<string> replaceInFileExtensions, IConsoleWriter consoleWriter, CancellationToken cancellationToken = default)
         {
-            if (oldString == newString) return;
-            foreach (var dir in Directory.GetDirectories(sourceDir))
+            try
             {
-                var name = Path.GetFileName(dir);
-                if (name.Contains(oldString))
+                if (oldString == newString) return;
+                foreach (var dir in Directory.GetDirectories(sourceDir))
                 {
-                    string newName = Path.Combine(sourceDir, name.Replace(oldString, newString));
-                    Directory.Move(dir, newName);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var name = Path.GetFileName(dir);
+                    if (name.Contains(oldString))
+                    {
+                        string newName = Path.Combine(sourceDir, name.Replace(oldString, newString));
+                        await Task.Run(() => Directory.Move(dir, newName), cancellationToken);
+                    }
+                }
+
+                foreach (var file in Directory.GetFiles(sourceDir))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var name = Path.GetFileName(file);
+                    string targetfile = file;
+                    if (name.Contains(oldString))
+                    {
+                        string newName = Path.Combine(sourceDir, name.Replace(oldString, newString));
+                        await Task.Run(() => File.Move(file, newName), cancellationToken);
+                        targetfile = newName;
+                    }
+                    string extension = Path.GetExtension(targetfile).ToLower();
+                    if (replaceInFileExtensions.Contains(extension))
+                    {
+                        await ReplaceInFile(targetfile, oldString, newString, consoleWriter, cancellationToken);
+                    }
+
+                    var fileName = Path.GetFileName(file);
+                    if (allTextFileNameWithoutExtension.Contains(fileName))
+                    {
+                        await ReplaceInFile(targetfile, oldString, newString, consoleWriter, cancellationToken);
+                    }
+                }
+
+                foreach (var directory in Directory.GetDirectories(sourceDir))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await ReplaceInFileAndFileName(directory, oldString, newString, replaceInFileExtensions, consoleWriter, cancellationToken);
                 }
             }
-
-            foreach (var file in Directory.GetFiles(sourceDir))
+            catch (OperationCanceledException)
             {
-                var name = Path.GetFileName(file);
-                string targetfile = file;
-                if (name.Contains(oldString))
-                {
-                    string newName = Path.Combine(sourceDir, name.Replace(oldString, newString));
-                    File.Move(file, newName);
-                    targetfile = newName;
-                }
-                string extension = Path.GetExtension(targetfile).ToLower();
-                if (replaceInFileExtensions.Contains(extension))
-                {
-                    ReplaceInFile(targetfile, oldString, newString);
-                }
-
-                var fileName = Path.GetFileName(file);
-                if (allTextFileNameWithoutExtension.Contains(fileName))
-                {
-                    // todo
-                    ReplaceInFile(targetfile, oldString, newString);
-                }
+                throw;
             }
-
-            foreach (var directory in Directory.GetDirectories(sourceDir))
+            catch (Exception ex)
             {
-                ReplaceInFileAndFileName(directory, oldString, newString, replaceInFileExtensions);
+                consoleWriter.AddMessageLine($"Error while replacing in file and file name: {ex.Message}", "Red");
+                throw;
             }
         }
 
@@ -281,13 +297,28 @@
                     }
                 }
         */
-        static public void ReplaceInFile(string filePath, string oldValue, string newValue)
+        static public async Task ReplaceInFile(string filePath, string oldValue, string newValue, IConsoleWriter consoleWriter = null, CancellationToken cancellationToken = default)
         {
-            string text = File.ReadAllText(filePath);
-            if (text.Contains(oldValue))
+            try
             {
-                text = text.Replace(oldValue, newValue);
-                File.WriteAllText(filePath, text);
+                cancellationToken.ThrowIfCancellationRequested();
+                var readTask = Task.Run(() => File.ReadAllText(filePath));
+                readTask.Wait(cancellationToken);
+                string text = readTask.Result;
+                if (text.Contains(oldValue))
+                {
+                    text = text.Replace(oldValue, newValue);
+                    await Task.Run(() => File.WriteAllText(filePath, text), cancellationToken);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                consoleWriter?.AddMessageLine($"Error while replacing in file: {ex.Message}", "Red");
+                throw;
             }
         }
 
