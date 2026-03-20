@@ -121,13 +121,19 @@
 
 
                 consoleWriter.AddMessageLine("Start rename.", "Pink");
-                await Task.Run(() =>
+                using var renameCts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(30));
+                try
                 {
-                    FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.CompanyName, projectParameters.CompanyName, FileTransform.projectFileExtensions);
-                    FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.ProjectName, projectParameters.ProjectName, FileTransform.projectFileExtensions);
-                    FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.CompanyName.ToLower(), projectParameters.CompanyName.ToLower(), FileTransform.projectFileExtensions);
-                    FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.ProjectName.ToLower(), projectParameters.ProjectName.ToLower(), FileTransform.projectFileExtensions);
-                });
+                    await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.CompanyName, projectParameters.CompanyName, FileTransform.projectFileExtensions, consoleWriter, renameCts.Token);
+                    await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.ProjectName, projectParameters.ProjectName, FileTransform.projectFileExtensions, consoleWriter, renameCts.Token);
+                    await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.CompanyName.ToLower(), projectParameters.CompanyName.ToLower(), FileTransform.projectFileExtensions, consoleWriter, renameCts.Token);
+                    await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.ProjectName.ToLower(), projectParameters.ProjectName.ToLower(), FileTransform.projectFileExtensions, consoleWriter, renameCts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    consoleWriter.AddMessageLine("Renaming process took too long and was cancelled.", "Red");
+                    return;
+                }
 
                 await ReplaceInFileFromConfig(projectPath, projectParameters);
 
@@ -214,7 +220,7 @@
         {
             foreach (FeatureSetting featureSetting in projectParameters.VersionAndOption.FeatureSettings)
             {
-                await Task.Run(() => FileTransform.ReplaceInFileAndFileName(projectPath, "BIAToolkit_FeatureSetting_" + featureSetting.Name ?? featureSetting.DisplayName, featureSetting.IsSelected ? "true" : "false", FileTransform.projectFileExtensions));
+                await FileTransform.ReplaceInFileAndFileName(projectPath, "BIAToolkit_FeatureSetting_" + featureSetting.Name ?? featureSetting.DisplayName, featureSetting.IsSelected ? "true" : "false", FileTransform.projectFileExtensions, consoleWriter);
             }
         }
 

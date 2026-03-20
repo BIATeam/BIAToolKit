@@ -272,6 +272,12 @@ using Roslyn.Services;*/
 
         public async Task ParseSolutionClasses()
         {
+            if (CurrentSolution is null)
+            {
+                consoleWriter.AddMessageLine("No solution loaded to parse.", "red");
+                return;
+            }
+
             var result = new List<ClassInfo>();
             consoleWriter.AddMessageLine("Parsing classes...", "darkgray");
 
@@ -358,7 +364,7 @@ using Roslyn.Services;*/
 
         public async Task FixUsings()
         {
-            if(string.IsNullOrWhiteSpace(CurrentSolution?.FilePath))
+            if (string.IsNullOrWhiteSpace(CurrentSolution?.FilePath))
             {
                 consoleWriter.AddMessageLine("No solution loaded to fix usings.", "red");
                 return;
@@ -451,6 +457,7 @@ using Roslyn.Services;*/
                 {
                     FileName = "dotnet",
                     Arguments = $"restore \"{solutionPath}\"",
+                    WorkingDirectory = Path.GetDirectoryName(solutionPath),
                     RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = false
