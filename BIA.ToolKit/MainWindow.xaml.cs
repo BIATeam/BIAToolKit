@@ -327,10 +327,10 @@
                 }
                 finally
                 {
+                    semaphore.Release();
                     Waiter.Visibility = Visibility.Hidden;
                 }
             }).Task.Unwrap();
-            semaphore.Release();
         }
 
         private void CreateProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)

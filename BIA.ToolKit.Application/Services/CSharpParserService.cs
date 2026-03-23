@@ -451,30 +451,35 @@ using Roslyn.Services;*/
 
             consoleWriter.AddMessageLine("Restore solution...", "darkgray");
 
-            var process = new Process
+            var startInfo = new ProcessStartInfo
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "dotnet",
-                    Arguments = $"restore \"{solutionPath}\"",
-                    WorkingDirectory = Path.GetDirectoryName(solutionPath),
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = false
-                }
+                FileName = "dotnet",
+                Arguments = $"restore \"{solutionPath}\"",
+                WorkingDirectory = Path.GetDirectoryName(solutionPath),
+                RedirectStandardError = true,
+                CreateNoWindow = true,
             };
 
+            // MSBuildLocator injects env vars (MSBUILD_EXE_PATH, MSBuildSDKsPath, etc.) into the
+            // current process that point to the VS MSBuild. Child processes inherit them, which
+            // makes the dotnet SDK pick up the wrong MSBuild and fail. Clear them explicitly.
+            foreach (var varName in new[] { "MSBUILD_EXE_PATH", "MSBuildSDKsPath", "MSBuildExtensionsPath", "VisualStudioVersion" })
+            {
+                startInfo.EnvironmentVariables.Remove(varName);
+            }
+
+            using var process = new Process { StartInfo = startInfo };
             process.Start();
-            var error = process.StandardError.ReadToEnd();
+            var stdError = await process.StandardError.ReadToEndAsync();
             await process.WaitForExitAsync();
 
             if (process.ExitCode != 0)
             {
-                consoleWriter.AddMessageLine($"Restore failed: {error}", "red");
+                consoleWriter.AddMessageLine($"Restore failed : {stdError}", "red");
                 return false;
             }
 
-            consoleWriter.AddMessageLine($"Restore succeed", "lightgreen");
+            consoleWriter.AddMessageLine("Restore succeed", "lightgreen");
             return true;
         }
 

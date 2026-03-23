@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Text.RegularExpressions;
     using System.Threading;
@@ -240,7 +241,7 @@
             return Encoding.ASCII;
         }
 
-        static public void FolderUnix2Dos(string filePath)
+        static public async Task FolderUnix2Dos(string filePath)
         {
             string[] filePaths = Directory.GetFiles(filePath, "*", SearchOption.AllDirectories);
 
@@ -250,65 +251,28 @@
                 var name = Path.GetFileName(file);
                 if (allTextFileExtensions.Contains(extension) || allTextFileNameWithoutExtension.Contains(name))
                 {
-                    Unix2Dos(file);
+                    await Unix2Dos(file);
                 }
 
             }
         }
 
-        static public void Unix2Dos(string filename)
+        static public async Task Unix2Dos(string filename)
         {
-            /*string[] lines = File.ReadAllLines(filename);
-            List<string> list_of_string = new List<string>();
-            foreach (string line in lines)
-            {
-                list_of_string.Add(line.Replace("\n", "\r\n"));
-            }
-            File.WriteAllLines(filename, list_of_string);*/
-
-            ReplaceInFile(filename, "\n", "\r\n");
-            ReplaceInFile(filename, "\r\r\n", "\r\n");
+            await ReplaceInFile(filename, "\n", "\r\n");
+            await ReplaceInFile(filename, "\r\r\n", "\r\n");
         }
-        /*
-                static public void Dos2Unix(string fileName)
-                {
-                    const byte CR = 0x0D;
-                    const byte LF = 0x0A;
-                    byte[] data = File.ReadAllBytes(fileName);
-                    using (FileStream fileStream = File.OpenWrite(fileName))
-                    {
-                        BinaryWriter bw = new BinaryWriter(fileStream);
-                        int position = 0;
-                        int index = 0;
-                        do
-                        {
-                            index = Array.IndexOf<byte>(data, CR, position);
-                            if ((index >= 0) && (data[index + 1] == LF))
-                            {
-                                // Write before the CR
-                                bw.Write(data, position, index - position);
-                                // from LF
-                                position = index + 1;
-                            }
-                        }
-                        while (index >= 0);
-                        bw.Write(data, position, data.Length - position);
-                        fileStream.SetLength(fileStream.Position);
-                    }
-                }
-        */
+        
         static public async Task ReplaceInFile(string filePath, string oldValue, string newValue, IConsoleWriter consoleWriter = null, CancellationToken cancellationToken = default)
         {
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var readTask = Task.Run(() => File.ReadAllText(filePath));
-                readTask.Wait(cancellationToken);
-                string text = readTask.Result;
+                string text = await File.ReadAllTextAsync(filePath, cancellationToken);
                 if (text.Contains(oldValue))
                 {
                     text = text.Replace(oldValue, newValue);
-                    await Task.Run(() => File.WriteAllText(filePath, text), cancellationToken);
+                    await File.WriteAllTextAsync(filePath, text, cancellationToken);
                 }
             }
             catch (OperationCanceledException)
