@@ -136,10 +136,10 @@
             }
 
             outPut.AddMessageLine($"Unzipping {Path.GetFileName(archivePath)} of repository {repository.Name}...", "pink");
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 ZipFile.ExtractToDirectory(archivePath, release.LocalPath);
-                FileTransform.FolderUnix2Dos(release.LocalPath);
+                await FileTransform.FolderUnix2Dos(release.LocalPath);
                 File.Delete(archivePath);
 
                 var contentDirectories = Directory.GetDirectories(release.LocalPath, "*.*", SearchOption.TopDirectoryOnly);

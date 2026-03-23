@@ -121,6 +121,7 @@
 
                 consoleWriter.AddMessageLine("Start rename.", "Pink");
                 using var renameCts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(30));
+                var hasError = false;
                 try
                 {
                     await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.CompanyName, projectParameters.CompanyName, FileTransform.projectFileExtensions, consoleWriter, renameCts.Token);
@@ -131,6 +132,21 @@
                 catch (OperationCanceledException)
                 {
                     consoleWriter.AddMessageLine("Renaming process took too long and was cancelled.", "Red");
+                    hasError = true;
+                }
+                catch(Exception ex)
+                {
+                    consoleWriter.AddMessageLine("An error occurred during renaming: " + ex.Message, "Red");
+                    hasError = true;
+                }
+
+                if(hasError)
+                {
+                    if(Directory.Exists(projectPath))
+                    {
+                        consoleWriter.AddMessageLine("Cleaning up created project due to errors.", "Red");
+                        await Task.Run(() => Directory.Delete(projectPath, true));
+                    }
                     return;
                 }
 

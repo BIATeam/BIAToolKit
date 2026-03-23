@@ -94,22 +94,18 @@
             }
             else if (result == 1)
             {
-                await Task.Run(() =>
-                {
-                    // Replace a/{name1}/ by a/
-                    FileTransform.ReplaceInFile(migrateFilePath, $"a/{name1}/", "a/");
-                    FileTransform.ReplaceInFile(migrateFilePath, $"a/{name2}/", "a/");
+                // Replace a/{name1}/ by a/
+                await FileTransform.ReplaceInFile(migrateFilePath, $"a/{name1}/", "a/", outPut);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"a/{name2}/", "a/", outPut);
 
-                    FileTransform.ReplaceInFile(migrateFilePath, $"rename from {name1}/", "rename from ");
+                await FileTransform.ReplaceInFile(migrateFilePath, $"rename from {name1}/", "rename from ", outPut);
 
-                    // Replace b/{name2}/ by b/
-                    FileTransform.ReplaceInFile(migrateFilePath, $"b/{name2}/", "b/");
-                    FileTransform.ReplaceInFile(migrateFilePath, $"b/{name1}/", "b/");
+                // Replace b/{name2}/ by b/
+                await FileTransform.ReplaceInFile(migrateFilePath, $"b/{name2}/", "b/", outPut);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"b/{name1}/", "b/", outPut);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"rename to {name2}/", "rename to ", outPut);
 
-                    FileTransform.ReplaceInFile(migrateFilePath, $"rename to {name2}/", "rename to ");
-
-                    FileTransform.ReplaceInFile(migrateFilePath, $"\r\n", "\n");
-                });
+                await FileTransform.ReplaceInFile(migrateFilePath, $"\r\n", "\n", outPut);
 
                 outPut.AddMessageLine("Diff folder finished", actionFinishedAtEnd ? "Green" : "Blue");
                 return true;
@@ -253,7 +249,7 @@
                 return;
             }
 
-            if (File.Exists(rejectedFilePath)) 
+            if (File.Exists(rejectedFilePath))
                 File.Delete(rejectedFilePath);
         }
 
