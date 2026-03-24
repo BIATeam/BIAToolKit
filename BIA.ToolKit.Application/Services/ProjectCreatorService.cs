@@ -71,6 +71,7 @@
                 if (!featureSettings.HasAllFeature())
                 {
                     foldersToExcludes.AddRange(featureSettings.GetFoldersToExcludes());
+                    localFilesToExcludes.AddRange(featureSettings.GetFilesToExcludes());
                     localFilesToExcludes.AddRange(GetFilesToExcludes(projectParameters, featureSettings));
                 }
 
