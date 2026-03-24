@@ -13,7 +13,7 @@
     static public class FileTransform
     {
         static public IList<string> projectFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md", ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml", ".webmanifest", ".slnf" };
-        static public IList<string> allTextFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md" , ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml", ".webmanifest", ".editorconfig", ".gitignore" , ".prettierrc", ".html" ,".css" ,".scss", ".svg" , ".js", ".ruleset", ".props", ".slnf" };
+        static public IList<string> allTextFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md", ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml", ".webmanifest", ".editorconfig", ".gitignore", ".prettierrc", ".html", ".css", ".scss", ".svg", ".js", ".ruleset", ".props", ".slnf" };
         static public IList<string> allTextFileNameWithoutExtension = new List<string>() { "browserslist", "Dockerfile", "Dockerfile_Rosa" };
 
         public static void SwapValues(this string[] source, long index1, long index2)
@@ -93,58 +93,46 @@
         /// <param name="replaceInFileExtensions">types of files to include</param>
         static public async Task ReplaceInFileAndFileName(string sourceDir, string oldString, string newString, IList<string> replaceInFileExtensions, IConsoleWriter consoleWriter, CancellationToken cancellationToken = default)
         {
-            try
+            if (oldString == newString) return;
+            foreach (var dir in Directory.GetDirectories(sourceDir))
             {
-                if (oldString == newString) return;
-                foreach (var dir in Directory.GetDirectories(sourceDir))
+                cancellationToken.ThrowIfCancellationRequested();
+                var name = Path.GetFileName(dir);
+                if (name.Contains(oldString))
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var name = Path.GetFileName(dir);
-                    if (name.Contains(oldString))
-                    {
-                        string newName = Path.Combine(sourceDir, name.Replace(oldString, newString));
-                        await Task.Run(() => Directory.Move(dir, newName), cancellationToken);
-                    }
-                }
-
-                foreach (var file in Directory.GetFiles(sourceDir))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var name = Path.GetFileName(file);
-                    string targetfile = file;
-                    if (name.Contains(oldString))
-                    {
-                        string newName = Path.Combine(sourceDir, name.Replace(oldString, newString));
-                        await Task.Run(() => File.Move(file, newName), cancellationToken);
-                        targetfile = newName;
-                    }
-                    string extension = Path.GetExtension(targetfile).ToLower();
-                    if (replaceInFileExtensions.Contains(extension))
-                    {
-                        await ReplaceInFile(targetfile, oldString, newString, consoleWriter, cancellationToken);
-                    }
-
-                    var fileName = Path.GetFileName(file);
-                    if (allTextFileNameWithoutExtension.Contains(fileName))
-                    {
-                        await ReplaceInFile(targetfile, oldString, newString, consoleWriter, cancellationToken);
-                    }
-                }
-
-                foreach (var directory in Directory.GetDirectories(sourceDir))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    await ReplaceInFileAndFileName(directory, oldString, newString, replaceInFileExtensions, consoleWriter, cancellationToken);
+                    string newName = Path.Combine(sourceDir, name.Replace(oldString, newString));
+                    await Task.Run(() => Directory.Move(dir, newName), cancellationToken);
                 }
             }
-            catch (OperationCanceledException)
+
+            foreach (var file in Directory.GetFiles(sourceDir))
             {
-                throw;
+                cancellationToken.ThrowIfCancellationRequested();
+                var name = Path.GetFileName(file);
+                string targetfile = file;
+                if (name.Contains(oldString))
+                {
+                    string newName = Path.Combine(sourceDir, name.Replace(oldString, newString));
+                    await Task.Run(() => File.Move(file, newName), cancellationToken);
+                    targetfile = newName;
+                }
+                string extension = Path.GetExtension(targetfile).ToLower();
+                if (replaceInFileExtensions.Contains(extension))
+                {
+                    await ReplaceInFile(targetfile, oldString, newString, consoleWriter, cancellationToken);
+                }
+
+                var fileName = Path.GetFileName(file);
+                if (allTextFileNameWithoutExtension.Contains(fileName))
+                {
+                    await ReplaceInFile(targetfile, oldString, newString, consoleWriter, cancellationToken);
+                }
             }
-            catch (Exception ex)
+
+            foreach (var directory in Directory.GetDirectories(sourceDir))
             {
-                consoleWriter.AddMessageLine($"Error while replacing in file and file name: {ex.Message}", "Red");
-                throw;
+                cancellationToken.ThrowIfCancellationRequested();
+                await ReplaceInFileAndFileName(directory, oldString, newString, replaceInFileExtensions, consoleWriter, cancellationToken);
             }
         }
 
@@ -262,27 +250,15 @@
             await ReplaceInFile(filename, "\n", "\r\n");
             await ReplaceInFile(filename, "\r\r\n", "\r\n");
         }
-        
+
         static public async Task ReplaceInFile(string filePath, string oldValue, string newValue, IConsoleWriter consoleWriter = null, CancellationToken cancellationToken = default)
         {
-            try
+            cancellationToken.ThrowIfCancellationRequested();
+            string text = await File.ReadAllTextAsync(filePath, cancellationToken);
+            if (text.Contains(oldValue))
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                string text = await File.ReadAllTextAsync(filePath, cancellationToken);
-                if (text.Contains(oldValue))
-                {
-                    text = text.Replace(oldValue, newValue);
-                    await File.WriteAllTextAsync(filePath, text, cancellationToken);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                consoleWriter?.AddMessageLine($"Error while replacing in file: {ex.Message}", "Red");
-                throw;
+                text = text.Replace(oldValue, newValue);
+                await File.WriteAllTextAsync(filePath, text, cancellationToken);
             }
         }
 
