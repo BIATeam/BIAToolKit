@@ -100,12 +100,13 @@
         }
         private async Task Migrate_Run()
         {
-            var generated = await MigrateGenerateOnly_Run();
-            var applyDiff = await MigrateApplyDiff_Run();
-            if (generated == 0 && applyDiff)
-            {
-                await MigrateMergeRejected_Run();
-            }
+            if (!await MigrateGenerateOnly_Run())
+                return;
+
+            if (!await MigrateApplyDiff_Run())
+                return;
+
+            await MigrateMergeRejected_Run();
         }
 
         private void ParameterModifyChange()
@@ -120,27 +121,30 @@
             uiEventBroker.RequestExecuteActionWithWaiter(MigrateGenerateOnly_Run);
         }
 
-        private async Task<int> MigrateGenerateOnly_Run()
+        private async Task<bool> MigrateGenerateOnly_Run()
         {
             if (_viewModel.ModifyProject.CurrentProject == null)
             {
                 MessageBox.Show("Select a project before click migrate.");
-                return -1;
+                return false;
             }
             if (!Directory.Exists(_viewModel.ModifyProject.CurrentProject.Folder) || FileDialog.IsDirectoryEmpty(_viewModel.ModifyProject.CurrentProject.Folder))
             {
                 MessageBox.Show("The project path is empty : " + _viewModel.ModifyProject.CurrentProject.Folder);
-                return -1;
+                return false;
             }
 
-            string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
-            MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
+            MigratePreparePath(out _, out string projectOriginPath, out _, out _, out string projectTargetPath, out _);
 
-            await GenerateProjects(true, projectOriginPath, projectTargetPath);
+            if (!await GenerateProjects(true, projectOriginPath, projectTargetPath))
+            {
+                consoleWriter.AddMessageLine("Generate projects failed.", "Red");
+                return false;
+            }
 
             MigrateOpenFolder.IsEnabled = true;
             MigrateApplyDiff.IsEnabled = true;
-            return 0;
+            return true;
         }
 
         private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
@@ -150,19 +154,15 @@
 
         private async Task<bool> MigrateApplyDiff_Run()
         {
-            bool result = false;
-
-            string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
-            MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
+            MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out _, out string projectTargetFolderName, out _, out _);
 
             if (_viewModel.OverwriteBIAFromOriginal == true)
             {
                 await projectCreatorService.OverwriteBIAFolder(projectOriginPath, _viewModel.ModifyProject.CurrentProject.Folder, false);
             }
 
-            result = await ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName);
-
-            MigrateMergeRejected.IsEnabled = true;
+            bool result = await ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName);
+            MigrateMergeRejected.IsEnabled = result;
             return result;
         }
 
@@ -229,7 +229,7 @@
             projectTargetPath = AppSettings.TmpFolderPath + projectTargetFolderName;
         }
 
-        private async Task GenerateProjects(bool actionFinishedAtEnd, string projectOriginPath, string projectTargetPath)
+        private async Task<bool> GenerateProjects(bool actionFinishedAtEnd, string projectOriginPath, string projectTargetPath)
         {
             // Create project at original version.
             if (Directory.Exists(projectOriginPath))
@@ -237,22 +237,33 @@
                 await Task.Run(() => FileTransform.ForceDeleteDirectory(projectOriginPath));
             }
 
-            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, _viewModel.CurrentProject.BIAFronts);
+            consoleWriter.AddMessageLine($"Generate project FROM with version {MigrateOriginVersionAndOption.vm.WorkTemplate.Version}", "Blue");
+            if (!await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, _viewModel.CurrentProject.BIAFronts))
+            {
+                return false;
+            }
 
             // Create project at target version.
             if (Directory.Exists(projectTargetPath))
             {
                 await Task.Run(() => FileTransform.ForceDeleteDirectory(projectTargetPath));
             }
-            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, _viewModel.CurrentProject.BIAFronts);
+
+
+            consoleWriter.AddMessageLine($"Generate project TO with version {MigrateTargetVersionAndOption.vm.WorkTemplate.Version}", "Blue");
+            if (!await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, _viewModel.CurrentProject.BIAFronts))
+            {
+                return false;
+            }
 
             consoleWriter.AddMessageLine("Generate projects finished.", actionFinishedAtEnd ? "Green" : "Blue");
+            return true;
         }
 
         //TODO mutualiser avec celle de MainWindows
-        private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, List<string> fronts)
+        private async Task<bool> CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, List<string> fronts)
         {
-            await this.projectCreatorService.Create(
+            return await this.projectCreatorService.Create(
                 actionFinishedAtEnd,
                 projectPath,
                 new Domain.Model.ProjectParameters

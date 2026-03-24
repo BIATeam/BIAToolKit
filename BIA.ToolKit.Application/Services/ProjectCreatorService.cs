@@ -37,10 +37,62 @@
             this.settingsService = settingsService;
         }
 
-        public async Task Create(
+        private static readonly TimeSpan CreateTimeout = TimeSpan.FromSeconds(60);
+        private static readonly int MaxRetryCount = 3;
+
+        public async Task<bool> Create(
             bool actionFinishedAtEnd,
             string projectPath,
-            ProjectParameters projectParameters
+            ProjectParameters projectParameters,
+            int tryCount = 0
+            )
+        {
+            using var cts = new System.Threading.CancellationTokenSource(CreateTimeout);
+            bool success;
+            try
+            {
+                success = await CreateCore(actionFinishedAtEnd, projectPath, projectParameters, cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                consoleWriter.AddMessageLine($"Project creation timed out.", "Red");
+                success = false;
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine("An unexpected error occurred during project creation: " + ex.Message, "Red");
+                success = false;
+            }
+
+            if (!success)
+            {
+                consoleWriter.AddMessageLine("Project creation failed.", "Red");
+
+                if (Directory.Exists(projectPath))
+                {
+                    consoleWriter.AddMessageLine("Cleaning up created project due to errors...", "Gray");
+                    await Task.Run(() => Directory.Delete(projectPath, true));
+                }
+
+                if (tryCount < MaxRetryCount)
+                {
+                    consoleWriter.AddMessageLine("Waiting before retrying...", "Gray");
+                    await Task.Delay(5000);
+                    consoleWriter.AddMessageLine($"Retrying project creation (Attempt {++tryCount}/{MaxRetryCount})...", "Yellow");
+                    return await Create(actionFinishedAtEnd: actionFinishedAtEnd, projectPath: projectPath, projectParameters: projectParameters, tryCount: tryCount);
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task<bool> CreateCore(
+            bool actionFinishedAtEnd,
+            string projectPath,
+            ProjectParameters projectParameters,
+            System.Threading.CancellationToken cancellationToken
             )
         {
             // Ensure to have namespaces correctly formated
@@ -65,145 +117,123 @@
             if (!Directory.Exists(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath))
             {
                 consoleWriter.AddMessageLine("The template source folder do not exist: " + projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath, "Red");
+                return false;
             }
-            else
+
+            if (!featureSettings.HasAllFeature())
             {
-                if (!featureSettings.HasAllFeature())
+                foldersToExcludes.AddRange(featureSettings.GetFoldersToExcludes());
+                localFilesToExcludes.AddRange(featureSettings.GetFilesToExcludes());
+                localFilesToExcludes.AddRange(GetFilesToExcludes(projectParameters, featureSettings));
+            }
+
+            consoleWriter.AddMessageLine("Start copy template files.", "Pink");
+            await Task.Run(() => FileTransform.CopyFilesRecursively(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath, projectPath, "", localFilesToExcludes, foldersToExcludes), cancellationToken);
+
+            IList<string> filesToRemove = new List<string>() { "^new-angular-project\\.ps1$", "BiaToolKit_FeatureSetting\\.json" };
+
+            if (projectParameters.VersionAndOption.UseCompanyFiles)
+            {
+                IList<string> filesToExclude = new List<string>() { "^biaCompanyFiles\\.json$" };
+                foreach (CFOption option in projectParameters.VersionAndOption.Options)
                 {
-                    foldersToExcludes.AddRange(featureSettings.GetFoldersToExcludes());
-                    localFilesToExcludes.AddRange(GetFilesToExcludes(projectParameters, featureSettings));
-                }
-
-                consoleWriter.AddMessageLine("Start copy template files.", "Pink");
-                await Task.Run(() => FileTransform.CopyFilesRecursively(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath, projectPath, "", localFilesToExcludes, foldersToExcludes));
-
-                IList<string> filesToRemove = new List<string>() { "^new-angular-project\\.ps1$", "BiaToolKit_FeatureSetting\\.json" };
-
-                if (projectParameters.VersionAndOption.UseCompanyFiles)
-                {
-                    IList<string> filesToExclude = new List<string>() { "^biaCompanyFiles\\.json$" };
-                    foreach (CFOption option in projectParameters.VersionAndOption.Options)
+                    if (option.IsChecked)
                     {
-                        if (option.IsChecked)
+                        if (option.FilesToRemove != null)
                         {
-                            if (option.FilesToRemove != null)
+                            // Remove file of this profile
+                            foreach (string fileToRemove in option.FilesToRemove)
                             {
-                                // Remove file of this profile
-                                foreach (string fileToRemove in option.FilesToRemove)
-                                {
-                                    filesToRemove.Add(fileToRemove);
-                                }
+                                filesToRemove.Add(fileToRemove);
                             }
+                        }
+                    }
+                    else
+                    {
+                        if (option.Files != null)
+                        {
+                            // Exclude file of this profile
+                            foreach (string fileToExclude in option.Files)
+                            {
+                                filesToExclude.Add(fileToExclude);
+                            }
+                        }
+                    }
+                }
+                consoleWriter.AddMessageLine("Start copy company files.", "Pink");
+                await Task.Run(() => FileTransform.CopyFilesRecursively(projectParameters.VersionAndOption.WorkCompanyFile.VersionFolderPath, projectPath, projectParameters.VersionAndOption.Profile, filesToExclude, foldersToExcludes), cancellationToken);
+            }
+
+            if (filesToRemove.Count > 0)
+            {
+                await Task.Run(() => FileTransform.RemoveRecursively(projectPath, filesToRemove), cancellationToken);
+            }
+
+            await Task.Run(() => this.CleanProject(projectPath, projectParameters.VersionAndOption, featureSettings), cancellationToken);
+
+            await RenameInProject(projectPath, projectParameters, cancellationToken);
+
+            consoleWriter.AddMessageLine("Start remove BIATemplate only.", "Pink");
+            await Task.Run(() => FileTransform.RemoveTemplateOnly(projectPath, "# Begin BIATemplate only", "# End BIATemplate only", new List<string>() { ".gitignore" }), cancellationToken);
+
+            if (projectParameters.VersionAndOption.WorkTemplate.Version.Equals("VX.Y.Z") || Version.TryParse(projectParameters.VersionAndOption.WorkTemplate.Version.Replace("V", ""), out Version projectVersion) && projectVersion >= new Version("3.10.0"))
+            {
+                await Task.Run(() => FileTransform.OrderUsingFromFolder(projectPath), cancellationToken);
+            }
+
+            await Task.Run(() =>
+            {
+                bool containsFrontAngular = false;
+                if (projectParameters.AngularFronts.Count > 0)
+                {
+                    foreach (var angularFront in projectParameters.AngularFronts)
+                    {
+                        if (angularFront.ToLower() != "angular")
+                        {
+                            Directory.CreateDirectory(projectPath + "\\" + angularFront);
+                            FileTransform.CopyFilesRecursively(projectPath + "\\Angular", projectPath + "\\" + angularFront);
                         }
                         else
                         {
-                            if (option.Files != null)
-                            {
-                                // Exclude file of this profile
-                                foreach (string fileToExclude in option.Files)
-                                {
-                                    filesToExclude.Add(fileToExclude);
-                                }
-                            }
+                            containsFrontAngular = true;
                         }
                     }
-                    consoleWriter.AddMessageLine("Start copy company files.", "Pink");
-                    await Task.Run(() => FileTransform.CopyFilesRecursively(projectParameters.VersionAndOption.WorkCompanyFile.VersionFolderPath, projectPath, projectParameters.VersionAndOption.Profile, filesToExclude, foldersToExcludes));
                 }
-
-                if (filesToRemove.Count > 0)
+                if (!containsFrontAngular)
                 {
-                    await Task.Run(() => FileTransform.RemoveRecursively(projectPath, filesToRemove));
-                }
-
-
-                this.CleanProject(projectPath, projectParameters.VersionAndOption, featureSettings);
-
-
-                consoleWriter.AddMessageLine("Start rename.", "Pink");
-                using var renameCts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(30));
-                var hasError = false;
-                try
-                {
-                    await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.CompanyName, projectParameters.CompanyName, FileTransform.projectFileExtensions, consoleWriter, renameCts.Token);
-                    await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.ProjectName, projectParameters.ProjectName, FileTransform.projectFileExtensions, consoleWriter, renameCts.Token);
-                    await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.CompanyName.ToLower(), projectParameters.CompanyName.ToLower(), FileTransform.projectFileExtensions, consoleWriter, renameCts.Token);
-                    await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.ProjectName.ToLower(), projectParameters.ProjectName.ToLower(), FileTransform.projectFileExtensions, consoleWriter, renameCts.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                    consoleWriter.AddMessageLine("Renaming process took too long and was cancelled.", "Red");
-                    hasError = true;
-                }
-                catch(Exception ex)
-                {
-                    consoleWriter.AddMessageLine("An error occurred during renaming: " + ex.Message, "Red");
-                    hasError = true;
-                }
-
-                if(hasError)
-                {
-                    if(Directory.Exists(projectPath))
+                    if (Directory.Exists(projectPath + "\\Angular"))
                     {
-                        consoleWriter.AddMessageLine("Cleaning up created project due to errors.", "Red");
-                        await Task.Run(() => Directory.Delete(projectPath, true));
+                        Directory.Delete(projectPath + "\\Angular", true);
                     }
-                    return;
                 }
 
-                await ReplaceInFileFromConfig(projectPath, projectParameters);
 
-                consoleWriter.AddMessageLine("Start remove BIATemplate only.", "Pink");
-                await Task.Run(() => FileTransform.RemoveTemplateOnly(projectPath, "# Begin BIATemplate only", "# End BIATemplate only", new List<string>() { ".gitignore" }));
-
-                if (projectParameters.VersionAndOption.WorkTemplate.Version.Equals("VX.Y.Z") || Version.TryParse(projectParameters.VersionAndOption.WorkTemplate.Version.Replace("V", ""), out Version projectVersion) && projectVersion >= new Version("3.10.0"))
+                string rootBiaFolder = Path.Combine(projectPath, Constants.FolderBia);
+                if (!Directory.Exists(rootBiaFolder))
                 {
-                    await Task.Run(() => FileTransform.OrderUsingFromFolder(projectPath));
+                    Directory.CreateDirectory(rootBiaFolder);
                 }
 
-                await Task.Run(() =>
-                {
-                    bool containsFrontAngular = false;
-                    if (projectParameters.AngularFronts.Count > 0)
-                    {
-                        foreach (var angularFront in projectParameters.AngularFronts)
-                        {
-                            if (angularFront.ToLower() != "angular")
-                            {
-                                Directory.CreateDirectory(projectPath + "\\" + angularFront);
-                                FileTransform.CopyFilesRecursively(projectPath + "\\Angular", projectPath + "\\" + angularFront);
-                            }
-                            else
-                            {
-                                containsFrontAngular = true;
-                            }
-                        }
-                    }
-                    if (!containsFrontAngular)
-                    {
-                        if (Directory.Exists(projectPath + "\\Angular"))
-                        {
-                            Directory.Delete(projectPath + "\\Angular", true);
-                        }
-                    }
+                string projectGenerationFile = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
+                VersionAndOptionDto versionAndOptionDto = new VersionAndOptionDto();
+                VersionAndOptionMapper.ModelToDto(projectParameters.VersionAndOption, versionAndOptionDto);
+                CommonTools.SerializeToJsonFile(versionAndOptionDto, projectGenerationFile);
+            }, cancellationToken);
 
+            CleanBiaToolkitJsonFiles(projectPath);
 
-                    string rootBiaFolder = Path.Combine(projectPath, Constants.FolderBia);
-                    if (!Directory.Exists(rootBiaFolder))
-                    {
-                        Directory.CreateDirectory(rootBiaFolder);
-                    }
+            consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd ? "Green" : "Blue");
+            return true;
+        }
 
-                    string projectGenerationFile = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
-                    VersionAndOptionDto versionAndOptionDto = new VersionAndOptionDto();
-                    VersionAndOptionMapper.ModelToDto(projectParameters.VersionAndOption, versionAndOptionDto);
-                    CommonTools.SerializeToJsonFile(versionAndOptionDto, projectGenerationFile);
-                });
-
-                CleanBiaToolkitJsonFiles(projectPath);
-
-                consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd ? "Green" : "Blue");
-            }
+        private async Task RenameInProject(string projectPath, ProjectParameters projectParameters, System.Threading.CancellationToken cancellationToken)
+        {
+            consoleWriter.AddMessageLine("Start rename.", "Pink");
+            await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.CompanyName, projectParameters.CompanyName, FileTransform.projectFileExtensions, consoleWriter, cancellationToken);
+            await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.ProjectName, projectParameters.ProjectName, FileTransform.projectFileExtensions, consoleWriter, cancellationToken);
+            await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.CompanyName.ToLower(), projectParameters.CompanyName.ToLower(), FileTransform.projectFileExtensions, consoleWriter, cancellationToken);
+            await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.ProjectName.ToLower(), projectParameters.ProjectName.ToLower(), FileTransform.projectFileExtensions, consoleWriter, cancellationToken);
+            await ReplaceInFileFromConfig(projectPath, projectParameters);
         }
 
         public async Task OverwriteBIAFolder(string sourceFolder, string targetFolder, bool actionFinishedAtEnd)
@@ -353,12 +383,12 @@
                             newPattern = @"\\.*\\" + Regex.Escape(item.Replace("**\\", "").Replace(".cs", "")) + @"\.cs$";
                         }
 
-                        var fullPattern = 
+                        var fullPattern =
                             @"^.*\\"
                             + rootDirectory
                                 .Replace(Path.GetDirectoryName(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath) + @"\", string.Empty)
                                 .Replace(@"\", @"\\")
-                                .Replace(".", "\\.") 
+                                .Replace(".", "\\.")
                             + newPattern;
 
                         if (!filesToExcludes.Contains(fullPattern))
