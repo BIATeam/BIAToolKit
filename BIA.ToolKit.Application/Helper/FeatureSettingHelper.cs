@@ -50,6 +50,16 @@
                 .ToList();
         }
 
+        public static List<string> GetFilesToExcludes(this IEnumerable<FeatureSetting> settings)
+        {
+            return settings
+                .FilterNotSelectedFeatures()
+                .Where(x => x.FilesToExcludes.Count != 0)
+                .SelectMany(x => x.FilesToExcludes)
+                .Distinct()
+                .ToList();
+        }
+
         public static List<string> GetBiaFeatureTagToDeletes(this IEnumerable<FeatureSetting> settings, string prefix = null)
         {
             return settings
