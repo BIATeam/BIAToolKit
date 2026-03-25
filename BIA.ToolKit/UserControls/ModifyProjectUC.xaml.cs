@@ -274,7 +274,7 @@
                     AngularFronts = fronts
                 }
             );
-            string filePath = Path.Combine(projectPath, Constants.FolderNetCore, $"{CompanyName}.{ProjectName}.Presentation.Api", "biapermissions.json");
+            string filePath = Path.Combine(projectPath, Constants.FolderNetCore, $"{CompanyName}.{ProjectName}.Presentation.Api", "bianetpermissions.json");
             this.projectCreatorService.ClearPermissions(filePath);
         }
 
