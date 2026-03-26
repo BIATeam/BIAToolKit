@@ -53,7 +53,7 @@
         public bool IsValid => !string.IsNullOrWhiteSpace(Name) && EnsureIsValid();
         public bool IsVisibleCompanyName { get; set; } = true;
         public bool IsVisibleProjectName { get; set; } = true;
-        public bool CanBeVersionXYZ { get; set; }
+        public bool CanBeVersionXYZ => repository is RepositoryGit;
 
         public bool IsVersionXYZ
         {
