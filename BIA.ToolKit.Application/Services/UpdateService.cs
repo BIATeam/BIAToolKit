@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.Services
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.IO.Compression;
@@ -57,18 +58,35 @@
                     return;
                 }
 
-                var lastRelease = toolkitRepository.Releases.FirstOrDefault();
-                if (lastRelease.Name.StartsWith('V') && Version.TryParse(lastRelease.Name[1..], out Version newVersion))
+                var releases = new List<(Release Release, Version Version)>();
+                foreach (var repositoryRelease in toolkitRepository.Releases)
                 {
-                    if (newVersion > currentVersion)
+                    if (repositoryRelease.Name.StartsWith('V') && Version.TryParse(repositoryRelease.Name[1..], out Version version))
                     {
-                        consoleWriter.AddMessageLine($"A new version of BIAToolKit is available: {lastRelease.Name}", "Yellow");
-                        HasNewVersion = true;
-                        NewVersion = newVersion;
-                        this.lastRelease = lastRelease;
-                        eventBroker.NotifyNewVersionAvailable();
-                        return;
+                        releases.Add((repositoryRelease, version));
                     }
+                    else if(Version.TryParse(repositoryRelease.Name, out version))
+                    {
+                        releases.Add((repositoryRelease, version));
+                    }
+                }
+
+                if (releases.Count == 0)
+                {
+                    HasNewVersion = false;
+                    consoleWriter.AddMessageLine($"No valid release found in repository {toolkitRepository.Name}.", "Yellow");
+                    return;
+                }
+
+                var lastRelease = releases.OrderByDescending(r => r.Version).First();
+                if (lastRelease.Version > currentVersion)
+                {
+                    consoleWriter.AddMessageLine($"A new version of BIAToolKit is available: {lastRelease.Release.Name}", "Yellow");
+                    HasNewVersion = true;
+                    NewVersion = lastRelease.Version;
+                    this.lastRelease = lastRelease.Release;
+                    eventBroker.NotifyNewVersionAvailable();
+                    return;
                 }
 
                 HasNewVersion = false;
