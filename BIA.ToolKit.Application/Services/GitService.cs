@@ -193,6 +193,47 @@
             (string migrationPatchFileOriginalFileRelativePath, string migrationPatchFileTargetFileRelativePath) = ExtractOriginalAndFinalRelativePathOfDiffInstruction(migrationPatchFileDiffInstruction);
 
             string finalProjectFile = rejectedFilePath[..^4];
+
+            // On case-insensitive file systems (Windows), git apply may rename a file
+            // to match the patch's casing (e.g. eFile.cs → Efile.cs). Detect and restore
+            // the original git-tracked name so that subsequent index operations use the
+            // correct path.
+            string rawRelPath = finalProjectFile.Replace(param.ProjectPath + "\\", string.Empty).Replace('\\', '/');
+            // git ls-files is case-sensitive: query the parent directory and match case-insensitively in C#
+            string dirRelPath = Path.GetDirectoryName(rawRelPath)?.Replace('\\', '/') ?? string.Empty;
+            string lsFilter = string.IsNullOrEmpty(dirRelPath) ? "." : dirRelPath;
+            var (lsExit, lsOut, _) = await RunCaptureAsync("git", $"ls-files -- \"{lsFilter}\"", workingDir: param.ProjectPath);
+            string trackedRelPath = rawRelPath;
+            if (lsExit == 0 && !string.IsNullOrWhiteSpace(lsOut))
+            {
+                var match = lsOut.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                    .FirstOrDefault(f => string.Equals(f.Trim(), rawRelPath, StringComparison.OrdinalIgnoreCase));
+                if (match != null)
+                    trackedRelPath = match.Trim();
+            }
+
+            if (!string.Equals(rawRelPath, trackedRelPath, StringComparison.Ordinal))
+            {
+                outPut.AddMessageLine($"Restoring original casing: '{rawRelPath}' -> '{trackedRelPath}'", "Orange");
+                string trackedProjectFile = Path.Combine(param.ProjectPath, trackedRelPath.Replace('/', '\\'));
+                if (File.Exists(finalProjectFile))
+                {
+                    // Two-step rename required on Windows for case-only changes
+                    string tempPath = finalProjectFile + ".tmp_case_fix";
+                    File.Move(finalProjectFile, tempPath);
+                    File.Move(tempPath, trackedProjectFile);
+                    finalProjectFile = trackedProjectFile;
+                }
+                string trackedRejPath = trackedProjectFile + ".rej";
+                if (File.Exists(rejectedFilePath))
+                {
+                    string tempRejPath = rejectedFilePath + ".tmp_case_fix";
+                    File.Move(rejectedFilePath, tempRejPath);
+                    File.Move(tempRejPath, trackedRejPath);
+                    rejectedFilePath = trackedRejPath;
+                }
+            }
+
             string originalProjectFile = Path.Combine(param.ProjectOriginPath, migrationPatchFileOriginalFileRelativePath.Replace("/", "\\"));
             string targetProjectFile = Path.Combine(param.ProjectTargetPath, migrationPatchFileTargetFileRelativePath.Replace("/", "\\"));
 
@@ -233,7 +274,7 @@
             string oursOid = await HashObjectAsync(finalProjectFile, param.ProjectPath);
             string theirsOid = await HashObjectAsync(targetProjectFile, param.ProjectPath);
 
-            string relPath = finalProjectFile.Replace(param.ProjectPath + @"\", string.Empty).Replace('\\', '/');
+            string relPath = trackedRelPath;
 
             await RunCaptureAsync("git", $"rm --cached --ignore-unmatch -- \"{relPath}\"", workingDir: param.ProjectPath);
 
