@@ -29,6 +29,7 @@
         public string GitRepositoryName { get; set; }
         public string Owner { get; set; }
         public string ReleasesFolderRegexPattern { get; set; }
+        public string ReleasesTagContentFolder { get; set; }
         public RepositoryGitKind RepositoryGitKind { get; set; }
         public string UrlRelease { get; set; }
         public bool IsVersionXYZ { get; set; }
@@ -67,9 +68,12 @@
             };
         }
 
-        public static RepositoryGit CreateWithReleaseTypeTag(string name, string url, bool useLocalClonedFolder = false, string companyName = null, string projectName = null, string localClonedFolderPath = null, bool useRepository = false, bool isVersionXYZ = false)
+        public static RepositoryGit CreateWithReleaseTypeTag(string name, string url, string releasesTagContentFolder, bool useLocalClonedFolder = false, string companyName = null, string projectName = null, string localClonedFolderPath = null, bool useRepository = false, bool isVersionXYZ = false)
         {
-            return new RepositoryGit(name, url, useLocalClonedFolder, ReleaseType.Tag, companyName, projectName, localClonedFolderPath, useRepository, isVersionXYZ);
+            return new RepositoryGit(name, url, useLocalClonedFolder, ReleaseType.Tag, companyName, projectName, localClonedFolderPath, useRepository, isVersionXYZ)
+            {
+                ReleasesTagContentFolder = releasesTagContentFolder
+            };
         }
 
         public override async Task FillReleasesAsync()

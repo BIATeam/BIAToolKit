@@ -1,11 +1,11 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_7_0_0)\TemplateCrud.ttinclude" #>
 <#@ output extension=".ts" #>
+<#  if(ModelInstance.HasListAndItemModels) { #>
 import {
   BaseDto,
   BiaFieldConfig,
   BiaFieldsConfig,
-  BiaFormLayoutConfig,
 <#  if(ModelInstance.IsFixable) { #>
   FixableDto,
 <#  } #>
@@ -29,15 +29,15 @@ import { Validators } from '@angular/forms';
 <#  } #>
 
 // TODO after creation of CRUD<# if(ModelInstance.IsTeam) {#> Team<# } #> <#= ModelInstance.EntityName #> : adapt the model
-export interface <#= ModelInstance.EntityName #>
+export interface <#= ModelInstance.EntityName #>List
   extends <#=  ModelInstance.AngularModelInterfaceInheritance #> {
-<#  foreach(var property in ModelInstance.PropertiesToGenerate) { #>
+<#  foreach(var property in ModelInstance.ListPropertiesToGenerate) { #>
   <#= property.Name.ToCamelCase() #>: <#= property.AngularType #>;
 <# }  #>
 }
 
 // TODO after creation of CRUD<# if(ModelInstance.IsTeam) {#> Team<# } #> <#= ModelInstance.EntityName #> : adapt the field configuration
-export const <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration: BiaFieldsConfig<<#= ModelInstance.EntityName #>> = {
+export const <#= ModelInstance.EntityName.ToCamelCase() #>ListFieldsConfiguration: BiaFieldsConfig<<#= ModelInstance.EntityName #>List> = {
   columns: [
 <#  if(ModelInstance.BaseKeyType == "string") { #>
     Object.assign(new BiaFieldConfig('id', '<#= ModelInstance.EntityName.ToCamelCase() #>.id'), {
@@ -50,7 +50,7 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration: B
       ...teamFieldsConfigurationColumns,
       ...[
 <#  } #>
-<#  foreach(var property in ModelInstance.BiaFieldConfigProperties) { #>
+<#  foreach(var property in ModelInstance.ListBiaFieldConfigProperties) { #>
     Object.assign(new BiaFieldConfig('<#= property.Name.ToCamelCase() #>', '<#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.Name.ToCamelCase() #>'), {
 <#  if(property.HasAngularPropType) { #>
       type: PropType.<#= property.AngularPropType #>,
@@ -77,8 +77,4 @@ export const <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration: B
 <#  } #>
   ],
 };
-
-// TODO after creation of CRUD<# if(ModelInstance.IsTeam) {#> Team<# } #> <#= ModelInstance.EntityName #> : adapt the form layout configuration
-export const <#= ModelInstance.EntityName.ToCamelCase() #>FormLayoutConfiguration: BiaFormLayoutConfig<<#= ModelInstance.EntityName #>> =
-  new BiaFormLayoutConfig([
-  ]);
+<#  } #>

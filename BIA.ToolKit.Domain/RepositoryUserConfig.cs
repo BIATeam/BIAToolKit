@@ -32,6 +32,8 @@
 
         public string ReleasesFolderRegexPattern { get; set; }
 
+        public string ReleasesTagContentFolder { get; set; }
+
         public ReleaseType ReleaseType { get; set; }
 
         public string Url { get; set; }

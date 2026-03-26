@@ -31,7 +31,7 @@
                     return 
                         InputPath == other.InputPath 
                         && OutputPath == other.OutputPath 
-                        && IsPartial == other.IsPartial 
+                        && IsPartial == other.IsPartial
                         && other.PartialInsertionMarkup == PartialInsertionMarkup
                         && IgnoredInnerMarkups.Count == other.IgnoredInnerMarkups.Count 
                         && IgnoredInnerMarkups.All(other.IgnoredInnerMarkups.Contains);

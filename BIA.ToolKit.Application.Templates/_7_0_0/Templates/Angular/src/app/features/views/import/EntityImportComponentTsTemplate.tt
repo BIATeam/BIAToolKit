@@ -8,9 +8,16 @@ import {
   BiaFormComponent,
   CrudItemImportComponent,
   CrudItemImportFormComponent,
+<#  if (ModelInstance.HasListAndItemModels) { #>
+  CrudItemImportService,
+  SAME_LIST_FORM_MODELS,
+<#  } #>
 } from '@bia-team/bia-ng/shared';
 import { Permission } from 'src/app/shared/permission';
 import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+<#  if (ModelInstance.HasListAndItemModels) { #>
+import { <#= ModelInstance.EntityName #>List } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>-list';
+<#  } #>
 import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../../<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
 import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
 
@@ -19,8 +26,17 @@ import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= Model
   templateUrl:
     '../../../../../../<#= ModelInstance.AngularDeepRelativePath #>node_modules/@bia-team/bia-ng/templates/feature-templates/crud-items/views/crud-item-import/crud-item-import.component.html',
   imports: [CrudItemImportFormComponent, AsyncPipe, BiaFormComponent],
+<#  if (ModelInstance.HasListAndItemModels) { #>
+  providers: [
+    CrudItemImportService,
+    { provide: SAME_LIST_FORM_MODELS, useValue: false },
+  ],
+})
+export class <#= ModelInstance.EntityName #>ImportComponent extends CrudItemImportComponent<<#= ModelInstance.EntityName #>List, <#= ModelInstance.EntityName #>> {
+<#  } else { #>
 })
 export class <#= ModelInstance.EntityName #>ImportComponent extends CrudItemImportComponent<<#= ModelInstance.EntityName #>> {
+<#  } #>
   constructor(
     protected injector: Injector,
     private <#= ModelInstance.EntityName.ToCamelCase() #>Service: <#= ModelInstance.EntityName #>Service

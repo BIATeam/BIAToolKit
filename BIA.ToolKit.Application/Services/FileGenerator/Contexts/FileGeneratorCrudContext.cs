@@ -13,7 +13,9 @@
     {
         public string DisplayItemName { get; set; }
         public List<string> OptionItems { get; set; } = [];
+        public bool HasListAndItemModels { get; set; } = false;
         public List<PropertyInfo> Properties { get; set; } = [];
+        public List<PropertyInfo> ListProperties { get; set; } = [];
         public bool UseHubForClient { get; set; }
         public bool HasCustomRepository { get; set; }
         public bool HasReadOnlyMode { get; set; }

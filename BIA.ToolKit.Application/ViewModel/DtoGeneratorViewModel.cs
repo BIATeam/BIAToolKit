@@ -755,6 +755,17 @@
             }
         }
 
+        private bool asLocalDateTime;
+        public bool AsLocalDateTime
+        {
+            get => asLocalDateTime;
+            set
+            {
+                asLocalDateTime = value;
+                RaisePropertyChanged(nameof(AsLocalDateTime));
+            }
+        }
+
         public bool IsVisibleIsParentCheckbox => 
             EntityCompositeName.EndsWith("Id") 
             && !EntityCompositeName.Equals("Id")

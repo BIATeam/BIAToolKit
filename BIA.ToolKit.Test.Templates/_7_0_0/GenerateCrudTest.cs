@@ -179,7 +179,24 @@
             {
                 new("int", "SiteId", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("IsParent", true)]),
                 new("string", "IdentificationNumber", [RoslynHelper.CreateAttributeArgument("Required", true)]),
-                new("int?", "FlightHours", [RoslynHelper.CreateAttributeArgument("Required", false)]),
+                new("string", "FirstName", [RoslynHelper.CreateAttributeArgument("Required", true)]),
+                new("string", "LastName", [RoslynHelper.CreateAttributeArgument("Required", true)]),
+                new("DateTime?", "Birthdate", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("Type", "date")]),
+                new("DateTime", "CplDate", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("Type", "date")]),
+                new("OptionDto", "BaseAirport", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("ItemType", "Airport")]),
+                new("int", "FlightHours", [RoslynHelper.CreateAttributeArgument("Required", true)]),
+                new("DateTime", "FirstFlightDate", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("Type", "datetime"), RoslynHelper.CreateAttributeArgument("AsLocalDateTime", true)]),
+                new("DateTime?", "LastFlightDate", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("Type", "datetime"), RoslynHelper.CreateAttributeArgument("AsLocalDateTime", true)]),
+            };
+
+            var listProperties = new List<PropertyInfo>
+            {
+                new("int", "SiteId", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("IsParent", true)]),
+                new("string", "IdentificationNumber", [RoslynHelper.CreateAttributeArgument("Required", true)]),
+                new("string", "Name", [RoslynHelper.CreateAttributeArgument("Required", true)]),
+                new("int", "FlightHours", [RoslynHelper.CreateAttributeArgument("Required", true)]),
+                new("DateTime", "FirstFlightDate", [RoslynHelper.CreateAttributeArgument("Required", true), RoslynHelper.CreateAttributeArgument("Type", "datetime"), RoslynHelper.CreateAttributeArgument("AsLocalDateTime", true)]),
+                new("DateTime?", "LastFlightDate", [RoslynHelper.CreateAttributeArgument("Required", false), RoslynHelper.CreateAttributeArgument("Type", "datetime"), RoslynHelper.CreateAttributeArgument("AsLocalDateTime", true)]),
             };
 
             var crudContext = new FileGeneratorCrudContext
@@ -190,10 +207,12 @@
                 EntityName = entityInfo.Name,
                 EntityNamePlural = entityInfo.NamePluralized,
                 BaseKeyType = entityInfo.BaseKeyType,
+                HasListAndItemModels = true,
                 Properties = properties,
+                ListProperties = listProperties,
                 IsVersioned = true,
                 DisplayItemName = "IdentificationNumber",
-                OptionItems = [],
+                OptionItems = ["Airport"],
                 HasAncestorTeam = true,
                 AncestorTeamName = "Site",
                 UseHubForClient = false,

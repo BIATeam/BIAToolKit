@@ -16,6 +16,9 @@
         bool IsFixable { get; set; }
         bool IsVersioned { get; set; }
         string GetClassInheritance();
-        bool HasAudit { get; set;}
+        bool HasAudit { get; set; }
+        bool HasListAndItemModels { get; set; }
+        List<TPropertyDtoModel> ListProperties { get; set; }
+        IEnumerable<TPropertyDtoModel> ListPropertiesToGenerate { get; }
     }
 }

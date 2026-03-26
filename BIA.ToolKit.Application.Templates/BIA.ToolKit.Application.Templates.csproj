@@ -86,6 +86,16 @@
     <Compile Include="_7_0_0\Models\EntityOptionModel.cs" />
     <Compile Include="_7_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_7_0_0\Models\PropertyDtoModel.cs" />
+    <None Include="_7_0_0\Templates\DotNet\DomainDto\EntityListDtoTemplate.cs">
+      <DependentUpon>EntityListDtoTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_7_0_0\Templates\DotNet\Domain\Mappers\EntityListMapperTemplate.cs">
+      <DependentUpon>EntityListMapperTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_7_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.cs">
       <DependentUpon>EntityAppServiceTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -1530,16 +1540,16 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
+    <TypeScriptCompile Include="_7_0_0\Templates\Angular\src\app\features\EntityListConstantsTemplate.ts">
+      <DependentUpon>EntityListConstantsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="_7_0_0\Templates\Angular\src\app\features\EntityConstantsTemplate.ts">
       <DependentUpon>EntityConstantsTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </TypeScriptCompile>
-    <None Include="_7_0_0\Templates\Angular\src\app\features\EntityModuleTemplate.ts">
-      <DependentUpon>EntityModuleTemplate.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </None>
     <None Include="_7_0_0\Templates\Angular\src\app\features\model\EntityTemplate.ts">
       <DependentUpon>EntityTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -1597,6 +1607,16 @@
     </None>
     <None Include="_7_0_0\Templates\Angular\src\app\features\views\import\EntityImportComponentTsTemplate.ts">
       <DependentUpon>EntityImportComponentTsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <TypeScriptCompile Include="_7_0_0\Templates\Angular\src\app\features\EntityModuleTemplate.ts">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityModuleTemplate.tt</DependentUpon>
+    </TypeScriptCompile>
+    <None Include="_7_0_0\Templates\Angular\src\app\features\model\EntityListTemplate.ts">
+      <DependentUpon>EntityListTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
@@ -2490,6 +2510,31 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\EntityListConstantsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityListConstantsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\model\EntityListTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityListTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <Content Include="_7_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.html">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityIndexComponentHtmlTemplate.tt</DependentUpon>
+    </Content>
+    <EmbeddedResource Include="_7_0_0\Templates\DotNet\DomainDto\EntityListDtoTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityListDtoTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="_7_0_0\Templates\DotNet\Domain\Mappers\EntityListMapperTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityListMapperTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityOptionConstantsTemplate.ts</LastGenOutput>
@@ -2567,8 +2612,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\EntityModuleTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityModuleTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>EntityModuleTemplate.ts</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\model\EntityTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -2642,14 +2687,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityIndexComponentHtmlTemplate.html</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>EntityIndexComponentHtmlTemplate.html</LastGenOutput>
     </EmbeddedResource>
-    <Content Include="_7_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.html">
-      <DependentUpon>EntityIndexComponentHtmlTemplate.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Content>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentScssTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityIndexComponentScssTemplate.scss</LastGenOutput>

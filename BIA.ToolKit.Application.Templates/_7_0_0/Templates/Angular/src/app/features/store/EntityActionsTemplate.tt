@@ -8,6 +8,9 @@ import { HistoricalEntryDto } from '@bia-team/bia-ng/models';
 <#  } #>
 import { TableLazyLoadEvent } from 'primeng/table';
 import { <#= ModelInstance.EntityName #> } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+<#  if (ModelInstance.HasListAndItemModels) { #>
+import { <#= ModelInstance.EntityName #>List } from '../model/<#= ModelInstance.EntityName.ToKebabCase() #>-list';
+<#  } #>
 import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
 
 export namespace Feature<#= ModelInstance.EntityNamePlural #>Actions {
@@ -50,7 +53,11 @@ export namespace Feature<#= ModelInstance.EntityNamePlural #>Actions {
 
   export const loadAllByPostSuccess = createAction(
     '[' + <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration.storeKey + '] Load all by post success',
+<#  if (ModelInstance.HasListAndItemModels) { #>
+    props<{ result: DataResult<<#= ModelInstance.EntityName #>List[]>; event: TableLazyLoadEvent }>()
+<#  } else { #>
     props<{ result: DataResult<<#= ModelInstance.EntityName #>[]>; event: TableLazyLoadEvent }>()
+<#  } #>
   );
 
   export const loadSuccess = createAction(

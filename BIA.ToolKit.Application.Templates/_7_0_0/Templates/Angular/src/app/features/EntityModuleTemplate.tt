@@ -22,6 +22,9 @@ import { <#= optionItem #>OptionModule } from 'src/app/domains/<#= optionItem.To
 <#  if(ModelInstance.HasReadOnlyMode) { #>
 import { <#= ModelInstance.EntityName #>ReadComponent } from '../<#= ModelInstance.EntityNamePlural.ToKebabCase() #>/views/<#= ModelInstance.EntityName.ToKebabCase() #>-read/<#= ModelInstance.EntityName.ToKebabCase() #>-read.component';
 <#  } #>
+<#  if (ModelInstance.HasListAndItemModels) { #>
+import { <#= ModelInstance.EntityName.ToCamelCase() #>ListCRUDConfiguration } from './<#= ModelInstance.EntityName.ToKebabCase() #>-list.constants';
+<#  } #>
 import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from './<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
 import { <#= ModelInstance.EntityName #>Service } from './services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
 import { Feature<#= ModelInstance.EntityNamePlural #>Store } from './store/<#= ModelInstance.EntityName.ToKebabCase() #>.state';
@@ -44,7 +47,11 @@ export const ROUTES: Routes = [
       breadcrumb: null,
       permission: Permission.<#= ModelInstance.EntityName #>_List_Access,
       injectComponent: <#= ModelInstance.EntityNamePlural #>IndexComponent,
+<#  if (ModelInstance.HasListAndItemModels) { #>
+      configuration: <#= ModelInstance.EntityName.ToCamelCase() #>ListCRUDConfiguration,
+<#  } else { #>
       configuration: <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration,
+<#  } #>
     },
     component: DynamicLayoutComponent,
     canActivate: [PermissionGuard],
@@ -83,7 +90,11 @@ export const ROUTES: Routes = [
       {
         path: 'view',
         data: {
+<#  if (ModelInstance.HasListAndItemModels) { #>
+          featureConfiguration: <#= ModelInstance.EntityName.ToCamelCase() #>ListCRUDConfiguration,
+<#  } else { #>
           featureConfiguration: <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration,
+<#  } #>
           featureServiceType: <#= ModelInstance.EntityName #>Service,
           leftWidth: 60,
         },

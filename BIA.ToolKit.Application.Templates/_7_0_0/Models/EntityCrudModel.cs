@@ -9,5 +9,7 @@
     public class EntityCrudModel<TPropertyCrudModel> : _6_0_0.Models.EntityCrudModel<TPropertyCrudModel>
         where TPropertyCrudModel : class, IPropertyCrudModel
     {
+        public override bool HasListAndItemModels { get; set; } = false;
+        public override List<TPropertyCrudModel> ListProperties { get; set; } = new List<TPropertyCrudModel>();
     }
 }

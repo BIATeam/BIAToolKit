@@ -37,5 +37,8 @@
         string FormReadOnlyMode { get; set; }
         bool DisplayHistorical { get; set; }
         bool UseDomainUrl { get; set; }
+        bool HasListAndItemModels { get; set; }
+        List<TPropertyCrudModel> ListProperties { get; set; }
+
     }
 }

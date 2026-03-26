@@ -18,6 +18,7 @@
         public bool IsDecimal => Type.StartsWith("decimal", StringComparison.InvariantCultureIgnoreCase);
         public string OptionItemType => BiaFieldAttributes.SingleOrDefault(x => x.Key == "ItemType").Value;
         public bool IsParentIdentifier => BiaFieldAttributes.Any(x => x.Key == "IsParent" && x.Value.Equals("true", StringComparison.InvariantCultureIgnoreCase));
+        public bool AsLocalDateTime => BiaFieldAttributes.Any(x => x.Key == "AsLocalDateTime" && x.Value.Equals("true", StringComparison.InvariantCultureIgnoreCase));
 
         private string angularType;
         public string AngularType

@@ -4,6 +4,8 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Text;
+    using System.Text.Json;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Xml.Linq;
@@ -12,10 +14,7 @@
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Common.Helpers;
     using BIA.ToolKit.Domain.Model;
-    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
-    using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Domain.Work;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using static BIA.ToolKit.Common.Constants;
 
     public class ProjectCreatorService
@@ -234,6 +233,149 @@
             await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.CompanyName.ToLower(), projectParameters.CompanyName.ToLower(), FileTransform.projectFileExtensions, consoleWriter, cancellationToken);
             await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.ProjectName.ToLower(), projectParameters.ProjectName.ToLower(), FileTransform.projectFileExtensions, consoleWriter, cancellationToken);
             await ReplaceInFileFromConfig(projectPath, projectParameters);
+        }
+
+        public void ClearPermissions(string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                try
+                {
+                    string jsonString = File.ReadAllText(filePath);
+                    jsonString = StripJsonComments(jsonString);
+
+                    JsonDocument jsonDoc;
+                    try
+                    {
+                        jsonDoc = JsonDocument.Parse(jsonString);
+                    }
+                    catch (JsonException ex)
+                    {
+                        throw new InvalidOperationException("Invalid JSON format in the file.", ex);
+                    }
+
+                    var root = jsonDoc.RootElement.Clone();
+                    if (!root.TryGetProperty("BiaNet", out var biaNet))
+                    {
+                        throw new InvalidOperationException("The 'BiaNet' property was not found in the JSON.");
+                    }
+
+                    using var stream = new MemoryStream();
+                    using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
+
+                    writer.WriteStartObject();
+                    writer.WritePropertyName("BiaNet");
+                    writer.WriteStartObject();
+
+                    foreach (var property in biaNet.EnumerateObject())
+                    {
+                        if (property.Name != "Permissions")
+                        {
+                            property.WriteTo(writer);
+                        }
+                        else
+                        {
+                            writer.WritePropertyName("Permissions");
+                            writer.WriteStartArray();
+                            writer.WriteEndArray();
+                        }
+                    }
+
+                    writer.WriteEndObject();
+                    writer.WriteEndObject();
+                    writer.Flush();
+
+                    File.WriteAllText(filePath, Encoding.UTF8.GetString(stream.ToArray()));
+                }
+                catch
+                {
+                    consoleWriter.AddMessageLine($"Error while removing permissions from {filePath}", "red");
+                }
+            }
+        }
+
+        private static string StripJsonComments(string json)
+        {
+            if (string.IsNullOrEmpty(json))
+                return json;
+
+            var sb = new StringBuilder(json.Length);
+
+            bool inString = false;
+            bool inSingleLineComment = false;
+            bool inMultiLineComment = false;
+            bool isEscaped = false;
+
+            for (int i = 0; i < json.Length; i++)
+            {
+                char current = json[i];
+                char next = i + 1 < json.Length ? json[i + 1] : '\0';
+
+                if (inSingleLineComment)
+                {
+                    if (current == '\r' || current == '\n')
+                    {
+                        inSingleLineComment = false;
+                        sb.Append(current);
+                    }
+                    continue;
+                }
+
+                if (inMultiLineComment)
+                {
+                    if (current == '*' && next == '/')
+                    {
+                        inMultiLineComment = false;
+                        i++;
+                    }
+                    continue;
+                }
+
+                if (inString)
+                {
+                    sb.Append(current);
+
+                    if (isEscaped)
+                    {
+                        isEscaped = false;
+                    }
+                    else if (current == '\\')
+                    {
+                        isEscaped = true;
+                    }
+                    else if (current == '"')
+                    {
+                        inString = false;
+                    }
+
+                    continue;
+                }
+
+                if (current == '"')
+                {
+                    inString = true;
+                    sb.Append(current);
+                    continue;
+                }
+
+                if (current == '/' && next == '/')
+                {
+                    inSingleLineComment = true;
+                    i++;
+                    continue;
+                }
+
+                if (current == '/' && next == '*')
+                {
+                    inMultiLineComment = true;
+                    i++;
+                    continue;
+                }
+
+                sb.Append(current);
+            }
+
+            return sb.ToString();
         }
 
         public async Task OverwriteBIAFolder(string sourceFolder, string targetFolder, bool actionFinishedAtEnd)

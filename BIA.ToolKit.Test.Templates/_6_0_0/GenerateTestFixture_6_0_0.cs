@@ -7,12 +7,12 @@
     {
         public GenerateTestFixture_6_0_0()
         {
-            Init("BIADemo_6.1.1", new Project
+            Init("BIADemo_6.1.2", new Project
             {
                 Name = "BIADemo",
                 CompanyName = "TheBIADevCompany",
                 BIAFronts = ["Angular"],
-                FrameworkVersion = "6.1.1"
+                FrameworkVersion = "6.1.2"
             });
         }
     }

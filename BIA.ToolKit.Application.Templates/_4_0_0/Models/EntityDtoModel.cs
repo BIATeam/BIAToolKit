@@ -67,6 +67,9 @@
         public bool IsFixable { get; set; }
         public bool IsVersioned { get; set; }
         public virtual bool HasAudit { get => throw new System.NotImplementedException(); set; }
+        public virtual bool HasListAndItemModels { get => throw new System.NotImplementedException(); set; }
+        public virtual List<TPropertyDtoModel> ListProperties { get => throw new System.NotImplementedException(); set; }
+        public IEnumerable<TPropertyDtoModel> ListPropertiesToGenerate => ListProperties.Where(p => !ExcludedPropertiesToGenerate.Contains(p.MappingName));
 
         public virtual string GetClassInheritance()
         {
