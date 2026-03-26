@@ -34,8 +34,8 @@
             if (!string.IsNullOrEmpty(ConstantFileNameSearchPattern))
             {
                 var reg = new Regex(currentProject.Folder.Replace("\\", "\\\\") + ConstantFileRegExpPath, RegexOptions.IgnoreCase);
-                string file = currentProject.ProjectFiles.Where(path => path.EndsWith(ConstantFileNameSearchPattern) && reg.IsMatch(path))?.FirstOrDefault();
-                if (file != null)
+                IEnumerable<string> files = currentProject.ProjectFiles.Where(path => path.EndsWith(ConstantFileNameSearchPattern) && reg.IsMatch(path));
+                foreach (string file in files)
                 {
                     var regProjectName = new Regex(ConstantFileNamespace);
                     var regVersion = new Regex(ConstantFileRegExpVersion);
