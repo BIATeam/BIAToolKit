@@ -3,8 +3,11 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Dialogs;
     using BIA.ToolKit.Helper;
+    using BIA.ToolKit.ViewModels;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using System;
     using System.Configuration;
     using System.IO;
@@ -19,20 +22,23 @@
     /// </summary>
     public partial class App : System.Windows.Application
     {
-        private ServiceProvider serviceProvider;
+        private IHost host;
 
         public App()
         {
-            ServiceCollection services = new ServiceCollection();
-            ConfigureServices(services);
-            serviceProvider = services.BuildServiceProvider();
+            host = Host.CreateDefaultBuilder()
+                .ConfigureServices((context, services) =>
+                {
+                    ConfigureServices(services);
+                })
+                .Build();
         }
 
-        private void ConfigureServices(ServiceCollection services)
+        private void ConfigureServices(IServiceCollection services)
         {
+            // Services
             services.AddSingleton<IConsoleWriter, ConsoleWriter>();
             services.AddSingleton<UIEventBroker>();
-            services.AddSingleton<MainWindow>();
             services.AddSingleton<RepositoryService>();
             services.AddSingleton<GitService>();
             services.AddSingleton<ProjectCreatorService>();
@@ -44,6 +50,18 @@
             services.AddSingleton<FileGeneratorService>();
             services.AddSingleton<UpdateService>();
             services.AddLogging();
+
+            // ViewModels
+            services.AddTransient<LogDetailViewModel>();
+
+            // Views
+            services.AddSingleton<MainWindow>();
+            services.AddTransient<LogDetailUC>();
+        }
+
+        public static T GetService<T>() where T : class
+        {
+            return ((App)Current).host.Services.GetRequiredService<T>();
         }
         private async void OnStartup(object sender, StartupEventArgs e)
         {
@@ -55,9 +73,21 @@
                 ToolKit.Properties.Settings.Default.Save();
             }
 
-            var mainWindow = serviceProvider.GetService<MainWindow>();
+            await host.StartAsync();
+
+            var mainWindow = host.Services.GetRequiredService<MainWindow>();
             mainWindow.Show();
             await mainWindow.Init();
+        }
+
+        protected override async void OnExit(ExitEventArgs e)
+        {
+            using (host)
+            {
+                await host.StopAsync();
+            }
+
+            base.OnExit(e);
         }
     }
 }

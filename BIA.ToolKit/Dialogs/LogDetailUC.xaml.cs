@@ -15,10 +15,10 @@
     {
         private readonly LogDetailViewModel _viewModel;
 
-        public LogDetailUC()
+        public LogDetailUC(LogDetailViewModel viewModel)
         {
             InitializeComponent();
-            _viewModel = new LogDetailViewModel();
+            _viewModel = viewModel;
             DataContext = _viewModel;
 
             // Listen to ViewModel property changes for UI updates
