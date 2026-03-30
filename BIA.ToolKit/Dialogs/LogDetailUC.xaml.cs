@@ -1,50 +1,51 @@
 ﻿namespace BIA.ToolKit.Dialogs
 {
     using BIA.ToolKit.Helper;
-    using System;
+    using BIA.ToolKit.ViewModels;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    using System.ComponentModel;
     using System.Windows;
-    using System.Windows.Controls;
-    using System.Windows.Data;
-    using System.Windows.Documents;
-    using System.Windows.Input;
-    using System.Windows.Media;
-    using System.Windows.Media.Imaging;
-    using System.Windows.Shapes;
 
     /// <summary>
-    /// Interaction logic for Window1.xaml
+    /// Interaction logic for LogDetailUC
+    /// Code-behind contains ONLY UI logic
+    /// All business logic is in LogDetailViewModel
     /// </summary>
     public partial class LogDetailUC : Window
     {
-        List<ConsoleWriter.Message> Messages = new List<ConsoleWriter.Message>();
+        private readonly LogDetailViewModel _viewModel;
+
         public LogDetailUC()
         {
             InitializeComponent();
+            _viewModel = new LogDetailViewModel();
+            DataContext = _viewModel;
+
+            // Listen to ViewModel property changes for UI updates
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
         }
 
+        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(LogDetailViewModel.Messages))
+            {
+                // UI Logic: Update TextBlock with colored messages when Messages change
+                OutputDetailText.Inlines.Clear();
+                foreach (ConsoleWriter.Message msg in _viewModel.Messages)
+                {
+                    ConsoleWriter.AddMsgLine(OutputDetailText, OutputDetailTextViewer, msg.message, msg.color);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Entry point called by ConsoleWriter
+        /// Delegates to ViewModel immediately
+        /// </summary>
         internal bool? ShowDialog(List<ConsoleWriter.Message> messages)
         {
-            Messages = messages;
-            foreach (ConsoleWriter.Message msg in messages)
-            {
-                ConsoleWriter.AddMsgLine(OutputDetailText, OutputDetailTextViewer, msg.message, msg.color);
-            }
+            _viewModel.ShowDialog(messages);
             return ShowDialog();
-        }
-
-        private void CopyToClipboard_Click(object sender, RoutedEventArgs e)
-        {
-            string text = string.Empty;
-            foreach (ConsoleWriter.Message msg in Messages)
-            {
-                text += msg.message;
-                text += Environment.NewLine;
-            }
-            System.Windows.Forms.Clipboard.SetText(text);
         }
     }
 }
