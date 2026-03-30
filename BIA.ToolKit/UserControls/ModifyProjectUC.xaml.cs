@@ -160,6 +160,20 @@
                 }
             }
 
+            if (_viewModel.IncludeFeatureMigration && _viewModel.IsProjectCompatibleRegenerateFeatures)
+            {
+                var entities = regenerateFeaturesDiscoveryService.DiscoverRegenerableEntities(_viewModel.CurrentProject);
+                var validEntities = entities.Where(e => e.CanSelectEntity).ToList();
+
+                if (validEntities.Count > 0)
+                {
+                    await featureMigrationGeneratorService.GenerateFeaturesAsync(
+                        _viewModel.CurrentProject, projectOriginPath, projectOriginalVersion, validEntities, cSharpParserService);
+                    await featureMigrationGeneratorService.GenerateFeaturesAsync(
+                      _viewModel.CurrentProject, projectTargetPath, projectTargetVersion, validEntities, cSharpParserService);
+                }
+            }
+
             MigrateOpenFolder.IsEnabled = true;
             MigrateApplyDiff.IsEnabled = true;
             return true;
