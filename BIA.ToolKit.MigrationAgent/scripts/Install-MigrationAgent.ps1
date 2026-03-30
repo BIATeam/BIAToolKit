@@ -158,15 +158,15 @@ if (-not (Test-Path $vscodeDir)) {
 # Backup original settings.json as a sidecar file (restored verbatim on uninstall)
 if (Test-Path $settingsFile) {
     Copy-Item -Path $settingsFile -Destination $backupFile -Force
-    Write-Host "Backed up .vscode/settings.json → settings.json.migration-backup" -ForegroundColor DarkGray
+    Write-Host "Backed up .vscode/settings.json -> settings.json.migration-backup" -ForegroundColor DarkGray
     $settings = Get-Content $settingsFile -Raw -Encoding UTF8 | ConvertFrom-Json
 }
 else {
-    Write-Host "No existing .vscode/settings.json — will create one" -ForegroundColor DarkGray
+    Write-Host "No existing .vscode/settings.json - will create one" -ForegroundColor DarkGray
     $settings = [PSCustomObject]@{}
 }
 
-# Migration-specific settings — always set, overwrite any existing values
+# Migration-specific settings - always set, overwrite any existing values
 # The original values are safe in the .bak file
 $migrationSettings = @{
     "chat.promptFiles"                      = $true
@@ -201,7 +201,7 @@ $manifest = @{
     promptFile       = ".github\copilot\prompts\migration-$MigrationVersion.prompt.md"
     reportPromptFile = ".github\copilot\prompts\report-migration-fix.prompt.md"
     dataFolder       = ".github\copilot\migration-data\$MigrationVersion"
-    settingsBackup   = if (Test-Path $backupFile) { ".vscode\settings.json.migration-backup" } else { $null }
+    settingsBackup   = $(if (Test-Path $backupFile) { ".vscode\settings.json.migration-backup" } else { $null })
 }
 $manifestPath = Join-Path $TargetProjectPath ".github\copilot\migration-manifest.json"
 $manifest | ConvertTo-Json -Depth 5 | Set-Content $manifestPath -Encoding UTF8

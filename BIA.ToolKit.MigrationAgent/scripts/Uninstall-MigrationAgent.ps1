@@ -73,6 +73,15 @@ if (Test-Path $promptFilePath) {
     Write-Host "Removed prompt file: $($manifest.promptFile)" -ForegroundColor DarkGray
 }
 
+# Remove report-migration-fix prompt file
+if ($manifest.reportPromptFile) {
+    $reportPromptPath = Join-Path $TargetProjectPath $manifest.reportPromptFile
+    if (Test-Path $reportPromptPath) {
+        Remove-Item $reportPromptPath -Force
+        Write-Host "Removed report prompt file: $($manifest.reportPromptFile)" -ForegroundColor DarkGray
+    }
+}
+
 # Remove migration data folder
 $dataFolderPath = Join-Path $TargetProjectPath $manifest.dataFolder
 if (Test-Path $dataFolderPath) {
@@ -97,9 +106,18 @@ foreach ($dir in @($promptsDir, $dataDir, $copilotDir)) {
 }
 
 # Revert VS Code settings
-if (-not $KeepSettings -and $manifest.addedSettings -and $manifest.addedSettings.Count -gt 0) {
+if (-not $KeepSettings) {
     $settingsFile = Join-Path $TargetProjectPath ".vscode\settings.json"
-    if (Test-Path $settingsFile) {
+    $backupFile = Join-Path $TargetProjectPath ".vscode\settings.json.migration-backup"
+
+    if (Test-Path $backupFile) {
+        # Restore the original file verbatim (no reformatting)
+        Copy-Item -Path $backupFile -Destination $settingsFile -Force
+        Remove-Item $backupFile -Force
+        Write-Host "Restored original .vscode/settings.json from backup" -ForegroundColor DarkGray
+    }
+    elseif ($manifest.addedSettings -and $manifest.addedSettings.Count -gt 0 -and (Test-Path $settingsFile)) {
+        # Fallback: no backup found, remove keys manually
         $settings = Get-Content $settingsFile -Raw | ConvertFrom-Json
         $removedKeys = @()
 
@@ -111,12 +129,10 @@ if (-not $KeepSettings -and $manifest.addedSettings -and $manifest.addedSettings
         }
 
         if ($removedKeys.Count -gt 0) {
-            # Check if settings object is now empty
             if ($settings.PSObject.Properties.Count -eq 0) {
                 Remove-Item $settingsFile -Force
                 Write-Host "Removed empty .vscode/settings.json" -ForegroundColor DarkGray
 
-                # Remove .vscode if empty
                 $vscodeDir = Join-Path $TargetProjectPath ".vscode"
                 if ((Test-Path $vscodeDir) -and ((Get-ChildItem $vscodeDir -Force).Count -eq 0)) {
                     Remove-Item $vscodeDir -Force
@@ -125,6 +141,7 @@ if (-not $KeepSettings -and $manifest.addedSettings -and $manifest.addedSettings
             }
             else {
                 $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsFile -Encoding UTF8
+                Write-Warning "No backup found — settings reverted via key removal (formatting may differ)"
             }
             Write-Host "Reverted VS Code settings: $($removedKeys -join ', ')" -ForegroundColor DarkGray
         }

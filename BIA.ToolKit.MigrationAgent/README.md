@@ -10,14 +10,14 @@ Agent de migration pour les projets BIA Framework via GitHub Copilot (agent mode
 
 ### 1. Installer l'agent dans ton projet
 
-Depuis le dossier BIAToolKit, lance le script d'installation en pointant vers ton projet :
+Depuis le dossier extrait du zip (ou le dossier BIAToolKit), lance le script d'installation :
 
 ```powershell
 # Migration V5 → V6
-.\BIA.ToolKit.MigrationAgent\scripts\Install-MigrationAgent.ps1 -TargetProjectPath "C:\MonProjet"
+.\Install.ps1 -TargetProjectPath "C:\MonProjet"
 
 # Migration V6 → V7
-.\BIA.ToolKit.MigrationAgent\scripts\Install-MigrationAgent.ps1 -TargetProjectPath "C:\MonProjet" -MigrationVersion "v6-to-v7"
+.\Install.ps1 -TargetProjectPath "C:\MonProjet" -MigrationVersion "v6-to-v7"
 ```
 
 Le script :
@@ -48,7 +48,7 @@ L'agent travaille phase par phase et demande confirmation entre chaque. Tu peux 
 2. **Tester l'application** : lancer le back (.NET) et le front (Angular)
 3. **Nettoyer** les fichiers de migration (optionnel) :
    ```powershell
-   .\BIA.ToolKit.MigrationAgent\scripts\Uninstall-MigrationAgent.ps1 -TargetProjectPath "C:\MonProjet"
+   .\Uninstall.ps1 -TargetProjectPath "C:\MonProjet"
    ```
 4. Si ça ne va pas : `git checkout main && git branch -D migration/v6-to-v7`
 

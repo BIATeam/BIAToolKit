@@ -82,6 +82,16 @@ if (-not (Test-Path $fixesDir)) {
     New-Item -ItemType Directory -Path $fixesDir -Force | Out-Null
 }
 
+# Root launcher scripts (so devs can run .\Install.ps1 from the extracted folder)
+$installLauncher = Join-Path $agentRoot "Install.ps1"
+if (Test-Path $installLauncher) {
+    Copy-Item $installLauncher -Destination $stagingDir
+}
+$uninstallLauncher = Join-Path $agentRoot "Uninstall.ps1"
+if (Test-Path $uninstallLauncher) {
+    Copy-Item $uninstallLauncher -Destination $stagingDir
+}
+
 # README
 $readme = Join-Path $agentRoot "README.md"
 if (Test-Path $readme) {
@@ -120,5 +130,5 @@ Write-Host "Distribution:" -ForegroundColor Yellow
 Write-Host "  1. Envoyer le zip au développeur" -ForegroundColor White
 Write-Host "  2. Extraire quelque part (ex: C:\Tools\BIA-MigrationAgent\)" -ForegroundColor White
 Write-Host "  3. Lancer:" -ForegroundColor White
-Write-Host "     .\scripts\Install-MigrationAgent.ps1 -TargetProjectPath ""C:\MonProjet"" -MigrationVersion ""$MigrationVersion""" -ForegroundColor Gray
+Write-Host "     .\Install.ps1 -TargetProjectPath ""C:\MonProjet"" -MigrationVersion ""$MigrationVersion""" -ForegroundColor Gray
 Write-Host ""
