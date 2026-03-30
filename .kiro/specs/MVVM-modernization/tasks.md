@@ -21,17 +21,17 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
 
 ### Phase 0: Setup Infrastructure de Tests (1 jour)
 
-- [ ] 0. Créer projet de tests et installer dépendances
-  - [ ] 0.1 Créer projet BIA.ToolKit.Tests
-    - Créer BIA.ToolKit.Tests/BIA.ToolKit.Tests.csproj (net9.0-windows)
+- [x] 0. Créer projet de tests et installer dépendances
+  - [x] 0.1 Créer projet BIA.ToolKit.Tests
+    - Créer BIA.ToolKit.Tests/BIA.ToolKit.Tests.csproj (net9.0-windows10.0.19041.0)
     - Ajouter référence au projet BIA.ToolKit
     - Créer structure de dossiers: Unit/, Properties/, Integration/, Performance/
     - _Requirements: 9.1_
   
-  - [ ] 0.2 Installer packages de test
+  - [x] 0.2 Installer packages de test
     - Ajouter xUnit 2.9.0
     - Ajouter xUnit.runner.visualstudio 2.8.2
-    - Ajouter Moq 4.20.0
+    - Ajouter Moq 4.20.72
     - Ajouter FluentAssertions 6.12.0
     - Ajouter FsCheck 2.16.6
     - Ajouter FsCheck.Xunit 2.16.6
@@ -39,11 +39,11 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Vérifier que le projet compile
     - _Requirements: 9.1, 9.5_
   
-  - [ ] 0.3 Créer classe de test exemple
+  - [x] 0.3 Créer classe de test exemple
     - Créer BIA.ToolKit.Tests/Unit/SampleTest.cs
     - Écrire un test simple pour vérifier que xUnit fonctionne
     - Écrire un property test simple pour vérifier que FsCheck fonctionne
-    - Exécuter les tests et vérifier qu'ils passent
+    - Exécuter les tests et vérifier qu'ils passent (3/3 tests passés)
 
 ### Phase 1: Installation CommunityToolkit et Pilot (3-5 jours)
 
