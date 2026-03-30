@@ -1,0 +1,43 @@
+{
+  "hooks": [
+    {
+      "id": "pre-task-validation",
+      "name": "Validation Pré-Implémentation",
+      "description": "Valide que la spec est complète avant de démarrer les tâches d'implémentation",
+      "eventType": "preTaskExecution",
+      "hookAction": "askAgent",
+      "outputPrompt": "En tant que Tech Lead, vérifie que la spec est complète et cohérente avant de démarrer l'implémentation. Valide l'architecture technique et identifie les risques potentiels.",
+      "why": "Valider l'architecture avant de commencer l'implémentation"
+    },
+    {
+      "id": "dotnet-expert-review",
+      "name": "Expert .NET - Review Code",
+      "description": "Sollicite l'expert .NET 10 quand du code backend est modifié",
+      "eventType": "fileEdited",
+      "filePatterns": "**/*.cs,**/Program.cs,**/Startup.cs",
+      "hookAction": "askAgent",
+      "outputPrompt": "En tant que développeur backend .NET 10, review ce code et propose des améliorations selon les best practices .NET et C#.",
+      "why": "Solliciter l'expert backend sur les fichiers .NET"
+    },
+    {
+      "id": "spec-auto-review",
+      "name": "Review Automatique de Spec",
+      "description": "Lance une review automatique quand un fichier de spec est créé ou modifié",
+      "eventType": "fileEdited",
+      "filePatterns": ".kiro/specs/**/requirements.md,.kiro/specs/**/design.md,.kiro/specs/**/tasks.md,.kiro/specs/**/bugfix.md",
+      "hookAction": "askAgent",
+      "outputPrompt": "En tant que Spec Reviewer, analyse ce fichier de spec et identifie les points à améliorer. Sollicite les experts pertinents si nécessaire (#product-owner, #tech-lead, #qa-engineer, etc.)",
+      "why": "Automatiser la review des specs par l'équipe d'experts"
+    },
+    {
+      "id": "angular-expert-review",
+      "name": "Expert Angular - Review Code",
+      "description": "Sollicite l'expert Angular/TypeScript quand du code frontend est modifié",
+      "eventType": "fileEdited",
+      "filePatterns": "**/*.component.ts,**/*.service.ts,**/*.module.ts",
+      "hookAction": "askAgent",
+      "outputPrompt": "En tant que développeur frontend Angular, review ce code et propose des améliorations selon les best practices Angular et TypeScript.",
+      "why": "Solliciter l'expert frontend sur les fichiers Angular"
+    }
+  ]
+}

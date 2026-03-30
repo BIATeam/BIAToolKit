@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Expert .NET - Review Code",
+  "description": "Sollicite l'expert .NET 10 quand du code backend est modifié",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.cs",
+      "**/Program.cs",
+      "**/Startup.cs"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "En tant que développeur backend .NET 10, review ce code et propose des améliorations selon les best practices .NET et C#."
+  }
+}
