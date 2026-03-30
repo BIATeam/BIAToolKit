@@ -138,7 +138,7 @@
                 return false;
             }
 
-            MigratePreparePath(out _, out string projectOriginPath, out _, out _, out string projectTargetPath, out _);
+            MigratePreparePath(out _, out string projectOriginPath, out string projectOriginalVersion, out _, out string projectTargetPath, out string projectTargetVersion);
 
             if (!await GenerateProjects(true, projectOriginPath, projectTargetPath))
             {

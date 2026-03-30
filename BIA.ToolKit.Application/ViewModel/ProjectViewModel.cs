@@ -270,7 +270,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
                 NamesAndVersionResolver nvResolver = new()
                 {
-                    ConstantFileRegExpPath = @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$",
+                    ConstantFileRegExpPath = @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\[Bia\\]*Constants\.cs$",
                     ConstantFileNameSearchPattern = "Constants.cs",
                     ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
                     ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
