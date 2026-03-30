@@ -1,6 +1,7 @@
 namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.RegenerateFeatures;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.ModifyProject;
 
@@ -21,6 +22,7 @@ namespace BIA.ToolKit.Application.ViewModel
         {
             ModifyProject.CurrentProject = project;
             RaisePropertyChanged(nameof(IsProjectSelected));
+            RaisePropertyChanged(nameof(IsTabFeaturesEnabled));
         }
 
         // ── Domain object used by migration code-behind ──────────────────────
@@ -31,6 +33,7 @@ namespace BIA.ToolKit.Application.ViewModel
         public string Name => ModifyProject.CurrentProject?.Name ?? "???";
         public string CompanyName => ModifyProject.CurrentProject?.CompanyName ?? "???";
         public bool IsProjectSelected => ModifyProject.CurrentProject != null;
+        public bool IsTabFeaturesEnabled => IsProjectSelected && FeatureMigrationGeneratorService.IsProjectCompatibleForRegenerateFeatures(CurrentProject);
 
         // ── Migration-specific state ─────────────────────────────────────────
         public bool OverwriteBIAFromOriginal { get; set; }

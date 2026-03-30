@@ -63,7 +63,7 @@
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="TabRegenerateFeatures" Header="Features"
-                         IsEnabled="{Binding IsProjectSelected}">
+                         IsEnabled="{Binding IsTabFeaturesEnabled}">
                     <uc:RegenerateFeaturesUC x:Name="RegenerateFeatures"/>
                 </TabItem>
             </TabControl>
