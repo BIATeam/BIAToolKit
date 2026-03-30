@@ -3,6 +3,7 @@ namespace BIA.ToolKit.Application.ViewModel
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.RegenerateFeatures;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.Settings;
@@ -239,7 +240,7 @@ namespace BIA.ToolKit.Application.ViewModel
             await fileGeneratorService.Init(project);
             IsFileGeneratorServiceInit = fileGeneratorService.IsInit;
             IsProjectCompatibleCrudGenerator = GenerateCrudService.IsProjectCompatible(project);
-            IsProjectCompatibleRegenerateFeatures = GenerateCrudService.IsProjectCompatibleForRegenerateFeatures(project);
+            IsProjectCompatibleRegenerateFeatures = FeatureMigrationGeneratorService.IsProjectCompatibleForRegenerateFeatures(project);
         }
 
         private async Task LoadProject(Project project)

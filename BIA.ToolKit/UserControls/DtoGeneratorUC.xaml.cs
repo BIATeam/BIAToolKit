@@ -175,6 +175,7 @@
             generation.DateTime = DateTime.Now;
             generation.FrameworkVersion = project?.FrameworkVersion;
             generation.EntityName = vm.Entity.Name;
+            generation.EntityNamePlural = vm.Entity.NamePluralized;
             generation.EntityNamespace = vm.Entity.Namespace;
             generation.Domain = vm.EntityDomain;
             generation.AncestorTeam = vm.AncestorTeam;

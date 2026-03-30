@@ -78,7 +78,7 @@ namespace BIA.ToolKit.UserControls
         private void LoadFeatures()
         {
             if (currentProject == null) return;
-            if (!GenerateCrudService.IsProjectCompatibleForRegenerateFeatures(currentProject)) return;
+            if (!FeatureMigrationGeneratorService.IsProjectCompatibleForRegenerateFeatures(currentProject)) return;
 
             try
             {

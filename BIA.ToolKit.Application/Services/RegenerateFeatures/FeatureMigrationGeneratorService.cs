@@ -15,6 +15,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
     using BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures;
+    using Humanizer;
 
     public class FeatureMigrationGeneratorService
     {
@@ -26,11 +27,26 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             }
         }
 
+        private const int REGENERATE_FEATURES_VERSION_MINIMUM = 500;
         private readonly IConsoleWriter consoleWriter;
 
         public FeatureMigrationGeneratorService(IConsoleWriter consoleWriter)
         {
             this.consoleWriter = consoleWriter;
+        }
+
+        public static bool IsProjectCompatibleForRegenerateFeatures(Project project)
+        {
+            if (!string.IsNullOrEmpty(project?.FrameworkVersion))
+            {
+                string version = project.FrameworkVersion.Replace(".", "");
+                if (int.TryParse(version, out int value))
+                {
+                    return value >= REGENERATE_FEATURES_VERSION_MINIMUM;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -84,7 +100,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             var tasks = new List<Task>();
             if (entity.OptionHistory != null && entity.OptionStatus == RegenerableFeatureStatus.Ready)
             {
-                await TryGenerateOptionAsync(entity.OptionHistory, currentProject, targetProject, fileGenerator, parserService);
+                await TryGenerateOptionAsync(entity.OptionHistory, targetProject, fileGenerator);
             }
 
             if (entity.DtoHistory != null && entity.DtoStatus == RegenerableFeatureStatus.Ready)
@@ -100,10 +116,8 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
 
         private async Task TryGenerateOptionAsync(
             OptionGenerationHistory history,
-            Project currentProject,
             Project targetProject,
-            FileGeneratorService fileGenerator,
-            CSharpParserService parserService)
+            FileGeneratorService fileGenerator)
         {
             try
             {
@@ -157,8 +171,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     ProjectName = targetProject.Name,
                     DomainName = history.Domain,
                     EntityName = history.EntityName,
-                    // DtoGeneration history does not store EntityNamePlural; use simple fallback since both FROM and TO use the same value
-                    EntityNamePlural = history.EntityName + "s",
+                    EntityNamePlural = history.EntityName ?? history.EntityName.Pluralize(),
                     BaseKeyType = history.EntityBaseKeyType ?? "int",
                     Properties = properties,
                     IsTeam = history.IsTeam,
