@@ -12,32 +12,31 @@
     {
       "id": "dotnet-expert-review",
       "name": "Expert .NET - Review Code",
-      "description": "Sollicite l'expert .NET 10 quand du code backend est modifié",
-      "eventType": "fileEdited",
-      "filePatterns": "**/*.cs,**/Program.cs,**/Startup.cs",
+      "description": "Review automatique quand Kiro modifie du code .NET",
+      "eventType": "postToolUse",
+      "toolTypes": "write",
       "hookAction": "askAgent",
-      "outputPrompt": "En tant que développeur backend .NET 10, review ce code et propose des améliorations selon les best practices .NET et C#.",
-      "why": "Solliciter l'expert backend sur les fichiers .NET"
+      "outputPrompt": "En tant que développeur backend .NET 10, review les modifications de code .NET qui viennent d'être faites. Vérifie les best practices, la sécurité, et la performance. Si tout est OK, dis-le. Sinon, propose des améliorations.",
+      "why": "Review automatique du code .NET modifié par l'agent"
     },
     {
-      "id": "spec-auto-review",
-      "name": "Review Automatique de Spec",
-      "description": "Lance une review automatique quand un fichier de spec est créé ou modifié",
-      "eventType": "fileEdited",
-      "filePatterns": ".kiro/specs/**/requirements.md,.kiro/specs/**/design.md,.kiro/specs/**/tasks.md,.kiro/specs/**/bugfix.md",
+      "id": "spec-manual-review",
+      "name": "Review Manuelle de Spec",
+      "description": "Lance une review quand tu cliques sur le bouton (évite les boucles infinies)",
+      "eventType": "userTriggered",
       "hookAction": "askAgent",
-      "outputPrompt": "En tant que Spec Reviewer, analyse ce fichier de spec et identifie les points à améliorer. Sollicite les experts pertinents si nécessaire (#product-owner, #tech-lead, #qa-engineer, etc.)",
-      "why": "Automatiser la review des specs par l'équipe d'experts"
+      "outputPrompt": "En tant que Spec Reviewer, analyse le fichier de spec ouvert et identifie les points à améliorer. Donne des suggestions claires et actionnables.",
+      "why": "Review manuelle des specs par l'équipe d'experts"
     },
     {
       "id": "angular-expert-review",
       "name": "Expert Angular - Review Code",
-      "description": "Sollicite l'expert Angular/TypeScript quand du code frontend est modifié",
-      "eventType": "fileEdited",
-      "filePatterns": "**/*.component.ts,**/*.service.ts,**/*.module.ts",
+      "description": "Review automatique quand Kiro modifie du code Angular/TypeScript",
+      "eventType": "postToolUse",
+      "toolTypes": "write",
       "hookAction": "askAgent",
-      "outputPrompt": "En tant que développeur frontend Angular, review ce code et propose des améliorations selon les best practices Angular et TypeScript.",
-      "why": "Solliciter l'expert frontend sur les fichiers Angular"
+      "outputPrompt": "En tant que développeur frontend Angular, review les modifications de code TypeScript/Angular qui viennent d'être faites. Vérifie les best practices Angular, la performance, et l'accessibilité. Si tout est OK, dis-le. Sinon, propose des améliorations.",
+      "why": "Review automatique du code Angular modifié par l'agent"
     }
   ]
 }

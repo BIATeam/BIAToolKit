@@ -4,15 +4,12 @@
   "description": "Sollicite l'expert Angular/TypeScript quand du code frontend est modifié",
   "version": "1",
   "when": {
-    "type": "fileEdited",
-    "patterns": [
-      "**/*.component.ts",
-      "**/*.service.ts",
-      "**/*.module.ts"
-    ]
+    "type": "userTriggered"
   },
   "then": {
     "type": "askAgent",
     "prompt": "En tant que développeur frontend Angular, review ce code et propose des améliorations selon les best practices Angular et TypeScript."
-  }
+  },
+  "workspaceFolderName": "BIAToolKit",
+  "shortName": "angular-expert-review"
 }
