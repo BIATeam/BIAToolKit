@@ -21,7 +21,6 @@ namespace BIA.ToolKit.Application.ViewModel
         {
             ModifyProject.CurrentProject = project;
             RaisePropertyChanged(nameof(IsProjectSelected));
-            RaisePropertyChanged(nameof(IsProjectCompatibleRegenerateFeatures));
         }
 
         // ── Domain object used by migration code-behind ──────────────────────
@@ -32,12 +31,9 @@ namespace BIA.ToolKit.Application.ViewModel
         public string Name => ModifyProject.CurrentProject?.Name ?? "???";
         public string CompanyName => ModifyProject.CurrentProject?.CompanyName ?? "???";
         public bool IsProjectSelected => ModifyProject.CurrentProject != null;
-        public bool IsProjectCompatibleRegenerateFeatures =>
-            GenerateCrudService.IsProjectCompatibleForRegenerateFeatures(ModifyProject.CurrentProject);
 
         // ── Migration-specific state ─────────────────────────────────────────
         public bool OverwriteBIAFromOriginal { get; set; }
-        public bool IncludeFeatureMigration { get; set; }
 
         private int selectedTabIndex = 0;
         public int SelectedTabIndex

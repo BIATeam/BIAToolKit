@@ -49,7 +49,6 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <CheckBox Grid.Row="0" Content="Overwrite BIA first" HorizontalAlignment="Center" Foreground="White" Name="CFOverwriteBIAFirst" IsChecked="{Binding Path=OverwriteBIAFromOriginal, Mode=TwoWay}"/>
-                            <CheckBox Grid.Row="1" Content="Include Feature Migration" HorizontalAlignment="Center" Foreground="White" Name="CFIncludeFeatureMigration" IsChecked="{Binding Path=IncludeFeatureMigration, Mode=TwoWay}" Visibility="{Binding IsProjectCompatibleRegenerateFeatures, Converter={StaticResource BoolToVisConverter}}"/>
                             <Button Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Margin="0,10" Height="50" Grid.Row="2" HorizontalAlignment="Stretch" Content="Migrate" x:Name="Migrate" Click="Migrate_Click"/>
                             <Label Grid.Row="3" Content="Or by step :" Foreground="White" HorizontalAlignment="Center"/>
                             <StackPanel Grid.Row="4" Margin="0,10">
