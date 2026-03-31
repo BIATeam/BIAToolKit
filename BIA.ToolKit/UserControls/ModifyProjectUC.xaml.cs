@@ -1,12 +1,10 @@
 ﻿namespace BIA.ToolKit.UserControls
 {
-    using System.Windows;
     using System.Windows.Controls;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.ViewModel;
-    using BIA.ToolKit.Helper;
 
     /// <summary>
     /// Interaction logic for ModifyProjectUC.xaml
@@ -41,21 +39,6 @@
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
-        }
-
-        private void ModifyProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            _viewModel?.RefreshProjetsList();
-        }
-
-        private void ModifyProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.RootProjectsPath = FileDialog.BrowseFolder(_viewModel.RootProjectsPath, "Choose modify project root path");
-        }
-
-        private void RefreshProjectFolderList_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.RefreshProjetsList();
         }
     }
 }

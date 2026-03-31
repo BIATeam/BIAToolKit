@@ -6,6 +6,7 @@
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Dialogs;
     using BIA.ToolKit.Helper;
+    using BIA.ToolKit.Infrastructure;
     using BIA.ToolKit.ViewModels;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -56,6 +57,9 @@
             services.AddTransient<LogDetailViewModel>();
             services.AddTransient<VersionAndOptionViewModel>();
             services.AddTransient<ModifyProjectViewModel>();
+
+            // Infrastructure
+            services.AddSingleton<IDialogService>(sp => new DialogService(sp.GetRequiredService<MainWindow>()));
 
             // Views
             services.AddSingleton<MainWindow>();

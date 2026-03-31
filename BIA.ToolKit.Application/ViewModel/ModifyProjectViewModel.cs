@@ -28,6 +28,7 @@
         private readonly CSharpParserService parserService;
         private readonly GitService gitService;
         private readonly ProjectCreatorService projectCreatorService;
+        private readonly IDialogService dialogService;
         private readonly CRUDSettings crudSettings;
         private bool disposed;
 
@@ -45,7 +46,8 @@
             SettingsService settingsService,
             CSharpParserService parserService,
             GitService gitService,
-            ProjectCreatorService projectCreatorService)
+            ProjectCreatorService projectCreatorService,
+            IDialogService dialogService)
         {
             this.eventBroker = eventBroker ?? throw new ArgumentNullException(nameof(eventBroker));
             this.fileGeneratorService = fileGeneratorService ?? throw new ArgumentNullException(nameof(fileGeneratorService));
@@ -54,6 +56,7 @@
             this.parserService = parserService ?? throw new ArgumentNullException(nameof(parserService));
             this.gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
             this.projectCreatorService = projectCreatorService ?? throw new ArgumentNullException(nameof(projectCreatorService));
+            this.dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
 
             this.crudSettings = new CRUDSettings(settingsService);
             ModifyProject = new ModifyProject();
@@ -134,6 +137,7 @@
             }
         }
 
+        [RelayCommand]
         public void RefreshProjetsList()
         {
             List<string> newProjects = null;
@@ -188,6 +192,12 @@
                     RefreshProjetsList();
                 }
             }
+        }
+
+        [RelayCommand]
+        private void BrowseRootProjectsFolder()
+        {
+            RootProjectsPath = dialogService.BrowseFolder(RootProjectsPath, "Choose modify project root path");
         }
 
         public Dictionary<string, NamesAndVersionResolver> CurrentProjectDetections { get; set; }

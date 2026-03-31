@@ -26,8 +26,8 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <TextBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Projects Parent Path" Text="{Binding RootProjectsPath}" TextWrapping="Wrap" TextChanged="ModifyProjectRootFolderText_TextChanged"/>
-                <Button Grid.Column="1" Margin="5,0" Content="..." x:Name="ModifyProjectRootFolderBrowse" Click="ModifyProjectRootFolderBrowse_Click" />
+                <TextBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Projects Parent Path" Text="{Binding RootProjectsPath, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap"/>
+                <Button Grid.Column="1" Margin="5,0" Content="..." x:Name="ModifyProjectRootFolderBrowse" Command="{Binding BrowseRootProjectsFolderCommand}" />
             </Grid>
             <Grid Grid.Column="1" Margin="10,0">
                 <Grid.ColumnDefinitions>
@@ -39,7 +39,7 @@
                     <RowDefinition />
                 </Grid.RowDefinitions>
                 <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Project Folder" ItemsSource="{Binding Projects}" SelectedValue="{Binding Folder}"/>
-                <Button Grid.Column="1" x:Name="RefreshDtoList" Click="RefreshProjectFolderList_Click" ToolTip="Refresh project folder list" Padding="5" Margin="5,0" >
+                <Button Grid.Column="1" x:Name="RefreshDtoList" Command="{Binding RefreshProjetsListCommand}" ToolTip="Refresh project folder list" Padding="5" Margin="5,0" >
                     <Image Source="/Images/rafraichir-32.png" />
                 </Button>
                 <Button Style="{StaticResource MaterialDesignPaperDarkButton}" Margin="0,5,0,0" Grid.Row="1" IsEnabled="{Binding IsProjectSelected}" Command="{Binding RefreshProjectInformationsCommand}">
