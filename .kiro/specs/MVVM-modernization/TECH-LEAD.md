@@ -241,38 +241,117 @@ private void OnFrameworkVersionSelectionChanged()
 
 **Note:** Nécessite `xmlns:i="http://schemas.microsoft.com/xaml/behaviors"` dans le XAML.
 
+## Pattern Extension Method pour UserControl avec ViewModel
+
+### Principe
+
+Pour simplifier l'accès typé au ViewModel depuis le code-behind, nous utilisons une extension method qui encapsule le cast du DataContext. Cela évite la répétition du pattern `if (DataContext is ViewModel vm)` et fournit un accès fortement typé.
+
+### Implémentation
+
+**Fichier:** `BIA.ToolKit/Infrastructure/UserControlBase.cs`
+
+```csharp
+public static class UserControlViewModelHelper
+{
+    /// <summary>
+    /// Gets the strongly-typed ViewModel from DataContext
+    /// Returns null if DataContext is not of type TViewModel
+    /// </summary>
+    public static TViewModel GetViewModel<TViewModel>(this UserControl control)
+        where TViewModel : ObservableObject
+    {
+        return control.DataContext as TViewModel;
+    }
+}
+```
+
+### Utilisation dans le Code-Behind
+
+```csharp
+public partial class VersionAndOptionUserControl : UserControl
+{
+    /// <summary>
+    /// Strongly-typed ViewModel accessor using extension method
+    /// </summary>
+    public VersionAndOptionViewModel ViewModel => this.GetViewModel<VersionAndOptionViewModel>();
+
+    /// <summary>
+    /// Public accessor to ViewModel for backward compatibility
+    /// </summary>
+    public VersionAndOptionViewModel vm => ViewModel;
+
+    public VersionAndOptionUserControl()
+    {
+        InitializeComponent();
+    }
+
+    public void Inject(...)
+    {
+        ViewModel?.Inject(...);
+    }
+
+    // API publique pour compatibilité
+    public void SelectVersion(string version)
+    {
+        ViewModel?.SelectVersion(version);
+    }
+
+    public async Task FillVersionFolderPathAsync()
+    {
+        if (ViewModel != null)
+        {
+            await ViewModel.FillVersionFolderPathAsync();
+        }
+    }
+}
+```
+
+### Avantages
+
+- ✅ Accès typé au ViewModel sans cast répétitif
+- ✅ Null-safe avec l'opérateur `?.`
+- ✅ Code plus lisible et maintenable
+- ✅ Propriété `vm` pour backward compatibility
+- ✅ IntelliSense complet sur le ViewModel
+
+### Règles
+
+- ✅ Toujours utiliser `ViewModel?.` pour les appels (null-safe)
+- ✅ Déléguer immédiatement au ViewModel
+- ✅ Pas de logique métier dans le code-behind
+- ✅ Garder les signatures publiques pour compatibilité
+- ✅ Utiliser `if (ViewModel != null)` pour les blocs async
+
 ## Pattern API Publique du Code-Behind
 
 ### Principe
 
-Le code-behind peut exposer une API publique pour les appels externes, mais DOIT déléguer au ViewModel.
+Le code-behind peut exposer une API publique pour les appels externes, mais DOIT déléguer au ViewModel en utilisant la propriété `ViewModel` typée.
 
 ### Implémentation
 
 ```csharp
 public partial class VersionAndOptionUserControl : UserControl
 {
+    public VersionAndOptionViewModel ViewModel => this.GetViewModel<VersionAndOptionViewModel>();
+
     // API publique pour compatibilité
     public void SelectVersion(string version)
     {
-        if (DataContext is VersionAndOptionViewModel vm)
-        {
-            vm.SelectVersion(version);
-        }
+        ViewModel?.SelectVersion(version);
     }
 
     public void SetCurrentProjectPath(string path, bool mapCompanyFileVersion, bool mapFrameworkVersion)
     {
-        if (DataContext is VersionAndOptionViewModel vm)
-        {
-            vm.SetCurrentProjectPath(path, mapCompanyFileVersion, mapFrameworkVersion);
-        }
+        ViewModel?.SetCurrentProjectPath(path, mapCompanyFileVersion, mapFrameworkVersion);
     }
 }
 ```
 
 **Règles:**
-- ✅ Toujours vérifier `DataContext is ViewModel`
+- ✅ Utiliser la propriété `ViewModel` typée
+- ✅ Toujours utiliser l'opérateur null-safe `?.`
 - ✅ Déléguer immédiatement au ViewModel
 - ✅ Pas de logique métier dans le code-behind
 - ✅ Garder les signatures publiques pour compatibilité
@@ -311,8 +390,10 @@ public partial class VersionAndOptionUserControl : UserControl
 ### Étape 5: Nettoyer le Code-Behind
 - [ ] Supprimer tous les champs de dépendances
 - [ ] Supprimer toutes les méthodes de Business Logic
+- [ ] Ajouter propriété `ViewModel` avec extension method: `public TViewModel ViewModel => this.GetViewModel<TViewModel>();`
+- [ ] Ajouter propriété `vm` pour backward compatibility: `public TViewModel vm => ViewModel;`
 - [ ] Garder seulement `InitializeComponent()` + `Inject()` + API publique
-- [ ] Utiliser pattern `if (DataContext is ViewModel vm)`
+- [ ] Utiliser `ViewModel?.` pour tous les appels au ViewModel
 
 ### Étape 6: Compiler et Tester
 - [ ] Compiler sans erreurs
@@ -354,6 +435,13 @@ public VersionAndOptionViewModel vm = new VersionAndOptionViewModel();
 vm = (VersionAndOptionViewModel)base.DataContext;
 ```
 
+**✅ CORRECT:**
+```csharp
+// Utiliser l'extension method
+public VersionAndOptionViewModel ViewModel => this.GetViewModel<VersionAndOptionViewModel>();
+public VersionAndOptionViewModel vm => ViewModel;
+```
+
 ### ❌ Erreur 3: Business Logic dans le code-behind
 ```csharp
 // MAUVAIS - dans .xaml.cs
@@ -374,10 +462,48 @@ private void RefreshConfiguration()
 // MAUVAIS - ViewModel créé mais pas dans le Locator
 ```
 
+### ❌ Erreur 6: Répéter le pattern `if (DataContext is ...)`
+```csharp
+// MAUVAIS - répétitif
+public void Method1()
+{
+    if (DataContext is VersionAndOptionViewModel vm)
+    {
+        vm.DoSomething();
+    }
+}
+
+public void Method2()
+{
+    if (DataContext is VersionAndOptionViewModel vm)
+    {
+        vm.DoSomethingElse();
+    }
+}
+```
+
+**✅ CORRECT:**
+```csharp
+// Utiliser la propriété ViewModel typée
+public VersionAndOptionViewModel ViewModel => this.GetViewModel<VersionAndOptionViewModel>();
+
+public void Method1()
+{
+    ViewModel?.DoSomething();
+}
+
+public void Method2()
+{
+    ViewModel?.DoSomethingElse();
+}
+```
+
 ## Ressources
 
 ### Fichiers de Référence
 - **Pilot complet:** `BIA.ToolKit/ViewModels/LogDetailViewModel.cs` + `BIA.ToolKit/Dialogs/LogDetailUC.xaml.cs`
+- **Extension method pattern:** `BIA.ToolKit/Infrastructure/UserControlBase.cs`
+- **Exemple d'utilisation:** `BIA.ToolKit/UserControls/VersionAndOptionUserControl.xaml.cs`
 - **ViewModelLocator:** `BIA.ToolKit/Infrastructure/ViewModelLocator.cs`
 - **Configuration DI:** `BIA.ToolKit/App.xaml.cs`
 

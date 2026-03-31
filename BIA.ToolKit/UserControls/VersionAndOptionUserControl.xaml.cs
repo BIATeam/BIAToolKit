@@ -7,6 +7,7 @@
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.Model;
+    using BIA.ToolKit.Infrastructure;
 
     /// <summary>
     /// Interaction logic for VersionAndOptionView.xaml
@@ -17,10 +18,14 @@
     public partial class VersionAndOptionUserControl : UserControl
     {
         /// <summary>
-        /// Public accessor to ViewModel for backward compatibility
-        /// Prefer using DataContext pattern in new code
+        /// Strongly-typed ViewModel accessor using extension method
         /// </summary>
-        public VersionAndOptionViewModel vm => DataContext as VersionAndOptionViewModel;
+        public VersionAndOptionViewModel ViewModel => this.GetViewModel<VersionAndOptionViewModel>();
+
+        /// <summary>
+        /// Public accessor to ViewModel for backward compatibility
+        /// </summary>
+        public VersionAndOptionViewModel vm => ViewModel;
 
         public VersionAndOptionUserControl()
         {
@@ -29,42 +34,30 @@
 
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, SettingsService settingsService, UIEventBroker uiEventBroker)
         {
-            if (DataContext is VersionAndOptionViewModel viewModel)
-            {
-                viewModel.Inject(repositoryService, settingsService, gitService, consoleWriter, uiEventBroker);
-            }
+            ViewModel?.Inject(repositoryService, settingsService, gitService, consoleWriter, uiEventBroker);
         }
 
         // Public API methods that delegate to ViewModel
         public void SelectVersion(string version)
         {
-            if (DataContext is VersionAndOptionViewModel viewModel)
-            {
-                viewModel.SelectVersion(version);
-            }
+            ViewModel?.SelectVersion(version);
         }
 
         public void SetCurrentProjectPath(string path, bool mapCompanyFileVersion, bool mapFrameworkVersion, IEnumerable<FeatureSetting> originFeatureSettings = null)
         {
-            if (DataContext is VersionAndOptionViewModel viewModel)
-            {
-                viewModel.SetCurrentProjectPath(path, mapCompanyFileVersion, mapFrameworkVersion, originFeatureSettings);
-            }
+            ViewModel?.SetCurrentProjectPath(path, mapCompanyFileVersion, mapFrameworkVersion, originFeatureSettings);
         }
 
         public void LoadVersionAndOption(bool mapCompanyFileVersion, bool mapFrameworkVersion)
         {
-            if (DataContext is VersionAndOptionViewModel viewModel)
-            {
-                viewModel.LoadVersionAndOption(mapCompanyFileVersion, mapFrameworkVersion);
-            }
+            ViewModel?.LoadVersionAndOption(mapCompanyFileVersion, mapFrameworkVersion);
         }
 
         public async Task FillVersionFolderPathAsync()
         {
-            if (DataContext is VersionAndOptionViewModel viewModel)
+            if (ViewModel != null)
             {
-                await viewModel.FillVersionFolderPathAsync();
+                await ViewModel.FillVersionFolderPathAsync();
             }
         }
     }
