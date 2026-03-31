@@ -1,7 +1,7 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Settings;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
@@ -11,7 +11,7 @@
     using System.Collections.ObjectModel;
     using System.Linq;
 
-    public class OptionGeneratorViewModel : ObservableObject
+    public partial class OptionGeneratorViewModel : ObservableObject
     {
         /// <summary>  
         /// Constructor.
@@ -41,7 +41,7 @@
                     BiaFront = BiaFronts.FirstOrDefault();
                 }
 
-                RaisePropertyChanged(nameof(IsProjectCompatibleV7));
+                OnPropertyChanged(nameof(IsProjectCompatibleV7));
             }
         }
 
@@ -52,7 +52,7 @@
             set
             {
                 isProjectChosen = value;
-                RaisePropertyChanged(nameof(IsProjectChosen));
+                OnPropertyChanged(nameof(IsProjectChosen));
             }
         }
 
@@ -63,7 +63,7 @@
             set
             {
                 _biaFront = value;
-                RaisePropertyChanged(nameof(BiaFront));
+                OnPropertyChanged(nameof(BiaFront));
             }
         }
 
@@ -74,7 +74,7 @@
             set
             {
                 _biaFronts = value;
-                RaisePropertyChanged(nameof(BiaFronts));
+                OnPropertyChanged(nameof(BiaFronts));
             }
         }
         #endregion
@@ -89,7 +89,7 @@
                 if (entity != value)
                 {
                     entity = value;
-                    RaisePropertyChanged(nameof(IsButtonGenerateOptionEnable));
+                    OnPropertyChanged(nameof(IsButtonGenerateOptionEnable));
                 }
             }
         }
@@ -103,7 +103,7 @@
                 if (entities != value)
                 {
                     entities = value;
-                    RaisePropertyChanged(nameof(Entities));
+                    OnPropertyChanged(nameof(Entities));
                 }
             }
         }
@@ -117,7 +117,7 @@
                 if (entityDisplayItems != value)
                 {
                     entityDisplayItems = value;
-                    RaisePropertyChanged(nameof(EntityDisplayItems));
+                    OnPropertyChanged(nameof(EntityDisplayItems));
                 }
             }
         }
@@ -131,8 +131,8 @@
                 if (isEntityParsed != value)
                 {
                     isEntityParsed = value;
-                    RaisePropertyChanged(nameof(IsEntityParsed));
-                    RaisePropertyChanged(nameof(IsButtonGenerateOptionEnable));
+                    OnPropertyChanged(nameof(IsEntityParsed));
+                    OnPropertyChanged(nameof(IsButtonGenerateOptionEnable));
                 }
             }
         }
@@ -146,8 +146,8 @@
                 if (entityDisplayItemSelected != value)
                 {
                     entityDisplayItemSelected = value;
-                    RaisePropertyChanged(nameof(EntityDisplayItemSelected));
-                    RaisePropertyChanged(nameof(IsButtonGenerateOptionEnable));
+                    OnPropertyChanged(nameof(EntityDisplayItemSelected));
+                    OnPropertyChanged(nameof(IsButtonGenerateOptionEnable));
                 }
             }
         }
@@ -161,7 +161,7 @@
                 if (isGenerated != value)
                 {
                     isGenerated = value;
-                    RaisePropertyChanged(nameof(IsGenerated));
+                    OnPropertyChanged(nameof(IsGenerated));
                 }
             }
         }
@@ -178,7 +178,7 @@
                 if (entityNamePlural != value)
                 {
                     entityNamePlural = value;
-                    RaisePropertyChanged(nameof(EntityNamePlural));
+                    OnPropertyChanged(nameof(EntityNamePlural));
                 }
             }
         }
@@ -195,8 +195,8 @@
                 if (domain != value)
                 {
                     domain = value;
-                    RaisePropertyChanged(nameof(Domain));
-                    RaisePropertyChanged(nameof(IsButtonGenerateOptionEnable));
+                    OnPropertyChanged(nameof(Domain));
+                    OnPropertyChanged(nameof(IsButtonGenerateOptionEnable));
                 }
             }
         }
@@ -243,7 +243,7 @@
             set
             {
                 _useHubClient = value;
-                RaisePropertyChanged(nameof(UseHubClient));
+                OnPropertyChanged(nameof(UseHubClient));
             }
         }
 

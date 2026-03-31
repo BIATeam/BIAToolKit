@@ -1,14 +1,9 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using BIA.ToolKit.Domain.Model;
 
-    public class FeatureSettingViewModel(FeatureSetting featureSetting) : ObservableObject
+    public partial class FeatureSettingViewModel(FeatureSetting featureSetting) : ObservableObject
     {
         public FeatureSetting FeatureSetting => featureSetting;
         public bool IsSelected
@@ -20,8 +15,8 @@
             set 
             { 
                 featureSetting.IsSelected = value; 
-                RaisePropertyChanged(nameof(IsSelected));
-                RaisePropertyChanged(nameof(DisplayDisabledFeatures));
+                OnPropertyChanged(nameof(IsSelected));
+                OnPropertyChanged(nameof(DisplayDisabledFeatures));
             }
         }
 

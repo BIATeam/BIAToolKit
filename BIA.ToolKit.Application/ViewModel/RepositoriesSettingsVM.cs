@@ -1,11 +1,11 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using BIA.ToolKit.Domain.Settings;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
 
-    public class RepositoriesSettingsVM : ObservableObject
+    public partial class RepositoriesSettingsVM : ObservableObject
     {
         //ObservableCollection<IRepositorySettings> repositoriesSettings;
 
@@ -25,7 +25,7 @@
         //    {
         //        this.repositoriesSettings.Add(repo);
         //    }
-        //    RaisePropertyChanged(nameof(RepositoriesSettings));
+        //    OnPropertyChanged(nameof(RepositoriesSettings));
         //}
 
         //private RepositorySettings repositorySettings;
@@ -38,8 +38,8 @@
         //        if (repositorySettings != value)
         //        {
         //            repositorySettings = value;
-        //            RaisePropertyChanged(nameof(RepositorySettings));
-        //            RaisePropertyChanged(nameof(IsRepoSelected));
+        //            OnPropertyChanged(nameof(RepositorySettings));
+        //            OnPropertyChanged(nameof(IsRepoSelected));
         //        }
         //    }
         //}

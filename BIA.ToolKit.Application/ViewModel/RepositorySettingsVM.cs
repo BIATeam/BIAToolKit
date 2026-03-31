@@ -1,9 +1,9 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using BIA.ToolKit.Domain.Settings;
 
-    public class RepositorySettingsVM : ObservableObject
+    public partial class RepositorySettingsVM : ObservableObject
     {
 
         //public RepositorySettingsVM()
@@ -20,14 +20,14 @@
         //        if (repositorySettings != value)
         //        {
         //            repositorySettings = value;
-        //            RaisePropertyChanged("Name");
-        //            RaisePropertyChanged("UrlRepo");
-        //            RaisePropertyChanged("UseLocalFolder");
-        //            RaisePropertyChanged("LocalFolderPath");
-        //            RaisePropertyChanged("Versioning");
-        //            RaisePropertyChanged("UrlRelease");
-        //            RaisePropertyChanged("CompanyName");
-        //            RaisePropertyChanged("ProjectName");
+        //            OnPropertyChanged("Name");
+        //            OnPropertyChanged("UrlRepo");
+        //            OnPropertyChanged("UseLocalFolder");
+        //            OnPropertyChanged("LocalFolderPath");
+        //            OnPropertyChanged("Versioning");
+        //            OnPropertyChanged("UrlRelease");
+        //            OnPropertyChanged("CompanyName");
+        //            OnPropertyChanged("ProjectName");
         //        }
         //    }
         //}
@@ -40,7 +40,7 @@
         //        if (RepositorySettings.Name != value)
         //        {
         //            RepositorySettings.Name = value;
-        //            RaisePropertyChanged("Name");
+        //            OnPropertyChanged("Name");
         //        }
         //    }
         //}
@@ -53,7 +53,7 @@
         //        if (RepositorySettings.UrlRepo != value)
         //        {
         //            RepositorySettings.UrlRepo = value;
-        //            RaisePropertyChanged("UrlRepo");
+        //            OnPropertyChanged("UrlRepo");
         //        }
         //    }
         //}
@@ -66,7 +66,7 @@
         //        if (RepositorySettings.UseLocalFolder != value)
         //        {
         //            RepositorySettings.UseLocalFolder = value;
-        //            RaisePropertyChanged("UseLocalFolder");
+        //            OnPropertyChanged("UseLocalFolder");
         //        }
         //    }
         //}
@@ -79,7 +79,7 @@
         //        if (RepositorySettings.LocalFolderPath != value)
         //        {
         //            RepositorySettings.LocalFolderPath = value;
-        //            RaisePropertyChanged("LocalFolderPath");
+        //            OnPropertyChanged("LocalFolderPath");
         //        }
         //    }
         //}
@@ -92,8 +92,8 @@
         //        if (RepositorySettings.Versioning != value)
         //        {
         //            RepositorySettings.Versioning = value;
-        //            RaisePropertyChanged("Versioning"); 
-        //            RaisePropertyChanged("IsEnabledUrlRelease");
+        //            OnPropertyChanged("Versioning"); 
+        //            OnPropertyChanged("IsEnabledUrlRelease");
         //        }
         //    }
         //}
@@ -106,7 +106,7 @@
         //        if (RepositorySettings.UrlRelease != value)
         //        {
         //            RepositorySettings.UrlRelease = value;
-        //            RaisePropertyChanged("UrlRelease");
+        //            OnPropertyChanged("UrlRelease");
         //        }
         //    }
         //}
@@ -119,7 +119,7 @@
         //        if (RepositorySettings.CompanyName != value)
         //        {
         //            RepositorySettings.CompanyName = value;
-        //            RaisePropertyChanged("CompanyName");
+        //            OnPropertyChanged("CompanyName");
         //        }
         //    }
         //}
@@ -132,7 +132,7 @@
         //        if (RepositorySettings.ProjectName != value)
         //        {
         //            RepositorySettings.ProjectName = value;
-        //            RaisePropertyChanged("ProjectName");
+        //            OnPropertyChanged("ProjectName");
         //        }
         //    }
         //}

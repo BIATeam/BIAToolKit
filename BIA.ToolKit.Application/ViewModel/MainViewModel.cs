@@ -1,19 +1,19 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using System;
     using System.Collections.ObjectModel;
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
-    using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Settings;
     using Octokit;
 
-    public class MainViewModel : ObservableObject
+    public partial class MainViewModel : ObservableObject
     {
         private readonly Version applicationVersion;
         private readonly UIEventBroker eventBroker;
@@ -121,12 +121,10 @@
             settingsService.SetTemplateRepositories(TemplateRepositories.Select(x => x.Model).ToList());
         }
 
-        public ICommand OpenToolkitRepositorySettingsCommand => new RelayCommand((_) => eventBroker.RequestOpenRepositoryForm(ToolkitRepository, RepositoryFormMode.Edit));
+        [RelayCommand]
+        private void OpenToolkitRepositorySettings() => eventBroker.RequestOpenRepositoryForm(ToolkitRepository, RepositoryFormMode.Edit);
 
-        public ICommand AddTemplateRepositoryCommand => new RelayCommand((_) => AddTemplateRepository());
-
-        public ICommand AddCompanyFilesRepositoryCommand => new RelayCommand((_) => AddCompanyFilesRepository());
-
+        [RelayCommand]
         private void AddTemplateRepository()
         {
             waitAddTemplateRepository = true;
@@ -134,6 +132,7 @@
             eventBroker.RequestOpenRepositoryForm(new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, eventBroker, consoleWriter), RepositoryFormMode.Create);
         }
 
+        [RelayCommand]
         private void AddCompanyFilesRepository()
         {
             waitAddCompanyFilesRepository = true;
@@ -151,7 +150,7 @@
             set
             {
                 toolkitRepository = value;
-                RaisePropertyChanged(nameof(ToolkitRepository));
+                OnPropertyChanged(nameof(ToolkitRepository));
             }
         }
 
@@ -210,11 +209,11 @@
                 firstTimeSettingsUpdated = false;
             }
 
-            RaisePropertyChanged(nameof(Settings_RootProjectsPath));
-            RaisePropertyChanged(nameof(Settings_CreateCompanyName));
-            RaisePropertyChanged(nameof(Settings_UseCompanyFiles));
-            RaisePropertyChanged(nameof(Settings_AutoUpdate));
-            RaisePropertyChanged(nameof(ToolkitRepository));
+            OnPropertyChanged(nameof(Settings_RootProjectsPath));
+            OnPropertyChanged(nameof(Settings_CreateCompanyName));
+            OnPropertyChanged(nameof(Settings_UseCompanyFiles));
+            OnPropertyChanged(nameof(Settings_AutoUpdate));
+            OnPropertyChanged(nameof(ToolkitRepository));
         }
 
         public string Settings_RootProjectsPath
@@ -274,7 +273,7 @@
             set
             {
                 _updateAvailable = value;
-                RaisePropertyChanged(nameof(UpdateAvailable));
+                OnPropertyChanged(nameof(UpdateAvailable));
             }
         }
     }

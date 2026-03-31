@@ -1,8 +1,9 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -15,9 +16,8 @@
     using System.Reflection.Metadata;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
-    using System.Windows.Input;
 
-    public class DtoGeneratorViewModel : ObservableObject
+    public partial class DtoGeneratorViewModel : ObservableObject
     {
         private Project project;
         private FileGeneratorService fileGeneratorService;
@@ -68,8 +68,8 @@
             set
             {
                 isProjectChosen = value;
-                RaisePropertyChanged(nameof(IsProjectChosen));
-                RaisePropertyChanged(nameof(IsFileGeneratorInit));
+                OnPropertyChanged(nameof(IsProjectChosen));
+                OnPropertyChanged(nameof(IsFileGeneratorInit));
             }
         }
 
@@ -82,7 +82,7 @@
             set
             {
                 entities = value;
-                RaisePropertyChanged(nameof(Entities));
+                OnPropertyChanged(nameof(Entities));
             }
         }
 
@@ -93,7 +93,7 @@
             set
             {
                 entity = value;
-                RaisePropertyChanged(nameof(Entity));
+                OnPropertyChanged(nameof(Entity));
                 AncestorTeam = null;
                 EntityDomain = null;
 
@@ -107,8 +107,8 @@
                     }
                 }
 
-                RaisePropertyChanged(nameof(IsEntitySelected));
-                RaisePropertyChanged(nameof(IsAuditable));
+                OnPropertyChanged(nameof(IsEntitySelected));
+                OnPropertyChanged(nameof(IsAuditable));
 
                 RefreshEntityPropertiesTreeView();
                 RemoveAllMappingProperties();
@@ -129,8 +129,8 @@
             set
             {
                 entityDomain = value;
-                RaisePropertyChanged(nameof(EntityDomain));
-                RaisePropertyChanged(nameof(IsGenerationEnabled));
+                OnPropertyChanged(nameof(EntityDomain));
+                OnPropertyChanged(nameof(IsGenerationEnabled));
             }
         }
 
@@ -142,7 +142,7 @@
             set 
             { 
                 ancestorTeam = value; 
-                RaisePropertyChanged(nameof(AncestorTeam));
+                OnPropertyChanged(nameof(AncestorTeam));
             }
         }
 
@@ -162,8 +162,8 @@
             set
             {
                 mappingEntityProperties = value;
-                RaisePropertyChanged(nameof(MappingEntityProperties));
-                RaisePropertyChanged(nameof(IsGenerationEnabled));
+                OnPropertyChanged(nameof(MappingEntityProperties));
+                OnPropertyChanged(nameof(IsGenerationEnabled));
             }
         }
 
@@ -174,7 +174,7 @@
             set
             {
                 wasAlreadyGenerated = value;
-                RaisePropertyChanged(nameof(WasAlreadyGenerated));
+                OnPropertyChanged(nameof(WasAlreadyGenerated));
             }
         }
 
@@ -185,7 +185,7 @@
             set
             {
                 _isTeam = value;
-                RaisePropertyChanged(nameof(IsTeam));
+                OnPropertyChanged(nameof(IsTeam));
             }
         }
 
@@ -196,7 +196,7 @@
             set
             {
                 _isVersioned = value;
-                RaisePropertyChanged(nameof(IsVersioned));
+                OnPropertyChanged(nameof(IsVersioned));
             }
         }
 
@@ -207,7 +207,7 @@
             set
             {
                 _isArchivable = value;
-                RaisePropertyChanged(nameof(IsArchivable));
+                OnPropertyChanged(nameof(IsArchivable));
             }
         }
 
@@ -218,7 +218,7 @@
             set
             {
                 _isFixable = value;
-                RaisePropertyChanged(nameof(IsFixable));
+                OnPropertyChanged(nameof(IsFixable));
             }
         }
 
@@ -231,8 +231,8 @@
             set 
             { 
                 selectedBaseKeyType = value; 
-                RaisePropertyChanged(nameof(SelectedBaseKeyType));
-                RaisePropertyChanged(nameof(IsGenerationEnabled));
+                OnPropertyChanged(nameof(SelectedBaseKeyType));
+                OnPropertyChanged(nameof(IsGenerationEnabled));
             }
         }
 
@@ -244,7 +244,7 @@
             set 
             { 
                 useDedicatedAudit = value; 
-                RaisePropertyChanged(nameof(UseDedicatedAudit));
+                OnPropertyChanged(nameof(UseDedicatedAudit));
             }
         }
 
@@ -258,17 +258,13 @@
         public bool IsAuditable => Entity?.IsAuditable == true;
         public bool IsVisibleUseDedicatedAudit => Version.TryParse(project?.FrameworkVersion, out var version) && version.Major >= 6;
 
-        public ICommand RemoveMappingPropertyCommand => new RelayCommand<MappingEntityProperty>(RemoveMappingProperty);
-        public ICommand MoveMappedPropertyCommand => new RelayCommand<MoveItemArgs>(x => MoveMappedProperty(x.OldIndex, x.NewIndex));
-        public ICommand SetMappedPropertyIsParentCommand => new RelayCommand<MappingEntityProperty>(SetMappedPropertyIsParent);
-
         public void SetProject(Project project)
         {
             ProjectDomainNamespace = GetProjectDomainNamespace(project);
             IsProjectChosen = true;
 
             this.project = project;
-            RaisePropertyChanged(nameof(IsVisibleUseDedicatedAudit));
+            OnPropertyChanged(nameof(IsVisibleUseDedicatedAudit));
         }
 
         public void Inject(FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter)
@@ -385,8 +381,8 @@
                 }
             }
 
-            RaisePropertyChanged(nameof(HasMappingProperties));
-            RaisePropertyChanged(nameof(IsGenerationEnabled));
+            OnPropertyChanged(nameof(HasMappingProperties));
+            OnPropertyChanged(nameof(IsGenerationEnabled));
         }
 
         private void AddMappingProperties(IEnumerable<EntityProperty> entityProperties, List<MappingEntityProperty> mappingEntityProperties)
@@ -536,16 +532,18 @@
             return regex.Match(optionType).Groups[1].Value;
         }
 
+        [RelayCommand]
         private void RemoveMappingProperty(MappingEntityProperty mappingEntityProperty)
         {
             MappingEntityProperties.Remove(mappingEntityProperty);
 
             ComputePropertiesValidity();
 
-            RaisePropertyChanged(nameof(HasMappingProperties));
-            RaisePropertyChanged(nameof(IsGenerationEnabled));
+            OnPropertyChanged(nameof(HasMappingProperties));
+            OnPropertyChanged(nameof(IsGenerationEnabled));
         }
 
+        [RelayCommand]
         private void SetMappedPropertyIsParent(MappingEntityProperty mappingEntityProperty)
         {
             var newValue = mappingEntityProperty.IsParent;
@@ -560,8 +558,8 @@
         {
             MappingEntityProperties.Clear();
 
-            RaisePropertyChanged(nameof(HasMappingProperties));
-            RaisePropertyChanged(nameof(IsGenerationEnabled));
+            OnPropertyChanged(nameof(HasMappingProperties));
+            OnPropertyChanged(nameof(IsGenerationEnabled));
         }
 
         public void ComputePropertiesValidity()
@@ -582,7 +580,7 @@
                 }
             }
 
-            RaisePropertyChanged(nameof(IsGenerationEnabled));
+            OnPropertyChanged(nameof(IsGenerationEnabled));
         }
 
         public void Clear()
@@ -593,16 +591,17 @@
             project = null;
         }
 
-        private void MoveMappedProperty(int oldIndex, int newIndex)
+        [RelayCommand]
+        private void MoveMappedProperty(MoveItemArgs args)
         {
-            if (oldIndex == newIndex || oldIndex < 0 || newIndex < 0 || oldIndex >= MappingEntityProperties.Count || newIndex >= MappingEntityProperties.Count)
+            if (args.OldIndex == args.NewIndex || args.OldIndex < 0 || args.NewIndex < 0 || args.OldIndex >= MappingEntityProperties.Count || args.NewIndex >= MappingEntityProperties.Count)
                 return;
 
-            MappingEntityProperties.Move(oldIndex, newIndex);
+            MappingEntityProperties.Move(args.OldIndex, args.NewIndex);
         }
     }
 
-    public class EntityProperty : ObservableObject
+    public partial class EntityProperty : ObservableObject
     {
         public string Name { get; set; }
         public string Type { get; set; }
@@ -614,7 +613,7 @@
             set
             {
                 isSelected = value;
-                RaisePropertyChanged(nameof(IsSelected));
+                OnPropertyChanged(nameof(IsSelected));
             }
         }
         public string CompositeName { get; set; }
@@ -629,7 +628,7 @@
         }
     }
 
-    public class MappingEntityProperty : ObservableObject
+    public partial class MappingEntityProperty : ObservableObject
     {
         public string EntityCompositeName { get; set; }
         public string EntityType { get; set; }
@@ -639,7 +638,7 @@
         {
             // Inteligent getter to simplify unitary test
             get { if (mappingName != null) { return mappingName; } else { return EntityCompositeName; } }
-            set { mappingName = value; RaisePropertyChanged(nameof(MappingName)); }
+            set { mappingName = value; OnPropertyChanged(nameof(MappingName)); }
         }
 
         private string mappingType = null;
@@ -662,7 +661,7 @@
             set
             {
                 isRequired = value;
-                RaisePropertyChanged(nameof(IsRequired));
+                OnPropertyChanged(nameof(IsRequired));
             }
         }
 
@@ -677,7 +676,7 @@
             set
             {
                 optionDisplayProperty = value;
-                RaisePropertyChanged(nameof(OptionDisplayProperty));
+                OnPropertyChanged(nameof(OptionDisplayProperty));
             }
         }
 
@@ -688,7 +687,7 @@
             set
             {
                 optionIdProperty = value;
-                RaisePropertyChanged(nameof(OptionIdProperty));
+                OnPropertyChanged(nameof(OptionIdProperty));
             }
         }
 
@@ -705,7 +704,7 @@
                 OptionEntityIdPropertyComposite = IsCompositeName ?
                     string.Join(".", EntityCompositeName.Split('.').SkipLast(1)) + $".{value}" :
                     value;
-                RaisePropertyChanged(nameof(OptionEntityIdProperty));
+                OnPropertyChanged(nameof(OptionEntityIdProperty));
             }
         }
         
@@ -721,7 +720,7 @@
             set
             {
                 mappingDateType = value;
-                RaisePropertyChanged(nameof(MappingDateType));
+                OnPropertyChanged(nameof(MappingDateType));
             }
         }
 
@@ -739,8 +738,8 @@
             set 
             { 
                 mappingNameError = value; 
-                RaisePropertyChanged(nameof(MappingNameError));
-                RaisePropertyChanged(nameof(HasMappingNameError));
+                OnPropertyChanged(nameof(MappingNameError));
+                OnPropertyChanged(nameof(HasMappingNameError));
             }
         }
 
@@ -751,7 +750,7 @@
             set 
             { 
                 isParent = value; 
-                RaisePropertyChanged(nameof(IsParent));
+                OnPropertyChanged(nameof(IsParent));
             }
         }
 
