@@ -1,16 +1,13 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Domain;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
 
-    public class RepositoryFormViewModel(RepositoryViewModel repository, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter) : ObservableObject
+    public partial class RepositoryFormViewModel(RepositoryViewModel repository, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter, IDialogService dialogService) : ObservableObject
     {
         public RepositoryViewModel Repository
         {
@@ -18,7 +15,7 @@
             set
             {
                 repository = value;
-                RaisePropertyChanged(nameof(Repository));
+                OnPropertyChanged(nameof(Repository));
             }
         }
 
@@ -62,9 +59,27 @@
                         IsVisibleCompanyName = repository.IsVisibleCompanyName,
                         IsVisibleProjectName = repository.IsVisibleProjectName
                     },
-                        _ => throw new NotImplementedException(),
+                    _ => throw new NotImplementedException(),
                 };
-                RaisePropertyChanged(nameof(RepositoryType));
+                OnPropertyChanged(nameof(RepositoryType));
+            }
+        }
+
+        [RelayCommand]
+        private void BrowseLocalClonedFolder()
+        {
+            if (Repository is RepositoryGitViewModel repositoryGit)
+            {
+                repositoryGit.LocalClonedFolderPath = dialogService.BrowseFolder(repositoryGit.LocalClonedFolderPath, "Choose local cloned folder");
+            }
+        }
+
+        [RelayCommand]
+        private void BrowseRepositoryFolder()
+        {
+            if (Repository is RepositoryFolderViewModel repositoryFolder)
+            {
+                repositoryFolder.Path = dialogService.BrowseFolder(repositoryFolder.Path, "Choose source folder");
             }
         }
     }

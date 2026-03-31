@@ -11,6 +11,12 @@ namespace BIA.ToolKit.Application.Helper
         /// Shows a log detail dialog with the given messages.
         /// </summary>
         bool? ShowLogDetail(List<LogMessage> messages);
+
+        /// <summary>
+        /// Opens a folder browser dialog and returns the selected path.
+        /// Returns <paramref name="defaultFolder"/> if the user cancels.
+        /// </summary>
+        string BrowseFolder(string defaultFolder, string description = null);
     }
 
     /// <summary>

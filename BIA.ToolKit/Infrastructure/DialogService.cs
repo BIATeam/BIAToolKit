@@ -29,5 +29,10 @@ namespace BIA.ToolKit.Infrastructure
             var dialog = new LogDetailUC { Owner = owner };
             return dialog.ShowDialogWithMessages(wpfMessages);
         }
+
+        public string BrowseFolder(string defaultFolder, string description = null)
+        {
+            return FileDialog.BrowseFolder(defaultFolder, description);
+        }
     }
 }
