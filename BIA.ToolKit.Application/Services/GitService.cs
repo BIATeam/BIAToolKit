@@ -89,7 +89,7 @@
             int result = await RunScript("git", $"diff --ignore-blank-lines --no-index --binary {name1} {name2} --output={migrateFilePath}", rootPath);
             if (result == 0)
             {
-                outPut.AddMessageLine("Error durring diff folder: No difference found ", "Red");
+                outPut.AddMessageLine("Diff folder: No difference found ", "Green");
                 return false;
             }
             else if (result == 1)

@@ -1,0 +1,47 @@
+<UserControl x:Class="BIA.ToolKit.UserControls.GenerateUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:Height="550" d:Width="1280">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+    </UserControl.Resources>
+    <Grid x:Name="TabGenerate">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <uc:ProjectSelectorUC x:Name="ProjectSelector" Grid.Row="0" Margin="10"/>
+        <Grid Grid.Row="1" Margin="10,0,10,0">
+            <Grid Background="Black" Opacity="0.2"/>
+            <TabControl x:Name="TabActions">
+                <TabItem x:Name="TabOptionGenerator" Header="Option" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <Grid>
+                            <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
+                            <uc:OptionGeneratorUC x:Name="OptionGenerator" Margin="10" />
+                        </Grid>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem x:Name="TabDtoGenerator" Header="DTO" IsEnabled="{Binding IsFileGeneratorServiceInit, Mode=OneWay}">
+                    <Grid>
+                        <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
+                        <uc:DtoGeneratorUC x:Name="DtoGenerator" Margin="10"/>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="TabCrudGenerator" Header="CRUD" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <Grid>
+                            <Grid Background="Black" Opacity="0.2" Grid.ColumnSpan="2"/>
+                            <uc:CRUDGeneratorUC x:Name="CRUDGenerator" Margin="10"/>
+                        </Grid>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Grid>
+</UserControl>

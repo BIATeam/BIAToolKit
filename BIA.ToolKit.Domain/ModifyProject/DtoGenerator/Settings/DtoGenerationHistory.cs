@@ -15,6 +15,8 @@
     {
         public DateTime DateTime { get; set; }
         public string EntityName { get; set; }
+        public string EntityNamePlural { get; set; }
+        public string FrameworkVersion { get; set; }
         public string EntityNamespace { get; set; }
         public string Domain { get; set; }
         public string AncestorTeam { get; set; }

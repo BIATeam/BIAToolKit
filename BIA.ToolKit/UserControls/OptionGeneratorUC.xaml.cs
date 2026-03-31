@@ -398,6 +398,7 @@
                 OptionGenerationHistory history = new()
                 {
                     Date = DateTime.Now,
+                    FrameworkVersion = vm.CurrentProject?.FrameworkVersion,
                     EntityNameSingular = vm.Entity.Name,
                     EntityNamePlural = vm.EntityNamePlural,
                     DisplayItem = vm.EntityDisplayItemSelected,

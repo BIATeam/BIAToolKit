@@ -13,9 +13,11 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.RegenerateFeatures;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Dialogs;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
@@ -34,32 +36,43 @@
         CRUDSettings crudSettings;
         UIEventBroker uiEventBroker;
         SettingsService settingsService;
+        RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService;
+        FeatureMigrationGeneratorService featureMigrationGeneratorService;
+
+        public ModifyProjectViewModel ViewModel => _viewModel;
 
         public ModifyProjectUC()
         {
             InitializeComponent();
-            _viewModel = (ModifyProjectViewModel)base.DataContext;
         }
 
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
+            FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
+            FeatureMigrationGeneratorService featureMigrationGeneratorService, ProjectViewModel projectViewModel)
         {
+            _viewModel = new ModifyProjectViewModel(uiEventBroker);
+            this.DataContext = _viewModel;
+
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
             MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
             MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
-            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
-            OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
-            DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
+            this.regenerateFeaturesDiscoveryService = regenerateFeaturesDiscoveryService;
+            this.featureMigrationGeneratorService = featureMigrationGeneratorService;
             this.crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.settingsService = settingsService;
-            _viewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
 
-            uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
+            ProjectSelector.Inject(projectViewModel);
+            ProjectSelector.RootPathTextChanged += (_, _) => ParameterModifyChange();
+
+            RegenerateFeatures.Inject(consoleWriter, uiEventBroker, settingsService,
+                regenerateFeaturesDiscoveryService, featureMigrationGeneratorService,
+                gitService, cSharpParserService);
+
             uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
         }
 
@@ -72,11 +85,7 @@
         private bool firstTimeSettingsUpdated = true;
         private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
         {
-            if (firstTimeSettingsUpdated)
-            {
-                _viewModel.RefreshProjetsList();
-                firstTimeSettingsUpdated = false;
-            }
+            // Settings update is handled by ProjectViewModel directly.
         }
 
         private void InitVersionAndOptionComponents()
@@ -87,11 +96,6 @@
                 _viewModel.CurrentProject is null ?
                 null :
                 MigrateOriginVersionAndOption.vm.FeatureSettings.Select(x => x.FeatureSetting));
-        }
-
-        private void ModifyProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            ParameterModifyChange();
         }
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
@@ -134,7 +138,7 @@
                 return false;
             }
 
-            MigratePreparePath(out _, out string projectOriginPath, out _, out _, out string projectTargetPath, out _);
+            MigratePreparePath(out _, out string projectOriginPath, out string projectOriginalVersion, out _, out string projectTargetPath, out string projectTargetVersion);
 
             if (!await GenerateProjects(true, projectOriginPath, projectTargetPath))
             {
@@ -372,16 +376,6 @@
             MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
 
             await projectCreatorService.OverwriteBIAFolder(projectTargetPath, _viewModel.ModifyProject.CurrentProject.Folder, actionFinishedAtEnd);
-        }
-
-        private void ModifyProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.RootProjectsPath = FileDialog.BrowseFolder(_viewModel.RootProjectsPath, "Choose modify project root path");
-        }
-
-        private void RefreshProjectFolderList_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.RefreshProjetsList();
         }
 
         private void FixUsings_Click(object sender, RoutedEventArgs e)

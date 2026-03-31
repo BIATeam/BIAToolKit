@@ -545,6 +545,7 @@
                 CRUDGenerationHistory history = new()
                 {
                     Date = DateTime.Now,
+                    FrameworkVersion = vm.CurrentProject?.FrameworkVersion,
                     EntityNameSingular = vm.CRUDNameSingular,
                     EntityNamePlural = vm.CRUDNamePlural,
                     DisplayItem = vm.DtoDisplayItemSelected,

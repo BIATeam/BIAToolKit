@@ -1,0 +1,178 @@
+<UserControl x:Class="BIA.ToolKit.UserControls.RegenerateFeaturesUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1280">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Two-panel area -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ── Left panel: generated features by entity ──────────────── -->
+            <GroupBox Grid.Column="0" Header="Generated features" Foreground="White"
+                      Style="{StaticResource MaterialDesignGroupBox}"
+                      materialDesign:ColorZoneAssist.Mode="Custom"
+                      materialDesign:ColorZoneAssist.Background="#608000"
+                      materialDesign:ColorZoneAssist.Foreground="White">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Column headers -->
+                    <Grid Grid.Row="0" Margin="5,4,5,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="80"/>
+                        </Grid.ColumnDefinitions>
+                        <CheckBox Grid.Column="0" Content="All" Foreground="White" FontWeight="Bold"
+                                  IsChecked="{Binding SelectAllEntities, Mode=TwoWay}"
+                                  VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="CRUD" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="Option" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Grid.Column="3" Text="DTO" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- No entities message -->
+                    <TextBlock Grid.Row="1" Margin="10" Visibility="{Binding NoEntities, Converter={StaticResource BoolToVisConverter}}"
+                               Text="No features found that can be regenerated." Foreground="LightGray" FontStyle="Italic" VerticalAlignment="Top"/>
+
+                    <!-- Entity rows -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="10,10,0,0">
+                        <ItemsControl ItemsSource="{Binding EntityRows}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#404040" BorderThickness="0,0,0,1" Padding="5,4">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="80"/>
+                                                <ColumnDefinition Width="80"/>
+                                                <ColumnDefinition Width="80"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Entity name with select-all checkbox -->
+                                            <CheckBox Grid.Column="0"
+                                                      Foreground="White" FontWeight="Bold"
+                                                      Content="{Binding EntityNameSingular}"
+                                                      IsChecked="{Binding IsEntitySelected}"
+                                                      VerticalAlignment="Center"/>
+
+                                            <!-- CRUD checkbox -->
+                                            <CheckBox Grid.Column="1"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                      Foreground="White"
+                                                      IsChecked="{Binding IsCrudSelected, Mode=TwoWay}"
+                                                      IsEnabled="{Binding IsCrudEnabled}"
+                                                      Visibility="{Binding HasCrud, Converter={StaticResource BoolToVisConverter}}"/>
+
+                                            <!-- Option checkbox -->
+                                            <CheckBox Grid.Column="2"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                      Foreground="White"
+                                                      IsChecked="{Binding IsOptionSelected, Mode=TwoWay}"
+                                                      IsEnabled="{Binding IsOptionEnabled}"
+                                                      Visibility="{Binding HasOption, Converter={StaticResource BoolToVisConverter}}"/>
+
+                                            <!-- DTO checkbox -->
+                                            <CheckBox Grid.Column="3"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                      Foreground="White"
+                                                      IsChecked="{Binding IsDtoSelected, Mode=TwoWay}"
+                                                      IsEnabled="{Binding IsDtoEnabled}"
+                                                      Visibility="{Binding HasDto, Converter={StaticResource BoolToVisConverter}}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </GroupBox>
+
+            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" Background="#404040"/>
+
+            <!-- ── Right panel: summary with editable FROM version ────────── -->
+            <GroupBox Grid.Column="2" Header="Selected for regeneration" Foreground="White"
+                      Style="{StaticResource MaterialDesignGroupBox}"
+                      materialDesign:ColorZoneAssist.Mode="Custom"
+                      materialDesign:ColorZoneAssist.Background="#608000"
+                      materialDesign:ColorZoneAssist.Foreground="White">
+                <DataGrid ItemsSource="{Binding SelectedFeatures}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          Background="#323232"
+                          Foreground="White"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="#404040"
+                          RowBackground="#2A2A2A"
+                          AlternatingRowBackground="#303030"
+                          materialDesign:DataGridAssist.CellPadding="8 4"
+                          materialDesign:DataGridAssist.ColumnHeaderPadding="8 4">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Entity" Binding="{Binding EntityNameSingular}" Width="*" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Feature" Binding="{Binding FeatureType}" Width="80" IsReadOnly="True"/>
+                        <!-- From version: read-only label when stored in history, inline ComboBox when missing -->
+                        <DataGridTemplateColumn Header="From version" Width="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <!-- Stored version: displayed as text -->
+                                        <TextBlock Text="{Binding StoredFromVersion}" Foreground="White"
+                                                   Visibility="{Binding IsFromVersionFixed, Converter={StaticResource BoolToVisConverter}}"
+                                                   VerticalAlignment="Center"/>
+                                        <!-- No stored version: inline ComboBox -->
+                                        <ComboBox ItemsSource="{Binding AvailableVersions}"
+                                                  SelectedItem="{Binding FromVersionOverride, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                  Visibility="{Binding IsFromVersionEditable, Converter={StaticResource BoolToVisConverter}}"
+                                                  materialDesign:HintAssist.Hint="Select version"
+                                                  Style="{StaticResource MaterialDesignComboBox}"
+                                                  Foreground="White"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="To version" Binding="{Binding ToVersion}" Width="90" IsReadOnly="True"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+        </Grid>
+
+        <!-- ── Action buttons ─────────────────────────────────────────────── -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button x:Name="ReloadButton"
+                    Content="Clear"
+                    Margin="0,0,10,0"
+                    Click="Reload_Click"/>
+            <Button x:Name="RegenerateButton"
+                    Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}"
+                    Content="Regenerate selected features"
+                    IsEnabled="{Binding CanRegenerate}"
+                    Click="Regenerate_Click"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
