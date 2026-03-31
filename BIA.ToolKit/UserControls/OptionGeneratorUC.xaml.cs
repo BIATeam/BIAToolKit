@@ -20,10 +20,6 @@
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
-    using System.Windows.Input;
-    using System.Windows.Markup;
-    using Windows.Data.Xml.Dom;
-    using static BIA.ToolKit.Application.Services.UIEventBroker;
 
     /// <summary>
     /// Interaction logic for OptionGenerator.xaml
