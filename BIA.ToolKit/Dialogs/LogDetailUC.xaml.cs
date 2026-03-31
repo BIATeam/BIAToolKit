@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Dialogs
 {
     using BIA.ToolKit.Helper;
+    using BIA.ToolKit.Infrastructure;
     using BIA.ToolKit.ViewModels;
     using System.Collections.Generic;
     using System.ComponentModel;
@@ -14,33 +15,38 @@
     /// </summary>
     public partial class LogDetailUC : Window
     {
+        /// <summary>
+        /// Strongly-typed ViewModel accessor using extension method
+        /// </summary>
+        public LogDetailViewModel ViewModel => this.GetViewModel<LogDetailViewModel>();
+
         public LogDetailUC()
         {
             InitializeComponent();
 
             // Listen to ViewModel property changes for UI updates
-            if (DataContext is LogDetailViewModel viewModel)
+            if (ViewModel != null)
             {
-                viewModel.PropertyChanged += ViewModel_PropertyChanged;
+                ViewModel.PropertyChanged += ViewModel_PropertyChanged;
             }
 
             // Detach handler when window closes to prevent memory leaks
             Closed += (s, e) =>
             {
-                if (DataContext is LogDetailViewModel vm)
+                if (ViewModel != null)
                 {
-                    vm.PropertyChanged -= ViewModel_PropertyChanged;
+                    ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
                 }
             };
         }
 
         private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(LogDetailViewModel.Messages) && DataContext is LogDetailViewModel vm)
+            if (e.PropertyName == nameof(LogDetailViewModel.Messages) && ViewModel != null)
             {
                 // UI Logic: Update TextBlock with colored messages when Messages change
                 OutputDetailText.Inlines.Clear();
-                foreach (ConsoleWriter.Message msg in vm.Messages)
+                foreach (ConsoleWriter.Message msg in ViewModel.Messages)
                 {
                     ConsoleWriter.AddMsgLine(OutputDetailText, OutputDetailTextViewer, msg.message, msg.color);
                 }
@@ -53,10 +59,7 @@
         /// </summary>
         internal bool? ShowDialogWithMessages(List<ConsoleWriter.Message> messages)
         {
-            if (DataContext is LogDetailViewModel viewModel)
-            {
-                viewModel.ShowDialog(messages);
-            }
+            ViewModel?.ShowDialog(messages);
             return ShowDialog();
         }
     }

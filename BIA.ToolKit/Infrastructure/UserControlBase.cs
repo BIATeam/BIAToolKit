@@ -5,13 +5,13 @@ namespace BIA.ToolKit.Infrastructure
     using System.Windows.Controls;
 
     /// <summary>
-    /// Helper class providing strongly-typed ViewModel access for UserControls
-    /// Use this as a mixin pattern since XAML already defines UserControl as base class
+    /// Helper class providing strongly-typed ViewModel access for UserControls and Windows
+    /// Use this as a mixin pattern since XAML already defines UserControl/Window as base class
     /// </summary>
-    public static class UserControlViewModelHelper
+    public static class ViewModelHelper
     {
         /// <summary>
-        /// Gets the strongly-typed ViewModel from DataContext
+        /// Gets the strongly-typed ViewModel from DataContext for UserControls
         /// Returns null if DataContext is not of type TViewModel
         /// </summary>
         public static TViewModel GetViewModel<TViewModel>(this UserControl control)
@@ -21,12 +21,34 @@ namespace BIA.ToolKit.Infrastructure
         }
 
         /// <summary>
-        /// Sets up automatic ViewModel property notification when DataContext changes
+        /// Gets the strongly-typed ViewModel from DataContext for Windows
+        /// Returns null if DataContext is not of type TViewModel
+        /// </summary>
+        public static TViewModel GetViewModel<TViewModel>(this Window window)
+            where TViewModel : ObservableObject
+        {
+            return window.DataContext as TViewModel;
+        }
+
+        /// <summary>
+        /// Sets up automatic ViewModel property notification when DataContext changes for UserControls
         /// </summary>
         public static void SetupViewModelBinding<TViewModel>(this UserControl control, System.Action onViewModelChanged = null)
             where TViewModel : ObservableObject
         {
             control.DataContextChanged += (sender, e) =>
+            {
+                onViewModelChanged?.Invoke();
+            };
+        }
+
+        /// <summary>
+        /// Sets up automatic ViewModel property notification when DataContext changes for Windows
+        /// </summary>
+        public static void SetupViewModelBinding<TViewModel>(this Window window, System.Action onViewModelChanged = null)
+            where TViewModel : ObservableObject
+        {
+            window.DataContextChanged += (sender, e) =>
             {
                 onViewModelChanged?.Invoke();
             };
