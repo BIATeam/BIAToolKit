@@ -22,11 +22,6 @@
         /// </summary>
         public VersionAndOptionViewModel ViewModel => this.GetViewModel<VersionAndOptionViewModel>();
 
-        /// <summary>
-        /// Public accessor to ViewModel for backward compatibility
-        /// </summary>
-        public VersionAndOptionViewModel vm => ViewModel;
-
         public VersionAndOptionUserControl()
         {
             InitializeComponent();

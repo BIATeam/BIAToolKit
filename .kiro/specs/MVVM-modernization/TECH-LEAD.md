@@ -276,11 +276,6 @@ public partial class VersionAndOptionUserControl : UserControl
     /// </summary>
     public VersionAndOptionViewModel ViewModel => this.GetViewModel<VersionAndOptionViewModel>();
 
-    /// <summary>
-    /// Public accessor to ViewModel for backward compatibility
-    /// </summary>
-    public VersionAndOptionViewModel vm => ViewModel;
-
     public VersionAndOptionUserControl()
     {
         InitializeComponent();
@@ -312,7 +307,6 @@ public partial class VersionAndOptionUserControl : UserControl
 - ✅ Accès typé au ViewModel sans cast répétitif
 - ✅ Null-safe avec l'opérateur `?.`
 - ✅ Code plus lisible et maintenable
-- ✅ Propriété `vm` pour backward compatibility
 - ✅ IntelliSense complet sur le ViewModel
 
 ### Règles
@@ -391,7 +385,6 @@ public partial class VersionAndOptionUserControl : UserControl
 - [ ] Supprimer tous les champs de dépendances
 - [ ] Supprimer toutes les méthodes de Business Logic
 - [ ] Ajouter propriété `ViewModel` avec extension method: `public TViewModel ViewModel => this.GetViewModel<TViewModel>();`
-- [ ] Ajouter propriété `vm` pour backward compatibility: `public TViewModel vm => ViewModel;`
 - [ ] Garder seulement `InitializeComponent()` + `Inject()` + API publique
 - [ ] Utiliser `ViewModel?.` pour tous les appels au ViewModel
 
@@ -439,7 +432,6 @@ vm = (VersionAndOptionViewModel)base.DataContext;
 ```csharp
 // Utiliser l'extension method
 public VersionAndOptionViewModel ViewModel => this.GetViewModel<VersionAndOptionViewModel>();
-public VersionAndOptionViewModel vm => ViewModel;
 ```
 
 ### ❌ Erreur 3: Business Logic dans le code-behind
