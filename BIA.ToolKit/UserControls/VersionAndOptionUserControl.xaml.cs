@@ -12,41 +12,60 @@
     /// Interaction logic for VersionAndOptionView.xaml
     /// Code-behind contains ONLY UI logic
     /// All business logic is in VersionAndOptionViewModel
+    /// DataContext is resolved automatically via ViewModelLocator in XAML
     /// </summary>
     public partial class VersionAndOptionUserControl : UserControl
     {
-        public VersionAndOptionViewModel vm;
+        /// <summary>
+        /// Public accessor to ViewModel for backward compatibility
+        /// Prefer using DataContext pattern in new code
+        /// </summary>
+        public VersionAndOptionViewModel vm => DataContext as VersionAndOptionViewModel;
 
         public VersionAndOptionUserControl()
         {
             InitializeComponent();
-            vm = (VersionAndOptionViewModel)base.DataContext;
         }
 
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, SettingsService settingsService, UIEventBroker uiEventBroker)
         {
-            vm.Inject(repositoryService, settingsService, gitService, consoleWriter, uiEventBroker);
+            if (DataContext is VersionAndOptionViewModel viewModel)
+            {
+                viewModel.Inject(repositoryService, settingsService, gitService, consoleWriter, uiEventBroker);
+            }
         }
 
         // Public API methods that delegate to ViewModel
         public void SelectVersion(string version)
         {
-            vm.SelectVersion(version);
+            if (DataContext is VersionAndOptionViewModel viewModel)
+            {
+                viewModel.SelectVersion(version);
+            }
         }
 
         public void SetCurrentProjectPath(string path, bool mapCompanyFileVersion, bool mapFrameworkVersion, IEnumerable<FeatureSetting> originFeatureSettings = null)
         {
-            vm.SetCurrentProjectPath(path, mapCompanyFileVersion, mapFrameworkVersion, originFeatureSettings);
+            if (DataContext is VersionAndOptionViewModel viewModel)
+            {
+                viewModel.SetCurrentProjectPath(path, mapCompanyFileVersion, mapFrameworkVersion, originFeatureSettings);
+            }
         }
 
         public void LoadVersionAndOption(bool mapCompanyFileVersion, bool mapFrameworkVersion)
         {
-            vm.LoadVersionAndOption(mapCompanyFileVersion, mapFrameworkVersion);
+            if (DataContext is VersionAndOptionViewModel viewModel)
+            {
+                viewModel.LoadVersionAndOption(mapCompanyFileVersion, mapFrameworkVersion);
+            }
         }
 
         public async Task FillVersionFolderPathAsync()
         {
-            await vm.FillVersionFolderPathAsync();
+            if (DataContext is VersionAndOptionViewModel viewModel)
+            {
+                await viewModel.FillVersionFolderPathAsync();
+            }
         }
     }
 }

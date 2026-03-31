@@ -3,6 +3,7 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Dialogs;
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.ViewModels;
@@ -53,6 +54,7 @@
 
             // ViewModels (Transient for dialog ViewModels, Singleton for main ViewModels)
             services.AddTransient<LogDetailViewModel>();
+            services.AddSingleton<VersionAndOptionViewModel>();
 
             // Views
             services.AddSingleton<MainWindow>();
