@@ -52,9 +52,9 @@
             services.AddSingleton<UpdateService>();
             services.AddLogging();
 
-            // ViewModels (Transient for dialog ViewModels, Singleton for main ViewModels)
+            // ViewModels
             services.AddTransient<LogDetailViewModel>();
-            services.AddSingleton<VersionAndOptionViewModel>();
+            services.AddTransient<VersionAndOptionViewModel>();
 
             // Views
             services.AddSingleton<MainWindow>();

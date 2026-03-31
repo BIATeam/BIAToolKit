@@ -35,6 +35,10 @@
         UIEventBroker uiEventBroker;
         SettingsService settingsService;
 
+        // Strongly-typed VM accessors for the two VersionAndOption child controls
+        private VersionAndOptionViewModel OriginVersionAndOptionVM => MigrateOriginVersionAndOption.ViewModel;
+        private VersionAndOptionViewModel TargetVersionAndOptionVM => MigrateTargetVersionAndOption.ViewModel;
+
         public ModifyProjectUC()
         {
             InitializeComponent();
@@ -49,8 +53,11 @@
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
-            MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
-            MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
+
+            // Create and assign dedicated ViewModel instances for each VersionAndOption control
+            MigrateOriginVersionAndOption.DataContext = App.GetService<VersionAndOptionViewModel>();
+            MigrateTargetVersionAndOption.DataContext = App.GetService<VersionAndOptionViewModel>();
+
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
@@ -81,12 +88,12 @@
 
         private void InitVersionAndOptionComponents()
         {
-            MigrateOriginVersionAndOption.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
-            MigrateOriginVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, true, true);
-            MigrateTargetVersionAndOption.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false, false,
+            OriginVersionAndOptionVM?.SelectVersion(_viewModel.CurrentProject?.FrameworkVersion);
+            OriginVersionAndOptionVM?.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, true, true);
+            TargetVersionAndOptionVM?.SetCurrentProjectPath(_viewModel.CurrentProject?.Folder, false, false,
                 _viewModel.CurrentProject is null ?
                 null :
-                MigrateOriginVersionAndOption.vm.FeatureSettings.Select(x => x.FeatureSetting));
+                OriginVersionAndOptionVM?.FeatureSettings.Select(x => x.FeatureSetting));
         }
 
         private void ModifyProjectRootFolderText_TextChanged(object sender, TextChangedEventArgs e)
@@ -220,11 +227,11 @@
 
         private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion)
         {
-            projectOriginalVersion = MigrateOriginVersionAndOption.vm.WorkTemplate.Version;
+            projectOriginalVersion = OriginVersionAndOptionVM.WorkTemplate.Version;
             projectOriginalFolderName = _viewModel.Name + "_" + projectOriginalVersion + "_From";
             projectOriginPath = AppSettings.TmpFolderPath + projectOriginalFolderName;
 
-            projectTargetVersion = MigrateTargetVersionAndOption.vm.WorkTemplate.Version;
+            projectTargetVersion = TargetVersionAndOptionVM.WorkTemplate.Version;
             projectTargetFolderName = _viewModel.Name + "_" + projectTargetVersion + "_To";
             projectTargetPath = AppSettings.TmpFolderPath + projectTargetFolderName;
         }
@@ -237,20 +244,20 @@
                 await Task.Run(() => FileTransform.ForceDeleteDirectory(projectOriginPath));
             }
 
-            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, _viewModel.CurrentProject.BIAFronts);
+            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, OriginVersionAndOptionVM, _viewModel.CurrentProject.BIAFronts);
 
             // Create project at target version.
             if (Directory.Exists(projectTargetPath))
             {
                 await Task.Run(() => FileTransform.ForceDeleteDirectory(projectTargetPath));
             }
-            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, _viewModel.CurrentProject.BIAFronts);
+            await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, TargetVersionAndOptionVM, _viewModel.CurrentProject.BIAFronts);
 
             consoleWriter.AddMessageLine("Generate projects finished.", actionFinishedAtEnd ? "Green" : "Blue");
         }
 
         //TODO mutualiser avec celle de MainWindows
-        private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, List<string> fronts)
+        private async Task CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionViewModel versionAndOptionVM, List<string> fronts)
         {
             await this.projectCreatorService.Create(
                 actionFinishedAtEnd,
@@ -259,7 +266,7 @@
                 {
                     CompanyName = CompanyName,
                     ProjectName = ProjectName,
-                    VersionAndOption = versionAndOption.vm.VersionAndOption,
+                    VersionAndOption = versionAndOptionVM.VersionAndOption,
                     AngularFronts = fronts
                 }
             );

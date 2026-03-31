@@ -6,11 +6,9 @@ namespace BIA.ToolKit.ViewModels
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Windows.Forms;
 
     /// <summary>
-    /// ViewModel for LogDetailUC - displays detailed log messages
-    /// Pilot ViewModel for CommunityToolkit.Mvvm migration
+    /// ViewModel for LogDetailUC - displays detailed log messages.
     /// </summary>
     public partial class LogDetailViewModel : ObservableObject
     {
@@ -20,31 +18,23 @@ namespace BIA.ToolKit.ViewModels
         [ObservableProperty]
         private string outputText = string.Empty;
 
-        [ObservableProperty]
-        private bool isVisible = false;
-
         /// <summary>
-        /// Shows the dialog with messages
-        /// This is the entry point - ConsoleWriter calls this method
+        /// Initializes the VM with messages.
         /// </summary>
         public void ShowDialog(List<ConsoleWriter.Message> messages)
         {
             Messages = messages ?? new List<ConsoleWriter.Message>();
             
-            // Format messages for display
             var textBuilder = new System.Text.StringBuilder();
             foreach (var msg in Messages)
             {
                 textBuilder.AppendLine(msg.message);
             }
             OutputText = textBuilder.ToString();
-            
-            // Trigger the view to show the dialog
-            IsVisible = true;
         }
 
         /// <summary>
-        /// Copies all messages to clipboard
+        /// Copies all messages to clipboard.
         /// </summary>
         [RelayCommand]
         private void CopyToClipboard()
@@ -53,16 +43,7 @@ namespace BIA.ToolKit.ViewModels
                 return;
 
             var text = string.Join(Environment.NewLine, Messages.Select(m => m.message));
-            Clipboard.SetText(text);
-        }
-
-        /// <summary>
-        /// Closes the dialog
-        /// </summary>
-        [RelayCommand]
-        private void Close()
-        {
-            IsVisible = false;
+            System.Windows.Clipboard.SetText(text);
         }
     }
 }

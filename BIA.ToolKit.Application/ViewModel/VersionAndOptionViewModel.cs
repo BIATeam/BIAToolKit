@@ -20,7 +20,7 @@ namespace BIA.ToolKit.Application.ViewModel
     using System.Threading.Tasks;
     using System.Windows.Input;
 
-    public partial class VersionAndOptionViewModel : ObservableObject
+    public partial class VersionAndOptionViewModel : ObservableObject, IDisposable
     {
         public VersionAndOption VersionAndOption { get; set; }
         private readonly RepositoryService repositoryService;
@@ -33,6 +33,7 @@ namespace BIA.ToolKit.Application.ViewModel
         private bool areFeatureInitialized = false;
         private string currentProjectPath;
         private List<FeatureSetting> OriginFeatureSettings;
+        private bool disposed;
 
         public VersionAndOptionViewModel(
             RepositoryService repositoryService,
@@ -52,6 +53,16 @@ namespace BIA.ToolKit.Application.ViewModel
             // Subscribe to event broker events
             eventBroker.OnSettingsUpdated += OnSettingsUpdated;
             eventBroker.OnRepositoryViewModelReleaseDataUpdated += OnRepositoryViewModelReleaseDataUpdated;
+        }
+
+        public void Dispose()
+        {
+            if (disposed) return;
+            disposed = true;
+
+            eventBroker.OnSettingsUpdated -= OnSettingsUpdated;
+            eventBroker.OnRepositoryViewModelReleaseDataUpdated -= OnRepositoryViewModelReleaseDataUpdated;
+            eventBroker.OnOriginFeatureSettingsChanged -= OnOriginFeatureSettingsChanged;
         }
 
         public ObservableCollection<WorkRepository> WorkTemplates
@@ -147,42 +158,43 @@ namespace BIA.ToolKit.Application.ViewModel
 
                     if (WorkCompanyFile != null)
                     {
-                        eventBroker.RequestExecuteActionWithWaiter(async () =>
-                        {
-                            try
-                            {
-                                WorkCompanyFile.VersionFolderPath = await repositoryService.PrepareVersionFolder(WorkCompanyFile.Repository, WorkCompanyFile.Version);
-                                string fileName = WorkCompanyFile.VersionFolderPath + "\\biaCompanyFiles.json";
-
-                                string jsonString = File.ReadAllText(fileName);
-
-                                CFSettings cfSetting = JsonSerializer.Deserialize<CFSettings>(jsonString);
-
-                                var listProfiles = new List<string>();
-                                foreach (string profile in cfSetting.Profiles)
-                                {
-                                    listProfiles.Add(profile);
-                                    Profile = profile;
-                                }
-                                Profiles = new ObservableCollection<string>(listProfiles);
-
-                                var options = new List<CFOption>();
-                                foreach (CFOption option in cfSetting.Options)
-                                {
-                                    option.IsChecked = (!(option?.Default == 0));
-                                    options.Add(option);
-                                }
-                                Options = new ObservableCollection<CFOption>(options);
-
-                            }
-                            catch (Exception ex)
-                            {
-                                consoleWriter.AddMessageLine(ex.Message, "Red");
-                            }
-                        });
+                        eventBroker.RequestExecuteActionWithWaiter(() => LoadCompanyFileSettingsAsync());
                     }
                     OnPropertyChanged(nameof(WorkCompanyFile));
                 }
+            }
+        }
+
+        private async Task LoadCompanyFileSettingsAsync()
+        {
+            try
+            {
+                WorkCompanyFile.VersionFolderPath = await repositoryService.PrepareVersionFolder(WorkCompanyFile.Repository, WorkCompanyFile.Version);
+                string fileName = Path.Combine(WorkCompanyFile.VersionFolderPath, "biaCompanyFiles.json");
+
+                string jsonString = await Task.Run(() => File.ReadAllText(fileName));
+
+                CFSettings cfSetting = JsonSerializer.Deserialize<CFSettings>(jsonString);
+
+                var listProfiles = new List<string>();
+                foreach (string profile in cfSetting.Profiles)
+                {
+                    listProfiles.Add(profile);
+                    Profile = profile;
+                }
+                Profiles = new ObservableCollection<string>(listProfiles);
+
+                var options = new List<CFOption>();
+                foreach (CFOption option in cfSetting.Options)
+                {
+                    option.IsChecked = (!(option?.Default == 0));
+                    options.Add(option);
+                }
+                Options = new ObservableCollection<CFOption>(options);
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine(ex.Message, "Red");
             }
         }
 

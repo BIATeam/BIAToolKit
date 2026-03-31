@@ -1,7 +1,6 @@
 ﻿namespace BIA.ToolKit.Helper
 {
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Dialogs;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -21,6 +20,7 @@
         TextBlock OutputText;
         ScrollViewer OutputTextViewer;
         Window WindowOwner;
+        IDialogService dialogService;
         List<Message> messages = new List<Message>();
         List<string> displayedMessages = new List<string>();
 
@@ -29,11 +29,12 @@
 
         }
 
-        public void InitOutput(TextBlock _outputText, ScrollViewer _outputTextViewer, Window _windowOwner)
+        public void InitOutput(TextBlock _outputText, ScrollViewer _outputTextViewer, Window _windowOwner, IDialogService _dialogService)
         {
             OutputText = _outputText;
             OutputTextViewer = _outputTextViewer;
             WindowOwner = _windowOwner;
+            dialogService = _dialogService;
         }
 
         public struct Message
@@ -74,10 +75,9 @@
 
         private void OpenDetail(object sender, MouseButtonEventArgs e)
         {
-            var dialog = new LogDetailUC { Owner = WindowOwner };
-
-            // Display the dialog box and read the response
-            bool? result = dialog.ShowDialogWithMessages((List<Message>)((Run)sender).DataContext);
+            var rawMessages = (List<Message>)((Run)sender).DataContext;
+            var logMessages = rawMessages.Select(m => new LogMessage { Text = m.message, Color = m.color }).ToList();
+            dialogService?.ShowLogDetail(logMessages);
         }
 
         public void Clear()

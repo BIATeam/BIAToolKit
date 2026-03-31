@@ -26,6 +26,7 @@
     using Newtonsoft.Json;
     using BIA.ToolKit.Common.Helpers;
     using System.Configuration;
+    using BIA.ToolKit.Infrastructure;
 
 
     /// <summary>
@@ -69,7 +70,7 @@
             InitializeComponent();
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
-            this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
+            this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this, new DialogService(this));
 
             txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
 

@@ -1,66 +1,45 @@
 ﻿namespace BIA.ToolKit.Dialogs
 {
     using BIA.ToolKit.Helper;
-    using BIA.ToolKit.Infrastructure;
     using BIA.ToolKit.ViewModels;
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Windows;
 
     /// <summary>
-    /// Interaction logic for LogDetailUC
-    /// Code-behind contains ONLY UI logic
-    /// All business logic is in LogDetailViewModel
-    /// DataContext is resolved automatically via ViewModelLocator in XAML
+    /// Interaction logic for LogDetailUC.
+    /// Code-behind contains ONLY UI rendering logic (colored Inlines).
+    /// DataContext is resolved via ViewModelLocator in XAML (Transient).
     /// </summary>
     public partial class LogDetailUC : Window
     {
-        /// <summary>
-        /// Strongly-typed ViewModel accessor using extension method
-        /// </summary>
-        public LogDetailViewModel ViewModel => this.GetViewModel<LogDetailViewModel>();
+        private LogDetailViewModel ViewModel => DataContext as LogDetailViewModel;
 
         public LogDetailUC()
         {
             InitializeComponent();
-
-            // Listen to ViewModel property changes for UI updates
-            if (ViewModel != null)
-            {
-                ViewModel.PropertyChanged += ViewModel_PropertyChanged;
-            }
-
-            // Detach handler when window closes to prevent memory leaks
-            Closed += (s, e) =>
-            {
-                if (ViewModel != null)
-                {
-                    ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
-                }
-            };
-        }
-
-        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(LogDetailViewModel.Messages) && ViewModel != null)
-            {
-                // UI Logic: Update TextBlock with colored messages when Messages change
-                OutputDetailText.Inlines.Clear();
-                foreach (ConsoleWriter.Message msg in ViewModel.Messages)
-                {
-                    ConsoleWriter.AddMsgLine(OutputDetailText, OutputDetailTextViewer, msg.message, msg.color);
-                }
-            }
         }
 
         /// <summary>
-        /// Entry point called by ConsoleWriter
-        /// Delegates to ViewModel immediately
+        /// Entry point called by DialogService / ConsoleWriter.
+        /// Delegates data to ViewModel, then renders colored Inlines (pure UI).
         /// </summary>
         internal bool? ShowDialogWithMessages(List<ConsoleWriter.Message> messages)
         {
             ViewModel?.ShowDialog(messages);
+            RenderMessages(messages);
             return ShowDialog();
+        }
+
+        private void RenderMessages(List<ConsoleWriter.Message> messages)
+        {
+            OutputDetailText.Inlines.Clear();
+            if (messages == null) return;
+
+            foreach (var msg in messages)
+            {
+                ConsoleWriter.AddMsgLine(OutputDetailText, OutputDetailTextViewer, msg.message, msg.color);
+            }
         }
     }
 }
