@@ -35,7 +35,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
-                                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" ToolTip="{Binding Description}" Command="{Binding DataContext.OnFeatureSettingSelectionChangedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Foreground="White" Margin="0,5" />
+                                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" ToolTip="{Binding Description}" Command="{Binding DataContext.OnFeatureSettingSelectionChangedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Foreground="White" />
                                     <materialDesign:PackIcon Margin="5,0,0,0" Height="20" Width="20" VerticalAlignment="Center" Kind="AlertCircle" Visibility="{Binding DisplayDisabledFeatures, Converter={StaticResource BoolToVisConverter}}">
                                         <materialDesign:PackIcon.ToolTip>
                                             <StackPanel Orientation="Horizontal">
@@ -94,7 +94,7 @@
                             <ItemsControl Grid.Row="1" ItemsSource="{Binding Options}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,5" />
+                                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" />
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
