@@ -23,6 +23,15 @@
             {
                 viewModel.PropertyChanged += ViewModel_PropertyChanged;
             }
+
+            // Detach handler when window closes to prevent memory leaks
+            Closed += (s, e) =>
+            {
+                if (DataContext is LogDetailViewModel vm)
+                {
+                    vm.PropertyChanged -= ViewModel_PropertyChanged;
+                }
+            };
         }
 
         private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -42,7 +51,7 @@
         /// Entry point called by ConsoleWriter
         /// Delegates to ViewModel immediately
         /// </summary>
-        internal bool? ShowDialog(List<ConsoleWriter.Message> messages)
+        internal bool? ShowDialogWithMessages(List<ConsoleWriter.Message> messages)
         {
             if (DataContext is LogDetailViewModel viewModel)
             {

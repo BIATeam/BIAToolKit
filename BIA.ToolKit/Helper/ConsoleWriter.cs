@@ -77,7 +77,7 @@
             var dialog = new LogDetailUC { Owner = WindowOwner };
 
             // Display the dialog box and read the response
-            bool? result = dialog.ShowDialog((List<Message>)((Run)sender).DataContext);
+            bool? result = dialog.ShowDialogWithMessages((List<Message>)((Run)sender).DataContext);
         }
 
         public void Clear()
