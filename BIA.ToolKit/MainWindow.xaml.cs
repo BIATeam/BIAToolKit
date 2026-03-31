@@ -68,10 +68,6 @@
 
             InitializeComponent();
 
-            CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
-            ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, uiEventBroker);
-
             this.consoleWriter = (ConsoleWriter)consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
 
@@ -376,7 +372,7 @@
                 MessageBox.Show("Please select project name.");
                 return;
             }
-            if (CreateVersionAndOption.vm.WorkTemplate == null)
+            if (CreateVersionAndOption.ViewModel.WorkTemplate == null)
             {
                 MessageBox.Show("Please select framework version.");
                 return;
@@ -398,7 +394,7 @@
                     {
                         CompanyName = settingsService.Settings.CreateCompanyName,
                         ProjectName = CreateProjectName.Text,
-                        VersionAndOption = CreateVersionAndOption.vm.VersionAndOption,
+                        VersionAndOption = CreateVersionAndOption.ViewModel.VersionAndOption,
                         AngularFronts = new List<string> { Constants.FolderAngular }
                     });
             });

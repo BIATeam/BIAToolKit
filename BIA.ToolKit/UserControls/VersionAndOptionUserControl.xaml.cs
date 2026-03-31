@@ -27,11 +27,6 @@
             InitializeComponent();
         }
 
-        public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, SettingsService settingsService, UIEventBroker uiEventBroker)
-        {
-            ViewModel?.Inject(repositoryService, settingsService, gitService, consoleWriter, uiEventBroker);
-        }
-
         // Public API methods that delegate to ViewModel
         public void SelectVersion(string version)
         {

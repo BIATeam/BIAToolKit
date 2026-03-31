@@ -23,29 +23,31 @@ namespace BIA.ToolKit.Application.ViewModel
     public partial class VersionAndOptionViewModel : ObservableObject
     {
         public VersionAndOption VersionAndOption { get; set; }
-        private RepositoryService repositoryService;
-        private SettingsService settingsService;
-        private GitService gitService;
-        private IConsoleWriter consoleWriter;
-        private UIEventBroker eventBroker;
+        private readonly RepositoryService repositoryService;
+        private readonly SettingsService settingsService;
+        private readonly GitService gitService;
+        private readonly IConsoleWriter consoleWriter;
+        private readonly UIEventBroker eventBroker;
 
         private bool hasFeature = false;
         private bool areFeatureInitialized = false;
         private string currentProjectPath;
         private List<FeatureSetting> OriginFeatureSettings;
 
-        public VersionAndOptionViewModel()
+        public VersionAndOptionViewModel(
+            RepositoryService repositoryService,
+            SettingsService settingsService,
+            GitService gitService,
+            IConsoleWriter consoleWriter,
+            UIEventBroker eventBroker)
         {
-            VersionAndOption = new VersionAndOption();
-        }
+            this.repositoryService = repositoryService ?? throw new ArgumentNullException(nameof(repositoryService));
+            this.settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+            this.gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
+            this.consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
+            this.eventBroker = eventBroker ?? throw new ArgumentNullException(nameof(eventBroker));
 
-        public void Inject(RepositoryService repositoryService, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter, UIEventBroker eventBroker)
-        {
-            this.repositoryService = repositoryService;
-            this.settingsService = settingsService;
-            this.gitService = gitService;
-            this.consoleWriter = consoleWriter;
-            this.eventBroker = eventBroker;
+            VersionAndOption = new VersionAndOption();
 
             // Subscribe to event broker events
             eventBroker.OnSettingsUpdated += OnSettingsUpdated;
