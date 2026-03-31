@@ -11,15 +11,22 @@
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Test.Templates.Assertions;
+    using Xunit.Sdk;
     using static BIA.ToolKit.Application.Templates.Manifest;
 
-    public abstract class GenerateTestFixture() : IDisposable
+    public abstract class GenerateTestFixture(IMessageSink diagnosticMessageSink) : IDisposable
     {
-        internal class ConsoleWriterTest(Stopwatch stopwatch, string fixtureName) : IConsoleWriter
+        private sealed class DiagnosticMessage(string message) : IDiagnosticMessage
+        {
+            public string Message => message;
+            public string ToJson() => $"{{\"$type\":\"diagnostic\",\"Message\":{System.Text.Json.JsonSerializer.Serialize(message)}}}";
+        }
+
+        internal class ConsoleWriterTest(IMessageSink messageSink, Stopwatch stopwatch, string fixtureName) : IConsoleWriter
         {
             public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
             {
-                Console.WriteLine($"[{fixtureName} {stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}]\t{message}");
+                messageSink.OnMessage(new DiagnosticMessage($"[{fixtureName} {stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}]\t{message}"));
             }
         }
 
@@ -36,7 +43,7 @@
 
         protected void Init(string biaDemoArchiveName, Project biaDemoProject)
         {
-            consoleWriter = new ConsoleWriterTest(stopwatch, this.GetType().Name);
+            consoleWriter = new ConsoleWriterTest(diagnosticMessageSink, stopwatch, this.GetType().Name);
             stopwatch.Start();
 
             var biaDemoZipPath = $"..\\..\\..\\..\\BIADemoVersions\\{biaDemoArchiveName}.zip";
