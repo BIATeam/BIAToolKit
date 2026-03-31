@@ -72,6 +72,11 @@
             this.consoleWriter = (ConsoleWriter)consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this, new DialogService(this));
 
+            // Wire child controls that still use the Inject pattern
+            CreateVersionAndOption.DataContext = App.GetService<VersionAndOptionViewModel>();
+            ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
+                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, uiEventBroker);
+
             txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
 
             ViewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version, uiEventBroker, settingsService, gitService, consoleWriter);

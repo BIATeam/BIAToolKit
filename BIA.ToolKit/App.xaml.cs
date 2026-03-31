@@ -55,6 +55,7 @@
             // ViewModels
             services.AddTransient<LogDetailViewModel>();
             services.AddTransient<VersionAndOptionViewModel>();
+            services.AddTransient<ModifyProjectViewModel>();
 
             // Views
             services.AddSingleton<MainWindow>();
