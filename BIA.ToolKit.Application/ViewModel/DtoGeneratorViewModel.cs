@@ -1,27 +1,40 @@
 namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
+    using BIA.ToolKit.Application.Settings;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
-    using System.Reflection.Metadata;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
     public partial class DtoGeneratorViewModel : ObservableObject
     {
         private Project project;
+        private UIEventBroker uiEventBroker;
         private FileGeneratorService fileGeneratorService;
         private IConsoleWriter consoleWriter;
+        private CRUDSettings settings;
+        private string dtoGenerationHistoryFile;
+        private DtoGenerationHistory generationHistory = new();
+        private DtoGeneration generation;
+
+        /// <summary>
+        /// Raised after mapping properties are refreshed so the View can reset grid column widths.
+        /// </summary>
+        public event Action OnMappingRefreshed;
+
         private readonly List<string> optionCollectionsMappingTypes = new()
         {
             "icollection",
@@ -119,6 +132,8 @@ namespace BIA.ToolKit.Application.ViewModel
                 IsArchivable = entity?.IsArchivable == true;
                 SelectedBaseKeyType = entity?.BaseKeyType;
                 UseDedicatedAudit = false;
+
+                OnEntitySelected();
             }
         }
 
@@ -265,12 +280,168 @@ namespace BIA.ToolKit.Application.ViewModel
 
             this.project = project;
             OnPropertyChanged(nameof(IsVisibleUseDedicatedAudit));
+            InitHistoryFile(project);
         }
 
-        public void Inject(FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter)
+        public void Inject(FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService, UIEventBroker uiEventBroker)
         {
             this.fileGeneratorService = fileGeneratorService;
             this.consoleWriter = consoleWriter;
+            this.settings = new CRUDSettings(settingsService);
+            this.uiEventBroker = uiEventBroker;
+        }
+
+        private void InitHistoryFile(Project project)
+        {
+            dtoGenerationHistoryFile = Path.Combine(project.Folder, Constants.FolderBia, settings.DtoGenerationHistoryFileName);
+            generationHistory = File.Exists(dtoGenerationHistoryFile)
+                ? CommonTools.DeserializeJsonFile<DtoGenerationHistory>(dtoGenerationHistoryFile)
+                : new DtoGenerationHistory();
+        }
+
+        public void OnEntitySelected()
+        {
+            if (Entity is null)
+                return;
+
+            generation = generationHistory.Generations.FirstOrDefault(g => g.EntityName.Equals(Entity.Name) && g.EntityNamespace.Equals(Entity.Namespace));
+            if (generation is null)
+            {
+                WasAlreadyGenerated = false;
+                return;
+            }
+
+            WasAlreadyGenerated = true;
+            EntityDomain = generation.Domain;
+            AncestorTeam = generation.AncestorTeam;
+            IsTeam = generation.IsTeam;
+            IsVersioned = generation.IsVersioned;
+            IsFixable = generation.IsFixable;
+            IsArchivable = generation.IsArchivable;
+            SelectedBaseKeyType = generation.EntityBaseKeyType;
+            UseDedicatedAudit = generation.UseDedicatedAudit;
+
+            var allEntityProperties = AllEntityPropertiesRecursively.ToList();
+            foreach (var property in allEntityProperties)
+            {
+                property.IsSelected = false;
+            }
+            foreach (var property in generation.PropertyMappings)
+            {
+                var entityProperty = allEntityProperties.FirstOrDefault(x => x.CompositeName == property.EntityPropertyCompositeName);
+                if (entityProperty is null)
+                    continue;
+
+                entityProperty.IsSelected = true;
+            }
+
+            RefreshMappingProperties();
+
+            foreach (var property in generation.PropertyMappings)
+            {
+                var mappingProperty = MappingEntityProperties.FirstOrDefault(x => x.EntityCompositeName == property.EntityPropertyCompositeName);
+                if (mappingProperty is null)
+                    continue;
+
+                mappingProperty.MappingName = property.MappingName;
+                mappingProperty.MappingDateType = property.DateType;
+                mappingProperty.IsRequired = property.IsRequired;
+                mappingProperty.OptionIdProperty = property.OptionMappingIdProperty;
+                mappingProperty.OptionDisplayProperty = property.OptionMappingDisplayProperty;
+                mappingProperty.OptionEntityIdProperty = property.OptionMappingEntityIdProperty;
+                mappingProperty.IsParent = property.IsParent;
+            }
+
+            ComputePropertiesValidity();
+        }
+
+        [RelayCommand]
+        private void SelectProperties()
+        {
+            RefreshMappingProperties();
+            OnMappingRefreshed?.Invoke();
+            ComputePropertiesValidity();
+        }
+
+        [RelayCommand]
+        private void Generate()
+        {
+            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            {
+                UpdateHistoryFile();
+                await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext
+                {
+                    CompanyName = project.CompanyName,
+                    ProjectName = project.Name,
+                    DomainName = EntityDomain,
+                    EntityName = Entity.Name,
+                    EntityNamePlural = Entity.NamePluralized,
+                    BaseKeyType = SelectedBaseKeyType,
+                    Properties = [.. MappingEntityProperties],
+                    IsTeam = IsTeam,
+                    IsVersioned = IsVersioned,
+                    IsArchivable = IsArchivable,
+                    IsFixable = IsFixable,
+                    AncestorTeamName = AncestorTeam,
+                    HasAncestorTeam = !string.IsNullOrEmpty(AncestorTeam),
+                    GenerateBack = true,
+                    HasAudit = UseDedicatedAudit
+                });
+            });
+        }
+
+        private void UpdateHistoryFile()
+        {
+            var isNewGeneration = generation is null;
+            generation ??= new DtoGeneration();
+
+            generation.DateTime = DateTime.Now;
+            generation.EntityName = Entity.Name;
+            generation.EntityNamespace = Entity.Namespace;
+            generation.Domain = EntityDomain;
+            generation.AncestorTeam = AncestorTeam;
+            generation.IsTeam = IsTeam;
+            generation.IsVersioned = IsVersioned;
+            generation.IsArchivable = IsArchivable;
+            generation.IsFixable = IsFixable;
+            generation.EntityBaseKeyType = SelectedBaseKeyType;
+            generation.UseDedicatedAudit = UseDedicatedAudit;
+            generation.PropertyMappings.Clear();
+
+            foreach (var property in MappingEntityProperties)
+            {
+                generation.PropertyMappings.Add(new DtoGenerationPropertyMapping
+                {
+                    DateType = property.MappingDateType,
+                    EntityPropertyCompositeName = property.EntityCompositeName,
+                    IsRequired = property.IsRequired,
+                    MappingName = property.MappingName,
+                    OptionMappingDisplayProperty = property.OptionDisplayProperty,
+                    OptionMappingEntityIdProperty = property.OptionEntityIdProperty,
+                    OptionMappingIdProperty = property.OptionIdProperty,
+                    IsParent = property.IsParent
+                });
+            }
+
+            if (isNewGeneration)
+            {
+                generationHistory.Generations.Add(generation);
+            }
+
+            if (!Directory.Exists(Path.GetDirectoryName(dtoGenerationHistoryFile)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(dtoGenerationHistoryFile));
+            }
+            CommonTools.SerializeToJsonFile(generationHistory, dtoGenerationHistoryFile);
+        }
+
+        [RelayCommand]
+        public void RemoveAllMappingProperties()
+        {
+            MappingEntityProperties.Clear();
+
+            OnPropertyChanged(nameof(HasMappingProperties));
+            OnPropertyChanged(nameof(IsGenerationEnabled));
         }
 
         public void SetEntities(List<EntityInfo> entities)
@@ -552,14 +723,6 @@ namespace BIA.ToolKit.Application.ViewModel
                 item.IsParent = false;
             }
             mappingEntityProperty.IsParent = newValue;
-        }
-
-        public void RemoveAllMappingProperties()
-        {
-            MappingEntityProperties.Clear();
-
-            OnPropertyChanged(nameof(HasMappingProperties));
-            OnPropertyChanged(nameof(IsGenerationEnabled));
         }
 
         public void ComputePropertiesValidity()
