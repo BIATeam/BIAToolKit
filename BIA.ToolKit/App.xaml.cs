@@ -51,12 +51,11 @@
             services.AddSingleton<UpdateService>();
             services.AddLogging();
 
-            // ViewModels
+            // ViewModels (Transient for dialog ViewModels, Singleton for main ViewModels)
             services.AddTransient<LogDetailViewModel>();
 
             // Views
             services.AddSingleton<MainWindow>();
-            services.AddTransient<LogDetailUC>();
         }
 
         public static T GetService<T>() where T : class

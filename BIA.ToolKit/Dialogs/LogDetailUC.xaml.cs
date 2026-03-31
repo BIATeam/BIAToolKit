@@ -10,28 +10,28 @@
     /// Interaction logic for LogDetailUC
     /// Code-behind contains ONLY UI logic
     /// All business logic is in LogDetailViewModel
+    /// DataContext is resolved automatically via ViewModelLocator in XAML
     /// </summary>
     public partial class LogDetailUC : Window
     {
-        private readonly LogDetailViewModel _viewModel;
-
-        public LogDetailUC(LogDetailViewModel viewModel)
+        public LogDetailUC()
         {
             InitializeComponent();
-            _viewModel = viewModel;
-            DataContext = _viewModel;
 
             // Listen to ViewModel property changes for UI updates
-            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+            if (DataContext is LogDetailViewModel viewModel)
+            {
+                viewModel.PropertyChanged += ViewModel_PropertyChanged;
+            }
         }
 
         private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(LogDetailViewModel.Messages))
+            if (e.PropertyName == nameof(LogDetailViewModel.Messages) && DataContext is LogDetailViewModel vm)
             {
                 // UI Logic: Update TextBlock with colored messages when Messages change
                 OutputDetailText.Inlines.Clear();
-                foreach (ConsoleWriter.Message msg in _viewModel.Messages)
+                foreach (ConsoleWriter.Message msg in vm.Messages)
                 {
                     ConsoleWriter.AddMsgLine(OutputDetailText, OutputDetailTextViewer, msg.message, msg.color);
                 }
@@ -44,7 +44,10 @@
         /// </summary>
         internal bool? ShowDialog(List<ConsoleWriter.Message> messages)
         {
-            _viewModel.ShowDialog(messages);
+            if (DataContext is LogDetailViewModel viewModel)
+            {
+                viewModel.ShowDialog(messages);
+            }
             return ShowDialog();
         }
     }

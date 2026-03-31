@@ -74,8 +74,7 @@
 
         private void OpenDetail(object sender, MouseButtonEventArgs e)
         {
-            var dialog = App.GetService<LogDetailUC>();
-            dialog.Owner = WindowOwner;
+            var dialog = new LogDetailUC { Owner = WindowOwner };
 
             // Display the dialog box and read the response
             bool? result = dialog.ShowDialog((List<Message>)((Run)sender).DataContext);

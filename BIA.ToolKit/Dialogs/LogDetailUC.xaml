@@ -12,7 +12,8 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         MaxHeight="765" MaxWidth="1035"
-        Style="{StaticResource MaterialDesignWindow}">
+        Style="{StaticResource MaterialDesignWindow}"
+        DataContext="{Binding Source={StaticResource Locator}, Path=LogDetailViewModel}">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition/>
