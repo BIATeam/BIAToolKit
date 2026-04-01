@@ -34,5 +34,11 @@ namespace BIA.ToolKit.Infrastructure
         {
             return FileDialog.BrowseFolder(defaultFolder, description);
         }
+
+        public bool Confirm(string message, string title = "Warning")
+        {
+            var result = MessageBox.Show(owner, message, title, MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            return result == MessageBoxResult.OK;
+        }
     }
 }

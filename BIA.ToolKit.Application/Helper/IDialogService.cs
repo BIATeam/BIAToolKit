@@ -17,6 +17,11 @@ namespace BIA.ToolKit.Application.Helper
         /// Returns <paramref name="defaultFolder"/> if the user cancels.
         /// </summary>
         string BrowseFolder(string defaultFolder, string description = null);
+
+        /// <summary>
+        /// Shows a confirmation dialog. Returns true if the user confirms.
+        /// </summary>
+        bool Confirm(string message, string title = "Warning");
     }
 
     /// <summary>
