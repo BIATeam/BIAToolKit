@@ -32,7 +32,9 @@
             _execute(parameter);
         }
 
+#pragma warning disable CS0067 // CanExecuteChanged is required by ICommand interface but not used in this simple implementation
         public event EventHandler CanExecuteChanged;
+#pragma warning restore CS0067
     }
 
     internal class RelayCommand<T> : IRelayCommand<T>

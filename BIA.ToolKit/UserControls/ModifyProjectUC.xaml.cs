@@ -82,7 +82,6 @@
             InitVersionAndOptionComponents();
         }
 
-        private bool firstTimeSettingsUpdated = true;
         private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
         {
             // Settings update is handled by ProjectViewModel directly.
@@ -267,7 +266,7 @@
         //TODO mutualiser avec celle de MainWindows
         private async Task<bool> CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, List<string> fronts)
         {
-            return await this.projectCreatorService.Create(
+            bool result = await this.projectCreatorService.Create(
                 actionFinishedAtEnd,
                 projectPath,
                 new Domain.Model.ProjectParameters
@@ -278,8 +277,14 @@
                     AngularFronts = fronts
                 }
             );
-            string filePath = Path.Combine(projectPath, Constants.FolderNetCore, $"{CompanyName}.{ProjectName}.Presentation.Api", "bianetpermissions.json");
-            this.projectCreatorService.ClearPermissions(filePath);
+
+            if (result)
+            {
+                string filePath = Path.Combine(projectPath, Constants.FolderNetCore, $"{CompanyName}.{ProjectName}.Presentation.Api", "bianetpermissions.json");
+                this.projectCreatorService.ClearPermissions(filePath);
+            }
+
+            return result;
         }
 
         private void MigrateOpenFolder_Click(object sender, RoutedEventArgs e)

@@ -6,6 +6,8 @@
     using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
+#pragma warning disable CS9266 // Les propriétés with setter utilisent throw NotImplementedException() au getter par design
+
     public class EntityCrudModel<TPropertyCrudModel> : Common.Models.EntityModel, IEntityCrudModel<TPropertyCrudModel>
         where TPropertyCrudModel : class, IPropertyCrudModel
     {
@@ -134,4 +136,5 @@
         public IEnumerable<TPropertyCrudModel> ListPropertiesToGenerate => ListProperties.Where(p => !ExcludedProperties.Contains(p.Name));
         public IEnumerable<TPropertyCrudModel> ListBiaFieldConfigProperties => ListPropertiesToGenerate.Where(p => !p.IsParentIdentifier);
     }
+#pragma warning restore CS9266
 }

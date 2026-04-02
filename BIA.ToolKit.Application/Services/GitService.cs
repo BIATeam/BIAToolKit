@@ -149,12 +149,12 @@
 
         public class MergeParameter
         {
-            public string ProjectOriginPath { get; set; }
-            public string ProjectOriginVersion { get; set; }
-            public string ProjectTargetPath { get; set; }
-            public string ProjectTargetVersion { get; set; }
-            public string ProjectPath { get; set; }
-            public string MigrationPatchFilePath { get; set; }
+            public required string ProjectOriginPath { get; set; }
+            public required string ProjectOriginVersion { get; set; }
+            public required string ProjectTargetPath { get; set; }
+            public required string ProjectTargetVersion { get; set; }
+            public required string ProjectPath { get; set; }
+            public required string MigrationPatchFilePath { get; set; }
         }
 
         public async Task MergeRejected(bool actionFinishedAtEnd, MergeParameter param)
@@ -329,7 +329,7 @@
             return (string.Empty, string.Empty);
         }
 
-        static async Task<(int Exit, string Stdout, string Stderr)> RunCaptureAsync(string fileName, string args, string? workingDir = null, string? stdin = null)
+        static async Task<(int Exit, string Stdout, string Stderr)> RunCaptureAsync(string fileName, string args, string workingDir = null, string stdin = null)
         {
             var psi = new ProcessStartInfo(fileName, args)
             {
@@ -359,7 +359,7 @@
         }
 
         // Spécifique Git: renvoie stdout.Trim() ou lève en cas d’erreur
-        static async Task<string> GitOutAsync(string args, string? stdin = null)
+        static async Task<string> GitOutAsync(string args, string stdin = null)
         {
             var (exit, stdout, stderr) = await RunCaptureAsync("git", args, stdin: stdin);
             if (exit != 0)

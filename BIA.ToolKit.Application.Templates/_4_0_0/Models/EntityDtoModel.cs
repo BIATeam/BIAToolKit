@@ -5,6 +5,8 @@
     using System.Text;
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
+#pragma warning disable CS9266 // Les propriétés with setter utilisent throw NotImplementedException() au getter par design
+
     public class EntityDtoModel<TPropertyDtoModel> : Common.Models.EntityModel, IEntityDtoModel<TPropertyDtoModel>
             where TPropertyDtoModel : class, IPropertyDtoModel
     {
@@ -96,4 +98,5 @@
             return string.Join(", ", types);
         }
     }
+#pragma warning restore CS9266
 }

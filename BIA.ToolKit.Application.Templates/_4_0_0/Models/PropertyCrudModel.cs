@@ -4,6 +4,8 @@
     using System.Collections.Generic;
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
 
+#pragma warning disable CS9266 // Les propriétés with setter utilisent throw NotImplementedException() au getter par design
+
     public class PropertyCrudModel : IPropertyCrudModel
     {
         public string AngularPropType => throw new NotImplementedException();
@@ -38,4 +40,5 @@
 
         public bool AsLocalDateTime => throw new NotImplementedException();
     }
+#pragma warning restore CS9266
 }
