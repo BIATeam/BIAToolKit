@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit
+namespace BIA.ToolKit
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;

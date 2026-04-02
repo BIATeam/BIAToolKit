@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator
+namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator
 {
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
@@ -47,7 +47,7 @@
 
         public string ConvertPascalOldToNewCrudName(string value, string feature, FeatureType type)
         {
-            if (string.IsNullOrWhiteSpace(value)) 
+            if (string.IsNullOrWhiteSpace(value))
                 return value;
 
             return ReplaceOldToNewValue(value, GetOldFeatureNamePluralPascal(feature, type), NewCrudNamePascalPlural, GetOldFeatureNameSingularPascal(feature, type), NewCrudNamePascalSingular);
@@ -55,7 +55,7 @@
 
         public string ConvertCamelOldToNewCrudName(string value, string feature, FeatureType type)
         {
-            if (string.IsNullOrWhiteSpace(value)) 
+            if (string.IsNullOrWhiteSpace(value))
                 return value;
 
             return ReplaceOldToNewValue(value, GetOldFeatureNamePluralCamel(feature, type), NewCrudNameCamelPlural, GetOldFeatureNameSingularCamel(feature, type), NewCrudNameCamelSingular);
@@ -63,7 +63,7 @@
 
         private static string ReplaceOldToNewValue(string value, string oldValuePlural, string newValuePlural, string oldValueSingular, string newValueSingular)
         {
-            if (string.IsNullOrWhiteSpace(value)) 
+            if (string.IsNullOrWhiteSpace(value))
                 return value;
 
             return value.Replace(oldValuePlural, newValuePlural).Replace(oldValueSingular, newValueSingular);

@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates
+namespace BIA.ToolKit.Application.Templates
 {
     using System;
     using System.Collections.Generic;
@@ -28,12 +28,12 @@
 
                 public bool Equals(Template other)
                 {
-                    return 
-                        InputPath == other.InputPath 
-                        && OutputPath == other.OutputPath 
+                    return
+                        InputPath == other.InputPath
+                        && OutputPath == other.OutputPath
                         && IsPartial == other.IsPartial
                         && other.PartialInsertionMarkup == PartialInsertionMarkup
-                        && IgnoredInnerMarkups.Count == other.IgnoredInnerMarkups.Count 
+                        && IgnoredInnerMarkups.Count == other.IgnoredInnerMarkups.Count
                         && IgnoredInnerMarkups.All(other.IgnoredInnerMarkups.Contains);
                 }
             }

@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
@@ -32,9 +32,9 @@
             {
                 currentProject = value;
                 BiaFronts.Clear();
-                if(currentProject != null)
+                if (currentProject != null)
                 {
-                    foreach(var biaFront in currentProject.BIAFronts)
+                    foreach (var biaFront in currentProject.BIAFronts)
                     {
                         BiaFronts.Add(biaFront);
                     }
@@ -190,7 +190,7 @@
         public string Domain
         {
             get { return domain; }
-            set 
+            set
             {
                 if (domain != value)
                 {

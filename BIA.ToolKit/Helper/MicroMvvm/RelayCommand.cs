@@ -1,4 +1,4 @@
-﻿//  Original author - Josh Smith - http://msdn.microsoft.com/en-us/magazine/dd419663.aspx#id0090030
+//  Original author - Josh Smith - http://msdn.microsoft.com/en-us/magazine/dd419663.aspx#id0090030
 
 namespace BIA.ToolKit.Helper.MicroMvvm
 {

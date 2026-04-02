@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.DtoGenerator
+namespace BIA.ToolKit.Domain.DtoGenerator
 {
     using BIA.ToolKit.Common;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,7 +18,7 @@
             Name = propertyInfo.Name;
             Annotations = new(propertyInfo.Attributes.SelectMany(x => x.Arguments));
 
-            if(Type.StartsWith("Nullable<"))
+            if (Type.StartsWith("Nullable<"))
             {
                 Type = Type.Replace("Nullable<", string.Empty).Replace(">", string.Empty);
                 Type += "?";

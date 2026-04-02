@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Test.Templates.Assertions
+namespace BIA.ToolKit.Test.Templates.Assertions
 {
     using System;
     using System.Text;
@@ -23,7 +23,7 @@
 
     internal class PartialInsertionMarkupNotFoundException(string partialInsertionMarkup, string filePath) : GenerationAssertionException($"File: {filePath}\nMarkup: \"{partialInsertionMarkup}\"")
     { }
-    
+
     internal class ReferenceFileNotFoundException(string filePath) : GenerationAssertionException($"File: {filePath}")
     { }
 

@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Behaviors
+namespace BIA.ToolKit.Behaviors
 {
     using System.Windows.Controls;
     using System.Windows;

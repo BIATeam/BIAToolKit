@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.CRUDGenerator
+namespace BIA.ToolKit.Domain.CRUDGenerator
 {
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;

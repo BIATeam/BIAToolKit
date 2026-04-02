@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Common.Helpers
+namespace BIA.ToolKit.Common.Helpers
 {
     using System;
     using System.Collections.Generic;
@@ -96,7 +96,7 @@
 
                 static bool IsLineValidForDeletion(string tagLine, string beginTagPrefix, ICollection<string> deletionTags)
                 {
-                    if (string.IsNullOrWhiteSpace(tagLine)) 
+                    if (string.IsNullOrWhiteSpace(tagLine))
                         return false;
 
                     tagLine = tagLine.Trim();

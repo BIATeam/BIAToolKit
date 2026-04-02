@@ -276,47 +276,47 @@ namespace BIA.ToolKit.UserControls
                 switch (featureType)
                 {
                     case "CRUD":
-                    {
-                        string historyFile = Path.Combine(currentProject.Folder, Constants.FolderBia, crudSettings.CrudGenerationHistoryFileName);
-                        var history = CommonTools.DeserializeJsonFile<CRUDGeneration>(historyFile);
-                        if (history == null) break;
-                        var entry = history.CRUDGenerationHistory
-                            .FirstOrDefault(h => string.Equals(h.EntityNameSingular, entityName, StringComparison.OrdinalIgnoreCase));
-                        if (entry != null)
                         {
-                            entry.FrameworkVersion = currentProject.FrameworkVersion;
-                            CommonTools.SerializeToJsonFile(history, historyFile);
+                            string historyFile = Path.Combine(currentProject.Folder, Constants.FolderBia, crudSettings.CrudGenerationHistoryFileName);
+                            var history = CommonTools.DeserializeJsonFile<CRUDGeneration>(historyFile);
+                            if (history == null) break;
+                            var entry = history.CRUDGenerationHistory
+                                .FirstOrDefault(h => string.Equals(h.EntityNameSingular, entityName, StringComparison.OrdinalIgnoreCase));
+                            if (entry != null)
+                            {
+                                entry.FrameworkVersion = currentProject.FrameworkVersion;
+                                CommonTools.SerializeToJsonFile(history, historyFile);
+                            }
+                            break;
                         }
-                        break;
-                    }
                     case "Option":
-                    {
-                        string historyFile = Path.Combine(currentProject.Folder, Constants.FolderBia, crudSettings.OptionGenerationHistoryFileName);
-                        var history = CommonTools.DeserializeJsonFile<OptionGeneration>(historyFile);
-                        if (history == null) break;
-                        var entry = history.OptionGenerationHistory
-                            .FirstOrDefault(h => string.Equals(h.EntityNameSingular, entityName, StringComparison.OrdinalIgnoreCase));
-                        if (entry != null)
                         {
-                            entry.FrameworkVersion = currentProject.FrameworkVersion;
-                            CommonTools.SerializeToJsonFile(history, historyFile);
+                            string historyFile = Path.Combine(currentProject.Folder, Constants.FolderBia, crudSettings.OptionGenerationHistoryFileName);
+                            var history = CommonTools.DeserializeJsonFile<OptionGeneration>(historyFile);
+                            if (history == null) break;
+                            var entry = history.OptionGenerationHistory
+                                .FirstOrDefault(h => string.Equals(h.EntityNameSingular, entityName, StringComparison.OrdinalIgnoreCase));
+                            if (entry != null)
+                            {
+                                entry.FrameworkVersion = currentProject.FrameworkVersion;
+                                CommonTools.SerializeToJsonFile(history, historyFile);
+                            }
+                            break;
                         }
-                        break;
-                    }
                     case "DTO":
-                    {
-                        string historyFile = Path.Combine(currentProject.Folder, Constants.FolderBia, crudSettings.DtoGenerationHistoryFileName);
-                        var history = CommonTools.DeserializeJsonFile<DtoGenerationHistory>(historyFile);
-                        if (history == null) break;
-                        var entry = history.Generations
-                            .FirstOrDefault(h => string.Equals(h.EntityName, entityName, StringComparison.OrdinalIgnoreCase));
-                        if (entry != null)
                         {
-                            entry.FrameworkVersion = currentProject.FrameworkVersion;
-                            CommonTools.SerializeToJsonFile(history, historyFile);
+                            string historyFile = Path.Combine(currentProject.Folder, Constants.FolderBia, crudSettings.DtoGenerationHistoryFileName);
+                            var history = CommonTools.DeserializeJsonFile<DtoGenerationHistory>(historyFile);
+                            if (history == null) break;
+                            var entry = history.Generations
+                                .FirstOrDefault(h => string.Equals(h.EntityName, entityName, StringComparison.OrdinalIgnoreCase));
+                            if (entry != null)
+                            {
+                                entry.FrameworkVersion = currentProject.FrameworkVersion;
+                                CommonTools.SerializeToJsonFile(history, historyFile);
+                            }
+                            break;
                         }
-                        break;
-                    }
                 }
             }
             catch (Exception ex)

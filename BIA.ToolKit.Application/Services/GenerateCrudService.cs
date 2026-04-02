@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services
+namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Settings;
@@ -209,10 +209,10 @@
                         if (content.Any(line => line.Contains(markerBegin)))
                         {
                             var newContent = content
-                                .Where(line => 
-                                !line.Contains(markerBegin) 
+                                .Where(line =>
+                                !line.Contains(markerBegin)
                                 && !line.Contains(markerPartialBegin)
-                                && !line.Contains(markerEnd) 
+                                && !line.Contains(markerEnd)
                                 && !line.Contains(markerPartialEnd)).ToList();
                             if (content.Length != newContent.Count)
                             {
@@ -358,7 +358,7 @@
             ReplaceContentWithFeatureParentPrincipal(fileLinesContent, dest, GenerationType.WebApi);
 
             // Replace values in header
-            for(int i = 0; i <= 2; i++)
+            for (int i = 0; i <= 2; i++)
             {
                 if (i > fileLinesContent.Count)
                     break;

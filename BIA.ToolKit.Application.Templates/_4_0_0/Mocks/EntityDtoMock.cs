@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates._4_0_0.Mocks
+namespace BIA.ToolKit.Application.Templates._4_0_0.Mocks
 {
     using System.Collections.Generic;
     using BIA.ToolKit.Application.Templates._4_0_0.Models;

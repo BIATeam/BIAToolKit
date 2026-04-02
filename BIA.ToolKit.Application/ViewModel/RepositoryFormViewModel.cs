@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using System;
     using System.Collections.Generic;
@@ -43,9 +43,9 @@
                         gitService,
                         eventBroker,
                         consoleWriter)
-                    { 
-                        IsVisibleCompanyName = repository.IsVisibleCompanyName, 
-                        IsVisibleProjectName = repository.IsVisibleProjectName 
+                    {
+                        IsVisibleCompanyName = repository.IsVisibleCompanyName,
+                        IsVisibleProjectName = repository.IsVisibleProjectName
                     },
 
                     RepositoryType.Folder => new RepositoryFolderViewModel(
@@ -62,7 +62,7 @@
                         IsVisibleCompanyName = repository.IsVisibleCompanyName,
                         IsVisibleProjectName = repository.IsVisibleProjectName
                     },
-                        _ => throw new NotImplementedException(),
+                    _ => throw new NotImplementedException(),
                 };
                 RaisePropertyChanged(nameof(RepositoryType));
             }

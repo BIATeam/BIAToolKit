@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
+namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
 {
     using System.Collections.Generic;
     using System.Linq;

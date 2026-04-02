@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates.Common.Models
+namespace BIA.ToolKit.Application.Templates.Common.Models
 {
     using System.Collections.Generic;
     using System.Linq;

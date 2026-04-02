@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Common.Helpers
+namespace BIA.ToolKit.Common.Helpers
 {
     using System.Collections.Generic;
     using System.Diagnostics;

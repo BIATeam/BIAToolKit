@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator;
@@ -97,11 +97,11 @@
                 AncestorTeam = null;
                 EntityDomain = null;
 
-                if(entity is not null)
+                if (entity is not null)
                 {
                     var namespaceElements = entity.Namespace.Split('.').ToList();
                     var dtoNamespaceIndex = namespaceElements.FindIndex(x => x == "Domain");
-                    if(dtoNamespaceIndex != -1)
+                    if (dtoNamespaceIndex != -1)
                     {
                         EntityDomain = namespaceElements.ElementAt(dtoNamespaceIndex + 1);
                     }
@@ -139,9 +139,9 @@
         public string AncestorTeam
         {
             get => ancestorTeam;
-            set 
-            { 
-                ancestorTeam = value; 
+            set
+            {
+                ancestorTeam = value;
                 RaisePropertyChanged(nameof(AncestorTeam));
             }
         }
@@ -228,9 +228,9 @@
         public string SelectedBaseKeyType
         {
             get { return selectedBaseKeyType; }
-            set 
-            { 
-                selectedBaseKeyType = value; 
+            set
+            {
+                selectedBaseKeyType = value;
                 RaisePropertyChanged(nameof(SelectedBaseKeyType));
                 RaisePropertyChanged(nameof(IsGenerationEnabled));
             }
@@ -241,9 +241,9 @@
         public bool UseDedicatedAudit
         {
             get { return useDedicatedAudit; }
-            set 
-            { 
-                useDedicatedAudit = value; 
+            set
+            {
+                useDedicatedAudit = value;
                 RaisePropertyChanged(nameof(UseDedicatedAudit));
             }
         }
@@ -251,8 +251,8 @@
         public string ProjectDomainNamespace { get; private set; }
         public bool IsEntitySelected => Entity != null;
         public bool HasMappingProperties => MappingEntityProperties.Count > 0;
-        public bool IsGenerationEnabled => 
-            ((HasMappingProperties && MappingEntityProperties.All(x => x.IsValid) && MappingEntityProperties.Count == MappingEntityProperties.DistinctBy(x => x.MappingName).Count())  || !HasMappingProperties)
+        public bool IsGenerationEnabled =>
+            ((HasMappingProperties && MappingEntityProperties.All(x => x.IsValid) && MappingEntityProperties.Count == MappingEntityProperties.DistinctBy(x => x.MappingName).Count()) || !HasMappingProperties)
             && !string.IsNullOrWhiteSpace(EntityDomain)
             && !string.IsNullOrWhiteSpace(SelectedBaseKeyType);
         public bool IsAuditable => Entity?.IsAuditable == true;
@@ -290,13 +290,13 @@
 
         private static void ComputeBaseKeyType(List<EntityInfo> entities)
         {
-            foreach(var entity in entities)
+            foreach (var entity in entities)
             {
                 if (!string.IsNullOrWhiteSpace(entity.BaseKeyType))
                     continue;
 
                 var baseEntityInfo = GetBaseEntityInfoWithNonEmptyBaseKeyType(entity, entities);
-                if(baseEntityInfo != null)
+                if (baseEntityInfo != null)
                 {
                     entity.BaseKeyType = baseEntityInfo.BaseKeyType;
                 }
@@ -310,7 +310,7 @@
             {
                 return string.IsNullOrWhiteSpace(baseTypeEntityInfo.BaseKeyType) ?
                     GetBaseEntityInfoWithNonEmptyBaseKeyType(baseTypeEntityInfo, entities) :
-                    baseTypeEntityInfo; 
+                    baseTypeEntityInfo;
             }
             return null;
         }
@@ -354,12 +354,12 @@
 
             var childProperties = propertyInfo.Properties
                 .Where(p => p.Type != property.ParentType && p.Type != rootPropertyType)
-                .Select(p => new EntityProperty 
-                { 
-                    Name = p.Name, 
-                    Type = p.Type, 
-                    CompositeName = $"{property.CompositeName}.{p.Name}", 
-                    ParentType = property.Type 
+                .Select(p => new EntityProperty
+                {
+                    Name = p.Name,
+                    Type = p.Type,
+                    CompositeName = $"{property.CompositeName}.{p.Name}",
+                    ParentType = property.Type
                 });
             property.Properties.AddRange(childProperties);
             property.Properties.ForEach(p => FillEntityProperties(p, rootPropertyType));
@@ -371,15 +371,15 @@
             AddMappingProperties(EntityProperties, mappingEntityProperties);
             MappingEntityProperties = new(mappingEntityProperties);
 
-            foreach(var mappingEntityProperty in MappingEntityProperties.Where(x => x.IsOptionCollection))
+            foreach (var mappingEntityProperty in MappingEntityProperties.Where(x => x.IsOptionCollection))
             {
                 mappingEntityProperty.OptionRelationPropertyComposite = AllEntityPropertiesRecursively
-                    .SingleOrDefault(x => 
-                        x.ParentType == mappingEntityProperty.ParentEntityType 
+                    .SingleOrDefault(x =>
+                        x.ParentType == mappingEntityProperty.ParentEntityType
                         && x.Type.Equals($"ICollection<{mappingEntityProperty.OptionRelationType}>")
                     )?.CompositeName;
 
-                if(string.IsNullOrWhiteSpace(mappingEntityProperty.OptionRelationPropertyComposite))
+                if (string.IsNullOrWhiteSpace(mappingEntityProperty.OptionRelationPropertyComposite))
                 {
                     consoleWriter.AddMessageLine($"ERROR: unable to find matching property of type ICollection<{mappingEntityProperty.OptionRelationType}> in type {mappingEntityProperty.ParentEntityType} to map {mappingEntityProperty.EntityCompositeName}", "red");
                 }
@@ -404,10 +404,10 @@
                         MappingType = ComputeMappingType(selectedEntityProperty)
                     };
 
-                    if(biaDtoFieldDateTypesByPropertyType.TryGetValue(mappingEntityProperty.MappingType.Replace("?", string.Empty), out List<string> biaDtoFieldDateTypes))
+                    if (biaDtoFieldDateTypesByPropertyType.TryGetValue(mappingEntityProperty.MappingType.Replace("?", string.Empty), out List<string> biaDtoFieldDateTypes))
                     {
                         var mappingDateTypes = new List<string>();
-                        if(mappingEntityProperty.MappingType == "string")
+                        if (mappingEntityProperty.MappingType == "string")
                         {
                             mappingDateTypes.Add(string.Empty);
                         }
@@ -442,7 +442,7 @@
                                     .Where(x => x.Type.Replace("?", string.Empty).Equals(optionBaseKeyType, StringComparison.InvariantCultureIgnoreCase) && !x.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase))
                                     .Select(x => x.Name));
 
-                                if(!mappingEntityProperty.OptionEntityIdProperties.Any())
+                                if (!mappingEntityProperty.OptionEntityIdProperties.Any())
                                 {
                                     consoleWriter.AddMessageLine($"Unable to find {optionBaseKeyType} ID property related to {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
                                     selectedEntityProperty.IsSelected = false;
@@ -457,7 +457,7 @@
                                 }
                             }
 
-                            if(mappingEntityProperty.IsOptionCollection)
+                            if (mappingEntityProperty.IsOptionCollection)
                             {
                                 var optionRelationFirstType = selectedEntityProperty.ParentType;
                                 var optionRelationSecondType = mappingEntityProperty.OptionType;
@@ -478,7 +478,7 @@
 
                                 var optionRelationFirstIdPropertyName = optionRelationFirstType + "Id";
                                 mappingEntityProperty.OptionRelationFirstIdProperty = entityInfo.Properties.SingleOrDefault(x => x.Name.Equals(optionRelationFirstIdPropertyName))?.Name;
-                                if(string.IsNullOrWhiteSpace(mappingEntityProperty.OptionRelationFirstIdProperty))
+                                if (string.IsNullOrWhiteSpace(mappingEntityProperty.OptionRelationFirstIdProperty))
                                 {
                                     consoleWriter.AddMessageLine($"Unable to find matching relation property {optionRelationFirstIdPropertyName} in the entity {entityInfo.Name} to map {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
                                     selectedEntityProperty.IsSelected = false;
@@ -696,7 +696,7 @@
         public string OptionEntityIdPropertyComposite { get; private set; }
 
         private string optionEntityIdProperty;
-        public string OptionEntityIdProperty 
+        public string OptionEntityIdProperty
         {
             get => optionEntityIdProperty;
             set
@@ -708,7 +708,7 @@
                 RaisePropertyChanged(nameof(OptionEntityIdProperty));
             }
         }
-        
+
         public string OptionRelationType { get; set; }
         public string OptionRelationFirstIdProperty { get; set; }
         public string OptionRelationSecondIdProperty { get; set; }
@@ -736,9 +736,9 @@
         public string MappingNameError
         {
             get => mappingNameError;
-            set 
-            { 
-                mappingNameError = value; 
+            set
+            {
+                mappingNameError = value;
                 RaisePropertyChanged(nameof(MappingNameError));
                 RaisePropertyChanged(nameof(HasMappingNameError));
             }
@@ -748,9 +748,9 @@
         public bool IsParent
         {
             get => isParent;
-            set 
-            { 
-                isParent = value; 
+            set
+            {
+                isParent = value;
                 RaisePropertyChanged(nameof(IsParent));
             }
         }
@@ -766,8 +766,8 @@
             }
         }
 
-        public bool IsVisibleIsParentCheckbox => 
-            EntityCompositeName.EndsWith("Id") 
+        public bool IsVisibleIsParentCheckbox =>
+            EntityCompositeName.EndsWith("Id")
             && !EntityCompositeName.Equals("Id")
             ;
 
@@ -780,7 +780,7 @@
             var isOptionIdPropertyValid = !string.IsNullOrWhiteSpace(OptionIdProperty);
             var isOptionDisplayPropertyValid = !string.IsNullOrWhiteSpace(OptionDisplayProperty);
 
-            if(IsOption)
+            if (IsOption)
             {
                 var isOptionEntityIdPropertyValid = !string.IsNullOrWhiteSpace(OptionEntityIdProperty);
                 return isMappingNameValid && isOptionIdPropertyValid && isOptionDisplayPropertyValid && isOptionEntityIdPropertyValid;

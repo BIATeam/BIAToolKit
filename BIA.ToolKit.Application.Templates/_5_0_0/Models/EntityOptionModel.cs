@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates._5_0_0.Models
+namespace BIA.ToolKit.Application.Templates._5_0_0.Models
 {
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
 

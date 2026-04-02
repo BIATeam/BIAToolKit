@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Helper
+namespace BIA.ToolKit.Application.Helper
 {
     using System;
     using System.Collections.Generic;

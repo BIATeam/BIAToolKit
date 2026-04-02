@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Helper
+namespace BIA.ToolKit.Helper
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Dialogs;
@@ -50,7 +50,7 @@
             }
             else
             {
-                if (messages.Count >0)
+                if (messages.Count > 0)
                 {
                     Run run = new Run(@"[🔍 OPEN LOG DETAIL]" + "\r\n");
                     run.Foreground = Brushes.YellowGreen;

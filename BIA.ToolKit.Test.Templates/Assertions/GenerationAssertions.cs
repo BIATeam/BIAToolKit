@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Test.Templates.Assertions
+namespace BIA.ToolKit.Test.Templates.Assertions
 {
     using System;
     using System.Collections.Generic;
@@ -13,7 +13,7 @@
     {
         public static void AssertAllFilesEquals(GenerateTestFixture testFixture, FileGeneratorContext context)
         {
-            if(context.GenerationReport.HasFailed)
+            if (context.GenerationReport.HasFailed)
             {
                 throw new GenerationFailureException();
             }
@@ -164,9 +164,9 @@
             referenceLines = referenceLines.GetRange(referenceMarkupBeginIndex, referenceMarkupEndIndex - referenceMarkupBeginIndex + 1);
             generatedLines = generatedLines.GetRange(generatedMarkupBeginIndex, generatedMarkupEndIndex - generatedMarkupBeginIndex + 1);
 
-            if(partialMarkupIdentifiersToIgnore is not null)
+            if (partialMarkupIdentifiersToIgnore is not null)
             {
-                foreach(var markup in partialMarkupIdentifiersToIgnore)
+                foreach (var markup in partialMarkupIdentifiersToIgnore)
                 {
                     RemoveContentBetweenIgnoredMarkups(referencePath, referenceLines, markup);
                     RemoveContentBetweenIgnoredMarkups(generatedPath, generatedLines, markup);

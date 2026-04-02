@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.UserControls
+namespace BIA.ToolKit.UserControls
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
@@ -89,7 +89,7 @@
         {
             this.project = project;
             vm.SetProject(project);
-            
+
             InitHistoryFile(project);
         }
 

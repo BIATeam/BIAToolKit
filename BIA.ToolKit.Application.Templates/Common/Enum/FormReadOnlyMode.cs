@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates.Common.Enum
+namespace BIA.ToolKit.Application.Templates.Common.Enum
 {
     using System;
     using System.Collections.Generic;

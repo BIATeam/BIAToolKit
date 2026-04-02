@@ -1,4 +1,4 @@
-﻿
+
 namespace BIA.ToolKit.Application.ViewModel.MicroMvvm
 {
     using System;

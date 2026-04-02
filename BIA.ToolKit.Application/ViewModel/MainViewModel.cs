@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using System;
     using System.Collections.ObjectModel;
@@ -52,7 +52,7 @@
             waitAddTemplateRepository = false;
             waitAddCompanyFilesRepository = false;
 
-            if(repository.Model.RepositoryType == Domain.RepositoryType.Git && repository.Model is IRepositoryGit repositoryGit)
+            if (repository.Model.RepositoryType == Domain.RepositoryType.Git && repository.Model is IRepositoryGit repositoryGit)
             {
                 eventBroker.RequestExecuteActionWithWaiter(async () => await gitService.Synchronize(repositoryGit));
             }

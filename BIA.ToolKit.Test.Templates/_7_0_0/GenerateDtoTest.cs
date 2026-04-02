@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Test.Templates._7_0_0
+namespace BIA.ToolKit.Test.Templates._7_0_0
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;

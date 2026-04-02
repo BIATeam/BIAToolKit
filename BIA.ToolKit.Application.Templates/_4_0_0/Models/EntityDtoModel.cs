@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates._4_0_0.Models
+namespace BIA.ToolKit.Application.Templates._4_0_0.Models
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -76,7 +76,7 @@
         public virtual string GetClassInheritance()
         {
             var types = new List<string>();
-            if(IsTeamType)
+            if (IsTeamType)
             {
                 types.Add("TeamDto");
             }

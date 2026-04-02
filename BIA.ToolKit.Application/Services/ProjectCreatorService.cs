@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services
+namespace BIA.ToolKit.Application.Services
 {
     using System;
     using System.Collections.Generic;

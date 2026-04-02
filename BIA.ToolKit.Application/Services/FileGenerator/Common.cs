@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.FileGenerator
+namespace BIA.ToolKit.Application.Services.FileGenerator
 {
     public static class Common
     {

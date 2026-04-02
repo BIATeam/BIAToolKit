@@ -19,7 +19,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
 
     public class FeatureMigrationGeneratorService
     {
-        private class MutedConsoleWriter: IConsoleWriter
+        private class MutedConsoleWriter : IConsoleWriter
         {
             public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
             {

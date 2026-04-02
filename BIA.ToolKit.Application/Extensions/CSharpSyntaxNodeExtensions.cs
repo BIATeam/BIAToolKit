@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CSharp;
@@ -31,7 +31,7 @@ namespace BIA.ToolKit.Application.Extensions
         {
             return ContainsIgnoreWhitespace(node.ToFullString(), text);
         }
-        
+
         public static bool DescendantsNotContain<T>(this CSharpSyntaxNode node, string text) where T : CSharpSyntaxNode
         {
             return node.Descendants<T>().All(child => !ContainsIgnoreWhitespace(child.ToFullString(), text));
@@ -41,7 +41,7 @@ namespace BIA.ToolKit.Application.Extensions
         {
             return !ContainsIgnoreWhitespace(node.ToFullString(), text);
         }
-        
+
         private static string RemoveWhitespace(string text)
         {
             return Regex.Replace(text, @"\s", "");

@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Helper
+namespace BIA.ToolKit.Helper
 {
     using Microsoft.Win32;
     using System.Collections.Generic;
@@ -16,7 +16,7 @@
                 openFileDlg.InitialDirectory = defaultFolder;
             }
 
-            if(!string.IsNullOrWhiteSpace(dialogDescription))
+            if (!string.IsNullOrWhiteSpace(dialogDescription))
             {
                 openFileDlg.Description = dialogDescription;
                 openFileDlg.UseDescriptionForTitle = true;

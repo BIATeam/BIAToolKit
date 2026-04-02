@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings
+namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings
 {
     using System.Collections.Generic;
 

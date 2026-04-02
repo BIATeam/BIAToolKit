@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.Model
+namespace BIA.ToolKit.Domain.Model
 {
     using BIA.ToolKit.Domain.Work;
     using System;
@@ -36,7 +36,7 @@
         /// <summary>
         /// Gets or sets the company file version.
         /// </summary>
-        public string CompanyFileVersion{ get; set; }
+        public string CompanyFileVersion { get; set; }
 
         /// <summary>
         /// Gets or sets the profile.

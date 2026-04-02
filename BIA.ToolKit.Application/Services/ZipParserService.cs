@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services
+namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Settings;
@@ -52,7 +52,7 @@
                 parsed |= ParseZipFile(zipFeatureType, project, biaFront, settings);
             }
 
-            if(!parsed)
+            if (!parsed)
                 CleanBiaFolders(zipFeatures, project, biaFront);
 
             return parsed;
@@ -215,7 +215,7 @@
 
                 if (featureProperties.Count != 0 && displayBlocks.Count != 0)
                 {
-                    foreach(var displayBlock in displayBlocks.Where(db => db.ExtractItem == null))
+                    foreach (var displayBlock in displayBlocks.Where(db => db.ExtractItem == null))
                     {
                         displayBlock.ExtractItem = featureProperties.FirstOrDefault().Name;
                     }
@@ -491,7 +491,7 @@
                             }
                             var extractLine = displayLines[0].Trim();
                             var extractItem = blockLines[0].Split(' ').Last();
-                            if(extractItem == CRUDDataUpdateType.Display.ToString())
+                            if (extractItem == CRUDDataUpdateType.Display.ToString())
                             {
                                 extractItem = null;
                             }

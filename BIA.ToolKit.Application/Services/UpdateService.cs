@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services
+namespace BIA.ToolKit.Application.Services
 {
     using System;
     using System.Collections.Generic;
@@ -65,7 +65,7 @@
                     {
                         releases.Add((repositoryRelease, version));
                     }
-                    else if(Version.TryParse(repositoryRelease.Name, out version))
+                    else if (Version.TryParse(repositoryRelease.Name, out version))
                     {
                         releases.Add((repositoryRelease, version));
                     }

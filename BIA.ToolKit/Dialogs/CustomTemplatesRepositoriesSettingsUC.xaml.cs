@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Dialogs
+namespace BIA.ToolKit.Dialogs
 {
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;

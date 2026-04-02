@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Mapper
+namespace BIA.ToolKit.Application.Mapper
 {
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.Model;

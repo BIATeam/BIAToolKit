@@ -1,4 +1,4 @@
-﻿
+
 namespace BIA.ToolKit.Domain.DtoGenerator
 {
     using System.Text.RegularExpressions;

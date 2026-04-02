@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates._4_0_0.Models
+namespace BIA.ToolKit.Application.Templates._4_0_0.Models
 {
     using System;
     using System.Collections.Generic;
@@ -134,7 +134,7 @@
                         return $"CSVTime(x.{MappingName})";
                     default:
                         throw new InvalidOperationException($"Unable to get CSV method for mapping date type {MappingDateType}");
-                    }
+                }
             }
 
             if (nonNullMappingType == "string")

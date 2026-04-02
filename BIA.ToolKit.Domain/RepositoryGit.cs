@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain
+namespace BIA.ToolKit.Domain
 {
     using System;
     using System.Collections.Generic;
@@ -57,7 +57,7 @@
             };
         }
 
-        public static RepositoryGit CreateWithReleaseTypeGit (string name, RepositoryGitKind repositoryGitKind, string url, string gitRepositoryName, string owner, bool useLocalClonedFolder = false, string urlRelease = null, string companyName = null, string projectName = null, string localClonedFolderPath = null, bool useRepository = false, bool isVersionXYZ = false)
+        public static RepositoryGit CreateWithReleaseTypeGit(string name, RepositoryGitKind repositoryGitKind, string url, string gitRepositoryName, string owner, bool useLocalClonedFolder = false, string urlRelease = null, string companyName = null, string projectName = null, string localClonedFolderPath = null, bool useRepository = false, bool isVersionXYZ = false)
         {
             return new RepositoryGit(name, url, useLocalClonedFolder, ReleaseType.Git, companyName, projectName, localClonedFolderPath, useRepository, isVersionXYZ)
             {

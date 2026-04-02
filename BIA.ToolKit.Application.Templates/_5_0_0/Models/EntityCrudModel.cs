@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates._5_0_0.Models
+namespace BIA.ToolKit.Application.Templates._5_0_0.Models
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -86,8 +86,8 @@
         }
         public IEnumerable<TPropertyCrudModel> PropertiesToGenerate => Properties.Where(p => !ExcludedProperties.Contains(p.Name));
         public IEnumerable<TPropertyCrudModel> BiaFieldConfigProperties => PropertiesToGenerate.Where(p => !p.IsParentIdentifier);
-        public bool UseHubForClient {  get; set; }
-        public bool HasCustomRepository {  get; set; }
+        public bool UseHubForClient { get; set; }
+        public bool HasCustomRepository { get; set; }
         public bool HasReadOnlyMode { get; set; }
         public bool HasFixableParent { get; set; }
         public bool IsFixable { get; set; }
@@ -99,8 +99,8 @@
 
         public string GetHubForClientParentKey()
         {
-            var parentKeyName = HasParent ? ParentName 
-                : HasAncestorTeam ? AncestorTeamName 
+            var parentKeyName = HasParent ? ParentName
+                : HasAncestorTeam ? AncestorTeamName
                 : "ParentTeam";
             return $"{parentKeyName}Id";
         }

@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Common
+namespace BIA.ToolKit.Common
 {
     using Newtonsoft.Json;
     using System;
@@ -19,7 +19,7 @@
             "BaseDtoVersioned<",
             "BaseDtoVersionedFixable<",
             "BaseDtoFixable<",
-            "BaseDtoFixableArchivable<" 
+            "BaseDtoFixableArchivable<"
         ];
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.ExtractBlock
+namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.ExtractBlock
 {
     using System.Collections.Generic;
 
@@ -61,10 +61,10 @@
         private static List<ExtractPartialBlock> GetAllNestedBlocksRecursive(IEnumerable<ExtractPartialBlock> blocks)
         {
             var nestedBlocks = new List<ExtractPartialBlock>();
-            if(!blocks.Any())
+            if (!blocks.Any())
                 return nestedBlocks;
 
-            foreach(var block in blocks)
+            foreach (var block in blocks)
             {
                 nestedBlocks.Add(block);
                 nestedBlocks.AddRange(GetAllNestedBlocksRecursive(block.NestedBlocks));

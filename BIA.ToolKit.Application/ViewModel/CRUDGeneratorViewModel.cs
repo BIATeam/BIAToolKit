@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.Templates.Common.Enum;
@@ -38,9 +38,9 @@
                 currentProject = value;
 
                 BiaFronts.Clear();
-                if(currentProject != null)
+                if (currentProject != null)
                 {
-                    foreach(var biaFront in currentProject.BIAFronts)
+                    foreach (var biaFront in currentProject.BIAFronts)
                     {
                         BiaFronts.Add(biaFront);
                     }
@@ -201,7 +201,7 @@
             {
                 OptionItems.Add(optionItem);
             }
-            foreach(var optionItem in OptionItems)
+            foreach (var optionItem in OptionItems)
             {
                 optionItem.PropertyChanged += OptionItem_PropertyChanged;
             }
@@ -314,7 +314,7 @@
         {
             get
             {
-                if(UseFileGenerator)
+                if (UseFileGenerator)
                 {
                     return true;
                 }
@@ -405,7 +405,7 @@
 
         private void UpdateParentPreSelection()
         {
-            if(!string.IsNullOrWhiteSpace(ParentName))
+            if (!string.IsNullOrWhiteSpace(ParentName))
             {
                 return;
             }
@@ -421,7 +421,7 @@
                     ParentName = parentName;
                     HasParent = true;
                 }
-                if(!UseFileGenerator && !HasParent)
+                if (!UseFileGenerator && !HasParent)
                 {
                     HasParent = selectedFeaturesWithParent.Any(x => x.NeedParent);
                 }
@@ -497,7 +497,7 @@
                 {
                     isFrontSelected = value;
                     RaisePropertyChanged(nameof(IsFrontSelected));
-                    if(value == false)
+                    if (value == false)
                     {
                         BiaFront = null;
                     }
@@ -566,9 +566,9 @@
         public bool UseHubClient
         {
             get { return _useHubClient; }
-            set 
-            { 
-                _useHubClient = value; 
+            set
+            {
+                _useHubClient = value;
                 RaisePropertyChanged(nameof(UseHubClient));
             }
         }
@@ -746,8 +746,8 @@
         public string AncestorTeam
         {
             get { return _ancestorTeam; }
-            set 
-            { 
+            set
+            {
                 _ancestorTeam = value;
                 RaisePropertyChanged(nameof(AncestorTeam));
             }
@@ -758,9 +758,9 @@
         public int TeamTypeId
         {
             get { return _teamTypeId; }
-            set 
-            { 
-                _teamTypeId = value; 
+            set
+            {
+                _teamTypeId = value;
                 RaisePropertyChanged(nameof(TeamTypeId));
                 RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
@@ -798,9 +798,9 @@
         public string SelectedFormReadOnlyMode
         {
             get { return _selectedFormReadOnlyMode; }
-            set 
-            { 
-                _selectedFormReadOnlyMode = value; 
+            set
+            {
+                _selectedFormReadOnlyMode = value;
                 RaisePropertyChanged(nameof(SelectedFormReadOnlyMode));
             }
         }

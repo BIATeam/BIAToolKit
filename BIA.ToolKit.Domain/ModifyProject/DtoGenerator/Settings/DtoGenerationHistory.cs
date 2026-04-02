@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings
+namespace BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings
 {
     using System;
     using System.Collections.Generic;

@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.UserControls
+namespace BIA.ToolKit.UserControls
 {
     using System;
     using System.Collections.Generic;
@@ -711,7 +711,7 @@
 
                 // Fill display item list
                 List<string> displayItems = [];
-                foreach(var property in vm.DtoEntity.Properties.OrderBy(x => x.Name))
+                foreach (var property in vm.DtoEntity.Properties.OrderBy(x => x.Name))
                 {
                     displayItems.Add(property.Name);
                 }
@@ -739,7 +739,7 @@
 
             // List Options folders
             string folderPath = Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, domainsPath);
-            if(!Directory.Exists(folderPath))
+            if (!Directory.Exists(folderPath))
                 return;
 
             List<string> folders = [.. Directory.GetDirectories(folderPath, $"*{suffix}", SearchOption.AllDirectories)];
@@ -756,7 +756,7 @@
         /// </summary>
         private static string GetEntityNameFromDto(string dtoFileName)
         {
-            if(string.IsNullOrWhiteSpace(dtoFileName)) 
+            if (string.IsNullOrWhiteSpace(dtoFileName))
                 return null;
 
             var fileName = Path.GetFileNameWithoutExtension(dtoFileName);

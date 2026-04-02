@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit
+namespace BIA.ToolKit
 {
     using BIA.ToolKit.Helper;
     using System.IO;
@@ -210,7 +210,7 @@
                         consoleWriter.AddMessageLine($"Getting releases data for repository {r.Name}...", "pink");
                         await r.FillReleasesAsync();
                         consoleWriter.AddMessageLine($"Releases data got successfully for repository {r.Name}", "green");
-                        if(r.UseDownloadedReleases)
+                        if (r.UseDownloadedReleases)
                         {
                             consoleWriter.AddMessageLine($"WARNING: Releases data got from downloaded releases for repository {r.Name}", "orange");
                         }
@@ -287,7 +287,7 @@
             }
 
             var repositoryVersionXYZ = biaTKsettings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
-            if(repositoryVersionXYZ is not null)
+            if (repositoryVersionXYZ is not null)
             {
                 if (!repositoryService.CheckRepoFolder(repositoryVersionXYZ))
                 {
@@ -545,7 +545,7 @@
 
             var targetFile = Path.Combine(targetDirectory, "user.btksettings");
             var settings = JsonConvert.SerializeObject(settingsService.Settings);
-            if(File.Exists(targetFile))
+            if (File.Exists(targetFile))
                 File.Delete(targetFile);
 
             File.AppendAllText(targetFile, settings);

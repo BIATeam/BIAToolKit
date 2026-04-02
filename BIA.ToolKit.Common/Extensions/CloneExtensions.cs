@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Common.Extensions
+namespace BIA.ToolKit.Common.Extensions
 {
     using Newtonsoft.Json;
 
