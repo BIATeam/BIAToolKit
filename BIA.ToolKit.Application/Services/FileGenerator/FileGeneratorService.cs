@@ -146,6 +146,18 @@
             }
         }
 
+        private static string FindInPath(string fileName)
+        {
+            var pathEnv = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+            foreach (var dir in pathEnv.Split(Path.PathSeparator))
+            {
+                var fullPath = Path.Combine(dir, fileName);
+                if (File.Exists(fullPath))
+                    return fullPath;
+            }
+            return null;
+        }
+
         /// <summary>
         /// Check if current project is compatible for generation with current file generator service for CRUD or Option feature.
         /// </summary>
@@ -432,6 +444,16 @@
                 var generationTemplatePath = Path.GetTempFileName();
                 var templateContent = await File.ReadAllTextAsync(templatePath);
                 await File.WriteAllTextAsync(generationTemplatePath, templateContent);
+
+                // Ensure DOTNET_ROOT is set for Mono.TextTemplating (not set when running as WPF app)
+                if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOTNET_ROOT")))
+                {
+                    var dotnetExe = FindInPath("dotnet.exe") ?? FindInPath("dotnet");
+                    if (dotnetExe != null)
+                    {
+                        Environment.SetEnvironmentVariable("DOTNET_ROOT", Path.GetDirectoryName(dotnetExe));
+                    }
+                }
 
                 // Init template generator
                 var templateGenerator = new VersionedTemplateGenerator(_modelProviderVersion);
