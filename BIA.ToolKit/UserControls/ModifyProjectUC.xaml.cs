@@ -71,7 +71,7 @@ namespace BIA.ToolKit.UserControls
 
             RegenerateFeatures.Inject(consoleWriter, uiEventBroker, settingsService,
                 regenerateFeaturesDiscoveryService, featureMigrationGeneratorService,
-                gitService, cSharpParserService);
+                gitService, cSharpParserService, projectCreatorService);
 
             uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
         }

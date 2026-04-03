@@ -14,6 +14,7 @@ namespace BIA.ToolKit.UserControls
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain;
+    using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
@@ -34,6 +35,7 @@ namespace BIA.ToolKit.UserControls
         private FeatureMigrationGeneratorService featureMigrationGeneratorService;
         private GitService gitService;
         private CSharpParserService cSharpParserService;
+        private ProjectCreatorService projectCreatorService;
         private Project currentProject;
 
         public RegenerateFeaturesUC()
@@ -48,7 +50,8 @@ namespace BIA.ToolKit.UserControls
             RegenerateFeaturesDiscoveryService discoveryService,
             FeatureMigrationGeneratorService featureMigrationGeneratorService,
             GitService gitService,
-            CSharpParserService cSharpParserService)
+            CSharpParserService cSharpParserService,
+            ProjectCreatorService projectCreatorService)
         {
             this.consoleWriter = consoleWriter;
             this.uiEventBroker = uiEventBroker;
@@ -57,6 +60,7 @@ namespace BIA.ToolKit.UserControls
             this.featureMigrationGeneratorService = featureMigrationGeneratorService;
             this.gitService = gitService;
             this.cSharpParserService = cSharpParserService;
+            this.projectCreatorService = projectCreatorService;
 
             viewModel = new RegenerateFeaturesViewModel();
             DataContext = viewModel;
@@ -142,15 +146,26 @@ namespace BIA.ToolKit.UserControls
                 return;
             }
 
-            // Process each feature individually so each gets its own isolated temp folders
-            foreach (FeatureRegenerationItem feature in viewModel.SelectedFeatures)
+            // Create a master temp folder for this regeneration session
+            string masterFolderName = $"{currentProject.Name}_RegenerateFeatures";
+            string masterFolderPath = Path.Combine(AppSettings.TmpFolderPath, masterFolderName);
+            if (Directory.Exists(masterFolderPath))
+                await Task.Run(() => FileTransform.ForceDeleteDirectory(masterFolderPath));
+            Directory.CreateDirectory(masterFolderPath);
+
+            // Group features by FROM version so each version pair shares the same FROM/TO projects
+            var groups = viewModel.SelectedFeatures
+                .GroupBy(f => NormalizeVersion(f.EffectiveFromVersion), StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            foreach (IGrouping<string, FeatureRegenerationItem> group in groups)
             {
-                string fromVersionNorm = NormalizeVersion(feature.EffectiveFromVersion);
+                string fromVersionNorm = group.Key;
 
                 if (string.Equals(fromVersionNorm, toVersionNorm, StringComparison.OrdinalIgnoreCase))
                 {
                     consoleWriter.AddMessageLine(
-                        $"FROM version ({fromVersionNorm}) equals current project version for {feature.EntityNameSingular}/{feature.FeatureType}; skipping.", "gray");
+                        $"FROM version ({fromVersionNorm}) equals current project version; skipping group.", "gray");
                     continue;
                 }
 
@@ -160,51 +175,65 @@ namespace BIA.ToolKit.UserControls
                 if (fromWorkRepo == null)
                 {
                     consoleWriter.AddMessageLine(
-                        $"No template found for version '{fromVersionNorm}'. Skipping {feature.EntityNameSingular}/{feature.FeatureType}.", "orange");
+                        $"No template found for version '{fromVersionNorm}'. Skipping features with this FROM version.", "orange");
                     continue;
                 }
 
-                RegenerableEntity entity = BuildEntityForFeature(feature);
-                if (entity == null) continue;
+                string fromFolderName = $"{currentProject.Name}_{fromVersionNorm}_From";
+                string toFolderName = $"{currentProject.Name}_{toVersionNorm}_To";
+                string fromPath = Path.Combine(masterFolderPath, fromFolderName);
+                string toPath = Path.Combine(masterFolderPath, toFolderName);
 
-                // Folder names include entity name and feature type to distinguish feature-level
-                // regeneration from full-project regeneration
-                string safeEntity = feature.EntityNameSingular.Replace(" ", "_");
-                string safeFeatureType = feature.FeatureType;
-                string safeFrom = fromVersionNorm.Replace(".", "_");
-                string safeTo = toVersionNorm.Replace(".", "_");
-                string fromFolderName = $"{currentProject.Name}_{safeEntity}_{safeFeatureType}_{safeFrom}_From";
-                string toFolderName = $"{currentProject.Name}_{safeEntity}_{safeFeatureType}_{safeTo}_To";
-                string fromPath = Path.Combine(AppSettings.TmpFolderPath, fromFolderName);
-                string toPath = Path.Combine(AppSettings.TmpFolderPath, toFolderName);
+                // Create FROM project (full project at FROM version)
+                consoleWriter.AddMessageLine($"Creating FROM project at version {fromVersionNorm}...", "Blue");
+                if (!await projectCreatorService.Create(false, fromPath, BuildProjectParameters(fromWorkRepo)))
+                {
+                    consoleWriter.AddMessageLine($"Failed to create FROM project at version {fromVersionNorm}. Skipping group.", "Red");
+                    continue;
+                }
 
-                // Create isolated empty directories for feature generation
-                if (Directory.Exists(fromPath))
-                    await Task.Run(() => FileTransform.ForceDeleteDirectory(fromPath));
-                Directory.CreateDirectory(fromPath);
+                ClearProjectPermissions(fromPath);
 
-                if (Directory.Exists(toPath))
-                    await Task.Run(() => FileTransform.ForceDeleteDirectory(toPath));
-                Directory.CreateDirectory(toPath);
+                // Create TO project (full project at current version)
+                consoleWriter.AddMessageLine($"Creating TO project at version {toVersionNorm}...", "Blue");
+                if (!await projectCreatorService.Create(false, toPath, BuildProjectParameters(toWorkRepo)))
+                {
+                    consoleWriter.AddMessageLine($"Failed to create TO project at version {toVersionNorm}. Skipping group.", "Red");
+                    continue;
+                }
 
-                // Generate only this feature into the isolated FROM and TO folders
+                ClearProjectPermissions(toPath);
+
+                // Build entity list for this version group
+                List<RegenerableEntity> entities = group
+                    .Select(feature => BuildEntityForFeature(feature))
+                    .Where(e => e != null)
+                    .ToList();
+
+                // Generate features into FROM project
                 await featureMigrationGeneratorService.GenerateFeaturesAsync(
-                    currentProject, fromPath, fromWorkRepo.Version, [entity], cSharpParserService);
+                    currentProject, fromPath, fromWorkRepo.Version, entities, cSharpParserService);
+
+                // Generate features into TO project
                 await featureMigrationGeneratorService.GenerateFeaturesAsync(
-                    currentProject, toPath, toWorkRepo.Version, [entity], cSharpParserService);
+                    currentProject, toPath, toWorkRepo.Version, entities, cSharpParserService);
 
                 // Apply 3-point diff to the current project
                 string patchFilePath = Path.Combine(AppSettings.TmpFolderPath,
                     $"Regen_{fromFolderName}-{toFolderName}.patch");
 
                 bool hasDiff = await gitService.DiffFolder(
-                    false, AppSettings.TmpFolderPath, fromFolderName, toFolderName, patchFilePath);
+                    false, masterFolderPath, fromFolderName, toFolderName, patchFilePath);
                 if (hasDiff)
                 {
                     await gitService.ApplyDiff(false, currentProject.Folder, patchFilePath);
                 }
 
-                UpdateHistoryFrameworkVersion(feature.EntityNameSingular, feature.FeatureType);
+                // Update framework version in history for each feature in this group
+                foreach (FeatureRegenerationItem feature in group)
+                {
+                    UpdateHistoryFrameworkVersion(feature.EntityNameSingular, feature.FeatureType);
+                }
             }
 
             consoleWriter.AddMessageLine("Feature regeneration completed.", "green");
@@ -224,6 +253,45 @@ namespace BIA.ToolKit.UserControls
 
             result.Sort(new WorkRepository.VersionComparer());
             return result;
+        }
+
+        /// <summary>
+        /// Builds <see cref="ProjectParameters"/> for use with <see cref="ProjectCreatorService.Create"/>
+        /// using the current project's identity and the supplied template repository.
+        /// Company-file overlays are intentionally skipped to keep regeneration simple.
+        /// An empty <see cref="VersionAndOption.FeatureSettings"/> list means all template
+        /// features are included.
+        /// </summary>
+        private ProjectParameters BuildProjectParameters(WorkRepository workRepo)
+        {
+            return new ProjectParameters
+            {
+                CompanyName = currentProject.CompanyName,
+                ProjectName = currentProject.Name,
+                AngularFronts = [.. currentProject.BIAFronts],
+                VersionAndOption = new VersionAndOption
+                {
+                    WorkTemplate = workRepo,
+                    FeatureSettings = [],
+                    UseCompanyFiles = false,
+                },
+            };
+        }
+
+        /// <summary>
+        /// Clears the permissions array from <c>bianetpermissions.json</c> inside a generated
+        /// project so the file does not pollute patch diffs.
+        /// </summary>
+        private void ClearProjectPermissions(string projectPath)
+        {
+            string filePath = Path.Combine(
+                projectPath,
+                Constants.FolderNetCore,
+                $"{currentProject.CompanyName}.{currentProject.Name}.Presentation.Api",
+                "bianetpermissions.json");
+
+            if (File.Exists(filePath))
+                projectCreatorService.ClearPermissions(filePath);
         }
 
         private static string NormalizeVersion(string version)
