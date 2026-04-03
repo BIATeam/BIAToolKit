@@ -192,6 +192,9 @@ namespace BIA.ToolKit.Application.ViewModel
                         changed = true;
                     }
                     // Child DTO selected (with or without child CRUD) → auto-select parent DTO if not already selected.
+                    // Note: when child CRUD is also selected the branch above runs and the CRUD→DTO coupling in
+                    // RegenerableEntityRowViewModel.IsCrudSelected will automatically force parent DTO on — so this
+                    // 'else if' branch is only reached when child has DTO without CRUD, which is the desired behaviour.
                     // (When parent CRUD is already selected, parent DTO is already locked-on, so this is a no-op.)
                     else if (childRow.IsDtoSelected && parentRow.Entity.CanRegenerateDto && !parentRow.IsDtoSelected)
                     {
