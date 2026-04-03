@@ -4,6 +4,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator;
@@ -75,6 +76,14 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                 consoleWriter.AddMessageLine($"Feature migration: Unable to initialize generator for version {targetVersion}, skipping features.", "orange");
                 return;
             }
+
+            // Clean the generated project so it only contains files that the feature generator can
+            // produce (per the manifest). This keeps the FROM/TO diff focused on feature files only.
+            await CleanProjectForFeatureGenerationAsync(fileGenerator, targetProject);
+
+            // Use the real project's prettier environment (node_modules + .prettierrc) rather than
+            // the temp project's, which does not have node_modules installed.
+            SetPrettierOverride(fileGenerator, currentProject);
 
             foreach (RegenerableEntity entity in entities
                 .Where(e => e.CanSelectEntity)
@@ -253,6 +262,103 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"Feature migration: Error generating CRUD for {history.EntityNameSingular}: {ex.Message}", "orange");
+            }
+        }
+
+        /// <summary>
+        /// Sets the prettier path override on <paramref name="fileGenerator"/> to the first angular
+        /// front folder of the real <paramref name="currentProject"/> that exists on disk. This
+        /// ensures prettier uses the project's installed <c>node_modules</c> rather than the
+        /// temporary FROM/TO project folder, which does not have <c>node_modules</c> installed.
+        /// </summary>
+        private void SetPrettierOverride(FileGeneratorService fileGenerator, Project currentProject)
+        {
+            string prettierPath = currentProject.BIAFronts
+                .Select(front => Path.Combine(currentProject.Folder, front))
+                .FirstOrDefault(Directory.Exists);
+
+            if (prettierPath != null)
+            {
+                try
+                {
+                    fileGenerator.SetPrettierProjectPathOverride(prettierPath);
+                }
+                catch (Exception ex)
+                {
+                    consoleWriter.AddMessageLine($"Feature migration: Could not set prettier override: {ex.Message}", "orange");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Cleans <paramref name="targetProject"/> so that it retains only files whose paths match
+        /// an output-path pattern declared in the current manifest. Non-matching files are deleted
+        /// and empty directories are removed. This limits the FROM/TO diff to feature-relevant
+        /// files only.
+        /// </summary>
+        private async Task CleanProjectForFeatureGenerationAsync(FileGeneratorService fileGenerator, Project targetProject)
+        {
+            var manifestPaths = fileGenerator.GetAllManifestOutputPaths().ToList();
+            string projectPrefix = $"{targetProject.CompanyName}.{targetProject.Name}";
+
+            // Build full-path glob patterns (with ".*" wildcards for all entity/domain placeholders).
+            var allowedPatterns = new List<string>();
+
+            // Placeholders that can span multiple path segments (e.g. ParentChildrenRelativePath)
+            // must also be treated as multi-level wildcards.  We therefore replace all remaining
+            // braced tokens with ".*" (match anything, including path separators).
+            var placeholderRegex = new Regex(@"\{[^}]+\}", RegexOptions.Compiled);
+
+            foreach ((string templatePath, bool isDotNet) in manifestPaths)
+            {
+                // Resolve the project prefix first, then turn every remaining placeholder into a
+                // regex wildcard that may span multiple path segments.
+                string resolved = placeholderRegex.Replace(
+                    templatePath.Replace("{Project}", projectPrefix),
+                    "*");
+
+                if (isDotNet)
+                {
+                    allowedPatterns.Add(Path.Combine(targetProject.Folder, Constants.FolderDotNet, resolved));
+                }
+                else
+                {
+                    foreach (string front in targetProject.BIAFronts)
+                        allowedPatterns.Add(Path.Combine(targetProject.Folder, front, resolved));
+                }
+            }
+
+            await Task.Run(() =>
+            {
+                foreach (string file in Directory.EnumerateFiles(targetProject.Folder, "*", SearchOption.AllDirectories).ToList())
+                {
+                    if (!allowedPatterns.Any(p => MatchesGlobPattern(file, p)))
+                        File.Delete(file);
+                }
+
+                DeleteEmptyDirectories(targetProject.Folder);
+            });
+        }
+
+        /// <summary>
+        /// Returns <see langword="true"/> when <paramref name="path"/> matches
+        /// <paramref name="pattern"/>, where <c>*</c> in the pattern matches any sequence of
+        /// characters (including path separators).
+        /// </summary>
+        private static bool MatchesGlobPattern(string path, string pattern)
+        {
+            // Build a regex: escape everything, then turn \* back into .* (match anything).
+            string regexPattern = "^" + Regex.Escape(pattern).Replace(@"\*", ".*") + "$";
+            return Regex.IsMatch(path, regexPattern, RegexOptions.IgnoreCase);
+        }
+
+        private static void DeleteEmptyDirectories(string directory)
+        {
+            foreach (string subdirectory in Directory.EnumerateDirectories(directory))
+            {
+                DeleteEmptyDirectories(subdirectory);
+                if (!Directory.EnumerateFileSystemEntries(subdirectory).Any())
+                    Directory.Delete(subdirectory);
             }
         }
     }
