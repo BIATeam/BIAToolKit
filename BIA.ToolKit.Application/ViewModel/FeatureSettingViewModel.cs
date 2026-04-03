@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using System;
     using System.Collections.Generic;
@@ -13,13 +13,13 @@
         public FeatureSetting FeatureSetting => featureSetting;
         public bool IsSelected
         {
-            get 
-            { 
-                return featureSetting.IsSelected; 
+            get
+            {
+                return featureSetting.IsSelected;
             }
-            set 
-            { 
-                featureSetting.IsSelected = value; 
+            set
+            {
+                featureSetting.IsSelected = value;
                 RaisePropertyChanged(nameof(IsSelected));
                 RaisePropertyChanged(nameof(DisplayDisabledFeatures));
             }

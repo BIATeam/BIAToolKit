@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Common
+namespace BIA.ToolKit.Common
 {
     using System;
     using System.Collections.Generic;

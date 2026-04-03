@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates._5_0_0.Mocks
+namespace BIA.ToolKit.Application.Templates._5_0_0.Mocks
 {
     using BIA.ToolKit.Application.Templates._5_0_0.Models;
 

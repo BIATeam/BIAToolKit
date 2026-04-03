@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit
+namespace BIA.ToolKit
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
@@ -19,16 +19,16 @@
     /// </summary>
     public partial class App : System.Windows.Application
     {
-        private ServiceProvider serviceProvider;
+        private readonly ServiceProvider serviceProvider;
 
         public App()
         {
-            ServiceCollection services = new ServiceCollection();
+            var services = new ServiceCollection();
             ConfigureServices(services);
             serviceProvider = services.BuildServiceProvider();
         }
 
-        private void ConfigureServices(ServiceCollection services)
+        private static void ConfigureServices(ServiceCollection services)
         {
             services.AddSingleton<IConsoleWriter, ConsoleWriter>();
             services.AddSingleton<UIEventBroker>();
@@ -58,7 +58,7 @@
                 ToolKit.Properties.Settings.Default.Save();
             }
 
-            var mainWindow = serviceProvider.GetService<MainWindow>();
+            MainWindow mainWindow = serviceProvider.GetService<MainWindow>();
             mainWindow.Show();
             await mainWindow.Init();
         }

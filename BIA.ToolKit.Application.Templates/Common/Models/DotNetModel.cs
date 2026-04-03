@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates.Common.Models
+namespace BIA.ToolKit.Application.Templates.Common.Models
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -6,7 +6,7 @@
 
     public abstract class DotNetModel
     {
-        private List<string> usingList = new List<string>();
+        private readonly List<string> usingList = [];
 
         public void ClearUse()
         {
@@ -20,7 +20,7 @@
 
         public string WritteUsing()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             if (usingList.Count() > 0)
             {
                 sb.Append("\r\n");

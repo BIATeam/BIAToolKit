@@ -1,9 +1,11 @@
-﻿namespace BIA.ToolKit.Application.Templates._4_0_0.Models
+namespace BIA.ToolKit.Application.Templates._4_0_0.Models
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
+
+#pragma warning disable CS9266 // Les propriétés with setter utilisent throw NotImplementedException() au getter par design
 
     public class EntityDtoModel<TPropertyDtoModel> : Common.Models.EntityModel, IEntityDtoModel<TPropertyDtoModel>
             where TPropertyDtoModel : class, IPropertyDtoModel
@@ -18,10 +20,10 @@
             {
                 if (excludedPropertiesToGenerate == null)
                 {
-                    excludedPropertiesToGenerate = new List<string>()
-                    {
+                    excludedPropertiesToGenerate =
+                    [
                         "Id",
-                    };
+                    ];
 
                     if (IsVersioned)
                     {
@@ -54,7 +56,7 @@
             }
         }
 
-        public List<TPropertyDtoModel> Properties { get; set; } = new List<TPropertyDtoModel>();
+        public List<TPropertyDtoModel> Properties { get; set; } = [];
         public IEnumerable<TPropertyDtoModel> PropertiesToGenerate => Properties.Where(p => !ExcludedPropertiesToGenerate.Contains(p.MappingName));
         public bool HasCollectionOptions => Properties.Any(p => p.MappingType.Equals(CollectionOptionDto));
         public bool HasTimeSpanProperty => Properties.Any(p => p.EntityType.Equals("TimeSpan") || p.EntityType.Equals("TimeSpan?"));
@@ -74,7 +76,7 @@
         public virtual string GetClassInheritance()
         {
             var types = new List<string>();
-            if(IsTeamType)
+            if (IsTeamType)
             {
                 types.Add("TeamDto");
             }
@@ -96,4 +98,5 @@
             return string.Join(", ", types);
         }
     }
+#pragma warning restore CS9266
 }

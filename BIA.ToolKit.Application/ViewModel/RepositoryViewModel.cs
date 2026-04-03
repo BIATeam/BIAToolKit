@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using System;
     using System.Collections.ObjectModel;
@@ -181,7 +181,7 @@
                     await Task.Run(repository.CleanReleases);
                     consoleWriter.AddMessageLine($"Releases cleaned", "green");
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     consoleWriter.AddMessageLine($"Failed to clean releases : {ex.Message}");
                 }
@@ -199,7 +199,7 @@
 
                 await Task.Run(() => Process.Start("explorer.exe", Model.LocalPath));
             });
-            
+
         }
 
         private void OpenSource()
@@ -216,7 +216,7 @@
                     await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = Model.LocalPath, UseShellExecute = true }));
                 }
 
-                if(Model is RepositoryGit repoGit)
+                if (Model is RepositoryGit repoGit)
                 {
                     await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = repoGit.Url, UseShellExecute = true }));
                 }

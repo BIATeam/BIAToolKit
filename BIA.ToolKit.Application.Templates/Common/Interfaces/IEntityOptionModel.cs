@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates.Common.Interfaces
+namespace BIA.ToolKit.Application.Templates.Common.Interfaces
 {
     public interface IEntityOptionModel : IEntityModel
     {

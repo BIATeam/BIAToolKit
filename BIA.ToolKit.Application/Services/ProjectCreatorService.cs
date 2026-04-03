@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services
+namespace BIA.ToolKit.Application.Services
 {
     using System;
     using System.Collections.Generic;
@@ -17,25 +17,15 @@
     using BIA.ToolKit.Domain.Work;
     using static BIA.ToolKit.Common.Constants;
 
-    public class ProjectCreatorService
+    public partial class ProjectCreatorService(IConsoleWriter consoleWriter,
+        RepositoryService repositoryService,
+        SettingsService settingsService,
+        CSharpParserService parserService)
     {
-        private readonly IConsoleWriter consoleWriter;
-        private readonly RepositoryService repositoryService;
-        private readonly CSharpParserService parserService;
-        private readonly SettingsService settingsService;
-
-
-        public ProjectCreatorService(IConsoleWriter consoleWriter,
-            RepositoryService repositoryService,
-            SettingsService settingsService,
-            CSharpParserService parserService)
-        {
-            this.consoleWriter = consoleWriter;
-            this.repositoryService = repositoryService;
-            this.parserService = parserService;
-            this.settingsService = settingsService;
-        }
-
+        private readonly IConsoleWriter consoleWriter = consoleWriter;
+        private readonly RepositoryService repositoryService = repositoryService;
+        private readonly CSharpParserService parserService = parserService;
+        private readonly SettingsService settingsService = settingsService;
         private static readonly TimeSpan CreateTimeout = TimeSpan.FromSeconds(60);
         private static readonly int MaxRetryCount = 3;
 
@@ -97,7 +87,7 @@
             // Ensure to have namespaces correctly formated
             projectParameters.ProjectName = $"{char.ToUpper(projectParameters.ProjectName[0])}{projectParameters.ProjectName[1..]}";
 
-            List<FeatureSetting> featureSettings = projectParameters.VersionAndOption?.FeatureSettings.ToList();
+            var featureSettings = projectParameters.VersionAndOption?.FeatureSettings.ToList();
 
             List<string> foldersToExcludes = [];
             List<string> localFilesToExcludes = [];
@@ -110,7 +100,7 @@
             }
             else
             {
-                projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath = await this.repositoryService.PrepareVersionFolder(projectParameters.VersionAndOption.WorkTemplate.Repository, projectParameters.VersionAndOption.WorkTemplate.Version);
+                projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath = await repositoryService.PrepareVersionFolder(projectParameters.VersionAndOption.WorkTemplate.Repository, projectParameters.VersionAndOption.WorkTemplate.Version);
             }
 
             if (!Directory.Exists(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath))
@@ -129,11 +119,11 @@
             consoleWriter.AddMessageLine("Start copy template files.", "Pink");
             await Task.Run(() => FileTransform.CopyFilesRecursively(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath, projectPath, "", localFilesToExcludes, foldersToExcludes), cancellationToken);
 
-            IList<string> filesToRemove = new List<string>() { "^new-angular-project\\.ps1$", "BiaToolKit_FeatureSetting\\.json" };
+            IList<string> filesToRemove = ["^new-angular-project\\.ps1$", "BiaToolKit_FeatureSetting\\.json"];
 
             if (projectParameters.VersionAndOption.UseCompanyFiles)
             {
-                IList<string> filesToExclude = new List<string>() { "^biaCompanyFiles\\.json$" };
+                IList<string> filesToExclude = ["^biaCompanyFiles\\.json$"];
                 foreach (CFOption option in projectParameters.VersionAndOption.Options)
                 {
                     if (option.IsChecked)
@@ -168,12 +158,12 @@
                 await Task.Run(() => FileTransform.RemoveRecursively(projectPath, filesToRemove), cancellationToken);
             }
 
-            await Task.Run(() => this.CleanProject(projectPath, projectParameters.VersionAndOption, featureSettings), cancellationToken);
+            await Task.Run(() => CleanProject(projectPath, projectParameters.VersionAndOption, featureSettings), cancellationToken);
 
             await RenameInProject(projectPath, projectParameters, cancellationToken);
 
             consoleWriter.AddMessageLine("Start remove BIATemplate only.", "Pink");
-            await Task.Run(() => FileTransform.RemoveTemplateOnly(projectPath, "# Begin BIATemplate only", "# End BIATemplate only", new List<string>() { ".gitignore" }), cancellationToken);
+            await Task.Run(() => FileTransform.RemoveTemplateOnly(projectPath, "# Begin BIATemplate only", "# End BIATemplate only", [".gitignore"]), cancellationToken);
 
             if (projectParameters.VersionAndOption.WorkTemplate.Version.Equals("VX.Y.Z") || Version.TryParse(projectParameters.VersionAndOption.WorkTemplate.Version.Replace("V", ""), out Version projectVersion) && projectVersion >= new Version("3.10.0"))
             {
@@ -185,9 +175,9 @@
                 bool containsFrontAngular = false;
                 if (projectParameters.AngularFronts.Count > 0)
                 {
-                    foreach (var angularFront in projectParameters.AngularFronts)
+                    foreach (string angularFront in projectParameters.AngularFronts)
                     {
-                        if (angularFront.ToLower() != "angular")
+                        if (!angularFront.Equals("angular", StringComparison.CurrentCultureIgnoreCase))
                         {
                             Directory.CreateDirectory(projectPath + "\\" + angularFront);
                             FileTransform.CopyFilesRecursively(projectPath + "\\Angular", projectPath + "\\" + angularFront);
@@ -214,7 +204,7 @@
                 }
 
                 string projectGenerationFile = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
-                VersionAndOptionDto versionAndOptionDto = new VersionAndOptionDto();
+                var versionAndOptionDto = new VersionAndOptionDto();
                 VersionAndOptionMapper.ModelToDto(projectParameters.VersionAndOption, versionAndOptionDto);
                 CommonTools.SerializeToJsonFile(versionAndOptionDto, projectGenerationFile);
             }, cancellationToken);
@@ -254,8 +244,8 @@
                         throw new InvalidOperationException("Invalid JSON format in the file.", ex);
                     }
 
-                    var root = jsonDoc.RootElement.Clone();
-                    if (!root.TryGetProperty("BiaNet", out var biaNet))
+                    JsonElement root = jsonDoc.RootElement.Clone();
+                    if (!root.TryGetProperty("BiaNet", out JsonElement biaNet))
                     {
                         throw new InvalidOperationException("The 'BiaNet' property was not found in the JSON.");
                     }
@@ -267,7 +257,7 @@
                     writer.WritePropertyName("BiaNet");
                     writer.WriteStartObject();
 
-                    foreach (var property in biaNet.EnumerateObject())
+                    foreach (JsonProperty property in biaNet.EnumerateObject())
                     {
                         if (property.Name != "Permissions")
                         {
@@ -383,17 +373,17 @@
             consoleWriter.AddMessageLine("Start overwrite BIA Folder.", "Pink");
             await Task.Run(() =>
             {
-                Regex reg = new Regex(@"\\bia-.*\\", RegexOptions.IgnoreCase);
+                Regex reg = MyRegex();
                 string[] biaDirectories = Directory.GetDirectories(sourceFolder, "bia-*", SearchOption.AllDirectories);
-                foreach (var biaDirectory in biaDirectories)
+                foreach (string biaDirectory in biaDirectories)
                 {
-                    var relativePath = biaDirectory.Substring(sourceFolder.Length);
-                    var matchBia = reg.Match(relativePath);
+                    string relativePath = biaDirectory[sourceFolder.Length..];
+                    Match matchBia = reg.Match(relativePath);
 
                     // treat only root folder 
                     if (matchBia.Length == 0)
                     {
-                        var targetDirectory = targetFolder + relativePath;
+                        string targetDirectory = targetFolder + relativePath;
 
                         Directory.Delete(targetDirectory, true);
                         Directory.CreateDirectory(targetDirectory);
@@ -412,33 +402,33 @@
             }
         }
 
-        private void CleanSln(string projectPath, VersionAndOption versionAndOption)
+        private static void CleanSln(string projectPath, VersionAndOption versionAndOption)
         {
             if (!string.IsNullOrWhiteSpace(projectPath) && !string.IsNullOrWhiteSpace(versionAndOption?.WorkTemplate?.VersionFolderPath))
             {
                 List<string> slnFiles = FileHelper.GetFilesFromPathWithExtension(projectPath, $"*{FileExtensions.DotNetSolution}");
-                if (!slnFiles.Any()) return;
+                if (slnFiles.Count == 0) return;
 
                 List<string> templateCsprojFiles = FileHelper.GetFilesFromPathWithExtension(versionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}", projectPath);
 
                 List<string> csprojFiles = FileHelper.GetFilesFromPathWithExtension(projectPath, $"*{FileExtensions.DotNetProject}");
 
-                List<string> csprojFilesToRemoves = templateCsprojFiles?.Except(csprojFiles).ToList();
+                var csprojFilesToRemoves = templateCsprojFiles?.Except(csprojFiles).ToList();
 
-                if (!csprojFilesToRemoves.Any()) return;
+                if (csprojFilesToRemoves.Count == 0) return;
 
                 DotnetHelper.RemoveProjectsFromSolution(slnFiles[0], csprojFilesToRemoves);
             }
         }
 
-        private void CleanCsProj(string projectPath, List<FeatureSetting> featureSettings)
+        private static void CleanCsProj(string projectPath, List<FeatureSetting> featureSettings)
         {
             List<string> csprojFiles = FileHelper.GetFilesFromPathWithExtension(projectPath, $"*{FileExtensions.DotNetProject}");
-            var tagsToDelete = featureSettings.GetBiaFeatureTagToDeletes();
+            List<string> tagsToDelete = featureSettings.GetBiaFeatureTagToDeletes();
 
             foreach (string csprojFile in csprojFiles)
             {
-                XDocument xDocument = XDocument.Load(csprojFile);
+                var xDocument = XDocument.Load(csprojFile);
                 XNamespace ns = xDocument.Root.Name.Namespace;
                 bool shouldSaveDocument = false;
 
@@ -457,7 +447,7 @@
                 var defineConstants = xDocument
                     .Descendants("DefineConstants")
                     .ToList();
-                foreach (var defineConstant in defineConstants)
+                foreach (XElement defineConstant in defineConstants)
                 {
                     if (!string.IsNullOrWhiteSpace(defineConstant.Value))
                     {
@@ -471,9 +461,9 @@
                     .Descendants("ProjectReference")
                     .Where(x => x.Attribute("Condition") is not null)
                     .ToList();
-                foreach (var projectReference in projectReferences)
+                foreach (XElement projectReference in projectReferences)
                 {
-                    var conditionAttribute = projectReference.Attribute("Condition");
+                    XAttribute conditionAttribute = projectReference.Attribute("Condition");
                     if (tagsToDelete.Any(conditionAttribute.Value.Contains))
                     {
                         projectReference.Remove();
@@ -496,22 +486,21 @@
         {
             List<string> tags = settings.GetBiaFeatureTagToDeletes(BiaFeatureTag.ItemGroupTag);
 
-            List<string> filesToExcludes = new List<string>();
-            var csprojFiles = FileHelper.GetFilesFromPathWithExtension(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}");
-            foreach (var csprojFile in csprojFiles)
+            List<string> filesToExcludes = [];
+            List<string> csprojFiles = FileHelper.GetFilesFromPathWithExtension(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath, $"*{FileExtensions.DotNetProject}");
+            foreach (string csprojFile in csprojFiles)
             {
-                var rootDirectory = Path.GetDirectoryName(csprojFile);
+                string rootDirectory = Path.GetDirectoryName(csprojFile);
 
-                XDocument document = XDocument.Load(csprojFile);
+                var document = XDocument.Load(csprojFile);
                 XNamespace ns = document.Root.Name.Namespace;
 
                 var itemGroups = document.Descendants(ns + "ItemGroup").Where(x => tags.Contains((string)x.Attribute("Label"))).ToList();
-                foreach (var itemGroup in itemGroups)
+                foreach (XElement itemGroup in itemGroups)
                 {
-                    List<string> compileRemoveItems = itemGroup.Elements(ns + "Compile")
+                    List<string> compileRemoveItems = [.. itemGroup.Elements(ns + "Compile")
                                                       .Where(x => x.Attribute("Remove") != null)
-                                                      .Select(x => x.Attribute("Remove").Value)
-                                                      .ToList();
+                                                      .Select(x => x.Attribute("Remove").Value)];
 
                     foreach (string item in compileRemoveItems)
                     {
@@ -525,7 +514,7 @@
                             newPattern = @"\\.*\\" + Regex.Escape(item.Replace("**\\", "").Replace(".cs", "")) + @"\.cs$";
                         }
 
-                        var fullPattern =
+                        string fullPattern =
                             @"^.*\\"
                             + rootDirectory
                                 .Replace(Path.GetDirectoryName(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath) + @"\", string.Empty)
@@ -544,12 +533,12 @@
             return filesToExcludes;
         }
 
-        private void CleanProject(string projectPath, VersionAndOption versionAndOption, List<FeatureSetting> featureSettings)
+        private static void CleanProject(string projectPath, VersionAndOption versionAndOption, List<FeatureSetting> featureSettings)
         {
             if (!versionAndOption.FeatureSettings.ToList().HasAllFeature())
             {
-                this.CleanSln(projectPath, versionAndOption);
-                this.CleanCsProj(projectPath, featureSettings);
+                CleanSln(projectPath, versionAndOption);
+                CleanCsProj(projectPath, featureSettings);
 
                 DirectoryHelper.DeleteEmptyDirectories(projectPath);
 
@@ -579,11 +568,14 @@
                 return;
             }
 
-            foreach (var file in Directory.GetFiles(rootDirectory, filePattern, SearchOption.AllDirectories))
+            foreach (string file in Directory.GetFiles(rootDirectory, filePattern, SearchOption.AllDirectories))
             {
                 consoleWriter.AddMessageLine($"-> Delete {file}", "orange");
                 File.Delete(file);
             }
         }
+
+        [GeneratedRegex(@"\\bia-.*\\", RegexOptions.IgnoreCase, "fr-FR")]
+        private static partial Regex MyRegex();
     }
 }

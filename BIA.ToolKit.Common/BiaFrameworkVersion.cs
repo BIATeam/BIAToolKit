@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Common
+namespace BIA.ToolKit.Common
 {
     using System;
     using System.Collections.Generic;
@@ -14,7 +14,7 @@
 
         public BiaFrameworkVersion(string pattern)
         {
-            var parts = pattern.Split('.');
+            string[] parts = pattern.Split('.');
             if (parts.Length < 1 || parts.Length > 3)
                 throw new ArgumentException("Invalid version format");
 

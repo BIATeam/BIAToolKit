@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.FileGenerator
+namespace BIA.ToolKit.Application.Services.FileGenerator
 {
     public static class Common
     {
@@ -9,13 +9,13 @@
             const string An = "an";
             const string A = "a";
 
-            var lowerName = name.ToLower();
+            string lowerName = name.ToLower();
             return
-                lowerName.StartsWith("a") ||
-                lowerName.StartsWith("e") ||
-                lowerName.StartsWith("i") ||
-                lowerName.StartsWith("o") ||
-                lowerName.StartsWith("u") ?
+                lowerName.StartsWith('a') ||
+                lowerName.StartsWith('e') ||
+                lowerName.StartsWith('i') ||
+                lowerName.StartsWith('o') ||
+                lowerName.StartsWith('u') ?
                 An : A;
         }
     }

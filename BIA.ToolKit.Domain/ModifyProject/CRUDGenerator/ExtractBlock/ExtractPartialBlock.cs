@@ -1,21 +1,14 @@
-﻿namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.ExtractBlock
+namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.ExtractBlock
 {
     using System.Collections.Generic;
 
-    public class ExtractPartialBlock : ExtractBlock
+    public class ExtractPartialBlock(CRUDDataUpdateType dataUpdateType, string name, string index) : ExtractBlock(dataUpdateType, name, [])
     {
-        public string Index { get; }
+        public string Index { get; } = index;
 
-        public List<ExtractPartialBlock> NestedBlocks { get; }
+        public List<ExtractPartialBlock> NestedBlocks { get; } = [];
 
         public ExtractPartialBlock ParentBlock { get; private set; }
-
-        public ExtractPartialBlock(CRUDDataUpdateType dataUpdateType, string name, string index) :
-            base(dataUpdateType, name, new())
-        {
-            Index = index;
-            NestedBlocks = new();
-        }
 
         public void AddLine(string line)
         {
@@ -45,7 +38,7 @@
 
         private static ExtractPartialBlock GetLastNestedBlockRecursive(ExtractPartialBlock extractPartialBlock)
         {
-            if (!extractPartialBlock.NestedBlocks.Any())
+            if (extractPartialBlock.NestedBlocks.Count == 0)
                 return extractPartialBlock;
 
             return GetLastNestedBlockRecursive(extractPartialBlock.NestedBlocks.Last());
@@ -61,10 +54,10 @@
         private static List<ExtractPartialBlock> GetAllNestedBlocksRecursive(IEnumerable<ExtractPartialBlock> blocks)
         {
             var nestedBlocks = new List<ExtractPartialBlock>();
-            if(!blocks.Any())
+            if (!blocks.Any())
                 return nestedBlocks;
 
-            foreach(var block in blocks)
+            foreach (ExtractPartialBlock block in blocks)
             {
                 nestedBlocks.Add(block);
                 nestedBlocks.AddRange(GetAllNestedBlocksRecursive(block.NestedBlocks));

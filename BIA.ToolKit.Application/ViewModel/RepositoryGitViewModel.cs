@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using System;
     using System.Collections.ObjectModel;
@@ -54,7 +54,7 @@
             set { repositoryGit.ReleasesTagContentFolder = value; RaisePropertyChanged(nameof(ReleasesTagContentFolder)); }
         }
 
-        public Array ReleaseTypes => Enum.GetValues<ReleaseType>();
+        public static Array ReleaseTypes => Enum.GetValues<ReleaseType>();
 
         public ReleaseType ReleaseType
         {
@@ -108,7 +108,7 @@
 
         protected override bool EnsureIsValid()
         {
-            var releaseFieldsValid = ReleaseType switch
+            bool releaseFieldsValid = ReleaseType switch
             {
                 ReleaseType.Git => !string.IsNullOrWhiteSpace(GitRepositoryName) && !string.IsNullOrWhiteSpace(Owner),
                 ReleaseType.Folder => true,

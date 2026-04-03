@@ -1,10 +1,10 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
     using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
@@ -38,9 +38,9 @@
                 currentProject = value;
 
                 BiaFronts.Clear();
-                if(currentProject != null)
+                if (currentProject != null)
                 {
-                    foreach(var biaFront in currentProject.BIAFronts)
+                    foreach (string biaFront in currentProject.BIAFronts)
                     {
                         BiaFronts.Add(biaFront);
                     }
@@ -197,11 +197,11 @@
         public void AddOptionItems(IEnumerable<OptionItem> optionItems)
         {
             OptionItems.Clear();
-            foreach (var optionItem in optionItems.OrderBy(x => x.OptionName))
+            foreach (OptionItem optionItem in optionItems.OrderBy(x => x.OptionName))
             {
                 OptionItems.Add(optionItem);
             }
-            foreach(var optionItem in OptionItems)
+            foreach (OptionItem optionItem in OptionItems)
             {
                 optionItem.PropertyChanged += OptionItem_PropertyChanged;
             }
@@ -261,7 +261,7 @@
             if (string.IsNullOrEmpty(featureNameSelected))
                 return;
 
-            foreach (var zipFeatureType in ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected))
+            foreach (ZipFeatureType zipFeatureType in ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected))
             {
                 if (zipFeatureType.GenerationType == GenerationType.WebApi && isWebApiSelected)
                 {
@@ -314,7 +314,7 @@
         {
             get
             {
-                if(UseFileGenerator)
+                if (UseFileGenerator)
                 {
                     return true;
                 }
@@ -323,7 +323,7 @@
                 if (!string.IsNullOrEmpty(FeatureNameSelected) && FeatureNameSelected.Equals("CRUD"))
                     return false;
 
-                var selectedFeaturesWithParent = ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected && x.Parents.Any(y => y.IsPrincipal));
+                IEnumerable<ZipFeatureType> selectedFeaturesWithParent = ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected && x.Parents.Any(y => y.IsPrincipal));
                 // Let checkbox editable if parent is not needed
                 if (selectedFeaturesWithParent.Any() && selectedFeaturesWithParent.All(x => !x.NeedParent))
                     return true;
@@ -405,23 +405,23 @@
 
         private void UpdateParentPreSelection()
         {
-            if(!string.IsNullOrWhiteSpace(ParentName))
+            if (!string.IsNullOrWhiteSpace(ParentName))
             {
                 return;
             }
 
-            var selectedFeaturesWithParent = ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected && x.Parents.Any(y => y.IsPrincipal));
+            IEnumerable<ZipFeatureType> selectedFeaturesWithParent = ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected && x.Parents.Any(y => y.IsPrincipal));
             if ((UseFileGenerator || selectedFeaturesWithParent.Any()) && DtoEntity != null)
             {
-                var propertiesWithParent = DtoEntity.Properties.Where(x => x.Annotations != null && x.Annotations.Any(y => y.Key == "IsParent"));
-                var parentPropertyName = propertiesWithParent.FirstOrDefault(x => x.Name.EndsWith("Id"))?.Name;
+                IEnumerable<PropertyInfo> propertiesWithParent = DtoEntity.Properties.Where(x => x.Annotations != null && x.Annotations.Any(y => y.Key == "IsParent"));
+                string parentPropertyName = propertiesWithParent.FirstOrDefault(x => x.Name.EndsWith("Id"))?.Name;
                 if (!string.IsNullOrEmpty(parentPropertyName))
                 {
-                    var parentName = parentPropertyName.Replace("Id", string.Empty);
+                    string parentName = parentPropertyName.Replace("Id", string.Empty);
                     ParentName = parentName;
                     HasParent = true;
                 }
-                if(!UseFileGenerator && !HasParent)
+                if (!UseFileGenerator && !HasParent)
                 {
                     HasParent = selectedFeaturesWithParent.Any(x => x.NeedParent);
                 }
@@ -447,8 +447,8 @@
                 return;
             }
 
-            var namespaceParts = DtoEntity.Namespace.Split('.').ToList();
-            var domainIndex = namespaceParts.IndexOf("Dto");
+            List<string> namespaceParts = [.. DtoEntity.Namespace.Split('.')];
+            int domainIndex = namespaceParts.IndexOf("Dto");
             if (domainIndex != -1)
             {
                 Domain = namespaceParts[domainIndex + 1];
@@ -497,7 +497,7 @@
                 {
                     isFrontSelected = value;
                     RaisePropertyChanged(nameof(IsFrontSelected));
-                    if(value == false)
+                    if (value == false)
                     {
                         BiaFront = null;
                     }
@@ -566,9 +566,9 @@
         public bool UseHubClient
         {
             get { return _useHubClient; }
-            set 
-            { 
-                _useHubClient = value; 
+            set
+            {
+                _useHubClient = value;
                 RaisePropertyChanged(nameof(UseHubClient));
             }
         }
@@ -672,7 +672,7 @@
             }
         }
 
-        public bool IsProjectCompatibleV6 => Version.TryParse(CurrentProject?.FrameworkVersion, out var version) && version.Major >= 6;
+        public bool IsProjectCompatibleV6 => Version.TryParse(CurrentProject?.FrameworkVersion, out Version version) && version.Major >= 6;
 
         private bool displayHistorical;
         public bool DisplayHistorical
@@ -746,8 +746,8 @@
         public string AncestorTeam
         {
             get { return _ancestorTeam; }
-            set 
-            { 
+            set
+            {
                 _ancestorTeam = value;
                 RaisePropertyChanged(nameof(AncestorTeam));
             }
@@ -758,9 +758,9 @@
         public int TeamTypeId
         {
             get { return _teamTypeId; }
-            set 
-            { 
-                _teamTypeId = value; 
+            set
+            {
+                _teamTypeId = value;
                 RaisePropertyChanged(nameof(TeamTypeId));
                 RaisePropertyChanged(nameof(IsButtonGenerateCrudEnable));
             }
@@ -788,7 +788,7 @@
         {
             get
             {
-                _formReadOnlyModes ??= new List<string>(Enum.GetNames<FormReadOnlyMode>());
+                _formReadOnlyModes ??= [.. Enum.GetNames<FormReadOnlyMode>()];
                 return _formReadOnlyModes;
             }
         }
@@ -798,9 +798,9 @@
         public string SelectedFormReadOnlyMode
         {
             get { return _selectedFormReadOnlyMode; }
-            set 
-            { 
-                _selectedFormReadOnlyMode = value; 
+            set
+            {
+                _selectedFormReadOnlyMode = value;
                 RaisePropertyChanged(nameof(SelectedFormReadOnlyMode));
             }
         }
@@ -824,8 +824,8 @@
 
         public OptionItem(string name, bool check = false)
         {
-            this.Check = check;
-            this.OptionName = name;
+            Check = check;
+            OptionName = name;
         }
     }
 

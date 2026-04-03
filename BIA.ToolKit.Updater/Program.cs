@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Updater
+namespace BIA.ToolKit.Updater
 {
     using System;
     using System.Diagnostics;
@@ -41,7 +41,7 @@
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Admin mode");
             }
-            
+
             await Task.Delay(3000);
 
 
@@ -57,7 +57,7 @@
                 throw new ArgumentException("Second argument must be a valid file path.");
             }
 
-            if(!Directory.GetFiles(appPath).Any(file => Path.GetFileName(file).Equals(BiaToolkitApplicationName)))
+            if (!Directory.GetFiles(appPath).Any(file => Path.GetFileName(file).Equals(BiaToolkitApplicationName)))
             {
                 throw new Exception($"{appPath} is not a valid installation path of BiaToolKit");
             }
@@ -108,7 +108,7 @@
                     Environment.Exit(0);
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("The installation failled.");
@@ -149,7 +149,7 @@
 
         static void CloseRunningApp()
         {
-            foreach (var process in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(BiaToolkitApplicationName)))
+            foreach (Process process in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(BiaToolkitApplicationName)))
             {
                 process.Kill();
                 process.WaitForExit();
@@ -158,7 +158,7 @@
 
         static void InstallUpdate(string appPath, string zipPath)
         {
-            foreach (var directory in Directory.GetDirectories(appPath, "*", SearchOption.AllDirectories).ToList())
+            foreach (string? directory in Directory.GetDirectories(appPath, "*", SearchOption.AllDirectories).ToList())
             {
                 try
                 {
@@ -174,7 +174,7 @@
                 .Where(file => !Path.GetFileNameWithoutExtension(file).Equals(Assembly.GetExecutingAssembly().GetName().Name))
                 .ToList();
 
-            foreach (var file in applicationRootFiles)
+            foreach (string? file in applicationRootFiles)
             {
                 try
                 {

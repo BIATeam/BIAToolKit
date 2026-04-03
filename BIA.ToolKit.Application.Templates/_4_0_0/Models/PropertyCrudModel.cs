@@ -1,8 +1,10 @@
-﻿namespace BIA.ToolKit.Application.Templates._4_0_0.Models
+namespace BIA.ToolKit.Application.Templates._4_0_0.Models
 {
     using System;
     using System.Collections.Generic;
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
+
+#pragma warning disable CS9266 // Les propriétés with setter utilisent throw NotImplementedException() au getter par design
 
     public class PropertyCrudModel : IPropertyCrudModel
     {
@@ -38,4 +40,5 @@
 
         public bool AsLocalDateTime => throw new NotImplementedException();
     }
+#pragma warning restore CS9266
 }

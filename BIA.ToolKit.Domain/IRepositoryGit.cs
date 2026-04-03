@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain
+namespace BIA.ToolKit.Domain
 {
     using System.Text.RegularExpressions;
 

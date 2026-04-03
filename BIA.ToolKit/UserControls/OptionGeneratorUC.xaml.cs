@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.UserControls
+namespace BIA.ToolKit.UserControls
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
@@ -7,7 +7,7 @@
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
@@ -65,7 +65,7 @@
             this.service = service;
             this.zipService = zipService;
             this.crudService = crudService;
-            this.settings = new(settingsService);
+            settings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
             this.uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
@@ -134,12 +134,12 @@
             vm.Domain = null;
             vm.EntityNamePlural = null;
 
-            if (this.optionGenerationHistory != null)
+            if (optionGenerationHistory != null)
             {
                 string entityName = GetEntitySelectedPath();
                 if (!string.IsNullOrEmpty(entityName))
                 {
-                    var history = optionGenerationHistory.OptionGenerationHistory.FirstOrDefault(h => h.Mapping.Entity == entityName);
+                    OptionGenerationHistory history = optionGenerationHistory.OptionGenerationHistory.FirstOrDefault(h => h.Mapping.Entity == entityName);
 
                     if (history != null)
                     {
@@ -209,7 +209,7 @@
                 crudService.CrudNames.InitRenameValues(vm.Entity.Name, vm.EntityNamePlural);
 
                 // Generation DotNet + Angular files
-                var featureName = vm.ZipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Option)?.Feature;
+                string featureName = vm.ZipFeatureTypeList.FirstOrDefault(x => x.FeatureType == FeatureType.Option)?.Feature;
                 vm.IsGenerated = crudService.GenerateFiles(vm.Entity, vm.ZipFeatureTypeList, vm.EntityDisplayItemSelected, null, null, featureName, vm.Domain, vm.BiaFront);
 
                 // Generate generation history file
@@ -227,7 +227,7 @@
             try
             {
                 // Get last generation history
-                var history = optionGenerationHistory?.OptionGenerationHistory?.FirstOrDefault(h => h.Mapping.Entity == GetEntitySelectedPath());
+                OptionGenerationHistory history = optionGenerationHistory?.OptionGenerationHistory?.FirstOrDefault(h => h.Mapping.Entity == GetEntitySelectedPath());
                 if (history == null)
                 {
                     consoleWriter.AddMessageLine($"No previous '{vm.Entity.Name}' generation found.", "Orange");
@@ -270,7 +270,7 @@
                         Path.Combine(vm.CurrentProject.Folder, vm.BiaFront, "src",  "app")
                     ];
 
-                    await crudService.DeleteBIAToolkitAnnotations(folders);
+                    await GenerateCrudService.DeleteBIAToolkitAnnotations(folders);
                 }
 
                 consoleWriter.AddMessageLine($"End of annotations suppression.", "Purple");
@@ -286,8 +286,8 @@
         private void ClearAll()
         {
             // Clean all lists (in case of current project change)
-            this.backSettingsList.Clear();
-            this.frontSettingsList.Clear();
+            backSettingsList.Clear();
+            frontSettingsList.Clear();
             vm.ZipFeatureTypeList.Clear();
 
             vm.EntityDisplayItems.Clear();
@@ -299,7 +299,7 @@
             vm.BiaFronts.Clear();
             vm.BiaFront = null;
 
-            this.optionGenerationHistory = null;
+            optionGenerationHistory = null;
         }
 
         private void InitProject()
@@ -320,11 +320,11 @@
             // Get files/folders name
             string dotnetBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, Constants.FolderBia);
             string backSettingsFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderDotNet, settings.GenerationSettingsFileName);
-            this.optionHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.OptionGenerationHistoryFileName);
+            optionHistoryFileName = Path.Combine(vm.CurrentProject.Folder, Constants.FolderBia, settings.OptionGenerationHistoryFileName);
 
             if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
-                this.optionGenerationHistory = CommonTools.DeserializeJsonFile<OptionGeneration>(this.optionHistoryFileName);
+                optionGenerationHistory = CommonTools.DeserializeJsonFile<OptionGeneration>(optionHistoryFileName);
                 return;
             }
 
@@ -332,9 +332,9 @@
             if (File.Exists(backSettingsFileName))
             {
                 backSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(backSettingsFileName));
-                foreach (var setting in backSettingsList)
+                foreach (FeatureGenerationSettings setting in backSettingsList)
                 {
-                    var featureType = Enum.Parse<FeatureType>(setting.Type);
+                    FeatureType featureType = Enum.Parse<FeatureType>(setting.Type);
                     if (featureType != FeatureType.Option)
                         continue;
 
@@ -347,12 +347,12 @@
             }
 
             // Load generation history
-            this.optionGenerationHistory = CommonTools.DeserializeJsonFile<OptionGeneration>(this.optionHistoryFileName);
+            optionGenerationHistory = CommonTools.DeserializeJsonFile<OptionGeneration>(optionHistoryFileName);
         }
 
         private void SetFrontGenerationSettings(string biaFront)
         {
-            this.frontSettingsList.Clear();
+            frontSettingsList.Clear();
             vm.ZipFeatureTypeList.RemoveAll(x => x.GenerationType == GenerationType.Front);
 
             string angularBiaFolderPath = Path.Combine(vm.CurrentProject.Folder, biaFront, Constants.FolderBia);
@@ -366,9 +366,9 @@
             if (File.Exists(frontSettingsFileName))
             {
                 frontSettingsList.AddRange(CommonTools.DeserializeJsonFile<List<FeatureGenerationSettings>>(frontSettingsFileName));
-                foreach (var setting in frontSettingsList)
+                foreach (FeatureGenerationSettings setting in frontSettingsList)
                 {
-                    var featureType = Enum.Parse<FeatureType>(setting.Type);
+                    FeatureType featureType = Enum.Parse<FeatureType>(setting.Type);
                     if (featureType != FeatureType.Option)
                         continue;
 
@@ -389,7 +389,7 @@
         {
             try
             {
-                this.optionGenerationHistory ??= new();
+                optionGenerationHistory ??= new();
 
                 OptionGenerationHistory history = new()
                 {
@@ -436,17 +436,17 @@
                 });
 
                 // Get existing to verify if previous generation for same entity name was already done
-                var genFound = this.optionGenerationHistory.OptionGenerationHistory.FirstOrDefault(gen => gen.EntityNameSingular == history.EntityNameSingular);
+                OptionGenerationHistory genFound = optionGenerationHistory.OptionGenerationHistory.FirstOrDefault(gen => gen.EntityNameSingular == history.EntityNameSingular);
                 if (genFound != null)
                 {
                     // Remove last generation to replace by new generation
-                    this.optionGenerationHistory.OptionGenerationHistory.Remove(genFound);
+                    optionGenerationHistory.OptionGenerationHistory.Remove(genFound);
                 }
 
-                this.optionGenerationHistory.OptionGenerationHistory.Add(history);
+                optionGenerationHistory.OptionGenerationHistory.Add(history);
 
                 // Generate history file
-                CommonTools.SerializeToJsonFile(this.optionGenerationHistory, this.optionHistoryFileName);
+                CommonTools.SerializeToJsonFile(optionGenerationHistory, optionHistoryFileName);
             }
             catch (Exception ex)
             {
@@ -463,7 +463,7 @@
             optionGenerationHistory?.OptionGenerationHistory?.Remove(history);
 
             // Generate history file
-            CommonTools.SerializeToJsonFile(this.optionGenerationHistory, this.optionHistoryFileName);
+            CommonTools.SerializeToJsonFile(optionGenerationHistory, optionHistoryFileName);
         }
 
         /// <summary>
@@ -487,8 +487,8 @@
                 if (vm.Entity is null)
                     return false;
 
-                var namespaceParts = vm.Entity.Namespace.Split('.').ToList();
-                var domainIndex = namespaceParts.IndexOf("Domain");
+                List<string> namespaceParts = [.. vm.Entity.Namespace.Split('.')];
+                int domainIndex = namespaceParts.IndexOf("Domain");
                 if (domainIndex != -1)
                 {
                     vm.Domain = namespaceParts[domainIndex + 1];
@@ -501,13 +501,13 @@
                 }
 
                 // Fill display item list
-                foreach (var property in vm.Entity.Properties.OrderBy(x => x.Name))
+                foreach (PropertyInfo property in vm.Entity.Properties.OrderBy(x => x.Name))
                 {
                     vm.EntityDisplayItems.Add(property.Name);
                 }
 
                 // Set by default previous generation selected value
-                var history = this.optionGenerationHistory?.OptionGenerationHistory?.FirstOrDefault(gh => (vm.Entity.Name == Path.GetFileNameWithoutExtension(gh.Mapping.Entity)));
+                OptionGenerationHistory history = optionGenerationHistory?.OptionGenerationHistory?.FirstOrDefault(gh => (vm.Entity.Name == Path.GetFileNameWithoutExtension(gh.Mapping.Entity)));
                 vm.EntityDisplayItemSelected = history?.DisplayItem;
 
                 return true;

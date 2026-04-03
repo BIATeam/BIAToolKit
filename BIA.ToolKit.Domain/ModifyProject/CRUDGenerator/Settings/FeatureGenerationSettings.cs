@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings
+namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings
 {
     using System.Collections.Generic;
 
@@ -15,15 +15,15 @@
         public List<string> Partial { get; }
         public List<FeatureParent> Parents { get; set; }
         public bool NeedParent { get; set; }
-        public List<FeatureAdaptPath> AdaptPaths { get; set; } = new();
+        public List<FeatureAdaptPath> AdaptPaths { get; set; } = [];
         public string FeatureDomain { get; set; }
 
         public FeatureGenerationSettings()
         {
-            Children = new();
-            Options = new();
-            Partial = new();
-            Parents = new();
+            Children = [];
+            Options = [];
+            Partial = [];
+            Parents = [];
         }
     }
 
@@ -39,7 +39,7 @@
         public string NamePlural { get; set; }
         public string DomainName { get; set; }
         public bool IsPrincipal { get; set; }
-        public List<FeatureAdaptPath> AdaptPaths { get; set; } = new();
+        public List<FeatureAdaptPath> AdaptPaths { get; set; } = [];
     }
 
     public class FeatureAdaptPath
@@ -47,8 +47,8 @@
         public string RootPath { get; set; }
         public int InitialDeepLevel { get; set; }
         public string DeepLevelIdentifier { get; set; }
-        public List<FeatureMoveFiles> MoveFiles { get; set; } = new();
-        public List<FeatureReplaceInFiles> ReplaceInFiles { get; set; } = new();
+        public List<FeatureMoveFiles> MoveFiles { get; set; } = [];
+        public List<FeatureReplaceInFiles> ReplaceInFiles { get; set; } = [];
     }
 
     public class FeatureMoveFiles

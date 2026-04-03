@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Dialogs
+namespace BIA.ToolKit.Dialogs
 {
     using System;
     using System.Collections.Generic;
@@ -38,7 +38,7 @@
 
         private void BrowseLocalClonedFolderButton_Click(object sender, RoutedEventArgs e)
         {
-            if(ViewModel.Repository is RepositoryGitViewModel repositoryGit)
+            if (ViewModel.Repository is RepositoryGitViewModel repositoryGit)
             {
                 repositoryGit.LocalClonedFolderPath = FileDialog.BrowseFolder(repositoryGit.LocalClonedFolderPath, "Choose local cloned folder");
             }

@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Test.Templates.Assertions
+namespace BIA.ToolKit.Test.Templates.Assertions
 {
     using System;
     using System.Collections.Generic;
@@ -13,7 +13,7 @@
     {
         public static void AssertAllFilesEquals(GenerateTestFixture testFixture, FileGeneratorContext context)
         {
-            if(context.GenerationReport.HasFailed)
+            if (context.GenerationReport.HasFailed)
             {
                 throw new GenerationFailureException();
             }
@@ -22,11 +22,11 @@
 
             if (context.GenerateBack)
             {
-                foreach (var dotNetTemplate in testFixture.CurrentTestFeature.DotNetTemplates)
+                foreach (Manifest.Feature.Template dotNetTemplate in testFixture.CurrentTestFeature.DotNetTemplates)
                 {
                     try
                     {
-                        var (referencePath, generatedPath) = testFixture.GetDotNetFilesPath(dotNetTemplate.OutputPath, context);
+                        (string referencePath, string generatedPath) = testFixture.GetDotNetFilesPath(dotNetTemplate.OutputPath, context);
                         VerifyFilesEquals(testFixture, referencePath, generatedPath, context, dotNetTemplate);
                     }
                     catch (GenerationAssertionException ex)
@@ -39,11 +39,11 @@
 
             if (context.GenerateFront)
             {
-                foreach (var angularTemplate in testFixture.CurrentTestFeature.AngularTemplates)
+                foreach (Manifest.Feature.Template angularTemplate in testFixture.CurrentTestFeature.AngularTemplates)
                 {
                     try
                     {
-                        var (referencePath, generatedPath) = testFixture.GetAngularFilesPath(angularTemplate.OutputPath, context);
+                        (string referencePath, string generatedPath) = testFixture.GetAngularFilesPath(angularTemplate.OutputPath, context);
                         VerifyFilesEquals(testFixture, referencePath, generatedPath, context, angularTemplate, true);
                     }
                     catch (GenerationAssertionException ex)
@@ -76,7 +76,7 @@
             }
 
             RemoveGenerationIgnoreCode(testFixture, ref referencePath, isAngularTemplate);
-            var result = DiffPlexFileComparer.CompareFiles(referencePath, generatedPath);
+            DiffPlexFileComparer.FileDiffResult result = DiffPlexFileComparer.CompareFiles(referencePath, generatedPath);
             if (!result.AreEqual)
             {
                 throw new FilesNotEqualsException(
@@ -94,7 +94,7 @@
             const string biaDemoMarkupBegin = "Begin BIAToolKit Generation Ignore";
             const string biaDemoMarkupEnd = "End BIAToolKit Generation Ignore";
 
-            var referenceLines = File.ReadAllLines(referencePath).ToList();
+            List<string> referenceLines = [.. File.ReadAllLines(referencePath)];
             if (RemoveLinesBetweenMarkups(biaDemoMarkupBegin, biaDemoMarkupEnd, referenceLines))
             {
                 referencePath = referencePath.Replace(Path.GetFileName(referencePath), $"{Path.GetFileNameWithoutExtension(referencePath)}_Cleaned{Path.GetExtension(referencePath)}");
@@ -114,9 +114,9 @@
 
         private static bool RemoveLinesBetweenMarkups(string markupBegin, string markupEnd, List<string> referenceLines)
         {
-            var expectedBiaDemoMarkupBeginIndex = referenceLines.FindIndex(l => l.Contains(markupBegin));
-            var expectedBiaDemoMarkupEndIndex = referenceLines.FindIndex(l => l.Contains(markupEnd));
-            var areLinesRemoved = false;
+            int expectedBiaDemoMarkupBeginIndex = referenceLines.FindIndex(l => l.Contains(markupBegin));
+            int expectedBiaDemoMarkupEndIndex = referenceLines.FindIndex(l => l.Contains(markupEnd));
+            bool areLinesRemoved = false;
             while (expectedBiaDemoMarkupBeginIndex > -1 && expectedBiaDemoMarkupEndIndex > -1 && expectedBiaDemoMarkupBeginIndex < expectedBiaDemoMarkupEndIndex)
             {
                 areLinesRemoved = true;
@@ -135,27 +135,27 @@
 
         private static void ExtractPartialContent(ref string referencePath, ref string generatedPath, FileGeneratorContext context, Manifest.Feature.Template template, List<string> partialMarkupIdentifiersToIgnore)
         {
-            (var partialInsertionMarkupBegin, var partialInsertionMarkupEnd) = FileGeneratorService.GetPartialInsertionMarkups(context, template, template.OutputPath);
-            var referenceLines = File.ReadAllLines(referencePath).ToList();
-            var generatedLines = File.ReadAllLines(generatedPath).ToList();
+            (string partialInsertionMarkupBegin, string partialInsertionMarkupEnd) = FileGeneratorService.GetPartialInsertionMarkups(context, template, template.OutputPath);
+            List<string> referenceLines = [.. File.ReadAllLines(referencePath)];
+            List<string> generatedLines = [.. File.ReadAllLines(generatedPath)];
 
-            var referenceMarkupBeginIndex = referenceLines.FindIndex(l => l.Contains(partialInsertionMarkupBegin));
+            int referenceMarkupBeginIndex = referenceLines.FindIndex(l => l.Contains(partialInsertionMarkupBegin));
             if (referenceMarkupBeginIndex < 0)
             {
                 throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupBegin, referencePath);
             }
-            var referenceMarkupEndIndex = referenceLines.FindIndex(l => l.Contains(partialInsertionMarkupEnd));
+            int referenceMarkupEndIndex = referenceLines.FindIndex(l => l.Contains(partialInsertionMarkupEnd));
             if (referenceMarkupEndIndex < 0)
             {
                 throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupEnd, referencePath);
             }
 
-            var generatedMarkupBeginIndex = generatedLines.FindIndex(l => l.Contains(partialInsertionMarkupBegin));
+            int generatedMarkupBeginIndex = generatedLines.FindIndex(l => l.Contains(partialInsertionMarkupBegin));
             if (generatedMarkupBeginIndex < 0)
             {
                 throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupBegin, generatedPath);
             }
-            var generatedMarkupEndIndex = generatedLines.FindIndex(l => l.Contains(partialInsertionMarkupEnd));
+            int generatedMarkupEndIndex = generatedLines.FindIndex(l => l.Contains(partialInsertionMarkupEnd));
             if (generatedMarkupEndIndex < 0)
             {
                 throw new PartialInsertionMarkupNotFoundException(partialInsertionMarkupEnd, generatedPath);
@@ -164,9 +164,9 @@
             referenceLines = referenceLines.GetRange(referenceMarkupBeginIndex, referenceMarkupEndIndex - referenceMarkupBeginIndex + 1);
             generatedLines = generatedLines.GetRange(generatedMarkupBeginIndex, generatedMarkupEndIndex - generatedMarkupBeginIndex + 1);
 
-            if(partialMarkupIdentifiersToIgnore is not null)
+            if (partialMarkupIdentifiersToIgnore is not null)
             {
-                foreach(var markup in partialMarkupIdentifiersToIgnore)
+                foreach (string markup in partialMarkupIdentifiersToIgnore)
                 {
                     RemoveContentBetweenIgnoredMarkups(referencePath, referenceLines, markup);
                     RemoveContentBetweenIgnoredMarkups(generatedPath, generatedLines, markup);
@@ -196,9 +196,9 @@
 
         private static void RemoveContentBetweenIgnoredMarkups(string filePath, List<string> lines, string markup)
         {
-            var markupSafe = Regex.Escape(markup);
-            var markupBeginPattern = $@"^\/\/ BIAToolKit - Begin Partial\b.*?\b{markupSafe}$";
-            var markupEndPattern = $@"^\/\/ BIAToolKit - End Partial\b.*?\b{markupSafe}$";
+            string markupSafe = Regex.Escape(markup);
+            string markupBeginPattern = $@"^\/\/ BIAToolKit - Begin Partial\b.*?\b{markupSafe}$";
+            string markupEndPattern = $@"^\/\/ BIAToolKit - End Partial\b.*?\b{markupSafe}$";
 
             var beginMarkups = lines.Where(l => Regex.IsMatch(l.Trim(), markupBeginPattern)).Distinct().ToList();
             var endMarkups = lines.Where(l => Regex.IsMatch(l.Trim(), markupEndPattern)).Distinct().ToList();
@@ -207,10 +207,10 @@
                 throw new PartialInsertionMarkupBeginAndMarkupCountNotEqualException(markupSafe, filePath);
             }
 
-            foreach (var beginMarkup in beginMarkups)
+            foreach (string beginMarkup in beginMarkups)
             {
-                var endMarkupTarget = beginMarkup.Replace("Begin", "End");
-                var endMarkup = endMarkups.FirstOrDefault(x => x == endMarkupTarget);
+                string endMarkupTarget = beginMarkup.Replace("Begin", "End");
+                string endMarkup = endMarkups.FirstOrDefault(x => x == endMarkupTarget);
                 if (string.IsNullOrWhiteSpace(endMarkup))
                 {
                     throw new PartialInsertionMarkupNotFoundException(endMarkupTarget, filePath);

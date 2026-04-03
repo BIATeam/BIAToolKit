@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Dialogs
+namespace BIA.ToolKit.Dialogs
 {
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.Settings;
@@ -27,10 +27,10 @@
             InitializeComponent();
         }
 
-        private void okButton_Click(object sender, RoutedEventArgs e) =>
+        private void OkButton_Click(object sender, RoutedEventArgs e) =>
             DialogResult = true;
 
-        private void cancelButton_Click(object sender, RoutedEventArgs e) =>
+        private void CancelButton_Click(object sender, RoutedEventArgs e) =>
             DialogResult = false;
 
         //internal bool? ShowDialog(RepositorySettings currentItem)

@@ -1,10 +1,12 @@
-﻿namespace BIA.ToolKit.Application.Templates._5_0_0.Models
+namespace BIA.ToolKit.Application.Templates._5_0_0.Models
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
+
+#pragma warning disable CS9266 // Les propriétés with setter utilisent throw NotImplementedException() au getter par design
 
     public class EntityCrudModel<TPropertyCrudModel> : Common.Models.EntityModel, IEntityCrudModel<TPropertyCrudModel>
         where TPropertyCrudModel : class, IPropertyCrudModel
@@ -16,11 +18,11 @@
             {
                 if (excludedProperties == null)
                 {
-                    excludedProperties = new List<string>()
-                    {
+                    excludedProperties =
+                    [
                         "Id",
                         "DtoState"
-                    };
+                    ];
 
                     if (IsVersioned)
                     {
@@ -67,7 +69,7 @@
         public bool HasParent { get; set; }
         public string ParentName { get; set; }
         public string ParentNamePlural { get; set; }
-        public List<TPropertyCrudModel> Properties { get; set; } = new List<TPropertyCrudModel>();
+        public List<TPropertyCrudModel> Properties { get; set; } = [];
         public string AngularParentRelativePath { get; set; }
         public int AngularDeepLevel { get; set; }
         public string AngularDeepRelativePath
@@ -84,8 +86,8 @@
         }
         public IEnumerable<TPropertyCrudModel> PropertiesToGenerate => Properties.Where(p => !ExcludedProperties.Contains(p.Name));
         public IEnumerable<TPropertyCrudModel> BiaFieldConfigProperties => PropertiesToGenerate.Where(p => !p.IsParentIdentifier);
-        public bool UseHubForClient {  get; set; }
-        public bool HasCustomRepository {  get; set; }
+        public bool UseHubForClient { get; set; }
+        public bool HasCustomRepository { get; set; }
         public bool HasReadOnlyMode { get; set; }
         public bool HasFixableParent { get; set; }
         public bool IsFixable { get; set; }
@@ -97,8 +99,8 @@
 
         public string GetHubForClientParentKey()
         {
-            var parentKeyName = HasParent ? ParentName 
-                : HasAncestorTeam ? AncestorTeamName 
+            string parentKeyName = HasParent ? ParentName
+                : HasAncestorTeam ? AncestorTeamName
                 : "ParentTeam";
             return $"{parentKeyName}Id";
         }
@@ -134,4 +136,5 @@
         public IEnumerable<TPropertyCrudModel> ListPropertiesToGenerate => ListProperties.Where(p => !ExcludedProperties.Contains(p.Name));
         public IEnumerable<TPropertyCrudModel> ListBiaFieldConfigProperties => ListPropertiesToGenerate.Where(p => !p.IsParentIdentifier);
     }
+#pragma warning restore CS9266
 }

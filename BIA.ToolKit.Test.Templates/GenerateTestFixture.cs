@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Test.Templates
+namespace BIA.ToolKit.Test.Templates
 {
     using System;
     using System.Collections.Generic;
@@ -43,18 +43,18 @@
 
         protected void Init(string biaDemoArchiveName, Project biaDemoProject)
         {
-            consoleWriter = new ConsoleWriterTest(diagnosticMessageSink, stopwatch, this.GetType().Name);
+            consoleWriter = new ConsoleWriterTest(diagnosticMessageSink, stopwatch, GetType().Name);
             stopwatch.Start();
 
-            var biaDemoZipPath = $"..\\..\\..\\..\\BIADemoVersions\\{biaDemoArchiveName}.zip";
-            var currentDir = Directory.GetCurrentDirectory();
+            string biaDemoZipPath = $"..\\..\\..\\..\\BIADemoVersions\\{biaDemoArchiveName}.zip";
+            string currentDir = Directory.GetCurrentDirectory();
             referenceProjectPath = NormalisePath(Path.Combine(currentDir, "..\\..\\..\\..\\BIADemoVersions\\", Path.GetFileNameWithoutExtension(biaDemoZipPath)));
             testProjectPath = Path.Combine(Path.GetTempPath(), "BIAToolKitTestTemplatesGenerated", biaDemoProject.FrameworkVersion);
 
             consoleWriter.AddMessageLine($"Reference project at {referenceProjectPath}");
             consoleWriter.AddMessageLine($"Generation path at {testProjectPath}");
 
-            var doUnzip = !Directory.Exists(referenceProjectPath);
+            bool doUnzip = !Directory.Exists(referenceProjectPath);
             if (doUnzip)
             {
                 consoleWriter.AddMessageLine($"Unzipping {Path.GetFileName(biaDemoZipPath)}...");
@@ -93,7 +93,7 @@
 
             if (referenceProject.BIAFronts.Count != 0)
             {
-                var referenceProjectAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
+                string referenceProjectAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
                 CreateUnitTestPrettierToolProject(referenceProjectAngularPath);
                 FileGeneratorService.SetPrettierAngularProjectPath(prettierAngularProjectPath);
             }
@@ -105,6 +105,7 @@
         {
             stopwatch.Stop();
             CleanupTemporaryPrettierToolProject(prettierAngularProjectPath);
+            GC.SuppressFinalize(this);
         }
 
         public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext, List<string> partialMarkupIdentifiersToIgnore = null)
@@ -149,7 +150,7 @@
             {
                 Directory.CreateDirectory(prettierAngularProjectPath);
 
-                var prettierrcSourcePath = Path.Combine(referenceProjectAngularPath, ".prettierrc");
+                string prettierrcSourcePath = Path.Combine(referenceProjectAngularPath, ".prettierrc");
                 if (!File.Exists(prettierrcSourcePath))
                 {
                     throw new Exception($"Unable to find .prettierrc into {prettierrcSourcePath}");
@@ -157,7 +158,7 @@
 
                 File.Copy(prettierrcSourcePath, Path.Combine(prettierAngularProjectPath, ".prettierrc"));
 
-                var packageJson = @"{
+                string packageJson = @"{
   ""name"": ""biatoolkit-prettier-temp"",
   ""version"": ""1.0.0"",
   ""private"": true,
@@ -236,7 +237,7 @@
 
         private void InitTestProjectFolder(Feature.FeatureType featureType, FileGeneratorContext context)
         {
-            var generationFolder = Path.Combine(testProjectPath, $"{featureType}_{context.EntityName}");
+            string generationFolder = Path.Combine(testProjectPath, $"{featureType}_{context.EntityName}");
             if (Directory.Exists(generationFolder))
             {
                 Directory.Delete(generationFolder, true);
@@ -249,9 +250,9 @@
         {
             if (context.GenerateBack)
             {
-                foreach (var template in CurrentTestFeature.DotNetTemplates.Where(t => t.IsPartial))
+                foreach (Feature.Template template in CurrentTestFeature.DotNetTemplates.Where(t => t.IsPartial))
                 {
-                    var (referencePath, generatedPath) = GetDotNetFilesPath(template.OutputPath, context);
+                    (string referencePath, string generatedPath) = GetDotNetFilesPath(template.OutputPath, context);
                     if (!File.Exists(referencePath))
                         continue;
                     Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);
@@ -261,9 +262,9 @@
 
             if (context.GenerateFront)
             {
-                foreach (var template in CurrentTestFeature.AngularTemplates.Where(t => t.IsPartial))
+                foreach (Feature.Template template in CurrentTestFeature.AngularTemplates.Where(t => t.IsPartial))
                 {
-                    var (referencePath, generatedPath) = GetAngularFilesPath(template.OutputPath, context);
+                    (string referencePath, string generatedPath) = GetAngularFilesPath(template.OutputPath, context);
                     if (!File.Exists(referencePath))
                         continue;
                     Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);
@@ -284,16 +285,16 @@
 
         private static string NormalisePath(string path)
         {
-            var components = path.Split(new Char[] { '\\' });
+            string[] components = path.Split(['\\']);
 
             var retval = new Stack<string>();
-            foreach (var bit in components)
+            foreach (string bit in components)
             {
                 if (bit == "..")
                 {
-                    if (retval.Any())
+                    if (retval.Count > 0)
                     {
-                        var popped = retval.Pop();
+                        string popped = retval.Pop();
                         if (popped == "..")
                         {
                             retval.Push(popped);

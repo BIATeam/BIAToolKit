@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Common.Extensions
+namespace BIA.ToolKit.Common.Extensions
 {
     using Newtonsoft.Json;
 
@@ -19,7 +19,7 @@
         /// </exception>
         public static T DeepCopy<T>(this T self)
         {
-            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
+            var jsonSerializerSettings = new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
                 TypeNameHandling = TypeNameHandling.Auto

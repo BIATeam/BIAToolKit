@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Helper
+namespace BIA.ToolKit.Application.Helper
 {
     public interface IConsoleWriter
     {
