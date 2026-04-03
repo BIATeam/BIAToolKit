@@ -142,12 +142,17 @@ namespace BIA.ToolKit.Application.ViewModel
         /// <param name="message">Warning message to display (null to clear).</param>
         public void SetParentBlocking(bool crudBlocked, bool dtoBlocked, string message)
         {
-            bool crudChanged = isCrudBlockedByParent != crudBlocked;
-            bool dtoChanged = isDtoBlockedByParent != dtoBlocked;
             string newCrudMsg = crudBlocked ? message : null;
             string newDtoMsg = dtoBlocked ? message : null;
+
+            bool crudChanged = isCrudBlockedByParent != crudBlocked;
+            bool dtoChanged = isDtoBlockedByParent != dtoBlocked;
             bool crudMsgChanged = dynamicCrudWarningMessage != newCrudMsg;
             bool dtoMsgChanged = dynamicDtoWarningMessage != newDtoMsg;
+
+            // Nothing to update — avoid unnecessary property-change notifications
+            if (!crudChanged && !dtoChanged && !crudMsgChanged && !dtoMsgChanged)
+                return;
 
             isCrudBlockedByParent = crudBlocked;
             isDtoBlockedByParent = dtoBlocked;

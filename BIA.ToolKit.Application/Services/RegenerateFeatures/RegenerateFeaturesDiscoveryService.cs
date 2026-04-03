@@ -262,8 +262,9 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             if (string.IsNullOrEmpty(propertyName))
                 return null;
 
-            if (propertyName.EndsWith("Id", StringComparison.OrdinalIgnoreCase) && propertyName.Length > 2)
-                return propertyName[..^2];
+            const string idSuffix = "Id";
+            if (propertyName.EndsWith(idSuffix, StringComparison.OrdinalIgnoreCase) && propertyName.Length > idSuffix.Length)
+                return propertyName[..^idSuffix.Length];
 
             return null;
         }
