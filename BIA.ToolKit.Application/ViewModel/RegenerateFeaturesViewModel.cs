@@ -83,7 +83,28 @@ namespace BIA.ToolKit.Application.ViewModel
                 if (!showCrud && !showOption && !showDto)
                     continue;
 
-                var row = new RegenerableEntityRowViewModel(entity);
+                // Build a filtered copy of the entity that only includes features eligible for
+                // regeneration (stored version absent or lower than the current project version).
+                // This ensures feature checkboxes are only visible for features that need updating.
+                var filteredEntity = new RegenerableEntity
+                {
+                    EntityNameSingular = entity.EntityNameSingular,
+                    EntityNamePlural = entity.EntityNamePlural,
+                    CrudHistory = showCrud ? entity.CrudHistory : null,
+                    CrudStatus = showCrud ? entity.CrudStatus : RegenerableFeatureStatus.Missing,
+                    CrudWarningMessage = showCrud ? entity.CrudWarningMessage : null,
+                    OptionHistory = showOption ? entity.OptionHistory : null,
+                    OptionStatus = showOption ? entity.OptionStatus : RegenerableFeatureStatus.Missing,
+                    OptionWarningMessage = showOption ? entity.OptionWarningMessage : null,
+                    DtoHistory = showDto ? entity.DtoHistory : null,
+                    DtoStatus = showDto ? entity.DtoStatus : RegenerableFeatureStatus.Missing,
+                    DtoWarningMessage = showDto ? entity.DtoWarningMessage : null,
+                    ParentEntityName = entity.ParentEntityName,
+                    HasParentDependency = entity.HasParentDependency,
+                    OptionDependencies = entity.OptionDependencies,
+                };
+
+                var row = new RegenerableEntityRowViewModel(filteredEntity);
                 row.SelectionChanged += (_, _) => RefreshSelectedFeatures();
                 EntityRows.Add(row);
             }
