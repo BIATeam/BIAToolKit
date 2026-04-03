@@ -9,7 +9,7 @@ namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings
 
         public OptionGeneration()
         {
-            OptionGenerationHistory = new();
+            OptionGenerationHistory = [];
         }
     }
 

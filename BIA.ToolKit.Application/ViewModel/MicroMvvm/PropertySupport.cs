@@ -6,29 +6,20 @@ namespace BIA.ToolKit.Application.ViewModel.MicroMvvm
 
     public static class PropertySupport
     {
-        public static String ExtractPropertyName<T>(Expression<Func<T>> propertyExpresssion)
+        public static string ExtractPropertyName<T>(Expression<Func<T>> propertyExpresssion)
         {
-            if (propertyExpresssion == null)
+            ArgumentNullException.ThrowIfNull(propertyExpresssion);
+
+            if (propertyExpresssion.Body is not MemberExpression memberExpression)
             {
-                throw new ArgumentNullException("propertyExpresssion");
+                throw new ArgumentException("The expression is not a member access expression.", nameof(propertyExpresssion));
             }
 
-            var memberExpression = propertyExpresssion.Body as MemberExpression;
-            if (memberExpression == null)
-            {
-                throw new ArgumentException("The expression is not a member access expression.", "propertyExpresssion");
-            }
-
-            var property = memberExpression.Member as PropertyInfo;
-            if (property == null)
-            {
-                throw new ArgumentException("The member access expression does not access a property.", "propertyExpresssion");
-            }
-
-            var getMethod = property.GetGetMethod(true);
+            PropertyInfo property = memberExpression.Member as PropertyInfo ?? throw new ArgumentException("The member access expression does not access a property.", nameof(propertyExpresssion));
+            MethodInfo getMethod = property.GetGetMethod(true);
             if (getMethod.IsStatic)
             {
-                throw new ArgumentException("The referenced property is a static property.", "propertyExpresssion");
+                throw new ArgumentException("The referenced property is a static property.", nameof(propertyExpresssion));
             }
 
             return memberExpression.Member.Name;

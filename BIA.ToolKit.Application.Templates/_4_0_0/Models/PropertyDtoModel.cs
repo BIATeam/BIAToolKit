@@ -54,7 +54,7 @@ namespace BIA.ToolKit.Application.Templates._4_0_0.Models
         {
             get
             {
-                biaDtoFieldAttributeProperties = biaDtoFieldAttributeProperties ?? GenerateBiaDtoFieldAttributeProperties();
+                biaDtoFieldAttributeProperties ??= GenerateBiaDtoFieldAttributeProperties();
                 return biaDtoFieldAttributeProperties;
             }
         }

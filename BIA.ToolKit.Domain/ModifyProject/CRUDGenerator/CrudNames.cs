@@ -4,10 +4,10 @@ namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using System.Collections.Generic;
 
-    public class CrudNames
+    public class CrudNames(List<FeatureGenerationSettings> backSettingsList, List<FeatureGenerationSettings> frontSettingsList)
     {
-        private readonly List<FeatureGenerationSettings> BackSettingsList;
-        private readonly List<FeatureGenerationSettings> FrontSettingsList;
+        private readonly List<FeatureGenerationSettings> BackSettingsList = backSettingsList;
+        private readonly List<FeatureGenerationSettings> FrontSettingsList = frontSettingsList;
         private IEnumerable<FeatureGenerationSettings> AllSettings => BackSettingsList.Concat(FrontSettingsList);
 
         public string NewCrudNamePascalSingular { get; private set; }
@@ -16,12 +16,6 @@ namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator
         public string NewCrudNameCamelPlural { get; private set; }
         public string NewCrudNameKebabSingular { get; private set; }
         public string NewCrudNameKebabPlural { get; private set; }
-
-        public CrudNames(List<FeatureGenerationSettings> backSettingsList, List<FeatureGenerationSettings> frontSettingsList)
-        {
-            this.BackSettingsList = backSettingsList;
-            this.FrontSettingsList = frontSettingsList;
-        }
 
         public string GetOldFeatureNameSingularPascal(string feature, FeatureType featureType) => AllSettings.First(x => x.Feature == feature && x.Type == featureType.ToString()).FeatureName;
 
@@ -37,8 +31,8 @@ namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator
 
         public void InitRenameValues(string newValueSingular, string newValuePlural)
         {
-            this.NewCrudNamePascalSingular = newValueSingular;
-            this.NewCrudNamePascalPlural = newValuePlural;
+            NewCrudNamePascalSingular = newValueSingular;
+            NewCrudNamePascalPlural = newValuePlural;
             NewCrudNameCamelSingular = CommonTools.ConvertToCamelCase(NewCrudNamePascalSingular);
             NewCrudNameCamelPlural = CommonTools.ConvertToCamelCase(NewCrudNamePascalPlural);
             NewCrudNameKebabSingular = CommonTools.ConvertPascalToKebabCase(NewCrudNamePascalSingular);

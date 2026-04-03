@@ -10,11 +10,11 @@ namespace BIA.ToolKit.Application.Helper
     using System.Threading;
     using System.Threading.Tasks;
 
-    static public class FileTransform
+    static public partial class FileTransform
     {
-        static public IList<string> projectFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md", ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml", ".webmanifest", ".slnf" };
-        static public IList<string> allTextFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md", ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml", ".webmanifest", ".editorconfig", ".gitignore", ".prettierrc", ".html", ".css", ".scss", ".svg", ".js", ".ruleset", ".props", ".slnf" };
-        static public IList<string> allTextFileNameWithoutExtension = new List<string>() { "browserslist", "Dockerfile", "Dockerfile_Rosa" };
+        internal static readonly IList<string> projectFileExtensions = [".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md", ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml", ".webmanifest", ".slnf"];
+        private static readonly IList<string> allTextFileExtensions = [".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md", ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml", ".webmanifest", ".editorconfig", ".gitignore", ".prettierrc", ".html", ".css", ".scss", ".svg", ".js", ".ruleset", ".props", ".slnf"];
+        private static readonly IList<string> allTextFileNameWithoutExtension = ["browserslist", "Dockerfile", "Dockerfile_Rosa"];
 
         public static void SwapValues(this string[] source, long index1, long index2)
         {
@@ -40,7 +40,7 @@ namespace BIA.ToolKit.Application.Helper
         {
             string oldContent = File.ReadAllText(path);
             string endOfLine = Environment.NewLine;
-            Match endOfLineMatch = Regex.Match(oldContent, @"([\r\n]+)");
+            Match endOfLineMatch = MyRegex().Match(oldContent);
             if (endOfLineMatch.Success)
             {
                 endOfLine = endOfLineMatch.Value;
@@ -48,7 +48,7 @@ namespace BIA.ToolKit.Application.Helper
             string[] lines = File.ReadAllLines(path);
             OrderUsingInLines(lines);
             string newContent = string.Join(endOfLine, lines);
-            Match match = Regex.Match(oldContent, @"([\r\n]+\Z)");
+            Match match = EndOfFileRegex().Match(oldContent);
             if (match.Success)
             {
                 newContent += match.Value;
@@ -81,7 +81,7 @@ namespace BIA.ToolKit.Application.Helper
 
         private static bool IsUsingStatement(string line)
         {
-            return line.StartsWith("using ") && line.EndsWith(";") && !line.Contains("=");
+            return line.StartsWith("using ") && line.EndsWith(';') && !line.Contains('=');
         }
 
         /// <summary>
@@ -94,10 +94,10 @@ namespace BIA.ToolKit.Application.Helper
         static public async Task ReplaceInFileAndFileName(string sourceDir, string oldString, string newString, IList<string> replaceInFileExtensions, IConsoleWriter consoleWriter, CancellationToken cancellationToken = default)
         {
             if (oldString == newString) return;
-            foreach (var dir in Directory.GetDirectories(sourceDir))
+            foreach (string dir in Directory.GetDirectories(sourceDir))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var name = Path.GetFileName(dir);
+                string name = Path.GetFileName(dir);
                 if (name.Contains(oldString))
                 {
                     string newName = Path.Combine(sourceDir, name.Replace(oldString, newString));
@@ -105,10 +105,10 @@ namespace BIA.ToolKit.Application.Helper
                 }
             }
 
-            foreach (var file in Directory.GetFiles(sourceDir))
+            foreach (string file in Directory.GetFiles(sourceDir))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var name = Path.GetFileName(file);
+                string name = Path.GetFileName(file);
                 string targetfile = file;
                 if (name.Contains(oldString))
                 {
@@ -122,14 +122,14 @@ namespace BIA.ToolKit.Application.Helper
                     await ReplaceInFile(targetfile, oldString, newString, consoleWriter, cancellationToken);
                 }
 
-                var fileName = Path.GetFileName(file);
+                string fileName = Path.GetFileName(file);
                 if (allTextFileNameWithoutExtension.Contains(fileName))
                 {
                     await ReplaceInFile(targetfile, oldString, newString, consoleWriter, cancellationToken);
                 }
             }
 
-            foreach (var directory in Directory.GetDirectories(sourceDir))
+            foreach (string directory in Directory.GetDirectories(sourceDir))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 await ReplaceInFileAndFileName(directory, oldString, newString, replaceInFileExtensions, consoleWriter, cancellationToken);
@@ -147,9 +147,9 @@ namespace BIA.ToolKit.Application.Helper
         static public void RemoveTemplateOnly(string sourceDir, string beginString, string endString, IList<string> replaceInFileExtensions)
         {
 
-            foreach (var file in Directory.GetFiles(sourceDir))
+            foreach (string file in Directory.GetFiles(sourceDir))
             {
-                var name = Path.GetFileName(file);
+                _ = Path.GetFileName(file);
                 string targetfile = file;
                 string extension = Path.GetExtension(targetfile).ToLower();
                 if (replaceInFileExtensions.Contains(extension))
@@ -158,7 +158,7 @@ namespace BIA.ToolKit.Application.Helper
                 }
             }
 
-            foreach (var directory in Directory.GetDirectories(sourceDir))
+            foreach (string directory in Directory.GetDirectories(sourceDir))
             {
                 RemoveTemplateOnly(directory, beginString, endString, replaceInFileExtensions);
             }
@@ -171,9 +171,9 @@ namespace BIA.ToolKit.Application.Helper
             {
                 text = "";
                 string line;
-                List<string> lines = new List<string>();
+                List<string> lines = [];
                 bool inSequence = false;
-                System.IO.StreamReader file = new System.IO.StreamReader(filePath);
+                var file = new System.IO.StreamReader(filePath);
 
                 while ((line = file.ReadLine()) != null)
                 {
@@ -193,7 +193,7 @@ namespace BIA.ToolKit.Application.Helper
                 }
 
                 file.Close();
-                var encoding = GetEncoding(filePath);
+                Encoding encoding = GetEncoding(filePath);
                 File.WriteAllLines(filePath, lines, encoding);
 
             }
@@ -208,7 +208,7 @@ namespace BIA.ToolKit.Application.Helper
         public static Encoding GetEncoding(string filename)
         {
             // Read the BOM
-            var bom = new byte[4];
+            byte[] bom = new byte[4];
             using (var file = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {
                 file.ReadExactly(bom, 0, 4);
@@ -236,7 +236,7 @@ namespace BIA.ToolKit.Application.Helper
             foreach (string file in filePaths)
             {
                 string extension = Path.GetExtension(file).ToLower();
-                var name = Path.GetFileName(file);
+                string name = Path.GetFileName(file);
                 if (allTextFileExtensions.Contains(extension) || allTextFileNameWithoutExtension.Contains(name))
                 {
                     await Unix2Dos(file);
@@ -251,7 +251,7 @@ namespace BIA.ToolKit.Application.Helper
             await ReplaceInFile(filename, "\r\r\n", "\r\n");
         }
 
-        static public async Task ReplaceInFile(string filePath, string oldValue, string newValue, IConsoleWriter consoleWriter = null, CancellationToken cancellationToken = default)
+        static public async Task ReplaceInFile(string filePath, string oldValue, string newValue, IConsoleWriter _ = null, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             string text = await File.ReadAllTextAsync(filePath, cancellationToken);
@@ -269,12 +269,12 @@ namespace BIA.ToolKit.Application.Helper
             {
                 string sourceDirName = Path.GetFileName(sourceDir);
 
-                if (foldersToExcludes?.Any(f => Regex.Match(sourceDirName, f, RegexOptions.IgnoreCase).Success) == true)
+                if (foldersToExcludes?.Any(f => Regex.IsMatch(sourceDirName, f, RegexOptions.IgnoreCase)) == true)
                 {
                     continue; // skip this folder if its name matches any of the folder names to exclude
                 }
 
-                var subTargetPath = sourceDir.Replace(sourcePath, targetPath);
+                string subTargetPath = sourceDir.Replace(sourcePath, targetPath);
                 Directory.CreateDirectory(sourceDir.Replace(sourcePath, targetPath));
                 CopyFilesRecursively(sourceDir, subTargetPath, profile, filesToExclude, foldersToExcludes);
             }
@@ -282,11 +282,11 @@ namespace BIA.ToolKit.Application.Helper
             //Copy all the files & Replaces any files with the same name
             foreach (string sourceFile in Directory.GetFiles(sourcePath, "*.*", SearchOption.TopDirectoryOnly))
             {
-                var isFilenameExcluded = filesToExclude?.Any(s => Regex.Match(Path.GetFileName(sourceFile), s, RegexOptions.IgnoreCase).Success) == true;
-                var isFilePathExcluded = filesToExclude?.Any(s => Regex.Match(sourceFile, s, RegexOptions.IgnoreCase).Success) == true;
+                bool isFilenameExcluded = filesToExclude?.Any(s => Regex.IsMatch(Path.GetFileName(sourceFile), s, RegexOptions.IgnoreCase)) == true;
+                bool isFilePathExcluded = filesToExclude?.Any(s => Regex.IsMatch(sourceFile, s, RegexOptions.IgnoreCase)) == true;
                 if (!isFilenameExcluded && !isFilePathExcluded)
                 {
-                    if (profile != "" && Regex.Match(sourceFile, "\\[.*\\]", RegexOptions.IgnoreCase).Success)
+                    if (profile != "" && ProfileBracketRegex().IsMatch(sourceFile))
                     {
                         if (sourceFile.Contains("[" + profile + "]"))
                         {
@@ -307,7 +307,7 @@ namespace BIA.ToolKit.Application.Helper
             foreach (string filePath in Directory.GetFiles(targetPath, "*.*", SearchOption.AllDirectories))
             {
                 string fileName = Path.GetFileName(filePath);
-                if (filesToRemove.Any(s => Regex.Match(fileName, s, RegexOptions.IgnoreCase).Success))
+                if (filesToRemove.Any(s => Regex.IsMatch(fileName, s, RegexOptions.IgnoreCase)))
                     File.Delete(filePath);
             }
         }
@@ -316,12 +316,21 @@ namespace BIA.ToolKit.Application.Helper
         {
             var directory = new DirectoryInfo(path) { Attributes = FileAttributes.Normal };
 
-            foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
+            foreach (FileSystemInfo info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
             {
                 info.Attributes = FileAttributes.Normal;
             }
 
             directory.Delete(true);
         }
+
+        [GeneratedRegex(@"([\r\n]+\Z)")]
+        private static partial Regex EndOfFileRegex();
+
+        [GeneratedRegex(@"\[.*\]", RegexOptions.IgnoreCase)]
+        private static partial Regex ProfileBracketRegex();
+
+        [GeneratedRegex(@"([\r\n]+)")]
+        private static partial Regex MyRegex();
     }
 }

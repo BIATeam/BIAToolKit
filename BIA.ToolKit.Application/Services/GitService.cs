@@ -14,16 +14,10 @@ namespace BIA.ToolKit.Application.Services
     using System.Text.RegularExpressions;
     using BIA.ToolKit.Domain;
 
-    public class GitService
+    public class GitService(IConsoleWriter outPut, UIEventBroker eventBroker)
     {
-        private IConsoleWriter outPut;
-        private readonly UIEventBroker eventBroker;
-
-        public GitService(IConsoleWriter outPut, UIEventBroker eventBroker)
-        {
-            this.outPut = outPut;
-            this.eventBroker = eventBroker;
-        }
+        private readonly IConsoleWriter outPut = outPut;
+        private readonly UIEventBroker eventBroker = eventBroker;
 
         public async Task Synchronize(IRepositoryGit repository)
         {
@@ -34,7 +28,7 @@ namespace BIA.ToolKit.Application.Services
                     if (Directory.Exists(repository.LocalPath))
                     {
                         var dirInfo = new DirectoryInfo(repository.LocalPath);
-                        foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                        foreach (FileInfo file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
                         {
                             file.Attributes = FileAttributes.Normal;
                             File.Delete(file.FullName);
@@ -186,10 +180,10 @@ namespace BIA.ToolKit.Application.Services
         {
             outPut.AddMessageLine("Merge rejected file '" + rejectedFilePath + "'.", "White");
 
-            var rejectedFileDiffInstruction = File.ReadAllLines(rejectedFilePath).First();
+            string rejectedFileDiffInstruction = File.ReadAllLines(rejectedFilePath).First();
             (string rejectedFileOriginalFileRelativePath, string rejectedFileTargetFileRelativePath) = ExtractOriginalAndFinalRelativePathOfDiffInstruction(rejectedFileDiffInstruction);
 
-            var migrationPatchFileDiffInstruction = File.ReadLines(param.MigrationPatchFilePath).FirstOrDefault(l => l.EndsWith(rejectedFileTargetFileRelativePath));
+            string migrationPatchFileDiffInstruction = File.ReadLines(param.MigrationPatchFilePath).FirstOrDefault(l => l.EndsWith(rejectedFileTargetFileRelativePath));
             (string migrationPatchFileOriginalFileRelativePath, string migrationPatchFileTargetFileRelativePath) = ExtractOriginalAndFinalRelativePathOfDiffInstruction(migrationPatchFileDiffInstruction);
 
             string finalProjectFile = rejectedFilePath[..^4];
@@ -202,11 +196,11 @@ namespace BIA.ToolKit.Application.Services
             // git ls-files is case-sensitive: query the parent directory and match case-insensitively in C#
             string dirRelPath = Path.GetDirectoryName(rawRelPath)?.Replace('\\', '/') ?? string.Empty;
             string lsFilter = string.IsNullOrEmpty(dirRelPath) ? "." : dirRelPath;
-            var (lsExit, lsOut, _) = await RunCaptureAsync("git", $"ls-files -- \"{lsFilter}\"", workingDir: param.ProjectPath);
+            (int lsExit, string lsOut, string _) = await RunCaptureAsync("git", $"ls-files -- \"{lsFilter}\"", workingDir: param.ProjectPath);
             string trackedRelPath = rawRelPath;
             if (lsExit == 0 && !string.IsNullOrWhiteSpace(lsOut))
             {
-                var match = lsOut.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                string match = lsOut.Split('\n', StringSplitOptions.RemoveEmptyEntries)
                     .FirstOrDefault(f => string.Equals(f.Trim(), rawRelPath, StringComparison.OrdinalIgnoreCase));
                 if (match != null)
                     trackedRelPath = match.Trim();
@@ -283,7 +277,7 @@ namespace BIA.ToolKit.Application.Services
                 $"100644 {oursOid} 2\t{relPath}\n" +
                 $"100644 {theirsOid} 3\t{relPath}\n";
 
-            var (uExit, _, uErr) = await RunCaptureAsync("git", "update-index --add --index-info", workingDir: param.ProjectPath, stdin: indexInfo);
+            (int uExit, string _, string uErr) = await RunCaptureAsync("git", "update-index --add --index-info", workingDir: param.ProjectPath, stdin: indexInfo);
             if (uExit != 0)
             {
                 outPut.AddMessageLine($"git update-index has failed: {uErr}", "Red");
@@ -296,20 +290,20 @@ namespace BIA.ToolKit.Application.Services
 
         static async Task EnsureBlobExistsAsync(string oid, string repoRoot)
         {
-            var (e, _, err) = await RunCaptureAsync("git", $"cat-file -e {oid}", workingDir: repoRoot);
+            (int e, string _, string err) = await RunCaptureAsync("git", $"cat-file -e {oid}", workingDir: repoRoot);
             if (e != 0) throw new InvalidOperationException($"Blob manquant {oid}: {err}");
         }
 
         static async Task<string> HashObjectAsync(string path, string repoRoot)
         {
-            var (e, outp, err) = await RunCaptureAsync("git", $"hash-object -w \"{path}\"", workingDir: repoRoot);
+            (int e, string outp, string err) = await RunCaptureAsync("git", $"hash-object -w \"{path}\"", workingDir: repoRoot);
             if (e != 0) throw new InvalidOperationException($"hash-object a échoué pour {path}: {err}");
-            var oid = outp.Trim();
+            string oid = outp.Trim();
             await EnsureBlobExistsAsync(oid, repoRoot);
             return oid;
         }
 
-        private (string OriginalRelativePath, string TargetRelativePath) ExtractOriginalAndFinalRelativePathOfDiffInstruction(string diffInstruction)
+        private static (string OriginalRelativePath, string TargetRelativePath) ExtractOriginalAndFinalRelativePathOfDiffInstruction(string diffInstruction)
         {
             if (string.IsNullOrEmpty(diffInstruction))
             {
@@ -317,7 +311,7 @@ namespace BIA.ToolKit.Application.Services
             }
 
             string pattern = @"a/(?<Part1>[^\s]+)\s+b/(?<Part2>[^\s]+)";
-            var match = Regex.Match(diffInstruction, pattern);
+            Match match = Regex.Match(diffInstruction, pattern);
 
             if (match.Success)
             {
@@ -351,8 +345,8 @@ namespace BIA.ToolKit.Application.Services
                 p.StandardInput.Close();
             }
 
-            var stdoutTask = p.StandardOutput.ReadToEndAsync();
-            var stderrTask = p.StandardError.ReadToEndAsync();
+            Task<string> stdoutTask = p.StandardOutput.ReadToEndAsync();
+            Task<string> stderrTask = p.StandardError.ReadToEndAsync();
             await Task.WhenAll(stdoutTask, stderrTask, p.WaitForExitAsync());
 
             return (p.ExitCode, stdoutTask.Result, stderrTask.Result);
@@ -361,7 +355,7 @@ namespace BIA.ToolKit.Application.Services
         // Spécifique Git: renvoie stdout.Trim() ou lève en cas d’erreur
         static async Task<string> GitOutAsync(string args, string stdin = null)
         {
-            var (exit, stdout, stderr) = await RunCaptureAsync("git", args, stdin: stdin);
+            (int exit, string stdout, string stderr) = await RunCaptureAsync("git", args, stdin: stdin);
             if (exit != 0)
                 throw new InvalidOperationException($"git {args} a échoué ({exit}): {stderr}");
             return stdout.Trim();
@@ -378,7 +372,7 @@ namespace BIA.ToolKit.Application.Services
             //bool ret = true;
             try
             {
-                ProcessStartInfo startInfo = new ProcessStartInfo()
+                var startInfo = new ProcessStartInfo()
                 {
                     FileName = program/*"git"*/,
                     Arguments = arguments/*"pull"*/,

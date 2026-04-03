@@ -2,7 +2,7 @@ namespace BIA.ToolKit.Test.Templates._5_0_0
 {
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using Xunit;
 
     [Collection(nameof(GenerateTestFixtureCollection_5_0_0))]
@@ -24,7 +24,7 @@ namespace BIA.ToolKit.Test.Templates._5_0_0
                 arguments: null,
                 baseList: ["BaseEntityVersioned<int>"]);
 
-            var domainName = "Fleet";
+            string domainName = "Fleet";
 
             var optionContext = new FileGeneratorOptionContext
             {
@@ -59,7 +59,7 @@ namespace BIA.ToolKit.Test.Templates._5_0_0
                 arguments: null,
                 baseList: ["BaseEntityVersioned<int>"]);
 
-            var domainName = "Maintenance";
+            string domainName = "Maintenance";
 
             var optionContext = new FileGeneratorOptionContext
             {

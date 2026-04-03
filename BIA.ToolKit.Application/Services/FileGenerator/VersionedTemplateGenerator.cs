@@ -19,16 +19,16 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
         {
             if (requestFileName.EndsWith("ttinclude"))
             {
-                var executingFolderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                var searchingFolder = Path.Combine(executingFolderPath, templateVersion);
+                string executingFolderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                string searchingFolder = Path.Combine(executingFolderPath, templateVersion);
                 if (!Directory.Exists(searchingFolder))
                     throw new Exception($"Unable to find template folder {searchingFolder}");
 
-                var includeFileName = Path.GetFileName(requestFileName);
-                var includeFile = Directory.GetFiles(searchingFolder, includeFileName, SearchOption.AllDirectories).FirstOrDefault();
+                string includeFileName = Path.GetFileName(requestFileName);
+                string includeFile = Directory.GetFiles(searchingFolder, includeFileName, SearchOption.AllDirectories).FirstOrDefault();
                 if (!string.IsNullOrWhiteSpace(includeFile))
                 {
-                    var includeContent = File.ReadAllText(includeFile);
+                    string includeContent = File.ReadAllText(includeFile);
                     // Replace the load of assembly based on $(TargetPath) from template content to avoid generation errors
                     includeContent = includeContent.Replace("<#@ assembly name=\"$(TargetPath)\" #>", "<#@ #>");
                     content = includeContent;

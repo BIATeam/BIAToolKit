@@ -13,6 +13,7 @@ namespace BIA.ToolKit.UserControls
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
+    using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
@@ -58,7 +59,7 @@ namespace BIA.ToolKit.UserControls
             this.cSharpParserService = cSharpParserService;
 
             viewModel = new RegenerateFeaturesViewModel();
-            this.DataContext = viewModel;
+            DataContext = viewModel;
 
             uiEventBroker.OnProjectChanged += OnProjectChanged;
             uiEventBroker.OnSolutionClassesParsed += OnSolutionClassesParsed;
@@ -82,7 +83,7 @@ namespace BIA.ToolKit.UserControls
 
             try
             {
-                var entities = discoveryService.DiscoverRegenerableEntities(currentProject);
+                List<RegenerableEntity> entities = discoveryService.DiscoverRegenerableEntities(currentProject);
                 var versions = GetAvailableVersions().Select(w => w.Version).ToList();
                 viewModel.Initialize(currentProject, entities, versions);
             }
@@ -117,7 +118,7 @@ namespace BIA.ToolKit.UserControls
 
             if (missingVersion.Count > 0)
             {
-                var list = string.Join(", ", missingVersion.Select(f => $"{f.EntityNameSingular}/{f.FeatureType}"));
+                string list = string.Join(", ", missingVersion.Select(f => $"{f.EntityNameSingular}/{f.FeatureType}"));
                 MessageBox.Show($"Please select a 'from version' for the following features before regenerating:\n{list}");
                 return;
             }
@@ -128,10 +129,10 @@ namespace BIA.ToolKit.UserControls
                 return;
             }
 
-            var workTemplates = GetAvailableVersions();
+            List<WorkRepository> workTemplates = GetAvailableVersions();
             string toVersionNorm = NormalizeVersion(currentProject.FrameworkVersion);
 
-            var toWorkRepo = workTemplates.FirstOrDefault(w =>
+            WorkRepository toWorkRepo = workTemplates.FirstOrDefault(w =>
                 string.Equals(NormalizeVersion(w.Version), toVersionNorm, StringComparison.OrdinalIgnoreCase));
 
             if (toWorkRepo == null)
@@ -142,7 +143,7 @@ namespace BIA.ToolKit.UserControls
             }
 
             // Process each feature individually so each gets its own isolated temp folders
-            foreach (var feature in viewModel.SelectedFeatures)
+            foreach (FeatureRegenerationItem feature in viewModel.SelectedFeatures)
             {
                 string fromVersionNorm = NormalizeVersion(feature.EffectiveFromVersion);
 
@@ -153,7 +154,7 @@ namespace BIA.ToolKit.UserControls
                     continue;
                 }
 
-                var fromWorkRepo = workTemplates.FirstOrDefault(w =>
+                WorkRepository fromWorkRepo = workTemplates.FirstOrDefault(w =>
                     string.Equals(NormalizeVersion(w.Version), fromVersionNorm, StringComparison.OrdinalIgnoreCase));
 
                 if (fromWorkRepo == null)
@@ -163,7 +164,7 @@ namespace BIA.ToolKit.UserControls
                     continue;
                 }
 
-                var entity = BuildEntityForFeature(feature);
+                RegenerableEntity entity = BuildEntityForFeature(feature);
                 if (entity == null) continue;
 
                 // Folder names include entity name and feature type to distinguish feature-level
@@ -215,9 +216,9 @@ namespace BIA.ToolKit.UserControls
             if (settingsService?.Settings?.TemplateRepositories == null)
                 return result;
 
-            foreach (var repo in settingsService.Settings.TemplateRepositories.Where(r => r.UseRepository))
+            foreach (IRepository repo in settingsService.Settings.TemplateRepositories.Where(r => r.UseRepository))
             {
-                foreach (var release in repo.Releases)
+                foreach (Release release in repo.Releases)
                     result.Add(new WorkRepository(repo, release.Name));
             }
 
@@ -228,7 +229,7 @@ namespace BIA.ToolKit.UserControls
         private static string NormalizeVersion(string version)
         {
             if (string.IsNullOrEmpty(version)) return version;
-            var stripped = version.TrimStart('v', 'V');
+            string stripped = version.TrimStart('v', 'V');
             return "V" + stripped;
         }
 
@@ -241,7 +242,7 @@ namespace BIA.ToolKit.UserControls
             var rowsByEntity = viewModel.EntityRows
                 .ToDictionary(r => r.EntityNameSingular, StringComparer.OrdinalIgnoreCase);
 
-            if (!rowsByEntity.TryGetValue(feature.EntityNameSingular, out var row))
+            if (!rowsByEntity.TryGetValue(feature.EntityNameSingular, out RegenerableEntityRowViewModel row))
                 return null;
 
             bool includeCrud = feature.FeatureType == "CRUD" && row.IsCrudEnabled;
@@ -278,9 +279,9 @@ namespace BIA.ToolKit.UserControls
                     case "CRUD":
                         {
                             string historyFile = Path.Combine(currentProject.Folder, Constants.FolderBia, crudSettings.CrudGenerationHistoryFileName);
-                            var history = CommonTools.DeserializeJsonFile<CRUDGeneration>(historyFile);
+                            CRUDGeneration history = CommonTools.DeserializeJsonFile<CRUDGeneration>(historyFile);
                             if (history == null) break;
-                            var entry = history.CRUDGenerationHistory
+                            CRUDGenerationHistory entry = history.CRUDGenerationHistory
                                 .FirstOrDefault(h => string.Equals(h.EntityNameSingular, entityName, StringComparison.OrdinalIgnoreCase));
                             if (entry != null)
                             {
@@ -292,9 +293,9 @@ namespace BIA.ToolKit.UserControls
                     case "Option":
                         {
                             string historyFile = Path.Combine(currentProject.Folder, Constants.FolderBia, crudSettings.OptionGenerationHistoryFileName);
-                            var history = CommonTools.DeserializeJsonFile<OptionGeneration>(historyFile);
+                            OptionGeneration history = CommonTools.DeserializeJsonFile<OptionGeneration>(historyFile);
                             if (history == null) break;
-                            var entry = history.OptionGenerationHistory
+                            OptionGenerationHistory entry = history.OptionGenerationHistory
                                 .FirstOrDefault(h => string.Equals(h.EntityNameSingular, entityName, StringComparison.OrdinalIgnoreCase));
                             if (entry != null)
                             {
@@ -306,9 +307,9 @@ namespace BIA.ToolKit.UserControls
                     case "DTO":
                         {
                             string historyFile = Path.Combine(currentProject.Folder, Constants.FolderBia, crudSettings.DtoGenerationHistoryFileName);
-                            var history = CommonTools.DeserializeJsonFile<DtoGenerationHistory>(historyFile);
+                            DtoGenerationHistory history = CommonTools.DeserializeJsonFile<DtoGenerationHistory>(historyFile);
                             if (history == null) break;
-                            var entry = history.Generations
+                            DtoGeneration entry = history.Generations
                                 .FirstOrDefault(h => string.Equals(h.EntityName, entityName, StringComparison.OrdinalIgnoreCase));
                             if (entry != null)
                             {

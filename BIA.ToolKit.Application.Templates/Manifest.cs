@@ -40,11 +40,11 @@ namespace BIA.ToolKit.Application.Templates
 
             [JsonConverter(typeof(StringEnumConverter))]
             public FeatureType Type { get; set; }
-            public List<Template> DotNetTemplates { get; set; } = new List<Template>();
-            public List<Template> AngularTemplates { get; set; } = new List<Template>();
+            public List<Template> DotNetTemplates { get; set; } = [];
+            public List<Template> AngularTemplates { get; set; } = [];
         }
 
         public Version Version { get; set; }
-        public List<Feature> Features { get; set; } = new List<Feature>();
+        public List<Feature> Features { get; set; } = [];
     }
 }

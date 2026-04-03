@@ -20,7 +20,7 @@ namespace BIA.ToolKit.Domain
             await Task.Run(() =>
             {
 
-                var gitCopyFolder = LocalPath;
+                string gitCopyFolder = LocalPath;
                 if (!string.IsNullOrEmpty(repository.ReleasesTagContentFolder))
                 {
                     gitCopyFolder = Path.Combine(Path.GetDirectoryName(LocalPath), "temp");
@@ -31,9 +31,9 @@ namespace BIA.ToolKit.Domain
                 LibGit2Sharp.Repository.Clone(repository.LocalPath, gitCopyFolder);
                 using (var gitRepository = new LibGit2Sharp.Repository(gitCopyFolder))
                 {
-                    var tag = gitRepository.Tags.FirstOrDefault(t => t.FriendlyName == Name)
+                    Tag tag = gitRepository.Tags.FirstOrDefault(t => t.FriendlyName == Name)
                         ?? throw new NotFoundException($"Tag {Name} not found in repository {repository.Name}");
-                    var commit = tag.Target.Peel<Commit>()
+                    Commit commit = tag.Target.Peel<Commit>()
                         ?? throw new NotFoundException($"Tag {Name} does not resolve to a commit.");
                     Commands.Checkout(gitRepository, commit);
                 }
@@ -53,7 +53,7 @@ namespace BIA.ToolKit.Domain
             if (Directory.Exists(gitCopyFolder))
             {
                 var dirInfo = new DirectoryInfo(gitCopyFolder);
-                foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                foreach (FileInfo file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
                 {
                     file.Attributes = FileAttributes.Normal;
                     File.Delete(file.FullName);
@@ -67,7 +67,7 @@ namespace BIA.ToolKit.Domain
         {
             Directory.CreateDirectory(destinationDir);
 
-            foreach (var file in Directory.GetFiles(sourceDir))
+            foreach (string file in Directory.GetFiles(sourceDir))
             {
                 string destFile = Path.Combine(destinationDir, Path.GetFileName(file));
                 File.Copy(file, destFile, overwrite: true);
@@ -75,7 +75,7 @@ namespace BIA.ToolKit.Domain
 
             if (recursive)
             {
-                foreach (var subDir in Directory.GetDirectories(sourceDir))
+                foreach (string subDir in Directory.GetDirectories(sourceDir))
                 {
                     string destSubDir = Path.Combine(destinationDir, Path.GetFileName(subDir));
                     CopyDirectory(subDir, destSubDir, recursive);

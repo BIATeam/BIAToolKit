@@ -10,9 +10,9 @@ namespace BIA.ToolKit.Helper
         public object Convert(object value, Type targetType, object parameter,
             System.Globalization.CultureInfo culture)
         {
-            if (value is bool)
+            if (value is bool boolValue)
             {
-                return !(bool)value;
+                return !boolValue;
             }
             return value;
         }
@@ -20,9 +20,9 @@ namespace BIA.ToolKit.Helper
         public object ConvertBack(object value, Type targetType, object parameter,
             System.Globalization.CultureInfo culture)
         {
-            if (value is bool)
+            if (value is bool boolValue)
             {
-                return !(bool)value;
+                return !boolValue;
             }
             return value;
         }

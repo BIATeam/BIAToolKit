@@ -12,16 +12,10 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
     using BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures;
 
-    public class RegenerateFeaturesDiscoveryService
+    public class RegenerateFeaturesDiscoveryService(IConsoleWriter consoleWriter, SettingsService settingsService)
     {
-        private readonly IConsoleWriter consoleWriter;
-        private readonly CRUDSettings crudSettings;
-
-        public RegenerateFeaturesDiscoveryService(IConsoleWriter consoleWriter, SettingsService settingsService)
-        {
-            this.consoleWriter = consoleWriter;
-            this.crudSettings = new CRUDSettings(settingsService);
-        }
+        private readonly IConsoleWriter consoleWriter = consoleWriter;
+        private readonly CRUDSettings crudSettings = new(settingsService);
 
         public List<RegenerableEntity> DiscoverRegenerableEntities(Project project)
         {
@@ -31,15 +25,15 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             {
                 // Load CRUD history
                 string crudHistoryFile = Path.Combine(project.Folder, Constants.FolderBia, crudSettings.CrudGenerationHistoryFileName);
-                var crudGeneration = CommonTools.DeserializeJsonFile<CRUDGeneration>(crudHistoryFile);
+                CRUDGeneration crudGeneration = CommonTools.DeserializeJsonFile<CRUDGeneration>(crudHistoryFile);
                 if (crudGeneration != null)
                 {
-                    foreach (var entry in crudGeneration.CRUDGenerationHistory)
+                    foreach (CRUDGenerationHistory entry in crudGeneration.CRUDGenerationHistory)
                     {
                         if (string.IsNullOrEmpty(entry.EntityNameSingular))
                             continue;
 
-                        var entity = GetOrCreate(entities, entry.EntityNameSingular, entry.EntityNamePlural);
+                        RegenerableEntity entity = GetOrCreate(entities, entry.EntityNameSingular, entry.EntityNamePlural);
                         entity.CrudHistory = entry;
                         entity.CrudStatus = ValidateCrudHistory(entry, project);
                     }
@@ -54,15 +48,15 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             {
                 // Load Option history
                 string optionHistoryFile = Path.Combine(project.Folder, Constants.FolderBia, crudSettings.OptionGenerationHistoryFileName);
-                var optionGeneration = CommonTools.DeserializeJsonFile<OptionGeneration>(optionHistoryFile);
+                OptionGeneration optionGeneration = CommonTools.DeserializeJsonFile<OptionGeneration>(optionHistoryFile);
                 if (optionGeneration != null)
                 {
-                    foreach (var entry in optionGeneration.OptionGenerationHistory)
+                    foreach (OptionGenerationHistory entry in optionGeneration.OptionGenerationHistory)
                     {
                         if (string.IsNullOrEmpty(entry.EntityNameSingular))
                             continue;
 
-                        var entity = GetOrCreate(entities, entry.EntityNameSingular, entry.EntityNamePlural);
+                        RegenerableEntity entity = GetOrCreate(entities, entry.EntityNameSingular, entry.EntityNamePlural);
                         entity.OptionHistory = entry;
                         entity.OptionStatus = ValidateOptionHistory(entry, project);
                     }
@@ -77,15 +71,15 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             {
                 // Load DTO history
                 string dtoHistoryFile = Path.Combine(project.Folder, Constants.FolderBia, crudSettings.DtoGenerationHistoryFileName);
-                var dtoGenerationHistory = CommonTools.DeserializeJsonFile<DtoGenerationHistory>(dtoHistoryFile);
+                DtoGenerationHistory dtoGenerationHistory = CommonTools.DeserializeJsonFile<DtoGenerationHistory>(dtoHistoryFile);
                 if (dtoGenerationHistory != null)
                 {
-                    foreach (var entry in dtoGenerationHistory.Generations)
+                    foreach (DtoGeneration entry in dtoGenerationHistory.Generations)
                     {
                         if (string.IsNullOrEmpty(entry.EntityName))
                             continue;
 
-                        var entity = GetOrCreate(entities, entry.EntityName, null);
+                        RegenerableEntity entity = GetOrCreate(entities, entry.EntityName, null);
                         entity.DtoHistory = entry;
                         entity.DtoStatus = ValidateDtoHistory(entry, project);
                     }
@@ -96,15 +90,14 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                 consoleWriter.AddMessageLine($"Error loading DTO generation history: {ex.Message}", "orange");
             }
 
-            return entities.Values
+            return [.. entities.Values
                 .Where(e => e.HasAnyGeneratedFeature)
-                .OrderBy(e => e.EntityNameSingular)
-                .ToList();
+                .OrderBy(e => e.EntityNameSingular)];
         }
 
         private static RegenerableEntity GetOrCreate(Dictionary<string, RegenerableEntity> entities, string entityNameSingular, string entityNamePlural)
         {
-            if (!entities.TryGetValue(entityNameSingular, out var entity))
+            if (!entities.TryGetValue(entityNameSingular, out RegenerableEntity entity))
             {
                 entity = new RegenerableEntity
                 {

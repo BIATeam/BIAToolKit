@@ -9,7 +9,7 @@ namespace BIA.ToolKit.Domain.Model
             CompanyName = "";
             ProjectName = "";
             VersionAndOption = new VersionAndOption();
-            AngularFronts = new List<string>();
+            AngularFronts = [];
         }
 
         /// <summary>

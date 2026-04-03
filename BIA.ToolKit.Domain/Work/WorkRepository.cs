@@ -37,7 +37,7 @@ namespace BIA.ToolKit.Domain.Work
         {
             try
             {
-                VersionData = new Version(Version.Remove(0, 1));
+                VersionData = new Version(Version[1..]);
             }
             catch
             {
@@ -50,7 +50,7 @@ namespace BIA.ToolKit.Domain.Work
             public int Compare(WorkRepository x, WorkRepository y)
             {
                 if (x == null || y == null)
-                    throw new ArgumentNullException("Cannot compare null objects.");
+                    throw new ArgumentException("Cannot compare null objects.");
 
                 return x.VersionData.CompareTo(y.VersionData);
             }

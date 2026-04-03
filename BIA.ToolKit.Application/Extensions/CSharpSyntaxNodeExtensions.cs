@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace BIA.ToolKit.Application.Extensions
 {
-    public static class CSharpSyntaxNodeExtensions
+    public static partial class CSharpSyntaxNodeExtensions
     {
         public static int GetStartLine(this CSharpSyntaxNode node)
         {
@@ -44,12 +44,15 @@ namespace BIA.ToolKit.Application.Extensions
 
         private static string RemoveWhitespace(string text)
         {
-            return Regex.Replace(text, @"\s", "");
+            return MyRegex().Replace(text, "");
         }
 
         private static bool ContainsIgnoreWhitespace(string str1, string str2)
         {
             return RemoveWhitespace(str1).Contains(RemoveWhitespace(str2));
         }
+
+        [GeneratedRegex(@"\s")]
+        private static partial Regex MyRegex();
     }
 }

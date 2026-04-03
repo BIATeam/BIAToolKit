@@ -13,18 +13,13 @@ namespace BIA.ToolKit.Application.Services
     using System.Collections.Generic;
     using BIA.ToolKit.Domain;
 
-    public class RepositoryService
+    public class RepositoryService(IConsoleWriter outPut)
     {
-        private readonly IConsoleWriter outPut;
-
-        public RepositoryService(IConsoleWriter outPut)
-        {
-            this.outPut = outPut;
-        }
+        private readonly IConsoleWriter outPut = outPut;
 
         public bool CheckRepoFolder(Domain.IRepository repository)
         {
-            var localFolderExists = Directory.Exists(repository.LocalPath);
+            bool localFolderExists = Directory.Exists(repository.LocalPath);
             if (!localFolderExists && !repository.UseDownloadedReleases)
             {
                 outPut.AddMessageLine($"Local repository {repository.Name} not found at {repository.LocalPath}", "red");
@@ -47,7 +42,7 @@ namespace BIA.ToolKit.Application.Services
                     {
                         var dirInfo = new DirectoryInfo(repository.LocalPath);
 
-                        foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                        foreach (FileInfo file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
                         {
                             file.Attributes = FileAttributes.Normal;
                         }
@@ -87,7 +82,7 @@ namespace BIA.ToolKit.Application.Services
         {
             try
             {
-                var release = repository.Releases.FirstOrDefault(r => r.Name == version)
+                Release release = repository.Releases.FirstOrDefault(r => r.Name == version)
                         ?? throw new Exception($"Release {version} not found for repository {repository.Name}");
 
                 if (!release.IsDownloaded)
@@ -129,7 +124,7 @@ namespace BIA.ToolKit.Application.Services
 
         private async Task UnzipReleaseArchive(Domain.IRepository repository, Release release)
         {
-            var archivePath = Path.Combine(release.LocalPath, $"{release.Name}.zip");
+            string archivePath = Path.Combine(release.LocalPath, $"{release.Name}.zip");
             if (!File.Exists(archivePath))
             {
                 throw new FileNotFoundException(archivePath);
@@ -142,13 +137,13 @@ namespace BIA.ToolKit.Application.Services
                 await FileTransform.FolderUnix2Dos(release.LocalPath);
                 File.Delete(archivePath);
 
-                var contentDirectories = Directory.GetDirectories(release.LocalPath, "*.*", SearchOption.TopDirectoryOnly);
+                string[] contentDirectories = Directory.GetDirectories(release.LocalPath, "*.*", SearchOption.TopDirectoryOnly);
                 if (contentDirectories.Length == 1)
                 {
-                    var contentDirectory = contentDirectories[0];
-                    foreach (var file in Directory.EnumerateFiles(contentDirectory, "*", SearchOption.AllDirectories))
+                    string contentDirectory = contentDirectories[0];
+                    foreach (string file in Directory.EnumerateFiles(contentDirectory, "*", SearchOption.AllDirectories))
                     {
-                        var dest = file.Replace(contentDirectory, release.LocalPath);
+                        string dest = file.Replace(contentDirectory, release.LocalPath);
                         Directory.CreateDirectory(Path.GetDirectoryName(dest));
                         File.Copy(file, dest);
                     }

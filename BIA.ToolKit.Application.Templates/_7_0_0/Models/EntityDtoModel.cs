@@ -8,6 +8,6 @@ namespace BIA.ToolKit.Application.Templates._7_0_0.Models
         where TPropertyDtoModel : class, IPropertyDtoModel
     {
         public override bool HasListAndItemModels { get; set; } = false;
-        public override List<TPropertyDtoModel> ListProperties { get; set; } = new List<TPropertyDtoModel>();
+        public override List<TPropertyDtoModel> ListProperties { get; set; } = [];
     }
 }

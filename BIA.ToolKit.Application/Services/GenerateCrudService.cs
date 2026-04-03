@@ -4,10 +4,9 @@ namespace BIA.ToolKit.Application.Services
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain.CRUDGenerator;
-    using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.ExtractBlock;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
@@ -20,7 +19,10 @@ namespace BIA.ToolKit.Application.Services
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
-    public class GenerateCrudService
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    public class GenerateCrudService(IConsoleWriter consoleWriter, ZipParserService zipParserService)
     {
         internal const string BIA_DTO_FIELD_TYPE = "Type";
         internal const string BIA_DTO_FIELD_REQUIRED = "Required";
@@ -35,8 +37,8 @@ namespace BIA.ToolKit.Application.Services
 
         private const int FRAMEWORK_VERSION_MINIMUM = 390;
 
-        private readonly IConsoleWriter consoleWriter;
-        private readonly ZipParserService zipParserService;
+        private readonly IConsoleWriter consoleWriter = consoleWriter;
+        private readonly ZipParserService zipParserService = zipParserService;
 
         public CrudNames CrudNames { get; set; }
         public Project CurrentProject { get; set; }
@@ -48,15 +50,6 @@ namespace BIA.ToolKit.Application.Services
         private FeatureParent FeatureParentPrincipal { get; set; }
         private string FeatureDomain { get; set; }
         private string FeatureTargetDomain { get; set; }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public GenerateCrudService(IConsoleWriter consoleWriter, ZipParserService zipParserService)
-        {
-            this.consoleWriter = consoleWriter;
-            this.zipParserService = zipParserService;
-        }
 
         public static bool IsProjectCompatible(Project project)
         {
@@ -123,7 +116,7 @@ namespace BIA.ToolKit.Application.Services
                     }
                     else
                     {
-                        WebApiFeatureData dtoRefFeature = (WebApiFeatureData)crudBackFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
+                        var dtoRefFeature = (WebApiFeatureData)crudBackFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
                         GenerateFrontCRUD(crudFrontFeatureType.FeatureDataList, CurrentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, crudFrontFeatureType.Feature, crudFrontFeatureType.FeatureType, crudFrontFeatureType.Parents, crudFrontFeatureType.AdaptPaths);
                     }
                 }
@@ -148,12 +141,12 @@ namespace BIA.ToolKit.Application.Services
                     }
                     else
                     {
-                        WebApiFeatureData dtoRefFeature = (WebApiFeatureData)teamBackFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
+                        var dtoRefFeature = (WebApiFeatureData)teamBackFeatureType?.FeatureDataList?.FirstOrDefault(f => ((WebApiFeatureData)f).FileType == WebApiFileType.Dto);
                         GenerateFrontCRUD(teamFrontFeatureType.FeatureDataList, CurrentProject, crudDtoProperties, crudDtoEntity, dtoRefFeature?.PropertiesInfos, displayItem, options, teamFrontFeatureType.Feature, teamFrontFeatureType.FeatureType, teamFrontFeatureType.Parents, teamFrontFeatureType.AdaptPaths);
                     }
                 }
 
-                zipParserService.CleanBiaFolders(zipFeatureTypeList, CurrentProject, biaFront);
+                ZipParserService.CleanBiaFolders(zipFeatureTypeList, CurrentProject, biaFront);
             }
             catch (Exception ex)
             {
@@ -188,7 +181,7 @@ namespace BIA.ToolKit.Application.Services
             }
         }
 
-        public async Task DeleteBIAToolkitAnnotations(List<string> folders)
+        public static async Task DeleteBIAToolkitAnnotations(List<string> folders)
         {
             string markerBegin = $"{ZipParserService.MARKER_BEGIN}";
             string markerEnd = $"{ZipParserService.MARKER_END}";
@@ -198,14 +191,14 @@ namespace BIA.ToolKit.Application.Services
             foreach (string parentFolder in folders)
             {
                 // Filter directories to explore
-                List<string> subFolders = Directory.GetDirectories(parentFolder, "*", SearchOption.TopDirectoryOnly).Where(f => !new DirectoryInfo(f).Name.StartsWith('.')).ToList();
+                List<string> subFolders = [.. Directory.GetDirectories(parentFolder, "*", SearchOption.TopDirectoryOnly).Where(f => !new DirectoryInfo(f).Name.StartsWith('.'))];
                 foreach (string folder in subFolders)
                 {
                     // Get all files in directories
                     foreach (string file in Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories))
                     {
                         // Read file lines
-                        var content = await File.ReadAllLinesAsync(file);
+                        string[] content = await File.ReadAllLinesAsync(file);
                         if (content.Any(line => line.Contains(markerBegin)))
                         {
                             var newContent = content
@@ -231,10 +224,10 @@ namespace BIA.ToolKit.Application.Services
             try
             {
                 ClassDefinition classDefiniton = featureDataList.Cast<WebApiFeatureData>().FirstOrDefault(x => x.FileType == WebApiFileType.Controller || x.FileType == WebApiFileType.OptionsController)?.ClassFileDefinition;
-                List<WebApiNamespace> crudNamespaceList = ListCrudNamespaces(this.DotNetFolderGeneration, featureDataList, currentProject, classDefiniton, feature, type, featureParents, featureDomain);
+                List<WebApiNamespace> crudNamespaceList = ListCrudNamespaces(DotNetFolderGeneration, featureDataList, currentProject, classDefiniton, feature, type, featureParents, featureDomain);
 
                 // Generate files
-                foreach (WebApiFeatureData crudData in featureDataList.Where(ft => !ft.IsPartialFile))
+                foreach (WebApiFeatureData crudData in featureDataList.Where(ft => !ft.IsPartialFile).Cast<WebApiFeatureData>())
                 {
                     if (crudData.FileType == WebApiFileType.Dto ||
                         crudData.FileType == WebApiFileType.Entity ||
@@ -249,10 +242,10 @@ namespace BIA.ToolKit.Application.Services
                 }
 
                 // Update partial files
-                foreach (WebApiFeatureData crudData in featureDataList.Where(ft => ft.IsPartialFile))
+                foreach (WebApiFeatureData crudData in featureDataList.Where(ft => ft.IsPartialFile).Cast<WebApiFeatureData>())
                 {
                     // Update with partial value
-                    UpdatePartialFile(this.DotNetFolderGeneration, currentProject, crudData, feature, type, GenerationType.WebApi, adaptPaths, classDefiniton);
+                    UpdatePartialFile(DotNetFolderGeneration, currentProject, crudData, feature, type, GenerationType.WebApi, adaptPaths, classDefiniton);
                 }
             }
             catch (Exception ex)
@@ -277,7 +270,7 @@ namespace BIA.ToolKit.Application.Services
                     if (crudData.IsPartialFile)
                     {
                         // Update with partial file
-                        UpdatePartialFile(this.AngularFolderGeneration, currentProject, crudData, feature, type, GenerationType.Front, adaptPaths);
+                        UpdatePartialFile(AngularFolderGeneration, currentProject, crudData, feature, type, GenerationType.Front, adaptPaths);
                     }
                     else
                     {
@@ -317,7 +310,7 @@ namespace BIA.ToolKit.Application.Services
             }
         }
 
-        private void GenerateTeam(string angularDir, List<FeatureData> featureDataList)
+        private void GenerateTeam(string _, List<FeatureData> __)
         {
             // TODO
             consoleWriter.AddMessageLine("Generate Team not implemented!", "Orange");
@@ -336,7 +329,7 @@ namespace BIA.ToolKit.Application.Services
             GenerationCrudData generationData = ExtractGenerationCrudData(crudData, crudDtoProperties, null, displayItem, feature, type, GenerationType.WebApi);
 
             // Read file
-            List<string> fileLinesContent = File.ReadAllLines(src).ToList();
+            List<string> fileLinesContent = [.. File.ReadAllLines(src)];
 
             fileLinesContent = UpdateFileContentWithBlocks(fileLinesContent, generationData, src, crudDtoEntity, feature, type);
 
@@ -351,7 +344,7 @@ namespace BIA.ToolKit.Application.Services
                 }
 
                 // Convert Crud Name (Plane to Xxx and plane to xxx)
-                fileLinesContent[i] = this.CrudNames.ConvertCamelOldToNewCrudName(this.CrudNames.ConvertPascalOldToNewCrudName(fileLinesContent[i], feature, type), feature, type);
+                fileLinesContent[i] = CrudNames.ConvertCamelOldToNewCrudName(CrudNames.ConvertPascalOldToNewCrudName(fileLinesContent[i], feature, type), feature, type);
             }
 
             ApplyReplaceInFiles(adaptPaths, dest, fileLinesContent, GenerationType.WebApi);
@@ -379,10 +372,10 @@ namespace BIA.ToolKit.Application.Services
             string src = Path.Combine(featureData.ExtractDirPath, featureData.FilePath);
 
             string fileName = Path.GetFileName(featureData.FilePath);
-            string filePartPath = featureData.FilePath.Remove(featureData.FilePath.LastIndexOf(fileName));
+            string filePartPath = featureData.FilePath[..featureData.FilePath.LastIndexOf(fileName)];
             filePartPath = ReplaceCompagnyNameProjetName(filePartPath, currentProject, dtoClassDefiniton);
 
-            var relativeFilePath = Path.Combine(filePartPath, this.CrudNames.ConvertPascalOldToNewCrudName(fileName, feature, type));
+            string relativeFilePath = Path.Combine(filePartPath, CrudNames.ConvertPascalOldToNewCrudName(fileName, feature, type));
 
             relativeFilePath = ApplyMoveFiles(adaptPaths, relativeFilePath, GenerationType.WebApi);
             if (FeatureParentPrincipal != null)
@@ -390,22 +383,22 @@ namespace BIA.ToolKit.Application.Services
                 relativeFilePath = ReplaceFilePathWithFeatureParentPrincipal(relativeFilePath, GenerationType.WebApi);
             }
 
-            string dest = Path.Combine(this.DotNetFolderGeneration, relativeFilePath);
+            string dest = Path.Combine(DotNetFolderGeneration, relativeFilePath);
 
             // Workaround for BIAFramework < 4.0.0
             dest = dest
-                .Replace(this.CrudNames.GetOldFeatureNamePluralPascal(feature, type), this.CrudNames.NewCrudNamePascalPlural)
-                .Replace(this.CrudNames.GetOldFeatureNameSingularPascal(feature, type), this.CrudNames.NewCrudNamePascalSingular);
+                .Replace(CrudNames.GetOldFeatureNamePluralPascal(feature, type), CrudNames.NewCrudNamePascalPlural)
+                .Replace(CrudNames.GetOldFeatureNameSingularPascal(feature, type), CrudNames.NewCrudNamePascalSingular);
 
             return (src, dest);
         }
 
         private List<WebApiNamespace> ListCrudNamespaces(string destDir, List<FeatureData> featureDataList, Project currentProject, ClassDefinition classDefiniton, string feature, FeatureType type, List<FeatureParent> featureParents, string featureDomain)
         {
-            List<WebApiNamespace> namespaceList = new();
-            var oldNamePascalSingular = this.CrudNames.GetOldFeatureNameSingularPascal(feature, type);
+            List<WebApiNamespace> namespaceList = [];
+            string oldNamePascalSingular = CrudNames.GetOldFeatureNameSingularPascal(feature, type);
 
-            foreach (WebApiFeatureData crudData in featureDataList)
+            foreach (WebApiFeatureData crudData in featureDataList.Cast<WebApiFeatureData>())
             {
                 if (crudData.FileType == null || crudData.FileType == WebApiFileType.Partial)
                 {
@@ -421,8 +414,8 @@ namespace BIA.ToolKit.Application.Services
                     crudData.FileType == WebApiFileType.Entity ||
                     crudData.FileType == WebApiFileType.Mapper)
                 {
-                    var domainName = FeatureParentPrincipal != null ? FeatureParentPrincipal.DomainName :
-                        string.IsNullOrWhiteSpace(featureDomain) ? this.CrudNames.GetOldFeatureNameSingularPascal(feature, type) : featureDomain;
+                    string domainName = FeatureParentPrincipal != null ? FeatureParentPrincipal.DomainName :
+                        string.IsNullOrWhiteSpace(featureDomain) ? CrudNames.GetOldFeatureNameSingularPascal(feature, type) : featureDomain;
                     // Get part of namespace before "plane" occurency
                     string partPath = GetNamespacePathBeforeOccurency(crudData.Namespace, domainName);
 
@@ -430,7 +423,7 @@ namespace BIA.ToolKit.Application.Services
                     partPath = ReplaceCompagnyNameProjetName(partPath, currentProject, classDefiniton);
 
                     // Replace "plane" file name with good "crud" value
-                    string fileName = crudData.FileName.Replace(oldNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
+                    string fileName = crudData.FileName.Replace(oldNamePascalSingular, CrudNames.NewCrudNamePascalSingular);
 
                     // Search file on disk
                     string foundFile = Directory.EnumerateFiles(Path.Combine(destDir, partPath), fileName, SearchOption.AllDirectories).FirstOrDefault();
@@ -439,7 +432,7 @@ namespace BIA.ToolKit.Application.Services
                     if (!string.IsNullOrWhiteSpace(foundFile))
                     {
                         // Read file
-                        List<string> fileLinesContent = File.ReadAllLines(foundFile).ToList();
+                        List<string> fileLinesContent = [.. File.ReadAllLines(foundFile)];
                         foreach (string line in fileLinesContent)
                         {
                             // Search namespace line
@@ -457,7 +450,7 @@ namespace BIA.ToolKit.Application.Services
                         consoleWriter.AddMessageLine($"File '{fileName}' not found on path '{Path.Combine(destDir, partPath)}' folder or children.", "Orange");
                         webApiNamespace.CrudNamespaceGenerated =
                             ReplaceCompagnyNameProjetName(crudData.Namespace, currentProject, classDefiniton).
-                            Replace(oldNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
+                            Replace(oldNamePascalSingular, CrudNames.NewCrudNamePascalSingular);
                     }
                 }
                 else
@@ -466,13 +459,13 @@ namespace BIA.ToolKit.Application.Services
 
                     webApiNamespace.CrudNamespaceGenerated =
                         ReplaceCompagnyNameProjetName(crudData.Namespace, currentProject, classDefiniton).
-                        Replace(oldNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
+                        Replace(oldNamePascalSingular, CrudNames.NewCrudNamePascalSingular);
 
                     if (FeatureParentPrincipal != null)
                     {
                         webApiNamespace.CrudNamespaceGenerated = CrudParent.Exists ?
                             webApiNamespace.CrudNamespaceGenerated.Replace(FeatureParentPrincipal.DomainName, CrudParent.Domain) :
-                            webApiNamespace.CrudNamespaceGenerated.Replace(FeatureParentPrincipal.DomainName, this.CrudNames.NewCrudNamePascalSingular);
+                            webApiNamespace.CrudNamespaceGenerated.Replace(FeatureParentPrincipal.DomainName, CrudNames.NewCrudNamePascalSingular);
 
                     }
                 }
@@ -496,11 +489,11 @@ namespace BIA.ToolKit.Application.Services
                     if (line.Contains(dtoClassDefiniton.CompagnyName) ||
                         line.Contains(dtoClassDefiniton.ProjectName))
                     {
-                        var oldNamePascalSingular = this.CrudNames.GetOldFeatureNameSingularPascal(feature, type);
+                        string oldNamePascalSingular = CrudNames.GetOldFeatureNameSingularPascal(feature, type);
 
                         // Replace Compagny name and Project name if exists
                         line = ReplaceCompagnyNameProjetName(line, currentProject, dtoClassDefiniton);
-                        line = line.Replace(oldNamePascalSingular, this.CrudNames.NewCrudNamePascalSingular);
+                        line = line.Replace(oldNamePascalSingular, CrudNames.NewCrudNamePascalSingular);
                     }
                 }
             }
@@ -523,20 +516,20 @@ namespace BIA.ToolKit.Application.Services
                 partialFilePath = ReplaceFilePathWithFeatureParentPrincipal(partialFilePath, generationType);
             }
 
-            string partialName = this.CrudNames.GetOldFeatureNameSingularPascal(feature, type);
+            string partialName = CrudNames.GetOldFeatureNameSingularPascal(feature, type);
 
-            var extractBlocks = crudData.ExtractBlocks != null ? crudData.ExtractBlocks.Where(b => b.Name == partialName) : Enumerable.Empty<ExtractBlock>();
+            IEnumerable<ExtractBlock> extractBlocks = crudData.ExtractBlocks != null ? crudData.ExtractBlocks.Where(b => b.Name == partialName) : [];
             if (FeatureParentPrincipal != null && CrudParent.Exists)
             {
                 extractBlocks = extractBlocks.Concat(crudData.ExtractBlocks.Where(x => x.Name == FeatureParentPrincipal.Name));
             }
 
-            foreach (var block in extractBlocks.Cast<ExtractPartialBlock>())
+            foreach (ExtractPartialBlock block in extractBlocks.Cast<ExtractPartialBlock>())
             {
-                var allNestedBlocks = block.GetAllNestedBlocks();
-                if (allNestedBlocks.Any())
+                List<ExtractPartialBlock> allNestedBlocks = block.GetAllNestedBlocks();
+                if (allNestedBlocks.Count > 0)
                 {
-                    var nestedBlocksToKeep = allNestedBlocks.Where(b => b.Name == partialName);
+                    IEnumerable<ExtractPartialBlock> nestedBlocksToKeep = allNestedBlocks.Where(b => b.Name == partialName);
                     if (FeatureParentPrincipal != null && CrudParent.Exists)
                     {
                         nestedBlocksToKeep = nestedBlocksToKeep
@@ -544,10 +537,10 @@ namespace BIA.ToolKit.Application.Services
                             .Concat(allNestedBlocks.Where(x => x.DataUpdateType == CRUDDataUpdateType.Parent || x.DataUpdateType == CRUDDataUpdateType.AncestorTeam));
                     }
 
-                    var nestedBlocksToDelete = allNestedBlocks.Except(nestedBlocksToKeep);
+                    IEnumerable<ExtractPartialBlock> nestedBlocksToDelete = allNestedBlocks.Except(nestedBlocksToKeep);
                     if (nestedBlocksToDelete.Any())
                     {
-                        var newBlockLines = block.BlockLines;
+                        List<string> newBlockLines = block.BlockLines;
                         foreach (var nestedBlockGroup in nestedBlocksToDelete.GroupBy(x => new { x.DataUpdateType, x.Index }))
                         {
                             newBlockLines = DeleteBlocks(
@@ -560,9 +553,9 @@ namespace BIA.ToolKit.Application.Services
                     }
                 }
 
-                if (block.BlockLines.Any())
+                if (block.BlockLines.Count > 0)
                 {
-                    contentToAdd = new();
+                    contentToAdd = [];
                     if (string.IsNullOrWhiteSpace(block.Index))
                     {
                         suffix = $"{block.DataUpdateType}";
@@ -605,10 +598,10 @@ namespace BIA.ToolKit.Application.Services
             return Path.Combine(workingFolder, fileName);
         }
 
-        private void UpdatePartialCrudFile(string partialFile, List<string> contentToAdd, string markerBegin, string markerEnd)
+        private static void UpdatePartialCrudFile(string partialFile, List<string> contentToAdd, string markerBegin, string markerEnd)
         {
             // Read file
-            List<string> fileContent = File.ReadAllLines(partialFile).ToList();
+            List<string> fileContent = [.. File.ReadAllLines(partialFile)];
 
             // Insert data on file content
             List<string> newContent = InsertContentBetweenMarkers(fileContent, contentToAdd, markerBegin, markerEnd);
@@ -623,7 +616,7 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region Angular Files
-        private void GenerateAngularFile(string feature, FeatureType type, string fileName, string newFileName, EntityInfo crudDtoEntity, FeatureData featureData, List<FeatureAdaptPath> adaptPaths,
+        private void GenerateAngularFile(string feature, FeatureType type, string fileName, string newFileName, EntityInfo crudDtoEntity, FeatureData _, List<FeatureAdaptPath> adaptPaths,
             GenerationCrudData generationData = null, List<CrudProperty> crudDtoProperties = null, List<CRUDPropertyType> propertyList = null)
         {
             if (!File.Exists(fileName))
@@ -636,7 +629,7 @@ namespace BIA.ToolKit.Application.Services
             CommonTools.CheckFolder(new FileInfo(newFileName).DirectoryName);
 
             // Read file
-            List<string> fileLinesContent = File.ReadAllLines(fileName).ToList();
+            List<string> fileLinesContent = [.. File.ReadAllLines(fileName)];
 
             // Update file content
             fileLinesContent = UpdateFileContentWithBlocks(fileLinesContent, generationData, fileName, crudDtoEntity, feature, type, crudDtoProperties, propertyList);
@@ -653,7 +646,7 @@ namespace BIA.ToolKit.Application.Services
         {
             string src = Path.Combine(featureData.ExtractDirPath, featureData.FilePath);
 
-            var filePathDest = featureData.FilePath;
+            string filePathDest = featureData.FilePath;
 
             filePathDest = ApplyMoveFiles(adaptPaths, filePathDest, GenerationType.WebApi);
             if (FeatureParentPrincipal != null)
@@ -661,10 +654,10 @@ namespace BIA.ToolKit.Application.Services
                 filePathDest = ReplaceFilePathWithFeatureParentPrincipal(filePathDest, GenerationType.Front);
             }
 
-            string dest = Path.Combine(this.AngularFolderGeneration, filePathDest);
+            string dest = Path.Combine(AngularFolderGeneration, filePathDest);
             dest = dest
-                .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
-                .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                .Replace(CrudNames.GetOldFeatureNamePluralKebab(feature, type), CrudNames.NewCrudNameKebabPlural)
+                .Replace(CrudNames.GetOldFeatureNameSingularKebab(feature, type), CrudNames.NewCrudNameKebabSingular);
 
             return (src, dest);
         }
@@ -729,11 +722,11 @@ namespace BIA.ToolKit.Application.Services
                 spaces = CommonTools.GetSpacesBeginningLine(fileLinesContent[indexBegin]);
             }
 
-            List<string> newBlockList = new();
+            List<string> newBlockList = [];
             for (int i = 0; i < blockList.Count; i++)
             {
-                var line = this.CrudNames.ConvertPascalOldToNewCrudName(blockList[i], feature, featureType);
-                line = this.CrudNames.ConvertCamelOldToNewCrudName(blockList[i], feature, featureType);
+                string line = CrudNames.ConvertPascalOldToNewCrudName(blockList[i], feature, featureType);
+                line = CrudNames.ConvertCamelOldToNewCrudName(blockList[i], feature, featureType);
                 newBlockList.Add(line);
             }
 
@@ -753,7 +746,7 @@ namespace BIA.ToolKit.Application.Services
             return UpdateBlocks(fileName, fileLinesContent, propertiesToAdd, CRUDDataUpdateType.Properties);
         }
 
-        private List<string> ReplaceDisplayItem(List<string> fileLinesContent, List<KeyValuePair<string, string>> displayToUpdate)
+        private static List<string> ReplaceDisplayItem(List<string> fileLinesContent, List<KeyValuePair<string, string>> displayToUpdate)
         {
             string beginMarker = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Display}";
             string endMarker = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Display}";
@@ -767,10 +760,10 @@ namespace BIA.ToolKit.Application.Services
                 }
             }
 
-            return fileLinesContent.Where(x => !x.Contains(beginMarker) && !x.Contains(endMarker)).ToList();
+            return [.. fileLinesContent.Where(x => !x.Contains(beginMarker) && !x.Contains(endMarker))];
         }
 
-        private List<string> DeleteChildrenBlocks(List<string> fileLinesContent, List<string> childrenName)
+        private static List<string> DeleteChildrenBlocks(List<string> fileLinesContent, List<string> childrenName)
         {
             string beginMarker = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Child}";
             string endMarker = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Child}";
@@ -794,7 +787,7 @@ namespace BIA.ToolKit.Application.Services
             return DeleteBlocks(fileLinesContent, CRUDDataUpdateType.Child);
         }
 
-        private List<string> DeleteOptionFieldBlocks(List<string> fileLinesContent, List<string> fieldToDelete = null)
+        private static List<string> DeleteOptionFieldBlocks(List<string> fileLinesContent, List<string> fieldToDelete = null)
         {
             string markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.OptionField}";
             string markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.OptionField}";
@@ -818,7 +811,7 @@ namespace BIA.ToolKit.Application.Services
             return fileLinesContent;
         }
 
-        private List<string> ManageAncestorBlocks(List<string> fileLinesContent, List<string> ancestorNames, List<KeyValuePair<string, string>> classAnnotations)
+        private static List<string> ManageAncestorBlocks(List<string> fileLinesContent, List<string> ancestorNames, List<KeyValuePair<string, string>> classAnnotations)
         {
             string beginMarker = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.AncestorTeam}";
             string endMarker = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.AncestorTeam}";
@@ -834,11 +827,11 @@ namespace BIA.ToolKit.Application.Services
             }
 
             var newFileContent = new List<string>();
-            var isAncestorBlock = false;
-            var ancestor = string.Empty;
+            bool isAncestorBlock = false;
+            string ancestor = string.Empty;
             for (int i = 0; i < fileLinesContent.Count; i++)
             {
-                var currentLine = fileLinesContent[i];
+                string currentLine = fileLinesContent[i];
                 if (currentLine.Contains(beginMarker))
                 {
                     ancestor = currentLine.Split(' ').Last();
@@ -867,7 +860,7 @@ namespace BIA.ToolKit.Application.Services
         {
             UpdateOptionBlocks(fileLinesContent, feature, featureType);
 
-            if (newOptionsName == null || !newOptionsName.Any())
+            if (newOptionsName == null || newOptionsName.Count == 0)
             {
                 // Delete options blocks
                 fileLinesContent = DeleteOptionsBlocks(fileLinesContent, optionsName);
@@ -887,13 +880,13 @@ namespace BIA.ToolKit.Application.Services
 
         private void UpdateOptionBlocks(List<string> fileLinesContent, string feature, FeatureType featureType)
         {
-            var markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option}";
-            var markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Option}";
+            string markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option}";
+            string markerEnd = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Option}";
 
-            var beginMarkerFound = false;
+            bool beginMarkerFound = false;
             for (int i = 0; i < fileLinesContent.Count; i++)
             {
-                var currentLine = fileLinesContent[i];
+                string currentLine = fileLinesContent[i];
                 if (currentLine.TrimEnd().EndsWith(markerBegin))
                 {
                     beginMarkerFound = true;
@@ -914,14 +907,14 @@ namespace BIA.ToolKit.Application.Services
         private List<string> UpdateOptions(List<string> fileLinesContent, List<string> options, List<string> newOptionsName, CRUDDataUpdateType crudType,
             List<CrudProperty> crudDtoProperties = null, List<CRUDPropertyType> propertyList = null)
         {
-            if (!options.Any())
+            if (options.Count == 0)
                 return fileLinesContent;
 
-            var markerBeginOptionPattern = $"{ZipParserService.MARKER_BEGIN} {crudType}" + " {0}";
-            var markerEndOptionPattern = $"{ZipParserService.MARKER_END} {crudType}" + " {0}";
+            string markerBeginOptionPattern = $"{ZipParserService.MARKER_BEGIN} {crudType}" + " {0}";
+            string markerEndOptionPattern = $"{ZipParserService.MARKER_END} {crudType}" + " {0}";
 
-            var optionBlockNameToDelete = options.Skip(1);
-            foreach (var optionBlockName in optionBlockNameToDelete)
+            IEnumerable<string> optionBlockNameToDelete = options.Skip(1);
+            foreach (string optionBlockName in optionBlockNameToDelete)
             {
                 fileLinesContent = DeleteBlocks(
                     fileLinesContent,
@@ -929,7 +922,7 @@ namespace BIA.ToolKit.Application.Services
                     string.Format(markerEndOptionPattern, optionBlockName));
             }
 
-            var optionBlockNameReference = options.First();
+            string optionBlockNameReference = options.First();
             fileLinesContent = ReplaceOptions(
                 fileLinesContent,
                 optionBlockNameReference,
@@ -942,7 +935,7 @@ namespace BIA.ToolKit.Application.Services
             return fileLinesContent;
         }
 
-        private List<string> DeleteOptionsBlocks(List<string> fileLinesContent, List<string> optionsName)
+        private static List<string> DeleteOptionsBlocks(List<string> fileLinesContent, List<string> optionsName)
         {
             string beginMarker = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option}";
             string endMarker = $"{ZipParserService.MARKER_END} {CRUDDataUpdateType.Option}";
@@ -963,7 +956,7 @@ namespace BIA.ToolKit.Application.Services
         {
             string line;
             bool endFound;
-            List<string> newLines = new();
+            List<string> newLines = [];
             string regex = $@"{markerBegin} ([a-zA-Z]+)";
 
             for (int i = 0; i < fileLinesContent.Count; i++)
@@ -973,7 +966,7 @@ namespace BIA.ToolKit.Application.Services
                 if (line.Contains(markerBegin, StringComparison.InvariantCultureIgnoreCase))
                 {
                     endFound = false;
-                    List<string> optionBlock = new();
+                    List<string> optionBlock = [];
 
                     for (int j = i; j < fileLinesContent.Count && !endFound; j++)
                     {
@@ -1032,7 +1025,7 @@ namespace BIA.ToolKit.Application.Services
                     newLines.Add(line);
                 }
             }
-            if (newLines.Any())
+            if (newLines.Count > 0)
             {
                 fileLinesContent = newLines;
             }
@@ -1073,7 +1066,7 @@ namespace BIA.ToolKit.Application.Services
                 indexEnd = CommonTools.IndexOfOccurence(fileLinesContent, $"{ZipParserService.MARKER_END} {type}", count);
             }
 
-            List<string> newFileLinesContent = new();
+            List<string> newFileLinesContent = [];
             if (indexBegin != -1 && indexEnd != -1)
             {
                 // Write lines before first block
@@ -1101,7 +1094,7 @@ namespace BIA.ToolKit.Application.Services
             return newFileLinesContent;
         }
 
-        private List<string> DeleteBlocks(List<string> fileLinesContent, CRUDDataUpdateType type)
+        private static List<string> DeleteBlocks(List<string> fileLinesContent, CRUDDataUpdateType type)
         {
             string markerBegin = $"{ZipParserService.MARKER_BEGIN} {type}";
             string markerEnd = $"{ZipParserService.MARKER_END} {type}";
@@ -1109,14 +1102,14 @@ namespace BIA.ToolKit.Application.Services
             return DeleteBlocks(fileLinesContent, markerBegin, markerEnd);
         }
 
-        private List<string> DeleteBlocks(List<string> fileLinesContent, string markerBegin, string markerEnd)
+        private static List<string> DeleteBlocks(List<string> fileLinesContent, string markerBegin, string markerEnd)
         {
-            if (!CommonTools.IsFileContainsData(fileLinesContent, new List<string> { markerBegin }))
+            if (!CommonTools.IsFileContainsData(fileLinesContent, [markerBegin]))
             {
                 return fileLinesContent;
             }
 
-            List<string> updateLines = new();
+            List<string> updateLines = [];
             for (int i = 0; i < fileLinesContent.Count; i++)
             {
                 string line = fileLinesContent[i];
@@ -1187,10 +1180,10 @@ namespace BIA.ToolKit.Application.Services
             return updateLines;
         }
 
-        private List<List<string>> GenerateParentBlocks(List<ExtractBlock> blocksList, List<CrudProperty> crudDtoProperties)
+        private static List<List<string>> GenerateParentBlocks(List<ExtractBlock> blocksList, List<CrudProperty> crudDtoProperties)
         {
-            List<CrudProperty> parents = crudDtoProperties.Where(c => c.IsParent).ToList();
-            if (!parents.Any())
+            List<CrudProperty> parents = [.. crudDtoProperties.Where(c => c.IsParent)];
+            if (parents.Count == 0)
             {
                 return null;
             }
@@ -1202,10 +1195,10 @@ namespace BIA.ToolKit.Application.Services
             string newParentNamePascal = CommonTools.ConvertToPascalCase(newParentName);
             string newParentNameCamel = CommonTools.ConvertToCamelCase(newParentName);
 
-            List<List<string>> blocksToAdd = new();
+            List<List<string>> blocksToAdd = [];
             foreach (ExtractBlock block in blocksList)
             {
-                List<string> newBlock = new();
+                List<string> newBlock = [];
                 block.BlockLines.ForEach(l =>
                 {
                     string line = l;
@@ -1228,7 +1221,7 @@ namespace BIA.ToolKit.Application.Services
         private List<string> GeneratePropertiesToAdd(ExtractPropertiesBlock propertyBlock, List<CrudProperty> crudProperties)
         {
             string regex = $@"^(\s*)(\w+)(\s*{Constants.PropertySeparator}\s*)(\w+\W*\w*)(;\s*)$";
-            List<string> propertiesToAdd = new();
+            List<string> propertiesToAdd = [];
 
             foreach (CrudProperty crudProperty in crudProperties)
             {
@@ -1239,11 +1232,8 @@ namespace BIA.ToolKit.Application.Services
                 {
                     // if type not found verfiy with Simplified type
                     propertyReference = propertyBlock.PropertiesList.FirstOrDefault(p => p.Type == convertType.SimplifiedType);
-                    if (propertyReference == null)
-                    {
-                        // in other cases (type and simplified not found), get first by default (string)
-                        propertyReference = propertyBlock.PropertiesList.FirstOrDefault(p => p.Type == "string");
-                    }
+                    // in other cases (type and simplified not found), get first by default (string)
+                    propertyReference ??= propertyBlock.PropertiesList.FirstOrDefault(p => p.Type == "string");
                 }
 
                 // Get property line as "model"
@@ -1262,7 +1252,7 @@ namespace BIA.ToolKit.Application.Services
             if (crudDtoProperties == null || dtoRefProperties == null)
                 return null;
 
-            List<string> blocksToAdd = new();
+            List<string> blocksToAdd = [];
             // Get block list and properties associated to blocks
             ExtractBlock propertyBlock = crudData.ExtractBlocks.FirstOrDefault(p => p.DataUpdateType == CRUDDataUpdateType.Properties);
             List<ExtractBlock> blocksList = crudData.ExtractBlocks.FindAll(b => b.DataUpdateType == CRUDDataUpdateType.Block);
@@ -1292,7 +1282,7 @@ namespace BIA.ToolKit.Application.Services
             return blocksToAdd;
         }
 
-        private ExtractBlock GetReferenceBlock(CrudProperty crudProperty, List<ExtractBlock> blocksList, List<PropertyInfo> dtoRefProperties)
+        private static ExtractBlock GetReferenceBlock(CrudProperty crudProperty, List<ExtractBlock> blocksList, List<PropertyInfo> dtoRefProperties)
         {
             ExtractBlock blockReferenceFound = null;
             PropertyInfo pi = null;
@@ -1324,9 +1314,9 @@ namespace BIA.ToolKit.Application.Services
             return blockReferenceFound;
         }
 
-        private void CheckRequiredLine(List<string> lines, bool isRequired)
+        private static void CheckRequiredLine(List<string> lines, bool isRequired)
         {
-            bool contains = CommonTools.IsFileContainsData(lines, new List<string> { IS_REQUIRED_PROPERTY });
+            bool contains = CommonTools.IsFileContainsData(lines, [IS_REQUIRED_PROPERTY]);
             if (contains && !isRequired)
             {
                 // Remove
@@ -1361,15 +1351,15 @@ namespace BIA.ToolKit.Application.Services
             sb.Append(extractBlock.BlockLines[count]);          // Add the last
 
             string newBlock = sb.ToString().Replace(dtoAttributeName, crudAttributeName);
-            newBlock = newBlock.Replace(this.CrudNames.GetOldFeatureNamePluralCamel(feature, type), this.CrudNames.NewCrudNameCamelPlural);
-            newBlock = newBlock.Replace(this.CrudNames.GetOldFeatureNamePluralCamel(feature, type), this.CrudNames.NewCrudNameCamelSingular);
+            newBlock = newBlock.Replace(CrudNames.GetOldFeatureNamePluralCamel(feature, type), CrudNames.NewCrudNameCamelPlural);
+            newBlock = newBlock.Replace(CrudNames.GetOldFeatureNamePluralCamel(feature, type), CrudNames.NewCrudNameCamelSingular);
 
             return newBlock;
         }
 
         private string CreateEmptyBlock(string feature, FeatureType type, ExtractBlock extractBlock, string attributeType, string attributeName, bool isRequired)
         {
-            List<string> newBlockLines = new();
+            List<string> newBlockLines = [];
             int length = extractBlock.BlockLines.Count;
 
             if (length > 2)
@@ -1447,8 +1437,8 @@ namespace BIA.ToolKit.Application.Services
                 }
                 if (!string.IsNullOrEmpty(componentValue))
                 {
-                    var newComponentValue = this.CrudNames.ConvertPascalOldToNewCrudName(componentValue, feature, type);
-                    newComponentValue = this.CrudNames.ConvertCamelOldToNewCrudName(newComponentValue, feature, type);
+                    string newComponentValue = CrudNames.ConvertPascalOldToNewCrudName(componentValue, feature, type);
+                    newComponentValue = CrudNames.ConvertCamelOldToNewCrudName(newComponentValue, feature, type);
                     newLine = newLine.Replace(componentValue, newComponentValue);
                 }
 
@@ -1461,8 +1451,8 @@ namespace BIA.ToolKit.Application.Services
                 if (!string.IsNullOrEmpty(pathValue))
                 {
                     string newPathValue = pathValue
-                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
-                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                        .Replace(CrudNames.GetOldFeatureNamePluralKebab(feature, type), CrudNames.NewCrudNameKebabPlural)
+                        .Replace(CrudNames.GetOldFeatureNameSingularKebab(feature, type), CrudNames.NewCrudNameKebabSingular);
                     newLine = newLine.Replace(pathValue, newPathValue);
                 }
             }
@@ -1472,8 +1462,8 @@ namespace BIA.ToolKit.Application.Services
                 if (!string.IsNullOrEmpty(pathValue))
                 {
                     string newPathValue = pathValue
-                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
-                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                        .Replace(CrudNames.GetOldFeatureNamePluralKebab(feature, type), CrudNames.NewCrudNameKebabPlural)
+                        .Replace(CrudNames.GetOldFeatureNameSingularKebab(feature, type), CrudNames.NewCrudNameKebabSingular);
                     newLine = newLine.Replace(pathValue, newPathValue);
                 }
             }
@@ -1483,8 +1473,8 @@ namespace BIA.ToolKit.Application.Services
                 if (!string.IsNullOrEmpty(pathValue))
                 {
                     string newPathValue = pathValue
-                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
-                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                        .Replace(CrudNames.GetOldFeatureNamePluralKebab(feature, type), CrudNames.NewCrudNameKebabPlural)
+                        .Replace(CrudNames.GetOldFeatureNameSingularKebab(feature, type), CrudNames.NewCrudNameKebabSingular);
                     newLine = newLine.Replace(pathValue, newPathValue);
                 }
             }
@@ -1494,8 +1484,8 @@ namespace BIA.ToolKit.Application.Services
                 if (!string.IsNullOrEmpty(compValue))
                 {
                     string newCompValue = compValue
-                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
-                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                        .Replace(CrudNames.GetOldFeatureNamePluralKebab(feature, type), CrudNames.NewCrudNameKebabPlural)
+                        .Replace(CrudNames.GetOldFeatureNameSingularKebab(feature, type), CrudNames.NewCrudNameKebabSingular);
                     newLine = newLine.Replace(compValue, newCompValue);
                 }
             }
@@ -1505,8 +1495,8 @@ namespace BIA.ToolKit.Application.Services
                 if (!string.IsNullOrEmpty(selectorValue))
                 {
                     string newSelectorValue = selectorValue
-                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
-                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                        .Replace(CrudNames.GetOldFeatureNamePluralKebab(feature, type), CrudNames.NewCrudNameKebabPlural)
+                        .Replace(CrudNames.GetOldFeatureNameSingularKebab(feature, type), CrudNames.NewCrudNameKebabSingular);
                     newLine = newLine.Replace(selectorValue, newSelectorValue);
                 }
             }
@@ -1516,8 +1506,8 @@ namespace BIA.ToolKit.Application.Services
                 if (!string.IsNullOrEmpty(pathValue))
                 {
                     string newPathValue = pathValue
-                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
-                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                        .Replace(CrudNames.GetOldFeatureNamePluralKebab(feature, type), CrudNames.NewCrudNameKebabPlural)
+                        .Replace(CrudNames.GetOldFeatureNameSingularKebab(feature, type), CrudNames.NewCrudNameKebabSingular);
                     newLine = newLine.Replace(pathValue, newPathValue);
                 }
             }
@@ -1527,8 +1517,8 @@ namespace BIA.ToolKit.Application.Services
                 if (!string.IsNullOrEmpty(pathValue))
                 {
                     string newPathValue = pathValue
-                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
-                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                        .Replace(CrudNames.GetOldFeatureNamePluralKebab(feature, type), CrudNames.NewCrudNameKebabPlural)
+                        .Replace(CrudNames.GetOldFeatureNameSingularKebab(feature, type), CrudNames.NewCrudNameKebabSingular);
                     newLine = newLine.Replace(pathValue, newPathValue);
                 }
             }
@@ -1538,8 +1528,8 @@ namespace BIA.ToolKit.Application.Services
                 if (!string.IsNullOrEmpty(breadcrumbValue))
                 {
                     string newBreadcrumbValue = breadcrumbValue
-                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
-                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                        .Replace(CrudNames.GetOldFeatureNamePluralKebab(feature, type), CrudNames.NewCrudNameKebabPlural)
+                        .Replace(CrudNames.GetOldFeatureNameSingularKebab(feature, type), CrudNames.NewCrudNameKebabSingular);
                     newLine = newLine.Replace(breadcrumbValue, newBreadcrumbValue);
                 }
             }
@@ -1549,15 +1539,15 @@ namespace BIA.ToolKit.Application.Services
                 if (!string.IsNullOrEmpty(importModuleValue))
                 {
                     string newImportModuleValue = importModuleValue
-                        .Replace(this.CrudNames.GetOldFeatureNamePluralKebab(feature, type), this.CrudNames.NewCrudNameKebabPlural)
-                        .Replace(this.CrudNames.GetOldFeatureNameSingularKebab(feature, type), this.CrudNames.NewCrudNameKebabSingular);
+                        .Replace(CrudNames.GetOldFeatureNamePluralKebab(feature, type), CrudNames.NewCrudNameKebabPlural)
+                        .Replace(CrudNames.GetOldFeatureNameSingularKebab(feature, type), CrudNames.NewCrudNameKebabSingular);
                     newLine = newLine.Replace(importModuleValue, newImportModuleValue);
                 }
             }
 
             //TODO : harsh way to replace content, find more specific replacement rules
-            newLine = this.CrudNames.ConvertCamelOldToNewCrudName(newLine, feature, type);
-            newLine = this.CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type);
+            newLine = CrudNames.ConvertCamelOldToNewCrudName(newLine, feature, type);
+            newLine = CrudNames.ConvertPascalOldToNewCrudName(newLine, feature, type);
 
             if (FeatureParentPrincipal != null && CrudParent.Exists)
             {
@@ -1601,7 +1591,7 @@ namespace BIA.ToolKit.Application.Services
             return newLine;
         }
 
-        private string UpdateOptionLine(string line, string oldOptionName, string newOptionName)
+        private static string UpdateOptionLine(string line, string oldOptionName, string newOptionName)
         {
             const string startImportRegex = @"^\s*[\/\*]*\s*import\s*[{(*]";
             const string regexComponent = @"^\s*[\/\*]*\s*import\s+{([\s\w,]*)}";
@@ -1643,7 +1633,7 @@ namespace BIA.ToolKit.Application.Services
                 .Replace(CommonTools.ConvertToCamelCase(oldOptionName), CommonTools.ConvertToCamelCase(newOptionName));
         }
 
-        private void PrepareParentBlock(List<ExtractBlock> parentBlocks, GenerationCrudData generationData, List<CrudProperty> crudDtoProperties)
+        private static void PrepareParentBlock(List<ExtractBlock> parentBlocks, GenerationCrudData generationData, List<CrudProperty> crudDtoProperties)
         {
             List<List<string>> blocks = GenerateParentBlocks(parentBlocks, crudDtoProperties);
             if (blocks == null)
@@ -1660,7 +1650,7 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region Rename CRUD
-        private string ReplaceCompagnyNameProjetName(string value, Project currentProject, ClassDefinition classDef)
+        private static string ReplaceCompagnyNameProjetName(string value, Project currentProject, ClassDefinition classDef)
         {
             return value.Replace(classDef.CompagnyName, currentProject.CompanyName).Replace(classDef.ProjectName, currentProject.Name);
         }
@@ -1694,7 +1684,7 @@ namespace BIA.ToolKit.Application.Services
                     switch (generationType)
                     {
                         case GenerationType.WebApi:
-                            WebApiFeatureData webApiFeatureData = (WebApiFeatureData)featureData;
+                            var webApiFeatureData = (WebApiFeatureData)featureData;
 
                             if (webApiFeatureData.FileType == WebApiFileType.Entity ||
                                 webApiFeatureData.FileType == WebApiFileType.Dto ||
@@ -1703,7 +1693,7 @@ namespace BIA.ToolKit.Application.Services
 
                             if (featureData.IsPartialFile)
                             {
-                                dest = GetPartialFilePath(webApiFeatureData, classDefiniton, this.DotNetFolderGeneration);
+                                dest = GetPartialFilePath(webApiFeatureData, classDefiniton, DotNetFolderGeneration);
                             }
                             else
                             {
@@ -1713,7 +1703,7 @@ namespace BIA.ToolKit.Application.Services
                         case GenerationType.Front:
                             if (featureData.IsPartialFile)
                             {
-                                dest = GetPartialFilePath(featureData, null, this.AngularFolderGeneration);
+                                dest = GetPartialFilePath(featureData, null, AngularFolderGeneration);
                             }
                             else
                             {
@@ -1776,8 +1766,8 @@ namespace BIA.ToolKit.Application.Services
                         continue;
                     }
 
-                    List<string> newfileLinesContent = new();
-                    List<string> fileLinesContent = File.ReadAllLines(dest).ToList();
+                    List<string> newfileLinesContent = [];
+                    List<string> fileLinesContent = [.. File.ReadAllLines(dest)];
 
                     // Delete Option XXX
                     string markerBegin = $"{ZipParserService.MARKER_BEGIN} {CRUDDataUpdateType.Option} {generationHistory.EntityNameSingular}";
@@ -1794,15 +1784,15 @@ namespace BIA.ToolKit.Application.Services
             }
         }
 
-        private void DeletePartialBlock(string file, string crudName)
+        private static void DeletePartialBlock(string file, string crudName)
         {
             bool partialBlockFound = false;
-            List<string> newfileLinesContent = new();
+            List<string> newfileLinesContent = [];
             string markerBegin = @$"{ZipParserService.MARKER_BEGIN_PARTIAL} [a-zA-Z]+\s\d?\s?{crudName}";
             string markerEnd = @$"{ZipParserService.MARKER_END_PARTIAL} [a-zA-Z]+\s\d?\s?{crudName}";
 
             // Read partial file
-            List<string> fileLinesContent = File.ReadAllLines(file).ToList();
+            List<string> fileLinesContent = [.. File.ReadAllLines(file)];
 
             // Detele specifics partial blocks
             foreach (string line in fileLinesContent)
@@ -1839,22 +1829,22 @@ namespace BIA.ToolKit.Application.Services
             if (FeatureParentPrincipal == null)
                 return filePath;
 
-            var relativeFilePath = generationType switch
+            string relativeFilePath = generationType switch
             {
-                GenerationType.WebApi => filePath.Replace($"{this.DotNetFolderGeneration}\\", string.Empty),
-                GenerationType.Front => filePath.Replace($"{this.AngularFolderGeneration}\\", string.Empty),
+                GenerationType.WebApi => filePath.Replace($"{DotNetFolderGeneration}\\", string.Empty),
+                GenerationType.Front => filePath.Replace($"{AngularFolderGeneration}\\", string.Empty),
                 _ => filePath
             };
 
-            foreach (var featureAdaptPath in FeatureParentPrincipal.AdaptPaths)
+            foreach (FeatureAdaptPath featureAdaptPath in FeatureParentPrincipal.AdaptPaths)
             {
-                foreach (var featureMoveFiles in featureAdaptPath.MoveFiles)
+                foreach (FeatureMoveFiles featureMoveFiles in featureAdaptPath.MoveFiles)
                 {
-                    var featureRelativePathFrom = Path.Combine(featureAdaptPath.RootPath, featureMoveFiles.FromRelativePath);
+                    string featureRelativePathFrom = Path.Combine(featureAdaptPath.RootPath, featureMoveFiles.FromRelativePath);
                     if (!relativeFilePath.StartsWith(featureRelativePathFrom))
                         continue;
 
-                    var replaceValue = CrudParent.Exists ?
+                    string replaceValue = CrudParent.Exists ?
                         featureMoveFiles.ToRelativePathWithParent :
                         featureMoveFiles.ToRelativePathNoParent;
 
@@ -1874,47 +1864,44 @@ namespace BIA.ToolKit.Application.Services
             if (FeatureParentPrincipal == null)
                 return;
 
-            var relativeFilePath = generationType switch
+            string relativeFilePath = generationType switch
             {
-                GenerationType.WebApi => filePath.Replace($"{this.DotNetFolderGeneration}\\", string.Empty),
-                GenerationType.Front => filePath.Replace($"{this.AngularFolderGeneration}\\", string.Empty),
+                GenerationType.WebApi => filePath.Replace($"{DotNetFolderGeneration}\\", string.Empty),
+                GenerationType.Front => filePath.Replace($"{AngularFolderGeneration}\\", string.Empty),
                 _ => filePath
             };
 
-            foreach (var adaptPath in FeatureParentPrincipal.AdaptPaths)
+            foreach (FeatureAdaptPath adaptPath in FeatureParentPrincipal.AdaptPaths)
             {
                 if (!relativeFilePath.StartsWith(adaptPath.RootPath))
                     continue;
 
-                foreach (var replaceInFile in adaptPath.ReplaceInFiles)
+                foreach (FeatureReplaceInFiles replaceInFile in adaptPath.ReplaceInFiles)
                 {
                     for (int lineIndex = 0; lineIndex < content.Count; lineIndex++)
                     {
-                        var currentLine = content[lineIndex];
+                        string currentLine = content[lineIndex];
 
                         if (!Regex.IsMatch(currentLine, replaceInFile.RegexMatch) ||
                             (!string.IsNullOrWhiteSpace(replaceInFile.Pattern) && !currentLine.Contains(replaceInFile.Pattern)))
                             continue;
 
-                        var replaceValue = CrudParent.Exists ?
+                        string replaceValue = CrudParent.Exists ?
                             replaceInFile.WithParentValue :
                             replaceInFile.NoParentValue;
 
                         if (replaceValue != null)
                         {
                             replaceValue = ReplaceFeaturePathAdaptationVariables(replaceValue, generationType, adaptPath.RootPath);
-                            var valueToReplace = !string.IsNullOrWhiteSpace(replaceInFile.Pattern) ? replaceInFile.Pattern : Regex.Match(currentLine, replaceInFile.RegexMatch).Groups[1].Value;
+                            string valueToReplace = !string.IsNullOrWhiteSpace(replaceInFile.Pattern) ? replaceInFile.Pattern : Regex.Match(currentLine, replaceInFile.RegexMatch).Groups[1].Value;
                             currentLine = currentLine.Replace(valueToReplace, replaceValue);
                         }
 
                         if (CrudParent.Exists && replaceInFile.WithParentAddByDeeperLevel != null)
                         {
-                            var deepLevelIdentifierMatchesCount = Regex.Matches(
-                                Path.Combine(
+                            int deepLevelIdentifierMatchesCount = Regex.Count(Path.Combine(
                                     GetParentRelativePathByGenerationType(generationType, adaptPath.RootPath),
-                                    adaptPath.DeepLevelIdentifier),
-                                adaptPath.DeepLevelIdentifier)
-                                .Count;
+                                    adaptPath.DeepLevelIdentifier), adaptPath.DeepLevelIdentifier);
 
                             replaceValue = replaceInFile.Pattern;
                             for (int i = adaptPath.InitialDeepLevel; i < deepLevelIdentifierMatchesCount; i++)
@@ -1933,22 +1920,22 @@ namespace BIA.ToolKit.Application.Services
 
         private string ApplyMoveFiles(List<FeatureAdaptPath> adaptPaths, string filePath, GenerationType generationType)
         {
-            var relativeFilePath = generationType switch
+            string relativeFilePath = generationType switch
             {
-                GenerationType.WebApi => filePath.Replace($"{this.DotNetFolderGeneration}\\", string.Empty),
-                GenerationType.Front => filePath.Replace($"{this.AngularFolderGeneration}\\", string.Empty),
+                GenerationType.WebApi => filePath.Replace($"{DotNetFolderGeneration}\\", string.Empty),
+                GenerationType.Front => filePath.Replace($"{AngularFolderGeneration}\\", string.Empty),
                 _ => filePath
             };
 
-            foreach (var featureAdaptPath in adaptPaths)
+            foreach (FeatureAdaptPath featureAdaptPath in adaptPaths)
             {
-                foreach (var featureMoveFiles in featureAdaptPath.MoveFiles)
+                foreach (FeatureMoveFiles featureMoveFiles in featureAdaptPath.MoveFiles)
                 {
-                    var featureRelativePathFrom = Path.Combine(featureAdaptPath.RootPath, featureMoveFiles.FromRelativePath);
+                    string featureRelativePathFrom = Path.Combine(featureAdaptPath.RootPath, featureMoveFiles.FromRelativePath);
                     if (!relativeFilePath.StartsWith(featureRelativePathFrom))
                         continue;
 
-                    var replaceValue = featureMoveFiles.ToRelativePathNoParent;
+                    string replaceValue = featureMoveFiles.ToRelativePathNoParent;
 
                     if (replaceValue != null)
                     {
@@ -1963,34 +1950,34 @@ namespace BIA.ToolKit.Application.Services
 
         private void ApplyReplaceInFiles(List<FeatureAdaptPath> adaptPaths, string filePath, List<string> content, GenerationType generationType)
         {
-            var relativeFilePath = generationType switch
+            string relativeFilePath = generationType switch
             {
-                GenerationType.WebApi => filePath.Replace($"{this.DotNetFolderGeneration}\\", string.Empty),
-                GenerationType.Front => filePath.Replace($"{this.AngularFolderGeneration}\\", string.Empty),
+                GenerationType.WebApi => filePath.Replace($"{DotNetFolderGeneration}\\", string.Empty),
+                GenerationType.Front => filePath.Replace($"{AngularFolderGeneration}\\", string.Empty),
                 _ => filePath
             };
 
-            foreach (var adaptPath in adaptPaths)
+            foreach (FeatureAdaptPath adaptPath in adaptPaths)
             {
                 if (!relativeFilePath.StartsWith(adaptPath.RootPath))
                     continue;
 
-                foreach (var replaceInFile in adaptPath.ReplaceInFiles)
+                foreach (FeatureReplaceInFiles replaceInFile in adaptPath.ReplaceInFiles)
                 {
                     for (int lineIndex = 0; lineIndex < content.Count; lineIndex++)
                     {
-                        var currentLine = content[lineIndex];
+                        string currentLine = content[lineIndex];
 
                         if (!Regex.IsMatch(currentLine, replaceInFile.RegexMatch) ||
                             (!string.IsNullOrWhiteSpace(replaceInFile.Pattern) && !currentLine.Contains(replaceInFile.Pattern)))
                             continue;
 
-                        var replaceValue = replaceInFile.NoParentValue;
+                        string replaceValue = replaceInFile.NoParentValue;
 
                         if (replaceValue != null)
                         {
                             replaceValue = ReplaceFeaturePathAdaptationVariables(replaceValue, generationType, adaptPath.RootPath);
-                            var valueToReplace = !string.IsNullOrWhiteSpace(replaceInFile.Pattern) ? replaceInFile.Pattern : Regex.Match(currentLine, replaceInFile.RegexMatch).Groups[1].Value;
+                            string valueToReplace = !string.IsNullOrWhiteSpace(replaceInFile.Pattern) ? replaceInFile.Pattern : Regex.Match(currentLine, replaceInFile.RegexMatch).Groups[1].Value;
                             currentLine = currentLine.Replace(valueToReplace, replaceValue);
                         }
 
@@ -2087,8 +2074,8 @@ namespace BIA.ToolKit.Application.Services
                         case CRUDDataUpdateType.Display:
                             string extractItem = ((ExtractDisplayBlock)block).ExtractItem;
                             string extractLine = ((ExtractDisplayBlock)block).ExtractLine;
-                            string newDisplayLine = this.CrudNames.ConvertPascalOldToNewCrudName(extractLine, feature, type);
-                            newDisplayLine = this.CrudNames.ConvertCamelOldToNewCrudName(extractLine, feature, type);
+                            string newDisplayLine = CrudNames.ConvertPascalOldToNewCrudName(extractLine, feature, type);
+                            newDisplayLine = CrudNames.ConvertCamelOldToNewCrudName(extractLine, feature, type);
                             switch (generationType)
                             {
                                 case GenerationType.WebApi:
@@ -2116,15 +2103,15 @@ namespace BIA.ToolKit.Application.Services
                 }
 
                 // Parents blocks to update
-                List<ExtractBlock> parentBlocks = crudData.ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.Parent).ToList();
-                if (parentBlocks.Any())
+                List<ExtractBlock> parentBlocks = [.. crudData.ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.Parent)];
+                if (parentBlocks.Count > 0)
                 {
                     PrepareParentBlock(parentBlocks, generationData, crudDtoProperties);
                 }
 
                 // No parent blocks to update
-                List<ExtractBlock> noParentBlocks = crudData.ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.NoParent).ToList();
-                if (noParentBlocks.Any())
+                List<ExtractBlock> noParentBlocks = [.. crudData.ExtractBlocks.Where(b => b.DataUpdateType == CRUDDataUpdateType.NoParent)];
+                if (noParentBlocks.Count > 0)
                 {
                     generationData.IsNoParentToAdd = true;
                     generationData.NoParentBlocks.AddRange(noParentBlocks.Select(x => x.BlockLines));
@@ -2134,11 +2121,11 @@ namespace BIA.ToolKit.Application.Services
             return generationData;
         }
 
-        private List<CrudProperty> GetDtoProperties(EntityInfo dtoEntity)
+        private static List<CrudProperty> GetDtoProperties(EntityInfo dtoEntity)
         {
             if (dtoEntity == null) { return null; }
 
-            List<CrudProperty> properties = new();
+            List<CrudProperty> properties = [];
             dtoEntity.Properties.ForEach(p =>
             {
                 properties.Add(new CrudProperty(p.Name, p.Type, p.Annotations));
@@ -2146,10 +2133,10 @@ namespace BIA.ToolKit.Application.Services
             return properties;
         }
 
-        private List<string> InsertContentBetweenMarkers(List<string> fileContent, List<string> contentToAdd, string markerBegin, string markerEnd)
+        private static List<string> InsertContentBetweenMarkers(List<string> fileContent, List<string> contentToAdd, string markerBegin, string markerEnd)
         {
-            List<string> newContent = new();
-            List<string> contentBetweenMarker = new();
+            List<string> newContent = [];
+            List<string> contentBetweenMarker = [];
 
             // Get content to replace
             int indexBegin = fileContent.IndexOf(fileContent.FirstOrDefault(line => line.Contains(markerBegin)));
@@ -2159,7 +2146,7 @@ namespace BIA.ToolKit.Application.Services
                 return fileContent;
             }
             // Check if previous generation is present
-            List<string> contentToReplace = fileContent.ToArray()[(indexBegin + 1)..indexEnd].ToList();
+            List<string> contentToReplace = [.. fileContent.ToArray()[(indexBegin + 1)..indexEnd]];
 
             // Update content to replace
             if (contentToReplace.Count > 0)
@@ -2193,14 +2180,14 @@ namespace BIA.ToolKit.Application.Services
             }
 
             // Replace content
-            newContent.AddRange(fileContent.ToArray()[0..++indexBegin].ToList());
+            newContent.AddRange([.. fileContent.ToArray()[0..++indexBegin]]);
             newContent.AddRange(contentBetweenMarker);
-            newContent.AddRange(fileContent.ToArray()[indexEnd..fileContent.Count].ToList());
+            newContent.AddRange([.. fileContent.ToArray()[indexEnd..fileContent.Count]]);
 
             return newContent;
         }
 
-        private int GetMarkerIndexInFileContent(string marker, List<string> fileContent, List<string> contentToReplace)
+        private static int GetMarkerIndexInFileContent(string marker, List<string> fileContent, List<string> contentToReplace)
         {
             string regex = @$"({marker.Replace('/', ' ').TrimStart()})$";
             string markerFound = CommonTools.GetMatchRegexValue(regex, marker);
@@ -2225,19 +2212,19 @@ namespace BIA.ToolKit.Application.Services
             if (!string.IsNullOrEmpty(match))
             {
                 // Integer
-                if (match.ToLower() == "int" || match.ToLower() == "long")
+                if (match.Equals("int", StringComparison.CurrentCultureIgnoreCase) || match.Equals("long", StringComparison.CurrentCultureIgnoreCase))
                 {
                     angularType = angularType.Replace(match, "number");
                 }
 
                 // Decimal
-                if (match.ToLower() == "float" || match.ToLower() == "double")
+                if (match.Equals("float", StringComparison.CurrentCultureIgnoreCase) || match.Equals("double", StringComparison.CurrentCultureIgnoreCase))
                 {
                     angularType = angularType.Replace(match, "decimal");
                 }
 
                 // Boolean
-                else if (match.ToLower() == "bool")
+                else if (match.Equals("bool", StringComparison.CurrentCultureIgnoreCase))
                 {
                     angularType = angularType.Replace(match, "boolean");
                 }
@@ -2269,14 +2256,14 @@ namespace BIA.ToolKit.Application.Services
             return new CRUDPropertyType(crudProperty.Name, angularType);
         }
 
-        private string GetNamespacePathBeforeOccurency(string line, string occurency)
+        private static string GetNamespacePathBeforeOccurency(string line, string occurency)
         {
             string partPath = string.Empty;
             foreach (string nmsp in line.Split('.'))
             {
                 if (nmsp.Contains(occurency, StringComparison.OrdinalIgnoreCase))
                 {
-                    partPath = partPath.Remove(partPath.Length - 1);
+                    partPath = partPath[..^1];
                     break;
                 }
                 partPath += $"{nmsp}.";
@@ -2289,12 +2276,12 @@ namespace BIA.ToolKit.Application.Services
         {
             searchPath = generationType switch
             {
-                GenerationType.WebApi => Path.Combine(this.DotNetFolderGeneration, searchPath),
-                GenerationType.Front => Path.Combine(this.AngularFolderGeneration, searchPath),
+                GenerationType.WebApi => Path.Combine(DotNetFolderGeneration, searchPath),
+                GenerationType.Front => Path.Combine(AngularFolderGeneration, searchPath),
                 _ => throw new NotSupportedException($"GenerationType {generationType} not supported.")
             };
 
-            var parentRelativePathWithSearchPath = generationType switch
+            string parentRelativePathWithSearchPath = generationType switch
             {
                 GenerationType.WebApi => GetParentFullPath(searchPath, CrudParent.Domain),
                 GenerationType.Front => GetParentFullPath(searchPath, CommonTools.ConvertPascalToKebabCase(CrudParent.NamePlural)),
@@ -2304,9 +2291,9 @@ namespace BIA.ToolKit.Application.Services
             return parentRelativePathWithSearchPath.Replace(searchPath, string.Empty);
         }
 
-        private string GetParentFullPath(string searchPath, string parentFolder)
+        private static string GetParentFullPath(string searchPath, string parentFolder)
         {
-            var parentFolders = Directory.EnumerateDirectories(searchPath, parentFolder, SearchOption.AllDirectories);
+            IEnumerable<string> parentFolders = Directory.EnumerateDirectories(searchPath, parentFolder, SearchOption.AllDirectories);
             if (parentFolders.Count() != 1)
             {
                 throw new Exception($"Unable to find single parent's directory '{parentFolder}' from {searchPath}");
@@ -2337,15 +2324,15 @@ namespace BIA.ToolKit.Application.Services
 
         public GenerationCrudData()
         {
-            this.BlocksToAdd = new();
-            this.PropertiesToAdd = new();
-            this.ChildrenName = new();
-            this.OptionsName = new();
-            this.OptionsFields = new();
-            this.DisplayToUpdate = new();
-            this.ParentBlocks = new();
-            this.AncestorName = new();
-            this.NoParentBlocks = new();
+            BlocksToAdd = [];
+            PropertiesToAdd = [];
+            ChildrenName = [];
+            OptionsName = [];
+            OptionsFields = [];
+            DisplayToUpdate = [];
+            ParentBlocks = [];
+            AncestorName = [];
+            NoParentBlocks = [];
         }
     }
 
@@ -2360,8 +2347,8 @@ namespace BIA.ToolKit.Application.Services
 
         public CrudProperty(string name, string type, List<KeyValuePair<string, string>> annotations)
         {
-            this.Name = name;
-            this.Type = type;
+            Name = name;
+            Type = type;
             if (annotations != null)
             {
                 PopulateAnnotation(annotations);
@@ -2374,24 +2361,24 @@ namespace BIA.ToolKit.Application.Services
             {
                 if (annotation.Key == GenerateCrudService.BIA_DTO_FIELD_TYPE)
                 {
-                    this.AnnotationType = annotation.Value;
+                    AnnotationType = annotation.Value;
                 }
                 else if (annotation.Key == GenerateCrudService.BIA_DTO_FIELD_ITEMTYPE)
                 {
-                    this.AnnotationItemType = annotation.Value;
+                    AnnotationItemType = annotation.Value;
                 }
                 else if (annotation.Key == GenerateCrudService.BIA_DTO_FIELD_REQUIRED)
                 {
                     if (bool.TryParse(annotation.Value, out bool required))
                     {
-                        this.IsRequired = required;
+                        IsRequired = required;
                     }
                 }
                 else if (annotation.Key == GenerateCrudService.BIA_DTO_FIELD_ISPARENT)
                 {
                     if (bool.TryParse(annotation.Value, out bool parent))
                     {
-                        this.IsParent = parent;
+                        IsParent = parent;
                     }
                 }
                 else

@@ -8,7 +8,7 @@ namespace BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings
 
     public class DtoGenerationHistory
     {
-        public List<DtoGeneration> Generations { get; set; } = new();
+        public List<DtoGeneration> Generations { get; set; } = [];
     }
 
     public class DtoGeneration
@@ -26,7 +26,7 @@ namespace BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings
         public bool IsArchivable { get; set; }
         public string EntityBaseKeyType { get; set; }
         public bool UseDedicatedAudit { get; set; }
-        public List<DtoGenerationPropertyMapping> PropertyMappings { get; set; } = new();
+        public List<DtoGenerationPropertyMapping> PropertyMappings { get; set; } = [];
     }
 
     public class DtoGenerationPropertyMapping

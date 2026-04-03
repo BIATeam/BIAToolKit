@@ -47,12 +47,12 @@ namespace BIA.ToolKit.UserControls
         }
 
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
-            ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
+            ProjectCreatorService projectCreatorService, SettingsService settingsService,
+            UIEventBroker uiEventBroker, RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
             FeatureMigrationGeneratorService featureMigrationGeneratorService, ProjectViewModel projectViewModel)
         {
             _viewModel = new ModifyProjectViewModel(uiEventBroker);
-            this.DataContext = _viewModel;
+            DataContext = _viewModel;
 
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
@@ -62,7 +62,7 @@ namespace BIA.ToolKit.UserControls
             MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
             this.regenerateFeaturesDiscoveryService = regenerateFeaturesDiscoveryService;
             this.featureMigrationGeneratorService = featureMigrationGeneratorService;
-            this.crudSettings = new(settingsService);
+            crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.settingsService = settingsService;
 
@@ -82,7 +82,7 @@ namespace BIA.ToolKit.UserControls
             InitVersionAndOptionComponents();
         }
 
-        private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
+        private static void UiEventBroker_OnSettingsUpdated(IBIATKSettings _)
         {
             // Settings update is handled by ProjectViewModel directly.
         }
@@ -137,7 +137,7 @@ namespace BIA.ToolKit.UserControls
                 return false;
             }
 
-            MigratePreparePath(out _, out string projectOriginPath, out string projectOriginalVersion, out _, out string projectTargetPath, out string projectTargetVersion);
+            MigratePreparePath(out _, out string projectOriginPath, out _, out _, out string projectTargetPath, out _);
 
             if (!await GenerateProjects(true, projectOriginPath, projectTargetPath))
             {
@@ -183,7 +183,7 @@ namespace BIA.ToolKit.UserControls
             await Task.Run(() =>
             {
                 // delete PACKAGE_LOCK_FILE
-                foreach (var biaFront in _viewModel.ModifyProject.CurrentProject.BIAFronts)
+                foreach (string biaFront in _viewModel.ModifyProject.CurrentProject.BIAFronts)
                 {
                     string path = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, biaFront, crudSettings.PackageLockFileName);
                     if (new FileInfo(path).Exists)
@@ -198,18 +198,17 @@ namespace BIA.ToolKit.UserControls
                     Directory.CreateDirectory(rootBiaFolder);
                 }
 
-                var fileToSuppress = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, FeatureSettingHelper.fileName);
+                string fileToSuppress = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, _viewModel.ModifyProject.CurrentProject.Name, FeatureSettingHelper.fileName);
                 if (File.Exists(fileToSuppress))
                 {
                     File.Delete(fileToSuppress);
                 }
 
-                var fileToCheck = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
+                string fileToCheck = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
                 if (!File.Exists(fileToCheck))
                 {
-                    string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
-                    MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
-                    var fileToCopy = Path.Combine(projectTargetPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
+                    MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion);
+                    string fileToCopy = Path.Combine(projectTargetPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
 
                     File.Copy(fileToCopy, fileToCheck);
                 }
@@ -263,10 +262,9 @@ namespace BIA.ToolKit.UserControls
             return true;
         }
 
-        //TODO mutualiser avec celle de MainWindows
         private async Task<bool> CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, List<string> fronts)
         {
-            bool result = await this.projectCreatorService.Create(
+            bool result = await projectCreatorService.Create(
                 actionFinishedAtEnd,
                 projectPath,
                 new Domain.Model.ProjectParameters
@@ -281,7 +279,7 @@ namespace BIA.ToolKit.UserControls
             if (result)
             {
                 string filePath = Path.Combine(projectPath, Constants.FolderNetCore, $"{CompanyName}.{ProjectName}.Presentation.Api", "bianetpermissions.json");
-                this.projectCreatorService.ClearPermissions(filePath);
+                projectCreatorService.ClearPermissions(filePath);
             }
 
             return result;
@@ -310,9 +308,9 @@ namespace BIA.ToolKit.UserControls
             return true;
         }
 
-        private async Task HandleDeletedFilesFailed(Project currentProject, string migrateFilePath, string projectOriginalFolder, string projectTargetFolder)
+        private async Task HandleDeletedFilesFailed(Project currentProject, string migrateFilePath, string projectOriginalFolder, string _)
         {
-            var migrateFileContent = (await File.ReadAllLinesAsync(migrateFilePath)).ToList();
+            List<string> migrateFileContent = [.. (await File.ReadAllLinesAsync(migrateFilePath))];
             var deleteFileInstructionIndexes = new List<int>();
             for (int i = 0; i < migrateFileContent.Count; i++)
             {
@@ -325,23 +323,23 @@ namespace BIA.ToolKit.UserControls
 
             consoleWriter.AddMessageLine("Verify expected deleted files", "pink");
             var filesToDelete = new List<string>();
-            var pathOfFileRegex = @"\sb/(.+)$";
-            foreach (var index in deleteFileInstructionIndexes)
+            string pathOfFileRegex = @"\sb/(.+)$";
+            foreach (int index in deleteFileInstructionIndexes)
             {
-                var diffInstruction = migrateFileContent.ElementAt(index - 1);
-                var match = Regex.Match(diffInstruction, pathOfFileRegex);
+                string diffInstruction = migrateFileContent.ElementAt(index - 1);
+                Match match = Regex.Match(diffInstruction, pathOfFileRegex);
                 if (match.Success)
                 {
                     filesToDelete.Add(Path.Combine(currentProject.Folder, match.Groups[1].Value).Replace("/", "\\"));
                 }
             }
 
-            var hasNotDeletedFiles = false;
-            foreach (var file in filesToDelete)
+            bool hasNotDeletedFiles = false;
+            foreach (string file in filesToDelete)
             {
                 if (File.Exists(file))
                 {
-                    var originalFile = Path.Combine(AppSettings.TmpFolderPath, file.Replace(currentProject.Folder, projectOriginalFolder));
+                    string originalFile = Path.Combine(AppSettings.TmpFolderPath, file.Replace(currentProject.Folder, projectOriginalFolder));
                     consoleWriter.AddMessageLine($"File not deleted : {file}", "orange", false);
                     consoleWriter.AddMessageLine($"code --diff {originalFile} {file}", "gray", false);
                     hasNotDeletedFiles = true;
@@ -356,8 +354,7 @@ namespace BIA.ToolKit.UserControls
 
         private async Task MergeRejected(bool actionFinishedAtEnd)
         {
-            string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
-            MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
+            MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion);
 
             await gitService.MergeRejected(actionFinishedAtEnd, new GitService.MergeParameter()
             {
@@ -377,8 +374,7 @@ namespace BIA.ToolKit.UserControls
 
         private async Task OverwriteBIAFolder(bool actionFinishedAtEnd)
         {
-            string projectOriginalFolderName, projectOriginPath, projectOriginalVersion, projectTargetFolderName, projectTargetPath, projectTargetVersion;
-            MigratePreparePath(out projectOriginalFolderName, out projectOriginPath, out projectOriginalVersion, out projectTargetFolderName, out projectTargetPath, out projectTargetVersion);
+            MigratePreparePath(out _, out _, out _, out _, out string projectTargetPath, out _);
 
             await projectCreatorService.OverwriteBIAFolder(projectTargetPath, _viewModel.ModifyProject.CurrentProject.Folder, actionFinishedAtEnd);
         }

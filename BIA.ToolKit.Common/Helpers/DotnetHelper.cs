@@ -13,9 +13,9 @@ namespace BIA.ToolKit.Common.Helpers
         /// <param name="projectPaths">The project paths.</param>
         public static void RemoveProjectsFromSolution(string solutionPath, List<string> projectPaths)
         {
-            if (!string.IsNullOrWhiteSpace(solutionPath) && projectPaths?.Any() == true)
+            if (!string.IsNullOrWhiteSpace(solutionPath) && projectPaths?.Count > 0)
             {
-                List<string> cmds = new List<string>();
+                var cmds = new List<string>();
 
                 foreach (string projectPath in projectPaths)
                 {
@@ -32,26 +32,24 @@ namespace BIA.ToolKit.Common.Helpers
         /// <param name="cmds">List of cmd.</param>
         private static void ExecDotnetCmd(List<string> cmds)
         {
-            if (cmds?.Any() == true)
+            if (cmds?.Count > 0)
             {
                 foreach (string cmd in cmds)
                 {
-                    using (Process process = new Process())
+                    using var process = new Process();
+                    process.StartInfo.FileName = "dotnet";
+                    process.StartInfo.Arguments = cmd;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.CreateNoWindow = true;
+                    process.Start();
+
+                    while (process.StandardOutput.Peek() > -1)
                     {
-                        process.StartInfo.FileName = "dotnet";
-                        process.StartInfo.Arguments = cmd;
-                        process.StartInfo.RedirectStandardOutput = true;
-                        process.StartInfo.UseShellExecute = false;
-                        process.StartInfo.CreateNoWindow = true;
-                        process.Start();
-
-                        while (process.StandardOutput.Peek() > -1)
-                        {
-                            System.Console.WriteLine(process.StandardOutput.ReadLine());
-                        }
-
-                        process.WaitForExit();
+                        System.Console.WriteLine(process.StandardOutput.ReadLine());
                     }
+
+                    process.WaitForExit();
                 }
             }
         }

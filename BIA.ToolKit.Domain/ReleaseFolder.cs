@@ -17,9 +17,9 @@ namespace BIA.ToolKit.Domain
 
             await Task.Run(() =>
             {
-                foreach (var source in Directory.GetFiles(originPath, "*", SearchOption.AllDirectories))
+                foreach (string source in Directory.GetFiles(originPath, "*", SearchOption.AllDirectories))
                 {
-                    var dest = source.Replace(originPath, LocalPath);
+                    string dest = source.Replace(originPath, LocalPath);
                     Directory.CreateDirectory(Path.GetDirectoryName(dest));
                     File.Copy(source, dest, true);
                 }

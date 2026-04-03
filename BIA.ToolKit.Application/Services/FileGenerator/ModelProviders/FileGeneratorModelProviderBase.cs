@@ -26,7 +26,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
 
         public virtual object GetCrudTemplateModel(FileGeneratorCrudContext crudContext)
         {
-            var model = CreateCrudTemplateModel();
+            TEntityCrudModel model = CreateCrudTemplateModel();
 
             model.CompanyName = crudContext.CompanyName;
             model.ProjectName = crudContext.ProjectName;
@@ -67,26 +67,26 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
             model.UseDomainUrl = crudContext.UseDomainUrl;
             model.HasListAndItemModels = crudContext.HasListAndItemModels;
 
-            model.Properties = crudContext.Properties.Select(x => new TPropertyCrudModel
+            model.Properties = [.. crudContext.Properties.Select(x => new TPropertyCrudModel
             {
                 Name = x.Name,
                 Type = x.Type,
                 BiaFieldAttributes = x.Annotations
-            }).ToList();
+            })];
 
-            model.ListProperties = crudContext.ListProperties.Select(x => new TPropertyCrudModel
+            model.ListProperties = [.. crudContext.ListProperties.Select(x => new TPropertyCrudModel
             {
                 Name = x.Name,
                 Type = x.Type,
                 BiaFieldAttributes = x.Annotations
-            }).ToList();
+            })];
 
             return model;
         }
 
         public virtual object GetDtoTemplateModel(FileGeneratorDtoContext dtoContext)
         {
-            var model = CreateDtoTemplateModel();
+            TEntityDtoModel model = CreateDtoTemplateModel();
 
             model.CompanyName = dtoContext.CompanyName;
             model.ProjectName = dtoContext.ProjectName;
@@ -95,7 +95,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
             model.EntityName = dtoContext.EntityName;
             model.BaseKeyType = dtoContext.BaseKeyType;
             model.AncestorTeam = dtoContext.AncestorTeamName;
-            model.Properties = dtoContext.Properties.Select(x => new TPropertyDtoModel()
+            model.Properties = [.. dtoContext.Properties.Select(x => new TPropertyDtoModel()
             {
                 MappingName = x.MappingName,
                 EntityCompositeName = x.EntityCompositeName,
@@ -115,14 +115,14 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
                 OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty,
                 IsParent = x.IsParent,
                 AsLocalDateTime = x.AsLocalDateTime
-            }).ToList();
+            })];
             model.IsTeamType = dtoContext.IsTeam;
             model.IsArchivable = dtoContext.IsArchivable;
             model.IsFixable = dtoContext.IsFixable;
             model.IsVersioned = dtoContext.IsVersioned;
             model.HasAudit = dtoContext.HasAudit;
             model.HasListAndItemModels = dtoContext.HasListAndItemModels;
-            model.ListProperties = dtoContext.ListProperties.Select(x => new TPropertyDtoModel()
+            model.ListProperties = [.. dtoContext.ListProperties.Select(x => new TPropertyDtoModel()
             {
                 MappingName = x.MappingName,
                 EntityCompositeName = x.EntityCompositeName,
@@ -142,7 +142,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
                 OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty,
                 IsParent = x.IsParent,
                 AsLocalDateTime = x.AsLocalDateTime
-            }).ToList();
+            })];
 
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {
@@ -155,7 +155,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
 
         public virtual object GetOptionTemplateModel(FileGeneratorOptionContext optionContext)
         {
-            var model = CreateOptionTemplateModel();
+            TEntityOptionModel model = CreateOptionTemplateModel();
 
             model.CompanyName = optionContext.CompanyName;
             model.ProjectName = optionContext.ProjectName;

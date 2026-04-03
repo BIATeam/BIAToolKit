@@ -20,10 +20,10 @@ namespace BIA.ToolKit.Application.Templates._4_0_0.Models
             {
                 if (excludedPropertiesToGenerate == null)
                 {
-                    excludedPropertiesToGenerate = new List<string>()
-                    {
+                    excludedPropertiesToGenerate =
+                    [
                         "Id",
-                    };
+                    ];
 
                     if (IsVersioned)
                     {
@@ -56,7 +56,7 @@ namespace BIA.ToolKit.Application.Templates._4_0_0.Models
             }
         }
 
-        public List<TPropertyDtoModel> Properties { get; set; } = new List<TPropertyDtoModel>();
+        public List<TPropertyDtoModel> Properties { get; set; } = [];
         public IEnumerable<TPropertyDtoModel> PropertiesToGenerate => Properties.Where(p => !ExcludedPropertiesToGenerate.Contains(p.MappingName));
         public bool HasCollectionOptions => Properties.Any(p => p.MappingType.Equals(CollectionOptionDto));
         public bool HasTimeSpanProperty => Properties.Any(p => p.EntityType.Equals("TimeSpan") || p.EntityType.Equals("TimeSpan?"));

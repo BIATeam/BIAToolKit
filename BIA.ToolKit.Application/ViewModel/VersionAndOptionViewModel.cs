@@ -58,7 +58,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 {
                     VersionAndOption.WorkTemplate = value;
                     AreFeatureInitialized = false;
-                    foreach (var workCompanyFile in WorkCompanyFiles)
+                    foreach (WorkRepository workCompanyFile in WorkCompanyFiles)
                     {
                         if (WorkTemplate?.Version == workCompanyFile.Version)
                         {
@@ -111,7 +111,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
         public WorkRepository GetWorkCompanyFile(string version)
         {
-            var result = WorkCompanyFiles.FirstOrDefault(x => x.Version == version);
+            WorkRepository result = WorkCompanyFiles.FirstOrDefault(x => x.Version == version);
             if (result != null)
                 return result;
 
@@ -238,22 +238,22 @@ namespace BIA.ToolKit.Application.ViewModel
                     HasFeature = featureSettings.Any();
                     AreFeatureInitialized = true;
                     RaisePropertyChanged(nameof(FeatureSettings));
-                    VersionAndOption.FeatureSettings = featureSettings.Select(x => x.FeatureSetting).ToList();
+                    VersionAndOption.FeatureSettings = [.. featureSettings.Select(x => x.FeatureSetting)];
                 }
             }
         }
 
         public void SetFeaturesSelection(List<string> projectGenerationTags, List<string> projectGenerationExcludedFolders, List<FeatureSetting> originFeatureSettings)
         {
-            foreach (var feature in FeatureSettings.Select(x => x.FeatureSetting))
+            foreach (FeatureSetting feature in FeatureSettings.Select(x => x.FeatureSetting))
             {
-                var isFeatureTagUsedInProjectGeneration = projectGenerationTags.Any(feature.Tags.Contains);
-                var isFeatureExcludedFoldersInProjectGeneration = projectGenerationExcludedFolders.Any(feature.FoldersToExcludes.Contains);
-                var isSelected = isFeatureTagUsedInProjectGeneration || isFeatureExcludedFoldersInProjectGeneration;
+                bool isFeatureTagUsedInProjectGeneration = projectGenerationTags.Any(feature.Tags.Contains);
+                bool isFeatureExcludedFoldersInProjectGeneration = projectGenerationExcludedFolders.Any(feature.FoldersToExcludes.Contains);
+                bool isSelected = isFeatureTagUsedInProjectGeneration || isFeatureExcludedFoldersInProjectGeneration;
 
                 if (!isSelected && originFeatureSettings is not null)
                 {
-                    var originFeature = originFeatureSettings.FirstOrDefault(x => x.Id == feature.Id);
+                    FeatureSetting originFeature = originFeatureSettings.FirstOrDefault(x => x.Id == feature.Id);
                     isSelected = originFeature is null && feature.IsSelected;
                 }
 
@@ -308,8 +308,8 @@ namespace BIA.ToolKit.Application.ViewModel
 
         private void OnFeatureSettingSelectionChanged()
         {
-            var notSelectedFeatures = VersionAndOption.FeatureSettings.FilterNotSelectedFeatures();
-            foreach (var notSelectedFeature in notSelectedFeatures)
+            List<FeatureSetting> notSelectedFeatures = VersionAndOption.FeatureSettings.FilterNotSelectedFeatures();
+            foreach (FeatureSetting notSelectedFeature in notSelectedFeatures)
             {
                 FeatureSettings.Single(x => x.FeatureSetting.Id == notSelectedFeature.Id).IsSelected = false;
             }

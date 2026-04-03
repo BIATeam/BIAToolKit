@@ -52,17 +52,17 @@ namespace BIA.ToolKit.Application.Helper
 
         public static IEnumerable<INamedTypeSymbol> GetAllNamedTypes(INamespaceSymbol ns)
         {
-            foreach (var member in ns.GetMembers())
+            foreach (INamespaceOrTypeSymbol member in ns.GetMembers())
             {
                 if (member is INamespaceSymbol childNs)
                 {
-                    foreach (var t in GetAllNamedTypes(childNs))
+                    foreach (INamedTypeSymbol t in GetAllNamedTypes(childNs))
                         yield return t;
                 }
                 else if (member is INamedTypeSymbol nt)
                 {
                     // Inclut types imbriqués
-                    foreach (var nested in GetSelfAndNested(nt))
+                    foreach (INamedTypeSymbol nested in GetSelfAndNested(nt))
                         yield return nested;
                 }
             }
@@ -71,9 +71,9 @@ namespace BIA.ToolKit.Application.Helper
         private static IEnumerable<INamedTypeSymbol> GetSelfAndNested(INamedTypeSymbol type)
         {
             yield return type;
-            foreach (var m in type.GetTypeMembers())
+            foreach (INamedTypeSymbol m in type.GetTypeMembers())
             {
-                foreach (var n in GetSelfAndNested(m))
+                foreach (INamedTypeSymbol n in GetSelfAndNested(m))
                     yield return n;
             }
         }
@@ -89,17 +89,17 @@ namespace BIA.ToolKit.Application.Helper
         public static AttributeInfo ToAttributeInfo(AttributeData a)
         {
             var dict = new Dictionary<string, string>(StringComparer.Ordinal);
-            var ctor = a.AttributeConstructor;
+            IMethodSymbol ctor = a.AttributeConstructor;
             // Constructor args (avec noms si disponibles)
             for (int i = 0; i < a.ConstructorArguments.Length; i++)
             {
-                var key = ctor is not null && i < ctor.Parameters.Length
+                string key = ctor is not null && i < ctor.Parameters.Length
                     ? ctor.Parameters[i].Name
                     : $"ctorArg{i}";
                 dict[key] = TypedConstantToString(a.ConstructorArguments[i]);
             }
             // Named args
-            foreach (var (name, value) in a.NamedArguments)
+            foreach ((string name, TypedConstant value) in a.NamedArguments)
             {
                 dict[name] = TypedConstantToString(value);
             }
@@ -114,7 +114,7 @@ namespace BIA.ToolKit.Application.Helper
             if (tc.IsNull) return "null";
             if (tc.Kind == TypedConstantKind.Array)
             {
-                var items = tc.Values.Select(TypedConstantToString);
+                IEnumerable<string> items = tc.Values.Select(TypedConstantToString);
                 return $"[{string.Join(", ", items)}]";
             }
             // Affichage formaté des types et enums
@@ -127,9 +127,9 @@ namespace BIA.ToolKit.Application.Helper
 
         public static InheritedTypeInfo ToInheritedTypeInfo(INamedTypeSymbol type)
         {
-            var args = type.IsGenericType
-                ? type.TypeArguments.Select(Display).ToList()
-                : new List<string>();
+            List<string> args = type.IsGenericType
+                ? [.. type.TypeArguments.Select(Display)]
+                : [];
             return new InheritedTypeInfo(
                 DisplayName: Display(type),
                 HasGenerics: type.IsGenericType,
@@ -158,31 +158,31 @@ namespace BIA.ToolKit.Application.Helper
 
             void consider(IPropertySymbol p, int depth)
             {
-                var key = $"{Display(p.Type)} {p.Name}";
+                string key = $"{Display(p.Type)} {p.Name}";
                 // Garder la plus dérivée (depth plus petit = plus proche du type courant)
-                if (!map.TryGetValue(key, out var existing) || depth < existing.depth)
+                if (!map.TryGetValue(key, out (IPropertySymbol prop, int depth) existing) || depth < existing.depth)
                     map[key] = (p, depth);
             }
 
             // depth 0 = type courant
-            foreach (var p in own) consider(p, 0);
+            foreach (IPropertySymbol p in own) consider(p, 0);
             int d = 1;
-            foreach (var bt in GetBaseTypes(type))
+            foreach (INamedTypeSymbol bt in GetBaseTypes(type))
             {
-                foreach (var p in bt.GetMembers().OfType<IPropertySymbol>()
+                foreach (IPropertySymbol p in bt.GetMembers().OfType<IPropertySymbol>()
                          .Where(p => p.DeclaredAccessibility == Accessibility.Public))
                     consider(p, d);
                 d++;
             }
             // interfaces : profondeur “infinie” pour ne jamais écraser implémentations concrètes
-            foreach (var p in ifaces) consider(p, int.MaxValue / 2);
+            foreach (IPropertySymbol p in ifaces) consider(p, int.MaxValue / 2);
 
             return map.Values.Select(v => v.prop);
         }
 
         public static IEnumerable<INamedTypeSymbol> GetBaseTypes(INamedTypeSymbol type)
         {
-            var current = type.BaseType;
+            INamedTypeSymbol current = type.BaseType;
             while (current is not null && current.SpecialType != SpecialType.System_Object)
             {
                 yield return current;

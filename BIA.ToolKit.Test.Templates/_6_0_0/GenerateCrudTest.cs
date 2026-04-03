@@ -6,7 +6,7 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Templates.Common.Enum;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using Xunit;
 
     [Collection(nameof(GenerateTestFixtureCollection_6_0_0))]
@@ -27,7 +27,7 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
                 arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "Site")],
                 baseList: ["BaseDtoVersionedFixable<int>"]);
 
-            var domainName = "Fleet";
+            string domainName = "Fleet";
 
             var properties = new List<PropertyInfo>
             {
@@ -100,7 +100,7 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
                 arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "Site")],
                 baseList: ["BaseDtoVersionedFixableArchivable<int>"]);
 
-            var domainName = "Fleet";
+            string domainName = "Fleet";
 
             var properties = new List<PropertyInfo>
             {
@@ -146,7 +146,7 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
                 UseHubForClient = true,
                 HasReadOnlyMode = true,
                 IsFixable = true,
-                FormReadOnlyMode = Enum.GetName(typeof(FormReadOnlyMode), FormReadOnlyMode.Off),
+                FormReadOnlyMode = Enum.GetName(FormReadOnlyMode.Off),
                 CanImport = true,
                 GenerateBack = true,
                 GenerateFront = true,
@@ -173,7 +173,7 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
                 arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "Site")],
                 baseList: ["BaseDtoVersionedFixableArchivable<Guid>"]);
 
-            var domainName = "Fleet";
+            string domainName = "Fleet";
 
             var properties = new List<PropertyInfo>
             {
@@ -199,7 +199,7 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
                 UseHubForClient = false,
                 HasReadOnlyMode = true,
                 IsFixable = true,
-                FormReadOnlyMode = Enum.GetName(typeof(FormReadOnlyMode), FormReadOnlyMode.Off),
+                FormReadOnlyMode = Enum.GetName(FormReadOnlyMode.Off),
                 CanImport = true,
                 GenerateBack = true,
                 GenerateFront = true,
@@ -225,7 +225,7 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
                 arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "Site")],
                 baseList: ["BaseDtoVersionedFixableArchivable<string>"]);
 
-            var domainName = "Fleet";
+            string domainName = "Fleet";
 
             var properties = new List<PropertyInfo>
             {
@@ -251,7 +251,7 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
                 UseHubForClient = false,
                 HasReadOnlyMode = true,
                 IsFixable = true,
-                FormReadOnlyMode = Enum.GetName(typeof(FormReadOnlyMode), FormReadOnlyMode.Off),
+                FormReadOnlyMode = Enum.GetName(FormReadOnlyMode.Off),
                 CanImport = true,
                 GenerateBack = true,
                 GenerateFront = true,
@@ -277,7 +277,7 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
                 arguments: [],
                 baseList: ["BaseDtoVersionedTeam"]);
 
-            var domainName = "Maintenance";
+            string domainName = "Maintenance";
 
             var properties = new List<PropertyInfo>
             {
@@ -322,7 +322,7 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
                 arguments: [RoslynHelper.CreateAttributeArgument("AncestorTeam", "AircraftMaintenanceCompany")],
                 baseList: ["BaseDtoVersionedTeamFixableArchivable"]);
 
-            var domainName = "Maintenance";
+            string domainName = "Maintenance";
 
             var properties = new List<PropertyInfo>
             {

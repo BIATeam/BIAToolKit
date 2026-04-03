@@ -26,10 +26,10 @@ namespace BIA.ToolKit.Common.Helpers
                         },
                         disposeHandler: true);
 
-                    var appName = BiaToolkitVersion.ApplicationName;
-                    var appVersion = BiaToolkitVersion.ApplicationVersion;
-                    var framework = RuntimeInformation.FrameworkDescription.Trim();
-                    var os = RuntimeInformation.OSDescription.Trim();
+                    string appName = BiaToolkitVersion.ApplicationName;
+                    string appVersion = BiaToolkitVersion.ApplicationVersion;
+                    string framework = RuntimeInformation.FrameworkDescription.Trim();
+                    string os = RuntimeInformation.OSDescription.Trim();
                     httpClient.DefaultRequestHeaders.Add("User-Agent", $"{appName}/{appVersion} ({os}; {framework})");
                 }
 

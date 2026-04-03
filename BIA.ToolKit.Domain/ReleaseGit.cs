@@ -17,20 +17,20 @@ namespace BIA.ToolKit.Domain
         {
             InitDownload();
 
-            foreach (var asset in Assets)
+            foreach (ReleaseGitAsset asset in Assets)
             {
-                var fileName = string.IsNullOrWhiteSpace(asset.Name)
+                string fileName = string.IsNullOrWhiteSpace(asset.Name)
                     ? Path.GetFileName(asset.DownloadUrl)
                     : asset.Name;
 
-                var targetPath = Path.Combine(LocalPath, fileName);
+                string targetPath = Path.Combine(LocalPath, fileName);
 
-                using var resp = await Common.Helpers.HttpHelper.HttpClient.GetAsync(asset.DownloadUrl);
+                using HttpResponseMessage resp = await Common.Helpers.HttpHelper.HttpClient.GetAsync(asset.DownloadUrl);
                 resp.EnsureSuccessStatusCode();
 
                 Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
-                await using var input = await resp.Content.ReadAsStreamAsync();
-                await using var output = File.Create(targetPath);
+                await using Stream input = await resp.Content.ReadAsStreamAsync();
+                await using FileStream output = File.Create(targetPath);
 
                 await input.CopyToAsync(output);
 

@@ -31,7 +31,7 @@ namespace BIA.ToolKit.Application.Mapper
 
             if (mapFrameworkVersion)
             {
-                var workTemplate = vm.WorkTemplates.FirstOrDefault(x => x.Version == dto.FrameworkVersion);
+                WorkRepository workTemplate = vm.WorkTemplates.FirstOrDefault(x => x.Version == dto.FrameworkVersion);
                 if (workTemplate is not null)
                 {
                     vm.WorkTemplate = workTemplate;
@@ -44,17 +44,15 @@ namespace BIA.ToolKit.Application.Mapper
             dto.FrameworkVersion = model.WorkTemplate?.Version;
 
             // Feature
-            dto.Tags = model.FeatureSettings
+            dto.Tags = [.. model.FeatureSettings
                 .Where(f => f.IsSelected)
                 .SelectMany(f => f.Tags)
-                .Distinct()
-                .ToList();
+                .Distinct()];
 
-            dto.Folders = model.FeatureSettings
+            dto.Folders = [.. model.FeatureSettings
                 .Where(f => f.IsSelected)
                 .SelectMany(f => f.FoldersToExcludes)
-                .Distinct()
-                .ToList();
+                .Distinct()];
 
             // Company Files
             dto.UseCompanyFiles = model.UseCompanyFiles;

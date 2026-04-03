@@ -1,13 +1,13 @@
-namespace BIA.ToolKit.Domain.CRUDGenerator
+namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator
 {
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System.Collections.Generic;
 
-    public class ClassDefinition
+    public class ClassDefinition(string fileName)
     {
-        public string FileName { get; set; }
+        public string FileName { get; set; } = fileName;
 
         public string EntityName { get; set; }
 
@@ -38,21 +38,12 @@ namespace BIA.ToolKit.Domain.CRUDGenerator
 
         public BaseListSyntax BaseList { get; set; }
 
-        public List<PropertyDeclarationSyntax> PropertyList { get; set; }
+        public List<PropertyDeclarationSyntax> PropertyList { get; set; } = [];
 
-        public List<FieldDeclarationSyntax> FieldList { get; set; }
+        public List<FieldDeclarationSyntax> FieldList { get; set; } = [];
 
-        public List<ConstructorDeclarationSyntax> ConstructorList { get; set; }
+        public List<ConstructorDeclarationSyntax> ConstructorList { get; set; } = [];
 
-        public List<MethodDeclarationSyntax> MethodList { get; set; }
-
-        public ClassDefinition(string fileName)
-        {
-            this.FileName = fileName;
-            this.PropertyList = new();
-            this.FieldList = new();
-            this.ConstructorList = new();
-            this.MethodList = new();
-        }
+        public List<MethodDeclarationSyntax> MethodList { get; set; } = [];
     }
 }

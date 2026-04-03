@@ -9,13 +9,18 @@ namespace BIA.ToolKit.Helper.MicroMvvm
     /// <summary>
     /// A command whose sole purpose is to relay its functionality to other objects by invoking delegates. The default return value for the CanExecute method is 'true'.
     /// </summary>
-    public class RelayCommand<T> : ICommand
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="RelayCommand&lt;T&gt;"/> class.
+    /// </remarks>
+    /// <param name="execute">The execution logic.</param>
+    /// <param name="canExecute">The execution status logic.</param>
+    public class RelayCommand<T>(Action<T> execute, Predicate<T> canExecute) : ICommand
     {
 
         #region Declarations
 
-        readonly Predicate<T> _canExecute;
-        readonly Action<T> _execute;
+        readonly Predicate<T> _canExecute = canExecute;
+        readonly Action<T> _execute = execute ?? throw new ArgumentNullException("execute");
 
         #endregion
 
@@ -30,20 +35,6 @@ namespace BIA.ToolKit.Helper.MicroMvvm
         {
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RelayCommand&lt;T&gt;"/> class.
-        /// </summary>
-        /// <param name="execute">The execution logic.</param>
-        /// <param name="canExecute">The execution status logic.</param>
-        public RelayCommand(Action<T> execute, Predicate<T> canExecute)
-        {
-
-            if (execute == null)
-                throw new ArgumentNullException("execute");
-            _execute = execute;
-            _canExecute = canExecute;
-        }
-
         #endregion
 
         #region ICommand Members
@@ -65,12 +56,12 @@ namespace BIA.ToolKit.Helper.MicroMvvm
         }
 
         [DebuggerStepThrough]
-        public Boolean CanExecute(Object parameter)
+        public bool CanExecute(object parameter)
         {
-            return _canExecute == null ? true : _canExecute((T)parameter);
+            return _canExecute == null || _canExecute((T)parameter);
         }
 
-        public void Execute(Object parameter)
+        public void Execute(object parameter)
         {
             _execute((T)parameter);
         }
@@ -81,13 +72,18 @@ namespace BIA.ToolKit.Helper.MicroMvvm
     /// <summary>
     /// A command whose sole purpose is to relay its functionality to other objects by invoking delegates. The default return value for the CanExecute method is 'true'.
     /// </summary>
-    public class RelayCommand : ICommand
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="RelayCommand&lt;T&gt;"/> class.
+    /// </remarks>
+    /// <param name="execute">The execution logic.</param>
+    /// <param name="canExecute">The execution status logic.</param>
+    public class RelayCommand(Action execute, Func<bool> canExecute) : ICommand
     {
 
         #region Declarations
 
-        readonly Func<Boolean> _canExecute;
-        readonly Action _execute;
+        readonly Func<bool> _canExecute = canExecute;
+        readonly Action _execute = execute ?? throw new ArgumentNullException("execute");
 
         #endregion
 
@@ -102,20 +98,6 @@ namespace BIA.ToolKit.Helper.MicroMvvm
         {
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RelayCommand&lt;T&gt;"/> class.
-        /// </summary>
-        /// <param name="execute">The execution logic.</param>
-        /// <param name="canExecute">The execution status logic.</param>
-        public RelayCommand(Action execute, Func<Boolean> canExecute)
-        {
-
-            if (execute == null)
-                throw new ArgumentNullException("execute");
-            _execute = execute;
-            _canExecute = canExecute;
-        }
-
         #endregion
 
         #region ICommand Members
@@ -137,12 +119,12 @@ namespace BIA.ToolKit.Helper.MicroMvvm
         }
 
         [DebuggerStepThrough]
-        public Boolean CanExecute(Object parameter)
+        public bool CanExecute(object parameter)
         {
-            return _canExecute == null ? true : _canExecute();
+            return _canExecute == null || _canExecute();
         }
 
-        public void Execute(Object parameter)
+        public void Execute(object parameter)
         {
             _execute();
         }

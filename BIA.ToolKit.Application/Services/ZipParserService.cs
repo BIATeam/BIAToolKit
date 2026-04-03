@@ -4,7 +4,6 @@ namespace BIA.ToolKit.Application.Services
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.ExtractBlock;
@@ -17,10 +16,13 @@ namespace BIA.ToolKit.Application.Services
     using System.Linq;
     using System.Text.RegularExpressions;
 
-    public class ZipParserService
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    public class ZipParserService(CSharpParserService service, IConsoleWriter consoleWriter)
     {
-        private readonly IConsoleWriter consoleWriter;
-        private readonly CSharpParserService service;
+        private readonly IConsoleWriter consoleWriter = consoleWriter;
+        private readonly CSharpParserService service = service;
 
         private const string BIA_MARKER = "BIAToolKit -";
         public const string MARKER_BEGIN = $"{BIA_MARKER} Begin";
@@ -33,21 +35,12 @@ namespace BIA.ToolKit.Application.Services
         public const string MARKER_END_NESTED = $"{MARKER_END} Nested";
 
         /// <summary>
-        /// Constructor.
-        /// </summary>
-        public ZipParserService(CSharpParserService service, IConsoleWriter consoleWriter)
-        {
-            this.consoleWriter = consoleWriter;
-            this.service = service;
-        }
-
-        /// <summary>
         /// Parse all zips.
         /// </summary>
         public bool ParseZips(IEnumerable<ZipFeatureType> zipFeatures, Project project, string biaFront, CRUDSettings settings)
         {
-            var parsed = false;
-            foreach (var zipFeatureType in zipFeatures)
+            bool parsed = false;
+            foreach (ZipFeatureType zipFeatureType in zipFeatures)
             {
                 parsed |= ParseZipFile(zipFeatureType, project, biaFront, settings);
             }
@@ -110,7 +103,7 @@ namespace BIA.ToolKit.Application.Services
             if (fileList.Count > 0)
             {
                 FeatureData featureData;
-                zipData.FeatureDataList = new();
+                zipData.FeatureDataList = [];
                 foreach (KeyValuePair<string, string> file in fileList)
                 {
                     string filePath = Path.Combine(workingDirectoryPath, file.Key);
@@ -132,7 +125,7 @@ namespace BIA.ToolKit.Application.Services
                                     ((WebApiFeatureData)featureData).ClassFileDefinition = classFile;
                                     if (fileType == WebApiFileType.Dto)
                                     {
-                                        ((WebApiFeatureData)featureData).PropertiesInfos = service.GetPropertyList(classFile.PropertyList, dtoCustomAttributeName);
+                                        ((WebApiFeatureData)featureData).PropertiesInfos = CSharpParserService.GetPropertyList(classFile.PropertyList, dtoCustomAttributeName);
                                     }
                                 }
                             }
@@ -168,16 +161,16 @@ namespace BIA.ToolKit.Application.Services
             return true;
         }
 
-        public void CleanBiaFolders(IEnumerable<ZipFeatureType> zipFeatures, Project project, string biaFront)
+        public static void CleanBiaFolders(IEnumerable<ZipFeatureType> zipFeatures, Project project, string biaFront)
         {
-            foreach (var zipFeatureType in zipFeatures)
+            foreach (ZipFeatureType zipFeatureType in zipFeatures)
             {
                 string folderName = (zipFeatureType.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : biaFront;
                 string biaFolder = Path.Combine(project.Folder, folderName, Constants.FolderBia);
 
-                foreach (var item in Directory.EnumerateFileSystemEntries(biaFolder))
+                foreach (string item in Directory.EnumerateFileSystemEntries(biaFolder))
                 {
-                    var isRootItem = Path.GetDirectoryName(item) == biaFolder;
+                    bool isRootItem = Path.GetDirectoryName(item) == biaFolder;
                     if (isRootItem && Path.GetExtension(item).Equals(".zip", StringComparison.InvariantCultureIgnoreCase))
                         continue;
 
@@ -206,7 +199,7 @@ namespace BIA.ToolKit.Application.Services
                 .SelectMany(x => x.PropertiesList)
                 .ToList();
 
-            foreach (var featureData in featureDataList.Where(fd => fd.ExtractBlocks != null))
+            foreach (FeatureData featureData in featureDataList.Where(fd => fd.ExtractBlocks != null))
             {
                 var displayBlocks = featureData.ExtractBlocks
                     .Where(eb => eb.DataUpdateType == CRUDDataUpdateType.Display)
@@ -215,7 +208,7 @@ namespace BIA.ToolKit.Application.Services
 
                 if (featureProperties.Count != 0 && displayBlocks.Count != 0)
                 {
-                    foreach (var displayBlock in displayBlocks.Where(db => db.ExtractItem == null))
+                    foreach (ExtractDisplayBlock displayBlock in displayBlocks.Where(db => db.ExtractItem == null))
                     {
                         displayBlock.ExtractItem = featureProperties.FirstOrDefault().Name;
                     }
@@ -248,7 +241,7 @@ namespace BIA.ToolKit.Application.Services
                 CommonTools.CheckFolder(tempDir);
 
                 // Extract and list files from archive to temporary folder
-                files = new();
+                files = [];
                 using ZipArchive archive = ZipFile.OpenRead(zipPath);
                 foreach (ZipArchiveEntry entry in archive.Entries)
                 {
@@ -283,15 +276,15 @@ namespace BIA.ToolKit.Application.Services
             }
 
             // Read file
-            List<string> fileLines = File.ReadAllLines(fileName).ToList();
+            List<string> fileLines = [.. File.ReadAllLines(fileName)];
 
             // Read file to verify if marker is present
-            if (!CommonTools.IsFileContainsData(fileLines, new List<string> { MARKER_BEGIN }))
+            if (!CommonTools.IsFileContainsData(fileLines, [MARKER_BEGIN]))
             {
                 return null;
             }
 
-            List<ExtractBlock> extractBlocksList = new();
+            List<ExtractBlock> extractBlocksList = [];
 
             if (featureData.IsPartialFile)
             {
@@ -299,7 +292,7 @@ namespace BIA.ToolKit.Application.Services
             }
             else
             {
-                foreach (CRUDDataUpdateType type in Enum.GetValues(typeof(CRUDDataUpdateType)))
+                foreach (CRUDDataUpdateType type in Enum.GetValues<CRUDDataUpdateType>())
                 {
                     // don't take partial file
                     if (type == CRUDDataUpdateType.Config
@@ -339,7 +332,7 @@ namespace BIA.ToolKit.Application.Services
             {
                 if (fileName.EndsWith("AppService.cs"))
                 {
-                    if (fileName.StartsWith("I"))
+                    if (fileName.StartsWith('I'))
                         return WebApiFileType.IAppService;
                     else
                         return WebApiFileType.AppService;
@@ -436,7 +429,7 @@ namespace BIA.ToolKit.Application.Services
         /// </summary>
         private List<ExtractBlock> ExtractBlocks(CRUDDataUpdateType type, List<string> lines)
         {
-            List<ExtractBlock> extractBlocksList = new();
+            List<ExtractBlock> extractBlocksList = [];
             string markerBegin = $"{MARKER_BEGIN} {type}";
             string markerEnd = $"{MARKER_END} {type}";
             string regex = @$"{markerBegin}\s+(\w+)\s*(\w+)*";
@@ -463,7 +456,7 @@ namespace BIA.ToolKit.Application.Services
                     }
 
                     // Array with start and end lines included
-                    List<string> blockLines = lines.ToArray()[indexStart..++indexEnd].ToList();
+                    List<string> blockLines = [.. lines.ToArray()[indexStart..++indexEnd]];
 
                     // Get block name (if exist)
                     string name = CommonTools.GetMatchRegexValue(regex, blockLines[0], 1);
@@ -472,7 +465,7 @@ namespace BIA.ToolKit.Application.Services
                     {
                         case CRUDDataUpdateType.Properties:
                             // Decompose property
-                            List<CRUDPropertyType> propertyList = new();
+                            List<CRUDPropertyType> propertyList = [];
                             blockLines.ForEach(line =>
                             {
                                 (string propName, string propType) = DecomposeProperty(line);
@@ -484,13 +477,13 @@ namespace BIA.ToolKit.Application.Services
                             extractBlocksList.Add(new ExtractPropertiesBlock(type, name, blockLines) { PropertiesList = propertyList });
                             break;
                         case CRUDDataUpdateType.Display:
-                            List<string> displayLines = blockLines.Where(l => !l.TrimStart().StartsWith("//")).ToList();
+                            List<string> displayLines = [.. blockLines.Where(l => !l.TrimStart().StartsWith("//"))];
                             if (displayLines.Count < 1 && displayLines.Count > 2)
                             {
                                 consoleWriter.AddMessageLine($"Incorrect Display block format: '{blockLines}'", "Orange");
                             }
-                            var extractLine = displayLines[0].Trim();
-                            var extractItem = blockLines[0].Split(' ').Last();
+                            string extractLine = displayLines[0].Trim();
+                            string extractItem = blockLines[0].Split(' ').Last();
                             if (extractItem == CRUDDataUpdateType.Display.ToString())
                             {
                                 extractItem = null;
@@ -518,25 +511,25 @@ namespace BIA.ToolKit.Application.Services
         {
             const string regexPartial = @$"(?:{MARKER_BEGIN_PARTIAL})[\s+](\w+)(\s+\d*)?(\s*\w+)";
             const string regexNested = @$"(?:{MARKER_BEGIN_NESTED})[\s+](\w+)(\s+\d*)?(\s*\w+)";
-            List<ExtractBlock> extractBlocksList = new();
+            List<ExtractBlock> extractBlocksList = [];
             ExtractPartialBlock currentExtractPartialBlock = null;
             // Add blocks found between markers
             foreach (string line in fileLines)
             {
                 if (line.Contains(MARKER_BEGIN_PARTIAL, StringComparison.InvariantCulture))
                 {
-                    var typeName = CommonTools.GetMatchRegexValue(regexPartial, line, 1);
-                    var index = CommonTools.GetMatchRegexValue(regexPartial, line, 2);
-                    var name = CommonTools.GetMatchRegexValue(regexPartial, line, 3);
+                    string typeName = CommonTools.GetMatchRegexValue(regexPartial, line, 1);
+                    string index = CommonTools.GetMatchRegexValue(regexPartial, line, 2);
+                    string name = CommonTools.GetMatchRegexValue(regexPartial, line, 3);
 
                     currentExtractPartialBlock = new ExtractPartialBlock(CommonTools.GetEnumElement<CRUDDataUpdateType>(typeName), name?.TrimStart(), index?.TrimStart());
                 }
 
                 if (line.Contains(MARKER_BEGIN_NESTED, StringComparison.InvariantCulture))
                 {
-                    var typeName = CommonTools.GetMatchRegexValue(regexNested, line, 1);
-                    var index = CommonTools.GetMatchRegexValue(regexNested, line, 2);
-                    var name = CommonTools.GetMatchRegexValue(regexNested, line, 3);
+                    string typeName = CommonTools.GetMatchRegexValue(regexNested, line, 1);
+                    string index = CommonTools.GetMatchRegexValue(regexNested, line, 2);
+                    string name = CommonTools.GetMatchRegexValue(regexNested, line, 3);
 
                     currentExtractPartialBlock.AddNestedBlock(new ExtractPartialBlock(CommonTools.GetEnumElement<CRUDDataUpdateType>(typeName), name?.TrimStart(), index?.TrimStart()));
                     currentExtractPartialBlock = currentExtractPartialBlock.GetLastNestedBlock();

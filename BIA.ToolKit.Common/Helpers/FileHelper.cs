@@ -20,10 +20,10 @@ namespace BIA.ToolKit.Common.Helpers
             string[] files = Directory.GetFiles(path, extension, SearchOption.AllDirectories);
             if (!string.IsNullOrWhiteSpace(replacementPath))
             {
-                return files.Select(x => x.Replace(path, replacementPath)).ToList();
+                return [.. files.Select(x => x.Replace(path, replacementPath))];
             }
 
-            return files.ToList();
+            return [.. files];
         }
 
         public static void CleanFilesByTag(string path, List<string> deletionTags, string beginTagPrefix, string elseTag, string endTag, string extension, bool removeContentBetween)
@@ -34,14 +34,14 @@ namespace BIA.ToolKit.Common.Helpers
             {
                 var lines = File.ReadLines(file).ToList();
 
-                foreach (var deletionTag in deletionTags)
+                foreach (string deletionTag in deletionTags)
                 {
-                    var beginTagIndexes = GetTagIndexes(deletionTag, lines);
+                    List<int> beginTagIndexes = GetTagIndexes(deletionTag, lines);
                     if (beginTagIndexes.Count == 0)
                         continue;
 
                     var validBeginTagIndexes = new List<int>();
-                    foreach (var beginTagIndex in beginTagIndexes)
+                    foreach (int beginTagIndex in beginTagIndexes)
                     {
                         if (IsLineValidForDeletion(lines[beginTagIndex], beginTagPrefix, deletionTags))
                             validBeginTagIndexes.Add(beginTagIndex);
@@ -50,7 +50,7 @@ namespace BIA.ToolKit.Common.Helpers
                     if (validBeginTagIndexes.Count == 0)
                         continue;
 
-                    var endTagIndexes = GetTagIndexes(endTag, lines);
+                    List<int> endTagIndexes = GetTagIndexes(endTag, lines);
                     var indexPairs = validBeginTagIndexes
                     .Select(beginTagIndex => new
                     {
@@ -63,11 +63,11 @@ namespace BIA.ToolKit.Common.Helpers
                     {
                         if (removeContentBetween)
                         {
-                            var elseTagIndexes = GetElseTagIndexesInRange(lines, pair.BeginIndex, pair.EndIndex, elseTag);
-                            if (elseTagIndexes.Any())
+                            List<int> elseTagIndexes = GetElseTagIndexesInRange(lines, pair.BeginIndex, pair.EndIndex, elseTag);
+                            if (elseTagIndexes.Count > 0)
                             {
                                 lines.RemoveAt(pair.EndIndex);
-                                var elseTagIndex = elseTagIndexes.First() + pair.BeginIndex;
+                                int elseTagIndex = elseTagIndexes.First() + pair.BeginIndex;
                                 lines.RemoveRange(pair.BeginIndex, elseTagIndex - pair.BeginIndex + 1);
                             }
                             else
@@ -77,10 +77,10 @@ namespace BIA.ToolKit.Common.Helpers
                         }
                         else
                         {
-                            var elseTagIndexes = GetElseTagIndexesInRange(lines, pair.BeginIndex, pair.EndIndex, elseTag);
-                            if (elseTagIndexes.Any())
+                            List<int> elseTagIndexes = GetElseTagIndexesInRange(lines, pair.BeginIndex, pair.EndIndex, elseTag);
+                            if (elseTagIndexes.Count > 0)
                             {
-                                var elseTagIndex = elseTagIndexes.First() + pair.BeginIndex;
+                                int elseTagIndex = elseTagIndexes.First() + pair.BeginIndex;
                                 lines.RemoveRange(elseTagIndex, pair.EndIndex - elseTagIndex + 1);
                             }
                             else
@@ -103,7 +103,7 @@ namespace BIA.ToolKit.Common.Helpers
                     if (!tagLine.StartsWith(beginTagPrefix, StringComparison.Ordinal))
                         return false;
 
-                    var tagsExpression = tagLine[beginTagPrefix.Length..].Trim();
+                    string tagsExpression = tagLine[beginTagPrefix.Length..].Trim();
 
                     // TAG1 && TAG2
                     if (tagsExpression.Contains("&&"))
@@ -112,7 +112,7 @@ namespace BIA.ToolKit.Common.Helpers
                     // TAG1 || TAG2
                     if (tagsExpression.Contains("||"))
                     {
-                        var orTags = tagsExpression.Split(["||"], StringSplitOptions.RemoveEmptyEntries)
+                        IEnumerable<string> orTags = tagsExpression.Split(["||"], StringSplitOptions.RemoveEmptyEntries)
                                         .Select(t => t.Trim())
                                         .Where(t => t.Length > 0);
                         return orTags.All(deletionTags.Contains);
@@ -124,11 +124,11 @@ namespace BIA.ToolKit.Common.Helpers
 
                 static List<int> GetTagIndexes(string tag, List<string> lines)
                 {
-                    return lines.Select((line, index) => new { line, index })
+                    return [.. lines.Select((line, index) => new { line, index })
                     .Where(x => x.line.Contains(tag))
                     .Select(x => x.index)
                     .Distinct()
-                    .OrderBy(x => x).ToList();
+                    .OrderBy(x => x)];
                 }
 
                 static List<int> GetElseTagIndexesInRange(List<string> lines, int rangeStart, int rangeEnd, string elseTag)

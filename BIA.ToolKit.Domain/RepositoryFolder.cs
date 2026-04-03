@@ -24,7 +24,7 @@ namespace BIA.ToolKit.Domain
                     throw new DirectoryNotFoundException(LocalPath);
                 }
 
-                var repositoryFolders = Directory.EnumerateDirectories(LocalPath);
+                IEnumerable<string> repositoryFolders = Directory.EnumerateDirectories(LocalPath);
 
                 if (!string.IsNullOrWhiteSpace(ReleasesFolderRegexPattern))
                 {
@@ -32,7 +32,7 @@ namespace BIA.ToolKit.Domain
                     repositoryFolders = repositoryFolders.Where(dir => regex.IsMatch(System.IO.Path.GetFileName(dir)));
                 }
 
-                var releases = repositoryFolders
+                IOrderedEnumerable<ReleaseFolder> releases = repositoryFolders
                     .Select(directoryPath => new ReleaseFolder(System.IO.Path.GetFileName(directoryPath), directoryPath, Name))
                     .OrderByDescending(r => r.Name);
 

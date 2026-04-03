@@ -8,10 +8,10 @@ namespace BIA.ToolKit.Domain.Model
     {
         public VersionAndOption()
         {
-            WorkCompanyFiles = new ObservableCollection<WorkRepository>();
-            WorkTemplates = new ObservableCollection<WorkRepository>();
-            Profiles = new ObservableCollection<string>();
-            Options = new ObservableCollection<CFOption>();
+            WorkCompanyFiles = [];
+            WorkTemplates = [];
+            Profiles = [];
+            Options = [];
         }
         public bool? Test { get; set; }
 

@@ -4,7 +4,7 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.ViewModel;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using Xunit;
 
     [Collection(nameof(GenerateTestFixtureCollection_6_0_0))]
@@ -26,7 +26,7 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
                 arguments: null,
                 baseList: ["BaseEntityVersioned<int>"]);
 
-            var domainName = "Fleet";
+            string domainName = "Fleet";
 
             var mappingProperties = new List<MappingEntityProperty>
             {
@@ -78,8 +78,8 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
                 arguments: null,
                 baseList: [" BaseEntityVersionedFixableArchivable<int>"]);
 
-            var domainName = "Fleet";
-            var ancestorTeamName = "Site";
+            string domainName = "Fleet";
+            string ancestorTeamName = "Site";
 
             var mappingProperties = new List<MappingEntityProperty>
             {
@@ -279,7 +279,7 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
                 arguments: null,
                 baseList: ["BaseEntityTeam"]);
 
-            var domainName = "Maintenance";
+            string domainName = "Maintenance";
 
             var mappingProperties = new List<MappingEntityProperty>
             {
@@ -319,8 +319,8 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
                 arguments: null,
                 baseList: ["BaseEntityTeamFixableArchivable"]);
 
-            var domainName = "Maintenance";
-            var ancestorTeamName = "AircraftMaintenanceCompany";
+            string domainName = "Maintenance";
+            string ancestorTeamName = "AircraftMaintenanceCompany";
 
             var mappingProperties = new List<MappingEntityProperty>
             {

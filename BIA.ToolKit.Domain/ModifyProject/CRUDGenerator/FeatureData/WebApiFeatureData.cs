@@ -1,15 +1,18 @@
 namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData
 {
-    using BIA.ToolKit.Domain.CRUDGenerator;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using System.Collections.Generic;
 
-    public class WebApiFeatureData : FeatureData
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    public class WebApiFeatureData(string fileName, string filePath, string tmpDir, WebApiFileType? type) : FeatureData(fileName, filePath, tmpDir)
     {
         /// <summary>
         /// File type.
         /// </summary>
-        public WebApiFileType? FileType { get; }
+        public WebApiFileType? FileType { get; } = type;
 
         /// <summary>
         /// List of Options to delete.
@@ -19,13 +22,5 @@ namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData
         public string Namespace { get; set; }
 
         public List<PropertyInfo> PropertiesInfos { get; set; }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public WebApiFeatureData(string fileName, string filePath, string tmpDir, WebApiFileType? type) : base(fileName, filePath, tmpDir)
-        {
-            FileType = type;
-        }
     }
 }

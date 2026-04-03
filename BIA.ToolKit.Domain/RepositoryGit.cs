@@ -119,13 +119,13 @@ namespace BIA.ToolKit.Domain
         private async Task FillReleasesGithubAsync()
         {
             var github = new GitHubClient(new Octokit.ProductHeaderValue("BIAToolKit"));
-            var repositoryReleases = await github.Repository.Release.GetAll(Owner, GitRepositoryName);
+            IReadOnlyList<Octokit.Release> repositoryReleases = await github.Repository.Release.GetAll(Owner, GitRepositoryName);
 
             releases.Clear();
-            foreach (var release in repositoryReleases)
+            foreach (Octokit.Release release in repositoryReleases)
             {
                 var assets = new List<ReleaseGitAsset>();
-                var releaseArchive = $"{release.TagName}.zip";
+                string releaseArchive = $"{release.TagName}.zip";
 
                 if (release.Assets.Any())
                 {
@@ -152,7 +152,7 @@ namespace BIA.ToolKit.Domain
             }
 
             var releasesFolderRegex = new Regex(ReleasesFolderRegexPattern);
-            var releases = Directory
+            IOrderedEnumerable<ReleaseFolder> releases = Directory
                 .EnumerateDirectories(LocalPath)
                 .Where(directoryPath => releasesFolderRegex.IsMatch(Path.GetFileName(directoryPath)))
                 .Select(directoryPath => new ReleaseFolder(Path.GetFileName(directoryPath), directoryPath, Name))
@@ -167,11 +167,11 @@ namespace BIA.ToolKit.Domain
             using var gitRepo = new LibGit2Sharp.Repository(LocalPath);
 
             // Try to reach the repository
-            var remoteOrigin = gitRepo.Network.Remotes["origin"] ?? throw new NullReferenceException();
+            Remote remoteOrigin = gitRepo.Network.Remotes["origin"] ?? throw new NullReferenceException();
             static LibGit2Sharp.Credentials credHandler(string url, string usernameFromUrl, SupportedCredentialTypes types) => new DefaultCredentials();
             _ = gitRepo.Network.ListReferences(remoteOrigin, credHandler) ?? throw new Exception();
 
-            var releases = gitRepo.Tags.Select(t => new ReleaseTag(t.FriendlyName, this));
+            IEnumerable<ReleaseTag> releases = gitRepo.Tags.Select(t => new ReleaseTag(t.FriendlyName, this));
 
             this.releases.Clear();
             this.releases.AddRange(releases);

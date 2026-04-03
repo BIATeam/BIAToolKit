@@ -10,6 +10,6 @@ namespace BIA.ToolKit.Application.Parser
             Errors.AddRange(errors);
         }
 
-        public List<string> Errors { get; } = new List<string>();
+        public List<string> Errors { get; } = [];
     }
 }

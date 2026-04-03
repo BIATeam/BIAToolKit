@@ -42,49 +42,45 @@ namespace BIA.ToolKit.Application.Helper
 
         public static List<string> GetFoldersToExcludes(this IEnumerable<FeatureSetting> settings)
         {
-            return settings
+            return [.. settings
                 .FilterNotSelectedFeatures()
                 .Where(x => x.FoldersToExcludes.Count != 0)
                 .SelectMany(x => x.FoldersToExcludes)
-                .Distinct()
-                .ToList();
+                .Distinct()];
         }
 
         public static List<string> GetFilesToExcludes(this IEnumerable<FeatureSetting> settings)
         {
-            return settings
+            return [.. settings
                 .FilterNotSelectedFeatures()
                 .Where(x => x.FilesToExcludes.Count != 0)
                 .SelectMany(x => x.FilesToExcludes)
-                .Distinct()
-                .ToList();
+                .Distinct()];
         }
 
         public static List<string> GetBiaFeatureTagToDeletes(this IEnumerable<FeatureSetting> settings, string prefix = null)
         {
-            return settings
+            return [.. settings
                 .FilterNotSelectedFeatures()
                 .Where(x => x.Tags.Count != 0)
                 .OrderBy(x => x.Id)
                 .Distinct()
-                .SelectMany(x => x.Tags.Select(tag => $"{prefix}{tag}"))
-                .ToList();
+                .SelectMany(x => x.Tags.Select(tag => $"{prefix}{tag}"))];
         }
 
         public static List<string> GetAllBiaFeatureTag(this IEnumerable<FeatureSetting> settings, string prefix = null)
         {
-            return settings
+            return [.. settings
                 .Where(x => x.Tags.Count != 0)
                 .OrderBy(x => x.Id)
                 .Distinct()
-                .SelectMany(x => x.Tags.Select(tag => $"{prefix}{tag}"))
-                .ToList();
+                .SelectMany(x => x.Tags.Select(tag => $"{prefix}{tag}"))];
         }
 
         public static List<FeatureSetting> FilterNotSelectedFeatures(this IEnumerable<FeatureSetting> settings)
         {
             var result = new List<FeatureSetting>();
-            foreach (var feature in settings.Where(x => !x.IsSelected))
+            foreach (FeatureSetting feature in settings.Where(x => !x.IsSelected))
             {
                 result.Add(feature);
                 if (feature.DisabledFeatures.Count != 0)

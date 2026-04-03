@@ -13,8 +13,8 @@ namespace BIA.ToolKit.Application.Templates._5_0_0.Mocks
             DomainName = "Fleet";
             EntityName = "Plane";
             BaseKeyType = "int";
-            Properties = new List<PropertyDtoModel>()
-            {
+            Properties =
+            [
                 new PropertyDtoModel
                 {
                     EntityCompositeName = "Id",
@@ -43,7 +43,7 @@ namespace BIA.ToolKit.Application.Templates._5_0_0.Mocks
                     OptionIdProperty = "Id",
                     OptionEntityIdPropertyComposite = "OptionId"
                 }
-            };
+            ];
         }
     }
 }

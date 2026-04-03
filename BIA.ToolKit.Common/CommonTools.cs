@@ -9,7 +9,7 @@ namespace BIA.ToolKit.Common
     using System.Text;
     using System.Text.RegularExpressions;
 
-    public static class CommonTools
+    public static partial class CommonTools
     {
         private readonly static List<string> BaseBiaInterfacesAndClasses =
         [
@@ -31,18 +31,15 @@ namespace BIA.ToolKit.Common
         /// <param name="value">The data value</param>
         public static void AddToDictionnary<T1, T2>(Dictionary<T1, List<T2>> dico, T1 key, T2 value)
         {
-            if (dico == null)
-            {
-                dico = new();
-            }
+            dico ??= [];
 
-            if (dico.ContainsKey(key))
+            if (dico.TryGetValue(key, out List<T2> value1))
             {
-                dico[key].Add(value);
+                value1.Add(value);
             }
             else
             {
-                dico.Add(key, new List<T2> { value });
+                dico.Add(key, [value]);
             }
         }
 
@@ -57,7 +54,7 @@ namespace BIA.ToolKit.Common
             if (string.IsNullOrEmpty(value))
                 return value;
 
-            return Regex.Replace(value, "(?<!^)([A-Z][a-z]|(?<=[a-z])[A-Z0-9])", "-$1", RegexOptions.Compiled)
+            return MyRegex().Replace(value, "-$1")
                 .Trim().ToLower();
         }
 
@@ -86,7 +83,7 @@ namespace BIA.ToolKit.Common
         {
             if (string.IsNullOrEmpty(value) || value.Length < 1)
                 return value;
-            return Char.ToLowerInvariant(value[0]) + value.Substring(1);
+            return char.ToLowerInvariant(value[0]) + value[1..];
         }
 
         /// <summary>
@@ -99,7 +96,7 @@ namespace BIA.ToolKit.Common
         {
             if (string.IsNullOrEmpty(value) || value.Length < 1)
                 return value;
-            return Char.ToUpperInvariant(value[0]) + value.Substring(1);
+            return char.ToUpperInvariant(value[0]) + value[1..];
         }
 
         /// <summary>
@@ -310,15 +307,20 @@ namespace BIA.ToolKit.Common
 
         public static string GetBaseKeyType(List<string> baseList)
         {
-            var iEntityBase = baseList.FirstOrDefault(x => BaseBiaInterfacesAndClasses.Any(y => x.StartsWith(y)));
+            string iEntityBase = baseList.FirstOrDefault(x => BaseBiaInterfacesAndClasses.Any(y => x.StartsWith(y)));
             if (iEntityBase == null)
                 return baseList.Contains("Team")
                     || baseList.Contains("TeamDto")
                     || baseList.Any(x => (x.StartsWith("BaseEntity") || x.StartsWith("BaseDto")) && x.Contains("Team")) ?
                     "int" : null;
 
-            var regex = new Regex(@"<\s*(\w+)\s*>");
-            return regex.Match(iEntityBase).Groups[1].Value;
+            return GenericTypeParamRegex().Match(iEntityBase).Groups[1].Value;
         }
+
+        [GeneratedRegex(@"<\s*(\w+)\s*>")]
+        private static partial Regex GenericTypeParamRegex();
+
+        [GeneratedRegex("(?<!^)([A-Z][a-z]|(?<=[a-z])[A-Z0-9])", RegexOptions.Compiled)]
+        private static partial Regex MyRegex();
     }
 }

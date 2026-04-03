@@ -21,7 +21,7 @@ namespace BIA.ToolKit.Domain.ModifyProject
         public string CompanyName { get; set; }
 
         /// The BIA front folders of the project.
-        public List<string> BIAFronts { get; set; } = new List<string>();
+        public List<string> BIAFronts { get; set; } = [];
 
         /// <summary>
         /// Path to the solution of the project
@@ -32,7 +32,7 @@ namespace BIA.ToolKit.Domain.ModifyProject
 
         public async Task ListProjectFiles()
         {
-            await Task.Run(() => ProjectFiles = Directory.EnumerateFiles(Folder, "*", SearchOption.AllDirectories).ToList());
+            await Task.Run(() => ProjectFiles = [.. Directory.EnumerateFiles(Folder, "*", SearchOption.AllDirectories)]);
         }
     }
 }

@@ -13,7 +13,7 @@ namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings
 
         protected GenerationHistory()
         {
-            Generation = new();
+            Generation = [];
         }
     }
 

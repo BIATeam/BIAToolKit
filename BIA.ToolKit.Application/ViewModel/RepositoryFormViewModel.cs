@@ -22,7 +22,7 @@ namespace BIA.ToolKit.Application.ViewModel
             }
         }
 
-        public Array RepositoryTypes => Enum.GetValues<RepositoryType>();
+        public static Array RepositoryTypes => Enum.GetValues<RepositoryType>();
 
         public RepositoryType RepositoryType
         {

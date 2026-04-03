@@ -1,5 +1,5 @@
 
-namespace BIA.ToolKit.Domain.DtoGenerator
+namespace BIA.ToolKit.Domain.ModifyProject.DtoGenerator
 {
     using System.Text.RegularExpressions;
     using BIA.ToolKit.Common;
@@ -15,10 +15,10 @@ namespace BIA.ToolKit.Domain.DtoGenerator
             Path = classInfo.FilePath;
             Namespace = classInfo.Namespace;
             Name = classInfo.ClassName;
-            BaseList = classInfo.BaseClassesChain.Concat(classInfo.AllInterfaces).Select(x => x.DisplayName).Distinct().ToList();
+            BaseList = [.. classInfo.BaseClassesChain.Concat(classInfo.AllInterfaces).Select(x => x.DisplayName).Distinct()];
             BaseKeyType = CommonTools.GetBaseKeyType(BaseList);
-            ClassAnnotations = new(classInfo.Attributes.SelectMany(x => x.Arguments));
-            Properties = new(classInfo.PublicProperties.Select(x => new PropertyInfo(x)));
+            ClassAnnotations = [.. classInfo.Attributes.SelectMany(x => x.Arguments)];
+            Properties = [.. classInfo.PublicProperties.Select(x => new PropertyInfo(x))];
             IsAuditable = classInfo.Attributes.Any(x => x.Name == "AuditInclude");
         }
 
@@ -28,11 +28,11 @@ namespace BIA.ToolKit.Domain.DtoGenerator
             Namespace = @namespace;
             Name = name;
             BaseType = baseType;
-            BaseList = baseList ?? new List<string>();
+            BaseList = baseList ?? [];
             BaseKeyType = baseKeyType ?? CommonTools.GetBaseKeyType(BaseList);
             if (arguments != null && arguments.Count > 0)
             {
-                ClassAnnotations = new();
+                ClassAnnotations = [];
                 ParseAnnotations(arguments);
             }
         }
@@ -47,10 +47,10 @@ namespace BIA.ToolKit.Domain.DtoGenerator
         public string NamePluralized => Name.Pluralize();
         public string BaseType { get; }
         public List<string> BaseList { get; }
-        public List<PropertyInfo> Properties { get; } = new List<PropertyInfo>();
+        public List<PropertyInfo> Properties { get; } = [];
         public string CompositeKeyName { get; set; }
-        public List<PropertyInfo> CompositeKeys { get; } = new List<PropertyInfo>();
-        public List<KeyValuePair<string, string>> ClassAnnotations { get; } = new();
+        public List<PropertyInfo> CompositeKeys { get; } = [];
+        public List<KeyValuePair<string, string>> ClassAnnotations { get; } = [];
         public string BaseKeyType { get; set; }
         public bool IsTeam => BaseList.Contains("Team") || BaseList.Contains("TeamDto") || BaseList.Any(x => (x.StartsWith("BaseEntity") || x.StartsWith("BaseDto")) && x.Contains("Team"));
         public bool IsVersioned => IsTeam || BaseList.Contains("VersionedTable") || BaseList.Any(x => (x.StartsWith("BaseEntity") || x.StartsWith("BaseDto")) && x.Contains("Versioned"));

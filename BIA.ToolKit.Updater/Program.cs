@@ -149,7 +149,7 @@ namespace BIA.ToolKit.Updater
 
         static void CloseRunningApp()
         {
-            foreach (var process in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(BiaToolkitApplicationName)))
+            foreach (Process process in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(BiaToolkitApplicationName)))
             {
                 process.Kill();
                 process.WaitForExit();
@@ -158,7 +158,7 @@ namespace BIA.ToolKit.Updater
 
         static void InstallUpdate(string appPath, string zipPath)
         {
-            foreach (var directory in Directory.GetDirectories(appPath, "*", SearchOption.AllDirectories).ToList())
+            foreach (string? directory in Directory.GetDirectories(appPath, "*", SearchOption.AllDirectories).ToList())
             {
                 try
                 {
@@ -174,7 +174,7 @@ namespace BIA.ToolKit.Updater
                 .Where(file => !Path.GetFileNameWithoutExtension(file).Equals(Assembly.GetExecutingAssembly().GetName().Name))
                 .ToList();
 
-            foreach (var file in applicationRootFiles)
+            foreach (string? file in applicationRootFiles)
             {
                 try
                 {

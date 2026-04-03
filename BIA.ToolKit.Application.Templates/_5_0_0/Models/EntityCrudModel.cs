@@ -18,11 +18,11 @@ namespace BIA.ToolKit.Application.Templates._5_0_0.Models
             {
                 if (excludedProperties == null)
                 {
-                    excludedProperties = new List<string>()
-                    {
+                    excludedProperties =
+                    [
                         "Id",
                         "DtoState"
-                    };
+                    ];
 
                     if (IsVersioned)
                     {
@@ -69,7 +69,7 @@ namespace BIA.ToolKit.Application.Templates._5_0_0.Models
         public bool HasParent { get; set; }
         public string ParentName { get; set; }
         public string ParentNamePlural { get; set; }
-        public List<TPropertyCrudModel> Properties { get; set; } = new List<TPropertyCrudModel>();
+        public List<TPropertyCrudModel> Properties { get; set; } = [];
         public string AngularParentRelativePath { get; set; }
         public int AngularDeepLevel { get; set; }
         public string AngularDeepRelativePath
@@ -99,7 +99,7 @@ namespace BIA.ToolKit.Application.Templates._5_0_0.Models
 
         public string GetHubForClientParentKey()
         {
-            var parentKeyName = HasParent ? ParentName
+            string parentKeyName = HasParent ? ParentName
                 : HasAncestorTeam ? AncestorTeamName
                 : "ParentTeam";
             return $"{parentKeyName}Id";

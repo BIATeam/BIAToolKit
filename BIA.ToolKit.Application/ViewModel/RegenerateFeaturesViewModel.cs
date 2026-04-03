@@ -50,7 +50,7 @@ namespace BIA.ToolKit.Application.ViewModel
             set
             {
                 bool select = value == true;
-                foreach (var row in EntityRows)
+                foreach (RegenerableEntityRowViewModel row in EntityRows)
                     row.IsEntitySelected = select;
                 RaisePropertyChanged(nameof(SelectAllEntities));
             }
@@ -65,13 +65,13 @@ namespace BIA.ToolKit.Application.ViewModel
         public void Initialize(Project project, IEnumerable<RegenerableEntity> allEntities, IEnumerable<string> versions)
         {
             CurrentProject = project;
-            availableVersions = versions.ToList();
+            availableVersions = [.. versions];
             EntityRows.Clear();
             SelectedFeatures.Clear();
 
-            var projectVersion = ParseVersion(project?.FrameworkVersion);
+            Version projectVersion = ParseVersion(project?.FrameworkVersion);
 
-            foreach (var entity in allEntities)
+            foreach (RegenerableEntity entity in allEntities)
             {
                 // Show only entities that have at least one feature where the stored version is
                 // lower than the current project version, or no version is stored.
@@ -96,13 +96,13 @@ namespace BIA.ToolKit.Application.ViewModel
         public void RefreshSelectedFeatures()
         {
             // Unsubscribe previous items before clearing to avoid stale handlers
-            foreach (var item in SelectedFeatures)
+            foreach (FeatureRegenerationItem item in SelectedFeatures)
                 item.PropertyChanged -= OnFeatureItemPropertyChanged;
 
             SelectedFeatures.Clear();
 
             // Ordered by dependency: DTO first, then Option, then CRUD
-            foreach (var row in EntityRows.OrderBy(r => r.EntityNameSingular))
+            foreach (RegenerableEntityRowViewModel row in EntityRows.OrderBy(r => r.EntityNameSingular))
             {
                 if (row.IsDtoEnabled && row.IsDtoSelected)
                     SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "DTO", row.Entity.DtoHistory?.FrameworkVersion));
@@ -115,7 +115,7 @@ namespace BIA.ToolKit.Application.ViewModel
             }
 
             // Subscribe to new items so CanRegenerate updates when user picks a FROM version
-            foreach (var item in SelectedFeatures)
+            foreach (FeatureRegenerationItem item in SelectedFeatures)
                 item.PropertyChanged += OnFeatureItemPropertyChanged;
 
             RaisePropertyChanged(nameof(HasSelectedFeatures));
@@ -149,7 +149,7 @@ namespace BIA.ToolKit.Application.ViewModel
             if (string.IsNullOrEmpty(storedVersion))
                 return true; // No stored version → always eligible
 
-            var sv = ParseVersion(storedVersion);
+            Version sv = ParseVersion(storedVersion);
             return sv == null || projectVersion == null || sv < projectVersion;
         }
 
@@ -157,8 +157,8 @@ namespace BIA.ToolKit.Application.ViewModel
         {
             if (string.IsNullOrEmpty(version)) return null;
             // Strip leading 'V' / 'v'
-            var v = version.TrimStart('v', 'V');
-            return System.Version.TryParse(v, out var result) ? result : null;
+            string v = version.TrimStart('v', 'V');
+            return System.Version.TryParse(v, out Version result) ? result : null;
         }
     }
 }

@@ -7,19 +7,13 @@ namespace BIA.ToolKit.Application.ViewModel.MicroMvvm
     using System.Threading.Tasks;
     using System.Windows.Input;
 
-    internal class RelayCommand : ICommand
+    internal class RelayCommand(Action<object> execute, Predicate<object> canExecute) : ICommand
     {
-        private readonly Action<object> _execute;
-        private readonly Predicate<object> _canExecute;
+        private readonly Action<object> _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+        private readonly Predicate<object> _canExecute = canExecute;
 
         public RelayCommand(Action<object> execute) : this(execute, null)
         {
-        }
-
-        public RelayCommand(Action<object> execute, Predicate<object> canExecute)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
         }
 
         public bool CanExecute(object parameter)
@@ -37,19 +31,13 @@ namespace BIA.ToolKit.Application.ViewModel.MicroMvvm
 #pragma warning restore CS0067
     }
 
-    internal class RelayCommand<T> : IRelayCommand<T>
+    internal class RelayCommand<T>(Action<T> execute, Predicate<T> canExecute) : IRelayCommand<T>
     {
-        private readonly Action<T> _execute;
-        private readonly Predicate<T> _canExecute;
+        private readonly Action<T> _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+        private readonly Predicate<T> _canExecute = canExecute;
 
         public RelayCommand(Action<T> execute) : this(execute, null)
         {
-        }
-
-        public RelayCommand(Action<T> execute, Predicate<T> canExecute)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
         }
 
         public bool CanExecute(object parameter)

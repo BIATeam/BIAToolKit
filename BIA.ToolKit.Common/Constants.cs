@@ -69,8 +69,8 @@ namespace BIA.ToolKit.Common
 
         public const char PropertySeparator = ':';
 
-        private static readonly List<string> primitiveTypes = new List<string>
-        {
+        private static readonly List<string> primitiveTypes =
+        [
             "char",
             "decimal",
             "double",
@@ -83,7 +83,7 @@ namespace BIA.ToolKit.Common
             "uint",
             "ulong",
             "ushort",
-        };
+        ];
         public static IEnumerable<string> PrimitiveTypes => primitiveTypes.OrderBy(x => x);
 
         /// <summary>

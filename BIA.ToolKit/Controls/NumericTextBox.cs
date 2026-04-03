@@ -9,9 +9,9 @@ using System.Windows.Controls;
 
 namespace BIA.ToolKit.Controls
 {
-    public class NumericTextBox : TextBox
+    public partial class NumericTextBox : TextBox
     {
-        private static readonly Regex _digitRegex = new Regex(@"^\d+$");
+        private static readonly Regex _digitRegex = MyRegex();
 
         public NumericTextBox()
         {
@@ -23,6 +23,9 @@ namespace BIA.ToolKit.Controls
             if (!e.DataObject.GetDataPresent(DataFormats.Text)) { e.CancelCommand(); return; }
             if (!_digitRegex.IsMatch((string)e.DataObject.GetData(DataFormats.Text))) e.CancelCommand();
         }
+
+        [GeneratedRegex(@"^\d+$")]
+        private static partial Regex MyRegex();
     }
 
 }

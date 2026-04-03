@@ -7,7 +7,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.Contexts
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.ViewModel;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
 
     public sealed class FileGeneratorCrudContext : FileGeneratorContext
     {

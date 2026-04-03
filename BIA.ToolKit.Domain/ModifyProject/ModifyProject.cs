@@ -4,7 +4,7 @@ namespace BIA.ToolKit.Domain.ModifyProject
     {
         public ModifyProject()
         {
-            Projects = new List<string>();
+            Projects = [];
             CurrentProject = null;
         }
 

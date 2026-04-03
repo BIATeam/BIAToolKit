@@ -2,7 +2,7 @@ namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel.MicroMvvm;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
@@ -18,9 +18,9 @@ namespace BIA.ToolKit.Application.ViewModel
         /// </summary>
         public OptionGeneratorViewModel()
         {
-            ZipFeatureTypeList = new();
-            Entities = new();
-            EntityDisplayItems = new();
+            ZipFeatureTypeList = [];
+            Entities = [];
+            EntityDisplayItems = [];
         }
 
         #region CurrentProject
@@ -34,7 +34,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 BiaFronts.Clear();
                 if (currentProject != null)
                 {
-                    foreach (var biaFront in currentProject.BIAFronts)
+                    foreach (string biaFront in currentProject.BIAFronts)
                     {
                         BiaFronts.Add(biaFront);
                     }
@@ -67,7 +67,7 @@ namespace BIA.ToolKit.Application.ViewModel
             }
         }
 
-        private ObservableCollection<string> _biaFronts = new();
+        private ObservableCollection<string> _biaFronts = [];
         public ObservableCollection<string> BiaFronts
         {
             get => _biaFronts;
@@ -233,7 +233,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
         #region CheckBox
 
-        public bool IsProjectCompatibleV7 => Version.TryParse(CurrentProject?.FrameworkVersion, out var version) && version.Major >= 7;
+        public bool IsProjectCompatibleV7 => Version.TryParse(CurrentProject?.FrameworkVersion, out Version version) && version.Major >= 7;
 
         private bool _useHubClient;
 

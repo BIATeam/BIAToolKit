@@ -11,7 +11,7 @@ namespace BIA.ToolKit.Common.Helpers
     {
         public static void DeleteEmptyDirectories(string startLocation)
         {
-            foreach (var directory in Directory.GetDirectories(startLocation))
+            foreach (string directory in Directory.GetDirectories(startLocation))
             {
                 DeleteEmptyDirectories(directory);
                 if (IsDirectoryEmpty(directory))

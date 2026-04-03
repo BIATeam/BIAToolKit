@@ -10,14 +10,15 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
     using BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures;
+    using BIA.ToolKit.Domain.ProjectAnalysis;
     using Humanizer;
 
-    public class FeatureMigrationGeneratorService
+    public class FeatureMigrationGeneratorService(IConsoleWriter consoleWriter)
     {
         private class MutedConsoleWriter : IConsoleWriter
         {
@@ -28,12 +29,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         }
 
         private const int REGENERATE_FEATURES_VERSION_MINIMUM = 500;
-        private readonly IConsoleWriter consoleWriter;
-
-        public FeatureMigrationGeneratorService(IConsoleWriter consoleWriter)
-        {
-            this.consoleWriter = consoleWriter;
-        }
+        private readonly IConsoleWriter consoleWriter = consoleWriter;
 
         public static bool IsProjectCompatibleForRegenerateFeatures(Project project)
         {
@@ -80,7 +76,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                 return;
             }
 
-            foreach (var entity in entities
+            foreach (RegenerableEntity entity in entities
                 .Where(e => e.CanSelectEntity)
                 .OrderBy(e => e.LastGenerationDate))
             {
@@ -97,7 +93,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             FileGeneratorService fileGenerator,
             CSharpParserService parserService)
         {
-            var tasks = new List<Task>();
+            _ = new List<Task>();
             if (entity.OptionHistory != null && entity.OptionStatus == RegenerableFeatureStatus.Ready)
             {
                 await TryGenerateOptionAsync(entity.OptionHistory, targetProject, fileGenerator);
@@ -203,7 +199,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     return;
 
                 string dtoFilePath = Path.Combine(currentProject.Folder, Constants.FolderDotNet, history.Mapping.Dto);
-                var classInfo = parserService.CurrentSolutionClasses
+                ClassInfo classInfo = parserService.CurrentSolutionClasses
                     .FirstOrDefault(c => string.Equals(c.FilePath, dtoFilePath, StringComparison.OrdinalIgnoreCase));
 
                 if (classInfo == null)
