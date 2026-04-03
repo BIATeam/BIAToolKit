@@ -222,12 +222,14 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         {
             try
             {
-                if (string.IsNullOrEmpty(entry.EntityNameSingular) || string.IsNullOrEmpty(entry.Domain))
+                // Use the relative entity path stored in the history (set by GetEntitySelectedPath during generation).
+                // This mirrors how CRUD validation uses entry.Mapping.Dto and avoids depending on
+                // project.CompanyName which may not be resolved yet.
+                if (entry.Mapping?.Entity == null)
                     return RegenerableFeatureStatus.Missing;
 
-                string domainFolder = $"{project.CompanyName}.{project.Name}.Domain";
-                string entityPath = Path.Combine(project.Folder, Constants.FolderDotNet, domainFolder, entry.Domain, "Entities", $"{entry.EntityNameSingular}.cs");
-                return File.Exists(entityPath) ? RegenerableFeatureStatus.Ready : RegenerableFeatureStatus.Missing;
+                string filePath = Path.Combine(project.Folder, Constants.FolderDotNet, entry.Mapping.Entity);
+                return File.Exists(filePath) ? RegenerableFeatureStatus.Ready : RegenerableFeatureStatus.Missing;
             }
             catch
             {
@@ -239,17 +241,56 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         {
             try
             {
-                if (string.IsNullOrEmpty(entry.EntityName) || string.IsNullOrEmpty(entry.Domain))
+                if (string.IsNullOrEmpty(entry.EntityName))
                     return RegenerableFeatureStatus.Missing;
 
-                string domainFolder = $"{project.CompanyName}.{project.Name}.Domain";
-                string entityPath = Path.Combine(project.Folder, Constants.FolderDotNet, domainFolder, entry.Domain, "Entities", $"{entry.EntityName}.cs");
+                string entityPath = BuildDtoEntityPath(entry, project);
+                if (entityPath == null)
+                    return RegenerableFeatureStatus.Missing;
+
                 return File.Exists(entityPath) ? RegenerableFeatureStatus.Ready : RegenerableFeatureStatus.Missing;
             }
             catch
             {
                 return RegenerableFeatureStatus.Error;
             }
+        }
+
+        /// <summary>
+        /// Constructs the absolute path to the domain entity file for a DTO generation entry.
+        /// Prefers deriving the path from the stored <see cref="DtoGeneration.EntityNamespace"/>
+        /// (e.g. "Acme.MyApp.Domain.Orders.Entities" → "DotNet/Acme.MyApp.Domain/Orders/Entities/{Name}.cs")
+        /// because it does not depend on <see cref="Project.CompanyName"/> being resolved.
+        /// Falls back to the <see cref="DtoGeneration.Domain"/> field and project metadata when available.
+        /// </summary>
+        private static string BuildDtoEntityPath(DtoGeneration entry, Project project)
+        {
+            if (!string.IsNullOrEmpty(entry.EntityNamespace))
+            {
+                // Namespace: "Acme.MyApp.Domain.Orders.Entities"
+                // → C# project folder: "Acme.MyApp.Domain"  (join all parts up to and including "Domain")
+                // → sub-path:         "Orders/Entities"     (parts after "Domain")
+                string[] parts = entry.EntityNamespace.Split('.');
+                int domainIndex = Array.IndexOf(parts, "Domain");
+                if (domainIndex > 0)
+                {
+                    string domainFolder = string.Join(".", parts[..(domainIndex + 1)]);
+                    string[] subFolders = parts[(domainIndex + 1)..];
+                    string subPath = Path.Combine(subFolders);
+                    return Path.Combine(project.Folder, Constants.FolderDotNet, domainFolder, subPath, $"{entry.EntityName}.cs");
+                }
+            }
+
+            // Fallback: build path using Domain field and project-level company/name info
+            if (!string.IsNullOrEmpty(entry.Domain)
+                && !string.IsNullOrEmpty(project.CompanyName)
+                && !string.IsNullOrEmpty(project.Name))
+            {
+                string domainFolder = $"{project.CompanyName}.{project.Name}.Domain";
+                return Path.Combine(project.Folder, Constants.FolderDotNet, domainFolder, entry.Domain, "Entities", $"{entry.EntityName}.cs");
+            }
+
+            return null;
         }
 
         /// <summary>
