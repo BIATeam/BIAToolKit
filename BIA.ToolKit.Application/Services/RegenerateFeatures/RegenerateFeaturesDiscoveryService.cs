@@ -131,22 +131,25 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                 if (entity.CrudHistory != null && entity.CrudStatus == RegenerableFeatureStatus.Missing
                     && string.IsNullOrEmpty(entity.CrudWarningMessage))
                 {
-                    string relPath = entity.CrudHistory.Mapping?.Dto ?? entity.CrudHistory.EntityNameSingular;
-                    entity.CrudWarningMessage = $"Le fichier modèle '{relPath}' est introuvable dans le projet actuel. La fonctionnalité CRUD ne peut pas être régénérée.";
+                    entity.CrudWarningMessage = entity.CrudHistory.Mapping?.Dto != null
+                        ? $"Le fichier modèle '{entity.CrudHistory.Mapping.Dto}' est introuvable dans le projet actuel. La fonctionnalité CRUD ne peut pas être régénérée."
+                        : "La configuration de l'historique CRUD est incomplète (chemin du DTO manquant). La fonctionnalité CRUD ne peut pas être régénérée.";
                 }
 
                 if (entity.OptionHistory != null && entity.OptionStatus == RegenerableFeatureStatus.Missing
                     && string.IsNullOrEmpty(entity.OptionWarningMessage))
                 {
-                    string relPath = entity.OptionHistory.Mapping?.Entity ?? entity.OptionHistory.EntityNameSingular;
-                    entity.OptionWarningMessage = $"Le fichier modèle '{relPath}' est introuvable dans le projet actuel. La fonctionnalité Option ne peut pas être régénérée.";
+                    entity.OptionWarningMessage = entity.OptionHistory.Mapping?.Entity != null
+                        ? $"Le fichier modèle '{entity.OptionHistory.Mapping.Entity}' est introuvable dans le projet actuel. La fonctionnalité Option ne peut pas être régénérée."
+                        : "La configuration de l'historique Option est incomplète (chemin de l'entité manquant). La fonctionnalité Option ne peut pas être régénérée.";
                 }
 
                 if (entity.DtoHistory != null && entity.DtoStatus == RegenerableFeatureStatus.Missing
                     && string.IsNullOrEmpty(entity.DtoWarningMessage))
                 {
-                    string entityLabel = entity.DtoHistory.EntityName ?? entity.EntityNameSingular;
-                    entity.DtoWarningMessage = $"Le fichier modèle '{entityLabel}.cs' est introuvable dans le projet actuel. La fonctionnalité DTO ne peut pas être régénérée.";
+                    entity.DtoWarningMessage = !string.IsNullOrEmpty(entity.DtoHistory.EntityName)
+                        ? $"Le fichier modèle '{entity.DtoHistory.EntityName}.cs' est introuvable dans le projet actuel. La fonctionnalité DTO ne peut pas être régénérée."
+                        : "La configuration de l'historique DTO est incomplète (nom de l'entité manquant). La fonctionnalité DTO ne peut pas être régénérée.";
                 }
 
                 // 2b — CRUD requires a DTO history entry
