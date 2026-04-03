@@ -127,6 +127,28 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         {
             foreach (RegenerableEntity entity in entities.Values)
             {
+                // 1 — Missing model file warnings (set before cross-entity checks so they can be overridden)
+                if (entity.CrudHistory != null && entity.CrudStatus == RegenerableFeatureStatus.Missing
+                    && string.IsNullOrEmpty(entity.CrudWarningMessage))
+                {
+                    string relPath = entity.CrudHistory.Mapping?.Dto ?? entity.CrudHistory.EntityNameSingular;
+                    entity.CrudWarningMessage = $"Le fichier modèle '{relPath}' est introuvable dans le projet actuel. La fonctionnalité CRUD ne peut pas être régénérée.";
+                }
+
+                if (entity.OptionHistory != null && entity.OptionStatus == RegenerableFeatureStatus.Missing
+                    && string.IsNullOrEmpty(entity.OptionWarningMessage))
+                {
+                    string relPath = entity.OptionHistory.Mapping?.Entity ?? entity.OptionHistory.EntityNameSingular;
+                    entity.OptionWarningMessage = $"Le fichier modèle '{relPath}' est introuvable dans le projet actuel. La fonctionnalité Option ne peut pas être régénérée.";
+                }
+
+                if (entity.DtoHistory != null && entity.DtoStatus == RegenerableFeatureStatus.Missing
+                    && string.IsNullOrEmpty(entity.DtoWarningMessage))
+                {
+                    string entityLabel = entity.DtoHistory.EntityName ?? entity.EntityNameSingular;
+                    entity.DtoWarningMessage = $"Le fichier modèle '{entityLabel}.cs' est introuvable dans le projet actuel. La fonctionnalité DTO ne peut pas être régénérée.";
+                }
+
                 // 2b — CRUD requires a DTO history entry
                 if (entity.CrudHistory != null && entity.DtoHistory == null
                     && entity.CrudStatus == RegenerableFeatureStatus.Ready)
