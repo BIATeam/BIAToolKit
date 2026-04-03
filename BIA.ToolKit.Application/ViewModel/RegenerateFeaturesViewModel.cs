@@ -163,7 +163,8 @@ namespace BIA.ToolKit.Application.ViewModel
         {
             var rowLookup = EntityRows.ToDictionary(r => r.EntityNameSingular, StringComparer.OrdinalIgnoreCase);
 
-            // Safety bound: at most one pass per row (tree depth ≤ entity count)
+            // Safety bound: depth of a valid entity tree is at most EntityRows.Count levels.
+            // The extra + 1 ensures we complete the final stable pass without cutting it short.
             int maxIterations = EntityRows.Count + 1;
             int iterations = 0;
             bool changed = true;
