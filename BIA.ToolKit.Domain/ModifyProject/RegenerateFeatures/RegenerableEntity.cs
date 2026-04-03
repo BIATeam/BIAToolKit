@@ -1,6 +1,7 @@
 namespace BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures
 {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel;
     using System.Runtime.CompilerServices;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
@@ -22,6 +23,33 @@ namespace BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures
         public RegenerableFeatureStatus CrudStatus { get; set; }
         public RegenerableFeatureStatus OptionStatus { get; set; }
         public RegenerableFeatureStatus DtoStatus { get; set; }
+
+        // ── Dependency metadata (populated by coherence checks) ──────────────
+
+        /// <summary>Name of the parent entity, if this entity has a parent/child relationship.</summary>
+        public string ParentEntityName { get; set; }
+
+        /// <summary>
+        /// True when the parent entity is present in the generation history (dynamic blocking applies).
+        /// False when the parent is absent (static blocking via <see cref="RegenerableFeatureStatus.BlockedParentNotMigrated"/> applies).
+        /// </summary>
+        public bool HasParentDependency { get; set; }
+
+        /// <summary>Option entity names referenced by this entity's CRUD or DTO.</summary>
+        public List<string> OptionDependencies { get; set; } = [];
+
+        // ── Warning messages (populated by coherence checks) ─────────────────
+
+        /// <summary>Warning or blocking reason for the CRUD feature. Null when no issue.</summary>
+        public string CrudWarningMessage { get; set; }
+
+        /// <summary>Warning or blocking reason for the DTO feature. Null when no issue.</summary>
+        public string DtoWarningMessage { get; set; }
+
+        /// <summary>Informational warning for option dependencies. Null when no issue.</summary>
+        public string OptionWarningMessage { get; set; }
+
+        // ─────────────────────────────────────────────────────────────────────
 
         public bool IsSelected
         {

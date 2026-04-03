@@ -95,26 +95,41 @@ namespace BIA.ToolKit.Application.ViewModel
         /// <summary>Refresh the summary list of features to regenerate from the current checkbox state.</summary>
         public void RefreshSelectedFeatures()
         {
-            // Unsubscribe previous items before clearing to avoid stale handlers
+            // 1. Re-evaluate dynamic parent-dependency blocking based on current selection
+            RefreshParentDependencyBlocking();
+
+            // 2. Unsubscribe previous items before clearing to avoid stale handlers
             foreach (FeatureRegenerationItem item in SelectedFeatures)
                 item.PropertyChanged -= OnFeatureItemPropertyChanged;
 
             SelectedFeatures.Clear();
 
-            // Ordered by dependency: DTO first, then Option, then CRUD
+            // 3. All selected Options first (alphabetical by entity name)
             foreach (RegenerableEntityRowViewModel row in EntityRows.OrderBy(r => r.EntityNameSingular))
+            {
+                if (row.IsOptionEnabled && row.IsOptionSelected)
+                    SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "Option", row.Entity.OptionHistory?.FrameworkVersion));
+            }
+
+            // 4. Collect rows that have at least one of CRUD or DTO selected
+            List<RegenerableEntityRowViewModel> crudDtoRows = EntityRows
+                .Where(r => (r.IsCrudEnabled && r.IsCrudSelected) || (r.IsDtoEnabled && r.IsDtoSelected))
+                .ToList();
+
+            // 5. Sort them in dependency order (parents before children, alphabetical within same level)
+            IEnumerable<RegenerableEntityRowViewModel> sortedRows = TopologicalSort(crudDtoRows);
+
+            // 6. For each entity in dependency order: DTO first, then CRUD
+            foreach (RegenerableEntityRowViewModel row in sortedRows)
             {
                 if (row.IsDtoEnabled && row.IsDtoSelected)
                     SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "DTO", row.Entity.DtoHistory?.FrameworkVersion));
-
-                if (row.IsOptionEnabled && row.IsOptionSelected)
-                    SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "Option", row.Entity.OptionHistory?.FrameworkVersion));
 
                 if (row.IsCrudEnabled && row.IsCrudSelected)
                     SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "CRUD", row.Entity.CrudHistory?.FrameworkVersion));
             }
 
-            // Subscribe to new items so CanRegenerate updates when user picks a FROM version
+            // 7. Subscribe to new items so CanRegenerate updates when user picks a FROM version
             foreach (FeatureRegenerationItem item in SelectedFeatures)
                 item.PropertyChanged += OnFeatureItemPropertyChanged;
 
@@ -124,13 +139,89 @@ namespace BIA.ToolKit.Application.ViewModel
             RaisePropertyChanged(nameof(SelectedFeatures));
         }
 
+        // ── Private helpers ───────────────────────────────────────────────────
+
+        /// <summary>
+        /// Updates the dynamic parent-blocking state on each child row based on the current
+        /// selection state of their parent row.
+        /// A child's CRUD/DTO is blocked when its parent has enabled-but-unselected features.
+        /// </summary>
+        private void RefreshParentDependencyBlocking()
+        {
+            var rowLookup = EntityRows.ToDictionary(r => r.EntityNameSingular, StringComparer.OrdinalIgnoreCase);
+
+            foreach (RegenerableEntityRowViewModel row in EntityRows)
+            {
+                string parentName = row.Entity.ParentEntityName;
+
+                if (string.IsNullOrEmpty(parentName) || !row.Entity.HasParentDependency)
+                {
+                    // No dynamic parent dependency — clear any previous blocking
+                    row.SetParentBlocking(false, false, null);
+                    continue;
+                }
+
+                if (!rowLookup.TryGetValue(parentName, out RegenerableEntityRowViewModel parentRow))
+                {
+                    // Parent not in displayed rows (e.g. already up to date) — no blocking needed
+                    row.SetParentBlocking(false, false, null);
+                    continue;
+                }
+
+                // Parent is in rows — it must be fully selected (all enabled features selected)
+                bool parentFullySelected =
+                    (!parentRow.IsCrudEnabled || parentRow.IsCrudSelected) &&
+                    (!parentRow.IsDtoEnabled || parentRow.IsDtoSelected);
+
+                if (parentFullySelected)
+                {
+                    row.SetParentBlocking(false, false, null);
+                }
+                else
+                {
+                    string message = $"L'entité parente '{parentName}' doit être entièrement sélectionnée pour migration en premier.";
+                    row.SetParentBlocking(crudBlocked: true, dtoBlocked: true, message: message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the rows sorted in dependency order: parents before their children.
+        /// Rows without a parent (or whose parent is not in the list) appear first, sorted alphabetically.
+        /// </summary>
+        private static IEnumerable<RegenerableEntityRowViewModel> TopologicalSort(List<RegenerableEntityRowViewModel> rows)
+        {
+            var lookup = rows.ToDictionary(r => r.EntityNameSingular, StringComparer.OrdinalIgnoreCase);
+            var result = new List<RegenerableEntityRowViewModel>(rows.Count);
+            var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            void Visit(RegenerableEntityRowViewModel row)
+            {
+                if (visited.Contains(row.EntityNameSingular))
+                    return;
+
+                visited.Add(row.EntityNameSingular);
+
+                // Visit the parent first (if it is among the selected rows)
+                string parentName = row.Entity.ParentEntityName;
+                if (!string.IsNullOrEmpty(parentName) && lookup.TryGetValue(parentName, out RegenerableEntityRowViewModel parentRow))
+                    Visit(parentRow);
+
+                result.Add(row);
+            }
+
+            // Iterate in alphabetical order so siblings appear in a predictable order
+            foreach (RegenerableEntityRowViewModel row in rows.OrderBy(r => r.EntityNameSingular))
+                Visit(row);
+
+            return result;
+        }
+
         private void OnFeatureItemPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(FeatureRegenerationItem.EffectiveFromVersion))
                 RaisePropertyChanged(nameof(CanRegenerate));
         }
-
-        // ── helpers ───────────────────────────────────────────────────────────
 
         private FeatureRegenerationItem BuildItem(string entityName, string featureType, string storedVersion)
         {

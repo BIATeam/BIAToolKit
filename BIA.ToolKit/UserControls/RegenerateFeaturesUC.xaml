@@ -82,29 +82,56 @@
                                                       IsChecked="{Binding IsEntitySelected}"
                                                       VerticalAlignment="Center"/>
 
-                                            <!-- CRUD checkbox -->
-                                            <CheckBox Grid.Column="1"
-                                                      HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                      Foreground="White"
-                                                      IsChecked="{Binding IsCrudSelected, Mode=TwoWay}"
-                                                      IsEnabled="{Binding IsCrudEnabled}"
-                                                      Visibility="{Binding HasCrud, Converter={StaticResource BoolToVisConverter}}"/>
+                                            <!-- CRUD checkbox + warning icon -->
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                        Visibility="{Binding HasCrud, Converter={StaticResource BoolToVisConverter}}">
+                                                <CheckBox Foreground="White"
+                                                          IsChecked="{Binding IsCrudSelected, Mode=TwoWay}"
+                                                          IsEnabled="{Binding IsCrudEnabled}"
+                                                          VerticalAlignment="Center"/>
+                                                <TextBlock Text="⚠" Foreground="Orange" FontSize="13" Margin="3,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           Visibility="{Binding HasCrudWarning, Converter={StaticResource BoolToVisConverter}}">
+                                                    <TextBlock.ToolTip>
+                                                        <ToolTip Content="{Binding CrudWarningMessage}" MaxWidth="350"/>
+                                                    </TextBlock.ToolTip>
+                                                </TextBlock>
+                                            </StackPanel>
 
-                                            <!-- Option checkbox -->
-                                            <CheckBox Grid.Column="2"
-                                                      HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                      Foreground="White"
-                                                      IsChecked="{Binding IsOptionSelected, Mode=TwoWay}"
-                                                      IsEnabled="{Binding IsOptionEnabled}"
-                                                      Visibility="{Binding HasOption, Converter={StaticResource BoolToVisConverter}}"/>
+                                            <!-- Option checkbox + warning icon -->
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                        Visibility="{Binding HasOption, Converter={StaticResource BoolToVisConverter}}">
+                                                <CheckBox Foreground="White"
+                                                          IsChecked="{Binding IsOptionSelected, Mode=TwoWay}"
+                                                          IsEnabled="{Binding IsOptionEnabled}"
+                                                          VerticalAlignment="Center"/>
+                                                <TextBlock Text="⚠" Foreground="Orange" FontSize="13" Margin="3,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           Visibility="{Binding HasOptionWarning, Converter={StaticResource BoolToVisConverter}}">
+                                                    <TextBlock.ToolTip>
+                                                        <ToolTip Content="{Binding OptionWarningMessage}" MaxWidth="350"/>
+                                                    </TextBlock.ToolTip>
+                                                </TextBlock>
+                                            </StackPanel>
 
-                                            <!-- DTO checkbox -->
-                                            <CheckBox Grid.Column="3"
-                                                      HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                      Foreground="White"
-                                                      IsChecked="{Binding IsDtoSelected, Mode=TwoWay}"
-                                                      IsEnabled="{Binding IsDtoEnabled}"
-                                                      Visibility="{Binding HasDto, Converter={StaticResource BoolToVisConverter}}"/>
+                                            <!-- DTO checkbox + warning icon -->
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                        Visibility="{Binding HasDto, Converter={StaticResource BoolToVisConverter}}">
+                                                <CheckBox Foreground="White"
+                                                          IsChecked="{Binding IsDtoSelected, Mode=TwoWay}"
+                                                          IsEnabled="{Binding IsDtoEnabled}"
+                                                          VerticalAlignment="Center"/>
+                                                <TextBlock Text="⚠" Foreground="Orange" FontSize="13" Margin="3,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           Visibility="{Binding HasDtoWarning, Converter={StaticResource BoolToVisConverter}}">
+                                                    <TextBlock.ToolTip>
+                                                        <ToolTip Content="{Binding DtoWarningMessage}" MaxWidth="350"/>
+                                                    </TextBlock.ToolTip>
+                                                </TextBlock>
+                                            </StackPanel>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
