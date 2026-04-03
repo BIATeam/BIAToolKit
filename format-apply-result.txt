@@ -1,1 +1,0 @@
-Des avertissements ont été rencontrés pendant le chargement de l'espace de travail. Définissez l'option verbosity sur le niveau « diagnostic » pour journaliser les avertissements.
