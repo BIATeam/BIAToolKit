@@ -247,7 +247,7 @@ namespace BIA.ToolKit.UserControls
 
             bool includeCrud = feature.FeatureType == "CRUD" && row.IsCrudEnabled;
             bool includeOption = feature.FeatureType == "Option" && row.IsOptionEnabled;
-            bool includeDto = feature.FeatureType == "DTO" && row.IsDtoEnabled;
+            bool includeDto = feature.FeatureType == "DTO" && row.Entity.CanRegenerateDto;
 
             if (!includeCrud && !includeOption && !includeDto) return null;
 
