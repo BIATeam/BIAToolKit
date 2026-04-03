@@ -300,6 +300,16 @@ namespace BIA.ToolKit.UserControls
                             if (entry != null)
                             {
                                 entry.FrameworkVersion = currentProject.FrameworkVersion;
+
+                                // Back-populate EntityNamespace for older history entries that predate the fix.
+                                // Once set, future discovery will use the fast namespace-based path resolution.
+                                if (string.IsNullOrEmpty(entry.EntityNamespace))
+                                {
+                                    string ns = discoveryService.ResolveOptionEntityNamespace(entry, currentProject);
+                                    if (!string.IsNullOrEmpty(ns))
+                                        entry.EntityNamespace = ns;
+                                }
+
                                 CommonTools.SerializeToJsonFile(history, historyFile);
                             }
                             break;

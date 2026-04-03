@@ -247,11 +247,9 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         {
             try
             {
+                // BuildOptionEntityPath returns null when no existing file was found
                 string entityPath = BuildOptionEntityPath(entry, project);
-                if (entityPath == null)
-                    return RegenerableFeatureStatus.Missing;
-
-                return File.Exists(entityPath) ? RegenerableFeatureStatus.Ready : RegenerableFeatureStatus.Missing;
+                return entityPath != null ? RegenerableFeatureStatus.Ready : RegenerableFeatureStatus.Missing;
             }
             catch
             {
@@ -281,18 +279,19 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         /// <summary>
         /// Constructs the absolute path to the domain entity file for an Option generation entry.
         /// <para>
-        /// Prefers deriving the path from the stored <see cref="OptionGenerationHistory.EntityNamespace"/>
+        /// Tier 1: derives the path from the stored <see cref="OptionGenerationHistory.EntityNamespace"/>
         /// (e.g. "Acme.MyApp.Domain.Planes.Entities" → "DotNet/Acme.MyApp.Domain/Planes/Entities/{Name}.cs")
         /// because it does not depend on <see cref="Project.CompanyName"/> being resolved.
-        /// Falls back to the <see cref="OptionGenerationHistory.Domain"/> field and project metadata when available.
-        /// For backward compatibility with older histories that stored a relative file path in
-        /// <see cref="EntityMapping.Entity"/>, that value is tried as the second fallback when it
-        /// looks like a path (contains a directory separator or ends with ".cs").
+        /// Tier 2 (fallback for older histories without EntityNamespace): searches
+        /// <see cref="Project.ProjectFiles"/> for a <c>{EntityNameSingular}.cs</c> file located under
+        /// the DotNet Domain project folder (the first-level subdirectory of DotNet whose name ends with
+        /// ".Domain"), thus working without any project-level metadata.
         /// </para>
+        /// Returns <see langword="null"/> when no existing file can be located.
         /// </summary>
         private static string BuildOptionEntityPath(OptionGenerationHistory entry, Project project)
         {
-            // 1. Use EntityNamespace if present (stored since the fix — mirrors DTO primary path)
+            // Tier 1 — use EntityNamespace when present (populated by all generations after the fix)
             if (!string.IsNullOrEmpty(entry.EntityNamespace))
             {
                 string[] parts = entry.EntityNamespace.Split('.');
@@ -302,29 +301,83 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     string domainFolder = string.Join(".", parts[..(domainIndex + 1)]);
                     string[] subFolders = parts[(domainIndex + 1)..];
                     string subPath = Path.Combine(subFolders);
-                    return Path.Combine(project.Folder, Constants.FolderDotNet, domainFolder, subPath, $"{entry.EntityNameSingular}.cs");
+                    string path = Path.Combine(project.Folder, Constants.FolderDotNet, domainFolder, subPath, $"{entry.EntityNameSingular}.cs");
+                    if (File.Exists(path))
+                        return path;
+                    // EntityNamespace stored but file not found — fall through to project-files search
                 }
             }
 
-            // 2. Backward compat: if Mapping.Entity looks like a relative path, use it directly
-            if (entry.Mapping?.Entity != null
-                && (entry.Mapping.Entity.Contains(Path.DirectorySeparatorChar)
-                    || entry.Mapping.Entity.Contains('/')
-                    || entry.Mapping.Entity.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)))
-            {
-                return Path.Combine(project.Folder, Constants.FolderDotNet, entry.Mapping.Entity);
-            }
+            // Tier 2 — search project files for the entity .cs file in the Domain project folder
+            return FindOptionEntityInProjectFiles(entry, project);
+        }
 
-            // 3. Fallback: build path using Domain field and project-level company/name info
-            if (!string.IsNullOrEmpty(entry.Domain)
-                && !string.IsNullOrEmpty(entry.EntityNameSingular)
-                && !string.IsNullOrEmpty(project.CompanyName)
-                && !string.IsNullOrEmpty(project.Name))
-            {
-                string domainFolder = $"{project.CompanyName}.{project.Name}.Domain";
-                return Path.Combine(project.Folder, Constants.FolderDotNet, domainFolder, entry.Domain, "Entities", $"{entry.EntityNameSingular}.cs");
-            }
+        /// <summary>
+        /// Searches <see cref="Project.ProjectFiles"/> for a .cs file named
+        /// <c>{entry.EntityNameSingular}.cs</c> that lives inside the DotNet Domain project folder
+        /// (the first-level subdirectory of DotNet whose name ends with exactly ".Domain",
+        /// e.g. "Acme.MyApp.Domain", excluding ".Domain.Dto", ".Domain.DataAccess", etc.).
+        /// Returns the full absolute path when found, or <see langword="null"/> otherwise.
+        /// </summary>
+        private static string FindOptionEntityInProjectFiles(OptionGenerationHistory entry, Project project)
+        {
+            if (string.IsNullOrEmpty(entry.EntityNameSingular) || project.ProjectFiles == null)
+                return null;
 
+            string targetFileName = $"{entry.EntityNameSingular}.cs";
+            string dotNetFolder = Path.Combine(project.Folder, Constants.FolderDotNet);
+            string dotNetPrefix = dotNetFolder + Path.DirectorySeparatorChar;
+
+            return project.ProjectFiles.FirstOrDefault(filePath =>
+                Path.GetFileName(filePath).Equals(targetFileName, StringComparison.OrdinalIgnoreCase)
+                && filePath.StartsWith(dotNetPrefix, StringComparison.OrdinalIgnoreCase)
+                && IsInDomainProject(filePath, dotNetPrefix));
+        }
+
+        /// <summary>
+        /// Returns <see langword="true"/> when <paramref name="filePath"/> resides in a C# project
+        /// folder whose name ends with exactly ".Domain" (e.g. "Acme.MyApp.Domain") directly under
+        /// the DotNet folder, excluding companion projects such as ".Domain.Dto", ".Domain.DataAccess".
+        /// </summary>
+        private static bool IsInDomainProject(string filePath, string dotNetPrefix)
+        {
+            string relativeToDotNet = filePath[dotNetPrefix.Length..];
+            int separatorIndex = relativeToDotNet.IndexOf(Path.DirectorySeparatorChar);
+            if (separatorIndex < 0) return false;
+            string projectFolderName = relativeToDotNet[..separatorIndex];
+            return projectFolderName.EndsWith(".Domain", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Searches the project files for the option entity .cs file (using the same strategy as
+        /// <see cref="BuildOptionEntityPath"/>) and reads its C# namespace declaration.
+        /// Returns <see langword="null"/> when the file cannot be found or has no namespace.
+        /// Used to back-populate <see cref="OptionGenerationHistory.EntityNamespace"/> in older
+        /// history entries after a successful feature migration.
+        /// </summary>
+        public string ResolveOptionEntityNamespace(OptionGenerationHistory entry, Project project)
+        {
+            string entityPath = FindOptionEntityInProjectFiles(entry, project);
+            return entityPath != null ? ReadNamespaceFromCsFile(entityPath) : null;
+        }
+
+        /// <summary>
+        /// Reads the first <c>namespace</c> declaration from a C# source file and returns it.
+        /// Handles both block-scoped (<c>namespace Foo { }</c>) and file-scoped (<c>namespace Foo;</c>) forms.
+        /// Returns <see langword="null"/> when no namespace line is found.
+        /// </summary>
+        private static string ReadNamespaceFromCsFile(string filePath)
+        {
+            try
+            {
+                foreach (string line in File.ReadLines(filePath))
+                {
+                    string trimmed = line.Trim();
+                    if (trimmed.StartsWith("namespace ", StringComparison.Ordinal))
+                        return trimmed["namespace ".Length..].TrimEnd('{', ';', ' ');
+                }
+            }
+            catch { }
             return null;
         }
 
