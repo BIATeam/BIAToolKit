@@ -69,7 +69,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                 BIAFronts = [.. currentProject.BIAFronts],
             };
 
-            var fileGenerator = new FileGeneratorService(new MutedConsoleWriter());
+            var fileGenerator = new FileGeneratorService(consoleWriter);
             await fileGenerator.Init(targetProject, fromUnitTest: false);
 
             if (!fileGenerator.IsInit)

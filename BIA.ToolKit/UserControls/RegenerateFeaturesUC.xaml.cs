@@ -227,6 +227,15 @@ namespace BIA.ToolKit.UserControls
                 if (hasDiff)
                 {
                     await gitService.ApplyDiff(false, currentProject.Folder, patchFilePath);
+                    await gitService.MergeRejected(false, new GitService.MergeParameter()
+                    {
+                        ProjectPath = currentProject.Folder,
+                        ProjectOriginPath = fromPath,
+                        ProjectOriginVersion = fromWorkRepo.Version,
+                        ProjectTargetPath = toPath,
+                        ProjectTargetVersion = toWorkRepo.Version,
+                        MigrationPatchFilePath = patchFilePath
+                    }); ;
                 }
 
                 // Update framework version in history for each feature in this group
