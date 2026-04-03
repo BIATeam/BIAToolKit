@@ -132,24 +132,24 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     && string.IsNullOrEmpty(entity.CrudWarningMessage))
                 {
                     entity.CrudWarningMessage = entity.CrudHistory.Mapping?.Dto != null
-                        ? $"Le fichier modèle '{entity.CrudHistory.Mapping.Dto}' est introuvable dans le projet actuel. La fonctionnalité CRUD ne peut pas être régénérée."
-                        : "La configuration de l'historique CRUD est incomplète (chemin du DTO manquant). La fonctionnalité CRUD ne peut pas être régénérée.";
+                        ? $"The model file '{entity.CrudHistory.Mapping.Dto}' was not found in the current project. The CRUD feature cannot be regenerated."
+                        : "The CRUD generation history is incomplete (missing DTO path). The CRUD feature cannot be regenerated.";
                 }
 
                 if (entity.OptionHistory != null && entity.OptionStatus == RegenerableFeatureStatus.Missing
                     && string.IsNullOrEmpty(entity.OptionWarningMessage))
                 {
-                    entity.OptionWarningMessage = entity.OptionHistory.Mapping?.Entity != null
-                        ? $"Le fichier modèle '{entity.OptionHistory.Mapping.Entity}' est introuvable dans le projet actuel. La fonctionnalité Option ne peut pas être régénérée."
-                        : "La configuration de l'historique Option est incomplète (chemin de l'entité manquant). La fonctionnalité Option ne peut pas être régénérée.";
+                    entity.OptionWarningMessage = !string.IsNullOrEmpty(entity.OptionHistory.EntityNameSingular)
+                        ? $"The model file '{entity.OptionHistory.EntityNameSingular}.cs' was not found in the current project. The Option feature cannot be regenerated."
+                        : "The Option generation history is incomplete (missing entity name). The Option feature cannot be regenerated.";
                 }
 
                 if (entity.DtoHistory != null && entity.DtoStatus == RegenerableFeatureStatus.Missing
                     && string.IsNullOrEmpty(entity.DtoWarningMessage))
                 {
                     entity.DtoWarningMessage = !string.IsNullOrEmpty(entity.DtoHistory.EntityName)
-                        ? $"Le fichier modèle '{entity.DtoHistory.EntityName}.cs' est introuvable dans le projet actuel. La fonctionnalité DTO ne peut pas être régénérée."
-                        : "La configuration de l'historique DTO est incomplète (nom de l'entité manquant). La fonctionnalité DTO ne peut pas être régénérée.";
+                        ? $"The model file '{entity.DtoHistory.EntityName}.cs' was not found in the current project. The DTO feature cannot be regenerated."
+                        : "The DTO generation history is incomplete (missing entity name). The DTO feature cannot be regenerated.";
                 }
 
                 // 2b — CRUD requires a DTO history entry
@@ -157,7 +157,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     && entity.CrudStatus == RegenerableFeatureStatus.Ready)
                 {
                     entity.CrudStatus = RegenerableFeatureStatus.BlockedNoDtoHistory;
-                    entity.CrudWarningMessage = "Le DTO correspondant n'existe pas dans l'historique de génération. Le CRUD ne peut pas être migré sans son DTO.";
+                    entity.CrudWarningMessage = "The corresponding DTO does not exist in the generation history. The CRUD feature cannot be regenerated without its DTO.";
                 }
 
                 // 2c — Parent/child: check whether the parent entity exists in history
@@ -171,7 +171,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     else
                     {
                         // Parent absent from history — static blocking
-                        string missingParentMsg = $"L'entité parente '{entity.ParentEntityName}' n'est pas présente dans l'historique de génération.";
+                        string missingParentMsg = $"The parent entity '{entity.ParentEntityName}' is not present in the generation history.";
 
                         if (entity.CrudStatus == RegenerableFeatureStatus.Ready)
                         {
@@ -200,7 +200,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     if (missingOptions.Count > 0)
                     {
                         entity.OptionWarningMessage =
-                            $"Les options suivantes ne seront pas migrées automatiquement car elles ne sont pas dans l'historique : {string.Join(", ", missingOptions)}.";
+                            $"The following options will not be automatically migrated as they are not present in the history: {string.Join(", ", missingOptions)}.";
                     }
                 }
             }
@@ -247,14 +247,11 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         {
             try
             {
-                // Use the relative entity path stored in the history (set by GetEntitySelectedPath during generation).
-                // This mirrors how CRUD validation uses entry.Mapping.Dto and avoids depending on
-                // project.CompanyName which may not be resolved yet.
-                if (entry.Mapping?.Entity == null)
+                string entityPath = BuildOptionEntityPath(entry, project);
+                if (entityPath == null)
                     return RegenerableFeatureStatus.Missing;
 
-                string filePath = Path.Combine(project.Folder, Constants.FolderDotNet, entry.Mapping.Entity);
-                return File.Exists(filePath) ? RegenerableFeatureStatus.Ready : RegenerableFeatureStatus.Missing;
+                return File.Exists(entityPath) ? RegenerableFeatureStatus.Ready : RegenerableFeatureStatus.Missing;
             }
             catch
             {
@@ -279,6 +276,26 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             {
                 return RegenerableFeatureStatus.Error;
             }
+        }
+
+        /// <summary>
+        /// Constructs the absolute path to the domain entity file for an Option generation entry.
+        /// Option entity files live under:
+        ///   DotNet/{CompanyName}.{ProjectName}.Domain/{DomainName}/Entities/{EntityNameSingular}.cs
+        /// which mirrors the DTO fallback path used by <see cref="BuildDtoEntityPath"/>.
+        /// </summary>
+        private static string BuildOptionEntityPath(OptionGenerationHistory entry, Project project)
+        {
+            if (!string.IsNullOrEmpty(entry.Domain)
+                && !string.IsNullOrEmpty(entry.EntityNameSingular)
+                && !string.IsNullOrEmpty(project.CompanyName)
+                && !string.IsNullOrEmpty(project.Name))
+            {
+                string domainFolder = $"{project.CompanyName}.{project.Name}.Domain";
+                return Path.Combine(project.Folder, Constants.FolderDotNet, domainFolder, entry.Domain, "Entities", $"{entry.EntityNameSingular}.cs");
+            }
+
+            return null;
         }
 
         /// <summary>

@@ -94,7 +94,7 @@
                                                            VerticalAlignment="Center"
                                                            Visibility="{Binding HasCrudWarning, Converter={StaticResource BoolToVisConverter}}">
                                                     <TextBlock.ToolTip>
-                                                        <ToolTip Content="{Binding CrudWarningMessage}" MaxWidth="350"/>
+                                                        <ToolTip MaxWidth="400"><TextBlock Text="{Binding CrudWarningMessage}" TextWrapping="Wrap"/></ToolTip>
                                                     </TextBlock.ToolTip>
                                                 </TextBlock>
                                             </StackPanel>
@@ -111,7 +111,7 @@
                                                            VerticalAlignment="Center"
                                                            Visibility="{Binding HasOptionWarning, Converter={StaticResource BoolToVisConverter}}">
                                                     <TextBlock.ToolTip>
-                                                        <ToolTip Content="{Binding OptionWarningMessage}" MaxWidth="350"/>
+                                                        <ToolTip MaxWidth="400"><TextBlock Text="{Binding OptionWarningMessage}" TextWrapping="Wrap"/></ToolTip>
                                                     </TextBlock.ToolTip>
                                                 </TextBlock>
                                             </StackPanel>
@@ -128,7 +128,7 @@
                                                            VerticalAlignment="Center"
                                                            Visibility="{Binding HasDtoWarning, Converter={StaticResource BoolToVisConverter}}">
                                                     <TextBlock.ToolTip>
-                                                        <ToolTip Content="{Binding DtoWarningMessage}" MaxWidth="350"/>
+                                                        <ToolTip MaxWidth="400"><TextBlock Text="{Binding DtoWarningMessage}" TextWrapping="Wrap"/></ToolTip>
                                                     </TextBlock.ToolTip>
                                                 </TextBlock>
                                             </StackPanel>
