@@ -155,8 +155,12 @@ namespace BIA.ToolKit.Application.ViewModel
         // ── Private helpers ───────────────────────────────────────────────────
 
         /// <summary>
-        /// Cascades parent entity selection upward: when a child entity has any features selected,
-        /// its parent entity (if present in the displayed rows) is automatically selected too.
+        /// Cascades parent entity selection upward when a child entity has features selected:
+        /// <list type="bullet">
+        ///   <item>Child CRUD selected → auto-select parent CRUD (which mechanically forces parent DTO too).</item>
+        ///   <item>Child DTO selected (without CRUD) → auto-select parent DTO only.</item>
+        ///   <item>Child Option selected → no parent cascade needed (options are independent).</item>
+        /// </list>
         /// Iterates until the selection state is stable (handles multi-level hierarchies).
         /// </summary>
         private void SynchronizeParentChildSelection()
@@ -181,15 +185,17 @@ namespace BIA.ToolKit.Application.ViewModel
                     if (!rowLookup.TryGetValue(childRow.Entity.ParentEntityName, out RegenerableEntityRowViewModel parentRow))
                         continue;
 
-                    // If the child has any selected features → ensure the parent is also selected
-                    bool childHasSelection = childRow.IsCrudSelected || childRow.IsOptionSelected || childRow.IsDtoSelected;
-                    bool parentHasSelection = parentRow.IsCrudSelected || parentRow.IsOptionSelected || parentRow.IsDtoSelected;
-
-                    if (childHasSelection && !parentHasSelection)
+                    // Child CRUD selected → auto-select parent CRUD (which also auto-locks parent DTO via the CRUD→DTO coupling).
+                    if (childRow.IsCrudSelected && parentRow.IsCrudEnabled && !parentRow.IsCrudSelected)
                     {
-                        // Auto-select the parent entity. The SelectionChanged event it fires will be
-                        // suppressed by the isRefreshing guard.
-                        parentRow.IsEntitySelected = true;
+                        parentRow.IsCrudSelected = true;
+                        changed = true;
+                    }
+                    // Child DTO selected (with or without child CRUD) → auto-select parent DTO if not already selected.
+                    // (When parent CRUD is already selected, parent DTO is already locked-on, so this is a no-op.)
+                    else if (childRow.IsDtoSelected && parentRow.Entity.CanRegenerateDto && !parentRow.IsDtoSelected)
+                    {
+                        parentRow.IsDtoSelected = true;
                         changed = true;
                     }
                 }

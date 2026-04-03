@@ -280,12 +280,42 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
 
         /// <summary>
         /// Constructs the absolute path to the domain entity file for an Option generation entry.
-        /// Option entity files live under:
-        ///   DotNet/{CompanyName}.{ProjectName}.Domain/{DomainName}/Entities/{EntityNameSingular}.cs
-        /// which mirrors the DTO fallback path used by <see cref="BuildDtoEntityPath"/>.
+        /// <para>
+        /// Prefers deriving the path from the stored <see cref="OptionGenerationHistory.EntityNamespace"/>
+        /// (e.g. "Acme.MyApp.Domain.Planes.Entities" → "DotNet/Acme.MyApp.Domain/Planes/Entities/{Name}.cs")
+        /// because it does not depend on <see cref="Project.CompanyName"/> being resolved.
+        /// Falls back to the <see cref="OptionGenerationHistory.Domain"/> field and project metadata when available.
+        /// For backward compatibility with older histories that stored a relative file path in
+        /// <see cref="EntityMapping.Entity"/>, that value is tried as the second fallback when it
+        /// looks like a path (contains a directory separator or ends with ".cs").
+        /// </para>
         /// </summary>
         private static string BuildOptionEntityPath(OptionGenerationHistory entry, Project project)
         {
+            // 1. Use EntityNamespace if present (stored since the fix — mirrors DTO primary path)
+            if (!string.IsNullOrEmpty(entry.EntityNamespace))
+            {
+                string[] parts = entry.EntityNamespace.Split('.');
+                int domainIndex = Array.IndexOf(parts, "Domain");
+                if (domainIndex > 0)
+                {
+                    string domainFolder = string.Join(".", parts[..(domainIndex + 1)]);
+                    string[] subFolders = parts[(domainIndex + 1)..];
+                    string subPath = Path.Combine(subFolders);
+                    return Path.Combine(project.Folder, Constants.FolderDotNet, domainFolder, subPath, $"{entry.EntityNameSingular}.cs");
+                }
+            }
+
+            // 2. Backward compat: if Mapping.Entity looks like a relative path, use it directly
+            if (entry.Mapping?.Entity != null
+                && (entry.Mapping.Entity.Contains(Path.DirectorySeparatorChar)
+                    || entry.Mapping.Entity.Contains('/')
+                    || entry.Mapping.Entity.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)))
+            {
+                return Path.Combine(project.Folder, Constants.FolderDotNet, entry.Mapping.Entity);
+            }
+
+            // 3. Fallback: build path using Domain field and project-level company/name info
             if (!string.IsNullOrEmpty(entry.Domain)
                 && !string.IsNullOrEmpty(entry.EntityNameSingular)
                 && !string.IsNullOrEmpty(project.CompanyName)
