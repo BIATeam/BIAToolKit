@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services
+namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Domain;
@@ -9,21 +9,15 @@
     using System.Linq;
     using System.Xml.Linq;
 
-    public class SettingsService
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    public class SettingsService(IConsoleWriter consoleWriter, UIEventBroker eventBroker)
     {
-        private readonly IConsoleWriter consoleWriter;
-        private readonly UIEventBroker eventBroker;
+        private readonly IConsoleWriter consoleWriter = consoleWriter;
+        private readonly UIEventBroker eventBroker = eventBroker;
         private BIATKSettings settings = new();
         public IBIATKSettings Settings => settings;
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public SettingsService(IConsoleWriter consoleWriter, UIEventBroker eventBroker)
-        {
-            this.consoleWriter = consoleWriter;
-            this.eventBroker = eventBroker;
-        }
 
         /// <summary>
         /// Read App.config file and get value corresponding to "key".
@@ -87,7 +81,7 @@
             ExecuteAndNotifySettingsUpdated(() =>
             {
                 settings.TemplateRepositories = repositories;
-                settings.TemplateRepositoriesConfig = repositories.Select(r => r.ToRepositoryConfig()).ToList();
+                settings.TemplateRepositoriesConfig = [.. repositories.Select(r => r.ToRepositoryConfig())];
             });
         }
 
@@ -96,7 +90,7 @@
             ExecuteAndNotifySettingsUpdated(() =>
             {
                 settings.CompanyFilesRepositories = repositories;
-                settings.CompanyFilesRepositoriesConfig = repositories.Select(r => r.ToRepositoryConfig()).ToList();
+                settings.CompanyFilesRepositoriesConfig = [.. repositories.Select(r => r.ToRepositoryConfig())];
             });
         }
 

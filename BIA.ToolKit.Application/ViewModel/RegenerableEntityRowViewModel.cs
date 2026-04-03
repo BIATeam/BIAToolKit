@@ -8,7 +8,7 @@ namespace BIA.ToolKit.Application.ViewModel
     /// ViewModel row representing one entity and its regenerable features (CRUD, Option, DTO)
     /// for the RegenerateFeatures tab.
     /// </summary>
-    public class RegenerableEntityRowViewModel : INotifyPropertyChanged
+    public class RegenerableEntityRowViewModel(RegenerableEntity entity) : INotifyPropertyChanged
     {
         private bool isCrudSelected;
         private bool isOptionSelected;
@@ -17,7 +17,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public RegenerableEntity Entity { get; }
+        public RegenerableEntity Entity { get; } = entity;
 
         public string EntityNameSingular => Entity.EntityNameSingular;
         public string EntityNamePlural => Entity.EntityNamePlural;
@@ -100,11 +100,6 @@ namespace BIA.ToolKit.Application.ViewModel
 
         /// <summary>Raised when any per-feature selection changes so the parent VM can refresh the summary.</summary>
         public event System.EventHandler SelectionChanged;
-
-        public RegenerableEntityRowViewModel(RegenerableEntity entity)
-        {
-            Entity = entity;
-        }
 
         private void OnFeatureSelectionChanged()
         {

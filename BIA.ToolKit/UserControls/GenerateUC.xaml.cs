@@ -20,7 +20,7 @@ namespace BIA.ToolKit.UserControls
             SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
         {
             // DataContext = ProjectViewModel so tab IsEnabled bindings resolve directly.
-            this.DataContext = projectViewModel;
+            DataContext = projectViewModel;
 
             ProjectSelector.Inject(projectViewModel);
 

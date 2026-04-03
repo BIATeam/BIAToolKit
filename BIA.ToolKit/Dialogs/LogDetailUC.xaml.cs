@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Dialogs
+namespace BIA.ToolKit.Dialogs
 {
     using BIA.ToolKit.Helper;
     using System;
@@ -20,7 +20,7 @@
     /// </summary>
     public partial class LogDetailUC : Window
     {
-        List<ConsoleWriter.Message> Messages = new List<ConsoleWriter.Message>();
+        List<ConsoleWriter.Message> Messages = [];
         public LogDetailUC()
         {
             InitializeComponent();

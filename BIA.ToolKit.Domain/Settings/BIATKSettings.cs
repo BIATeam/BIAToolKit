@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.Settings
+namespace BIA.ToolKit.Domain.Settings
 {
     using System;
     using System.Collections.Generic;
@@ -27,8 +27,8 @@
         public void InitRepositoriesInterfaces()
         {
             ToolkitRepository = ToolkitRepositoryConfig.ToRepository();
-            TemplateRepositories = TemplateRepositoriesConfig.Select(x => x.ToRepository()).ToList();
-            CompanyFilesRepositories = CompanyFilesRepositoriesConfig.Select(x => x.ToRepository()).ToList();
+            TemplateRepositories = [.. TemplateRepositoriesConfig.Select(x => x.ToRepository())];
+            CompanyFilesRepositories = [.. CompanyFilesRepositoriesConfig.Select(x => x.ToRepository())];
         }
     }
 }

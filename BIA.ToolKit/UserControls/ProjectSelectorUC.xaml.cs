@@ -27,7 +27,7 @@ namespace BIA.ToolKit.UserControls
         public void Inject(ProjectViewModel vm)
         {
             viewModel = vm;
-            this.DataContext = vm;
+            DataContext = vm;
         }
 
         private void BrowseRootFolder_Click(object sender, System.Windows.RoutedEventArgs e)

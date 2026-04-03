@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit
+namespace BIA.ToolKit
 {
     using BIA.ToolKit.Helper;
     using System.IO;
@@ -65,7 +65,7 @@
             this.fileGeneratorService = fileGeneratorService;
             this.uiEventBroker = uiEventBroker;
             this.updateService = updateService;
-            this.generateFilesService = genFilesService;
+            generateFilesService = genFilesService;
 
             uiEventBroker.OnExecuteActionWithWaiterAsyncRequest += async (action) => await ExecuteTaskWithWaiterAsync(action);
 
@@ -74,7 +74,7 @@
             CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
             projectViewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
             ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, uiEventBroker, regenerateFeaturesDiscoveryService, featureMigrationGeneratorService, projectViewModel);
+                projectCreatorService, settingsService, uiEventBroker, regenerateFeaturesDiscoveryService, featureMigrationGeneratorService, projectViewModel);
             GenerateProject.Inject(projectViewModel, cSharpParserService, zipParserService, crudService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
@@ -183,7 +183,7 @@
 
         private async Task GetReleasesData(BIATKSettings settings, bool syncBefore = false)
         {
-            var fillReleasesTasks = settings.TemplateRepositories
+            IEnumerable<Task> fillReleasesTasks = settings.TemplateRepositories
                 .Concat(settings.CompanyFilesRepositories)
                 .Where(r => r.UseRepository)
                 .Select(async (r) =>
@@ -210,7 +210,7 @@
                         consoleWriter.AddMessageLine($"Getting releases data for repository {r.Name}...", "pink");
                         await r.FillReleasesAsync();
                         consoleWriter.AddMessageLine($"Releases data got successfully for repository {r.Name}", "green");
-                        if(r.UseDownloadedReleases)
+                        if (r.UseDownloadedReleases)
                         {
                             consoleWriter.AddMessageLine($"WARNING: Releases data got from downloaded releases for repository {r.Name}", "orange");
                         }
@@ -245,8 +245,8 @@
 
         public bool EnsureValidRepositoriesConfiguration()
         {
-            var templatesConfigurationValid = CheckTemplateRepositoriesConfiguration();
-            var companyFilesConfigurationValid = CheckCompanyFilesRepositoriesConfiguration();
+            bool templatesConfigurationValid = CheckTemplateRepositoriesConfiguration();
+            bool companyFilesConfigurationValid = CheckCompanyFilesRepositoriesConfiguration();
             return templatesConfigurationValid && companyFilesConfigurationValid;
         }
 
@@ -270,15 +270,15 @@
             return true;
         }
 
-        public bool CheckTemplateRepositories(IBIATKSettings biaTKsettings)
+        public bool CheckTemplateRepositories(IBIATKSettings settings)
         {
-            if (!biaTKsettings.TemplateRepositories.Where(r => r.UseRepository).Any())
+            if (!settings.TemplateRepositories.Where(r => r.UseRepository).Any())
             {
                 consoleWriter.AddMessageLine("You must use at least one Templates repository", "red");
                 return false;
             }
 
-            foreach (var repository in biaTKsettings.TemplateRepositories.Where(r => r.UseRepository))
+            foreach (IRepository repository in settings.TemplateRepositories.Where(r => r.UseRepository))
             {
                 if (!repositoryService.CheckRepoFolder(repository))
                 {
@@ -286,8 +286,8 @@
                 }
             }
 
-            var repositoryVersionXYZ = biaTKsettings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
-            if(repositoryVersionXYZ is not null)
+            IRepository repositoryVersionXYZ = settings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
+            if (repositoryVersionXYZ is not null)
             {
                 if (!repositoryService.CheckRepoFolder(repositoryVersionXYZ))
                 {
@@ -298,17 +298,17 @@
             return true;
         }
 
-        public bool CheckCompanyFilesRepositories(IBIATKSettings biaTKsettings)
+        public bool CheckCompanyFilesRepositories(IBIATKSettings settings)
         {
-            if (biaTKsettings.UseCompanyFiles)
+            if (settings.UseCompanyFiles)
             {
-                if (!biaTKsettings.CompanyFilesRepositories.Where(r => r.UseRepository).Any())
+                if (!settings.CompanyFilesRepositories.Where(r => r.UseRepository).Any())
                 {
                     consoleWriter.AddMessageLine("You must use at least one Company Files repository", "red");
                     return false;
                 }
 
-                foreach (var repository in biaTKsettings.CompanyFilesRepositories.Where(r => r.UseRepository))
+                foreach (IRepository repository in settings.CompanyFilesRepositories.Where(r => r.UseRepository))
                 {
                     if (!repositoryService.CheckRepoFolder(repository))
                     {
@@ -404,7 +404,7 @@
 
             await ExecuteTaskWithWaiterAsync(async () =>
             {
-                await this.projectCreatorService.Create(
+                await projectCreatorService.Create(
                     true,
                     projectPath,
                     new Domain.Model.ProjectParameters
@@ -412,12 +412,12 @@
                         CompanyName = settingsService.Settings.CreateCompanyName,
                         ProjectName = CreateProjectName.Text,
                         VersionAndOption = CreateVersionAndOption.vm.VersionAndOption,
-                        AngularFronts = new List<string> { Constants.FolderAngular }
+                        AngularFronts = [Constants.FolderAngular]
                     });
             });
         }
 
-        private void btnFileGenerator_OpenFolder_Click(object sender, RoutedEventArgs e)
+        private void BtnFileGenerator_OpenFolder_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new System.Windows.Forms.FolderBrowserDialog();
             System.Windows.Forms.DialogResult result = dlg.ShowDialog();
@@ -428,7 +428,7 @@
             }
         }
 
-        private void btnFileGenerator_OpenFile_Click(object sender, RoutedEventArgs e)
+        private void BtnFileGenerator_OpenFile_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new System.Windows.Forms.OpenFileDialog();
             System.Windows.Forms.DialogResult result = dlg.ShowDialog();
@@ -442,7 +442,7 @@
             }
         }
 
-        private void btnFileGenerator_Generate_Click(object sender, RoutedEventArgs e)
+        private void BtnFileGenerator_Generate_Click(object sender, RoutedEventArgs e)
         {
             if (!string.IsNullOrEmpty(txtFileGenerator_Folder.Text))
             {
@@ -450,7 +450,7 @@
                 {
                     string resultFolder = string.Empty;
                     generateFilesService.GenerateFiles(txtFileGenerator_File.Text, txtFileGenerator_Folder.Text, ref resultFolder);
-                    ProcessStartInfo startInfo = new ProcessStartInfo(resultFolder)
+                    var startInfo = new ProcessStartInfo(resultFolder)
                     {
                         UseShellExecute = true
                     };
@@ -479,7 +479,7 @@
         {
             try
             {
-                var result = MessageBox.Show(
+                MessageBoxResult result = MessageBox.Show(
                                     $"A new version ({updateService.NewVersion}) of BIAToolKit is available.\nInstall now?",
                                     "Update available",
                                     MessageBoxButton.YesNo, MessageBoxImage.Information);
@@ -497,12 +497,12 @@
 
         private void CopyConsoleContentToClipboard_Click(object sender, RoutedEventArgs e)
         {
-            this.consoleWriter.CopyToClipboard();
+            consoleWriter.CopyToClipboard();
         }
 
         private void ClearConsole_Click(object sender, RoutedEventArgs e)
         {
-            this.consoleWriter.Clear();
+            consoleWriter.Clear();
         }
 
         private async void CheckUpdateButton_Click(object sender, RoutedEventArgs e)
@@ -512,11 +512,11 @@
 
         private async void ImportConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            var configFile = FileDialog.BrowseFile(string.Empty, "btksettings");
+            string configFile = FileDialog.BrowseFile(string.Empty, "btksettings");
             if (string.IsNullOrWhiteSpace(configFile) || !File.Exists(configFile))
                 return;
 
-            var config = JsonConvert.DeserializeObject<BIATKSettings>(File.ReadAllText(configFile));
+            BIATKSettings config = JsonConvert.DeserializeObject<BIATKSettings>(File.ReadAllText(configFile));
             config.InitRepositoriesInterfaces();
 
             consoleWriter.AddMessageLine($"New configuration imported from {configFile}", "yellow");
@@ -539,13 +539,13 @@
 
         private void ExportConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            var targetDirectory = FileDialog.BrowseFolder(string.Empty, "Choose export folder target");
+            string targetDirectory = FileDialog.BrowseFolder(string.Empty, "Choose export folder target");
             if (string.IsNullOrWhiteSpace(targetDirectory))
                 return;
 
-            var targetFile = Path.Combine(targetDirectory, "user.btksettings");
-            var settings = JsonConvert.SerializeObject(settingsService.Settings);
-            if(File.Exists(targetFile))
+            string targetFile = Path.Combine(targetDirectory, "user.btksettings");
+            string settings = JsonConvert.SerializeObject(settingsService.Settings);
+            if (File.Exists(targetFile))
                 File.Delete(targetFile);
 
             File.AppendAllText(targetFile, settings);

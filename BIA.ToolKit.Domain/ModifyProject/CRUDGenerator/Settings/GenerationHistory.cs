@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings
+namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings
 {
     using System;
     using System.Collections.Generic;
@@ -13,7 +13,7 @@
 
         protected GenerationHistory()
         {
-            Generation = new();
+            Generation = [];
         }
     }
 

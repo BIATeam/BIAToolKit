@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.UserControls
+namespace BIA.ToolKit.UserControls
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
@@ -8,7 +8,7 @@
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Behaviors;
     using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
     using Microsoft.Xaml.Behaviors;
@@ -52,7 +52,7 @@
             UIEventBroker uiEventBroker)
         {
             this.parserService = parserService;
-            this.settings = new(settingsService);
+            settings = new(settingsService);
             this.fileGeneratorService = fileGeneratorService;
             this.uiEventBroker = uiEventBroker;
             this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
@@ -89,7 +89,7 @@
         {
             this.project = project;
             vm.SetProject(project);
-            
+
             InitHistoryFile(project);
         }
 
@@ -134,7 +134,7 @@
         private void ResetMappingColumnsWidths()
         {
             var gridView = PropertiesListView.View as GridView;
-            foreach (var column in gridView.Columns)
+            foreach (GridViewColumn column in gridView.Columns)
             {
                 column.Width = 0;
                 column.Width = double.NaN;
@@ -169,7 +169,7 @@
 
         private void UpdateHistoryFile()
         {
-            var isNewGeneration = generation is null;
+            bool isNewGeneration = generation is null;
             generation ??= new DtoGeneration();
 
             generation.DateTime = DateTime.Now;
@@ -187,7 +187,7 @@
             generation.UseDedicatedAudit = vm.UseDedicatedAudit;
             generation.PropertyMappings.Clear();
 
-            foreach (var property in vm.MappingEntityProperties)
+            foreach (MappingEntityProperty property in vm.MappingEntityProperties)
             {
                 var generationPropertyMapping = new DtoGenerationPropertyMapping
                 {
@@ -256,13 +256,13 @@
             vm.UseDedicatedAudit = generation.UseDedicatedAudit;
 
             var allEntityProperties = vm.AllEntityPropertiesRecursively.ToList();
-            foreach (var property in allEntityProperties)
+            foreach (EntityProperty property in allEntityProperties)
             {
                 property.IsSelected = false;
             }
-            foreach (var property in generation.PropertyMappings)
+            foreach (DtoGenerationPropertyMapping property in generation.PropertyMappings)
             {
-                var entityProperty = allEntityProperties.FirstOrDefault(x => x.CompositeName == property.EntityPropertyCompositeName);
+                EntityProperty entityProperty = allEntityProperties.FirstOrDefault(x => x.CompositeName == property.EntityPropertyCompositeName);
                 if (entityProperty is null)
                     continue;
 
@@ -271,9 +271,9 @@
 
             vm.RefreshMappingProperties();
 
-            foreach (var property in generation.PropertyMappings)
+            foreach (DtoGenerationPropertyMapping property in generation.PropertyMappings)
             {
-                var mappingProperty = vm.MappingEntityProperties.FirstOrDefault(x => x.EntityCompositeName == property.EntityPropertyCompositeName);
+                MappingEntityProperty mappingProperty = vm.MappingEntityProperties.FirstOrDefault(x => x.EntityCompositeName == property.EntityPropertyCompositeName);
                 if (mappingProperty is null)
                     continue;
 
@@ -291,13 +291,13 @@
 
         private void DragHandle_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var behavior = GetDragDropBehavior();
+            ListViewDragDropBehavior behavior = GetDragDropBehavior();
             behavior?.HandleDragStart(sender, e);
         }
 
         private void DragHandle_MouseMove(object sender, MouseEventArgs e)
         {
-            var behavior = GetDragDropBehavior();
+            ListViewDragDropBehavior behavior = GetDragDropBehavior();
             behavior?.HandleDragMove(sender, e);
         }
 

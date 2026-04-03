@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.UserControls
+namespace BIA.ToolKit.UserControls
 {
     using System;
     using System.Collections.Generic;
@@ -68,17 +68,17 @@
 
         public void SetCurrentProjectPath(string path, bool mapCompanyFileVersion, bool mapFrameworkVersion, IEnumerable<FeatureSetting> originFeatureSettings = null)
         {
-            this.currentProjectPath = path;
-            this.LoadfeatureSetting();
+            currentProjectPath = path;
+            LoadfeatureSetting();
 
             if (originFeatureSettings != null)
             {
                 uiEventBroker.OnOriginFeatureSettingsChanged -= UiEventBroker_OnOriginFeatureSettingsChanged;
                 uiEventBroker.OnOriginFeatureSettingsChanged += UiEventBroker_OnOriginFeatureSettingsChanged;
-                OriginFeatureSettings = new List<FeatureSetting>(originFeatureSettings);
+                OriginFeatureSettings = [.. originFeatureSettings];
             }
 
-            this.LoadVersionAndOption(mapCompanyFileVersion, mapFrameworkVersion);
+            LoadVersionAndOption(mapCompanyFileVersion, mapFrameworkVersion);
         }
 
         private void UiEventBroker_OnOriginFeatureSettingsChanged(List<FeatureSetting> featureSettings)
@@ -89,10 +89,10 @@
 
         public void LoadVersionAndOption(bool mapCompanyFileVersion, bool mapFrameworkVersion)
         {
-            if (string.IsNullOrWhiteSpace(this.currentProjectPath))
+            if (string.IsNullOrWhiteSpace(currentProjectPath))
                 return;
 
-            string projectGenerationFile = Path.Combine(this.currentProjectPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
+            string projectGenerationFile = Path.Combine(currentProjectPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
             if (!File.Exists(projectGenerationFile))
                 return;
 
@@ -110,9 +110,9 @@
         private void LoadfeatureSetting()
         {
             List<FeatureSetting> featureSettings = FeatureSettingHelper.Get(vm.WorkTemplate?.VersionFolderPath);
-            List<FeatureSetting> projectFeatureSettings = FeatureSettingHelper.Get(this.currentProjectPath);
+            List<FeatureSetting> projectFeatureSettings = FeatureSettingHelper.Get(currentProjectPath);
 
-            if (featureSettings?.Any() == true && projectFeatureSettings?.Any() == true)
+            if (featureSettings?.Count > 0 && projectFeatureSettings?.Count > 0)
             {
                 foreach (FeatureSetting featureSetting in featureSettings)
                 {
@@ -125,9 +125,9 @@
                 }
             }
 
-            featureSettings = featureSettings ?? [];
+            featureSettings ??= [];
             var featureSettingViewModels = new ObservableCollection<FeatureSettingViewModel>(featureSettings.Select(x => new FeatureSettingViewModel(x)));
-            foreach (var featureSettingViewModel in featureSettingViewModels)
+            foreach (FeatureSettingViewModel featureSettingViewModel in featureSettingViewModels)
             {
                 if (featureSettingViewModel.FeatureSetting.DisabledFeatures.Count != 0)
                 {
@@ -150,7 +150,7 @@
                 }
                 else
                 {
-                    vm.WorkTemplate.VersionFolderPath = await this.repositoryService.PrepareVersionFolder(vm.WorkTemplate.Repository, vm.WorkTemplate.Version);
+                    vm.WorkTemplate.VersionFolderPath = await repositoryService.PrepareVersionFolder(vm.WorkTemplate.Repository, vm.WorkTemplate.Version);
                 }
             }
         }
@@ -160,13 +160,13 @@
             var listCompanyFiles = new List<WorkRepository>();
             var listWorkTemplates = new List<WorkRepository>();
 
-            foreach (var repository in settingsService.Settings.TemplateRepositories.Where(r => r.UseRepository))
+            foreach (IRepository repository in settingsService.Settings.TemplateRepositories.Where(r => r.UseRepository))
             {
                 AddTemplatesVersion(listWorkTemplates, repository);
             }
 
-            var hasVersionXYZ = false;
-            var repositoryVersionXYZ = settingsService.Settings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
+            bool hasVersionXYZ = false;
+            IRepository repositoryVersionXYZ = settingsService.Settings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
             if (repositoryVersionXYZ is not null)
             {
                 listWorkTemplates.Add(new WorkRepository(repositoryVersionXYZ, "VX.Y.Z"));
@@ -183,7 +183,7 @@
             vm.UseCompanyFiles = settingsService.Settings.UseCompanyFiles;
             if (settingsService.Settings.UseCompanyFiles)
             {
-                foreach (var repository in settingsService.Settings.CompanyFilesRepositories.Where(r => r.UseRepository))
+                foreach (IRepository repository in settingsService.Settings.CompanyFilesRepositories.Where(r => r.UseRepository))
                 {
                     AddTemplatesVersion(listCompanyFiles, repository);
                 }
@@ -195,9 +195,9 @@
             }
         }
 
-        private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, IRepository repository)
+        private static void AddTemplatesVersion(List<WorkRepository> WorkTemplates, IRepository repository)
         {
-            foreach (var release in repository.Releases)
+            foreach (Release release in repository.Releases)
             {
                 WorkTemplates.Add(new WorkRepository(repository, release.Name));
             }
@@ -209,19 +209,19 @@
         {
             uiEventBroker.RequestExecuteActionWithWaiter(async () =>
             {
-                await this.FillVersionFolderPathAsync();
-                this.LoadfeatureSetting();
-                this.LoadVersionAndOption(false, false);
+                await FillVersionFolderPathAsync();
+                LoadfeatureSetting();
+                LoadVersionAndOption(false, false);
                 if (OriginFeatureSettings is null)
                 {
-                    uiEventBroker.NotifyOriginFeatureSettingsChanged(vm.FeatureSettings.Select(x => x.FeatureSetting).ToList());
+                    uiEventBroker.NotifyOriginFeatureSettingsChanged([.. vm.FeatureSettings.Select(x => x.FeatureSetting)]);
                 }
             });
         }
 
         private void CFVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            this.LoadVersionAndOption(false, false);
+            LoadVersionAndOption(false, false);
         }
     }
 }

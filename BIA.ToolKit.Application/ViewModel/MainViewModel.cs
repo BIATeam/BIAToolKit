@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using System;
     using System.Collections.ObjectModel;
@@ -52,7 +52,7 @@
             waitAddTemplateRepository = false;
             waitAddCompanyFilesRepository = false;
 
-            if(repository.Model.RepositoryType == Domain.RepositoryType.Git && repository.Model is IRepositoryGit repositoryGit)
+            if (repository.Model.RepositoryType == Domain.RepositoryType.Git && repository.Model is IRepositoryGit repositoryGit)
             {
                 eventBroker.RequestExecuteActionWithWaiter(async () => await gitService.Synchronize(repositoryGit));
             }
@@ -113,12 +113,12 @@
 
         private void CompanyFilesRepositories_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            settingsService.SetCompanyFilesRepositories(CompanyFilesRepositories.Select(x => x.Model).ToList());
+            settingsService.SetCompanyFilesRepositories([.. CompanyFilesRepositories.Select(x => x.Model)]);
         }
 
         private void TemplateRepositories_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            settingsService.SetTemplateRepositories(TemplateRepositories.Select(x => x.Model).ToList());
+            settingsService.SetTemplateRepositories([.. TemplateRepositories.Select(x => x.Model)]);
         }
 
         public ICommand OpenToolkitRepositorySettingsCommand => new RelayCommand((_) => eventBroker.RequestOpenRepositoryForm(ToolkitRepository, RepositoryFormMode.Edit));
@@ -161,7 +161,7 @@
             CompanyFilesRepositories.CollectionChanged -= CompanyFilesRepositories_CollectionChanged;
 
             TemplateRepositories.Clear();
-            foreach (var repository in settings.TemplateRepositories)
+            foreach (IRepository repository in settings.TemplateRepositories)
             {
                 if (repository is RepositoryGit repositoryGit)
                 {
@@ -176,7 +176,7 @@
             }
 
             CompanyFilesRepositories.Clear();
-            foreach (var repository in settings.CompanyFilesRepositories)
+            foreach (IRepository repository in settings.CompanyFilesRepositories)
             {
                 if (repository is RepositoryGit repositoryGit)
                 {

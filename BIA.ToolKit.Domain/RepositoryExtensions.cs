@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain
+namespace BIA.ToolKit.Domain
 {
     using System;
     using System.Collections.Generic;
@@ -74,7 +74,7 @@
                 UseRepository = repository.UseRepository,
             };
 
-            if(repository is RepositoryGit repositoryGit)
+            if (repository is RepositoryGit repositoryGit)
             {
                 repositoryConfig.RepositoryGitKind = repositoryGit.RepositoryGitKind;
                 repositoryConfig.GitRepositoryName = repositoryGit.GitRepositoryName;

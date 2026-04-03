@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.FileGenerator
+namespace BIA.ToolKit.Application.Services.FileGenerator
 {
     using System;
     using System.Collections.Generic;
@@ -15,7 +15,7 @@
     using BIA.ToolKit.Application.Templates;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using Microsoft.Extensions.Logging;
     using Microsoft.VisualBasic.FileIO;
@@ -25,8 +25,9 @@
     using System.Diagnostics;
     using System.Threading;
     using static BIA.ToolKit.Application.Templates.Manifest.Feature;
+    using Microsoft.VisualStudio.TextTemplating;
 
-    public class FileGeneratorService
+    public partial class FileGeneratorService
     {
         const string BiaToolKitMarkupBeginPattern = "// BIAToolKit - Begin {0}";
         const string BiaToolKitMarkupEndPattern = "// BIAToolKit - End {0}";
@@ -49,7 +50,7 @@
 
         public FileGeneratorService(IConsoleWriter consoleWriter)
         {
-            this._consoleWriter = consoleWriter;
+            _consoleWriter = consoleWriter;
             _modelProviderFactory = new FileGeneratorModelProviderFactory(consoleWriter);
 
             LoadTemplatesManifests();
@@ -100,7 +101,7 @@
 
         private void SetCurrentManifest(string modelProviderVersion)
         {
-            var manifestVersion = modelProviderVersion.Replace("_", ".")[1..modelProviderVersion.Length];
+            string manifestVersion = modelProviderVersion.Replace("_", ".")[1..modelProviderVersion.Length];
             _currentManifest = _manifests.FirstOrDefault(m => m.Version.ToString() == manifestVersion);
             if (_currentManifest is null)
             {
@@ -120,8 +121,8 @@
 
         private string ParseModelProviderVersion()
         {
-            var regex = new Regex(@"(_[0-9]+(?:_[0-9]+){0,2})[^0-9]*");
-            var match = regex.Match(_modelProvider.GetType().Name);
+            Regex regex = MyRegex();
+            Match match = regex.Match(_modelProvider.GetType().Name);
             if (!match.Success)
             {
                 throw new Exception($"invalid model provider version");
@@ -131,11 +132,7 @@
 
         private void LoadModelProvider(Version projectVersion)
         {
-            _modelProvider = _modelProviderFactory.GetModelProvider(projectVersion);
-            if (_modelProvider is null)
-            {
-                throw new Exception($"incompatible project version {projectVersion}");
-            }
+            _modelProvider = _modelProviderFactory.GetModelProvider(projectVersion) ?? throw new Exception($"incompatible project version {projectVersion}");
         }
 
         private static void ParseProjectVersion(Project project, out Version projectVersion)
@@ -148,10 +145,10 @@
 
         private static string FindInPath(string fileName)
         {
-            var pathEnv = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
-            foreach (var dir in pathEnv.Split(Path.PathSeparator))
+            string pathEnv = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+            foreach (string dir in pathEnv.Split(Path.PathSeparator))
             {
-                var fullPath = Path.Combine(dir, fileName);
+                string fullPath = Path.Combine(dir, fileName);
                 if (File.Exists(fullPath))
                     return fullPath;
             }
@@ -185,8 +182,8 @@
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
 
-                var templateModel = _modelProvider.GetDtoTemplateModel(dtoContext);
-                var dtoFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Dto);
+                object templateModel = _modelProvider.GetDtoTemplateModel(dtoContext);
+                Manifest.Feature dtoFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Dto);
 
                 _currentContext = dtoContext;
 
@@ -208,8 +205,8 @@
                 if (!IsInit)
                     throw new Exception("file generator has not been initialiazed");
 
-                var templateModel = _modelProvider.GetOptionTemplateModel(optionContext);
-                var optionFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Option);
+                object templateModel = _modelProvider.GetOptionTemplateModel(optionContext);
+                Manifest.Feature optionFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Option);
 
                 _currentContext = optionContext;
 
@@ -237,8 +234,8 @@
                     crudContext.ComputeAngularParentLocation(_currentProject.Folder);
                 }
 
-                var templateModel = _modelProvider.GetCrudTemplateModel(crudContext);
-                var crudFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Crud);
+                object templateModel = _modelProvider.GetCrudTemplateModel(crudContext);
+                Manifest.Feature crudFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Crud);
 
                 _currentContext = crudContext;
 
@@ -276,8 +273,8 @@
 
             _consoleWriter.AddMessageLine("Please wait...", "darkgray");
 
-            var generateAngularTemplatesTask = Task.CompletedTask;
-            var generateDotNetTemplatesTask = Task.CompletedTask;
+            Task generateAngularTemplatesTask = Task.CompletedTask;
+            Task generateDotNetTemplatesTask = Task.CompletedTask;
 
             if (_currentContext.GenerateFront)
             {
@@ -298,11 +295,11 @@
         private async Task GenerateDotNetTemplatesAsync(IEnumerable<Manifest.Feature.Template> templates, object model)
         {
             await RunGenerateTemplatesAsync(templates, model, GenerateDotNetTemplateAsync);
-            var csharpFiles = _currentContext.GenerationReport.TemplatesGenerated
+            IEnumerable<string> csharpFiles = _currentContext.GenerationReport.TemplatesGenerated
                 .Select(x => GetDotNetTemplateOutputPath(x.OutputPath, _currentContext, _currentProject.Folder))
                 .Where(x => Path.GetExtension(x).Equals(".cs"));
 
-            foreach (var file in csharpFiles)
+            foreach (string file in csharpFiles)
             {
                 if (FileTransform.OrderUsingFromFile(file))
                 {
@@ -313,7 +310,7 @@
 
         private async Task GenerateDotNetTemplateAsync(Manifest.Feature.Template template, object model)
         {
-            var templatePath = Path.Combine(_templatesPath, Constants.FolderDotNet, template.InputPath);
+            string templatePath = Path.Combine(_templatesPath, Constants.FolderDotNet, template.InputPath);
             await GenerateFromTemplateAsync(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder));
         }
 
@@ -332,7 +329,7 @@
 
         private async Task GenerateAngularTemplates(IEnumerable<Manifest.Feature.Template> templates, object model)
         {
-            var angularProjectFolder = Path.Combine(_currentProject.Folder, _currentContext.AngularFront);
+            string angularProjectFolder = Path.Combine(_currentProject.Folder, _currentContext.AngularFront);
 
             if (!_fromUnitTest)
             {
@@ -345,7 +342,7 @@
             var templatesWithFileToPrettier = _currentContext.GenerationReport.TemplatesGenerated.Where(x => filesExtensionToPrettier.Contains(Path.GetExtension(x.OutputPath))).ToList();
             var prettierTasks = templatesWithFileToPrettier.Select(async template =>
             {
-                var filePath = GetAngularTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder);
+                string filePath = GetAngularTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder);
                 await RunPrettierAsync(filePath);
             }).ToList();
             await Task.WhenAll(prettierTasks);
@@ -353,8 +350,8 @@
 
         private async Task GenerateAngularTemplateAsync(Manifest.Feature.Template template, object model)
         {
-            var templatePath = Path.Combine(_templatesPath, Constants.FolderAngular, template.InputPath);
-            var outputPath = GetAngularTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder);
+            string templatePath = Path.Combine(_templatesPath, Constants.FolderAngular, template.InputPath);
+            string outputPath = GetAngularTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder);
             await GenerateFromTemplateAsync(template, templatePath, model, outputPath);
         }
 
@@ -363,14 +360,14 @@
             var groupTemplates = templates.GroupBy(t => t.OutputPath).Where(g => g.Count() > 1).ToList();
             var uniqueTemplates = templates.Where(t => !groupTemplates.Any(gt => gt.Key == t.OutputPath)).ToList();
 
-            var uniqueTemplatesGenerationTasks = uniqueTemplates.Select(async (template) =>
+            IEnumerable<Task> uniqueTemplatesGenerationTasks = uniqueTemplates.Select(async (template) =>
             {
                 await generateTemplateTask(template, model);
             });
 
-            var groupTemplatesGenerationTasks = groupTemplates.Select(async (templates) =>
+            IEnumerable<Task> groupTemplatesGenerationTasks = groupTemplates.Select(async (templates) =>
             {
-                foreach (var template in templates)
+                foreach (Template template in templates)
                 {
                     await generateTemplateTask(template, model);
                 }
@@ -382,7 +379,7 @@
 
         public static string GetAngularTemplateOutputPath(string templateOutputPath, FileGeneratorContext context, string projectFolder)
         {
-            var outputPath = Path.Combine(
+            string outputPath = Path.Combine(
                 Path.Combine(projectFolder, context.AngularFront),
                 templateOutputPath
                     .Replace("{Entity}", context.EntityName.ToKebabCase())
@@ -432,23 +429,23 @@
 
         private async Task GenerateFromTemplateAsync(Manifest.Feature.Template template, string templatePath, object model, string outputPath)
         {
-            var relativeOutputPath = outputPath.Replace(_currentProject.Folder, string.Empty);
-            var relativeTemplatePath = templatePath.Replace(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), string.Empty);
-            var logMessagePrefix = $"Generation of {(template.IsPartial ? $"partial content '{template.PartialInsertionMarkup}' into" : "file")} '{relativeOutputPath}'";
+            string relativeOutputPath = outputPath.Replace(_currentProject.Folder, string.Empty);
+            string relativeTemplatePath = templatePath.Replace(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), string.Empty);
+            string logMessagePrefix = $"Generation of {(template.IsPartial ? $"partial content '{template.PartialInsertionMarkup}' into" : "file")} '{relativeOutputPath}'";
 #if DEBUG
             logMessagePrefix += $" from template file '{relativeTemplatePath}'";
 #endif
 
             try
             {
-                var generationTemplatePath = Path.GetTempFileName();
-                var templateContent = await File.ReadAllTextAsync(templatePath);
+                string generationTemplatePath = Path.GetTempFileName();
+                string templateContent = await File.ReadAllTextAsync(templatePath);
                 await File.WriteAllTextAsync(generationTemplatePath, templateContent);
 
                 // Ensure DOTNET_ROOT is set for Mono.TextTemplating (not set when running as WPF app)
                 if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOTNET_ROOT")))
                 {
-                    var dotnetExe = FindInPath("dotnet.exe") ?? FindInPath("dotnet");
+                    string dotnetExe = FindInPath("dotnet.exe") ?? FindInPath("dotnet");
                     if (dotnetExe != null)
                     {
                         Environment.SetEnvironmentVariable("DOTNET_ROOT", Path.GetDirectoryName(dotnetExe));
@@ -460,12 +457,12 @@
                 // Add reference to assembly of Manifest class to the template generator
                 templateGenerator.Refs.Add(typeof(Manifest).Assembly.Location);
                 // Inject Model parameter for template generation
-                var templateGeneratorSession = templateGenerator.GetOrCreateSession();
+                ITextTemplatingSession templateGeneratorSession = templateGenerator.GetOrCreateSession();
                 templateGeneratorSession.Add("Model", model);
 
                 // Generate content from template into temp file
-                var generatedTemplatePath = Path.Combine(Path.GetTempPath(), Path.GetFileName(outputPath));
-                var success = await templateGenerator.ProcessTemplateAsync(generationTemplatePath, generatedTemplatePath);
+                string generatedTemplatePath = Path.Combine(Path.GetTempPath(), Path.GetFileName(outputPath));
+                bool success = await templateGenerator.ProcessTemplateAsync(generationTemplatePath, generatedTemplatePath);
                 File.Delete(generationTemplatePath);
                 if (!success)
                 {
@@ -473,7 +470,7 @@
                 }
 
                 // Check if generated content has any line
-                var generatedTemplateContent = (await File.ReadAllLinesAsync(generatedTemplatePath)).ToList();
+                List<string> generatedTemplateContent = [.. (await File.ReadAllLinesAsync(generatedTemplatePath))];
                 File.Delete(generatedTemplatePath);
                 if (generatedTemplateContent.Count == 0)
                 {
@@ -506,17 +503,17 @@
 
         private async Task WritePartialContentAsync(Manifest.Feature.Template template, string outputPath, string relativeOutputPath, List<string> generatedTemplateContent)
         {
-            var insertionMarkup = GetInsertionMarkup(template, _currentContext);
+            string insertionMarkup = GetInsertionMarkup(template, _currentContext);
 
-            var outputContent = (await File.ReadAllLinesAsync(outputPath)).ToList();
-            var insertionMarkupBegin = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupBeginPattern, insertionMarkup), outputPath);
-            var insertionMarkupEnd = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupEndPattern, insertionMarkup), outputPath);
+            List<string> outputContent = [.. (await File.ReadAllLinesAsync(outputPath))];
+            string insertionMarkupBegin = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupBeginPattern, insertionMarkup), outputPath);
+            string insertionMarkupEnd = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupEndPattern, insertionMarkup), outputPath);
             if (!outputContent.Any(line => line.Trim().Equals(insertionMarkupBegin)) || !outputContent.Any(line => line.Trim().Equals(insertionMarkupEnd)))
             {
                 throw new Exception($"Unable to find insertion markup {insertionMarkup} into {relativeOutputPath}");
             }
 
-            (var partialInsertionMarkupBegin, var partialInsertionMarkupEnd) = GetPartialInsertionMarkups(_currentContext, template, outputPath);
+            (string partialInsertionMarkupBegin, string partialInsertionMarkupEnd) = GetPartialInsertionMarkups(_currentContext, template, outputPath);
             // Partial content already exists
             if (outputContent.Any(line => line.Trim().Equals(partialInsertionMarkupBegin)) && outputContent.Any(line => line.Trim().Equals(partialInsertionMarkupEnd)))
             {
@@ -524,19 +521,19 @@
                 var ignoredInnerMarkupsContent = new Dictionary<(string insertionMarkup, string insertionMarkupBegin, string insertionMarkupEnd), List<string>>();
                 var ignoredInnerMarkups = template.IgnoredInnerMarkups.Select(x =>
                 {
-                    var insertionMarkup = GetInsertionMarkup(new Template { PartialInsertionMarkup = x }, _currentContext);
-                    var insertionMarkupBegin = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupBeginPattern, insertionMarkup), outputPath);
-                    var insertionMarkupEnd = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupEndPattern, insertionMarkup), outputPath);
+                    string insertionMarkup = GetInsertionMarkup(new Template { PartialInsertionMarkup = x }, _currentContext);
+                    string insertionMarkupBegin = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupBeginPattern, insertionMarkup), outputPath);
+                    string insertionMarkupEnd = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupEndPattern, insertionMarkup), outputPath);
                     return (
                         insertionMarkup,
                         insertionMarkupBegin,
                         insertionMarkupEnd);
                 }).ToList();
 
-                foreach (var ignoredInnerMarkup in ignoredInnerMarkups)
+                foreach ((string insertionMarkup, string insertionMarkupBegin, string insertionMarkupEnd) ignoredInnerMarkup in ignoredInnerMarkups)
                 {
-                    var ignoredInnerMarkupBeginIndex = outputContent.FindIndex(line => line.Trim().Equals(ignoredInnerMarkup.insertionMarkupBegin));
-                    var ignoredInnerMarkupEndIndex = outputContent.FindIndex(line => line.Trim().Equals(ignoredInnerMarkup.insertionMarkupEnd));
+                    int ignoredInnerMarkupBeginIndex = outputContent.FindIndex(line => line.Trim().Equals(ignoredInnerMarkup.insertionMarkupBegin));
+                    int ignoredInnerMarkupEndIndex = outputContent.FindIndex(line => line.Trim().Equals(ignoredInnerMarkup.insertionMarkupEnd));
                     if (ignoredInnerMarkupBeginIndex > -1 && ignoredInnerMarkupEndIndex > -1)
                     {
                         ignoredInnerMarkupsContent.Add(ignoredInnerMarkup, outputContent.GetRange(ignoredInnerMarkupBeginIndex + 1, ignoredInnerMarkupEndIndex - ignoredInnerMarkupBeginIndex - 1));
@@ -544,22 +541,22 @@
                 }
 
                 // Find begin/end markups
-                var indexBegin = outputContent.FindIndex(line => line.Trim().Equals(partialInsertionMarkupBegin));
-                var indexEnd = outputContent.FindIndex(line => line.Trim().Equals(partialInsertionMarkupEnd));
+                int indexBegin = outputContent.FindIndex(line => line.Trim().Equals(partialInsertionMarkupBegin));
+                int indexEnd = outputContent.FindIndex(line => line.Trim().Equals(partialInsertionMarkupEnd));
                 // Replace previous generated content by new one
                 outputContent.RemoveRange(indexBegin, indexEnd - indexBegin + 1);
                 outputContent.InsertRange(indexBegin, generatedTemplateContent);
 
                 // Reinsert content of ignored inner markups
-                foreach (var ignoredInnerMarkupContent in ignoredInnerMarkupsContent)
+                foreach (KeyValuePair<(string insertionMarkup, string insertionMarkupBegin, string insertionMarkupEnd), List<string>> ignoredInnerMarkupContent in ignoredInnerMarkupsContent)
                 {
-                    var ignoredInnerMarkupBeginIndex = outputContent.FindIndex(line => line.Trim().Equals(ignoredInnerMarkupContent.Key.insertionMarkupBegin));
+                    int ignoredInnerMarkupBeginIndex = outputContent.FindIndex(line => line.Trim().Equals(ignoredInnerMarkupContent.Key.insertionMarkupBegin));
                     outputContent.InsertRange(ignoredInnerMarkupBeginIndex + 1, ignoredInnerMarkupContent.Value);
                 }
             }
             else
             {
-                var indexBegin = outputContent.FindIndex(line => line.Trim().Equals(insertionMarkupEnd));
+                int indexBegin = outputContent.FindIndex(line => line.Trim().Equals(insertionMarkupEnd));
                 outputContent.InsertRange(indexBegin, generatedTemplateContent);
             }
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
@@ -568,7 +565,7 @@
 
         public static (string partialInsertionMarkupBegin, string partialInsertionMarkupEnd) GetPartialInsertionMarkups(FileGeneratorContext context, Manifest.Feature.Template template, string outputPath)
         {
-            var partialInsertionMarkup = GetInsertionMarkup(template, context);
+            string partialInsertionMarkup = GetInsertionMarkup(template, context);
 
             return (
                 AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupPartialBeginPattern, partialInsertionMarkup, template.UseDomainPartialInsertionMarkup ? context.DomainName : context.EntityName), outputPath),
@@ -592,5 +589,8 @@
 
             return markup;
         }
+
+        [GeneratedRegex(@"(_[0-9]+(?:_[0-9]+){0,2})[^0-9]*")]
+        private static partial Regex MyRegex();
     }
 }

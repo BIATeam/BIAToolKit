@@ -1,10 +1,10 @@
-﻿namespace BIA.ToolKit.Domain.ModifyProject
+namespace BIA.ToolKit.Domain.ModifyProject
 {
     public class ModifyProject
     {
         public ModifyProject()
         {
-            Projects = new List<string>();
+            Projects = [];
             CurrentProject = null;
         }
 

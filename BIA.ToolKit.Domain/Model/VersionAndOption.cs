@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.Model
+namespace BIA.ToolKit.Domain.Model
 {
     using BIA.ToolKit.Domain.Work;
     using Microsoft.CodeAnalysis;
@@ -8,10 +8,10 @@
     {
         public VersionAndOption()
         {
-            WorkCompanyFiles = new ObservableCollection<WorkRepository>();
-            WorkTemplates = new ObservableCollection<WorkRepository>();
-            Profiles = new ObservableCollection<string>();
-            Options = new ObservableCollection<CFOption>();
+            WorkCompanyFiles = [];
+            WorkTemplates = [];
+            Profiles = [];
+            Options = [];
         }
         public bool? Test { get; set; }
 

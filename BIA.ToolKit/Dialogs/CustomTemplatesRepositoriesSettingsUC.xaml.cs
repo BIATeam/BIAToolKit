@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Dialogs
+namespace BIA.ToolKit.Dialogs
 {
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
@@ -24,9 +24,9 @@
     /// </summary>
     public partial class CustomsRepoTemplateUC : Window
     {
-        GitService gitService;
+        readonly GitService gitService;
         public RepositoriesSettingsVM vm;
-        private RepositoryService repositoryService;
+        private readonly RepositoryService repositoryService;
         private readonly UIEventBroker uiEventBroker;
 
         public CustomsRepoTemplateUC(GitService gitService, RepositoryService repositoryService, UIEventBroker uiEventBroker)
@@ -44,13 +44,13 @@
         //    return ShowDialog();
         //}
 
-        private void okButton_Click(object sender, RoutedEventArgs e) =>
+        private void OkButton_Click(object sender, RoutedEventArgs e) =>
             DialogResult = true;
 
-        private void cancelButton_Click(object sender, RoutedEventArgs e) =>
+        private void CancelButton_Click(object sender, RoutedEventArgs e) =>
             DialogResult = false;
 
-        private void addButton_Click(object sender, RoutedEventArgs e)
+        private void AddButton_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new CustomRepoTemplateUC { Owner = this };
 
@@ -63,7 +63,7 @@
             }
         }
 
-        private void editButton_Click(object sender, RoutedEventArgs e)
+        private void EditButton_Click(object sender, RoutedEventArgs e)
         {
             //if (vm.RepositorySettings != null)
             //{
@@ -79,7 +79,7 @@
             //}
         }
 
-        private void deleteButton_Click(object sender, RoutedEventArgs e)
+        private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
             //if (vm.RepositorySettings != null)
             //{
@@ -88,7 +88,7 @@
         }
 
 
-        private void synchronizeButton_Click(object sender, RoutedEventArgs e)
+        private void SynchronizeButton_Click(object sender, RoutedEventArgs e)
         {
             //uiEventBroker.ExecuteActionWithWaiter(async () =>
             //{

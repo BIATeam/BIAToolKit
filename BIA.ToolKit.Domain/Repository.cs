@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain
+namespace BIA.ToolKit.Domain
 {
     using System;
     using System.Collections.Generic;
@@ -50,7 +50,7 @@
             if (RepositoryType == RepositoryType.Git && Directory.Exists(LocalPath))
             {
                 var dirInfo = new DirectoryInfo(LocalPath);
-                foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                foreach (FileInfo file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
                 {
                     file.Attributes = FileAttributes.Normal;
                     File.Delete(file.FullName);
@@ -62,7 +62,7 @@
 
         protected void FillReleasesFromDownloadedReleases()
         {
-            var releasesPath = Path.Combine(AppSettings.AppFolderPath, Name);
+            string releasesPath = Path.Combine(AppSettings.AppFolderPath, Name);
             if (!Directory.Exists(releasesPath))
             {
                 return;
@@ -70,8 +70,8 @@
 
             UseDownloadedReleases = true;
             var directoryInfo = new DirectoryInfo(releasesPath);
-            var directories = directoryInfo.GetDirectories();
-            var releases = directories
+            DirectoryInfo[] directories = directoryInfo.GetDirectories();
+            IOrderedEnumerable<ReleaseFolder> releases = directories
                 .Where(dir => !dir.Name.Equals("Repo"))
                 .Select(dir => new ReleaseFolder(dir.Name, dir.FullName, Name))
                 .OrderByDescending(r => r.Name);

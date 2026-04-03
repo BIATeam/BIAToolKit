@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.Model
+namespace BIA.ToolKit.Domain.Model
 {
     using System.Collections.Generic;
 
@@ -9,7 +9,7 @@
             CompanyName = "";
             ProjectName = "";
             VersionAndOption = new VersionAndOption();
-            AngularFronts = new List<string>();
+            AngularFronts = [];
         }
 
         /// <summary>

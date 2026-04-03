@@ -1,4 +1,4 @@
-﻿using BIA.ToolKit.Application.Helper;
+using BIA.ToolKit.Application.Helper;
 using BIA.ToolKit.Common;
 using System;
 using System.Collections.Generic;
@@ -7,41 +7,36 @@ using System.Text;
 
 namespace BIA.ToolKit.Application.Services
 {
-    public class GenerateFilesService
+    public class GenerateFilesService(IConsoleWriter consoleWriter)
     {
-        private IConsoleWriter consoleWriter;
-        List<string> _propertiesList = new List<string>();
+        private readonly IConsoleWriter consoleWriter = consoleWriter;
+        List<string> _propertiesList = [];
         private string _projectName = string.Empty;
         DirectoryInfo _resultFolder = null;
-
-        public GenerateFilesService(IConsoleWriter consoleWriter)
-        {
-            this.consoleWriter = consoleWriter;
-        }
 
         public void GenerateFiles(string fileName, string folderName, ref string resultFolder)
         {
             try
             {
-                FileInfo originalFile = new FileInfo(fileName);
+                var originalFile = new FileInfo(fileName);
                 string fileTempName = Constants.TempName + originalFile.Name;
 
                 consoleWriter.AddMessageLine("Checking folders.", "Pink");
 
-                DirectoryInfo mainFolder = new DirectoryInfo(folderName);
+                var mainFolder = new DirectoryInfo(folderName);
                 CommonMethods.CheckFoler(mainFolder);
 
                 _resultFolder = new DirectoryInfo(Path.Combine(mainFolder.FullName, Constants.NameFolderProcess));
                 CommonMethods.CheckFoler(_resultFolder);
                 CommonMethods.CleanFolder(_resultFolder);
 
-                DirectoryInfo resultNetCoreFolder = new DirectoryInfo(Path.Combine(_resultFolder.FullName, Constants.FolderNetCore));
-                DirectoryInfo resultAngularFolder = new DirectoryInfo(Path.Combine(_resultFolder.FullName, Constants.FolderAngular));
+                var resultNetCoreFolder = new DirectoryInfo(Path.Combine(_resultFolder.FullName, Constants.FolderNetCore));
+                var resultAngularFolder = new DirectoryInfo(Path.Combine(_resultFolder.FullName, Constants.FolderAngular));
                 CommonMethods.CheckFoler(resultNetCoreFolder);
                 CommonMethods.CheckFoler(resultAngularFolder);
 
                 consoleWriter.AddMessageLine("Creating a copy from original file.", "Pink");
-                FileInfo tempFile = new FileInfo(Path.Combine(_resultFolder.FullName, fileTempName));
+                var tempFile = new FileInfo(Path.Combine(_resultFolder.FullName, fileTempName));
                 File.Copy(originalFile.FullName, tempFile.FullName);
 
                 consoleWriter.AddMessageLine("Begin Process Create all files...", "Pink");
@@ -74,7 +69,7 @@ namespace BIA.ToolKit.Application.Services
 
         public void CreateFiles(FileInfo tempFile)
         {
-            string className = tempFile.Name.Remove(tempFile.Name.Length - 3).Replace(Constants.TempName, "");
+            string className = tempFile.Name[..^3].Replace(Constants.TempName, "");
             _propertiesList = CommonMethods.GetProperties(tempFile, ref _projectName);
             consoleWriter.AddMessageLine(" * NetCore files ", "Pink");
             consoleWriter.AddMessageLine("    => Create Dto", "Pink");
@@ -119,10 +114,10 @@ namespace BIA.ToolKit.Application.Services
 
 
         #region DTO_FILE
-        private void CreateDtoFile(string className, string filename)
+        private void CreateDtoFile(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderNetCore, $"{className}Dto.cs");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
             d.Append(CommonMethods.AddNewLine($"namespace Safran.{_projectName}.Domain.Dto.{className}"));
             d.Append(CommonMethods.AddNewLine($"{{"));
             d.Append(CommonMethods.AddNewLine($"    using System;"));
@@ -137,7 +132,7 @@ namespace BIA.ToolKit.Application.Services
 
             foreach (string p in _propertiesList)
             {
-                if (CommonMethods.GetValueFromList(p, 1).ToUpper() != "ID")
+                if (!CommonMethods.GetValueFromList(p, 1).Equals("ID", StringComparison.CurrentCultureIgnoreCase))
                 {
                     d.Append(CommonMethods.AddNewLine($"        /// <summary>"));
                     d.Append(CommonMethods.AddNewLine($"        /// Get or Set {CommonMethods.GetValueFromList(p, 1)}."));
@@ -154,10 +149,10 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region ListItemDTO_FILE
-        private void CreateListItemFile(string className, string filename)
+        private void CreateListItemFile(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderNetCore, $"{className}ListItemDto.cs");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
             d.Append(CommonMethods.AddNewLine($"namespace Safran.{_projectName}.Domain.Dto.{className}"));
             d.Append(CommonMethods.AddNewLine($"{{"));
             d.Append(CommonMethods.AddNewLine($"    using System;"));
@@ -169,7 +164,7 @@ namespace BIA.ToolKit.Application.Services
             d.Append(CommonMethods.AddNewLine($"    {{"));
             foreach (string p in _propertiesList)
             {
-                if (CommonMethods.GetValueFromList(p, 1).ToUpper() != "ID")
+                if (!CommonMethods.GetValueFromList(p, 1).Equals("ID", StringComparison.CurrentCultureIgnoreCase))
                 {
                     d.Append(CommonMethods.AddNewLine($"        /// <summary>"));
                     d.Append(CommonMethods.AddNewLine($"        /// Get or Set {CommonMethods.GetValueFromList(p, 1)}."));
@@ -186,12 +181,12 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region Mapper_FILE
-        private void CreateMapperFile(string className, string filename)
+        private void CreateMapperFile(string className, string _)
         {
             string classNameCamell = CommonMethods.ToCamelCase(className);
 
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderNetCore, $"{className}Mapper.cs");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
             d.Append(CommonMethods.AddNewLine($"namespace Safran.{_projectName}.Domain.{className}"));
             d.Append(CommonMethods.AddNewLine($"{{"));
             d.Append(CommonMethods.AddNewLine($"    using System;"));
@@ -281,11 +276,11 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region ListMapper_FILE
-        private void CreateListMapperFile(string className, string filename)
+        private void CreateListMapperFile(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderNetCore, $"{className}ListMapper.cs");
             string classNameCamell = CommonMethods.ToCamelCase(className);
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
             d.Append(CommonMethods.AddNewLine($"namespace Safran.{_projectName}.Domain.{className}"));
             d.Append(CommonMethods.AddNewLine($"{{"));
             d.Append(CommonMethods.AddNewLine($"    using System;"));
@@ -345,10 +340,10 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region AppService_FILE
-        private void CreateAppServiceFile(string className, string filename)
+        private void CreateAppServiceFile(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderNetCore, $"{className}AppService.cs");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
             d.Append(CommonMethods.AddNewLine($"namespace Safran.{_projectName}.Application.{className}"));
             d.Append(CommonMethods.AddNewLine($"{{"));
             d.Append(CommonMethods.AddNewLine($"    using System.Collections.Generic;"));
@@ -405,10 +400,10 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region Interface_FILE
-        private void CreateInterfaceFile(string className, string filename)
+        private void CreateInterfaceFile(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderNetCore, $"I{className}AppService.cs");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
             d.Append(CommonMethods.AddNewLine($"namespace Safran.{_projectName}.Application.{className}"));
             d.Append(CommonMethods.AddNewLine($"{{"));
             d.Append(CommonMethods.AddNewLine($"    using System.Collections.Generic;"));
@@ -437,11 +432,11 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region Controller_FILE
-        private void CreateControllerFile(string className, string filename)
+        private void CreateControllerFile(string className, string _)
         {
             string classNameCamell = CommonMethods.ToCamelCase(className);
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderNetCore, $"{className}Controller.cs");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
             d.Append(CommonMethods.AddNewLine($"namespace Safran.{_projectName}.Presentation.Api.Controllers"));
             d.Append(CommonMethods.AddNewLine($"{{"));
             d.Append(CommonMethods.AddNewLine($"    using System;"));
@@ -771,10 +766,10 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region Rights_FILE
-        private void CreateRightsFile(string className, string filename)
+        private void CreateRightsFile(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderNetCore, $"OPEN AND COPY_ Common_Rights_{className}.cs");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
             d.Append(CommonMethods.AddNewLine($"    /// <summary>"));
             d.Append(CommonMethods.AddNewLine($"    /// The {className} rights."));
             d.Append(CommonMethods.AddNewLine($"    /// </summary>"));
@@ -816,10 +811,10 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region BIANETConfig_FILE
-        private void CreateBIANETConfigFile(string className, string filename)
+        private void CreateBIANETConfigFile(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderNetCore, $"OPEN AND COPY__bianetconfig.txt");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
 
 
             d.Append(CommonMethods.AddNewLine($"// {className}"));
@@ -834,10 +829,10 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region IocContainer_FILE
-        private void CreateIocContainerFile(string className, string filename)
+        private void CreateIocContainerFile(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderNetCore, $"OPEN AND COPY__IocContainer.txt");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
 
             d.Append(CommonMethods.AddNewLine($"collection.AddTransient<I{className}AppService, {className}AppService>();"));
 
@@ -847,10 +842,10 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region Angular_Index_Component_FILE
-        private void CreateAngular_Index_ComponentFile(string className, string filename)
+        private void CreateAngular_Index_ComponentFile(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderAngular, $"OPEN AND COPY__views_{className}-index__{className}-index-Component_initTableConfiguration.ts");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
             d.Append(CommonMethods.AddNewLine($"private initTableConfiguration() {{"));
             d.Append(CommonMethods.AddNewLine($"    this.biaTranslationService.culture$.subscribe((dateFormat) => {{"));
             d.Append(CommonMethods.AddNewLine($"      this.tableConfiguration = {{"));
@@ -873,10 +868,10 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region Angular_Model_FILE
-        private void Create_Angular_Model_File(string className, string filename)
+        private void Create_Angular_Model_File(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderAngular, $"OPEN AND COPY__model_{className}.ts");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
             d.Append(CommonMethods.AddNewLine($"//import {{ Site }} from 'src/app/domains/site/model/site';"));
             d.Append(CommonMethods.AddNewLine($"import {{ OptionDto }} from 'src/app/shared/bia-shared/model/option-dto';{Environment.NewLine}"));
 
@@ -894,10 +889,10 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region Angular_Translate_FILE
-        private void Create_Angular_TranslateI18n_File(string className, string filename)
+        private void Create_Angular_TranslateI18n_File(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderAngular, $"OPEN AND COPY___assets_i18n_App_{className}.json");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
             d.Append(CommonMethods.AddNewLine($"\"{className.ToLower()}\": {{"));
             d.Append(CommonMethods.AddNewLine($"    \"add\": \"Add {className}\","));
             d.Append(CommonMethods.AddNewLine($"    \"edit\": \"Edit  {className} \","));
@@ -916,16 +911,16 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region Angular_tableComponent_InitForm_FILE
-        private void CreateAngular_TableComponent_InitForm_File(string className, string filename)
+        private void CreateAngular_TableComponent_InitForm_File(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderAngular, $"OPEN AND COPY__component_{className}-TABLE_{className}-table-component.ts");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
             d.Append(CommonMethods.AddNewLine($"  public initForm() {{"));
             d.Append(CommonMethods.AddNewLine($"    this.form = this.formBuilder.group({{"));
             d.Append(CommonMethods.AddNewLine($"      id: [this.element.id], // This field is mandatory. Do not remove it."));
             foreach (string p in _propertiesList)
             {
-                if (CommonMethods.GetValueFromList(p, 1).ToUpper() != "ID")
+                if (!CommonMethods.GetValueFromList(p, 1).Equals("ID", StringComparison.CurrentCultureIgnoreCase))
                 {
                     d.Append(CommonMethods.AddNewLine($"     {CommonMethods.ToCamelCase(CommonMethods.GetValueFromList(p, 1))}: [this.element.{CommonMethods.ToCamelCase(CommonMethods.GetValueFromList(p, 1))}, Validators.required],"));
                 }
@@ -942,16 +937,16 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region Angular_FormComponent_InitForm_FILE
-        private void CreateAngular_FormComponent_InitForm_File(string className, string filename)
+        private void CreateAngular_FormComponent_InitForm_File(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderAngular, $"OPEN AND COPY__component_{className}-FORM_{className}-form-components.ts");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
             d.Append(CommonMethods.AddNewLine($"  private initForm() {{"));
             d.Append(CommonMethods.AddNewLine($"    this.form = this.formBuilder.group({{"));
             d.Append(CommonMethods.AddNewLine($"      id: [this.{className.ToLower()}.id], // This field is mandatory. Do not remove it."));
             foreach (string p in _propertiesList)
             {
-                if (CommonMethods.GetValueFromList(p, 1).ToUpper() != "ID")
+                if (!CommonMethods.GetValueFromList(p, 1).Equals("ID", StringComparison.CurrentCultureIgnoreCase))
                 {
                     d.Append(CommonMethods.AddNewLine($"     {CommonMethods.ToCamelCase(CommonMethods.GetValueFromList(p, 1))}: [this.{className.ToLower()}.{CommonMethods.ToCamelCase(CommonMethods.GetValueFromList(p, 1))}, Validators.required],"));
                 }
@@ -968,10 +963,10 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region Angular_Permission_FILE
-        private void CreateAngularPermissionFile(string className, string filename)
+        private void CreateAngularPermissionFile(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderAngular, $"OPEN AND COPY__shared_permission.txt");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
 
             d.Append(CommonMethods.AddNewLine($"  {CommonMethods.FirstLetterUppercase(className)}_List_Access = \"{CommonMethods.FirstLetterUppercase(className)}_List_Access\","));
             d.Append(CommonMethods.AddNewLine($"  {CommonMethods.FirstLetterUppercase(className)}_Create = \"{CommonMethods.FirstLetterUppercase(className)}_Create\","));
@@ -987,10 +982,10 @@ namespace BIA.ToolKit.Application.Services
         #endregion
 
         #region Angular_Form_FILE
-        private void CreateAngularFormComponentHtmlFile(string className, string filename)
+        private void CreateAngularFormComponentHtmlFile(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderAngular, $"OPEN AND COPY__component_{className}-form_{className}-component-html.txt");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
             //d.Append(CommonMethods.AddNewLine($"namespace Safran.{_projectName}.Application.{className}"));
             //d.Append(CommonMethods.AddNewLine($"{{"));
 
@@ -1027,10 +1022,10 @@ namespace BIA.ToolKit.Application.Services
 
 
         #region TEMPLATE_FILE
-        private void CreateTEMPLATEFile(string className, string filename)
+        private void CreateTEMPLATEFile(string className, string _)
         {
             string fileDto = Path.Combine(_resultFolder.FullName, Constants.FolderAngular, $"{className}Dto.cs");
-            StringBuilder d = new StringBuilder();
+            var d = new StringBuilder();
             d.Append(CommonMethods.AddNewLine($"namespace Safran.{_projectName}.Application.{className}"));
             d.Append(CommonMethods.AddNewLine($"{{"));
 
