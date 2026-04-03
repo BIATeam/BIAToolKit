@@ -30,6 +30,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         }
 
         private const int REGENERATE_FEATURES_VERSION_MINIMUM = 500;
+        private static readonly Regex PlaceholderPattern = new(@"\{[^}]+\}", RegexOptions.Compiled);
         private readonly IConsoleWriter consoleWriter = consoleWriter;
 
         public static bool IsProjectCompatibleForRegenerateFeatures(Project project)
@@ -307,13 +308,12 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             // Placeholders that can span multiple path segments (e.g. ParentChildrenRelativePath)
             // must also be treated as multi-level wildcards.  We therefore replace all remaining
             // braced tokens with ".*" (match anything, including path separators).
-            var placeholderRegex = new Regex(@"\{[^}]+\}", RegexOptions.Compiled);
 
             foreach ((string templatePath, bool isDotNet) in manifestPaths)
             {
                 // Resolve the project prefix first, then turn every remaining placeholder into a
                 // regex wildcard that may span multiple path segments.
-                string resolved = placeholderRegex.Replace(
+                string resolved = PlaceholderPattern.Replace(
                     templatePath.Replace("{Project}", projectPrefix),
                     "*");
 

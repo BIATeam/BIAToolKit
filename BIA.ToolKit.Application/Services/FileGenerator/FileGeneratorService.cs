@@ -197,7 +197,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
         /// </summary>
         public IEnumerable<(string OutputPath, bool IsDotNet)> GetAllManifestOutputPaths()
         {
-            if (_currentManifest == null)
+            if (!IsInit || _currentManifest == null)
                 return [];
 
             var result = new List<(string, bool)>();
