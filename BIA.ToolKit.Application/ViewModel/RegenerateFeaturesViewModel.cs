@@ -14,6 +14,7 @@ namespace BIA.ToolKit.Application.ViewModel
     public class RegenerateFeaturesViewModel : ObservableObject
     {
         private bool isLoaded;
+        private bool isRefreshing;
         private List<string> availableVersions = [];
 
         public ObservableCollection<RegenerableEntityRowViewModel> EntityRows { get; } = [];
@@ -95,92 +96,101 @@ namespace BIA.ToolKit.Application.ViewModel
         /// <summary>Refresh the summary list of features to regenerate from the current checkbox state.</summary>
         public void RefreshSelectedFeatures()
         {
-            // 1. Re-evaluate dynamic parent-dependency blocking based on current selection
-            RefreshParentDependencyBlocking();
+            // Guard against re-entrant calls (e.g. triggered by SynchronizeParentChildSelection)
+            if (isRefreshing) return;
+            isRefreshing = true;
 
-            // 2. Unsubscribe previous items before clearing to avoid stale handlers
-            foreach (FeatureRegenerationItem item in SelectedFeatures)
-                item.PropertyChanged -= OnFeatureItemPropertyChanged;
-
-            SelectedFeatures.Clear();
-
-            // 3. All selected Options first (alphabetical by entity name)
-            foreach (RegenerableEntityRowViewModel row in EntityRows.OrderBy(r => r.EntityNameSingular))
+            try
             {
-                if (row.IsOptionEnabled && row.IsOptionSelected)
-                    SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "Option", row.Entity.OptionHistory?.FrameworkVersion));
+                // 1. Auto-select parent entities when their children are selected (cascade up)
+                SynchronizeParentChildSelection();
+
+                // 2. Unsubscribe previous items before clearing to avoid stale handlers
+                foreach (FeatureRegenerationItem item in SelectedFeatures)
+                    item.PropertyChanged -= OnFeatureItemPropertyChanged;
+
+                SelectedFeatures.Clear();
+
+                // 3. All selected Options first (alphabetical by entity name)
+                foreach (RegenerableEntityRowViewModel row in EntityRows.OrderBy(r => r.EntityNameSingular))
+                {
+                    if (row.IsOptionEnabled && row.IsOptionSelected)
+                        SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "Option", row.Entity.OptionHistory?.FrameworkVersion));
+                }
+
+                // 4. Collect rows that have at least one of CRUD or DTO selected
+                List<RegenerableEntityRowViewModel> crudDtoRows = EntityRows
+                    .Where(r => (r.IsCrudEnabled && r.IsCrudSelected) || (r.IsDtoSelected && r.Entity.CanRegenerateDto))
+                    .ToList();
+
+                // 5. Sort them in dependency order (parents before children, alphabetical within same level)
+                IEnumerable<RegenerableEntityRowViewModel> sortedRows = TopologicalSort(crudDtoRows);
+
+                // 6. For each entity in dependency order: DTO first, then CRUD
+                foreach (RegenerableEntityRowViewModel row in sortedRows)
+                {
+                    // DTO: selected explicitly or forced/locked by CRUD selection (IsDtoSelected=true in both cases)
+                    if (row.IsDtoSelected && row.Entity.CanRegenerateDto)
+                        SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "DTO", row.Entity.DtoHistory?.FrameworkVersion));
+
+                    if (row.IsCrudEnabled && row.IsCrudSelected)
+                        SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "CRUD", row.Entity.CrudHistory?.FrameworkVersion));
+                }
+
+                // 7. Subscribe to new items so CanRegenerate updates when user picks a FROM version
+                foreach (FeatureRegenerationItem item in SelectedFeatures)
+                    item.PropertyChanged += OnFeatureItemPropertyChanged;
+
+                RaisePropertyChanged(nameof(HasSelectedFeatures));
+                RaisePropertyChanged(nameof(CanRegenerate));
+                RaisePropertyChanged(nameof(SelectAllEntities));
+                RaisePropertyChanged(nameof(SelectedFeatures));
             }
-
-            // 4. Collect rows that have at least one of CRUD or DTO selected
-            List<RegenerableEntityRowViewModel> crudDtoRows = EntityRows
-                .Where(r => (r.IsCrudEnabled && r.IsCrudSelected) || (r.IsDtoEnabled && r.IsDtoSelected))
-                .ToList();
-
-            // 5. Sort them in dependency order (parents before children, alphabetical within same level)
-            IEnumerable<RegenerableEntityRowViewModel> sortedRows = TopologicalSort(crudDtoRows);
-
-            // 6. For each entity in dependency order: DTO first, then CRUD
-            foreach (RegenerableEntityRowViewModel row in sortedRows)
+            finally
             {
-                if (row.IsDtoEnabled && row.IsDtoSelected)
-                    SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "DTO", row.Entity.DtoHistory?.FrameworkVersion));
-
-                if (row.IsCrudEnabled && row.IsCrudSelected)
-                    SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "CRUD", row.Entity.CrudHistory?.FrameworkVersion));
+                isRefreshing = false;
             }
-
-            // 7. Subscribe to new items so CanRegenerate updates when user picks a FROM version
-            foreach (FeatureRegenerationItem item in SelectedFeatures)
-                item.PropertyChanged += OnFeatureItemPropertyChanged;
-
-            RaisePropertyChanged(nameof(HasSelectedFeatures));
-            RaisePropertyChanged(nameof(CanRegenerate));
-            RaisePropertyChanged(nameof(SelectAllEntities));
-            RaisePropertyChanged(nameof(SelectedFeatures));
         }
 
         // ── Private helpers ───────────────────────────────────────────────────
 
         /// <summary>
-        /// Updates the dynamic parent-blocking state on each child row based on the current
-        /// selection state of their parent row.
-        /// A child's CRUD/DTO is blocked when its parent has enabled-but-unselected features.
+        /// Cascades parent entity selection upward: when a child entity has any features selected,
+        /// its parent entity (if present in the displayed rows) is automatically selected too.
+        /// Iterates until the selection state is stable (handles multi-level hierarchies).
         /// </summary>
-        private void RefreshParentDependencyBlocking()
+        private void SynchronizeParentChildSelection()
         {
             var rowLookup = EntityRows.ToDictionary(r => r.EntityNameSingular, StringComparer.OrdinalIgnoreCase);
 
-            foreach (RegenerableEntityRowViewModel row in EntityRows)
+            // Safety bound: at most one pass per row (tree depth ≤ entity count)
+            int maxIterations = EntityRows.Count + 1;
+            int iterations = 0;
+            bool changed = true;
+
+            while (changed && iterations++ < maxIterations)
             {
-                string parentName = row.Entity.ParentEntityName;
+                changed = false;
 
-                if (string.IsNullOrEmpty(parentName) || !row.Entity.HasParentDependency)
+                foreach (RegenerableEntityRowViewModel childRow in EntityRows)
                 {
-                    // No dynamic parent dependency — clear any previous blocking
-                    row.SetParentBlocking(false, false, null);
-                    continue;
-                }
+                    if (!childRow.Entity.HasParentDependency || string.IsNullOrEmpty(childRow.Entity.ParentEntityName))
+                        continue;
 
-                if (!rowLookup.TryGetValue(parentName, out RegenerableEntityRowViewModel parentRow))
-                {
-                    // Parent not in displayed rows (e.g. already up to date) — no blocking needed
-                    row.SetParentBlocking(false, false, null);
-                    continue;
-                }
+                    if (!rowLookup.TryGetValue(childRow.Entity.ParentEntityName, out RegenerableEntityRowViewModel parentRow))
+                        continue;
 
-                // Parent is in rows — it must be fully selected (all enabled features selected)
-                bool parentFullySelected =
-                    (!parentRow.IsCrudEnabled || parentRow.IsCrudSelected) &&
-                    (!parentRow.IsDtoEnabled || parentRow.IsDtoSelected);
+                    // If the child has any selected features → ensure the parent is also selected
+                    bool childHasSelection = childRow.IsCrudSelected || childRow.IsOptionSelected || childRow.IsDtoSelected;
+                    bool parentHasSelection = parentRow.IsCrudSelected || parentRow.IsOptionSelected || parentRow.IsDtoSelected;
 
-                if (parentFullySelected)
-                {
-                    row.SetParentBlocking(false, false, null);
-                }
-                else
-                {
-                    string message = $"L'entité parente '{parentName}' doit être entièrement sélectionnée pour migration en premier.";
-                    row.SetParentBlocking(crudBlocked: true, dtoBlocked: true, message: message);
+                    if (childHasSelection && !parentHasSelection)
+                    {
+                        // Auto-select the parent entity. The SelectionChanged event it fires will be
+                        // suppressed by the isRefreshing guard.
+                        parentRow.IsEntitySelected = true;
+                        changed = true;
+                    }
                 }
             }
         }
