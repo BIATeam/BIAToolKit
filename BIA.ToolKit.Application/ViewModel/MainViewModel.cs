@@ -6,36 +6,50 @@ namespace BIA.ToolKit.Application.ViewModel
     using System.Reflection;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
+    using CommunityToolkit.Mvvm.Messaging;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Settings;
     using Octokit;
 
-    public partial class MainViewModel : ObservableObject
+    public partial class MainViewModel : ObservableObject, IDisposable,
+        IRecipient<SettingsUpdatedMessage>,
+        IRecipient<RepositoryChangedMessage>,
+        IRecipient<RepositoryDeletedMessage>,
+        IRecipient<RepositoryAddedMessage>
     {
         private readonly Version applicationVersion;
-        private readonly UIEventBroker eventBroker;
         private readonly SettingsService settingsService;
         private readonly GitService gitService;
         private readonly IConsoleWriter consoleWriter;
         private bool firstTimeSettingsUpdated = true;
         private bool waitAddTemplateRepository;
         private bool waitAddCompanyFilesRepository;
+        private bool disposed;
 
-        public MainViewModel(Version applicationVersion, UIEventBroker eventBroker, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter)
+        public MainViewModel(Version applicationVersion, SettingsService settingsService, GitService gitService, IConsoleWriter consoleWriter)
         {
             this.applicationVersion = applicationVersion;
-            this.eventBroker = eventBroker;
             this.settingsService = settingsService;
             this.gitService = gitService;
             this.consoleWriter = consoleWriter;
-            eventBroker.OnSettingsUpdated += EventBroker_OnSettingsUpdated;
-            eventBroker.OnRepositoryViewModelChanged += EventBroker_OnRepositoryChanged;
-            eventBroker.OnRepositoryViewModelDeleted += EventBroker_OnRepositoryViewModelDeleted;
-            eventBroker.OnRepositoryViewModelAdded += EventBroker_OnRepositoryViewModelAdded;
+            WeakReferenceMessenger.Default.RegisterAll(this);
         }
+
+        public void Dispose()
+        {
+            if (disposed) return;
+            disposed = true;
+            WeakReferenceMessenger.Default.UnregisterAll(this);
+        }
+
+        public void Receive(SettingsUpdatedMessage message) => EventBroker_OnSettingsUpdated(message.Settings);
+        public void Receive(RepositoryChangedMessage message) => EventBroker_OnRepositoryChanged(message.OldRepository, message.NewRepository);
+        public void Receive(RepositoryDeletedMessage message) => EventBroker_OnRepositoryViewModelDeleted(message.Repository);
+        public void Receive(RepositoryAddedMessage message) => EventBroker_OnRepositoryViewModelAdded(message.Repository);
 
         private void EventBroker_OnRepositoryViewModelAdded(RepositoryViewModel repository)
         {
@@ -54,7 +68,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
             if (repository.Model.RepositoryType == Domain.RepositoryType.Git && repository.Model is IRepositoryGit repositoryGit)
             {
-                eventBroker.RequestExecuteActionWithWaiter(async () => await gitService.Synchronize(repositoryGit));
+                WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () => await gitService.Synchronize(repositoryGit)));
             }
         }
 
@@ -76,12 +90,12 @@ namespace BIA.ToolKit.Application.ViewModel
                 }
             }
 
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 consoleWriter.AddMessageLine($"Deleting repository {repository.Name}...", "pink");
                 await Task.Run(repository.Model.Clean);
                 consoleWriter.AddMessageLine("Repository deleted", "green");
-            });
+            }));
         }
 
         private void EventBroker_OnRepositoryChanged(RepositoryViewModel oldRepository, RepositoryViewModel newRepository)
@@ -122,14 +136,14 @@ namespace BIA.ToolKit.Application.ViewModel
         }
 
         [RelayCommand]
-        private void OpenToolkitRepositorySettings() => eventBroker.RequestOpenRepositoryForm(ToolkitRepository, RepositoryFormMode.Edit);
+        private void OpenToolkitRepositorySettings() => WeakReferenceMessenger.Default.Send(new OpenRepositoryFormMessage(ToolkitRepository, RepositoryFormMode.Edit));
 
         [RelayCommand]
         private void AddTemplateRepository()
         {
             waitAddTemplateRepository = true;
             waitAddCompanyFilesRepository = false;
-            eventBroker.RequestOpenRepositoryForm(new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, eventBroker, consoleWriter), RepositoryFormMode.Create);
+            WeakReferenceMessenger.Default.Send(new OpenRepositoryFormMessage(new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, consoleWriter), RepositoryFormMode.Create));
         }
 
         [RelayCommand]
@@ -137,7 +151,7 @@ namespace BIA.ToolKit.Application.ViewModel
         {
             waitAddCompanyFilesRepository = true;
             waitAddTemplateRepository = false;
-            eventBroker.RequestOpenRepositoryForm(new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, eventBroker, consoleWriter), RepositoryFormMode.Create);
+            WeakReferenceMessenger.Default.Send(new OpenRepositoryFormMessage(new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, consoleWriter), RepositoryFormMode.Create));
         }
 
         public ObservableCollection<RepositoryViewModel> TemplateRepositories { get; } = [];
@@ -164,13 +178,13 @@ namespace BIA.ToolKit.Application.ViewModel
             {
                 if (repository is RepositoryGit repositoryGit)
                 {
-                    var viewModel = new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter);
+                    var viewModel = new RepositoryGitViewModel(repositoryGit, gitService, consoleWriter);
                     TemplateRepositories.Add(viewModel);
                 }
 
                 if (repository is RepositoryFolder repositoryFolder)
                 {
-                    TemplateRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter));
+                    TemplateRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, consoleWriter));
                 }
             }
 
@@ -179,19 +193,19 @@ namespace BIA.ToolKit.Application.ViewModel
             {
                 if (repository is RepositoryGit repositoryGit)
                 {
-                    CompanyFilesRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter));
+                    CompanyFilesRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService, consoleWriter));
                 }
 
                 if (repository is RepositoryFolder repositoryFolder)
                 {
-                    CompanyFilesRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter));
+                    CompanyFilesRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, consoleWriter));
                 }
             }
 
             ToolkitRepository = settings.ToolkitRepository switch
             {
-                RepositoryGit repositoryGit => new RepositoryGitViewModel(repositoryGit, gitService, eventBroker, consoleWriter),
-                RepositoryFolder repositoryFolder => new RepositoryFolderViewModel(repositoryFolder, gitService, eventBroker, consoleWriter),
+                RepositoryGit repositoryGit => new RepositoryGitViewModel(repositoryGit, gitService, consoleWriter),
+                RepositoryFolder repositoryFolder => new RepositoryFolderViewModel(repositoryFolder, gitService, consoleWriter),
                 _ => throw new NotImplementedException()
             };
             ToolkitRepository.IsVisibleCompanyName = false;

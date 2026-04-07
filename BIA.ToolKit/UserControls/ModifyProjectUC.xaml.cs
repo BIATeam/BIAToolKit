@@ -24,7 +24,7 @@ namespace BIA.ToolKit.UserControls
         /// </summary>
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker,
+            FileGeneratorService fileGeneratorService,
             RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
             FeatureMigrationGeneratorService featureMigrationGeneratorService,
             ProjectViewModel projectViewModel)
@@ -43,7 +43,7 @@ namespace BIA.ToolKit.UserControls
             ProjectSelector.Inject(projectViewModel);
 
             // Wire up RegenerateFeatures
-            RegenerateFeatures.Inject(consoleWriter, uiEventBroker, settingsService,
+            RegenerateFeatures.Inject(consoleWriter, settingsService,
                 regenerateFeaturesDiscoveryService, featureMigrationGeneratorService,
                 gitService, cSharpParserService);
 

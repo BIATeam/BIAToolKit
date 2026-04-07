@@ -15,9 +15,9 @@ namespace BIA.ToolKit.Dialogs
     {
         public RepositoryFormViewModel ViewModel => DataContext as RepositoryFormViewModel;
 
-        public RepositoryFormUC(RepositoryViewModel repository, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
+        public RepositoryFormUC(RepositoryViewModel repository, GitService gitService, IConsoleWriter consoleWriter)
         {
-            DataContext = new RepositoryFormViewModel(repository, gitService, eventBroker, consoleWriter, App.GetService<IDialogService>());
+            DataContext = new RepositoryFormViewModel(repository, gitService, consoleWriter, App.GetService<IDialogService>());
             InitializeComponent();
         }
     }

@@ -14,10 +14,9 @@ namespace BIA.ToolKit.Application.Services
     using System.Text.RegularExpressions;
     using BIA.ToolKit.Domain;
 
-    public class GitService(IConsoleWriter outPut, UIEventBroker eventBroker)
+    public class GitService(IConsoleWriter outPut)
     {
         private readonly IConsoleWriter outPut = outPut;
-        private readonly UIEventBroker eventBroker = eventBroker;
 
         public async Task Synchronize(IRepositoryGit repository)
         {

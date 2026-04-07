@@ -8,6 +8,7 @@ namespace BIA.ToolKit.UserControls
     using System.Windows;
     using System.Windows.Controls;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.RegenerateFeatures;
     using BIA.ToolKit.Application.Settings;
@@ -20,6 +21,7 @@ namespace BIA.ToolKit.UserControls
     using BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Domain.Work;
+    using CommunityToolkit.Mvvm.Messaging;
 
     /// <summary>
     /// Interaction logic for RegenerateFeaturesUC.xaml
@@ -28,7 +30,6 @@ namespace BIA.ToolKit.UserControls
     {
         private RegenerateFeaturesViewModel viewModel;
         private IConsoleWriter consoleWriter;
-        private UIEventBroker uiEventBroker;
         private SettingsService settingsService;
         private RegenerateFeaturesDiscoveryService discoveryService;
         private FeatureMigrationGeneratorService featureMigrationGeneratorService;
@@ -43,7 +44,6 @@ namespace BIA.ToolKit.UserControls
 
         public void Inject(
             IConsoleWriter consoleWriter,
-            UIEventBroker uiEventBroker,
             SettingsService settingsService,
             RegenerateFeaturesDiscoveryService discoveryService,
             FeatureMigrationGeneratorService featureMigrationGeneratorService,
@@ -51,7 +51,6 @@ namespace BIA.ToolKit.UserControls
             CSharpParserService cSharpParserService)
         {
             this.consoleWriter = consoleWriter;
-            this.uiEventBroker = uiEventBroker;
             this.settingsService = settingsService;
             this.discoveryService = discoveryService;
             this.featureMigrationGeneratorService = featureMigrationGeneratorService;
@@ -61,8 +60,8 @@ namespace BIA.ToolKit.UserControls
             viewModel = new RegenerateFeaturesViewModel();
             DataContext = viewModel;
 
-            uiEventBroker.OnProjectChanged += OnProjectChanged;
-            uiEventBroker.OnSolutionClassesParsed += OnSolutionClassesParsed;
+            WeakReferenceMessenger.Default.Register<ProjectChangedMessage>(this, (r, m) => OnProjectChanged(m.Project));
+            WeakReferenceMessenger.Default.Register<SolutionClassesParsedMessage>(this, (r, m) => OnSolutionClassesParsed());
         }
 
         private void OnProjectChanged(Project project)
@@ -100,7 +99,7 @@ namespace BIA.ToolKit.UserControls
 
         private void Regenerate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(Regenerate_Run);
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(Regenerate_Run));
         }
 
         private async Task Regenerate_Run()

@@ -1,11 +1,13 @@
 namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.RegenerateFeatures;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
+    using CommunityToolkit.Mvvm.Messaging;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.Settings;
     using System;
@@ -20,9 +22,9 @@ namespace BIA.ToolKit.Application.ViewModel
     /// Singleton ViewModel shared between ModifyProjectUC and GenerateUC.
     /// Manages project selection, loading, and parsed project state.
     /// </summary>
-    public class ProjectViewModel : ObservableObject
+    public class ProjectViewModel : ObservableObject,
+        IRecipient<SettingsUpdatedMessage>
     {
-        private UIEventBroker eventBroker;
         private FileGeneratorService fileGeneratorService;
         private IConsoleWriter consoleWriter;
         private SettingsService settingsService;
@@ -30,17 +32,18 @@ namespace BIA.ToolKit.Application.ViewModel
 
         private Project currentProject;
 
-        public void Inject(UIEventBroker eventBroker, FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter,
+        public void Inject(FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter,
             SettingsService settingsService, CSharpParserService parserService)
         {
-            this.eventBroker = eventBroker;
             this.fileGeneratorService = fileGeneratorService;
             this.consoleWriter = consoleWriter;
             this.settingsService = settingsService;
             this.parserService = parserService;
 
-            eventBroker.OnSettingsUpdated += EventBroker_OnSettingsUpdated;
+            WeakReferenceMessenger.Default.RegisterAll(this);
         }
+
+        public void Receive(SettingsUpdatedMessage message) => EventBroker_OnSettingsUpdated(message.Settings);
 
         private void EventBroker_OnSettingsUpdated(IBIATKSettings settings)
         {
@@ -157,7 +160,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 if (value == Folder)
                     return;
 
-                eventBroker.RequestExecuteActionWithWaiter(async () =>
+                WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
                 {
                     IsFileGeneratorServiceInit = false;
                     IsProjectCompatibleCrudGenerator = false;
@@ -182,7 +185,7 @@ namespace BIA.ToolKit.Application.ViewModel
                     }
 
                     OnPropertyChanged(nameof(Folder));
-                });
+                }));
             }
         }
 
@@ -201,7 +204,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 {
                     currentProject = value;
                     RefreshProjectDisplayProperties();
-                    eventBroker.NotifyProjectChanged(value);
+                    WeakReferenceMessenger.Default.Send(new ProjectChangedMessage(value));
                 }
             }
         }
@@ -318,13 +321,13 @@ namespace BIA.ToolKit.Application.ViewModel
 
         private void RefreshProjectInformations()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 await LoadProject(CurrentProject);
                 await InitFileGeneratorServiceFromProject(CurrentProject);
                 await ParseProject(CurrentProject);
                 RefreshProjectDisplayProperties();
-            });
+            }));
         }
 
         #endregion

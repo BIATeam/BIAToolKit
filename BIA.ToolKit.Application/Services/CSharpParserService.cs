@@ -2,12 +2,14 @@ namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Extensions;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Parser;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ProjectAnalysis;
+    using CommunityToolkit.Mvvm.Messaging;
     using Microsoft.Build.Locator;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
@@ -29,11 +31,10 @@ using Roslyn.Compilers.Common;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services;*/
 
-    public class CSharpParserService(IConsoleWriter consoleWriter, UIEventBroker eventBroker)
+    public class CSharpParserService(IConsoleWriter consoleWriter)
     {
         private readonly List<string> excludedEntitiesFilesSuffixes = ["Mapper", "Service", "Repository", "Customizer", "Specification", "Dto"];
         private readonly IConsoleWriter consoleWriter = consoleWriter;
-        private readonly UIEventBroker eventBroker = eventBroker;
         private Solution CurrentSolution;
         public IReadOnlyList<ClassInfo> CurrentSolutionClasses { get; private set; } = [];
 
@@ -283,7 +284,7 @@ using Roslyn.Services;*/
                 consoleWriter.AddMessageLine($"{report.Project} : {report.ClassesCount} classes parsed in {report.ElapsedSeconds} seconds", "gray");
             }
             CurrentSolutionClasses = [.. classesInfosReports.SelectMany(x => x.ClassesInfo)];
-            eventBroker.NotifySolutionClassesParsed();
+            WeakReferenceMessenger.Default.Send(new SolutionClassesParsedMessage());
             consoleWriter.AddMessageLine($"Classes parsed successfully", "lightgreen");
         }
 

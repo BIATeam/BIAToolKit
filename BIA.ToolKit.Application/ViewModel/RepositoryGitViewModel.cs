@@ -6,7 +6,7 @@ namespace BIA.ToolKit.Application.ViewModel
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Domain;
 
-    public sealed partial class RepositoryGitViewModel(RepositoryGit repositoryGit, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter) : RepositoryViewModel(repositoryGit, gitService, eventBroker, consoleWriter)
+    public sealed partial class RepositoryGitViewModel(RepositoryGit repositoryGit, GitService gitService, IConsoleWriter consoleWriter) : RepositoryViewModel(repositoryGit, gitService, consoleWriter)
     {
         public string GitRepositoryName
         {

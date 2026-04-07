@@ -2,6 +2,7 @@ namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Mapper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain;
@@ -10,6 +11,7 @@ namespace BIA.ToolKit.Application.ViewModel
     using BIA.ToolKit.Domain.Work;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
+    using CommunityToolkit.Mvvm.Messaging;
     using Humanizer;
     using System;
     using System.Collections.Generic;
@@ -20,49 +22,56 @@ namespace BIA.ToolKit.Application.ViewModel
     using System.Threading.Tasks;
     using System.Windows.Input;
 
-    public partial class VersionAndOptionViewModel : ObservableObject, IDisposable
+    public partial class VersionAndOptionViewModel : ObservableObject, IDisposable,
+        IRecipient<SettingsUpdatedMessage>,
+        IRecipient<RepositoryReleaseDataUpdatedMessage>,
+        IRecipient<OriginFeatureSettingsChangedMessage>
     {
         public VersionAndOption VersionAndOption { get; set; }
         private readonly RepositoryService repositoryService;
         private readonly SettingsService settingsService;
         private readonly GitService gitService;
         private readonly IConsoleWriter consoleWriter;
-        private readonly UIEventBroker eventBroker;
 
         private bool hasFeature = false;
         private bool areFeatureInitialized = false;
         private string currentProjectPath;
         private List<FeatureSetting> OriginFeatureSettings;
         private bool disposed;
+        private bool listeningForOriginFeatureSettings;
 
         public VersionAndOptionViewModel(
             RepositoryService repositoryService,
             SettingsService settingsService,
             GitService gitService,
-            IConsoleWriter consoleWriter,
-            UIEventBroker eventBroker)
+            IConsoleWriter consoleWriter)
         {
             this.repositoryService = repositoryService ?? throw new ArgumentNullException(nameof(repositoryService));
             this.settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
             this.gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
             this.consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
-            this.eventBroker = eventBroker ?? throw new ArgumentNullException(nameof(eventBroker));
 
             VersionAndOption = new VersionAndOption();
 
-            // Subscribe to event broker events
-            eventBroker.OnSettingsUpdated += OnSettingsUpdated;
-            eventBroker.OnRepositoryViewModelReleaseDataUpdated += OnRepositoryViewModelReleaseDataUpdated;
+            // Subscribe to messenger events
+            WeakReferenceMessenger.Default.RegisterAll(this);
         }
 
         public void Dispose()
         {
             if (disposed) return;
             disposed = true;
+            WeakReferenceMessenger.Default.UnregisterAll(this);
+        }
 
-            eventBroker.OnSettingsUpdated -= OnSettingsUpdated;
-            eventBroker.OnRepositoryViewModelReleaseDataUpdated -= OnRepositoryViewModelReleaseDataUpdated;
-            eventBroker.OnOriginFeatureSettingsChanged -= OnOriginFeatureSettingsChanged;
+        public void Receive(SettingsUpdatedMessage message) => OnSettingsUpdated(message.Settings);
+        public void Receive(RepositoryReleaseDataUpdatedMessage message) => OnRepositoryViewModelReleaseDataUpdated(message.Repository);
+        public void Receive(OriginFeatureSettingsChangedMessage message)
+        {
+            if (listeningForOriginFeatureSettings)
+            {
+                OnOriginFeatureSettingsChanged(message.FeatureSettings);
+            }
         }
 
         public ObservableCollection<WorkRepository> WorkTemplates
@@ -158,7 +167,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
                     if (WorkCompanyFile != null)
                     {
-                        eventBroker.RequestExecuteActionWithWaiter(() => LoadCompanyFileSettingsAsync());
+                        WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(() => LoadCompanyFileSettingsAsync()));
                     }
                     OnPropertyChanged(nameof(WorkCompanyFile));
                 }
@@ -419,8 +428,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
             if (originFeatureSettings != null)
             {
-                eventBroker.OnOriginFeatureSettingsChanged -= OnOriginFeatureSettingsChanged;
-                eventBroker.OnOriginFeatureSettingsChanged += OnOriginFeatureSettingsChanged;
+                listeningForOriginFeatureSettings = true;
                 OriginFeatureSettings = new List<FeatureSetting>(originFeatureSettings);
             }
 
@@ -505,16 +513,16 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private void OnFrameworkVersionSelectionChanged()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 await this.FillVersionFolderPathAsync();
                 this.LoadfeatureSetting();
                 this.LoadVersionAndOption(false, false);
                 if (OriginFeatureSettings is null)
                 {
-                    eventBroker.NotifyOriginFeatureSettingsChanged(FeatureSettings.Select(x => x.FeatureSetting).ToList());
+                    WeakReferenceMessenger.Default.Send(new OriginFeatureSettingsChangedMessage(FeatureSettings.Select(x => x.FeatureSetting).ToList()));
                 }
-            });
+            }));
         }
 
         [RelayCommand]

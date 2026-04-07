@@ -40,7 +40,6 @@ namespace BIA.ToolKit
         {
             // Services
             services.AddSingleton<IConsoleWriter, ConsoleWriter>();
-            services.AddSingleton<UIEventBroker>();
             services.AddSingleton<RepositoryService>();
             services.AddSingleton<GitService>();
             services.AddSingleton<ProjectCreatorService>();

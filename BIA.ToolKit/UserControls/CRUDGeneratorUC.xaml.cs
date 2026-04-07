@@ -2,19 +2,20 @@ namespace BIA.ToolKit.UserControls
 {
     using System.Windows.Controls;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
+    using CommunityToolkit.Mvvm.Messaging;
 
     /// <summary>
     /// Interaction logic for CRUDGeneratorUC.xaml
     /// </summary>
     public partial class CRUDGeneratorUC : UserControl
     {
-        private UIEventBroker uiEventBroker;
         private readonly CRUDGeneratorViewModel vm;
 
         /// <summary>
@@ -30,23 +31,12 @@ namespace BIA.ToolKit.UserControls
         /// Injection of services.
         /// </summary>
         public void Inject(CSharpParserService service, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, UIEventBroker uiEventBroker, FileGeneratorService fileGeneratorService)
+            IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService)
         {
-            this.uiEventBroker = uiEventBroker;
-            this.uiEventBroker.OnProjectChanged += UiEventBroker_OnProjectChanged;
-            this.uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
+            WeakReferenceMessenger.Default.Register<ProjectChangedMessage>(this, (r, m) => vm.SetCurrentProject(m.Project));
+            WeakReferenceMessenger.Default.Register<SolutionClassesParsedMessage>(this, (r, m) => vm.OnSolutionClassesParsed());
 
-            vm.Inject(service, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService, App.GetService<IDialogService>());
-        }
-
-        private void UiEventBroker_OnSolutionClassesParsed()
-        {
-            vm.OnSolutionClassesParsed();
-        }
-
-        private void UiEventBroker_OnProjectChanged(Project project)
-        {
-            vm.SetCurrentProject(project);
+            vm.Inject(service, zipService, crudService, settingsService, consoleWriter, fileGeneratorService, App.GetService<IDialogService>());
         }
     }
 }

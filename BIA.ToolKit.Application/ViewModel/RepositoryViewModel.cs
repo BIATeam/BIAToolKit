@@ -7,31 +7,32 @@ namespace BIA.ToolKit.Application.ViewModel
     using System.Linq;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Domain;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
+    using CommunityToolkit.Mvvm.Messaging;
 
-    public abstract partial class RepositoryViewModel : ObservableObject
+    public abstract partial class RepositoryViewModel : ObservableObject,
+        IRecipient<RepositoryVersionXYZChangedMessage>
     {
         private readonly Repository repository;
         protected readonly GitService gitService;
-        protected readonly UIEventBroker eventBroker;
         protected readonly IConsoleWriter consoleWriter;
 
-        protected RepositoryViewModel(Repository repository, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
+        protected RepositoryViewModel(Repository repository, GitService gitService, IConsoleWriter consoleWriter)
         {
             ArgumentNullException.ThrowIfNull(repository, nameof(repository));
             this.repository = repository;
             this.gitService = gitService;
-            this.eventBroker = eventBroker;
             this.consoleWriter = consoleWriter;
-            eventBroker.OnRepositoryViewModelVersionXYZChanged += EventBroker_OnRepositoryViewModelVersionXYZChanged;
+            WeakReferenceMessenger.Default.RegisterAll(this);
         }
 
-        private void EventBroker_OnRepositoryViewModelVersionXYZChanged(RepositoryViewModel repository)
+        public void Receive(RepositoryVersionXYZChangedMessage message)
         {
-            if (repository == this)
+            if (message.Repository == this)
                 return;
 
             IsVersionXYZ = false;
@@ -59,7 +60,7 @@ namespace BIA.ToolKit.Application.ViewModel
                     OnPropertyChanged(nameof(IsVersionXYZ));
                     if (value == true)
                     {
-                        eventBroker.NotifyViewModelVersionXYZChanged(this);
+                        WeakReferenceMessenger.Default.Send(new RepositoryVersionXYZChangedMessage(this));
                     }
                 }
             }
@@ -120,14 +121,14 @@ namespace BIA.ToolKit.Application.ViewModel
             {
                 repository.UseRepository = value;
                 OnPropertyChanged(nameof(UseRepository));
-                eventBroker.NotifyRepositoriesUpdated();
+                WeakReferenceMessenger.Default.Send(new RepositoriesUpdatedMessage());
             }
         }
 
         [RelayCommand]
         private void Synchronize()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 try
                 {
@@ -140,13 +141,13 @@ namespace BIA.ToolKit.Application.ViewModel
                 {
                     consoleWriter.AddMessageLine($"Error : {ex.Message}", "red");
                 }
-            });
+            }));
         }
 
         [RelayCommand]
         private void OpenSource()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 if (Model is RepositoryFolder repoFolder)
                 {
@@ -162,13 +163,13 @@ namespace BIA.ToolKit.Application.ViewModel
                 {
                     await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = repoGit.Url, UseShellExecute = true }));
                 }
-            });
+            }));
         }
 
         [RelayCommand]
         private void OpenSynchronizedFolder()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 if (!Directory.Exists(Model.LocalPath))
                 {
@@ -176,19 +177,19 @@ namespace BIA.ToolKit.Application.ViewModel
                 }
 
                 await Task.Run(() => Process.Start("explorer.exe", Model.LocalPath));
-            });
+            }));
         }
 
         [RelayCommand]
         private void GetReleasesData()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 try
                 {
                     consoleWriter.AddMessageLine("Getting releases data...", "pink");
                     await repository.FillReleasesAsync();
-                    eventBroker.NotifyRepositoryViewModelReleaseDataUpdated(this);
+                    WeakReferenceMessenger.Default.Send(new RepositoryReleaseDataUpdatedMessage(this));
                     consoleWriter.AddMessageLine("Releases data got successfully", "green");
                     if (repository.UseDownloadedReleases)
                     {
@@ -199,13 +200,13 @@ namespace BIA.ToolKit.Application.ViewModel
                 {
                     consoleWriter.AddMessageLine($"Error : {ex.Message}", "red");
                 }
-            });
+            }));
         }
 
         [RelayCommand]
         private void CleanReleases()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 try
                 {
@@ -217,19 +218,19 @@ namespace BIA.ToolKit.Application.ViewModel
                 {
                     consoleWriter.AddMessageLine($"Failed to clean releases : {ex.Message}");
                 }
-            });
+            }));
         }
 
         [RelayCommand]
         private void OpenForm()
         {
-            eventBroker.RequestOpenRepositoryForm(this, RepositoryFormMode.Edit);
+            WeakReferenceMessenger.Default.Send(new OpenRepositoryFormMessage(this, RepositoryFormMode.Edit));
         }
 
         [RelayCommand]
         private void Delete()
         {
-            eventBroker.NotifyRepositoryViewModelDeleted(this);
+            WeakReferenceMessenger.Default.Send(new RepositoryDeletedMessage(this));
         }
     }
 }

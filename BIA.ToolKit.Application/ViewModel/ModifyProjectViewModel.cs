@@ -1,6 +1,7 @@
 ﻿namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.RegenerateFeatures;
@@ -11,6 +12,7 @@
     using BIA.ToolKit.Domain.Settings;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
+    using CommunityToolkit.Mvvm.Messaging;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -20,9 +22,10 @@
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
-    public partial class ModifyProjectViewModel : ObservableObject, IDisposable
+    public partial class ModifyProjectViewModel : ObservableObject, IDisposable,
+        IRecipient<SettingsUpdatedMessage>,
+        IRecipient<SolutionClassesParsedMessage>
     {
-        private readonly UIEventBroker eventBroker;
         private readonly FileGeneratorService fileGeneratorService;
         private readonly IConsoleWriter consoleWriter;
         private readonly SettingsService settingsService;
@@ -41,7 +44,6 @@
         public VersionAndOptionViewModel TargetVersionAndOptionVM { get; set; }
 
         public ModifyProjectViewModel(
-            UIEventBroker eventBroker,
             FileGeneratorService fileGeneratorService,
             IConsoleWriter consoleWriter,
             SettingsService settingsService,
@@ -50,7 +52,6 @@
             ProjectCreatorService projectCreatorService,
             IDialogService dialogService)
         {
-            this.eventBroker = eventBroker ?? throw new ArgumentNullException(nameof(eventBroker));
             this.fileGeneratorService = fileGeneratorService ?? throw new ArgumentNullException(nameof(fileGeneratorService));
             this.consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
             this.settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
@@ -63,17 +64,18 @@
             ModifyProject = new ModifyProject();
             OverwriteBIAFromOriginal = true;
 
-            eventBroker.OnSettingsUpdated += EventBroker_OnSettingsUpdated;
-            eventBroker.OnSolutionClassesParsed += EventBroker_OnSolutionClassesParsed;
+            WeakReferenceMessenger.Default.RegisterAll(this);
         }
 
         public void Dispose()
         {
             if (disposed) return;
             disposed = true;
-            eventBroker.OnSettingsUpdated -= EventBroker_OnSettingsUpdated;
-            eventBroker.OnSolutionClassesParsed -= EventBroker_OnSolutionClassesParsed;
+            WeakReferenceMessenger.Default.UnregisterAll(this);
         }
+
+        public void Receive(SettingsUpdatedMessage message) => EventBroker_OnSettingsUpdated(message.Settings);
+        public void Receive(SolutionClassesParsedMessage message) => EventBroker_OnSolutionClassesParsed();
 
         // --- Event broker handlers ---
 
@@ -211,7 +213,7 @@
                 if (value == Folder)
                     return;
 
-                eventBroker.RequestExecuteActionWithWaiter(async () =>
+                WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
                 {
                     IsFileGeneratorServiceInit = false;
                     IsProjectCompatibleCrudGenerator = false;
@@ -236,7 +238,7 @@
                     }
 
                     OnPropertyChanged(nameof(Folder));
-                });
+                }));
             }
         }
 
@@ -320,13 +322,13 @@
         [RelayCommand]
         private void RefreshProjectInformations()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 await LoadProject(CurrentProject);
                 await InitFileGeneratorServiceFromProject(CurrentProject);
                 await ParseProject(CurrentProject);
                 RefreshUI();
-            });
+            }));
         }
 
         private void RefreshUI()
@@ -372,7 +374,7 @@
                 {
                     ModifyProject.CurrentProject = value;
                     RefreshUI();
-                    eventBroker.NotifyProjectChanged(value);
+                    WeakReferenceMessenger.Default.Send(new ProjectChangedMessage(value));
                 }
             }
         }
@@ -402,7 +404,7 @@
         [RelayCommand]
         private void Migrate()
         {
-            eventBroker.RequestExecuteActionWithWaiter(MigrateRunAsync);
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(MigrateRunAsync));
         }
 
         private async Task MigrateRunAsync()
@@ -418,7 +420,7 @@
         [RelayCommand]
         private void MigrateGenerateOnly()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () => await MigrateGenerateOnlyRunAsync());
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () => await MigrateGenerateOnlyRunAsync()));
         }
 
         private async Task<int> MigrateGenerateOnlyRunAsync()
@@ -452,7 +454,7 @@
         [RelayCommand]
         private void MigrateApplyDiff()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () => await MigrateApplyDiffRunAsync());
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () => await MigrateApplyDiffRunAsync()));
         }
 
         private async Task<bool> MigrateApplyDiffRunAsync()
@@ -475,7 +477,7 @@
         [RelayCommand]
         private void MigrateMergeRejected()
         {
-            eventBroker.RequestExecuteActionWithWaiter(MigrateMergeRejectedRunAsync);
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(MigrateMergeRejectedRunAsync));
         }
 
         private async Task MigrateMergeRejectedRunAsync()
@@ -520,13 +522,13 @@
         [RelayCommand]
         private void MigrateOverwriteBIAFolder()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () => await OverwriteBIAFolderAsync(true));
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () => await OverwriteBIAFolderAsync(true)));
         }
 
         [RelayCommand]
         private void FixUsings()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () => await parserService.FixUsings());
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () => await parserService.FixUsings()));
         }
 
         // --- Migration helper methods ---

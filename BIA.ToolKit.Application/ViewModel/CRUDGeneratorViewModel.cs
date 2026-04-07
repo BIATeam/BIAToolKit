@@ -1,6 +1,7 @@
 namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
@@ -8,6 +9,7 @@ namespace BIA.ToolKit.Application.ViewModel
     using BIA.ToolKit.Application.Templates.Common.Enum;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
+    using CommunityToolkit.Mvvm.Messaging;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -33,7 +35,6 @@ namespace BIA.ToolKit.Application.ViewModel
         private GenerateCrudService crudService;
         private CRUDSettings settings;
         private FileGeneratorService fileGeneratorService;
-        private UIEventBroker uiEventBroker;
         private IConsoleWriter consoleWriter;
         private IDialogService dialogService;
         private CRUDGeneration crudHistory;
@@ -56,7 +57,7 @@ namespace BIA.ToolKit.Application.ViewModel
         /// Injection of services.
         /// </summary>
         public void Inject(CSharpParserService parserService, ZipParserService zipService, GenerateCrudService crudService,
-            SettingsService settingsService, IConsoleWriter consoleWriter, UIEventBroker uiEventBroker,
+            SettingsService settingsService, IConsoleWriter consoleWriter,
             FileGeneratorService fileGeneratorService, IDialogService dialogService)
         {
             this.parserService = parserService;
@@ -64,7 +65,6 @@ namespace BIA.ToolKit.Application.ViewModel
             this.crudService = crudService;
             this.settings = new CRUDSettings(settingsService);
             this.consoleWriter = consoleWriter;
-            this.uiEventBroker = uiEventBroker;
             this.fileGeneratorService = fileGeneratorService;
             this.dialogService = dialogService;
         }
@@ -853,7 +853,7 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private void Generate()
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
                 {
@@ -918,7 +918,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 UpdateCrudGenerationHistory();
 
                 consoleWriter.AddMessageLine($"End of '{CRUDNameSingular}' generation.", "Blue");
-            });
+            }));
         }
 
         [RelayCommand]

@@ -1,12 +1,14 @@
 namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
+    using CommunityToolkit.Mvvm.Messaging;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -19,14 +21,15 @@ namespace BIA.ToolKit.Application.ViewModel
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
-    public partial class DtoGeneratorViewModel : ObservableObject, IDisposable
+    public partial class DtoGeneratorViewModel : ObservableObject, IDisposable,
+        IRecipient<ProjectChangedMessage>,
+        IRecipient<SolutionClassesParsedMessage>
     {
         private readonly FileGeneratorService fileGeneratorService;
         private readonly IConsoleWriter consoleWriter;
         private readonly CRUDSettings settings;
-        private readonly UIEventBroker uiEventBroker;
         private readonly CSharpParserService parserService;
-        
+
         private Project project;
         private string dtoGenerationHistoryFile;
         private DtoGenerationHistory generationHistory = new();
@@ -45,28 +48,26 @@ namespace BIA.ToolKit.Application.ViewModel
             CSharpParserService parserService,
             FileGeneratorService fileGeneratorService,
             IConsoleWriter consoleWriter,
-            SettingsService settingsService,
-            UIEventBroker uiEventBroker)
+            SettingsService settingsService)
         {
             this.parserService = parserService ?? throw new ArgumentNullException(nameof(parserService));
             this.fileGeneratorService = fileGeneratorService ?? throw new ArgumentNullException(nameof(fileGeneratorService));
             this.consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
             this.settings = new CRUDSettings(settingsService ?? throw new ArgumentNullException(nameof(settingsService)));
-            this.uiEventBroker = uiEventBroker ?? throw new ArgumentNullException(nameof(uiEventBroker));
 
-            // Subscribe to event broker events
-            uiEventBroker.OnProjectChanged += OnProjectChanged;
-            uiEventBroker.OnSolutionClassesParsed += OnSolutionClassesParsed;
+            // Subscribe to messenger events
+            WeakReferenceMessenger.Default.RegisterAll(this);
         }
 
         public void Dispose()
         {
             if (disposed) return;
             disposed = true;
-
-            uiEventBroker.OnProjectChanged -= OnProjectChanged;
-            uiEventBroker.OnSolutionClassesParsed -= OnSolutionClassesParsed;
+            WeakReferenceMessenger.Default.UnregisterAll(this);
         }
+
+        public void Receive(ProjectChangedMessage message) => OnProjectChanged(message.Project);
+        public void Receive(SolutionClassesParsedMessage message) => OnSolutionClassesParsed();
 
         private readonly List<string> optionCollectionsMappingTypes =
         [
@@ -425,7 +426,7 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private void Generate()
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 UpdateHistoryFile();
                 await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext
@@ -446,7 +447,7 @@ namespace BIA.ToolKit.Application.ViewModel
                     GenerateBack = true,
                     HasAudit = UseDedicatedAudit
                 });
-            });
+            }));
         }
 
         private void UpdateHistoryFile()

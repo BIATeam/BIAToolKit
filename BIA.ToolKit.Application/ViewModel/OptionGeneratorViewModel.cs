@@ -1,12 +1,14 @@
 namespace BIA.ToolKit.Application.ViewModel
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
+    using CommunityToolkit.Mvvm.Messaging;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
@@ -20,11 +22,12 @@ namespace BIA.ToolKit.Application.ViewModel
     using System.Text.Json;
     using System.Threading.Tasks;
 
-    public partial class OptionGeneratorViewModel : ObservableObject, IDisposable
+    public partial class OptionGeneratorViewModel : ObservableObject, IDisposable,
+        IRecipient<ProjectChangedMessage>,
+        IRecipient<SolutionClassesParsedMessage>
     {
         private readonly CSharpParserService parserService;
         private readonly FileGeneratorService fileGeneratorService;
-        private readonly UIEventBroker uiEventBroker;
         private readonly IConsoleWriter consoleWriter;
         private readonly ZipParserService zipService;
         private readonly GenerateCrudService crudService;
@@ -33,13 +36,12 @@ namespace BIA.ToolKit.Application.ViewModel
         private OptionGenerationInfo optionHistory;
         private string optionHistoryFileName;
 
-        /// <summary>  
+        /// <summary>
         /// Constructor with dependency injection.
         /// </summary>
         public OptionGeneratorViewModel(
             CSharpParserService parserService,
             FileGeneratorService fileGeneratorService,
-            UIEventBroker uiEventBroker,
             IConsoleWriter consoleWriter,
             ZipParserService zipService,
             GenerateCrudService crudService,
@@ -47,7 +49,6 @@ namespace BIA.ToolKit.Application.ViewModel
         {
             this.parserService = parserService ?? throw new ArgumentNullException(nameof(parserService));
             this.fileGeneratorService = fileGeneratorService ?? throw new ArgumentNullException(nameof(fileGeneratorService));
-            this.uiEventBroker = uiEventBroker ?? throw new ArgumentNullException(nameof(uiEventBroker));
             this.consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
             this.zipService = zipService ?? throw new ArgumentNullException(nameof(zipService));
             this.crudService = crudService ?? throw new ArgumentNullException(nameof(crudService));
@@ -57,19 +58,19 @@ namespace BIA.ToolKit.Application.ViewModel
             Entities = [];
             EntityDisplayItems = [];
 
-            // Subscribe to event broker events
-            uiEventBroker.OnProjectChanged += OnProjectChanged;
-            uiEventBroker.OnSolutionClassesParsed += OnSolutionClassesParsed;
+            // Subscribe to messenger events
+            WeakReferenceMessenger.Default.RegisterAll(this);
         }
 
         public void Dispose()
         {
             if (disposed) return;
             disposed = true;
-
-            uiEventBroker.OnProjectChanged -= OnProjectChanged;
-            uiEventBroker.OnSolutionClassesParsed -= OnSolutionClassesParsed;
+            WeakReferenceMessenger.Default.UnregisterAll(this);
         }
+
+        public void Receive(ProjectChangedMessage message) => OnProjectChanged(message.Project);
+        public void Receive(SolutionClassesParsedMessage message) => OnSolutionClassesParsed();
 
         #region CurrentProject
         private Project currentProject;
@@ -302,7 +303,7 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private void Generate()
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
                 {
@@ -326,13 +327,13 @@ namespace BIA.ToolKit.Application.ViewModel
                 }
 
                 consoleWriter.AddMessageLine("Project is not compatible for option generation.", "Red");
-            });
+            }));
         }
 
         [RelayCommand]
         private void DeleteLastGeneration()
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(() =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(() =>
             {
                 if (optionHistory == null || string.IsNullOrEmpty(optionHistoryFileName))
                 {
@@ -358,13 +359,13 @@ namespace BIA.ToolKit.Application.ViewModel
                 }
 
                 return Task.CompletedTask;
-            });
+            }));
         }
 
         [RelayCommand]
         private void DeleteBIAToolkitAnnotations()
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 try
                 {
@@ -390,13 +391,13 @@ namespace BIA.ToolKit.Application.ViewModel
                 {
                     consoleWriter.AddMessageLine($"Error deleting annotations: {ex.Message}", "Red");
                 }
-            });
+            }));
         }
 
         [RelayCommand]
         private void OnEntitySelectionChanged()
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 if (Entity == null)
                 {
@@ -414,7 +415,7 @@ namespace BIA.ToolKit.Application.ViewModel
                     consoleWriter.AddMessageLine($"Error parsing entity: {ex.Message}", "Red");
                     IsEntityParsed = false;
                 }
-            });
+            }));
         }
 
         [RelayCommand]
@@ -436,10 +437,10 @@ namespace BIA.ToolKit.Application.ViewModel
 
         private void OnSolutionClassesParsed()
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
             {
                 await LoadEntitiesAsync();
-            });
+            }));
         }
 
         #endregion

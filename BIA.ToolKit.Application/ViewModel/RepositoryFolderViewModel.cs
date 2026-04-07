@@ -5,8 +5,8 @@ namespace BIA.ToolKit.Application.ViewModel
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Domain;
 
-    public sealed partial class RepositoryFolderViewModel(RepositoryFolder repositoryFolder, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
-        : RepositoryViewModel(repositoryFolder, gitService, eventBroker, consoleWriter)
+    public sealed partial class RepositoryFolderViewModel(RepositoryFolder repositoryFolder, GitService gitService, IConsoleWriter consoleWriter)
+        : RepositoryViewModel(repositoryFolder, gitService, consoleWriter)
     {
         public string Path
         {

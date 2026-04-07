@@ -7,7 +7,7 @@ namespace BIA.ToolKit.Application.ViewModel
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
 
-    public partial class RepositoryFormViewModel(RepositoryViewModel repository, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter, IDialogService dialogService) : ObservableObject
+    public partial class RepositoryFormViewModel(RepositoryViewModel repository, GitService gitService, IConsoleWriter consoleWriter, IDialogService dialogService) : ObservableObject
     {
         public RepositoryViewModel Repository
         {
@@ -38,7 +38,6 @@ namespace BIA.ToolKit.Application.ViewModel
                             projectName: repository.ProjectName,
                             useRepository: repository.UseRepository),
                         gitService,
-                        eventBroker,
                         consoleWriter)
                     {
                         IsVisibleCompanyName = repository.IsVisibleCompanyName,
@@ -53,7 +52,6 @@ namespace BIA.ToolKit.Application.ViewModel
                             projectName: repository.ProjectName,
                             useRepository: repository.UseRepository),
                         gitService,
-                        eventBroker,
                         consoleWriter)
                     {
                         IsVisibleCompanyName = repository.IsVisibleCompanyName,
