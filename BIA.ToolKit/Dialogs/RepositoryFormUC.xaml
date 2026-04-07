@@ -83,7 +83,7 @@
 
         <ContentControl x:Name="Form" Grid.Row="0" Content="{Binding Repository}"/>
         <StackPanel Margin="0,5,0,0" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Margin="5" x:Name="SubmitButton" IsDefault="True" Click="SubmitButton_Click" IsEnabled="{Binding Repository.IsValid}">OK</Button>
+            <Button Margin="5" x:Name="SubmitButton" IsDefault="True" IsEnabled="{Binding Repository.IsValid}">OK</Button>
             <Button Margin="5" IsCancel="True">Cancel</Button>
         </StackPanel>
     </Grid>

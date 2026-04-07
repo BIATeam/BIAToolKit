@@ -219,8 +219,8 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Modifier VersionAndOptionUserControl.xaml.cs
     - _Requirements: 8.1, 8.2, 7.5_
 
-- [ ] 5. Migrer RepositoryFormUC (avec validation)
-  - [ ] 5.1 Créer RepositoryFormViewModel avec validation
+- [x] 5. Migrer RepositoryFormUC (avec validation)
+  - [x] 5.1 Créer RepositoryFormViewModel avec validation
     - Créer BIA.ToolKit/ViewModels/RepositoryFormViewModel.cs
     - Hériter de CommunityToolkit ObservableValidator
     - Migrer ~12 propriétés avec [ObservableProperty] et attributs de validation
@@ -229,7 +229,7 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Implémenter validation automatique avec partial methods
     - _Requirements: 7.1, 7.2, 7.3, 11.1, 11.2, 11.6_
   
-  - [ ] 5.2 Extraire logique et connecter à la vue avec bindings validation
+  - [x] 5.2 Extraire logique et connecter à la vue avec bindings validation
     - Déplacer Business_Logic vers ViewModel
     - Modifier RepositoryFormUC.xaml.cs
     - Ajouter bindings XAML pour Errors et HasErrors
