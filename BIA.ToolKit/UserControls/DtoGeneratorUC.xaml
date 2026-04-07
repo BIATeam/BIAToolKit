@@ -10,9 +10,6 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
              d:DesignHeight="1080" d:DesignWidth="1920">
-    <UserControl.DataContext>
-        <local:DtoGeneratorViewModel />
-    </UserControl.DataContext>
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
         <Thickness x:Key="FormFirstRowMargin">0,0,0,5</Thickness>
@@ -172,8 +169,7 @@
                                                 <TextBox
                                                         Padding="5" MinWidth="100"
                                                 x:Name="MappingPropertyTextBox"
-                                                Text="{Binding MappingName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                                TextChanged="MappingPropertyTextBox_TextChanged">
+                                                Text="{Binding MappingName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
                                                     <TextBox.Style>
                                                         <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignFilledTextBox}">
                                                             <Style.Triggers>
@@ -248,8 +244,7 @@
                                                 x:Name="MappingOptionId"
                                                 ItemsSource="{Binding OptionEntityIdProperties}" 
                                                 SelectedValue="{Binding OptionEntityIdProperty, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                                Visibility="{Binding IsOption, Converter={StaticResource BoolToVisConverter}}"
-                                                SelectionChanged="MappingOptionId_SelectionChanged"></ComboBox>
+                                                Visibility="{Binding IsOption, Converter={StaticResource BoolToVisConverter}}"></ComboBox>
                                             </Grid>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>

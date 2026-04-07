@@ -19,21 +19,54 @@ namespace BIA.ToolKit.Application.ViewModel
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
-    public partial class DtoGeneratorViewModel : ObservableObject
+    public partial class DtoGeneratorViewModel : ObservableObject, IDisposable
     {
+        private readonly FileGeneratorService fileGeneratorService;
+        private readonly IConsoleWriter consoleWriter;
+        private readonly CRUDSettings settings;
+        private readonly UIEventBroker uiEventBroker;
+        private readonly CSharpParserService parserService;
+        
         private Project project;
-        private UIEventBroker uiEventBroker;
-        private FileGeneratorService fileGeneratorService;
-        private IConsoleWriter consoleWriter;
-        private CRUDSettings settings;
         private string dtoGenerationHistoryFile;
         private DtoGenerationHistory generationHistory = new();
         private DtoGeneration generation;
+        private bool disposed;
 
         /// <summary>
         /// Raised after mapping properties are refreshed so the View can reset grid column widths.
         /// </summary>
         public event Action OnMappingRefreshed;
+
+        /// <summary>
+        /// Constructor with dependency injection.
+        /// </summary>
+        public DtoGeneratorViewModel(
+            CSharpParserService parserService,
+            FileGeneratorService fileGeneratorService,
+            IConsoleWriter consoleWriter,
+            SettingsService settingsService,
+            UIEventBroker uiEventBroker)
+        {
+            this.parserService = parserService ?? throw new ArgumentNullException(nameof(parserService));
+            this.fileGeneratorService = fileGeneratorService ?? throw new ArgumentNullException(nameof(fileGeneratorService));
+            this.consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
+            this.settings = new CRUDSettings(settingsService ?? throw new ArgumentNullException(nameof(settingsService)));
+            this.uiEventBroker = uiEventBroker ?? throw new ArgumentNullException(nameof(uiEventBroker));
+
+            // Subscribe to event broker events
+            uiEventBroker.OnProjectChanged += OnProjectChanged;
+            uiEventBroker.OnSolutionClassesParsed += OnSolutionClassesParsed;
+        }
+
+        public void Dispose()
+        {
+            if (disposed) return;
+            disposed = true;
+
+            uiEventBroker.OnProjectChanged -= OnProjectChanged;
+            uiEventBroker.OnSolutionClassesParsed -= OnSolutionClassesParsed;
+        }
 
         private readonly List<string> optionCollectionsMappingTypes = new()
         {
@@ -283,12 +316,38 @@ namespace BIA.ToolKit.Application.ViewModel
             InitHistoryFile(project);
         }
 
-        public void Inject(FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter, SettingsService settingsService, UIEventBroker uiEventBroker)
+        private void OnProjectChanged(Project project)
         {
-            this.fileGeneratorService = fileGeneratorService;
-            this.consoleWriter = consoleWriter;
-            this.settings = new CRUDSettings(settingsService);
-            this.uiEventBroker = uiEventBroker;
+            SetCurrentProject(project);
+        }
+
+        private void OnSolutionClassesParsed()
+        {
+            // Reload entities when solution classes are parsed
+            LoadEntities(parserService);
+        }
+
+        public void LoadEntities(CSharpParserService parserService)
+        {
+            if (project is null)
+                return;
+
+            var domainEntities = parserService.GetDomainEntities(project).ToList();
+            SetEntities(domainEntities);
+        }
+
+        public void SetCurrentProject(Project project)
+        {
+            if (project == this.project)
+                return;
+
+            IsProjectChosen = false;
+            Clear();
+
+            if (project is null)
+                return;
+
+            SetProject(project);
         }
 
         private void InitHistoryFile(Project project)

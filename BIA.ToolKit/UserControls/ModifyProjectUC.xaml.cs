@@ -38,7 +38,9 @@
             // Child controls that still use the Inject pattern
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             OptionGenerator.DataContext = App.GetService<OptionGeneratorViewModel>();
-            DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
+            
+            // DtoGenerator: use DI, entities will be loaded automatically via broker events
+            DtoGenerator.DataContext = App.GetService<DtoGeneratorViewModel>();
         }
     }
 }

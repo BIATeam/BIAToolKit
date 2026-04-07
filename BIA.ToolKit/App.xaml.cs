@@ -58,6 +58,7 @@
             services.AddTransient<VersionAndOptionViewModel>();
             services.AddTransient<ModifyProjectViewModel>();
             services.AddTransient<OptionGeneratorViewModel>();
+            services.AddTransient<DtoGeneratorViewModel>();
 
             // Infrastructure
             services.AddSingleton<IDialogService, DialogService>();
