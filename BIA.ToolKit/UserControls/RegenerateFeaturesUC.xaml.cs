@@ -36,6 +36,9 @@ namespace BIA.ToolKit.UserControls
         private GitService gitService;
         private CSharpParserService cSharpParserService;
         private ProjectCreatorService projectCreatorService;
+        private TemplateVersionService templateVersionService;
+        private FeatureSettingService featureSettingService;
+        private RepositoryService repositoryService;
         private Project currentProject;
 
         public RegenerateFeaturesUC()
@@ -51,7 +54,10 @@ namespace BIA.ToolKit.UserControls
             FeatureMigrationGeneratorService featureMigrationGeneratorService,
             GitService gitService,
             CSharpParserService cSharpParserService,
-            ProjectCreatorService projectCreatorService)
+            ProjectCreatorService projectCreatorService,
+            TemplateVersionService templateVersionService,
+            FeatureSettingService featureSettingService,
+            RepositoryService repositoryService)
         {
             this.consoleWriter = consoleWriter;
             this.uiEventBroker = uiEventBroker;
@@ -61,6 +67,9 @@ namespace BIA.ToolKit.UserControls
             this.gitService = gitService;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
+            this.templateVersionService = templateVersionService;
+            this.featureSettingService = featureSettingService;
+            this.repositoryService = repositoryService;
 
             viewModel = new RegenerateFeaturesViewModel();
             DataContext = viewModel;
@@ -186,7 +195,7 @@ namespace BIA.ToolKit.UserControls
 
                 // Create FROM project (full project at FROM version)
                 consoleWriter.AddMessageLine($"Creating FROM project at version {fromVersionNorm}...", "Blue");
-                if (!await projectCreatorService.Create(false, fromPath, BuildProjectParameters(fromWorkRepo)))
+                if (!await projectCreatorService.Create(false, fromPath, await BuildProjectParametersAsync(fromWorkRepo)))
                 {
                     consoleWriter.AddMessageLine($"Failed to create FROM project at version {fromVersionNorm}. Skipping group.", "Red");
                     continue;
@@ -196,7 +205,7 @@ namespace BIA.ToolKit.UserControls
 
                 // Create TO project (full project at current version)
                 consoleWriter.AddMessageLine($"Creating TO project at version {toVersionNorm}...", "Blue");
-                if (!await projectCreatorService.Create(false, toPath, BuildProjectParameters(toWorkRepo)))
+                if (!await projectCreatorService.Create(false, toPath, await BuildProjectParametersAsync(toWorkRepo)))
                 {
                     consoleWriter.AddMessageLine($"Failed to create TO project at version {toVersionNorm}. Skipping group.", "Red");
                     continue;
@@ -250,29 +259,33 @@ namespace BIA.ToolKit.UserControls
 
         private List<WorkRepository> GetAvailableVersions()
         {
-            var result = new List<WorkRepository>();
-            if (settingsService?.Settings?.TemplateRepositories == null)
-                return result;
-
-            foreach (IRepository repo in settingsService.Settings.TemplateRepositories.Where(r => r.UseRepository))
-            {
-                foreach (Release release in repo.Releases)
-                    result.Add(new WorkRepository(repo, release.Name));
-            }
-
-            result.Sort(new WorkRepository.VersionComparer());
-            return result;
+            return templateVersionService.GetAvailableTemplateVersions();
         }
 
         /// <summary>
         /// Builds <see cref="ProjectParameters"/> for use with <see cref="ProjectCreatorService.Create"/>
         /// using the current project's identity and the supplied template repository.
+        /// Feature settings are loaded and merged from the template and the current project
+        /// so that the generated FROM/TO projects match the project's actual feature selection.
         /// Company-file overlays are intentionally skipped to keep regeneration simple.
-        /// An empty <see cref="VersionAndOption.FeatureSettings"/> list means all template
-        /// features are included.
         /// </summary>
-        private ProjectParameters BuildProjectParameters(WorkRepository workRepo)
+        private async Task<ProjectParameters> BuildProjectParametersAsync(WorkRepository workRepo)
         {
+            // Ensure VersionFolderPath is resolved (needed to load feature settings from template)
+            if (string.IsNullOrEmpty(workRepo.VersionFolderPath))
+            {
+                workRepo.VersionFolderPath = await repositoryService.PrepareVersionFolder(
+                    workRepo.Repository, workRepo.Version);
+            }
+
+            // Load and merge feature settings from template + project
+            List<FeatureSetting> featureSettings = FeatureSettingService.LoadAndMergeFeatureSettings(
+                workRepo.VersionFolderPath, currentProject.Folder);
+
+            // Apply ProjectGeneration overrides if available
+            featureSettingService.ApplyProjectGenerationSettings(
+                currentProject.Folder, featureSettings);
+
             return new ProjectParameters
             {
                 CompanyName = currentProject.CompanyName,
@@ -281,7 +294,7 @@ namespace BIA.ToolKit.UserControls
                 VersionAndOption = new VersionAndOption
                 {
                     WorkTemplate = workRepo,
-                    FeatureSettings = [],
+                    FeatureSettings = featureSettings,
                     UseCompanyFiles = false,
                 },
             };

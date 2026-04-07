@@ -49,7 +49,9 @@ namespace BIA.ToolKit.UserControls
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, SettingsService settingsService,
             UIEventBroker uiEventBroker, RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
-            FeatureMigrationGeneratorService featureMigrationGeneratorService, ProjectViewModel projectViewModel)
+            FeatureMigrationGeneratorService featureMigrationGeneratorService,
+            TemplateVersionService templateVersionService, FeatureSettingService featureSettingService,
+            ProjectViewModel projectViewModel)
         {
             _viewModel = new ModifyProjectViewModel(uiEventBroker);
             DataContext = _viewModel;
@@ -58,8 +60,8 @@ namespace BIA.ToolKit.UserControls
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
-            MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
-            MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
+            MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, templateVersionService, featureSettingService);
+            MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, templateVersionService, featureSettingService);
             this.regenerateFeaturesDiscoveryService = regenerateFeaturesDiscoveryService;
             this.featureMigrationGeneratorService = featureMigrationGeneratorService;
             crudSettings = new(settingsService);
@@ -71,7 +73,8 @@ namespace BIA.ToolKit.UserControls
 
             RegenerateFeatures.Inject(consoleWriter, uiEventBroker, settingsService,
                 regenerateFeaturesDiscoveryService, featureMigrationGeneratorService,
-                gitService, cSharpParserService, projectCreatorService);
+                gitService, cSharpParserService, projectCreatorService,
+                templateVersionService, featureSettingService, repositoryService);
 
             uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
         }

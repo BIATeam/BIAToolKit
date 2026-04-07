@@ -51,6 +51,7 @@ namespace BIA.ToolKit
             IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService,
             Application.Services.RegenerateFeatures.RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
             Application.Services.RegenerateFeatures.FeatureMigrationGeneratorService featureMigrationGeneratorService,
+            TemplateVersionService templateVersionService, FeatureSettingService featureSettingService,
             Application.ViewModel.ProjectViewModel projectViewModel)
         {
 
@@ -71,10 +72,11 @@ namespace BIA.ToolKit
 
             InitializeComponent();
 
-            CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
+            CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, templateVersionService, featureSettingService);
             projectViewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
             ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, settingsService, uiEventBroker, regenerateFeaturesDiscoveryService, featureMigrationGeneratorService, projectViewModel);
+                projectCreatorService, settingsService, uiEventBroker, regenerateFeaturesDiscoveryService, featureMigrationGeneratorService,
+                templateVersionService, featureSettingService, projectViewModel);
             GenerateProject.Inject(projectViewModel, cSharpParserService, zipParserService, crudService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;

@@ -25,6 +25,8 @@ namespace BIA.ToolKit.UserControls
         GitService gitService;
         RepositoryService repositoryService;
         private SettingsService settingsService;
+        private TemplateVersionService templateVersionService;
+        private FeatureSettingService featureSettingService;
         private string currentProjectPath;
         private UIEventBroker uiEventBroker;
         private IConsoleWriter consoleWriter;
@@ -37,11 +39,14 @@ namespace BIA.ToolKit.UserControls
             vm = (VersionAndOptionViewModel)base.DataContext;
         }
 
-        public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, SettingsService settingsService, UIEventBroker uiEventBroker)
+        public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, SettingsService settingsService, UIEventBroker uiEventBroker,
+            TemplateVersionService templateVersionService, FeatureSettingService featureSettingService)
         {
             this.gitService = gitService;
             this.repositoryService = repositoryService;
             this.settingsService = settingsService;
+            this.templateVersionService = templateVersionService;
+            this.featureSettingService = featureSettingService;
             this.uiEventBroker = uiEventBroker;
             this.consoleWriter = consoleWriter;
             vm.Inject(repositoryService, consoleWriter, uiEventBroker);
@@ -109,23 +114,8 @@ namespace BIA.ToolKit.UserControls
 
         private void LoadfeatureSetting()
         {
-            List<FeatureSetting> featureSettings = FeatureSettingHelper.Get(vm.WorkTemplate?.VersionFolderPath);
-            List<FeatureSetting> projectFeatureSettings = FeatureSettingHelper.Get(currentProjectPath);
+            List<FeatureSetting> featureSettings = FeatureSettingService.LoadAndMergeFeatureSettings(vm.WorkTemplate?.VersionFolderPath, currentProjectPath);
 
-            if (featureSettings?.Count > 0 && projectFeatureSettings?.Count > 0)
-            {
-                foreach (FeatureSetting featureSetting in featureSettings)
-                {
-                    FeatureSetting projectFeatureSetting = projectFeatureSettings.Find(x => x.Id == featureSetting.Id);
-
-                    if (projectFeatureSetting != null)
-                    {
-                        featureSetting.IsSelected = projectFeatureSetting.IsSelected;
-                    }
-                }
-            }
-
-            featureSettings ??= [];
             var featureSettingViewModels = new ObservableCollection<FeatureSettingViewModel>(featureSettings.Select(x => new FeatureSettingViewModel(x)));
             foreach (FeatureSettingViewModel featureSettingViewModel in featureSettingViewModels)
             {
@@ -157,19 +147,13 @@ namespace BIA.ToolKit.UserControls
 
         private void RefreshConfiguration()
         {
-            var listCompanyFiles = new List<WorkRepository>();
-            var listWorkTemplates = new List<WorkRepository>();
-
-            foreach (IRepository repository in settingsService.Settings.TemplateRepositories.Where(r => r.UseRepository))
-            {
-                AddTemplatesVersion(listWorkTemplates, repository);
-            }
+            List<WorkRepository> listWorkTemplates = templateVersionService.GetAvailableTemplateVersions();
 
             bool hasVersionXYZ = false;
-            IRepository repositoryVersionXYZ = settingsService.Settings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
-            if (repositoryVersionXYZ is not null)
+            WorkRepository versionXYZ = templateVersionService.GetVersionXYZ();
+            if (versionXYZ is not null)
             {
-                listWorkTemplates.Add(new WorkRepository(repositoryVersionXYZ, "VX.Y.Z"));
+                listWorkTemplates.Add(versionXYZ);
                 hasVersionXYZ = true;
             }
 
@@ -183,26 +167,13 @@ namespace BIA.ToolKit.UserControls
             vm.UseCompanyFiles = settingsService.Settings.UseCompanyFiles;
             if (settingsService.Settings.UseCompanyFiles)
             {
-                foreach (IRepository repository in settingsService.Settings.CompanyFilesRepositories.Where(r => r.UseRepository))
-                {
-                    AddTemplatesVersion(listCompanyFiles, repository);
-                }
+                List<WorkRepository> listCompanyFiles = templateVersionService.GetAvailableCompanyFileVersions();
                 vm.WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
                 if (vm.WorkCompanyFiles.Count >= 1 && vm.WorkTemplate is not null)
                 {
                     vm.WorkCompanyFile = vm.GetWorkCompanyFile(vm.WorkTemplate.Version);
                 }
             }
-        }
-
-        private static void AddTemplatesVersion(List<WorkRepository> WorkTemplates, IRepository repository)
-        {
-            foreach (Release release in repository.Releases)
-            {
-                WorkTemplates.Add(new WorkRepository(repository, release.Name));
-            }
-
-            WorkTemplates.Sort(new WorkRepository.VersionComparer());
         }
 
         private void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)

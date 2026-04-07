@@ -43,6 +43,8 @@ namespace BIA.ToolKit
             services.AddSingleton<SettingsService>();
             services.AddSingleton<FileGeneratorService>();
             services.AddSingleton<UpdateService>();
+            services.AddSingleton<TemplateVersionService>();
+            services.AddSingleton<FeatureSettingService>();
             services.AddSingleton<Application.Services.RegenerateFeatures.RegenerateFeaturesDiscoveryService>();
             services.AddSingleton<Application.Services.RegenerateFeatures.FeatureMigrationGeneratorService>();
             services.AddSingleton<Application.ViewModel.ProjectViewModel>();
