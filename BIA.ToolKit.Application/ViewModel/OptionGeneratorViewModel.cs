@@ -1,26 +1,74 @@
 namespace BIA.ToolKit.Application.ViewModel
 {
+    using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
     using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Domain.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
+    using Humanizer;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.IO;
     using System.Linq;
+    using System.Text.Json;
+    using System.Threading.Tasks;
 
-    public partial class OptionGeneratorViewModel : ObservableObject
+    public partial class OptionGeneratorViewModel : ObservableObject, IDisposable
     {
+        private readonly CSharpParserService parserService;
+        private readonly FileGeneratorService fileGeneratorService;
+        private readonly UIEventBroker uiEventBroker;
+        private readonly IConsoleWriter consoleWriter;
+        private readonly ZipParserService zipService;
+        private readonly GenerateCrudService crudService;
+        private readonly SettingsService settingsService;
+        private bool disposed;
+        private OptionGeneration optionHistory;
+        private string optionHistoryFileName;
+
         /// <summary>  
-        /// Constructor.
+        /// Constructor with dependency injection.
         /// </summary>
-        public OptionGeneratorViewModel()
+        public OptionGeneratorViewModel(
+            CSharpParserService parserService,
+            FileGeneratorService fileGeneratorService,
+            UIEventBroker uiEventBroker,
+            IConsoleWriter consoleWriter,
+            ZipParserService zipService,
+            GenerateCrudService crudService,
+            SettingsService settingsService)
         {
+            this.parserService = parserService ?? throw new ArgumentNullException(nameof(parserService));
+            this.fileGeneratorService = fileGeneratorService ?? throw new ArgumentNullException(nameof(fileGeneratorService));
+            this.uiEventBroker = uiEventBroker ?? throw new ArgumentNullException(nameof(uiEventBroker));
+            this.consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
+            this.zipService = zipService ?? throw new ArgumentNullException(nameof(zipService));
+            this.crudService = crudService ?? throw new ArgumentNullException(nameof(crudService));
+            this.settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+
             ZipFeatureTypeList = new();
             Entities = new();
             EntityDisplayItems = new();
+
+            // Subscribe to event broker events
+            uiEventBroker.OnProjectChanged += OnProjectChanged;
+            uiEventBroker.OnSolutionClassesParsed += OnSolutionClassesParsed;
+        }
+
+        public void Dispose()
+        {
+            if (disposed) return;
+            disposed = true;
+
+            uiEventBroker.OnProjectChanged -= OnProjectChanged;
+            uiEventBroker.OnSolutionClassesParsed -= OnSolutionClassesParsed;
         }
 
         #region CurrentProject
@@ -233,7 +281,16 @@ namespace BIA.ToolKit.Application.ViewModel
 
         #region CheckBox
 
-        public bool IsProjectCompatibleV7 => Version.TryParse(CurrentProject?.FrameworkVersion, out var version) && version.Major >= 7;
+        public bool IsProjectCompatibleV7 
+        {
+            get
+            {
+                if (CurrentProject == null || string.IsNullOrEmpty(CurrentProject.FrameworkVersion))
+                    return false;
+                    
+                return Version.TryParse(CurrentProject.FrameworkVersion, out var version) && version.Major >= 7;
+            }
+        }
 
         private bool _useHubClient;
 
@@ -248,5 +305,312 @@ namespace BIA.ToolKit.Application.ViewModel
         }
 
         #endregion
+
+        #region Commands
+
+        [RelayCommand]
+        private void Generate()
+        {
+            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            {
+                if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+                {
+                    await fileGeneratorService.GenerateOptionAsync(new FileGeneratorOptionContext
+                    {
+                        CompanyName = CurrentProject.CompanyName,
+                        ProjectName = CurrentProject.Name,
+                        DomainName = Domain,
+                        EntityName = Entity.Name,
+                        EntityNamePlural = EntityNamePlural,
+                        DisplayName = EntityDisplayItemSelected,
+                        AngularFront = BiaFront,
+                        GenerateBack = true,
+                        GenerateFront = !string.IsNullOrWhiteSpace(BiaFront),
+                        UseHubForClient = UseHubClient,
+                        BaseKeyType = "int" // Options typically use int as key type
+                    });
+
+                    UpdateOptionGenerationHistory();
+                    return;
+                }
+
+                consoleWriter.AddMessageLine("Project is not compatible for option generation.", "Red");
+            });
+        }
+
+        [RelayCommand]
+        private void DeleteLastGeneration()
+        {
+            uiEventBroker.RequestExecuteActionWithWaiter(() =>
+            {
+                if (optionHistory == null || string.IsNullOrEmpty(optionHistoryFileName))
+                {
+                    consoleWriter.AddMessageLine("No generation history found.", "Yellow");
+                    return Task.CompletedTask;
+                }
+
+                try
+                {
+                    // Note: DeleteLastGeneration for options is not fully implemented in GenerateCrudService
+                    // For now, just delete the history file
+                    if (File.Exists(optionHistoryFileName))
+                    {
+                        File.Delete(optionHistoryFileName);
+                    }
+                    optionHistory = null;
+                    optionHistoryFileName = null;
+                    consoleWriter.AddMessageLine("Last generation history deleted.", "Green");
+                }
+                catch (Exception ex)
+                {
+                    consoleWriter.AddMessageLine($"Error deleting last generation: {ex.Message}", "Red");
+                }
+
+                return Task.CompletedTask;
+            });
+        }
+
+        [RelayCommand]
+        private void DeleteBIAToolkitAnnotations()
+        {
+            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            {
+                try
+                {
+                    var folders = new List<string>
+                    {
+                        Path.Combine(CurrentProject.Folder, "DotNet")
+                    };
+
+                    // Add Angular folders if they exist
+                    foreach (var biaFront in CurrentProject.BIAFronts)
+                    {
+                        var angularFolder = Path.Combine(CurrentProject.Folder, biaFront, "src", "app");
+                        if (Directory.Exists(angularFolder))
+                        {
+                            folders.Add(angularFolder);
+                        }
+                    }
+
+                    await crudService.DeleteBIAToolkitAnnotations(folders);
+                    consoleWriter.AddMessageLine("BIA Toolkit annotations deleted successfully.", "Green");
+                }
+                catch (Exception ex)
+                {
+                    consoleWriter.AddMessageLine($"Error deleting annotations: {ex.Message}", "Red");
+                }
+            });
+        }
+
+        [RelayCommand]
+        private void OnEntitySelectionChanged()
+        {
+            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            {
+                if (Entity == null)
+                {
+                    IsEntityParsed = false;
+                    EntityDisplayItems.Clear();
+                    return;
+                }
+
+                try
+                {
+                    await ParseEntityFileAsync();
+                }
+                catch (Exception ex)
+                {
+                    consoleWriter.AddMessageLine($"Error parsing entity: {ex.Message}", "Red");
+                    IsEntityParsed = false;
+                }
+            });
+        }
+
+        [RelayCommand]
+        private void OnBiaFrontSelectionChanged(string biaFront)
+        {
+            // BiaFront property is already updated via binding
+            // This command is for any additional logic needed when front changes
+            OnPropertyChanged(nameof(IsButtonGenerateOptionEnable));
+        }
+
+        #endregion
+
+        #region Event Handlers
+
+        private void OnProjectChanged(Project project)
+        {
+            SetCurrentProject(project);
+        }
+
+        private void OnSolutionClassesParsed()
+        {
+            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            {
+                await LoadEntitiesAsync();
+            });
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        public void SetCurrentProject(Project project)
+        {
+            CurrentProject = project;
+            IsProjectChosen = project != null;
+
+            if (project != null)
+            {
+                LoadOptionGenerationHistory();
+            }
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private async Task LoadEntitiesAsync()
+        {
+            if (CurrentProject == null)
+                return;
+
+            try
+            {
+                var entities = await Task.Run(() => parserService.GetDomainEntities(CurrentProject).ToList());
+                Entities = new ObservableCollection<EntityInfo>(entities);
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error loading entities: {ex.Message}", "Red");
+            }
+        }
+
+        private async Task ParseEntityFileAsync()
+        {
+            if (Entity == null || CurrentProject == null)
+                return;
+
+            try
+            {
+                var entityFilePath = Entity.Path;
+                var parsedEntity = await Task.Run(() => parserService.ParseClassFile(entityFilePath));
+
+                if (parsedEntity != null)
+                {
+                    // Extract display items (string properties) from PropertyList
+                    var displayItems = new List<string>();
+                    foreach (var prop in parsedEntity.PropertyList)
+                    {
+                        var propType = prop.Type.ToString();
+                        var propName = prop.Identifier.Text;
+                        
+                        if (propType == "string" && !propName.EndsWith("Id"))
+                        {
+                            displayItems.Add(propName);
+                        }
+                    }
+
+                    EntityDisplayItems = new ObservableCollection<string>(displayItems);
+                    EntityDisplayItemSelected = displayItems.FirstOrDefault();
+
+                    // Auto-fill EntityNamePlural
+                    EntityNamePlural = Entity.Name.Pluralize();
+
+                    // Auto-fill Domain from namespace
+                    UpdateDomainPreSelection();
+
+                    IsEntityParsed = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error parsing entity file: {ex.Message}", "Red");
+                IsEntityParsed = false;
+            }
+        }
+
+        private void UpdateDomainPreSelection()
+        {
+            if (Entity == null)
+            {
+                Domain = null;
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(Domain))
+            {
+                return;
+            }
+
+            var namespaceParts = Entity.Namespace.Split('.').ToList();
+            var domainIndex = namespaceParts.IndexOf("Dto");
+            if (domainIndex != -1 && domainIndex + 1 < namespaceParts.Count)
+            {
+                Domain = namespaceParts[domainIndex + 1];
+            }
+        }
+
+        private void LoadOptionGenerationHistory()
+        {
+            if (CurrentProject == null)
+                return;
+
+            try
+            {
+                var historyFolder = Path.Combine(CurrentProject.Folder, ".bia", "History");
+                if (!Directory.Exists(historyFolder))
+                    return;
+
+                var historyFiles = Directory.GetFiles(historyFolder, "Option_*.json");
+                if (historyFiles.Length > 0)
+                {
+                    optionHistoryFileName = historyFiles.OrderByDescending(f => File.GetLastWriteTime(f)).First();
+                    var json = File.ReadAllText(optionHistoryFileName);
+                    optionHistory = JsonSerializer.Deserialize<OptionGeneration>(json);
+                }
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error loading option generation history: {ex.Message}", "Yellow");
+            }
+        }
+
+        private void UpdateOptionGenerationHistory()
+        {
+            if (CurrentProject == null || Entity == null)
+                return;
+
+            try
+            {
+                var historyFolder = Path.Combine(CurrentProject.Folder, ".bia", "History");
+                Directory.CreateDirectory(historyFolder);
+
+                optionHistory = new OptionGeneration
+                {
+                    EntityName = Entity.Name,
+                    Domain = Domain,
+                    GeneratedDate = DateTime.Now
+                };
+
+                optionHistoryFileName = Path.Combine(historyFolder, $"Option_{Entity.Name}_{DateTime.Now:yyyyMMddHHmmss}.json");
+                var json = JsonSerializer.Serialize(optionHistory, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(optionHistoryFileName, json);
+            }
+            catch (Exception ex)
+            {
+                consoleWriter.AddMessageLine($"Error saving option generation history: {ex.Message}", "Yellow");
+            }
+        }
+
+        #endregion
+    }
+
+    // Helper class for option generation history
+    public class OptionGeneration
+    {
+        public string EntityName { get; set; }
+        public string Domain { get; set; }
+        public DateTime GeneratedDate { get; set; }
     }
 }
