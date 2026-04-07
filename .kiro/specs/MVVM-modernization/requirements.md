@@ -46,6 +46,13 @@ Ce document définit les exigences pour la modernisation de l'architecture MVVM 
 - **Regression**: Comportement fonctionnel différent de l'état avant migration
 - **Business_Logic**: Logique métier manipulant des données ou orchestrant des opérations (à placer dans ViewModel)
 - **UI_Logic**: Logique spécifique à l'interface (animations, focus, états visuels) pouvant rester dans code-behind
+- **Dependency_Injection**: Pattern d'injection de dépendances via constructeur (remplace le pattern Inject())
+- **UIEventBroker**: Système custom de communication inter-composants (à remplacer par Messenger)
+- **Transient_Lifetime**: Durée de vie DI où chaque résolution crée une nouvelle instance
+- **Singleton_Lifetime**: Durée de vie DI où une seule instance est partagée (à éviter pour les ViewModels)
+- **DataContext_Assignment**: Assignation du ViewModel à la vue par le parent (pas par XAML statique)
+- **Proxy_Pattern**: Anti-pattern où le code-behind délègue des appels au ViewModel (à éliminer)
+- **IDisposable**: Interface pour libérer les ressources (obligatoire pour les ViewModels avec abonnements)
 
 ## ViewModels Inventory
 
@@ -80,6 +87,55 @@ L'application contient 11 ViewModels/UserControls à migrer:
 9. DtoGeneratorUC (Haute, génération complexe)
 10. CRUDGeneratorUC (Haute, génération complexe)
 11. MainWindow (Haute, orchestration globale)
+
+## Architectural Rules (from MVVM-guidelines.md)
+
+Ces règles architecturales doivent être respectées tout au long de la migration:
+
+### Rule 1: ViewModel Lifecycle
+- ViewModels utilisés par un seul parent: `Transient` lifetime
+- ViewModels partagés entre plusieurs vues: `Singleton` (rare, préférer Messenger)
+- ViewModels de dialogue: `Transient`
+- Un ViewModel héritant d'ObservableObject ne doit JAMAIS être Singleton si plusieurs instances de sa vue peuvent coexister
+
+### Rule 2: DataContext Injection
+- Le parent crée et assigne le DataContext (pas de résolution dans le XAML du UserControl)
+- Exception: fenêtres modales peuvent utiliser ViewModelLocator (instances éphémères)
+- Pattern: `MyControl.DataContext = App.GetService<MyViewModel>()`
+
+### Rule 3: Code-Behind Boundaries
+**Autorisé (UI pure):**
+- Manipulation de focus, animations, scroll
+- Rendu UI non-bindable (TextBlock.Inlines avec couleurs)
+- Appels à ShowDialog() via IDialogService
+
+**Interdit:**
+- Méthodes publiques proxy qui délèguent au ViewModel
+- Logique métier, accès fichier, accès réseau
+- Exposition d'API publique appelée par d'autres contrôles
+
+### Rule 4: Inter-Component Communication
+- Consommateur → VM enfant: accès direct au ViewModel (pas via la View)
+- VM → VM: utiliser UIEventBroker (puis Messenger après migration)
+- VM → UI (dialogues): utiliser IDialogService injecté
+
+### Rule 5: Memory Management
+- Tout abonnement = désabonnement obligatoire
+- ViewModels avec abonnements doivent implémenter IDisposable
+- Pattern: `bool disposed` + vérification dans Dispose()
+- Le parent est responsable d'appeler Dispose()
+
+### Rule 6: Property Setters
+- Pas d'effets de bord complexes dans les setters (I/O, async, cascade)
+- Setter simple + méthode dédiée pour logique complexe
+- Pattern: `if (field != value) { field = value; OnPropertyChanged(); TriggerAsync(); }`
+
+### Rule 7: CommunityToolkit Conventions
+- Propriété observable simple: `[ObservableProperty]`
+- Propriété avec logique setter: property manuelle + `OnPropertyChanged()`
+- Commande: `[RelayCommand]` sur méthode privée
+- Commande async: `[RelayCommand]` sur `async Task`
+- Ne pas mélanger `[ObservableProperty]` et property manuelle pour la même donnée
 
 ## Requirements
 
@@ -396,4 +452,72 @@ WHEN a regression is detected:
 4. THE property change notification SHALL execute in less than 1ms per property
 5. THE Source_Generator compilation time SHALL not add more than 2 seconds to total build time
 6. IF any threshold is exceeded, THE performance issue SHALL be investigated and resolved before proceeding
+
+### Requirement 16: Dependency Injection Migration
+
+**Dependencies:** Req 7 (Migration ViewModels)
+
+**Phase:** 2 - Migration et Tests
+
+**User Story:** En tant que développeur, je veux migrer le pattern Inject() vers l'injection de constructeur, afin de respecter les standards DI modernes et améliorer la testabilité.
+
+#### Acceptance Criteria
+
+1. WHEN a ViewModel uses the Inject() pattern, THE ViewModel SHALL be refactored to use constructor injection
+2. THE injected services SHALL be stored in readonly fields
+3. THE public Inject() method SHALL be removed after migration
+4. THE ViewModel SHALL be registered in App.ConfigureServices() with appropriate lifetime (Transient or Singleton)
+5. THE parent component SHALL resolve the ViewModel via App.GetService<T>() instead of calling Inject()
+6. FOR ALL migrated ViewModels, the functional behavior SHALL remain identical (invariant property)
+
+### Requirement 17: Code-Behind Cleanup
+
+**Dependencies:** Req 8 (Extraction logique)
+
+**Phase:** 2 - Migration et Tests
+
+**User Story:** En tant que développeur, je veux éliminer les anti-patterns du code-behind, afin de respecter les règles architecturales MVVM.
+
+#### Acceptance Criteria
+
+1. THE code-behind SHALL NOT contain public methods that proxy-delegate to the ViewModel
+2. THE code-behind SHALL NOT subscribe to UIEventBroker events (subscriptions moved to ViewModel)
+3. THE code-behind SHALL NOT contain Inject() methods receiving services
+4. THE code-behind SHALL expose only a public ViewModel property for external access
+5. THE code-behind MAY contain UI-specific logic (focus, animations, drag-drop delegation to Behavior)
+6. WHEN a UserControl is migrated, THE code-behind SHALL follow the VersionAndOptionUserControl.xaml.cs pattern
+
+### Requirement 18: XAML Binding Migration
+
+**Dependencies:** Req 7 (Migration ViewModels)
+
+**Phase:** 2 - Migration et Tests
+
+**User Story:** En tant que développeur, je veux remplacer les event handlers XAML par des bindings réactifs, afin de respecter le pattern MVVM et améliorer la testabilité.
+
+#### Acceptance Criteria
+
+1. WHEN a TextBox has a TextChanged event handler that calls the ViewModel, THE handler SHALL be replaced by UpdateSourceTrigger=PropertyChanged binding
+2. WHEN a ComboBox has a SelectionChanged event handler that calls the ViewModel, THE handler SHALL be replaced by Mode=TwoWay binding with UpdateSourceTrigger=PropertyChanged
+3. WHEN a SelectionChanged requires complex logic, THE XAML SHALL use EventTrigger + InvokeCommandAction with a RelayCommand
+4. THE ViewModel SHALL use partial methods (OnPropertyChanged) to react to property changes
+5. THE code-behind SHALL NOT contain TextChanged, SelectionChanged, or LostFocus handlers that call ViewModel methods
+6. THE XAML bindings SHALL maintain identical functional behavior (invariant property)
+
+### Requirement 19: Static DataContext Removal
+
+**Dependencies:** Req 7 (Migration ViewModels), Req 16 (DI Migration)
+
+**Phase:** 2 - Migration et Tests
+
+**User Story:** En tant que développeur, je veux supprimer les DataContext statiques du XAML, afin de respecter le pattern d'injection par le parent et éviter les couplages globaux.
+
+#### Acceptance Criteria
+
+1. THE UserControl XAML SHALL NOT contain `<UserControl.DataContext>` declarations
+2. THE parent component SHALL assign the DataContext via App.GetService<T>()
+3. THE ViewModel SHALL be registered in App.ConfigureServices() before being resolved
+4. WHEN a UserControl is instantiated, THE DataContext SHALL be assigned by the parent before the control is used
+5. THE ViewModelLocator MAY be used only for modal dialogs (Window instances)
+6. FOR ALL migrated UserControls, the functional behavior SHALL remain identical (invariant property)
 

@@ -221,7 +221,9 @@ Ne **pas** mélanger `[ObservableProperty]` et property manuelle pour la même d
 
 ---
 
-### 9.2 Tâche CRITIQUE-1 : OptionGeneratorUC — extraction logique métier
+### 9.2 Tâche CRITIQUE-1 : OptionGeneratorUC — extraction logique métier ✅ TERMINÉE
+
+**Statut:** ✅ Complétée le 01/04/2026
 
 **Fichier :** `BIA.ToolKit/UserControls/OptionGeneratorUC.xaml.cs`
 

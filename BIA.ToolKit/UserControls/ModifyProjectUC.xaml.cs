@@ -37,7 +37,7 @@
 
             // Child controls that still use the Inject pattern
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
-            OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
+            OptionGenerator.DataContext = App.GetService<OptionGeneratorViewModel>();
             DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
         }
     }

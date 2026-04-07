@@ -24,84 +24,78 @@ Cette approche permet de valider chaque étape avant de continuer, minimisant le
 
 ## Architecture
 
-### Architecture Actuelle (MicroMvvm)
+### Current Architecture (MicroMvvm + Anti-patterns)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        WPF Views                             │
-│  (MainWindow.xaml, UserControls/*.xaml, Dialogs/*.xaml)    │
-└────────────────────┬────────────────────────────────────────┘
-                     │ Data Binding
-                     │ Command Binding
-┌────────────────────▼────────────────────────────────────────┐
-│                    Code-Behind (.xaml.cs)                    │
-│  • Event handlers                                            │
-│  • Business logic (❌ à extraire)                            │
-│  • Service calls                                             │
-│  • Validation logic                                          │
-└────────────────────┬────────────────────────────────────────┘
-                     │ Direct manipulation
-┌────────────────────▼────────────────────────────────────────┐
-│                      ViewModels                              │
-│  • Inherit from MicroMvvm.ObservableObject                  │
-│  • Manual property notification                              │
-│  • Commands created on each access                           │
-│  • ~150 properties, ~30 commands                            │
-└────────────────────┬────────────────────────────────────────┘
-                     │
-┌────────────────────▼────────────────────────────────────────┐
-│                   MicroMvvm Framework                        │
-│  • ObservableObject (INotifyPropertyChanged)                │
-│  • RelayCommand / RelayCommand<T>                           │
-│  • Manual RaisePropertyChanged()                            │
-└─────────────────────────────────────────────────────────────┘
+BIA.ToolKit (UI)                  BIA.ToolKit.Application (Logic)
+├── Views / UserControls           ├── ViewModels (some with Inject())
+│   ├── *.xaml (static DataContext)│   ├── CRUDGeneratorViewModel
+│   └── *.xaml.cs (546 LOC!)       │   ├── DtoGeneratorViewModel
+├── Infrastructure/                │   ├── OptionGeneratorViewModel (missing)
+│   ├── DialogService.cs           │   └── MainViewModel
+│   └── ViewModelLocator.cs        ├── Services
+├── Helper/                        ├── Helper/
+│   ├── ConsoleWriter.cs           │   ├── IDialogService.cs
+│   └── UIEventBroker (custom)     │   └── IConsoleWriter.cs
+└── App.xaml.cs (DI root)          └── Mapper/
 ```
 
-**Problèmes identifiés:**
-- ❌ Boilerplate répétitif pour chaque propriété (getter/setter/notification)
-- ❌ Commandes recréées à chaque accès (pas de cache)
-- ❌ Pas de support async moderne
-- ❌ Logique métier dans code-behind (difficile à tester)
-- ❌ UIEventBroker custom (non-standard)
+**Problèmes identifiés (MVVM-guidelines.md sections 1-7):**
 
-### Architecture Cible (CommunityToolkit.Mvvm)
+❌ **Code-Behind Violations:**
+- OptionGeneratorUC.xaml.cs: 546 lignes, logique métier complète
+- DtoGeneratorUC.xaml.cs: TextChanged/SelectionChanged → appels VM
+- CRUDGeneratorUC.xaml.cs: Proxy delegates broker → VM
+- Méthodes publiques Inject() dans code-behind (anti-pattern)
+- Abonnements UIEventBroker sans IDisposable
+
+❌ **XAML Violations:**
+- DataContext statiques dans OptionGeneratorUC.xaml, DtoGeneratorUC.xaml, CRUDGeneratorUC.xaml
+- Event handlers (TextChanged, SelectionChanged) au lieu de bindings réactifs
+
+❌ **ViewModel Violations:**
+- Pattern Inject() au lieu de constructeur DI (CRUDGeneratorViewModel, DtoGeneratorViewModel)
+- MainViewModel: 4 abonnements broker sans IDisposable
+- OptionGeneratorViewModel manquant (logique dans code-behind)
+
+❌ **Architecture Violations:**
+- Boilerplate répétitif pour chaque propriété (getter/setter/notification)
+- Commandes recréées à chaque accès (pas de cache)
+- Pas de support async moderne
+- UIEventBroker custom (non-standard)
+
+### Target Architecture (CommunityToolkit.Mvvm + Clean MVVM)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        WPF Views                             │
-│  (MainWindow.xaml, UserControls/*.xaml, Dialogs/*.xaml)    │
-└────────────────────┬────────────────────────────────────────┘
-                     │ Data Binding
-                     │ Command Binding
-┌────────────────────▼────────────────────────────────────────┐
-│              Code-Behind (.xaml.cs) - Minimal                │
-│  • UI logic only (focus, animations, visual states)         │
-│  • ~70% reduction in LOC                                    │
-└─────────────────────────────────────────────────────────────┘
-                     │
-┌────────────────────▼────────────────────────────────────────┐
-│                ViewModels (Migrated)                         │
-│  • Inherit from CommunityToolkit ObservableObject           │
-│  • [ObservableProperty] attributes → auto-generated props   │
-│  • [RelayCommand] attributes → auto-generated commands      │
-│  • Business logic extracted from code-behind                │
-│  • Fully testable without UI dependencies                   │
-└────────────────────┬────────────────────────────────────────┘
-                     │
-┌────────────────────▼────────────────────────────────────────┐
-│              CommunityToolkit.Mvvm (v8.3.2+)                │
-│  • ObservableObject + Source Generators                     │
-│  • RelayCommand / AsyncRelayCommand                         │
-│  • ObservableValidator (validation)                         │
-│  • WeakReferenceMessenger (communication)                   │
-└─────────────────────────────────────────────────────────────┘
+BIA.ToolKit (UI)                  BIA.ToolKit.Application (Logic)
+├── Views / UserControls           ├── ViewModels (ObservableObject)
+│   ├── *.xaml (no DataContext)    │   ├── All 11 ViewModels
+│   └── *.xaml.cs (minimal!)       │   ├── Constructor DI
+├── Infrastructure/                │   ├── IDisposable where needed
+│   ├── DialogService.cs           │   └── [ObservableProperty]
+│   └── ViewModelLocator.cs        ├── Services
+├── Helper/                        ├── Helper/
+│   ├── ConsoleWriter.cs           │   ├── IDialogService.cs
+│   └── (UIEventBroker removed)    │   └── IConsoleWriter.cs
+└── App.xaml.cs (DI root)          └── Mapper/
+                                   
+                                   CommunityToolkit.Mvvm (NuGet)
+                                   ├── ObservableObject + Generators
+                                   ├── RelayCommand / AsyncRelayCommand
+                                   ├── ObservableValidator
+                                   └── WeakReferenceMessenger
 ```
 
 **Avantages:**
 - ✅ 60-70% moins de boilerplate via source generators
+- ✅ Code-behind réduit à ~20 lignes (pattern VersionAndOptionUserControl)
+- ✅ Tous les ViewModels avec constructeur DI + readonly fields
+- ✅ IDisposable sur tous les ViewModels avec abonnements
+- ✅ Bindings réactifs (UpdateSourceTrigger=PropertyChanged) au lieu d'event handlers
+- ✅ DataContext assigné par le parent via DI
 - ✅ Support async natif avec AsyncRelayCommand
 - ✅ Validation intégrée avec ObservableValidator
-- ✅ Messenger pattern standardisé
+- ✅ Messenger pattern standardisé (remplace UIEventBroker)
 - ✅ Testabilité maximale (logique dans ViewModels)
 - ✅ Standard Microsoft officiel et maintenu
 
@@ -134,6 +128,300 @@ Durant la Phase 1 et Phase 2, les deux frameworks coexistent:
 - Pas de conflits de noms de types (ObservableObject dans namespaces différents)
 - Compilation sans erreurs ni warnings
 - Migration ViewModel par ViewModel sans impact sur les autres
+
+## Migration Patterns (from MVVM-guidelines.md)
+
+### Pattern 1: Code-Behind Cleanup (VersionAndOptionUserControl Model)
+
+**Target:** Réduire le code-behind à ~20 lignes, exposer uniquement la propriété ViewModel.
+
+**Before (Anti-pattern):**
+```csharp
+// OptionGeneratorUC.xaml.cs — 546 lignes ❌
+public partial class OptionGeneratorUC : UserControl
+{
+    private CSharpParserService parserService;
+    private UIEventBroker uiEventBroker;
+    // ... 7 services injectés
+    
+    public void Inject(CSharpParserService csp, ..., UIEventBroker broker, ...)
+    {
+        this.uiEventBroker = broker;
+        broker.OnProjectChanged += UIEventBroker_OnProjectChanged;
+        // ... logique métier complète
+    }
+    
+    private void Generate_Click(object sender, RoutedEventArgs e)
+    {
+        // ... logique métier ❌
+    }
+}
+```
+
+**After (Clean pattern):**
+```csharp
+// OptionGeneratorUC.xaml.cs — ~20 lignes ✅
+public partial class OptionGeneratorUC : UserControl
+{
+    public OptionGeneratorViewModel ViewModel => DataContext as OptionGeneratorViewModel;
+
+    public OptionGeneratorUC()
+    {
+        InitializeComponent();
+    }
+}
+```
+
+### Pattern 2: Inject() → Constructor DI (VersionAndOptionViewModel Model)
+
+**Target:** Remplacer le pattern Inject() par l'injection de constructeur standard.
+
+**Before (Anti-pattern):**
+```csharp
+// CRUDGeneratorViewModel.cs ❌
+private CSharpParserService parserService;
+private IConsoleWriter consoleWriter;
+
+public void Inject(CSharpParserService parserService, IConsoleWriter consoleWriter, ...)
+{
+    this.parserService = parserService;
+    this.consoleWriter = consoleWriter;
+}
+```
+
+**After (Clean pattern):**
+```csharp
+// CRUDGeneratorViewModel.cs ✅
+private readonly CSharpParserService parserService;
+private readonly IConsoleWriter consoleWriter;
+
+public CRUDGeneratorViewModel(
+    CSharpParserService parserService,
+    IConsoleWriter consoleWriter,
+    FileGeneratorService fileGeneratorService,
+    SettingsService settingsService,
+    UIEventBroker uiEventBroker)
+{
+    this.parserService = parserService;
+    this.consoleWriter = consoleWriter;
+    // ...
+}
+```
+
+**DI Registration:**
+```csharp
+// App.xaml.cs — ConfigureServices()
+services.AddTransient<CRUDGeneratorViewModel>();
+services.AddTransient<DtoGeneratorViewModel>();
+services.AddTransient<OptionGeneratorViewModel>();
+```
+
+### Pattern 3: Event Handlers → Reactive Bindings
+
+**Target:** Remplacer les event handlers XAML par des bindings réactifs avec partial methods.
+
+**Before (Anti-pattern):**
+```xml
+<!-- DtoGeneratorUC.xaml ❌ -->
+<TextBox Text="{Binding MappingName}" TextChanged="MappingPropertyTextBox_TextChanged" />
+```
+
+```csharp
+// DtoGeneratorUC.xaml.cs ❌
+private void MappingPropertyTextBox_TextChanged(object sender, TextChangedEventArgs e)
+{
+    vm.ComputePropertiesValidity();
+}
+```
+
+**After (Clean pattern):**
+```xml
+<!-- DtoGeneratorUC.xaml ✅ -->
+<TextBox Text="{Binding MappingName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+```
+
+```csharp
+// DtoGeneratorViewModel.cs ✅
+[ObservableProperty]
+private string mappingName;
+
+partial void OnMappingNameChanged(string value)
+{
+    ComputeValidity(); // Déclenché automatiquement
+}
+```
+
+### Pattern 4: Static DataContext → Parent Assignment
+
+**Target:** Supprimer les DataContext statiques XAML, le parent assigne via DI.
+
+**Before (Anti-pattern):**
+```xml
+<!-- OptionGeneratorUC.xaml ❌ -->
+<UserControl.DataContext>
+    <local:OptionGeneratorViewModel />
+</UserControl.DataContext>
+```
+
+**After (Clean pattern):**
+```xml
+<!-- OptionGeneratorUC.xaml ✅ -->
+<!-- Pas de DataContext statique -->
+```
+
+```csharp
+// ModifyProjectUC.xaml.cs (parent) ✅
+public void Init()
+{
+    CRUDGenerator.DataContext = App.GetService<CRUDGeneratorViewModel>();
+    OptionGenerator.DataContext = App.GetService<OptionGeneratorViewModel>();
+    DtoGenerator.DataContext = App.GetService<DtoGeneratorViewModel>();
+}
+```
+
+### Pattern 5: Broker Subscriptions → IDisposable
+
+**Target:** Déplacer les abonnements UIEventBroker dans le ViewModel avec IDisposable.
+
+**Before (Anti-pattern):**
+```csharp
+// OptionGeneratorUC.xaml.cs ❌
+public void Inject(..., UIEventBroker broker, ...)
+{
+    broker.OnProjectChanged += UIEventBroker_OnProjectChanged;
+    broker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
+    // Pas de désabonnement ❌
+}
+```
+
+**After (Clean pattern):**
+```csharp
+// OptionGeneratorViewModel.cs ✅
+public partial class OptionGeneratorViewModel : ObservableObject, IDisposable
+{
+    private readonly UIEventBroker uiEventBroker;
+    private bool disposed;
+
+    public OptionGeneratorViewModel(..., UIEventBroker uiEventBroker)
+    {
+        this.uiEventBroker = uiEventBroker;
+        uiEventBroker.OnProjectChanged += OnProjectChanged;
+        uiEventBroker.OnSolutionClassesParsed += OnSolutionClassesParsed;
+    }
+
+    private void OnProjectChanged(Project project) => SetCurrentProject(project);
+
+    public void Dispose()
+    {
+        if (disposed) return;
+        disposed = true;
+        uiEventBroker.OnProjectChanged -= OnProjectChanged;
+        uiEventBroker.OnSolutionClassesParsed -= OnSolutionClassesParsed;
+    }
+}
+```
+
+### Pattern 6: Proxy Methods → Direct ViewModel Access
+
+**Target:** Éliminer les méthodes proxy du code-behind, accès direct au ViewModel.
+
+**Before (Anti-pattern):**
+```csharp
+// CRUDGeneratorUC.xaml.cs ❌
+private void UiEventBroker_OnSolutionClassesParsed()
+{
+    vm.OnSolutionClassesParsed(); // Proxy ❌
+}
+
+private void UiEventBroker_OnProjectChanged(Project project)
+{
+    vm.SetCurrentProject(project); // Proxy ❌
+}
+```
+
+**After (Clean pattern):**
+```csharp
+// CRUDGeneratorViewModel.cs ✅
+// Abonnements directement dans le ViewModel
+public CRUDGeneratorViewModel(..., UIEventBroker uiEventBroker)
+{
+    uiEventBroker.OnProjectChanged += SetCurrentProject;
+    uiEventBroker.OnSolutionClassesParsed += OnSolutionClassesParsed;
+}
+```
+
+### Pattern 7: Complex SelectionChanged → EventTrigger + Command
+
+**Target:** Pour les SelectionChanged avec logique complexe, utiliser EventTrigger.
+
+**Before (Anti-pattern):**
+```xml
+<!-- OptionGeneratorUC.xaml ❌ -->
+<ComboBox SelectedItem="{Binding Entity}" SelectionChanged="ModifyEntity_SelectionChange" />
+```
+
+```csharp
+// OptionGeneratorUC.xaml.cs ❌
+private void ModifyEntity_SelectionChange(object sender, SelectionChangedEventArgs e)
+{
+    ParseEntityFile(); // Logique complexe
+}
+```
+
+**After (Clean pattern):**
+```xml
+<!-- OptionGeneratorUC.xaml ✅ -->
+<ComboBox SelectedItem="{Binding Entity, Mode=TwoWay}">
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="SelectionChanged">
+            <i:InvokeCommandAction Command="{Binding OnEntitySelectionChangedCommand}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+</ComboBox>
+```
+
+```csharp
+// OptionGeneratorViewModel.cs ✅
+[RelayCommand]
+private void OnEntitySelectionChanged()
+{
+    ParseEntityFile(); // Logique dans le ViewModel
+}
+```
+
+### Pattern 8: UI Pure Logic (Legitimate Code-Behind)
+
+**Target:** Identifier et conserver la logique UI pure dans le code-behind.
+
+**Legitimate cases (CONSERVER):**
+```csharp
+// DtoGeneratorUC.xaml.cs ✅
+// Drag-drop délégué à Behavior (UI pure)
+private void DragHandle_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+{
+    ListViewDragDropBehavior.HandlePreviewMouseLeftButtonDown(sender, e);
+}
+
+// Manipulation GridView non-bindable (UI pure)
+private void ResetMappingColumnsWidths()
+{
+    var gridView = MappingListView.View as GridView;
+    foreach (var column in gridView.Columns)
+    {
+        column.Width = double.NaN; // Auto-size
+    }
+}
+```
+
+**Illegitimate cases (À MIGRER):**
+```csharp
+// OptionGeneratorUC.xaml.cs ❌
+private void Generate_Click(object sender, RoutedEventArgs e)
+{
+    uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+        await fileGeneratorService.GenerateOptionAsync(...)); // Logique métier ❌
+}
+```
 
 ## Components and Interfaces
 
@@ -389,21 +677,30 @@ BIA.ToolKit.Tests/
 
 ### ViewModel Inventory
 
-**11 ViewModels à migrer:**
+**11 ViewModels à migrer (ordre par sévérité MVVM-guidelines.md section 9.1):**
 
-| ViewModel | Complexité | Propriétés | Commandes | Dépendances | Phase Migration |
-|-----------|------------|------------|-----------|-------------|-----------------|
-| LogDetailUC | Faible | 5 | 2 | Aucune | Phase 1 (Pilot) |
-| RepositoryResumeUC | Faible | 8 | 1 | RepositoryViewModel | Phase 2.1 |
-| VersionAndOptionUserControl | Faible | 6 | 3 | SettingsService | Phase 2.1 |
-| RepositoryFormUC | Moyenne | 12 | 4 | GitService, Validation | Phase 2.2 |
-| CustomTemplateRepositorySettingsUC | Moyenne | 10 | 3 | RepositoryViewModel | Phase 2.2 |
-| OptionGeneratorUC | Moyenne | 15 | 5 | FileGenerator | Phase 2.2 |
-| CustomTemplatesRepositoriesSettingsUC | Moyenne | 8 | 6 | Collection management | Phase 2.3 |
-| ModifyProjectUC | Moyenne | 18 | 7 | Multiple services | Phase 2.3 |
-| DtoGeneratorUC | Haute | 25 | 8 | CSharpParser, Roslyn | Phase 2.4 |
-| CRUDGeneratorUC | Haute | 30 | 10 | CSharpParser, Roslyn | Phase 2.4 |
-| MainWindow | Haute | 20 | 12 | Orchestration globale | Phase 2.5 |
+| ViewModel | Complexité | Sévérité | Propriétés | Commandes | Problèmes Principaux | Phase Migration |
+|-----------|------------|----------|------------|-----------|---------------------|-----------------|
+| OptionGeneratorUC | Haute | **CRITIQUE** | 15 | 5 | 546 LOC code-behind, logique métier complète, broker sans IDisposable, Inject() sur code-behind, DataContext statique XAML | Phase 2.2 |
+| DtoGeneratorUC | Haute | **CRITIQUE** | 25 | 8 | TextChanged/SelectionChanged → appels VM, broker sans IDisposable, Inject() sur code-behind, DataContext statique XAML | Phase 2.4 |
+| CRUDGeneratorUC | Haute | **HAUT** | 30 | 10 | Proxy delegates broker → VM, DataContext statique XAML, Inject() sur VM | Phase 2.4 |
+| CRUDGeneratorViewModel | Haute | **MOYEN** | 30 | 10 | Inject() au lieu de constructeur DI | Phase 2.4 |
+| DtoGeneratorViewModel | Haute | **MOYEN** | 25 | 8 | Inject() au lieu de constructeur DI | Phase 2.4 |
+| MainViewModel | Haute | **MOYEN** | 20 | 12 | 4 abonnements broker sans IDisposable | Phase 2.5 |
+| LogDetailUC | Faible | Conforme | 5 | 2 | Aucun (Pilot) | Phase 1 (Pilot) |
+| RepositoryResumeUC | Faible | Conforme | 8 | 1 | Migration simple | Phase 2.1 |
+| VersionAndOptionUserControl | Faible | **MODÈLE** | 6 | 3 | Déjà conforme (référence) | N/A |
+| RepositoryFormUC | Moyenne | Conforme | 12 | 4 | Migration + validation | Phase 2.2 |
+| CustomTemplateRepositorySettingsUC | Moyenne | Conforme | 10 | 3 | Migration standard | Phase 2.2 |
+| CustomTemplatesRepositoriesSettingsUC | Moyenne | Conforme | 8 | 6 | Migration + Messenger | Phase 2.3 |
+| ModifyProjectUC | Moyenne | **MODÈLE** | 18 | 7 | Déjà conforme (parent assigne DataContext) | N/A |
+| MainWindow | Haute | **MOYEN** | 20 | 12 | Orchestration globale + IDisposable manquant | Phase 2.5 |
+
+**Modèles à suivre (déjà conformes - MVVM-guidelines.md section 12):**
+- ✅ `VersionAndOptionUserControl.xaml.cs` → code-behind vide, propriété `ViewModel` uniquement
+- ✅ `VersionAndOptionViewModel.cs` → constructeur DI complet, `IDisposable`, `readonly` fields
+- ✅ `ModifyProjectUC.xaml.cs` → parent assigne les DataContexts via `App.GetService<>()`
+- ✅ `LogDetailViewModel.cs` → `[ObservableProperty]` + `[RelayCommand]` corrects
 
 ### Migration State Tracking
 
