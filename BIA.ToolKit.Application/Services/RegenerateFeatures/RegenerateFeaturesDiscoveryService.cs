@@ -165,7 +165,9 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                 {
                     if (entities.ContainsKey(entity.ParentEntityName))
                     {
-                        // Parent found in history — dynamic blocking will be handled in the ViewModel
+                        // Parent found in history — record the dependency so the parent/child
+                        // propagation phase (Phase 2 below) can block child features whose parent
+                        // feature is not regeneratable.
                         entity.HasParentDependency = true;
                     }
                     else
@@ -204,6 +206,48 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     }
                 }
             }
+
+            // Phase 2 — Propagate parent blocking to children.
+            //
+            // A child DTO can only be selected when the parent DTO is regeneratable.
+            // A child CRUD can only be selected when the parent CRUD is regeneratable.
+            // Iterates until stable so that multi-level hierarchies (grandparent → parent → child)
+            // are handled correctly in a single pass per nesting level.
+            bool propagationChanged;
+            do
+            {
+                propagationChanged = false;
+
+                foreach (RegenerableEntity entity in entities.Values)
+                {
+                    if (!entity.HasParentDependency || string.IsNullOrEmpty(entity.ParentEntityName))
+                        continue;
+
+                    if (!entities.TryGetValue(entity.ParentEntityName, out RegenerableEntity parent))
+                        continue;
+
+                    // Child DTO requires parent DTO to be regeneratable.
+                    if (entity.DtoStatus == RegenerableFeatureStatus.Ready && !parent.CanRegenerateDto)
+                    {
+                        entity.DtoStatus = RegenerableFeatureStatus.BlockedParentNotMigrated;
+                        entity.DtoWarningMessage = parent.DtoHistory == null
+                            ? $"The parent entity '{entity.ParentEntityName}' has no DTO in the generation history. The child DTO cannot be regenerated without the parent DTO."
+                            : $"The parent entity '{entity.ParentEntityName}' DTO cannot be regenerated. The child DTO cannot be regenerated without the parent DTO.";
+                        propagationChanged = true;
+                    }
+
+                    // Child CRUD requires parent CRUD to be regeneratable.
+                    if (entity.CrudStatus == RegenerableFeatureStatus.Ready && !parent.CanRegenerateCrud)
+                    {
+                        entity.CrudStatus = RegenerableFeatureStatus.BlockedParentNotMigrated;
+                        entity.CrudWarningMessage = parent.CrudHistory == null
+                            ? $"The parent entity '{entity.ParentEntityName}' has no CRUD in the generation history. The child CRUD cannot be regenerated without the parent CRUD."
+                            : $"The parent entity '{entity.ParentEntityName}' CRUD cannot be regenerated. The child CRUD cannot be regenerated without the parent CRUD.";
+                        propagationChanged = true;
+                    }
+                }
+            }
+            while (propagationChanged);
         }
 
         // ── Private helpers ───────────────────────────────────────────────────
