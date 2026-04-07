@@ -5,6 +5,7 @@ namespace BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures
     using System.ComponentModel;
     using System.Runtime.CompilerServices;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
 
     public class RegenerableEntity : INotifyPropertyChanged
@@ -23,6 +24,31 @@ namespace BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures
         public RegenerableFeatureStatus CrudStatus { get; set; }
         public RegenerableFeatureStatus OptionStatus { get; set; }
         public RegenerableFeatureStatus DtoStatus { get; set; }
+
+        // ── Parsed entity information (populated when CSharpParserService has loaded the solution) ──
+
+        /// <summary>
+        /// Domain entity info resolved via <c>CSharpParserService.GetDomainEntities</c>.
+        /// Used to supply complete entity data (e.g. <see cref="EntityInfo.BaseKeyType"/>) to the
+        /// Option feature generator, which does not store that information in history.
+        /// Null when the parser has not yet parsed the solution.
+        /// </summary>
+        public EntityInfo OptionEntityInfo { get; set; }
+
+        /// <summary>
+        /// Domain entity info resolved via <c>CSharpParserService.GetDomainEntities</c>.
+        /// Supplements the stored DTO history data with live parsed values.
+        /// Null when the parser has not yet parsed the solution.
+        /// </summary>
+        public EntityInfo DtoEntityInfo { get; set; }
+
+        /// <summary>
+        /// DTO entity info resolved from <c>CSharpParserService.CurrentSolutionClasses</c>
+        /// (the same approach as <c>CRUDGeneratorUC.ListDtoFiles</c>).
+        /// Used by the CRUD feature generator instead of re-fetching from the parser.
+        /// Null when the parser has not yet parsed the solution.
+        /// </summary>
+        public EntityInfo CrudEntityInfo { get; set; }
 
         // ── Dependency metadata (populated by coherence checks) ──────────────
 

@@ -5,21 +5,39 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     using System.IO;
     using System.Linq;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
     using BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures;
 
-    public class RegenerateFeaturesDiscoveryService(IConsoleWriter consoleWriter, SettingsService settingsService)
+    public class RegenerateFeaturesDiscoveryService(IConsoleWriter consoleWriter, SettingsService settingsService, CSharpParserService parserService)
     {
         private readonly IConsoleWriter consoleWriter = consoleWriter;
         private readonly CRUDSettings crudSettings = new(settingsService);
+        private readonly CSharpParserService parserService = parserService;
 
         public List<RegenerableEntity> DiscoverRegenerableEntities(Project project)
         {
             var entities = new Dictionary<string, RegenerableEntity>(StringComparer.OrdinalIgnoreCase);
+
+            // Pre-fetch parsed entity information when the solution has been parsed.
+            // Domain entities (used for Option and DTO validation/info) come from GetDomainEntities,
+            // following the same approach as DtoGeneratorUC.ListEntities.
+            // DTO entities (used for CRUD validation/info) come from CurrentSolutionClasses filtered
+            // to the DTO project folder, following the same approach as CRUDGeneratorUC.ListDtoFiles.
+            bool parserReady = parserService.CurrentSolutionClasses.Count > 0;
+
+            IReadOnlyList<EntityInfo> domainEntities = parserReady
+                ? [.. parserService.GetDomainEntities(project)]
+                : [];
+
+            IReadOnlyList<EntityInfo> dtoEntities = parserReady
+                ? [.. BuildDtoEntityInfos(project)]
+                : [];
 
             try
             {
@@ -35,7 +53,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
 
                         RegenerableEntity entity = GetOrCreate(entities, entry.EntityNameSingular, entry.EntityNamePlural);
                         entity.CrudHistory = entry;
-                        entity.CrudStatus = ValidateCrudHistory(entry, project);
+                        (entity.CrudStatus, entity.CrudEntityInfo) = ValidateCrudHistory(entry, project, dtoEntities, parserReady);
 
                         // Extract dependency metadata from CRUD history
                         if (entry.HasParent && !string.IsNullOrEmpty(entry.ParentName))
@@ -65,7 +83,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
 
                         RegenerableEntity entity = GetOrCreate(entities, entry.EntityNameSingular, entry.EntityNamePlural);
                         entity.OptionHistory = entry;
-                        entity.OptionStatus = ValidateOptionHistory(entry, project);
+                        (entity.OptionStatus, entity.OptionEntityInfo) = ValidateOptionHistory(entry, project, domainEntities, parserReady);
                     }
                 }
             }
@@ -88,7 +106,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
 
                         RegenerableEntity entity = GetOrCreate(entities, entry.EntityName, null);
                         entity.DtoHistory = entry;
-                        entity.DtoStatus = ValidateDtoHistory(entry, project);
+                        (entity.DtoStatus, entity.DtoEntityInfo) = ValidateDtoHistory(entry, project, domainEntities, parserReady);
 
                         // Extract option dependencies from DTO property mappings when not already set via CRUD
                         if (entity.OptionDependencies.Count == 0 && entry.PropertyMappings?.Count > 0)
@@ -271,55 +289,128 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             return entity;
         }
 
-        private static RegenerableFeatureStatus ValidateCrudHistory(CRUDGenerationHistory entry, Project project)
+        /// <summary>
+        /// Builds a list of <see cref="EntityInfo"/> objects from the DTO project folder
+        /// of <paramref name="project"/> using already-parsed solution classes.
+        /// Mirrors the approach used in <c>CRUDGeneratorUC.ListDtoFiles</c>.
+        /// </summary>
+        private IEnumerable<EntityInfo> BuildDtoEntityInfos(Project project)
+        {
+            if (string.IsNullOrEmpty(project.CompanyName) || string.IsNullOrEmpty(project.Name))
+                yield break;
+
+            string dtoFolder = $"{project.CompanyName}.{project.Name}.Domain.Dto";
+            string dtoFolderPath = Path.Combine(project.Folder, Constants.FolderDotNet, dtoFolder);
+
+            foreach (var classInfo in parserService.CurrentSolutionClasses.Where(c =>
+                c.FilePath.StartsWith(dtoFolderPath, StringComparison.OrdinalIgnoreCase)
+                && c.FilePath.EndsWith("Dto.cs", StringComparison.OrdinalIgnoreCase)))
+            {
+                yield return new EntityInfo(classInfo);
+            }
+        }
+
+        private static (RegenerableFeatureStatus status, EntityInfo entityInfo) ValidateCrudHistory(
+            CRUDGenerationHistory entry, Project project,
+            IReadOnlyList<EntityInfo> dtoEntities, bool parserReady)
         {
             try
             {
                 if (entry.Mapping?.Dto == null)
-                    return RegenerableFeatureStatus.Missing;
+                    return (RegenerableFeatureStatus.Missing, null);
 
                 string filePath = Path.Combine(project.Folder, Constants.FolderDotNet, entry.Mapping.Dto);
-                return File.Exists(filePath) ? RegenerableFeatureStatus.Ready : RegenerableFeatureStatus.Missing;
+
+                // When the parser has loaded the solution, match the DTO class from CurrentSolutionClasses
+                // (same methodology as CRUDGeneratorUC.ListDtoFiles) to obtain a fully-populated EntityInfo.
+                if (parserReady)
+                {
+                    EntityInfo entityInfo = dtoEntities.FirstOrDefault(e =>
+                        string.Equals(e.Path, filePath, StringComparison.OrdinalIgnoreCase));
+                    return entityInfo != null
+                        ? (RegenerableFeatureStatus.Ready, entityInfo)
+                        : (RegenerableFeatureStatus.Missing, null);
+                }
+
+                // Fallback: simple file-existence check when parser is not yet initialised.
+                return File.Exists(filePath)
+                    ? (RegenerableFeatureStatus.Ready, null)
+                    : (RegenerableFeatureStatus.Missing, null);
             }
             catch
             {
-                return RegenerableFeatureStatus.Error;
+                return (RegenerableFeatureStatus.Error, null);
             }
         }
 
-        private static RegenerableFeatureStatus ValidateOptionHistory(OptionGenerationHistory entry, Project project)
+        private static (RegenerableFeatureStatus status, EntityInfo entityInfo) ValidateOptionHistory(
+            OptionGenerationHistory entry, Project project,
+            IReadOnlyList<EntityInfo> domainEntities, bool parserReady)
         {
             try
             {
-                // BuildOptionEntityPath returns null when no existing file was found
+                // When the parser has loaded the solution, match the domain entity from GetDomainEntities
+                // (same methodology as DtoGeneratorUC.ListEntities) to obtain a fully-populated EntityInfo,
+                // including BaseKeyType which is not stored in the option history.
+                if (parserReady)
+                {
+                    EntityInfo entityInfo = domainEntities.FirstOrDefault(e =>
+                        e.Name.Equals(entry.EntityNameSingular, StringComparison.OrdinalIgnoreCase)
+                        && (string.IsNullOrEmpty(entry.EntityNamespace)
+                            || e.Namespace.Equals(entry.EntityNamespace, StringComparison.OrdinalIgnoreCase)));
+                    return entityInfo != null
+                        ? (RegenerableFeatureStatus.Ready, entityInfo)
+                        : (RegenerableFeatureStatus.Missing, null);
+                }
+
+                // Fallback: file-existence check when parser is not yet initialised.
                 string entityPath = BuildOptionEntityPath(entry, project);
-                return entityPath != null ? RegenerableFeatureStatus.Ready : RegenerableFeatureStatus.Missing;
+                return entityPath != null
+                    ? (RegenerableFeatureStatus.Ready, null)
+                    : (RegenerableFeatureStatus.Missing, null);
             }
             catch
             {
-                return RegenerableFeatureStatus.Error;
+                return (RegenerableFeatureStatus.Error, null);
             }
         }
 
-        private static RegenerableFeatureStatus ValidateDtoHistory(DtoGeneration entry, Project project)
+        private static (RegenerableFeatureStatus status, EntityInfo entityInfo) ValidateDtoHistory(
+            DtoGeneration entry, Project project,
+            IReadOnlyList<EntityInfo> domainEntities, bool parserReady)
         {
             try
             {
                 if (string.IsNullOrEmpty(entry.EntityName))
-                    return RegenerableFeatureStatus.Missing;
+                    return (RegenerableFeatureStatus.Missing, null);
 
+                // When the parser has loaded the solution, match the domain entity from GetDomainEntities
+                // (same methodology as DtoGeneratorUC.ListEntities) to obtain a fully-populated EntityInfo.
+                if (parserReady)
+                {
+                    EntityInfo entityInfo = domainEntities.FirstOrDefault(e =>
+                        e.Name.Equals(entry.EntityName, StringComparison.OrdinalIgnoreCase)
+                        && (string.IsNullOrEmpty(entry.EntityNamespace)
+                            || e.Namespace.Equals(entry.EntityNamespace, StringComparison.OrdinalIgnoreCase)));
+                    return entityInfo != null
+                        ? (RegenerableFeatureStatus.Ready, entityInfo)
+                        : (RegenerableFeatureStatus.Missing, null);
+                }
+
+                // Fallback: file-existence check when parser is not yet initialised.
                 string entityPath = BuildDtoEntityPath(entry, project);
                 if (entityPath == null)
-                    return RegenerableFeatureStatus.Missing;
+                    return (RegenerableFeatureStatus.Missing, null);
 
-                return File.Exists(entityPath) ? RegenerableFeatureStatus.Ready : RegenerableFeatureStatus.Missing;
+                return File.Exists(entityPath)
+                    ? (RegenerableFeatureStatus.Ready, null)
+                    : (RegenerableFeatureStatus.Missing, null);
             }
             catch
             {
-                return RegenerableFeatureStatus.Error;
+                return (RegenerableFeatureStatus.Error, null);
             }
         }
-
         /// <summary>
         /// Constructs the absolute path to the domain entity file for an Option generation entry.
         /// <para>

@@ -106,7 +106,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             _ = new List<Task>();
             if (entity.OptionHistory != null && entity.OptionStatus == RegenerableFeatureStatus.Ready)
             {
-                await TryGenerateOptionAsync(entity.OptionHistory, targetProject, fileGenerator);
+                await TryGenerateOptionAsync(entity, targetProject, fileGenerator);
             }
 
             if (entity.DtoHistory != null && entity.DtoStatus == RegenerableFeatureStatus.Ready)
@@ -116,15 +116,16 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
 
             if (entity.CrudHistory != null && entity.CrudStatus == RegenerableFeatureStatus.Ready)
             {
-                await TryGenerateCrudAsync(entity.CrudHistory, currentProject, targetProject, fileGenerator, parserService);
+                await TryGenerateCrudAsync(entity, currentProject, targetProject, fileGenerator, parserService);
             }
         }
 
         private async Task TryGenerateOptionAsync(
-            OptionGenerationHistory history,
+            RegenerableEntity entity,
             Project targetProject,
             FileGeneratorService fileGenerator)
         {
+            OptionGenerationHistory history = entity.OptionHistory;
             try
             {
                 await fileGenerator.GenerateOptionAsync(new FileGeneratorOptionContext
@@ -134,6 +135,9 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     DomainName = history.Domain,
                     EntityName = history.EntityNameSingular,
                     EntityNamePlural = history.EntityNamePlural,
+                    // BaseKeyType is not stored in the Option history — derive it from the parsed
+                    // domain entity (available when the solution has been parsed before migration).
+                    BaseKeyType = entity.OptionEntityInfo?.BaseKeyType,
                     DisplayName = history.DisplayItem,
                     AngularFront = history.BiaFront,
                     UseHubForClient = history.UseHubClient,
@@ -197,28 +201,36 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         }
 
         private async Task TryGenerateCrudAsync(
-            CRUDGenerationHistory history,
+            RegenerableEntity entity,
             Project currentProject,
             Project targetProject,
             FileGeneratorService fileGenerator,
             CSharpParserService parserService)
         {
+            CRUDGenerationHistory history = entity.CrudHistory;
             try
             {
                 if (history.Mapping?.Dto == null)
                     return;
 
-                string dtoFilePath = Path.Combine(currentProject.Folder, Constants.FolderDotNet, history.Mapping.Dto);
-                ClassInfo classInfo = parserService.CurrentSolutionClasses
-                    .FirstOrDefault(c => string.Equals(c.FilePath, dtoFilePath, StringComparison.OrdinalIgnoreCase));
-
-                if (classInfo == null)
+                // Prefer the EntityInfo pre-resolved during discovery (from CurrentSolutionClasses
+                // filtered to the DTO folder, same approach as CRUDGeneratorUC.ListDtoFiles).
+                // Fall back to a fresh lookup when discovery ran before the solution was parsed.
+                EntityInfo entityInfo = entity.CrudEntityInfo;
+                if (entityInfo == null)
                 {
-                    consoleWriter.AddMessageLine($"Feature migration: DTO class not found for {history.EntityNameSingular}, skipping CRUD.", "orange");
-                    return;
-                }
+                    string dtoFilePath = Path.Combine(currentProject.Folder, Constants.FolderDotNet, history.Mapping.Dto);
+                    ClassInfo classInfo = parserService.CurrentSolutionClasses
+                        .FirstOrDefault(c => string.Equals(c.FilePath, dtoFilePath, StringComparison.OrdinalIgnoreCase));
 
-                var entityInfo = new EntityInfo(classInfo);
+                    if (classInfo == null)
+                    {
+                        consoleWriter.AddMessageLine($"Feature migration: DTO class not found for {history.EntityNameSingular}, skipping CRUD.", "orange");
+                        return;
+                    }
+
+                    entityInfo = new EntityInfo(classInfo);
+                }
 
                 bool generateBack = history.Generation.Any(g => g.GenerationType == "WebApi");
                 bool generateFront = history.Generation.Any(g => g.GenerationType == "Front")
