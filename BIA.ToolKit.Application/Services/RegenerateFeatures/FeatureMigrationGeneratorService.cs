@@ -19,7 +19,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     using BIA.ToolKit.Domain.ProjectAnalysis;
     using Humanizer;
 
-    public class FeatureMigrationGeneratorService(IConsoleWriter consoleWriter)
+    public class FeatureMigrationGeneratorService(IConsoleWriter consoleWriter, DtoMappingService dtoMappingService)
     {
         private class MutedConsoleWriter : IConsoleWriter
         {
@@ -32,6 +32,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         private const int REGENERATE_FEATURES_VERSION_MINIMUM = 500;
         private static readonly Regex PlaceholderPattern = new(@"\{[^}]+\}", RegexOptions.Compiled);
         private readonly IConsoleWriter consoleWriter = consoleWriter;
+        private readonly DtoMappingService dtoMappingService = dtoMappingService;
 
         public static bool IsProjectCompatibleForRegenerateFeatures(Project project)
         {
@@ -111,7 +112,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
 
             if (entity.DtoHistory != null && entity.DtoStatus == RegenerableFeatureStatus.Ready)
             {
-                await TryGenerateDtoAsync(entity, targetProject, fileGenerator);
+                await TryGenerateDtoAsync(entity, currentProject, targetProject, fileGenerator, parserService);
             }
 
             if (entity.CrudHistory != null && entity.CrudStatus == RegenerableFeatureStatus.Ready)
@@ -151,28 +152,15 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
 
         private async Task TryGenerateDtoAsync(
             RegenerableEntity entity,
+            Project currentProject,
             Project targetProject,
-            FileGeneratorService fileGenerator)
+            FileGeneratorService fileGenerator,
+            CSharpParserService parserService)
         {
             DtoGeneration history = entity.DtoHistory;
             try
             {
-                var properties = history.PropertyMappings.Select(pm => new MappingEntityProperty
-                {
-                    EntityCompositeName = pm.EntityPropertyCompositeName,
-                    MappingName = pm.MappingName ?? pm.EntityPropertyCompositeName,
-                    IsRequired = pm.IsRequired,
-                    MappingDateType = pm.DateType,
-                    OptionDisplayProperty = pm.OptionMappingDisplayProperty,
-                    OptionIdProperty = pm.OptionMappingIdProperty,
-                    OptionEntityIdProperty = pm.OptionMappingEntityIdProperty,
-                    IsParent = pm.IsParent,
-                    EntityType = !string.IsNullOrEmpty(pm.OptionMappingEntityIdProperty)
-                        ? Constants.BiaClassName.CollectionOptionDto
-                        : !string.IsNullOrEmpty(pm.OptionMappingIdProperty)
-                            ? Constants.BiaClassName.OptionDto
-                            : string.Empty,
-                }).ToList();
+                List<MappingEntityProperty> properties = BuildDtoMappingProperties(entity, currentProject, parserService, history);
 
                 await fileGenerator.GenerateDtoAsync(new FileGeneratorDtoContext
                 {
@@ -196,6 +184,104 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"Feature migration: Error generating DTO for {history.EntityName}: {ex.Message}", "orange");
+            }
+        }
+
+        /// <summary>
+        /// Builds the <see cref="MappingEntityProperty"/> list for DTO generation.
+        /// When the domain entity has been resolved (<see cref="RegenerableEntity.DtoEntityInfo"/> is
+        /// set), uses <see cref="DtoMappingService"/> to build fully-populated mapping properties
+        /// (including EntityType, MappingType, OptionType, OptionRelationType, etc.) then applies
+        /// the user-customized values stored in history on top. This mirrors exactly what the
+        /// interactive <c>DtoGeneratorViewModel</c> produces.
+        /// Falls back to a history-only mapping (limited) when the entity info is not available.
+        /// </summary>
+        private List<MappingEntityProperty> BuildDtoMappingProperties(
+            RegenerableEntity entity,
+            Project currentProject,
+            CSharpParserService parserService,
+            DtoGeneration history)
+        {
+            if (entity.DtoEntityInfo != null)
+            {
+                try
+                {
+                    // Build the entity property tree the same way DtoGeneratorViewModel does.
+                    IEnumerable<EntityInfo> allDomainEntities = parserService.GetDomainEntities(currentProject);
+                    List<EntityProperty> entityPropertyTree = dtoMappingService.BuildEntityPropertyTree(entity.DtoEntityInfo, allDomainEntities);
+
+                    // Mark only the properties referenced in the generation history as selected.
+                    var selectedNames = new HashSet<string>(
+                        history.PropertyMappings.Select(pm => pm.EntityPropertyCompositeName),
+                        StringComparer.OrdinalIgnoreCase);
+                    foreach (EntityProperty ep in GetAllEntityPropertiesRecursively(entityPropertyTree))
+                        ep.IsSelected = selectedNames.Contains(ep.CompositeName);
+
+                    // Build fully-populated MappingEntityProperty list (EntityType, MappingType,
+                    // OptionType, OptionRelationType, OptionRelationFirstIdProperty, etc.).
+                    List<MappingEntityProperty> properties = dtoMappingService.BuildMappingProperties(entityPropertyTree, allDomainEntities);
+
+                    // Apply user-customized values stored in the history on top of the
+                    // auto-computed defaults, so that user choices (MappingName, DateType, etc.)
+                    // are preserved.
+                    foreach (DtoGenerationPropertyMapping pm in history.PropertyMappings)
+                    {
+                        MappingEntityProperty mp = properties.FirstOrDefault(
+                            x => x.EntityCompositeName.Equals(pm.EntityPropertyCompositeName, StringComparison.OrdinalIgnoreCase));
+                        if (mp == null)
+                            continue;
+
+                        if (!string.IsNullOrEmpty(pm.MappingName))
+                            mp.MappingName = pm.MappingName;
+                        if (!string.IsNullOrEmpty(pm.DateType))
+                            mp.MappingDateType = pm.DateType;
+                        mp.IsRequired = pm.IsRequired;
+                        mp.IsParent = pm.IsParent;
+                        if (!string.IsNullOrEmpty(pm.OptionMappingDisplayProperty))
+                            mp.OptionDisplayProperty = pm.OptionMappingDisplayProperty;
+                        if (!string.IsNullOrEmpty(pm.OptionMappingIdProperty))
+                            mp.OptionIdProperty = pm.OptionMappingIdProperty;
+                        if (!string.IsNullOrEmpty(pm.OptionMappingEntityIdProperty))
+                            mp.OptionEntityIdProperty = pm.OptionMappingEntityIdProperty;
+                    }
+
+                    return properties;
+                }
+                catch (Exception ex)
+                {
+                    consoleWriter.AddMessageLine(
+                        $"Feature migration: Warning - could not resolve entity properties for DTO '{history.EntityName}' from parsed solution, falling back to history-only mapping: {ex.Message}",
+                        "orange");
+                }
+            }
+
+            // Fallback: build from history data only. Missing fields: EntityType (real C# type),
+            // OptionType, OptionRelationType, OptionRelationFirstIdProperty, OptionRelationSecondIdProperty.
+            return history.PropertyMappings.Select(pm => new MappingEntityProperty
+            {
+                EntityCompositeName = pm.EntityPropertyCompositeName,
+                MappingName = pm.MappingName ?? pm.EntityPropertyCompositeName,
+                IsRequired = pm.IsRequired,
+                MappingDateType = pm.DateType,
+                OptionDisplayProperty = pm.OptionMappingDisplayProperty,
+                OptionIdProperty = pm.OptionMappingIdProperty,
+                OptionEntityIdProperty = pm.OptionMappingEntityIdProperty,
+                IsParent = pm.IsParent,
+                EntityType = !string.IsNullOrEmpty(pm.OptionMappingEntityIdProperty)
+                    ? Constants.BiaClassName.CollectionOptionDto
+                    : !string.IsNullOrEmpty(pm.OptionMappingIdProperty)
+                        ? Constants.BiaClassName.OptionDto
+                        : string.Empty,
+            }).ToList();
+        }
+
+        private static IEnumerable<EntityProperty> GetAllEntityPropertiesRecursively(IEnumerable<EntityProperty> properties)
+        {
+            foreach (EntityProperty p in properties)
+            {
+                yield return p;
+                foreach (EntityProperty child in GetAllEntityPropertiesRecursively(p.Properties))
+                    yield return child;
             }
         }
 

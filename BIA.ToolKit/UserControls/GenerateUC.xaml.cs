@@ -17,14 +17,15 @@ namespace BIA.ToolKit.UserControls
         }
 
         public void Inject(ProjectViewModel projectViewModel, CSharpParserService cSharpParserService, ZipParserService zipService, GenerateCrudService crudService,
-            SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
+            SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker,
+            Application.Services.DtoMappingService dtoMappingService)
         {
             // DataContext = ProjectViewModel so tab IsEnabled bindings resolve directly.
             DataContext = projectViewModel;
 
             ProjectSelector.Inject(projectViewModel);
 
-            DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
+            DtoGenerator.Inject(cSharpParserService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker, dtoMappingService);
             CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
             OptionGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
         }

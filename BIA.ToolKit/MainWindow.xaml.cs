@@ -52,7 +52,8 @@ namespace BIA.ToolKit
             Application.Services.RegenerateFeatures.RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
             Application.Services.RegenerateFeatures.FeatureMigrationGeneratorService featureMigrationGeneratorService,
             TemplateVersionService templateVersionService, FeatureSettingService featureSettingService,
-            Application.ViewModel.ProjectViewModel projectViewModel)
+            Application.ViewModel.ProjectViewModel projectViewModel,
+            Application.Services.DtoMappingService dtoMappingService)
         {
 
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
@@ -77,7 +78,7 @@ namespace BIA.ToolKit
             ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
                 projectCreatorService, settingsService, uiEventBroker, regenerateFeaturesDiscoveryService, featureMigrationGeneratorService,
                 templateVersionService, featureSettingService, projectViewModel);
-            GenerateProject.Inject(projectViewModel, cSharpParserService, zipParserService, crudService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
+            GenerateProject.Inject(projectViewModel, cSharpParserService, zipParserService, crudService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker, dtoMappingService);
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);
