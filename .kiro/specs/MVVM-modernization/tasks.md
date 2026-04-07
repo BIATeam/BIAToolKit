@@ -32,31 +32,7 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
 
 ## Tasks
 
-### Phase 0: Setup Infrastructure de Tests (1 jour)
-
-- [x] 0. Créer projet de tests et installer dépendances
-  - [x] 0.1 Créer projet BIA.ToolKit.Tests
-    - Créer BIA.ToolKit.Tests/BIA.ToolKit.Tests.csproj (net9.0-windows10.0.19041.0)
-    - Ajouter référence au projet BIA.ToolKit
-    - Créer structure de dossiers: Unit/, Properties/, Integration/, Performance/
-    - _Requirements: 9.1_
-  
-  - [x] 0.2 Installer packages de test
-    - Ajouter xUnit 2.9.0
-    - Ajouter xUnit.runner.visualstudio 2.8.2
-    - Ajouter Moq 4.20.72
-    - Ajouter FluentAssertions 6.12.0
-    - Ajouter FsCheck 2.16.6
-    - Ajouter FsCheck.Xunit 2.16.6
-    - Ajouter Coverlet.collector 6.0.0
-    - Vérifier que le projet compile
-    - _Requirements: 9.1, 9.5_
-  
-  - [x] 0.3 Créer classe de test exemple
-    - Créer BIA.ToolKit.Tests/Unit/SampleTest.cs
-    - Écrire un test simple pour vérifier que xUnit fonctionne
-    - Écrire un property test simple pour vérifier que FsCheck fonctionne
-    - Exécuter les tests et vérifier qu'ils passent (3/3 tests passés)
+### Phase 0: Setup (SKIPPED - Focus sur migration MVVM uniquement)
 
 ### Phase 1: Installation CommunityToolkit et Pilot (3-5 jours)
 
@@ -130,11 +106,6 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Modifier RepositoryFormUC.xaml.cs
     - Ajouter bindings XAML pour Errors et HasErrors
     - _Requirements: 8.1, 8.2, 7.5, 11.5_
-  
-  - [ ]* 13.3 Écrire tests pour RepositoryFormViewModel
-    - Unit tests: propriétés, commandes, validation
-    - Property tests: Validation (Properties 15-18)
-    - _Requirements: 9.2, 9.3, 9.7_
 
 - [ ] 14. Migrer CustomTemplateRepositorySettingsUC
   - [ ] 14.1 Créer CustomTemplateRepositorySettingsViewModel
@@ -148,14 +119,9 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Déplacer Business_Logic vers ViewModel
     - Modifier CustomTemplateRepositorySettingsUC.xaml.cs
     - _Requirements: 8.1, 8.2, 7.5_
-  
-  - [ ]* 14.3 Écrire tests
-    - Unit tests et property tests
-    - _Requirements: 9.2, 9.3_
 
 - [ ] 15. Checkpoint Phase 2.2
   - Compiler le projet sans erreurs
-  - Exécuter tous les tests unitaires
   - Tester manuellement les ViewModels migrés (RepositoryResumeUC, RepositoryFormUC, CustomTemplateRepositorySettingsUC)
   - Vérifier absence de régressions
   - Demander validation utilisateur avant de continuer
@@ -175,11 +141,6 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Remplacer par WeakReferenceMessenger.Default.Send()
     - Implémenter IRecipient<TMessage> dans ViewModels récepteurs
     - _Requirements: 10.1, 10.2, 10.4_
-  
-  - [ ]* 16.3 Écrire tests pour Messenger
-    - Property tests: Message Delivery, Weak Reference Cleanup (Properties 19-20)
-    - Integration tests: communication entre ViewModels
-    - _Requirements: 10.2, 10.3, 10.6_
 
 - [ ] 17. Migrer CustomTemplatesRepositoriesSettingsUC
   - [ ] 17.1 Créer CustomTemplatesRepositoriesSettingsViewModel
@@ -194,14 +155,9 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Déplacer Business_Logic vers ViewModel
     - Modifier CustomTemplatesRepositoriesSettingsUC.xaml.cs
     - _Requirements: 8.1, 8.2, 7.5_
-  
-  - [ ]* 17.3 Écrire tests
-    - Unit tests: propriétés, commandes, Messenger
-    - _Requirements: 9.2, 9.3_
 
 - [ ] 18. Checkpoint Phase 2.3
   - Compiler le projet sans erreurs
-  - Exécuter tous les tests unitaires
   - Tester manuellement Messenger fonctionne correctement
   - Vérifier absence de régressions
   - Demander validation utilisateur avant de continuer
@@ -229,17 +185,9 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Vérifier tous les bindings fonctionnent
     - Tester navigation entre UserControls
     - _Requirements: 7.5_
-  
-  - [ ]* 19.4 Écrire tests pour MainWindowViewModel
-    - Unit tests: propriétés, commandes, orchestration
-    - Integration tests: communication avec autres ViewModels via Messenger
-    - Property tests: API compatibility, View compatibility
-    - _Requirements: 9.2, 9.3, 9.5_
 
 - [ ] 20. Checkpoint Phase 2 - Migration complète
   - Compiler le projet sans erreurs ni warnings
-  - Exécuter tous les tests unitaires (100% doivent passer)
-  - Exécuter tous les property tests (100% doivent passer)
   - Tester manuellement tous les ViewModels migrés
   - Vérifier que tous les 11 ViewModels utilisent CommunityToolkit
   - Vérifier conformité avec MVVM-guidelines.md (checklist section 8)
@@ -257,11 +205,6 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Modifier RepositoryResumeUC.xaml.cs pour utiliser RepositoryResumeViewModel
     - Configurer DataContext
     - _Requirements: 7.5_
-  
-  - [ ]* 3.4 Écrire tests pour RepositoryResumeViewModel
-    - Unit tests: propriétés, commandes
-    - Property tests: API compatibility, View compatibility, Extracted logic
-    - _Requirements: 9.2, 9.3, 9.5_
 
 - [x] 4. Migrer VersionAndOptionUserControl
   - [x] 4.1 Créer VersionAndOptionViewModel
@@ -275,10 +218,6 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Déplacer Business_Logic vers ViewModel
     - Modifier VersionAndOptionUserControl.xaml.cs
     - _Requirements: 8.1, 8.2, 7.5_
-  
-  - [ ]* 4.3 Écrire tests pour VersionAndOptionViewModel
-    - Unit tests et property tests
-    - _Requirements: 9.2, 9.3_
 
 - [ ] 5. Migrer RepositoryFormUC (avec validation)
   - [ ] 5.1 Créer RepositoryFormViewModel avec validation
@@ -295,11 +234,6 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Modifier RepositoryFormUC.xaml.cs
     - Ajouter bindings XAML pour Errors et HasErrors
     - _Requirements: 8.1, 8.2, 7.5, 11.5_
-  
-  - [ ]* 5.3 Écrire tests pour RepositoryFormViewModel
-    - Unit tests: propriétés, commandes, validation
-    - Property tests: Validation (Properties 15-18)
-    - _Requirements: 9.2, 9.3, 9.7_
 
 - [ ] 6. Migrer CustomTemplateRepositorySettingsUC
   - [ ] 6.1 Créer CustomTemplateRepositorySettingsViewModel
@@ -313,10 +247,6 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Déplacer Business_Logic vers ViewModel
     - Modifier CustomTemplateRepositorySettingsUC.xaml.cs
     - _Requirements: 8.1, 8.2, 7.5_
-  
-  - [ ]* 6.3 Écrire tests
-    - Unit tests et property tests
-    - _Requirements: 9.2, 9.3_
 
 - [ ] 7. Migrer OptionGeneratorUC
   - [x] 7.1 Créer OptionGeneratorViewModel
@@ -326,17 +256,16 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Migrer ~5 commandes avec [RelayCommand]
     - _Requirements: 7.1, 7.2, 7.3, 7.4_
   
-  - [ ] 7.2 Extraire logique et connecter à la vue
+  - [x] 7.2 Extraire logique et connecter à la vue
     - Déplacer Business_Logic vers ViewModel
     - Modifier OptionGeneratorUC.xaml.cs
     - _Requirements: 8.1, 8.2, 7.5_
-  
-  - [ ]* 7.3 Écrire tests
-    - Unit tests et property tests
-    - _Requirements: 9.2, 9.3_
 
 - [ ] 8. Checkpoint Phase 2.1
   - Compiler le projet sans erreurs
+  - Tester manuellement les ViewModels migrés
+  - Vérifier absence de régressions
+  - Demander validation utilisateur avant de continuer
 ### Phase 3: Finalisation et Retrait MicroMvvm (2-3 jours)
 
 - [ ] 21. Retirer MicroMvvm complètement
@@ -352,39 +281,19 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Compiler le projet et vérifier absence d'erreurs
     - _Requirements: 7.7_
 
-- [ ] 22. Établir baseline de performance
-  - [ ] 22.1 Créer infrastructure de mesure de performance
-    - Créer BIA.ToolKit.Tests/Performance/BaselineTests.cs
-    - Implémenter mesure du temps de démarrage
-    - Implémenter mesure de la mémoire
-    - Implémenter mesure du temps d'exécution des commandes
-    - Implémenter mesure du temps de build
-    - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5_
-  
-  - [ ] 22.2 Capturer et valider baseline post-migration
-    - Exécuter tests de performance 3 fois
-    - Calculer moyennes et écarts-types
-    - Documenter specs hardware et version .NET
-    - Sauvegarder baseline dans fichier JSON
-    - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5_
+- [ ] 22. Établir baseline de performance (optionnel)
+  - Créer infrastructure de mesure de performance
+  - Capturer et valider baseline post-migration
+  - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5_
 
-- [ ] 23. Exécuter suite de tests de régression complète
-  - [ ]* 23.1 Écrire property test pour Migration Behavioral Invariant
-    - **Property 21: Migration Behavioral Invariant**
-    - **Validates: Requirements 14.1, 14.4**
-  
-  - [ ]* 23.2 Écrire property test pour Data Binding Correctness
-    - **Property 22: Data Binding Correctness**
-    - **Validates: Requirements 14.5**
-  
-  - [ ] 23.3 Exécuter tests de régression manuels
-    - Tester tous les workflows utilisateur principaux
-    - Vérifier génération CRUD fonctionne
-    - Vérifier génération DTO fonctionne
-    - Vérifier génération Option fonctionne
-    - Vérifier modification de projet fonctionne
-    - Vérifier gestion des repositories fonctionne
-    - _Requirements: 14.1, 14.3, 14.4_
+- [ ] 23. Exécuter tests de régression manuels
+  - Tester tous les workflows utilisateur principaux
+  - Vérifier génération CRUD fonctionne
+  - Vérifier génération DTO fonctionne
+  - Vérifier génération Option fonctionne
+  - Vérifier modification de projet fonctionne
+  - Vérifier gestion des repositories fonctionne
+  - _Requirements: 14.1, 14.3, 14.4_
 
 - [ ] 24. Vérification post-migration (MVVM-guidelines.md section "Vérification post-migration")
   - [ ] 24.1 Exécuter commandes de vérification
@@ -477,11 +386,6 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Modifier CRUDGeneratorUC.xaml.cs
     - Vérifier tous les bindings fonctionnent
     - _Requirements: 7.5_
-  
-  - [ ]* 14.4 Écrire tests pour CRUDGeneratorViewModel
-    - Unit tests: propriétés, commandes, logique de génération CRUD
-    - Property tests: Extracted logic (Properties 13-14)
-    - _Requirements: 9.2, 9.3, 9.5, 8.4, 8.6_
 
 - [ ] 15. Migrer MainWindow (Complexité: Haute, orchestration globale)
   - [ ] 15.1 Créer MainWindowViewModel
@@ -505,12 +409,6 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - Vérifier tous les bindings fonctionnent
     - Tester navigation entre UserControls
     - _Requirements: 7.5_
-  
-  - [ ]* 15.4 Écrire tests pour MainWindowViewModel
-    - Unit tests: propriétés, commandes, orchestration
-    - Integration tests: communication avec autres ViewModels via Messenger
-    - Property tests: API compatibility, View compatibility
-    - _Requirements: 9.2, 9.3, 9.5_
 
 - [ ] 16. Checkpoint Phase 2 - Migration complète
   - Compiler le projet sans erreurs ni warnings
@@ -552,13 +450,6 @@ Migration complète de l'infrastructure MVVM de BIA.ToolKit depuis MicroMvvm cus
     - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5_
 
 - [ ] 19. Exécuter suite de tests de régression complète
-  - [ ]* 19.1 Écrire property test pour Migration Behavioral Invariant
-    - **Property 21: Migration Behavioral Invariant**
-    - **Validates: Requirements 14.1, 14.4**
-  
-  - [ ]* 19.2 Écrire property test pour Data Binding Correctness
-    - **Property 22: Data Binding Correctness**
-    - **Validates: Requirements 14.5**
   
   - [ ] 19.3 Exécuter tests de régression manuels
     - Tester tous les workflows utilisateur principaux
