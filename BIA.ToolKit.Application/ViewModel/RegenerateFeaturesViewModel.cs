@@ -13,6 +13,12 @@ namespace BIA.ToolKit.Application.ViewModel
     /// </summary>
     public class RegenerateFeaturesViewModel : ObservableObject
     {
+        /// <summary>Minimum framework version from which CRUD and Option migration is supported.</summary>
+        private static readonly Version MinVersionCrudOption = new(5, 0, 0);
+
+        /// <summary>Minimum framework version from which DTO migration is supported.</summary>
+        private static readonly Version MinVersionDto = new(4, 0, 0);
+
         private bool isLoaded;
         private bool isRefreshing;
         private List<string> availableVersions = [];
@@ -75,10 +81,18 @@ namespace BIA.ToolKit.Application.ViewModel
             foreach (RegenerableEntity entity in allEntities)
             {
                 // Show only entities that have at least one feature where the stored version is
-                // lower than the current project version, or no version is stored.
-                bool showCrud = entity.HasCrudHistory && IsEligible(entity.CrudHistory?.FrameworkVersion, projectVersion);
-                bool showOption = entity.HasOptionHistory && IsEligible(entity.OptionHistory?.FrameworkVersion, projectVersion);
-                bool showDto = entity.HasDtoHistory && IsEligible(entity.DtoHistory?.FrameworkVersion, projectVersion);
+                // lower than the current project version, or no version is stored,
+                // AND the stored version meets the minimum migration compatibility requirement
+                // (>= 5.0.0 for CRUD/Option, >= 4.0.0 for DTO).
+                bool showCrud = entity.HasCrudHistory
+                    && IsEligible(entity.CrudHistory?.FrameworkVersion, projectVersion)
+                    && IsMigrationCompatible(entity.CrudHistory?.FrameworkVersion, MinVersionCrudOption);
+                bool showOption = entity.HasOptionHistory
+                    && IsEligible(entity.OptionHistory?.FrameworkVersion, projectVersion)
+                    && IsMigrationCompatible(entity.OptionHistory?.FrameworkVersion, MinVersionCrudOption);
+                bool showDto = entity.HasDtoHistory
+                    && IsEligible(entity.DtoHistory?.FrameworkVersion, projectVersion)
+                    && IsMigrationCompatible(entity.DtoHistory?.FrameworkVersion, MinVersionDto);
 
                 if (!showCrud && !showOption && !showDto)
                     continue;
@@ -136,7 +150,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 foreach (RegenerableEntityRowViewModel row in EntityRows.OrderBy(r => r.EntityNameSingular))
                 {
                     if (row.IsOptionEnabled && row.IsOptionSelected)
-                        SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "Option", row.Entity.OptionHistory?.FrameworkVersion));
+                        SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "Option", row.Entity.OptionHistory?.FrameworkVersion, MinVersionCrudOption));
                 }
 
                 // 4. Collect rows that have at least one of CRUD or DTO selected
@@ -152,10 +166,10 @@ namespace BIA.ToolKit.Application.ViewModel
                 {
                     // DTO: selected explicitly or forced/locked by CRUD selection (IsDtoSelected=true in both cases)
                     if (row.IsDtoSelected && row.Entity.CanRegenerateDto)
-                        SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "DTO", row.Entity.DtoHistory?.FrameworkVersion));
+                        SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "DTO", row.Entity.DtoHistory?.FrameworkVersion, MinVersionDto));
 
                     if (row.IsCrudEnabled && row.IsCrudSelected)
-                        SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "CRUD", row.Entity.CrudHistory?.FrameworkVersion));
+                        SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "CRUD", row.Entity.CrudHistory?.FrameworkVersion, MinVersionCrudOption));
                 }
 
                 // 7. Subscribe to new items so CanRegenerate updates when user picks a FROM version
@@ -264,15 +278,21 @@ namespace BIA.ToolKit.Application.ViewModel
                 RaisePropertyChanged(nameof(CanRegenerate));
         }
 
-        private FeatureRegenerationItem BuildItem(string entityName, string featureType, string storedVersion)
+        private FeatureRegenerationItem BuildItem(string entityName, string featureType, string storedVersion, Version minVersion)
         {
+            // When no stored version exists the user must pick one from the dropdown.
+            // Only offer versions that satisfy the minimum migration requirement for this feature type.
+            IEnumerable<string> versions = string.IsNullOrEmpty(storedVersion)
+                ? availableVersions.Where(v => IsMigrationCompatible(v, minVersion))
+                : availableVersions;
+
             return new FeatureRegenerationItem
             {
                 EntityNameSingular = entityName,
                 FeatureType = featureType,
                 StoredFromVersion = storedVersion,
                 ToVersion = CurrentProject?.FrameworkVersion,
-                AvailableVersions = new ObservableCollection<string>(availableVersions),
+                AvailableVersions = new ObservableCollection<string>(versions),
             };
         }
 
@@ -283,6 +303,19 @@ namespace BIA.ToolKit.Application.ViewModel
 
             Version sv = ParseVersion(storedVersion);
             return sv == null || projectVersion == null || sv < projectVersion;
+        }
+
+        /// <summary>
+        /// Returns true when the stored version satisfies the minimum migration requirement.
+        /// A missing stored version is accepted (the FROM version dropdown will be filtered instead).
+        /// </summary>
+        private static bool IsMigrationCompatible(string storedVersion, Version minVersion)
+        {
+            if (string.IsNullOrEmpty(storedVersion))
+                return true; // No stored version → allowed; the dropdown will enforce the minimum.
+
+            Version sv = ParseVersion(storedVersion);
+            return sv == null || sv >= minVersion;
         }
 
         private static Version ParseVersion(string version)
