@@ -1,9 +1,10 @@
-﻿namespace BIA.ToolKit.Dialogs
+namespace BIA.ToolKit.Dialogs
 {
     using System.Windows;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Helper;
     using BIA.ToolKit.Infrastructure;
 
     /// <summary>
@@ -22,6 +23,22 @@
         private void SubmitButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = true;
+        }
+
+        private void BrowseLocalClonedFolderButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.Repository is RepositoryGitViewModel repositoryGit)
+            {
+                repositoryGit.LocalClonedFolderPath = FileDialog.BrowseFolder(repositoryGit.LocalClonedFolderPath, "Choose local cloned folder");
+            }
+        }
+
+        private void BrowseRepositoryFolderButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.Repository is RepositoryFolderViewModel repositoryFolder)
+            {
+                repositoryFolder.Path = FileDialog.BrowseFolder(repositoryFolder.Path, "Choose source folder");
+            }
         }
     }
 }

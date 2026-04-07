@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates._5_0_0.Models
+namespace BIA.ToolKit.Application.Templates._5_0_0.Models
 {
     using System;
     using System.Collections.Generic;
@@ -9,7 +9,7 @@
     {
         public string Name { get; set; }
         public string Type { get; set; }
-        public List<KeyValuePair<string, string>> BiaFieldAttributes { get; set; } = new List<KeyValuePair<string, string>>();
+        public List<KeyValuePair<string, string>> BiaFieldAttributes { get; set; } = [];
 
         public bool IsRequired => !IsNullable;
         public bool IsOption => Type.StartsWith("OptionDto") || Type.StartsWith("ICollection<OptionDto>");
@@ -18,14 +18,14 @@
         public bool IsDecimal => Type.StartsWith("decimal", StringComparison.InvariantCultureIgnoreCase);
         public string OptionItemType => BiaFieldAttributes.SingleOrDefault(x => x.Key == "ItemType").Value;
         public bool IsParentIdentifier => BiaFieldAttributes.Any(x => x.Key == "IsParent" && x.Value.Equals("true", StringComparison.InvariantCultureIgnoreCase));
+        public bool AsLocalDateTime => BiaFieldAttributes.Any(x => x.Key == "AsLocalDateTime" && x.Value.Equals("true", StringComparison.InvariantCultureIgnoreCase));
 
         private string angularType;
         public string AngularType
         {
             get
             {
-                if (angularType == null)
-                    angularType = GetAngularType();
+                angularType ??= GetAngularType();
 
                 return angularType;
             }
@@ -36,8 +36,7 @@
         {
             get
             {
-                if (angularPropType == null)
-                    angularPropType = GetAngularPropType();
+                angularPropType ??= GetAngularPropType();
 
                 return angularPropType;
             }
@@ -51,8 +50,7 @@
         {
             get
             {
-                if (angularValidators == null)
-                    angularValidators = GetAngularValidators();
+                angularValidators ??= GetAngularValidators();
 
                 return angularValidators;
             }
@@ -63,7 +61,7 @@
 
         private string GetAngularType()
         {
-            var baseType = Type;
+            string baseType = Type;
             switch (baseType.Replace("?", string.Empty).ToLower())
             {
                 case "string":
@@ -99,49 +97,36 @@
             if (IsNullable)
                 baseType = baseType.Replace("?", string.Empty);
 
-            var collectionDefinition = IsCollection ? "[]" : string.Empty;
-            var nullableDefinition = IsNullable ? " | null" : string.Empty;
+            string collectionDefinition = IsCollection ? "[]" : string.Empty;
+            string nullableDefinition = IsNullable ? " | null" : string.Empty;
 
             return baseType + collectionDefinition + nullableDefinition;
         }
 
         private string GetAngularPropType()
         {
-            var angularType = GetAngularType().Split('|').First().Trim();
-            var biaFieldType = BiaFieldAttributes.SingleOrDefault(x => x.Key == "Type").Value;
-            switch (angularType)
+            string angularType = GetAngularType().Split('|').First().Trim();
+            string biaFieldType = BiaFieldAttributes.SingleOrDefault(x => x.Key == "Type").Value;
+            return angularType switch
             {
-                case "string":
-                    switch (biaFieldType)
-                    {
-                        case "time":
-                            return "TimeSecOnly";
-                        default:
-                            return "String";
-                    }
-                case "boolean":
-                    return "Boolean";
-                case "number":
-                    return "Number";
-                case "Date":
-                    switch (biaFieldType)
-                    {
-                        case "datetime":
-                            return "DateTime";
-                        case "date":
-                            return "Date";
-                        case "time":
-                            return "Time";
-                        default:
-                            return string.Empty;
-                    }
-                case "OptionDto":
-                    return "OneToMany";
-                case "OptionDto[]":
-                    return "ManyToMany";
-                default:
-                    return string.Empty;
-            }
+                "string" => biaFieldType switch
+                {
+                    "time" => "TimeSecOnly",
+                    _ => "String",
+                },
+                "boolean" => "Boolean",
+                "number" => "Number",
+                "Date" => biaFieldType switch
+                {
+                    "datetime" => "DateTime",
+                    "date" => "Date",
+                    "time" => "Time",
+                    _ => string.Empty,
+                },
+                "OptionDto" => "OneToMany",
+                "OptionDto[]" => "ManyToMany",
+                _ => string.Empty,
+            };
         }
 
         private string GetAngularValidators()

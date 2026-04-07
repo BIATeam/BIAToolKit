@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Helper
+namespace BIA.ToolKit.Application.Helper
 {
     using System;
     using System.Collections.Generic;
@@ -12,15 +12,15 @@
 
     internal static class SynchronizeSettings
     {
-        public static Dictionary<string,List<CallBack>> dictCallBacks = new Dictionary<string, List<CallBack>> ();
+        public static Dictionary<string, List<CallBack>> dictCallBacks = [];
 
         public static void AddCallBack(string settingsName, CallBack myCallBack)
         {
-            List<CallBack> callBacks = new List<CallBack>();
-            dictCallBacks.TryGetValue(settingsName, out callBacks);
+            _ = new List<CallBack>();
+            dictCallBacks.TryGetValue(settingsName, out List<CallBack> callBacks);
             if (callBacks == null)
             {
-                callBacks = new List<CallBack>();
+                callBacks = [];
                 dictCallBacks.Add(settingsName, callBacks);
             }
 
@@ -29,11 +29,11 @@
 
         public static void SettingChange(string settingsName, string value)
         {
-            List<CallBack> callBacks = new List<CallBack>();
-            dictCallBacks.TryGetValue(settingsName, out callBacks);
+            _ = new List<CallBack>();
+            dictCallBacks.TryGetValue(settingsName, out List<CallBack> callBacks);
             if (callBacks != null)
-            { 
-                foreach (var callBack in callBacks)
+            {
+                foreach (CallBack callBack in callBacks)
                 {
                     callBack(value);
                 }

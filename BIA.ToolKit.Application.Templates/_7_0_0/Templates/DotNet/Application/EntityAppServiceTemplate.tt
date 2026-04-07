@@ -48,7 +48,11 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     /// <summary>
     /// The application service used for <#= ModelInstance.EntityName.ToCamelCase() #>.
     /// </summary>
+<#  if (ModelInstance.HasListAndItemModels) { #>
+    public class <#= ModelInstance.EntityName #>AppService : CrudAppServiceListAndItemBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>ListDto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto<# if(ModelInstance.IsTeam) {  #><TeamAdvancedFilterDto><# } #>, <#= ModelInstance.EntityName #>Mapper, <#= ModelInstance.EntityName #>ListMapper>, I<#= ModelInstance.EntityName #>AppService
+<#  } else { #>
     public class <#= ModelInstance.EntityName #>AppService : CrudAppServiceBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto<# if(ModelInstance.IsTeam) {  #><TeamAdvancedFilterDto><# } #>, <#= ModelInstance.EntityName #>Mapper>, I<#= ModelInstance.EntityName #>AppService
+<#  } #>
     {
 <#  if(ModelInstance.HasAncestorTeam) { #>
         /// <summary>

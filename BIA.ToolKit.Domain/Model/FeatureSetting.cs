@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.Model
+namespace BIA.ToolKit.Domain.Model
 {
     public class FeatureSetting
     {
@@ -36,6 +36,11 @@
         /// Gets or sets the folders to excludes.
         /// </summary>
         public List<string> FoldersToExcludes { get; set; } = [];
+
+        /// <summary>
+        /// Gets or sets the list of file paths to exclude.
+        /// </summary>
+        public List<string> FilesToExcludes { get; set; } = [];
 
         /// <summary>
         /// Gets or sets the features ID to disabled when current feature is enabled.

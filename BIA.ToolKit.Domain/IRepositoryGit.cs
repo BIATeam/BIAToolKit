@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain
+namespace BIA.ToolKit.Domain
 {
     using System.Text.RegularExpressions;
 
@@ -8,6 +8,7 @@
         string LocalClonedFolderPath { get; }
         string Owner { get; }
         string ReleasesFolderRegexPattern { get; }
+        string ReleasesTagContentFolder { get; }
         ReleaseType ReleaseType { get; }
         string Url { get; }
         bool UseLocalClonedFolder { get; }

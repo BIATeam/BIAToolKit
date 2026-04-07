@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain
+namespace BIA.ToolKit.Domain
 {
     using System;
     using System.Collections.Generic;
@@ -42,6 +42,7 @@
                     ReleaseType.Tag => RepositoryGit.CreateWithReleaseTypeTag(
                         name: repositoryUserConfig.Name,
                         url: repositoryUserConfig.Url,
+                        releasesTagContentFolder: repositoryUserConfig.ReleasesTagContentFolder,
                         useLocalClonedFolder: repositoryUserConfig.UseLocalClonedFolder,
                         companyName: repositoryUserConfig.CompanyName,
                         projectName: repositoryUserConfig.ProjectName,
@@ -73,13 +74,14 @@
                 UseRepository = repository.UseRepository,
             };
 
-            if(repository is RepositoryGit repositoryGit)
+            if (repository is RepositoryGit repositoryGit)
             {
                 repositoryConfig.RepositoryGitKind = repositoryGit.RepositoryGitKind;
                 repositoryConfig.GitRepositoryName = repositoryGit.GitRepositoryName;
                 repositoryConfig.LocalClonedFolderPath = repositoryGit.LocalClonedFolderPath;
                 repositoryConfig.Owner = repositoryGit.Owner;
                 repositoryConfig.ReleasesFolderRegexPattern = repositoryGit.ReleasesFolderRegexPattern;
+                repositoryConfig.ReleasesTagContentFolder = repositoryGit.ReleasesTagContentFolder;
                 repositoryConfig.ReleaseType = repositoryGit.ReleaseType;
                 repositoryConfig.Url = repositoryGit.Url;
                 repositoryConfig.UrlRelease = repositoryGit.UrlRelease;

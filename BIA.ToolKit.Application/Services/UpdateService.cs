@@ -1,6 +1,7 @@
-﻿namespace BIA.ToolKit.Application.Services
+namespace BIA.ToolKit.Application.Services
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.IO.Compression;
@@ -14,15 +15,15 @@
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain;
 
-    public class UpdateService
+    public class UpdateService(UIEventBroker eventBroker, IConsoleWriter consoleWriter, SettingsService settingsService)
     {
         private const string UpdateArchiveName = "BIAToolKit.zip";
         private const string UpdaterArchiveName = "BIAToolKitUpdater.zip";
         private const string UpdaterName = "BIA.ToolKit.Updater.exe";
 
-        private readonly UIEventBroker eventBroker;
-        private readonly IConsoleWriter consoleWriter;
-        private readonly SettingsService settingsService;
+        private readonly UIEventBroker eventBroker = eventBroker;
+        private readonly IConsoleWriter consoleWriter = consoleWriter;
+        private readonly SettingsService settingsService = settingsService;
         private Version currentVersion;
         private Release lastRelease;
         public Version NewVersion
@@ -31,16 +32,9 @@
         }
         public bool HasNewVersion { get; private set; }
 
-        public UpdateService(UIEventBroker eventBroker, IConsoleWriter consoleWriter, SettingsService settingsService)
-        {
-            this.eventBroker = eventBroker;
-            this.consoleWriter = consoleWriter;
-            this.settingsService = settingsService;
-        }
-
         public void SetAppVersion(Version version)
         {
-            this.currentVersion = version;
+            currentVersion = version;
             BiaToolkitVersion.ApplicationVersion = version.ToString();
         }
 
@@ -48,7 +42,7 @@
         {
             try
             {
-                var toolkitRepository = settingsService.Settings.ToolkitRepository;
+                IRepository toolkitRepository = settingsService.Settings.ToolkitRepository;
                 await toolkitRepository.FillReleasesAsync();
 
                 if (toolkitRepository.Releases.Count == 0)
@@ -57,18 +51,35 @@
                     return;
                 }
 
-                var lastRelease = toolkitRepository.Releases.FirstOrDefault();
-                if (lastRelease.Name.StartsWith('V') && Version.TryParse(lastRelease.Name[1..], out Version newVersion))
+                var releases = new List<(Release Release, Version Version)>();
+                foreach (Release repositoryRelease in toolkitRepository.Releases)
                 {
-                    if (newVersion > currentVersion)
+                    if (repositoryRelease.Name.StartsWith('V') && Version.TryParse(repositoryRelease.Name[1..], out Version version))
                     {
-                        consoleWriter.AddMessageLine($"A new version of BIAToolKit is available: {lastRelease.Name}", "Yellow");
-                        HasNewVersion = true;
-                        NewVersion = newVersion;
-                        this.lastRelease = lastRelease;
-                        eventBroker.NotifyNewVersionAvailable();
-                        return;
+                        releases.Add((repositoryRelease, version));
                     }
+                    else if (Version.TryParse(repositoryRelease.Name, out version))
+                    {
+                        releases.Add((repositoryRelease, version));
+                    }
+                }
+
+                if (releases.Count == 0)
+                {
+                    HasNewVersion = false;
+                    consoleWriter.AddMessageLine($"No valid release found in repository {toolkitRepository.Name}.", "Yellow");
+                    return;
+                }
+
+                (Release Release, Version Version) lastRelease = releases.OrderByDescending(r => r.Version).First();
+                if (lastRelease.Version > currentVersion)
+                {
+                    consoleWriter.AddMessageLine($"A new version of BIAToolKit is available: {lastRelease.Release.Name}", "Yellow");
+                    HasNewVersion = true;
+                    NewVersion = lastRelease.Version;
+                    this.lastRelease = lastRelease.Release;
+                    eventBroker.NotifyNewVersionAvailable();
+                    return;
                 }
 
                 HasNewVersion = false;
@@ -91,15 +102,15 @@
                 await lastRelease.DownloadAsync();
                 consoleWriter.AddMessageLine($"Assets downloaded successfully", "green");
 
-                var updateArchivePath = Path.Combine(lastRelease.LocalPath, UpdateArchiveName);
+                string updateArchivePath = Path.Combine(lastRelease.LocalPath, UpdateArchiveName);
                 if (!File.Exists(updateArchivePath))
                     throw new FileNotFoundException(updateArchivePath);
 
-                var updaterArchivePath = Path.Combine(lastRelease.LocalPath, UpdaterArchiveName);
+                string updaterArchivePath = Path.Combine(lastRelease.LocalPath, UpdaterArchiveName);
                 if (!File.Exists(updaterArchivePath))
                     throw new FileNotFoundException(updaterArchivePath);
 
-                var updaterFolderPath = Path.Combine(lastRelease.LocalPath, Path.GetFileNameWithoutExtension(UpdaterArchiveName));
+                string updaterFolderPath = Path.Combine(lastRelease.LocalPath, Path.GetFileNameWithoutExtension(UpdaterArchiveName));
                 ZipFile.ExtractToDirectory(updaterArchivePath, updaterFolderPath);
                 consoleWriter.AddMessageLine($"{UpdaterArchiveName} extracted", "Gray");
 

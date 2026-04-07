@@ -45,14 +45,34 @@
     <T4Includes_7_0_0>$(MSBuildProjectDirectory)\_7_0_0\Templates\Includes</T4Includes_7_0_0>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Humanizer, Version=2.14.0.0, Culture=neutral, PublicKeyToken=979442b78dfc278e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Humanizer.Core.2.14.1\lib\netstandard2.0\Humanizer.dll</HintPath>
+    <Reference Include="Humanizer, Version=3.0.0.0, Culture=neutral, PublicKeyToken=979442b78dfc278e, processorArchitecture=MSIL">
+      <HintPath>..\packages\Humanizer.Core.3.0.10\lib\net48\Humanizer.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Immutable, Version=10.0.0.5, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.10.0.5\lib\net462\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.Annotations, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ComponentModel.Annotations.5.0.0\lib\net461\System.ComponentModel.Annotations.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -86,6 +106,18 @@
     <Compile Include="_7_0_0\Models\EntityOptionModel.cs" />
     <Compile Include="_7_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_7_0_0\Models\PropertyDtoModel.cs" />
+    <None Include="app.config" />
+    <None Include="packages.config" />
+    <None Include="_7_0_0\Templates\DotNet\DomainDto\EntityListDtoTemplate.cs">
+      <DependentUpon>EntityListDtoTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_7_0_0\Templates\DotNet\Domain\Mappers\EntityListMapperTemplate.cs">
+      <DependentUpon>EntityListMapperTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_7_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.cs">
       <DependentUpon>EntityAppServiceTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -513,7 +545,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <None Include="packages.config" />
     <None Include="_4_0_0\Templates\Includes\Template.ttinclude">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -1530,16 +1561,16 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
+    <TypeScriptCompile Include="_7_0_0\Templates\Angular\src\app\features\EntityListConstantsTemplate.ts">
+      <DependentUpon>EntityListConstantsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="_7_0_0\Templates\Angular\src\app\features\EntityConstantsTemplate.ts">
       <DependentUpon>EntityConstantsTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </TypeScriptCompile>
-    <None Include="_7_0_0\Templates\Angular\src\app\features\EntityModuleTemplate.ts">
-      <DependentUpon>EntityModuleTemplate.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </None>
     <None Include="_7_0_0\Templates\Angular\src\app\features\model\EntityTemplate.ts">
       <DependentUpon>EntityTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -1597,6 +1628,16 @@
     </None>
     <None Include="_7_0_0\Templates\Angular\src\app\features\views\import\EntityImportComponentTsTemplate.ts">
       <DependentUpon>EntityImportComponentTsTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <TypeScriptCompile Include="_7_0_0\Templates\Angular\src\app\features\EntityModuleTemplate.ts">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityModuleTemplate.tt</DependentUpon>
+    </TypeScriptCompile>
+    <None Include="_7_0_0\Templates\Angular\src\app\features\model\EntityListTemplate.ts">
+      <DependentUpon>EntityListTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
@@ -2490,6 +2531,31 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\EntityListConstantsTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityListConstantsTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\model\EntityListTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityListTemplate.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <Content Include="_7_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.html">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityIndexComponentHtmlTemplate.tt</DependentUpon>
+    </Content>
+    <EmbeddedResource Include="_7_0_0\Templates\DotNet\DomainDto\EntityListDtoTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityListDtoTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="_7_0_0\Templates\DotNet\Domain\Mappers\EntityListMapperTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityListMapperTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityOptionConstantsTemplate.ts</LastGenOutput>
@@ -2567,8 +2633,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\EntityModuleTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityModuleTemplate.ts</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>EntityModuleTemplate.ts</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\model\EntityTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -2642,14 +2708,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityIndexComponentHtmlTemplate.html</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>EntityIndexComponentHtmlTemplate.html</LastGenOutput>
     </EmbeddedResource>
-    <Content Include="_7_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentHtmlTemplate.html">
-      <DependentUpon>EntityIndexComponentHtmlTemplate.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Content>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\views\index\EntityIndexComponentScssTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityIndexComponentScssTemplate.scss</LastGenOutput>

@@ -1,5 +1,6 @@
-﻿namespace BIA.ToolKit.Application.Templates.Common.Interfaces
+namespace BIA.ToolKit.Application.Templates.Common.Interfaces
 {
+    using System;
     using System.Collections.Generic;
 
     public interface IPropertyCrudModel
@@ -19,5 +20,6 @@
         string Name { get; set; }
         string OptionItemType { get; }
         string Type { get; set; }
+        bool AsLocalDateTime { get; }
     }
 }

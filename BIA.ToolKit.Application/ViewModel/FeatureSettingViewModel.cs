@@ -8,13 +8,13 @@ namespace BIA.ToolKit.Application.ViewModel
         public FeatureSetting FeatureSetting => featureSetting;
         public bool IsSelected
         {
-            get 
-            { 
-                return featureSetting.IsSelected; 
+            get
+            {
+                return featureSetting.IsSelected;
             }
-            set 
-            { 
-                featureSetting.IsSelected = value; 
+            set
+            {
+                featureSetting.IsSelected = value;
                 OnPropertyChanged(nameof(IsSelected));
                 OnPropertyChanged(nameof(DisplayDisabledFeatures));
             }

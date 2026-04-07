@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit
+namespace BIA.ToolKit
 {
     using BIA.ToolKit.Helper;
     using System.IO;
@@ -49,7 +49,10 @@
 
         public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService)
+            IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService,
+            Application.Services.RegenerateFeatures.RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
+            Application.Services.RegenerateFeatures.FeatureMigrationGeneratorService featureMigrationGeneratorService,
+            Application.ViewModel.ProjectViewModel projectViewModel)
         {
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
@@ -73,8 +76,11 @@
 
             CreateVersionAndOption.DataContext = App.GetService<VersionAndOptionViewModel>();
 
+            projectViewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
             ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, uiEventBroker);
+                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, uiEventBroker,
+                regenerateFeaturesDiscoveryService, featureMigrationGeneratorService, projectViewModel);
+            GenerateProject.Inject(projectViewModel, cSharpParserService, zipParserService, crudService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
 
             txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
 
@@ -179,7 +185,7 @@
 
         private async Task GetReleasesData(BIATKSettings settings, bool syncBefore = false)
         {
-            var fillReleasesTasks = settings.TemplateRepositories
+            IEnumerable<Task> fillReleasesTasks = settings.TemplateRepositories
                 .Concat(settings.CompanyFilesRepositories)
                 .Where(r => r.UseRepository)
                 .Select(async (r) =>
@@ -206,7 +212,7 @@
                         consoleWriter.AddMessageLine($"Getting releases data for repository {r.Name}...", "pink");
                         await r.FillReleasesAsync();
                         consoleWriter.AddMessageLine($"Releases data got successfully for repository {r.Name}", "green");
-                        if(r.UseDownloadedReleases)
+                        if (r.UseDownloadedReleases)
                         {
                             consoleWriter.AddMessageLine($"WARNING: Releases data got from downloaded releases for repository {r.Name}", "orange");
                         }
@@ -241,8 +247,8 @@
 
         public bool EnsureValidRepositoriesConfiguration()
         {
-            var templatesConfigurationValid = CheckTemplateRepositoriesConfiguration();
-            var companyFilesConfigurationValid = CheckCompanyFilesRepositoriesConfiguration();
+            bool templatesConfigurationValid = CheckTemplateRepositoriesConfiguration();
+            bool companyFilesConfigurationValid = CheckCompanyFilesRepositoriesConfiguration();
             return templatesConfigurationValid && companyFilesConfigurationValid;
         }
 
@@ -274,7 +280,7 @@
                 return false;
             }
 
-            foreach (var repository in biaTKsettings.TemplateRepositories.Where(r => r.UseRepository))
+            foreach (IRepository repository in biaTKsettings.TemplateRepositories.Where(r => r.UseRepository))
             {
                 if (!repositoryService.CheckRepoFolder(repository))
                 {
@@ -282,8 +288,8 @@
                 }
             }
 
-            var repositoryVersionXYZ = biaTKsettings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
-            if(repositoryVersionXYZ is not null)
+            IRepository repositoryVersionXYZ = biaTKsettings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
+            if (repositoryVersionXYZ is not null)
             {
                 if (!repositoryService.CheckRepoFolder(repositoryVersionXYZ))
                 {
@@ -304,7 +310,7 @@
                     return false;
                 }
 
-                foreach (var repository in biaTKsettings.CompanyFilesRepositories.Where(r => r.UseRepository))
+                foreach (IRepository repository in biaTKsettings.CompanyFilesRepositories.Where(r => r.UseRepository))
                 {
                     if (!repositoryService.CheckRepoFolder(repository))
                     {
@@ -340,6 +346,14 @@
         }
 
         private void OnTabModifySelected(object sender, RoutedEventArgs e)
+        {
+            if (sender is TabItem)
+            {
+                EnsureValidRepositoriesConfiguration();
+            }
+        }
+
+        private void OnTabGenerateSelected(object sender, RoutedEventArgs e)
         {
             if (sender is TabItem)
             {
@@ -405,7 +419,7 @@
             });
         }
 
-        private void btnFileGenerator_OpenFolder_Click(object sender, RoutedEventArgs e)
+        private void BtnFileGenerator_OpenFolder_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new System.Windows.Forms.FolderBrowserDialog();
             System.Windows.Forms.DialogResult result = dlg.ShowDialog();
@@ -416,21 +430,21 @@
             }
         }
 
-        private void btnFileGenerator_OpenFile_Click(object sender, RoutedEventArgs e)
+        private void BtnFileGenerator_OpenFile_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new System.Windows.Forms.OpenFileDialog();
             System.Windows.Forms.DialogResult result = dlg.ShowDialog();
-            // Get the selected file name and display in a TextBox 
+            // Get the selected file name and display in a TextBox
             if (result == System.Windows.Forms.DialogResult.OK)
             {
-                // Open document 
+                // Open document
                 string filename = dlg.FileName;
                 txtFileGenerator_File.Text = filename;
                 btnFileGenerator_Generate.IsEnabled = true;
             }
         }
 
-        private void btnFileGenerator_Generate_Click(object sender, RoutedEventArgs e)
+        private void BtnFileGenerator_Generate_Click(object sender, RoutedEventArgs e)
         {
             if (!string.IsNullOrEmpty(txtFileGenerator_Folder.Text))
             {
@@ -438,7 +452,7 @@
                 {
                     string resultFolder = string.Empty;
                     generateFilesService.GenerateFiles(txtFileGenerator_File.Text, txtFileGenerator_Folder.Text, ref resultFolder);
-                    ProcessStartInfo startInfo = new ProcessStartInfo(resultFolder)
+                    var startInfo = new ProcessStartInfo(resultFolder)
                     {
                         UseShellExecute = true
                     };
@@ -467,7 +481,7 @@
         {
             try
             {
-                var result = MessageBox.Show(
+                MessageBoxResult result = MessageBox.Show(
                                     $"A new version ({updateService.NewVersion}) of BIAToolKit is available.\nInstall now?",
                                     "Update available",
                                     MessageBoxButton.YesNo, MessageBoxImage.Information);
@@ -485,12 +499,12 @@
 
         private void CopyConsoleContentToClipboard_Click(object sender, RoutedEventArgs e)
         {
-            this.consoleWriter.CopyToClipboard();
+            consoleWriter.CopyToClipboard();
         }
 
         private void ClearConsole_Click(object sender, RoutedEventArgs e)
         {
-            this.consoleWriter.Clear();
+            consoleWriter.Clear();
         }
 
         private async void CheckUpdateButton_Click(object sender, RoutedEventArgs e)
@@ -500,11 +514,11 @@
 
         private async void ImportConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            var configFile = FileDialog.BrowseFile(string.Empty, "btksettings");
+            string configFile = FileDialog.BrowseFile(string.Empty, "btksettings");
             if (string.IsNullOrWhiteSpace(configFile) || !File.Exists(configFile))
                 return;
 
-            var config = JsonConvert.DeserializeObject<BIATKSettings>(File.ReadAllText(configFile));
+            BIATKSettings config = JsonConvert.DeserializeObject<BIATKSettings>(File.ReadAllText(configFile));
             config.InitRepositoriesInterfaces();
 
             consoleWriter.AddMessageLine($"New configuration imported from {configFile}", "yellow");
@@ -527,13 +541,13 @@
 
         private void ExportConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            var targetDirectory = FileDialog.BrowseFolder(string.Empty, "Choose export folder target");
+            string targetDirectory = FileDialog.BrowseFolder(string.Empty, "Choose export folder target");
             if (string.IsNullOrWhiteSpace(targetDirectory))
                 return;
 
-            var targetFile = Path.Combine(targetDirectory, "user.btksettings");
-            var settings = JsonConvert.SerializeObject(settingsService.Settings);
-            if(File.Exists(targetFile))
+            string targetFile = Path.Combine(targetDirectory, "user.btksettings");
+            string settings = JsonConvert.SerializeObject(settingsService.Settings);
+            if (File.Exists(targetFile))
                 File.Delete(targetFile);
 
             File.AppendAllText(targetFile, settings);

@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates._7_0_0.Mocks
+namespace BIA.ToolKit.Application.Templates._7_0_0.Mocks
 {
     using System.Collections.Generic;
     using BIA.ToolKit.Application.Templates._7_0_0.Models;
@@ -14,8 +14,8 @@
             EntityName = "Plane";
             BaseKeyType = "int";
             HasAudit = true;
-            Properties = new List<PropertyDtoModel>()
-            {
+            Properties =
+            [
                 new PropertyDtoModel
                 {
                     EntityCompositeName = "Id",
@@ -44,7 +44,7 @@
                     OptionIdProperty = "Id",
                     OptionEntityIdPropertyComposite = "OptionId"
                 }
-            };
+            ];
         }
     }
 }

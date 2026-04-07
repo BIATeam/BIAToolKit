@@ -26,7 +26,11 @@
       [canExportCSV]="true"
       (create)="onCreate()"
       (exportCSV)="onExportCSV('<#= ModelInstance.EntityName.ToCamelCase() #>.listOf')"
+<#  if (ModelInstance.HasListAndItemModels) { #>
+      (fullExportCSV)="onExportForImport('<#= ModelInstance.EntityName.ToCamelCase() #>.listOf')"
+<#  } else { #>
       (fullExportCSV)="onExportCSV('<#= ModelInstance.EntityName.ToCamelCase() #>.listOf', true)"
+<#  } #>
       (clone)="onClone()"
       (delete)="onDelete()"
 <#  if(ModelInstance.CanImport) { #>

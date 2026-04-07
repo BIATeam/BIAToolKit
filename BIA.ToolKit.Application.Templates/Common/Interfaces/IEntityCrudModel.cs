@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates.Common.Interfaces
+namespace BIA.ToolKit.Application.Templates.Common.Interfaces
 {
     using System.Collections.Generic;
     using BIA.ToolKit.Application.Templates.Common.Enum;
@@ -37,5 +37,8 @@
         string FormReadOnlyMode { get; set; }
         bool DisplayHistorical { get; set; }
         bool UseDomainUrl { get; set; }
+        bool HasListAndItemModels { get; set; }
+        List<TPropertyCrudModel> ListProperties { get; set; }
+
     }
 }

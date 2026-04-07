@@ -18,7 +18,11 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     /// <summary>
     /// The interface defining the application service for <#= ModelInstance.EntityName.ToCamelCase() #>.
     /// </summary>
+<#  if (ModelInstance.HasListAndItemModels) { #>
+    public interface I<#= ModelInstance.EntityName #>AppService : ICrudAppServiceListAndItemBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>ListDto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto<# if(ModelInstance.IsTeam) {  #><TeamAdvancedFilterDto><# } #>>
+<#  } else { #>
     public interface I<#= ModelInstance.EntityName #>AppService : ICrudAppServiceBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto<# if(ModelInstance.IsTeam) {  #><TeamAdvancedFilterDto><# } #>>
+<#  } #>
     {
     }
 }

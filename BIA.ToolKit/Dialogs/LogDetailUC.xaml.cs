@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Dialogs
+namespace BIA.ToolKit.Dialogs
 {
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.ViewModels;

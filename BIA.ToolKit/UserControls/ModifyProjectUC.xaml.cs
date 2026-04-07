@@ -1,9 +1,10 @@
-﻿namespace BIA.ToolKit.UserControls
+namespace BIA.ToolKit.UserControls
 {
     using System.Windows.Controls;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.RegenerateFeatures;
     using BIA.ToolKit.Application.ViewModel;
 
     /// <summary>
@@ -23,7 +24,10 @@
         /// </summary>
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, ZipParserService zipService, GenerateCrudService crudService, SettingsService settingsService,
-            FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker)
+            FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker,
+            RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
+            FeatureMigrationGeneratorService featureMigrationGeneratorService,
+            ProjectViewModel projectViewModel)
         {
             // Resolve the DI-built VM and set as DataContext
             _viewModel = App.GetService<ModifyProjectViewModel>();
@@ -35,12 +39,15 @@
             MigrateOriginVersionAndOption.DataContext = _viewModel.OriginVersionAndOptionVM;
             MigrateTargetVersionAndOption.DataContext = _viewModel.TargetVersionAndOptionVM;
 
-            // Child controls that still use the Inject pattern
-            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, uiEventBroker, fileGeneratorService);
-            OptionGenerator.DataContext = App.GetService<OptionGeneratorViewModel>();
-            
-            // DtoGenerator: use DI, entities will be loaded automatically via broker events
-            DtoGenerator.DataContext = App.GetService<DtoGeneratorViewModel>();
+            // Wire up ProjectSelector
+            ProjectSelector.Inject(projectViewModel);
+
+            // Wire up RegenerateFeatures
+            RegenerateFeatures.Inject(consoleWriter, uiEventBroker, settingsService,
+                regenerateFeaturesDiscoveryService, featureMigrationGeneratorService,
+                gitService, cSharpParserService);
+
+            // Generator controls are in GenerateUC, not ModifyProjectUC.
         }
     }
 }

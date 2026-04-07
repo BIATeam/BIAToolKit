@@ -3,6 +3,7 @@
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
+    using BIA.ToolKit.Application.Services.RegenerateFeatures;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -334,6 +335,7 @@
             OnPropertyChanged(nameof(CompanyName));
             OnPropertyChanged(nameof(Name));
             OnPropertyChanged(nameof(IsProjectSelected));
+            OnPropertyChanged(nameof(IsTabFeaturesEnabled));
             OnPropertyChanged(nameof(BIAFronts));
             if ((!IsProjectCompatibleCrudGenerator && !IsFileGeneratorServiceInit)
                 || (SelectedTabIndex == 2 && !IsFileGeneratorServiceInit))
@@ -378,6 +380,7 @@
         public bool OverwriteBIAFromOriginal { get; set; }
 
         public bool IsProjectSelected => CurrentProject != null;
+        public bool IsTabFeaturesEnabled => IsProjectSelected && FeatureMigrationGeneratorService.IsProjectCompatibleForRegenerateFeatures(CurrentProject);
 
         [ObservableProperty]
         private int selectedTabIndex;

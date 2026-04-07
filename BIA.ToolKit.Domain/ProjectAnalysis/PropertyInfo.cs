@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.ProjectAnalysis
+namespace BIA.ToolKit.Domain.ProjectAnalysis
 {
     using System;
     using System.Collections.Generic;

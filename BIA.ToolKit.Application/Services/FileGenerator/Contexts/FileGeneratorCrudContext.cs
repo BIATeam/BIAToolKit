@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.FileGenerator.Contexts
+namespace BIA.ToolKit.Application.Services.FileGenerator.Contexts
 {
     using System;
     using System.Collections.Generic;
@@ -7,13 +7,15 @@
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.ViewModel;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
 
     public sealed class FileGeneratorCrudContext : FileGeneratorContext
     {
         public string DisplayItemName { get; set; }
         public List<string> OptionItems { get; set; } = [];
+        public bool HasListAndItemModels { get; set; } = false;
         public List<PropertyInfo> Properties { get; set; } = [];
+        public List<PropertyInfo> ListProperties { get; set; } = [];
         public bool UseHubForClient { get; set; }
         public bool HasCustomRepository { get; set; }
         public bool HasReadOnlyMode { get; set; }

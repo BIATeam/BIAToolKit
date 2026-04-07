@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.UserControls
+namespace BIA.ToolKit.UserControls
 {
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Behaviors;
@@ -19,7 +19,7 @@
         public DtoGeneratorUC()
         {
             InitializeComponent();
-            
+
             // Subscribe to VM event for UI-only operation (GridView column width reset)
             DataContextChanged += (s, e) =>
             {
@@ -32,13 +32,13 @@
 
         /// <summary>
         /// UI-only operation: Reset GridView column widths (non-bindable).
-        /// CONSERVER - manipulation de contrôle non-bindable.
+        /// CONSERVER - manipulation de controle non-bindable.
         /// </summary>
         private void ResetMappingColumnsWidths()
         {
             var gridView = PropertiesListView.View as GridView;
             if (gridView == null) return;
-            
+
             foreach (var column in gridView.Columns)
             {
                 column.Width = 0;
@@ -48,21 +48,21 @@
 
         /// <summary>
         /// UI-only operation: Drag-drop delegates to Behavior.
-        /// CONSERVER - UI pure, aucun accès au VM.
+        /// CONSERVER - UI pure, aucun acces au VM.
         /// </summary>
         private void DragHandle_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var behavior = GetDragDropBehavior();
+            ListViewDragDropBehavior behavior = GetDragDropBehavior();
             behavior?.HandleDragStart(sender, e);
         }
 
         /// <summary>
         /// UI-only operation: Drag-drop delegates to Behavior.
-        /// CONSERVER - UI pure, aucun accès au VM.
+        /// CONSERVER - UI pure, aucun acces au VM.
         /// </summary>
         private void DragHandle_MouseMove(object sender, MouseEventArgs e)
         {
-            var behavior = GetDragDropBehavior();
+            ListViewDragDropBehavior behavior = GetDragDropBehavior();
             behavior?.HandleDragMove(sender, e);
         }
 

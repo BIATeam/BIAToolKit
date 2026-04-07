@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using System;
     using System.Collections.ObjectModel;
@@ -46,7 +46,7 @@
         public bool IsValid => !string.IsNullOrWhiteSpace(Name) && EnsureIsValid();
         public bool IsVisibleCompanyName { get; set; } = true;
         public bool IsVisibleProjectName { get; set; } = true;
-        public bool CanBeVersionXYZ { get; set; }
+        public bool CanBeVersionXYZ => repository is RepositoryGit;
 
         public bool IsVersionXYZ
         {
@@ -213,7 +213,7 @@
                     await Task.Run(repository.CleanReleases);
                     consoleWriter.AddMessageLine($"Releases cleaned", "green");
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     consoleWriter.AddMessageLine($"Failed to clean releases : {ex.Message}");
                 }

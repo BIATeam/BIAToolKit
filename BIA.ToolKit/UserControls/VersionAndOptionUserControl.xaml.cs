@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.UserControls
+namespace BIA.ToolKit.UserControls
 {
     using System.Windows.Controls;
     using BIA.ToolKit.Application.ViewModel;

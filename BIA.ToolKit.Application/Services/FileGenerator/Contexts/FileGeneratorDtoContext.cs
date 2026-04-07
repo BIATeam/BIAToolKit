@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.FileGenerator.Contexts
+namespace BIA.ToolKit.Application.Services.FileGenerator.Contexts
 {
     using System;
     using System.Collections.Generic;
@@ -14,5 +14,7 @@
         public bool IsFixable { get; set; }
         public bool IsVersioned { get; set; }
         public bool HasAudit { get; set; }
+        public bool HasListAndItemModels { get; set; }
+        public List<MappingEntityProperty> ListProperties { get; set; } = [];
     }
 }

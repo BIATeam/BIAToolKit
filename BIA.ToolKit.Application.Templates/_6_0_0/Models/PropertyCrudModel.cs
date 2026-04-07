@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates._6_0_0.Models
+namespace BIA.ToolKit.Application.Templates._6_0_0.Models
 {
     using System;
     using System.Collections.Generic;

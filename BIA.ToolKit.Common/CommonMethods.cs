@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,13 +12,12 @@ namespace BIA.ToolKit.Common
     {
         public static List<string> GetProperties(FileInfo tempFile, ref string _projectName)
         {
-            List<string> result = new List<string>();
+            var result = new List<string>();
             string line;
-            string text = string.Empty;
             try
             {
                 //Pass the file path and file name to the StreamReader constructor
-                StreamReader sr = new StreamReader(tempFile.FullName);
+                var sr = new StreamReader(tempFile.FullName);
                 //Read the first line of text
                 line = sr.ReadLine();
                 //Continue to read until you reach end of file
@@ -64,7 +63,7 @@ namespace BIA.ToolKit.Common
             {
                 line = line.Replace("{", "").Replace("}", "").Trim();
 
-                if (line.Contains("namespace") || line.Contains("using") || line.Contains(@"///") || line.Contains("public class ") || string.IsNullOrEmpty(line) || line.Contains("[") || line.Contains(@"//"))
+                if (line.Contains("namespace") || line.Contains("using") || line.Contains(@"///") || line.Contains("public class ") || string.IsNullOrEmpty(line) || line.Contains('[') || line.Contains(@"//"))
                 {
                     result = false;
                 }
@@ -85,20 +84,18 @@ namespace BIA.ToolKit.Common
         public static void CleanFolder(DirectoryInfo folder)
         {
             //Clean files in folder
-            List<FileInfo> fileList = folder.GetFiles().ToList();
+            List<FileInfo> fileList = [.. folder.GetFiles()];
             fileList.ForEach(s => s.Delete());
             //Clean files in folders
-            List<DirectoryInfo> folderList = folder.GetDirectories().ToList();
+            List<DirectoryInfo> folderList = [.. folder.GetDirectories()];
             folderList.ForEach(s => CleanFolder(s));
         }
 
         public static void CreateFile(StringBuilder stringb, string filename)
         {
             //this code section write stringbuilder content to physical text file.
-            using (StreamWriter swriter = new StreamWriter(filename))
-            {
-                swriter.Write(stringb.ToString());
-            }
+            using var swriter = new StreamWriter(filename);
+            swriter.Write(stringb.ToString());
         }
 
         public static string GetValueFromList(string value, int i)
@@ -113,28 +110,23 @@ namespace BIA.ToolKit.Common
 
         public static string ToCamelCase(string value)
         {
-            string firstletter = value.Substring(0, 1).ToLower();
-            return $"{firstletter}{value.Substring(1)}";
+            string firstletter = value[..1].ToLower();
+            return $"{firstletter}{value[1..]}";
         }
 
         public static string FirstLetterUppercase(string value)
         {
-            string firstletter = value.Substring(0, 1).ToUpper();
-            return $"{firstletter}{value.Substring(1).ToLower()}";
+            string firstletter = value[..1].ToUpper();
+            return $"{firstletter}{value[1..].ToLower()}";
         }
 
         public static string ToAngularTypes(string value)
         {
-            string result = string.Empty;
-            switch (value.Replace("?", "").ToLower())
+            string result = value.Replace("?", "").ToLower() switch
             {
-                case "int":
-                    result = "number";
-                    break;
-                default:
-                    result = value;
-                    break;
-            }
+                "int" => "number",
+                _ => value,
+            };
 
             return result.ToLower();
         }

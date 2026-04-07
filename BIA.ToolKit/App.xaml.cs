@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit
+namespace BIA.ToolKit
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
@@ -51,6 +51,9 @@
             services.AddSingleton<SettingsService>();
             services.AddSingleton<FileGeneratorService>();
             services.AddSingleton<UpdateService>();
+            services.AddSingleton<Application.Services.RegenerateFeatures.RegenerateFeaturesDiscoveryService>();
+            services.AddSingleton<Application.Services.RegenerateFeatures.FeatureMigrationGeneratorService>();
+            services.AddSingleton<Application.ViewModel.ProjectViewModel>();
             services.AddLogging();
 
             // ViewModels

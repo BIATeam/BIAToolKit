@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using System;
     using BIA.ToolKit.Application.Helper;
@@ -19,7 +19,7 @@
             }
         }
 
-        public Array RepositoryTypes => Enum.GetValues<RepositoryType>();
+        public static Array RepositoryTypes => Enum.GetValues<RepositoryType>();
 
         public RepositoryType RepositoryType
         {
@@ -40,9 +40,9 @@
                         gitService,
                         eventBroker,
                         consoleWriter)
-                    { 
-                        IsVisibleCompanyName = repository.IsVisibleCompanyName, 
-                        IsVisibleProjectName = repository.IsVisibleProjectName 
+                    {
+                        IsVisibleCompanyName = repository.IsVisibleCompanyName,
+                        IsVisibleProjectName = repository.IsVisibleProjectName
                     },
 
                     RepositoryType.Folder => new RepositoryFolderViewModel(

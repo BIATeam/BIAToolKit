@@ -1,17 +1,20 @@
-﻿namespace BIA.ToolKit.Application.Helper
+namespace BIA.ToolKit.Application.Helper
 {
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Text.RegularExpressions;
+    using System.Threading;
+    using System.Threading.Tasks;
 
-    static public class FileTransform
+    static public partial class FileTransform
     {
-        static public IList<string> projectFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md", ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml", ".webmanifest" };
-        static public IList<string> allTextFileExtensions = new List<string>() { ".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md" , ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml", ".webmanifest", ".editorconfig", ".gitignore" , ".prettierrc", ".html" ,".css" ,".scss", ".svg" , ".js", ".ruleset", ".props" };
-        static public IList<string> allTextFileNameWithoutExtension = new List<string>() { "browserslist", "Dockerfile", "Dockerfile_Rosa" };
+        internal static readonly IList<string> projectFileExtensions = [".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md", ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml", ".webmanifest", ".slnf"];
+        private static readonly IList<string> allTextFileExtensions = [".csproj", ".cs", ".sln", ".json", ".config", ".ps1", ".ts", ".html", ".yml", ".md", ".cshtml", ".edmx", ".sql", ".asax", ".sqlproj", ".scmp", ".xml", ".webmanifest", ".editorconfig", ".gitignore", ".prettierrc", ".html", ".css", ".scss", ".svg", ".js", ".ruleset", ".props", ".slnf"];
+        private static readonly IList<string> allTextFileNameWithoutExtension = ["browserslist", "Dockerfile", "Dockerfile_Rosa"];
 
         public static void SwapValues(this string[] source, long index1, long index2)
         {
@@ -37,7 +40,7 @@
         {
             string oldContent = File.ReadAllText(path);
             string endOfLine = Environment.NewLine;
-            Match endOfLineMatch = Regex.Match(oldContent, @"([\r\n]+)");
+            Match endOfLineMatch = MyRegex().Match(oldContent);
             if (endOfLineMatch.Success)
             {
                 endOfLine = endOfLineMatch.Value;
@@ -45,7 +48,7 @@
             string[] lines = File.ReadAllLines(path);
             OrderUsingInLines(lines);
             string newContent = string.Join(endOfLine, lines);
-            Match match = Regex.Match(oldContent, @"([\r\n]+\Z)");
+            Match match = EndOfFileRegex().Match(oldContent);
             if (match.Success)
             {
                 newContent += match.Value;
@@ -78,7 +81,7 @@
 
         private static bool IsUsingStatement(string line)
         {
-            return line.StartsWith("using ") && line.EndsWith(";") && !line.Contains("=");
+            return line.StartsWith("using ") && line.EndsWith(';') && !line.Contains('=');
         }
 
         /// <summary>
@@ -88,46 +91,48 @@
         /// <param name="oldString">old string.</param>
         /// <param name="newString">new string.</param>
         /// <param name="replaceInFileExtensions">types of files to include</param>
-        static public void ReplaceInFileAndFileName(string sourceDir, string oldString, string newString, IList<string> replaceInFileExtensions)
+        static public async Task ReplaceInFileAndFileName(string sourceDir, string oldString, string newString, IList<string> replaceInFileExtensions, IConsoleWriter consoleWriter, CancellationToken cancellationToken = default)
         {
             if (oldString == newString) return;
-            foreach (var dir in Directory.GetDirectories(sourceDir))
+            foreach (string dir in Directory.GetDirectories(sourceDir))
             {
-                var name = Path.GetFileName(dir);
+                cancellationToken.ThrowIfCancellationRequested();
+                string name = Path.GetFileName(dir);
                 if (name.Contains(oldString))
                 {
                     string newName = Path.Combine(sourceDir, name.Replace(oldString, newString));
-                    Directory.Move(dir, newName);
+                    await Task.Run(() => Directory.Move(dir, newName), cancellationToken);
                 }
             }
 
-            foreach (var file in Directory.GetFiles(sourceDir))
+            foreach (string file in Directory.GetFiles(sourceDir))
             {
-                var name = Path.GetFileName(file);
+                cancellationToken.ThrowIfCancellationRequested();
+                string name = Path.GetFileName(file);
                 string targetfile = file;
                 if (name.Contains(oldString))
                 {
                     string newName = Path.Combine(sourceDir, name.Replace(oldString, newString));
-                    File.Move(file, newName);
+                    await Task.Run(() => File.Move(file, newName), cancellationToken);
                     targetfile = newName;
                 }
                 string extension = Path.GetExtension(targetfile).ToLower();
                 if (replaceInFileExtensions.Contains(extension))
                 {
-                    ReplaceInFile(targetfile, oldString, newString);
+                    await ReplaceInFile(targetfile, oldString, newString, consoleWriter, cancellationToken);
                 }
 
-                var fileName = Path.GetFileName(file);
+                string fileName = Path.GetFileName(file);
                 if (allTextFileNameWithoutExtension.Contains(fileName))
                 {
-                    // todo
-                    ReplaceInFile(targetfile, oldString, newString);
+                    await ReplaceInFile(targetfile, oldString, newString, consoleWriter, cancellationToken);
                 }
             }
 
-            foreach (var directory in Directory.GetDirectories(sourceDir))
+            foreach (string directory in Directory.GetDirectories(sourceDir))
             {
-                ReplaceInFileAndFileName(directory, oldString, newString, replaceInFileExtensions);
+                cancellationToken.ThrowIfCancellationRequested();
+                await ReplaceInFileAndFileName(directory, oldString, newString, replaceInFileExtensions, consoleWriter, cancellationToken);
             }
         }
 
@@ -142,9 +147,9 @@
         static public void RemoveTemplateOnly(string sourceDir, string beginString, string endString, IList<string> replaceInFileExtensions)
         {
 
-            foreach (var file in Directory.GetFiles(sourceDir))
+            foreach (string file in Directory.GetFiles(sourceDir))
             {
-                var name = Path.GetFileName(file);
+                _ = Path.GetFileName(file);
                 string targetfile = file;
                 string extension = Path.GetExtension(targetfile).ToLower();
                 if (replaceInFileExtensions.Contains(extension))
@@ -153,7 +158,7 @@
                 }
             }
 
-            foreach (var directory in Directory.GetDirectories(sourceDir))
+            foreach (string directory in Directory.GetDirectories(sourceDir))
             {
                 RemoveTemplateOnly(directory, beginString, endString, replaceInFileExtensions);
             }
@@ -166,9 +171,9 @@
             {
                 text = "";
                 string line;
-                List<string> lines = new List<string>();
+                List<string> lines = [];
                 bool inSequence = false;
-                System.IO.StreamReader file = new System.IO.StreamReader(filePath);
+                var file = new System.IO.StreamReader(filePath);
 
                 while ((line = file.ReadLine()) != null)
                 {
@@ -188,7 +193,7 @@
                 }
 
                 file.Close();
-                var encoding = GetEncoding(filePath);
+                Encoding encoding = GetEncoding(filePath);
                 File.WriteAllLines(filePath, lines, encoding);
 
             }
@@ -203,7 +208,7 @@
         public static Encoding GetEncoding(string filename)
         {
             // Read the BOM
-            var bom = new byte[4];
+            byte[] bom = new byte[4];
             using (var file = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {
                 file.ReadExactly(bom, 0, 4);
@@ -224,70 +229,36 @@
             return Encoding.ASCII;
         }
 
-        static public void FolderUnix2Dos(string filePath)
+        static public async Task FolderUnix2Dos(string filePath)
         {
             string[] filePaths = Directory.GetFiles(filePath, "*", SearchOption.AllDirectories);
 
             foreach (string file in filePaths)
             {
                 string extension = Path.GetExtension(file).ToLower();
-                var name = Path.GetFileName(file);
+                string name = Path.GetFileName(file);
                 if (allTextFileExtensions.Contains(extension) || allTextFileNameWithoutExtension.Contains(name))
                 {
-                    Unix2Dos(file);
+                    await Unix2Dos(file);
                 }
 
             }
         }
 
-        static public void Unix2Dos(string filename)
+        static public async Task Unix2Dos(string filename)
         {
-            /*string[] lines = File.ReadAllLines(filename);
-            List<string> list_of_string = new List<string>();
-            foreach (string line in lines)
-            {
-                list_of_string.Add(line.Replace("\n", "\r\n"));
-            }
-            File.WriteAllLines(filename, list_of_string);*/
-
-            ReplaceInFile(filename, "\n", "\r\n");
-            ReplaceInFile(filename, "\r\r\n", "\r\n");
+            await ReplaceInFile(filename, "\n", "\r\n");
+            await ReplaceInFile(filename, "\r\r\n", "\r\n");
         }
-        /*
-                static public void Dos2Unix(string fileName)
-                {
-                    const byte CR = 0x0D;
-                    const byte LF = 0x0A;
-                    byte[] data = File.ReadAllBytes(fileName);
-                    using (FileStream fileStream = File.OpenWrite(fileName))
-                    {
-                        BinaryWriter bw = new BinaryWriter(fileStream);
-                        int position = 0;
-                        int index = 0;
-                        do
-                        {
-                            index = Array.IndexOf<byte>(data, CR, position);
-                            if ((index >= 0) && (data[index + 1] == LF))
-                            {
-                                // Write before the CR
-                                bw.Write(data, position, index - position);
-                                // from LF
-                                position = index + 1;
-                            }
-                        }
-                        while (index >= 0);
-                        bw.Write(data, position, data.Length - position);
-                        fileStream.SetLength(fileStream.Position);
-                    }
-                }
-        */
-        static public void ReplaceInFile(string filePath, string oldValue, string newValue)
+
+        static public async Task ReplaceInFile(string filePath, string oldValue, string newValue, IConsoleWriter _ = null, CancellationToken cancellationToken = default)
         {
-            string text = File.ReadAllText(filePath);
+            cancellationToken.ThrowIfCancellationRequested();
+            string text = await File.ReadAllTextAsync(filePath, cancellationToken);
             if (text.Contains(oldValue))
             {
                 text = text.Replace(oldValue, newValue);
-                File.WriteAllText(filePath, text);
+                await File.WriteAllTextAsync(filePath, text, cancellationToken);
             }
         }
 
@@ -298,12 +269,12 @@
             {
                 string sourceDirName = Path.GetFileName(sourceDir);
 
-                if (foldersToExcludes?.Any(f => Regex.Match(sourceDirName, f, RegexOptions.IgnoreCase).Success) == true)
+                if (foldersToExcludes?.Any(f => Regex.IsMatch(sourceDirName, f, RegexOptions.IgnoreCase)) == true)
                 {
                     continue; // skip this folder if its name matches any of the folder names to exclude
                 }
 
-                var subTargetPath = sourceDir.Replace(sourcePath, targetPath);
+                string subTargetPath = sourceDir.Replace(sourcePath, targetPath);
                 Directory.CreateDirectory(sourceDir.Replace(sourcePath, targetPath));
                 CopyFilesRecursively(sourceDir, subTargetPath, profile, filesToExclude, foldersToExcludes);
             }
@@ -311,11 +282,11 @@
             //Copy all the files & Replaces any files with the same name
             foreach (string sourceFile in Directory.GetFiles(sourcePath, "*.*", SearchOption.TopDirectoryOnly))
             {
-                var isFilenameExcluded = filesToExclude?.Any(s => Regex.Match(Path.GetFileName(sourceFile), s, RegexOptions.IgnoreCase).Success) == true;
-                var isFilePathExcluded = filesToExclude?.Any(s => Regex.Match(sourceFile, s, RegexOptions.IgnoreCase).Success) == true;
+                bool isFilenameExcluded = filesToExclude?.Any(s => Regex.IsMatch(Path.GetFileName(sourceFile), s, RegexOptions.IgnoreCase)) == true;
+                bool isFilePathExcluded = filesToExclude?.Any(s => Regex.IsMatch(sourceFile, s, RegexOptions.IgnoreCase)) == true;
                 if (!isFilenameExcluded && !isFilePathExcluded)
                 {
-                    if (profile != "" && Regex.Match(sourceFile, "\\[.*\\]", RegexOptions.IgnoreCase).Success)
+                    if (profile != "" && ProfileBracketRegex().IsMatch(sourceFile))
                     {
                         if (sourceFile.Contains("[" + profile + "]"))
                         {
@@ -336,7 +307,7 @@
             foreach (string filePath in Directory.GetFiles(targetPath, "*.*", SearchOption.AllDirectories))
             {
                 string fileName = Path.GetFileName(filePath);
-                if (filesToRemove.Any(s => Regex.Match(fileName, s, RegexOptions.IgnoreCase).Success))
+                if (filesToRemove.Any(s => Regex.IsMatch(fileName, s, RegexOptions.IgnoreCase)))
                     File.Delete(filePath);
             }
         }
@@ -345,12 +316,21 @@
         {
             var directory = new DirectoryInfo(path) { Attributes = FileAttributes.Normal };
 
-            foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
+            foreach (FileSystemInfo info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
             {
                 info.Attributes = FileAttributes.Normal;
             }
 
             directory.Delete(true);
         }
+
+        [GeneratedRegex(@"([\r\n]+\Z)")]
+        private static partial Regex EndOfFileRegex();
+
+        [GeneratedRegex(@"\[.*\]", RegexOptions.IgnoreCase)]
+        private static partial Regex ProfileBracketRegex();
+
+        [GeneratedRegex(@"([\r\n]+)")]
+        private static partial Regex MyRegex();
     }
 }

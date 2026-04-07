@@ -28,7 +28,11 @@ import { PrimeTemplate } from 'primeng/api';
 import { Skeleton } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { Tooltip } from 'primeng/tooltip';
+<#  if (ModelInstance.HasListAndItemModels) { #>
+import { <#= ModelInstance.EntityName #>List } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>-list';
+<#  } else { #>
 import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+<#  } #>
 
 @Component({
   selector: 'app-<#= ModelInstance.EntityName.ToKebabCase() #>-table',
@@ -57,7 +61,11 @@ import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.E
     BiaCalcTableCellComponent,
   ],
 })
+<#  if (ModelInstance.HasListAndItemModels) { #>
+export class <#= ModelInstance.EntityName #>TableComponent extends CrudItemTableComponent<<#= ModelInstance.EntityName #>List> {
+<#  } else { #>
 export class <#= ModelInstance.EntityName #>TableComponent extends CrudItemTableComponent<<#= ModelInstance.EntityName #>> {
+<#  } #>
   constructor(
     public formBuilder: UntypedFormBuilder,
     public authService: AuthService,

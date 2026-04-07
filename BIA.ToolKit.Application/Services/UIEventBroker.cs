@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -73,8 +73,8 @@ namespace BIA.ToolKit.Application.Services
         }
 
         public void NotifyRepositoryViewModelChanged(RepositoryViewModel oldRepository, RepositoryViewModel newRepository)
-        { 
-            OnRepositoryViewModelChanged?.Invoke(oldRepository, newRepository); 
+        {
+            OnRepositoryViewModelChanged?.Invoke(oldRepository, newRepository);
         }
 
         public void RequestOpenRepositoryForm(RepositoryViewModel repository, RepositoryFormMode mode)

@@ -1,10 +1,10 @@
-﻿namespace BIA.ToolKit.Test.Templates._7_0_0
+namespace BIA.ToolKit.Test.Templates._7_0_0
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.ViewModel;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using Xunit;
 
     [Collection(nameof(GenerateTestFixtureCollection_7_0_0))]
@@ -26,7 +26,7 @@
                 arguments: null,
                 baseList: ["BaseEntityVersioned<int>"]);
 
-            var domainName = "Fleet";
+            string domainName = "Fleet";
 
             var mappingProperties = new List<MappingEntityProperty>
             {
@@ -78,8 +78,8 @@
                 arguments: null,
                 baseList: [" BaseEntityVersionedFixableArchivable<int>"]);
 
-            var domainName = "Fleet";
-            var ancestorTeamName = "Site";
+            string domainName = "Fleet";
+            string ancestorTeamName = "Site";
 
             var mappingProperties = new List<MappingEntityProperty>
             {
@@ -279,7 +279,7 @@
                 arguments: null,
                 baseList: ["BaseEntityTeam"]);
 
-            var domainName = "Maintenance";
+            string domainName = "Maintenance";
 
             var mappingProperties = new List<MappingEntityProperty>
             {
@@ -319,8 +319,8 @@
                 arguments: null,
                 baseList: ["BaseEntityTeamFixableArchivable"]);
 
-            var domainName = "Maintenance";
-            var ancestorTeamName = "AircraftMaintenanceCompany";
+            string domainName = "Maintenance";
+            string ancestorTeamName = "AircraftMaintenanceCompany";
 
             var mappingProperties = new List<MappingEntityProperty>
             {
@@ -493,6 +493,163 @@
                 IsVersioned = true,
                 IsFixable = true,
                 IsArchivable = true,
+            };
+
+            await fixture.RunTestGenerateDtoAllFilesEqualsAsync(dtoContext);
+        }
+
+        /// <summary>
+        /// Generates the dto and mapper for Pilot.
+        /// It is a sample for a DTO used for Child Team
+        /// </summary>
+        [Fact]
+        public async Task GeneratePilot_BIADemoConfiguration_AllFilesEquals()
+        {
+            var entityInfo = new EntityInfo(
+                path: string.Empty,
+                @namespace: "TheBIADevCompany.BIADemo.Domain.Fleet.Entities",
+                name: "Pilot",
+                baseType: "BaseEntityVersionedFixableArchivable",
+                baseKeyType: "Guid",
+                arguments: null,
+                baseList: ["BaseEntityVersionedFixableArchivable<Guid>"]);
+
+            string domainName = "Fleet";
+            string ancestorTeamName = "Site";
+
+            var mappingProperties = new List<MappingEntityProperty>
+            {
+                new()
+                {
+                    EntityCompositeName = "SiteId",
+                    EntityType = "int",
+                    IsRequired = true,
+                    IsParent = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "IdentificationNumber",
+                    EntityType = "string",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "FirstName",
+                    EntityType = "string",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "LastName",
+                    EntityType = "string",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "Birthdate",
+                    EntityType = "DateTime?",
+                    MappingDateType = "date",
+                },
+                new()
+                {
+                    EntityCompositeName = "CPLDate",
+                    EntityType = "DateTime",
+                    IsRequired = true,
+                    MappingDateType = "date",
+                },
+                new()
+                {
+                    EntityCompositeName = "BaseAirport",
+                    EntityType = "OptionDto",
+                    OptionType = "Airport",
+                    OptionIdProperty = "Id",
+                    OptionDisplayProperty = "Name",
+                    OptionEntityIdProperty = "BaseAirportId",
+                },
+                new()
+                {
+                    EntityCompositeName = "FlightHours",
+                    EntityType = "int",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "FirstFlightDate",
+                    EntityType = "DateTimeOffset",
+                    IsRequired = true,
+                    MappingDateType = "datetime",
+                    AsLocalDateTime = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "LastFlightDate",
+                    EntityType = "DateTimeOffset?",
+                    MappingDateType = "datetime",
+                    AsLocalDateTime = true,
+                },
+            };
+
+            var mappingListProperties = new List<MappingEntityProperty>
+            {
+                new()
+                {
+                    EntityCompositeName = "SiteId",
+                    EntityType = "int",
+                    IsRequired = true,
+                    IsParent = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "IdentificationNumber",
+                    EntityType = "string",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "Name",
+                    EntityType = "string",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "FlightHours",
+                    EntityType = "int",
+                    IsRequired = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "FirstFlightDate",
+                    EntityType = "DateTimeOffset",
+                    IsRequired = true,
+                    MappingDateType = "datetime",
+                    AsLocalDateTime = true,
+                },
+                new()
+                {
+                    EntityCompositeName = "LastFlightDate",
+                    EntityType = "DateTimeOffset?",
+                    MappingDateType = "datetime",
+                    AsLocalDateTime = true,
+                },
+            };
+
+            var dtoContext = new FileGeneratorDtoContext
+            {
+                CompanyName = fixture.TestProject.CompanyName,
+                ProjectName = fixture.TestProject.Name,
+                DomainName = domainName,
+                EntityName = entityInfo.Name,
+                EntityNamePlural = entityInfo.NamePluralized,
+                BaseKeyType = entityInfo.BaseKeyType,
+                Properties = [.. mappingProperties],
+                GenerateBack = true,
+                AncestorTeamName = ancestorTeamName,
+                IsVersioned = true,
+                IsFixable = true,
+                IsArchivable = true,
+                HasListAndItemModels = true,
+                ListProperties = [.. mappingListProperties],
+                HasAudit = false,
             };
 
             await fixture.RunTestGenerateDtoAllFilesEqualsAsync(dtoContext);

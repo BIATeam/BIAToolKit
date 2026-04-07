@@ -7,7 +7,7 @@ namespace BIA.ToolKit.Application.ViewModel
     using BIA.ToolKit.Application.Settings;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
@@ -30,7 +30,7 @@ namespace BIA.ToolKit.Application.ViewModel
         private readonly GenerateCrudService crudService;
         private readonly SettingsService settingsService;
         private bool disposed;
-        private OptionGeneration optionHistory;
+        private OptionGenerationInfo optionHistory;
         private string optionHistoryFileName;
 
         /// <summary>  
@@ -53,9 +53,9 @@ namespace BIA.ToolKit.Application.ViewModel
             this.crudService = crudService ?? throw new ArgumentNullException(nameof(crudService));
             this.settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
 
-            ZipFeatureTypeList = new();
-            Entities = new();
-            EntityDisplayItems = new();
+            ZipFeatureTypeList = [];
+            Entities = [];
+            EntityDisplayItems = [];
 
             // Subscribe to event broker events
             uiEventBroker.OnProjectChanged += OnProjectChanged;
@@ -80,9 +80,9 @@ namespace BIA.ToolKit.Application.ViewModel
             {
                 currentProject = value;
                 BiaFronts.Clear();
-                if(currentProject != null)
+                if (currentProject != null)
                 {
-                    foreach(var biaFront in currentProject.BIAFronts)
+                    foreach (string biaFront in currentProject.BIAFronts)
                     {
                         BiaFronts.Add(biaFront);
                     }
@@ -115,7 +115,7 @@ namespace BIA.ToolKit.Application.ViewModel
             }
         }
 
-        private ObservableCollection<string> _biaFronts = new();
+        private ObservableCollection<string> _biaFronts = [];
         public ObservableCollection<string> BiaFronts
         {
             get => _biaFronts;
@@ -238,7 +238,7 @@ namespace BIA.ToolKit.Application.ViewModel
         public string Domain
         {
             get { return domain; }
-            set 
+            set
             {
                 if (domain != value)
                 {
@@ -281,16 +281,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
         #region CheckBox
 
-        public bool IsProjectCompatibleV7 
-        {
-            get
-            {
-                if (CurrentProject == null || string.IsNullOrEmpty(CurrentProject.FrameworkVersion))
-                    return false;
-                    
-                return Version.TryParse(CurrentProject.FrameworkVersion, out var version) && version.Major >= 7;
-            }
-        }
+        public bool IsProjectCompatibleV7 => Version.TryParse(CurrentProject?.FrameworkVersion, out Version version) && version.Major >= 7;
 
         private bool _useHubClient;
 
@@ -392,7 +383,7 @@ namespace BIA.ToolKit.Application.ViewModel
                         }
                     }
 
-                    await crudService.DeleteBIAToolkitAnnotations(folders);
+                    await GenerateCrudService.DeleteBIAToolkitAnnotations(folders);
                     consoleWriter.AddMessageLine("BIA Toolkit annotations deleted successfully.", "Green");
                 }
                 catch (Exception ex)
@@ -504,7 +495,7 @@ namespace BIA.ToolKit.Application.ViewModel
                     {
                         var propType = prop.Type.ToString();
                         var propName = prop.Identifier.Text;
-                        
+
                         if (propType == "string" && !propName.EndsWith("Id"))
                         {
                             displayItems.Add(propName);
@@ -567,7 +558,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 {
                     optionHistoryFileName = historyFiles.OrderByDescending(f => File.GetLastWriteTime(f)).First();
                     var json = File.ReadAllText(optionHistoryFileName);
-                    optionHistory = JsonSerializer.Deserialize<OptionGeneration>(json);
+                    optionHistory = JsonSerializer.Deserialize<OptionGenerationInfo>(json);
                 }
             }
             catch (Exception ex)
@@ -586,7 +577,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 var historyFolder = Path.Combine(CurrentProject.Folder, ".bia", "History");
                 Directory.CreateDirectory(historyFolder);
 
-                optionHistory = new OptionGeneration
+                optionHistory = new OptionGenerationInfo
                 {
                     EntityName = Entity.Name,
                     Domain = Domain,
@@ -606,8 +597,11 @@ namespace BIA.ToolKit.Application.ViewModel
         #endregion
     }
 
-    // Helper class for option generation history
-    public class OptionGeneration
+    /// <summary>
+    /// Helper class for option generation history (local to ViewModel).
+    /// Named to avoid collision with Domain's OptionGeneration.
+    /// </summary>
+    public class OptionGenerationInfo
     {
         public string EntityName { get; set; }
         public string Domain { get; set; }

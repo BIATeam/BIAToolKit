@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Helper
+namespace BIA.ToolKit.Helper
 {
     using System;
     using System.Windows.Data;
@@ -10,9 +10,9 @@
         public object Convert(object value, Type targetType, object parameter,
             System.Globalization.CultureInfo culture)
         {
-            if (value is bool)
+            if (value is bool boolValue)
             {
-                return !(bool)value;
+                return !boolValue;
             }
             return value;
         }
@@ -20,9 +20,9 @@
         public object ConvertBack(object value, Type targetType, object parameter,
             System.Globalization.CultureInfo culture)
         {
-            if (value is bool)
+            if (value is bool boolValue)
             {
-                return !(bool)value;
+                return !boolValue;
             }
             return value;
         }

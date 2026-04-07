@@ -24,8 +24,8 @@
             <StackPanel>
                 <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Name" Text="{Binding Name}" TextWrapping="Wrap"/>
                 <ComboBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Repository Type" ItemsSource="{Binding Source={x:Reference Form}, Path=DataContext.RepositoryTypes}" SelectedItem="{Binding Source={x:Reference Form}, Path=DataContext.RepositoryType}"/>
-                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Company Name Template Value (Optionnal)" Text="{Binding CompanyName}" TextWrapping="Wrap" Visibility="{Binding IsVisibleCompanyName, Converter={StaticResource BoolToVisConverter}}"/>
-                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Project Name Template Value (Optionnal)" Text="{Binding ProjectName}" TextWrapping="Wrap" Visibility="{Binding IsVisibleProjectName, Converter={StaticResource BoolToVisConverter}}"/>
+                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Company Name Template Value (Optional)" Text="{Binding CompanyName}" TextWrapping="Wrap" Visibility="{Binding IsVisibleCompanyName, Converter={StaticResource BoolToVisConverter}}"/>
+                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Project Name Template Value (Optional)" Text="{Binding ProjectName}" TextWrapping="Wrap" Visibility="{Binding IsVisibleProjectName, Converter={StaticResource BoolToVisConverter}}"/>
             </StackPanel>
         </DataTemplate>
 
@@ -49,9 +49,11 @@
                 <!-- Release type GIT -->
                 <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="GIT Repository Name" Text="{Binding GitRepositoryName}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeGit, Converter={StaticResource BoolToVisConverter}}"/>
                 <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="GIT Repository Owner" Text="{Binding Owner}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeGit, Converter={StaticResource BoolToVisConverter}}"/>
-                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="GIT Repository URL Release (Optionnal)" Text="{Binding UrlRelease}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeGit, Converter={StaticResource BoolToVisConverter}}"/>
+                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="GIT Repository URL Release (Optional)" Text="{Binding UrlRelease}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeGit, Converter={StaticResource BoolToVisConverter}}"/>
                 <!-- Release type Folder -->
-                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Release Regex Pattern (Optionnal)" Text="{Binding ReleasesFolderRegexPattern}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeFolder, Converter={StaticResource BoolToVisConverter}}"/>
+                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Release Regex Pattern (Optional)" Text="{Binding ReleasesFolderRegexPattern}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeFolder, Converter={StaticResource BoolToVisConverter}}"/>
+                <!-- Release type Tag -->
+                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Content Folder (Optional)" Text="{Binding ReleasesTagContentFolder}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeTag, Converter={StaticResource BoolToVisConverter}}"/>
             </StackPanel>
         </DataTemplate>
 
@@ -68,7 +70,7 @@
                         <materialDesign:PackIcon Kind="FolderSearch" Height="25" Width="25" />
                     </Button>
                 </Grid>
-                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Release Regex Pattern (Optionnal)" Text="{Binding ReleasesFolderRegexPattern}" TextWrapping="Wrap"/>
+                <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Release Regex Pattern (Optional)" Text="{Binding ReleasesFolderRegexPattern}" TextWrapping="Wrap"/>
             </StackPanel>
         </DataTemplate>
     </Window.Resources>

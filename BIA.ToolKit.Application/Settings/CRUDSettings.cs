@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Settings
+namespace BIA.ToolKit.Application.Settings
 {
     using BIA.ToolKit.Application.Services;
 

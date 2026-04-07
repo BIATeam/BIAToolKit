@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Helper
+namespace BIA.ToolKit.Helper
 {
     using BIA.ToolKit.Application.Helper;
     using System;
@@ -21,8 +21,8 @@
         ScrollViewer OutputTextViewer;
         Window WindowOwner;
         IDialogService dialogService;
-        List<Message> messages = new List<Message>();
-        List<string> displayedMessages = new List<string>();
+        List<Message> messages = [];
+        readonly List<string> displayedMessages = [];
 
         public ConsoleWriter()
         {
@@ -51,17 +51,19 @@
             }
             else
             {
-                if (messages.Count >0)
+                if (messages.Count > 0)
                 {
-                    Run run = new Run(@"[🔍 OPEN LOG DETAIL]" + "\r\n");
-                    run.Foreground = Brushes.YellowGreen;
-                    run.Cursor = Cursors.Hand;
-                    run.TextDecorations = TextDecorations.Underline;
+                    var run = new Run(@"[🔍 OPEN LOG DETAIL]" + "\r\n")
+                    {
+                        Foreground = Brushes.YellowGreen,
+                        Cursor = Cursors.Hand,
+                        TextDecorations = TextDecorations.Underline
+                    };
                     run.MouseDown += new MouseButtonEventHandler(OpenDetail);
                     run.DataContext = messages;
                     OutputText.Inlines.Add(run);
 
-                    messages = new List<Message>();
+                    messages = [];
                 }
                 //foreach (Message msg in messages)
                 //{
@@ -93,14 +95,14 @@
 
         public static void AddMsgLine(TextBlock OutputText, ScrollViewer OutputTextViewer, string message, string color, bool refreshimediate = true)
         {
-            Brush brush = null;
+            Brush brush;
             if (string.IsNullOrEmpty(color))
             {
                 brush = Brushes.White;
             }
             else
             {
-                Color col = (Color)ColorConverter.ConvertFromString(color);
+                var col = (Color)ColorConverter.ConvertFromString(color);
                 brush = new SolidColorBrush(col);
             }
             AddMessageLine(OutputText, OutputTextViewer, message, brush, refreshimediate);
@@ -113,8 +115,10 @@
             (ThreadStart)delegate
             {
 
-                Run run = new Run(message + "\r\n");
-                run.Foreground = brush;
+                var run = new Run(message + "\r\n")
+                {
+                    Foreground = brush
+                };
                 OutputText.Inlines.Add(run);
                 if (refreshimediate)
                 {

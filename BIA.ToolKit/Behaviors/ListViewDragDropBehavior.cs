@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Behaviors
+namespace BIA.ToolKit.Behaviors
 {
     using System.Windows.Controls;
     using System.Windows;
@@ -77,20 +77,20 @@
 
         private void OnDrop(object sender, DragEventArgs e)
         {
-            var listView = AssociatedObject;
-            var listViewType = listView.Items[0]?.GetType();
+            ListView listView = AssociatedObject;
+            Type listViewType = listView.Items[0]?.GetType();
 
             if (!e.Data.GetDataPresent(listViewType))
                 return;
 
-            var droppedData = e.Data.GetData(listViewType);
-            var target = ((FrameworkElement)e.OriginalSource).DataContext;
+            object droppedData = e.Data.GetData(listViewType);
+            object target = ((FrameworkElement)e.OriginalSource).DataContext;
 
             if (droppedData == null || target == null || droppedData == target)
                 return;
 
-            var oldIndex = listView.Items.IndexOf(droppedData);
-            var newIndex = listView.Items.IndexOf(target);
+            int oldIndex = listView.Items.IndexOf(droppedData);
+            int newIndex = listView.Items.IndexOf(target);
 
             if (oldIndex < 0 || newIndex < 0 || oldIndex == newIndex)
                 return;
@@ -111,10 +111,10 @@
 
         private void OnDragOver(object sender, DragEventArgs e)
         {
-            var listView = AssociatedObject;
-            var pos = e.GetPosition(listView);
-            var hitTestResult = VisualTreeHelper.HitTest(listView, pos);
-            var itemContainer = FindAncestor<ListViewItem>(hitTestResult.VisualHit);
+            ListView listView = AssociatedObject;
+            Point pos = e.GetPosition(listView);
+            HitTestResult hitTestResult = VisualTreeHelper.HitTest(listView, pos);
+            ListViewItem itemContainer = FindAncestor<ListViewItem>(hitTestResult.VisualHit);
 
             if (_lastTarget != null && _lastTarget != itemContainer)
             {
@@ -135,7 +135,7 @@
 
         private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
         {
-            while (current != null && !(current is T))
+            while (current != null && current is not T)
                 current = VisualTreeHelper.GetParent(current);
 
             return current as T;

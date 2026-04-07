@@ -10,7 +10,7 @@ import {
 } from '@bia-team/bia-ng/core';
 import { of } from 'rxjs';
 import { catchError, filter, map, switchMap } from 'rxjs/operators';
-import { enableSignalrRefresh, storeKey } from '../airport-option.constants';
+import { enableSignalrRefresh, storeKey } from '../<#= ModelInstance.EntityName.ToKebabCase() #>-option.constants';
 import { <#= ModelInstance.EntityName #>OptionDas } from '../services/<#= ModelInstance.EntityName.ToKebabCase() #>-option-das.service';
 import { Domain<#= ModelInstance.EntityName #>OptionsActions } from './<#= ModelInstance.EntityName.ToKebabCase() #>-options-actions';
 /**

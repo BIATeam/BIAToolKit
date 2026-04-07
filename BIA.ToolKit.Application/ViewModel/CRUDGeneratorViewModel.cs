@@ -9,7 +9,7 @@ namespace BIA.ToolKit.Application.ViewModel
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
     using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
@@ -969,7 +969,7 @@ namespace BIA.ToolKit.Application.ViewModel
                     Path.Combine(CurrentProject.Folder, BiaFront, "src", "app")
                 ];
 
-                await crudService.DeleteBIAToolkitAnnotations(folders);
+                await GenerateCrudService.DeleteBIAToolkitAnnotations(folders);
 
                 consoleWriter.AddMessageLine($"End of annotations suppression.", "Purple");
             }

@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.DtoGenerator
+namespace BIA.ToolKit.Domain.ModifyProject.DtoGenerator
 {
     using BIA.ToolKit.Common;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,16 +9,16 @@
 
         public string Name { get; }
 
-        public List<KeyValuePair<string, string>> Annotations { get; } = new List<KeyValuePair<string, string>>();
+        public List<KeyValuePair<string, string>> Annotations { get; } = [];
         public bool IsOptionDto => Type.Equals("OptionDto") || Type.Equals("ICollection<OptionDto>");
 
         public PropertyInfo(ProjectAnalysis.PropertyInfo propertyInfo)
         {
             Type = propertyInfo.TypeName;
             Name = propertyInfo.Name;
-            Annotations = new(propertyInfo.Attributes.SelectMany(x => x.Arguments));
+            Annotations = [.. propertyInfo.Attributes.SelectMany(x => x.Arguments)];
 
-            if(Type.StartsWith("Nullable<"))
+            if (Type.StartsWith("Nullable<"))
             {
                 Type = Type.Replace("Nullable<", string.Empty).Replace(">", string.Empty);
                 Type += "?";

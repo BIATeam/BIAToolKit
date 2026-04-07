@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.Application.ViewModel
 {
     using System;
     using System.IO;
@@ -44,7 +44,13 @@
             set { repositoryGit.ReleasesFolderRegexPattern = value; OnPropertyChanged(nameof(ReleasesFolderRegexPattern)); }
         }
 
-        public Array ReleaseTypes => Enum.GetValues<ReleaseType>();
+        public string ReleasesTagContentFolder
+        {
+            get => repositoryGit.ReleasesTagContentFolder;
+            set { repositoryGit.ReleasesTagContentFolder = value; OnPropertyChanged(nameof(ReleasesTagContentFolder)); }
+        }
+
+        public static Array ReleaseTypes => Enum.GetValues<ReleaseType>();
 
         public ReleaseType ReleaseType
         {
@@ -98,7 +104,7 @@
 
         protected override bool EnsureIsValid()
         {
-            var releaseFieldsValid = ReleaseType switch
+            bool releaseFieldsValid = ReleaseType switch
             {
                 ReleaseType.Git => !string.IsNullOrWhiteSpace(GitRepositoryName) && !string.IsNullOrWhiteSpace(Owner),
                 ReleaseType.Folder => true,

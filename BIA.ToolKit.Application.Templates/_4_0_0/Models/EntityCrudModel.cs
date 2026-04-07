@@ -1,8 +1,10 @@
-﻿namespace BIA.ToolKit.Application.Templates._4_0_0.Models
+namespace BIA.ToolKit.Application.Templates._4_0_0.Models
 {
     using System.Collections.Generic;
     using BIA.ToolKit.Application.Templates.Common.Enum;
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
+
+#pragma warning disable CS9266 // Les propriétés with setter utilisent throw NotImplementedException() au getter par design, ces exceptions ne doivent pas être atteintes en application
 
     public class EntityCrudModel<TPropertyCrudModel> : Common.Models.EntityModel, IEntityCrudModel<TPropertyCrudModel>
         where TPropertyCrudModel : class, IPropertyCrudModel
@@ -45,5 +47,8 @@
         public bool IsArchivable { get => throw new System.NotImplementedException(); set; }
         public virtual bool DisplayHistorical { get => throw new System.NotImplementedException(); set; }
         public bool UseDomainUrl { get => throw new System.NotImplementedException(); set; }
+        public bool HasListAndItemModels { get => throw new System.NotImplementedException(); set; }
+        public List<TPropertyCrudModel> ListProperties { get => throw new System.NotImplementedException(); set; }
     }
+#pragma warning restore CS9266
 }

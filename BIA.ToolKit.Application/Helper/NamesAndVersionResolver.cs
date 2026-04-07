@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Helper
+namespace BIA.ToolKit.Application.Helper
 {
     using System;
     using System.Collections.Generic;
@@ -34,15 +34,15 @@
             if (!string.IsNullOrEmpty(ConstantFileNameSearchPattern))
             {
                 var reg = new Regex(currentProject.Folder.Replace("\\", "\\\\") + ConstantFileRegExpPath, RegexOptions.IgnoreCase);
-                string file = currentProject.ProjectFiles.Where(path => path.EndsWith(ConstantFileNameSearchPattern) && reg.IsMatch(path))?.FirstOrDefault();
-                if (file != null)
+                IEnumerable<string> files = currentProject.ProjectFiles.Where(path => path.EndsWith(ConstantFileNameSearchPattern) && reg.IsMatch(path));
+                foreach (string file in files)
                 {
                     var regProjectName = new Regex(ConstantFileNamespace);
                     var regVersion = new Regex(ConstantFileRegExpVersion);
 
-                    foreach (var line in File.ReadAllLines(file))
+                    foreach (string line in File.ReadAllLines(file))
                     {
-                        var matchNamespace = regProjectName.Match(line);
+                        Match matchNamespace = regProjectName.Match(line);
                         if (matchNamespace.Success)
                         {
                             currentProject.CompanyName = matchNamespace.Groups[1].Value;
@@ -50,7 +50,7 @@
                             continue;
                         }
 
-                        var matchVersion = regVersion.Match(line);
+                        Match matchVersion = regVersion.Match(line);
                         if (matchVersion.Success)
                         {
                             currentProject.FrameworkVersion = matchVersion.Groups[1].Value;
@@ -63,15 +63,15 @@
             {
                 currentProject.BIAFronts.Clear();
                 var regPackageJson = new Regex(currentProject.Folder.Replace("\\", "\\\\") + FrontFileUsingBiaNg, RegexOptions.IgnoreCase);
-                List<string> packagesJsonFiles = currentProject.ProjectFiles.Where(path => path.EndsWith("package.json") && regPackageJson.IsMatch(path)).ToList();
+                List<string> packagesJsonFiles = [.. currentProject.ProjectFiles.Where(path => path.EndsWith("package.json") && regPackageJson.IsMatch(path))];
                 if (packagesJsonFiles != null)
                 {
-                    foreach (var fileFront in packagesJsonFiles)
+                    foreach (string fileFront in packagesJsonFiles)
                     {
                         string fileContent = File.ReadAllText(fileFront);
                         if (fileContent.Contains(FrontFileBiaNgImportRegExp))
                         {
-                            var match = regPackageJson.Match(fileFront);
+                            Match match = regPackageJson.Match(fileFront);
                             if (!currentProject.BIAFronts.Contains(match.Groups[1].Value))
                             {
                                 currentProject.BIAFronts.Add(match.Groups[1].Value);
@@ -84,13 +84,13 @@
                 foreach (string regex in FrontFileRegExpPath)
                 {
                     var reg2 = new Regex(currentProject.Folder.Replace("\\", "\\\\") + regex, RegexOptions.IgnoreCase);
-                    List<string> filesFront = currentProject.ProjectFiles.Where(path => path.EndsWith(FrontFileNameSearchPattern) && reg2.IsMatch(path)).ToList();
+                    List<string> filesFront = [.. currentProject.ProjectFiles.Where(path => path.EndsWith(FrontFileNameSearchPattern) && reg2.IsMatch(path))];
 
                     if (filesFront != null)
                     {
-                        foreach (var fileFront in filesFront)
+                        foreach (string fileFront in filesFront)
                         {
-                            var match = reg2.Match(fileFront);
+                            Match match = reg2.Match(fileFront);
                             if (!currentProject.BIAFronts.Contains(match.Groups[1].Value))
                             {
                                 currentProject.BIAFronts.Add(match.Groups[1].Value);

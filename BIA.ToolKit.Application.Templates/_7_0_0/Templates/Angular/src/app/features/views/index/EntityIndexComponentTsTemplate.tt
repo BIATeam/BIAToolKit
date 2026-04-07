@@ -25,6 +25,10 @@ import { filter } from 'rxjs';
 import { Permission } from 'src/app/shared/permission';
 import { <#= ModelInstance.EntityName #>TableComponent } from '../../components/<#= ModelInstance.EntityName.ToKebabCase() #>-table/<#= ModelInstance.EntityName.ToKebabCase() #>-table.component';
 import { <#= ModelInstance.EntityName #> } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>';
+<#  if (ModelInstance.HasListAndItemModels) { #>
+import { <#= ModelInstance.EntityName #>List } from '../../model/<#= ModelInstance.EntityName.ToKebabCase() #>-list';
+import { <#= ModelInstance.EntityName.ToCamelCase() #>ListCRUDConfiguration } from '../../<#= ModelInstance.EntityName.ToKebabCase() #>-list.constants';
+<#  } #>
 import { <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration } from '../../<#= ModelInstance.EntityName.ToKebabCase() #>.constants';
 import { <#= ModelInstance.EntityName #>Service } from '../../services/<#= ModelInstance.EntityName.ToKebabCase() #>.service';
 <#  if(ModelInstance.IsTeam) { #>
@@ -59,7 +63,11 @@ import { <#= ModelInstance.EntityName #>OptionsService } from '../../services/<#
   ],
   providers: [{ provide: CrudItemService, useExisting: <#= ModelInstance.EntityName #>Service }],
 })
+<#  if (ModelInstance.HasListAndItemModels) { #>
+export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudItemsIndexComponent<<#= ModelInstance.EntityName #>List, <#= ModelInstance.EntityName #>> implements OnInit {
+<#  } else { #>
 export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudItemsIndexComponent<<#= ModelInstance.EntityName #>> implements OnInit {
+<#  } #>
   @ViewChild(<#= ModelInstance.EntityName #>TableComponent, { static: false })
   crudItemTableComponent: <#= ModelInstance.EntityName #>TableComponent;
 
@@ -87,7 +95,12 @@ export class <#= ModelInstance.EntityNamePlural #>IndexComponent extends CrudIte
     protected authService: AuthService
   ) {
     super(injector, <#= ModelInstance.EntityName.ToCamelCase() #>Service);
+<#  if (ModelInstance.HasListAndItemModels) { #>
+    this.crudConfiguration = <#= ModelInstance.EntityName.ToCamelCase() #>ListCRUDConfiguration;
+    this.crudConfigurationItem = <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration;
+<#  } else { #>
     this.crudConfiguration = <#= ModelInstance.EntityName.ToCamelCase() #>CRUDConfiguration;
+<#  } #>
   }
 
 <#  if(ModelInstance.HasParent) { #>

@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates._4_0_0.Models
+namespace BIA.ToolKit.Application.Templates._4_0_0.Models
 {
     using System;
     using System.Collections.Generic;
@@ -54,10 +54,12 @@
         {
             get
             {
-                biaDtoFieldAttributeProperties = biaDtoFieldAttributeProperties ?? GenerateBiaDtoFieldAttributeProperties();
+                biaDtoFieldAttributeProperties ??= GenerateBiaDtoFieldAttributeProperties();
                 return biaDtoFieldAttributeProperties;
             }
         }
+
+        public bool AsLocalDateTime { get; set; }
 
         private string GenerateBiaDtoFieldAttributeProperties()
         {
@@ -79,6 +81,11 @@
             if (!string.IsNullOrWhiteSpace(MappingDateType))
             {
                 attributeProperties.Add($"Type = \"{MappingDateType.ToLower()}\"");
+            }
+
+            if (AsLocalDateTime)
+            {
+                attributeProperties.Add($"AsLocalDateTime = true");
             }
 
             return string.Join(", ", attributeProperties);
@@ -113,7 +120,14 @@
                 switch (MappingDateType)
                 {
                     case "datetime":
-                        return $"CSVDateTime(x.{MappingName})";
+                        if (AsLocalDateTime)
+                        {
+                            return $"CSVDateTime(x.{MappingName}{(IsRequired ? "" : "?")}.UtcDateTime)";
+                        }
+                        else
+                        {
+                            return $"CSVDateTime(x.{MappingName})";
+                        }
                     case "date":
                         return $"CSVDate(x.{MappingName})";
                     case "time":

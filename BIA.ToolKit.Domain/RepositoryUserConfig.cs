@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain
+namespace BIA.ToolKit.Domain
 {
     using System;
     using System.Collections.Generic;
@@ -32,6 +32,8 @@
 
         public string ReleasesFolderRegexPattern { get; set; }
 
+        public string ReleasesTagContentFolder { get; set; }
+
         public ReleaseType ReleaseType { get; set; }
 
         public string Url { get; set; }
@@ -48,7 +50,7 @@
 
         public bool IsVersionXYZ { get; set; }
 
-        public bool UseDownloadedReleases => throw new NotImplementedException();
+        public bool UseDownloadedReleases { get; set; }
 
         public void Clean()
         {
