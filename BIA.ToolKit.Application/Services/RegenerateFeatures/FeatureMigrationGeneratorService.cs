@@ -111,7 +111,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
 
             if (entity.DtoHistory != null && entity.DtoStatus == RegenerableFeatureStatus.Ready)
             {
-                await TryGenerateDtoAsync(entity.DtoHistory, targetProject, fileGenerator);
+                await TryGenerateDtoAsync(entity, targetProject, fileGenerator);
             }
 
             if (entity.CrudHistory != null && entity.CrudStatus == RegenerableFeatureStatus.Ready)
@@ -135,8 +135,6 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     DomainName = history.Domain,
                     EntityName = history.EntityNameSingular,
                     EntityNamePlural = history.EntityNamePlural,
-                    // BaseKeyType is not stored in the Option history — derive it from the parsed
-                    // domain entity (available when the solution has been parsed before migration).
                     BaseKeyType = entity.OptionEntityInfo?.BaseKeyType,
                     DisplayName = history.DisplayItem,
                     AngularFront = history.BiaFront,
@@ -152,10 +150,11 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         }
 
         private async Task TryGenerateDtoAsync(
-            DtoGeneration history,
+            RegenerableEntity entity,
             Project targetProject,
             FileGeneratorService fileGenerator)
         {
+            DtoGeneration history = entity.DtoHistory;
             try
             {
                 var properties = history.PropertyMappings.Select(pm => new MappingEntityProperty
@@ -181,8 +180,8 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     ProjectName = targetProject.Name,
                     DomainName = history.Domain,
                     EntityName = history.EntityName,
-                    EntityNamePlural = history.EntityName ?? history.EntityName.Pluralize(),
-                    BaseKeyType = history.EntityBaseKeyType ?? "int",
+                    EntityNamePlural = history.EntityNamePlural ?? history.EntityName.Pluralize(),
+                    BaseKeyType = history.EntityBaseKeyType ?? entity.DtoEntityInfo?.BaseKeyType,
                     Properties = properties,
                     IsTeam = history.IsTeam,
                     IsVersioned = history.IsVersioned,

@@ -81,7 +81,6 @@ namespace BIA.ToolKit.UserControls
         private void OnProjectChanged(Project project)
         {
             currentProject = project;
-            LoadFeatures();
         }
 
         private void OnSolutionClassesParsed()
@@ -104,11 +103,6 @@ namespace BIA.ToolKit.UserControls
             {
                 consoleWriter?.AddMessageLine($"Error loading regenerable features: {ex.Message}", "orange");
             }
-        }
-
-        private void Reload_Click(object sender, RoutedEventArgs e)
-        {
-            LoadFeatures();
         }
 
         private void Regenerate_Click(object sender, RoutedEventArgs e)
@@ -351,6 +345,9 @@ namespace BIA.ToolKit.UserControls
                 OptionStatus = includeOption ? row.Entity.OptionStatus : RegenerableFeatureStatus.Missing,
                 DtoHistory = includeDto ? row.Entity.DtoHistory : null,
                 DtoStatus = includeDto ? row.Entity.DtoStatus : RegenerableFeatureStatus.Missing,
+                OptionEntityInfo = row.Entity.OptionEntityInfo,
+                DtoEntityInfo = row.Entity.DtoEntityInfo,
+                CrudEntityInfo = row.Entity.CrudEntityInfo
             };
         }
 

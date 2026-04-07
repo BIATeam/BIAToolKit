@@ -116,6 +116,9 @@ namespace BIA.ToolKit.Application.ViewModel
                     ParentEntityName = entity.ParentEntityName,
                     HasParentDependency = entity.HasParentDependency,
                     OptionDependencies = entity.OptionDependencies,
+                    OptionEntityInfo = entity.OptionEntityInfo,
+                    DtoEntityInfo = entity.DtoEntityInfo,
+                    CrudEntityInfo = entity.CrudEntityInfo
                 };
 
                 var row = new RegenerableEntityRowViewModel(filteredEntity);
