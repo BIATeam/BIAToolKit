@@ -10,15 +10,11 @@ namespace BIA.ToolKit.Infrastructure
     /// <summary>
     /// WPF implementation of IDialogService.
     /// Responsible for creating and showing dialog windows.
+    /// Owner window is resolved lazily to avoid circular DI dependencies.
     /// </summary>
     public class DialogService : IDialogService
     {
-        private readonly Window owner;
-
-        public DialogService(Window owner)
-        {
-            this.owner = owner;
-        }
+        private Window Owner => Application.Current.MainWindow;
 
         public bool? ShowLogDetail(List<LogMessage> messages)
         {
@@ -26,7 +22,7 @@ namespace BIA.ToolKit.Infrastructure
                 .Select(m => new ConsoleWriter.Message { message = m.Text, color = m.Color })
                 .ToList();
 
-            var dialog = new LogDetailUC { Owner = owner };
+            var dialog = new LogDetailUC { Owner = Owner };
             return dialog.ShowDialogWithMessages(wpfMessages);
         }
 
@@ -37,7 +33,7 @@ namespace BIA.ToolKit.Infrastructure
 
         public bool Confirm(string message, string title = "Warning")
         {
-            var result = MessageBox.Show(owner, message, title, MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            var result = MessageBox.Show(Owner, message, title, MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
             return result == MessageBoxResult.OK;
         }
     }

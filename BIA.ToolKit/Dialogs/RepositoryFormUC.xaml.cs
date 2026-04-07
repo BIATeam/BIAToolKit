@@ -15,7 +15,7 @@
 
         public RepositoryFormUC(RepositoryViewModel repository, GitService gitService, UIEventBroker eventBroker, IConsoleWriter consoleWriter)
         {
-            DataContext = new RepositoryFormViewModel(repository, gitService, eventBroker, consoleWriter, new DialogService(this));
+            DataContext = new RepositoryFormViewModel(repository, gitService, eventBroker, consoleWriter, App.GetService<IDialogService>());
             InitializeComponent();
         }
 

@@ -51,7 +51,6 @@
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
             IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService)
         {
-
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
 
@@ -70,10 +69,10 @@
             InitializeComponent();
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
-            this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this, new DialogService(this));
+            this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this, App.GetService<IDialogService>());
 
-            // Wire child controls that still use the Inject pattern
             CreateVersionAndOption.DataContext = App.GetService<VersionAndOptionViewModel>();
+
             ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
                 projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService, uiEventBroker);
 

@@ -59,7 +59,7 @@
             services.AddTransient<ModifyProjectViewModel>();
 
             // Infrastructure
-            services.AddSingleton<IDialogService>(sp => new DialogService(sp.GetRequiredService<MainWindow>()));
+            services.AddSingleton<IDialogService, DialogService>();
 
             // Views
             services.AddSingleton<MainWindow>();
