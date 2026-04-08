@@ -43,8 +43,14 @@ namespace BIA.ToolKit
             services.AddSingleton<SettingsService>();
             services.AddSingleton<FileGeneratorService>();
             services.AddSingleton<UpdateService>();
+            services.AddSingleton<TemplateVersionService>();
+            services.AddSingleton<FeatureSettingService>();
+            services.AddSingleton<Application.Services.DtoMappingService>();
+            services.AddSingleton<Application.Services.EntityResolutionService>();
+            services.AddSingleton<Application.Services.GenerationHistoryService>();
             services.AddSingleton<Application.Services.RegenerateFeatures.RegenerateFeaturesDiscoveryService>();
             services.AddSingleton<Application.Services.RegenerateFeatures.FeatureMigrationGeneratorService>();
+            services.AddSingleton<Application.Services.RegenerateFeatures.RegenerationOrchestrationService>();
             services.AddSingleton<Application.ViewModel.ProjectViewModel>();
             services.AddLogging();
         }

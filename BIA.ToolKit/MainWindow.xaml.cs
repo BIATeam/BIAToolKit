@@ -50,8 +50,10 @@ namespace BIA.ToolKit
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
             IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService,
             Application.Services.RegenerateFeatures.RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
-            Application.Services.RegenerateFeatures.FeatureMigrationGeneratorService featureMigrationGeneratorService,
-            Application.ViewModel.ProjectViewModel projectViewModel)
+            Application.Services.RegenerateFeatures.RegenerationOrchestrationService regenerationOrchestrationService,
+            TemplateVersionService templateVersionService, FeatureSettingService featureSettingService,
+            Application.ViewModel.ProjectViewModel projectViewModel,
+            Application.Services.DtoMappingService dtoMappingService)
         {
 
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
@@ -71,11 +73,12 @@ namespace BIA.ToolKit
 
             InitializeComponent();
 
-            CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
+            CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, templateVersionService, featureSettingService);
             projectViewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
             ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, settingsService, uiEventBroker, regenerateFeaturesDiscoveryService, featureMigrationGeneratorService, projectViewModel);
-            GenerateProject.Inject(projectViewModel, cSharpParserService, zipParserService, crudService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker);
+                projectCreatorService, settingsService, uiEventBroker, regenerateFeaturesDiscoveryService, regenerationOrchestrationService,
+                templateVersionService, featureSettingService, projectViewModel);
+            GenerateProject.Inject(projectViewModel, cSharpParserService, zipParserService, crudService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker, dtoMappingService);
 
             this.consoleWriter = (ConsoleWriter)consoleWriter;
             this.consoleWriter.InitOutput(OutputText, OutputTextViewer, this);

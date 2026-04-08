@@ -209,7 +209,7 @@ namespace BIA.ToolKit.UserControls
                             history.OptionItems.ForEach(o =>
                             {
                                 OptionItem item = vm.OptionItems.FirstOrDefault(x => x.OptionName == o);
-                                if (item != null) item.Check = item != null;
+                                item?.Check = item != null;
                             });
                         }
 
@@ -465,10 +465,7 @@ namespace BIA.ToolKit.UserControls
                     if (project.FrameworkVersion == "3.9.0")
                     {
                         FeatureGenerationSettings crudPlanesFeature = backSettingsList.FirstOrDefault(x => x.Feature == "crud-planes");
-                        if (crudPlanesFeature != null)
-                        {
-                            crudPlanesFeature.Feature = "planes";
-                        }
+                        crudPlanesFeature?.Feature = "planes";
                     }
                 }
 

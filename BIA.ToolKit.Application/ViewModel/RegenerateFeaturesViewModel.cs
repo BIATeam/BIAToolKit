@@ -13,7 +13,14 @@ namespace BIA.ToolKit.Application.ViewModel
     /// </summary>
     public class RegenerateFeaturesViewModel : ObservableObject
     {
+        /// <summary>Minimum framework version from which CRUD and Option migration is supported.</summary>
+        private static readonly Version MinVersionCrudOption = new(5, 0, 0);
+
+        /// <summary>Minimum framework version from which DTO migration is supported.</summary>
+        private static readonly Version MinVersionDto = new(4, 0, 0);
+
         private bool isLoaded;
+        private bool isRefreshing;
         private List<string> availableVersions = [];
 
         public ObservableCollection<RegenerableEntityRowViewModel> EntityRows { get; } = [];
@@ -74,15 +81,47 @@ namespace BIA.ToolKit.Application.ViewModel
             foreach (RegenerableEntity entity in allEntities)
             {
                 // Show only entities that have at least one feature where the stored version is
-                // lower than the current project version, or no version is stored.
-                bool showCrud = entity.HasCrudHistory && IsEligible(entity.CrudHistory?.FrameworkVersion, projectVersion);
-                bool showOption = entity.HasOptionHistory && IsEligible(entity.OptionHistory?.FrameworkVersion, projectVersion);
-                bool showDto = entity.HasDtoHistory && IsEligible(entity.DtoHistory?.FrameworkVersion, projectVersion);
+                // lower than the current project version, or no version is stored,
+                // AND the stored version meets the minimum migration compatibility requirement
+                // (>= 5.0.0 for CRUD/Option, >= 4.0.0 for DTO).
+                bool showCrud = entity.HasCrudHistory
+                    && IsEligible(entity.CrudHistory?.FrameworkVersion, projectVersion)
+                    && IsMigrationCompatible(entity.CrudHistory?.FrameworkVersion, MinVersionCrudOption);
+                bool showOption = entity.HasOptionHistory
+                    && IsEligible(entity.OptionHistory?.FrameworkVersion, projectVersion)
+                    && IsMigrationCompatible(entity.OptionHistory?.FrameworkVersion, MinVersionCrudOption);
+                bool showDto = entity.HasDtoHistory
+                    && IsEligible(entity.DtoHistory?.FrameworkVersion, projectVersion)
+                    && IsMigrationCompatible(entity.DtoHistory?.FrameworkVersion, MinVersionDto);
 
                 if (!showCrud && !showOption && !showDto)
                     continue;
 
-                var row = new RegenerableEntityRowViewModel(entity);
+                // Build a filtered copy of the entity that only includes features eligible for
+                // regeneration (stored version absent or lower than the current project version).
+                // This ensures feature checkboxes are only visible for features that need updating.
+                var filteredEntity = new RegenerableEntity
+                {
+                    EntityNameSingular = entity.EntityNameSingular,
+                    EntityNamePlural = entity.EntityNamePlural,
+                    CrudHistory = showCrud ? entity.CrudHistory : null,
+                    CrudStatus = showCrud ? entity.CrudStatus : RegenerableFeatureStatus.Missing,
+                    CrudWarningMessage = showCrud ? entity.CrudWarningMessage : null,
+                    OptionHistory = showOption ? entity.OptionHistory : null,
+                    OptionStatus = showOption ? entity.OptionStatus : RegenerableFeatureStatus.Missing,
+                    OptionWarningMessage = showOption ? entity.OptionWarningMessage : null,
+                    DtoHistory = showDto ? entity.DtoHistory : null,
+                    DtoStatus = showDto ? entity.DtoStatus : RegenerableFeatureStatus.Missing,
+                    DtoWarningMessage = showDto ? entity.DtoWarningMessage : null,
+                    ParentEntityName = entity.ParentEntityName,
+                    HasParentDependency = entity.HasParentDependency,
+                    OptionDependencies = entity.OptionDependencies,
+                    OptionEntityInfo = entity.OptionEntityInfo,
+                    DtoEntityInfo = entity.DtoEntityInfo,
+                    CrudEntityInfo = entity.CrudEntityInfo
+                };
+
+                var row = new RegenerableEntityRowViewModel(filteredEntity);
                 row.SelectionChanged += (_, _) => RefreshSelectedFeatures();
                 EntityRows.Add(row);
             }
@@ -95,33 +134,145 @@ namespace BIA.ToolKit.Application.ViewModel
         /// <summary>Refresh the summary list of features to regenerate from the current checkbox state.</summary>
         public void RefreshSelectedFeatures()
         {
-            // Unsubscribe previous items before clearing to avoid stale handlers
-            foreach (FeatureRegenerationItem item in SelectedFeatures)
-                item.PropertyChanged -= OnFeatureItemPropertyChanged;
+            // Guard against re-entrant calls (e.g. triggered by SynchronizeParentChildSelection)
+            if (isRefreshing) return;
+            isRefreshing = true;
 
-            SelectedFeatures.Clear();
-
-            // Ordered by dependency: DTO first, then Option, then CRUD
-            foreach (RegenerableEntityRowViewModel row in EntityRows.OrderBy(r => r.EntityNameSingular))
+            try
             {
-                if (row.IsDtoEnabled && row.IsDtoSelected)
-                    SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "DTO", row.Entity.DtoHistory?.FrameworkVersion));
+                // 1. Auto-select parent entities when their children are selected (cascade up)
+                SynchronizeParentChildSelection();
 
-                if (row.IsOptionEnabled && row.IsOptionSelected)
-                    SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "Option", row.Entity.OptionHistory?.FrameworkVersion));
+                // 2. Unsubscribe previous items before clearing to avoid stale handlers
+                foreach (FeatureRegenerationItem item in SelectedFeatures)
+                    item.PropertyChanged -= OnFeatureItemPropertyChanged;
 
-                if (row.IsCrudEnabled && row.IsCrudSelected)
-                    SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "CRUD", row.Entity.CrudHistory?.FrameworkVersion));
+                SelectedFeatures.Clear();
+
+                // 3. All selected Options first (alphabetical by entity name)
+                foreach (RegenerableEntityRowViewModel row in EntityRows.OrderBy(r => r.EntityNameSingular))
+                {
+                    if (row.IsOptionEnabled && row.IsOptionSelected)
+                        SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "Option", row.Entity.OptionHistory?.FrameworkVersion, MinVersionCrudOption));
+                }
+
+                // 4. Collect rows that have at least one of CRUD or DTO selected
+                var crudDtoRows = EntityRows
+                    .Where(r => (r.IsCrudEnabled && r.IsCrudSelected) || (r.IsDtoSelected && r.Entity.CanRegenerateDto))
+                    .ToList();
+
+                // 5. Sort them in dependency order (parents before children, alphabetical within same level)
+                List<RegenerableEntityRowViewModel> sortedRows = TopologicalSort(crudDtoRows);
+
+                // 6. For each entity in dependency order: DTO first, then CRUD
+                foreach (RegenerableEntityRowViewModel row in sortedRows)
+                {
+                    // DTO: selected explicitly or forced/locked by CRUD selection (IsDtoSelected=true in both cases)
+                    if (row.IsDtoSelected && row.Entity.CanRegenerateDto)
+                        SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "DTO", row.Entity.DtoHistory?.FrameworkVersion, MinVersionDto));
+
+                    if (row.IsCrudEnabled && row.IsCrudSelected)
+                        SelectedFeatures.Add(BuildItem(row.EntityNameSingular, "CRUD", row.Entity.CrudHistory?.FrameworkVersion, MinVersionCrudOption));
+                }
+
+                // 7. Subscribe to new items so CanRegenerate updates when user picks a FROM version
+                foreach (FeatureRegenerationItem item in SelectedFeatures)
+                    item.PropertyChanged += OnFeatureItemPropertyChanged;
+
+                RaisePropertyChanged(nameof(HasSelectedFeatures));
+                RaisePropertyChanged(nameof(CanRegenerate));
+                RaisePropertyChanged(nameof(SelectAllEntities));
+                RaisePropertyChanged(nameof(SelectedFeatures));
+            }
+            finally
+            {
+                isRefreshing = false;
+            }
+        }
+
+        // ── Private helpers ───────────────────────────────────────────────────
+
+        /// <summary>
+        /// Cascades parent entity selection upward when a child entity has features selected:
+        /// <list type="bullet">
+        ///   <item>Child CRUD selected → auto-select parent CRUD (which mechanically forces parent DTO too).</item>
+        ///   <item>Child DTO selected (without CRUD) → auto-select parent DTO only.</item>
+        ///   <item>Child Option selected → no parent cascade needed (options are independent).</item>
+        /// </list>
+        /// Iterates until the selection state is stable (handles multi-level hierarchies).
+        /// </summary>
+        private void SynchronizeParentChildSelection()
+        {
+            var rowLookup = EntityRows.ToDictionary(r => r.EntityNameSingular, StringComparer.OrdinalIgnoreCase);
+
+            // Safety bound: depth of a valid entity tree is at most EntityRows.Count levels.
+            // The extra + 1 ensures we complete the final stable pass without cutting it short.
+            int maxIterations = EntityRows.Count + 1;
+            int iterations = 0;
+            bool changed = true;
+
+            while (changed && iterations++ < maxIterations)
+            {
+                changed = false;
+
+                foreach (RegenerableEntityRowViewModel childRow in EntityRows)
+                {
+                    if (!childRow.Entity.HasParentDependency || string.IsNullOrEmpty(childRow.Entity.ParentEntityName))
+                        continue;
+
+                    if (!rowLookup.TryGetValue(childRow.Entity.ParentEntityName, out RegenerableEntityRowViewModel parentRow))
+                        continue;
+
+                    // Child CRUD selected → auto-select parent CRUD (which also auto-locks parent DTO via the CRUD→DTO coupling).
+                    if (childRow.IsCrudSelected && parentRow.IsCrudEnabled && !parentRow.IsCrudSelected)
+                    {
+                        parentRow.IsCrudSelected = true;
+                        changed = true;
+                    }
+                    // Child DTO selected (with or without child CRUD) → auto-select parent DTO if not already selected.
+                    // Note: when child CRUD is also selected the branch above runs and the CRUD→DTO coupling in
+                    // RegenerableEntityRowViewModel.IsCrudSelected will automatically force parent DTO on — so this
+                    // 'else if' branch is only reached when child has DTO without CRUD, which is the desired behaviour.
+                    // (When parent CRUD is already selected, parent DTO is already locked-on, so this is a no-op.)
+                    else if (childRow.IsDtoSelected && parentRow.Entity.CanRegenerateDto && !parentRow.IsDtoSelected)
+                    {
+                        parentRow.IsDtoSelected = true;
+                        changed = true;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the rows sorted in dependency order: parents before their children.
+        /// Rows without a parent (or whose parent is not in the list) appear first, sorted alphabetically.
+        /// </summary>
+        private static List<RegenerableEntityRowViewModel> TopologicalSort(List<RegenerableEntityRowViewModel> rows)
+        {
+            var lookup = rows.ToDictionary(r => r.EntityNameSingular, StringComparer.OrdinalIgnoreCase);
+            var result = new List<RegenerableEntityRowViewModel>(rows.Count);
+            var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            void Visit(RegenerableEntityRowViewModel row)
+            {
+                if (visited.Contains(row.EntityNameSingular))
+                    return;
+
+                visited.Add(row.EntityNameSingular);
+
+                // Visit the parent first (if it is among the selected rows)
+                string parentName = row.Entity.ParentEntityName;
+                if (!string.IsNullOrEmpty(parentName) && lookup.TryGetValue(parentName, out RegenerableEntityRowViewModel parentRow))
+                    Visit(parentRow);
+
+                result.Add(row);
             }
 
-            // Subscribe to new items so CanRegenerate updates when user picks a FROM version
-            foreach (FeatureRegenerationItem item in SelectedFeatures)
-                item.PropertyChanged += OnFeatureItemPropertyChanged;
+            // Iterate in alphabetical order so siblings appear in a predictable order
+            foreach (RegenerableEntityRowViewModel row in rows.OrderBy(r => r.EntityNameSingular))
+                Visit(row);
 
-            RaisePropertyChanged(nameof(HasSelectedFeatures));
-            RaisePropertyChanged(nameof(CanRegenerate));
-            RaisePropertyChanged(nameof(SelectAllEntities));
-            RaisePropertyChanged(nameof(SelectedFeatures));
+            return result;
         }
 
         private void OnFeatureItemPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -130,17 +281,21 @@ namespace BIA.ToolKit.Application.ViewModel
                 RaisePropertyChanged(nameof(CanRegenerate));
         }
 
-        // ── helpers ───────────────────────────────────────────────────────────
-
-        private FeatureRegenerationItem BuildItem(string entityName, string featureType, string storedVersion)
+        private FeatureRegenerationItem BuildItem(string entityName, string featureType, string storedVersion, Version minVersion)
         {
+            // When no stored version exists the user must pick one from the dropdown.
+            // Only offer versions that satisfy the minimum migration requirement for this feature type.
+            IEnumerable<string> versions = string.IsNullOrEmpty(storedVersion)
+                ? availableVersions.Where(v => IsMigrationCompatible(v, minVersion))
+                : availableVersions;
+
             return new FeatureRegenerationItem
             {
                 EntityNameSingular = entityName,
                 FeatureType = featureType,
                 StoredFromVersion = storedVersion,
                 ToVersion = CurrentProject?.FrameworkVersion,
-                AvailableVersions = new ObservableCollection<string>(availableVersions),
+                AvailableVersions = new ObservableCollection<string>(versions),
             };
         }
 
@@ -151,6 +306,19 @@ namespace BIA.ToolKit.Application.ViewModel
 
             Version sv = ParseVersion(storedVersion);
             return sv == null || projectVersion == null || sv < projectVersion;
+        }
+
+        /// <summary>
+        /// Returns true when the stored version satisfies the minimum migration requirement.
+        /// A missing stored version is accepted (the FROM version dropdown will be filtered instead).
+        /// </summary>
+        private static bool IsMigrationCompatible(string storedVersion, Version minVersion)
+        {
+            if (string.IsNullOrEmpty(storedVersion))
+                return true; // No stored version → allowed; the dropdown will enforce the minimum.
+
+            Version sv = ParseVersion(storedVersion);
+            return sv == null || sv >= minVersion;
         }
 
         private static Version ParseVersion(string version)

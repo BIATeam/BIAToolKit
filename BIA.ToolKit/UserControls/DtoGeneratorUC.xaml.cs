@@ -49,7 +49,7 @@ namespace BIA.ToolKit.UserControls
         /// Injection of services.
         /// </summary>
         public void Inject(CSharpParserService parserService, SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
-            UIEventBroker uiEventBroker)
+            UIEventBroker uiEventBroker, DtoMappingService dtoMappingService)
         {
             this.parserService = parserService;
             settings = new(settingsService);
@@ -58,7 +58,7 @@ namespace BIA.ToolKit.UserControls
             this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
             this.uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
 
-            vm.Inject(fileGeneratorService, consoleWriter);
+            vm.Inject(fileGeneratorService, consoleWriter, dtoMappingService);
         }
 
         private void UiEventBroker_OnSolutionClassesParsed()

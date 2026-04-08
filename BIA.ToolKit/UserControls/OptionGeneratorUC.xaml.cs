@@ -401,6 +401,7 @@ namespace BIA.ToolKit.UserControls
                     Domain = vm.Domain,
                     BiaFront = vm.BiaFront,
                     UseHubClient = vm.UseHubClient,
+                    EntityNamespace = vm.Entity.Namespace,
 
                     // Create "Mapping" part
                     Mapping = new()

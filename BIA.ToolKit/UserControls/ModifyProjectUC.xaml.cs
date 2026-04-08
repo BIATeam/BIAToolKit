@@ -36,8 +36,6 @@ namespace BIA.ToolKit.UserControls
         CRUDSettings crudSettings;
         UIEventBroker uiEventBroker;
         SettingsService settingsService;
-        RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService;
-        FeatureMigrationGeneratorService featureMigrationGeneratorService;
 
         public ModifyProjectViewModel ViewModel => _viewModel;
 
@@ -49,7 +47,9 @@ namespace BIA.ToolKit.UserControls
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, SettingsService settingsService,
             UIEventBroker uiEventBroker, RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
-            FeatureMigrationGeneratorService featureMigrationGeneratorService, ProjectViewModel projectViewModel)
+            RegenerationOrchestrationService regenerationOrchestrationService,
+            TemplateVersionService templateVersionService, FeatureSettingService featureSettingService,
+            ProjectViewModel projectViewModel)
         {
             _viewModel = new ModifyProjectViewModel(uiEventBroker);
             DataContext = _viewModel;
@@ -58,10 +58,8 @@ namespace BIA.ToolKit.UserControls
             this.consoleWriter = consoleWriter;
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
-            MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
-            MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker);
-            this.regenerateFeaturesDiscoveryService = regenerateFeaturesDiscoveryService;
-            this.featureMigrationGeneratorService = featureMigrationGeneratorService;
+            MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, templateVersionService, featureSettingService);
+            MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, templateVersionService, featureSettingService);
             crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.settingsService = settingsService;
@@ -69,9 +67,8 @@ namespace BIA.ToolKit.UserControls
             ProjectSelector.Inject(projectViewModel);
             ProjectSelector.RootPathTextChanged += (_, _) => ParameterModifyChange();
 
-            RegenerateFeatures.Inject(consoleWriter, uiEventBroker, settingsService,
-                regenerateFeaturesDiscoveryService, featureMigrationGeneratorService,
-                gitService, cSharpParserService);
+            RegenerateFeatures.Inject(consoleWriter, uiEventBroker,
+                regenerateFeaturesDiscoveryService, regenerationOrchestrationService);
 
             uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
         }
@@ -114,9 +111,9 @@ namespace BIA.ToolKit.UserControls
 
         private void ParameterModifyChange()
         {
-            if (MigrateOpenFolder != null) MigrateOpenFolder.IsEnabled = false;
-            if (MigrateApplyDiff != null) MigrateApplyDiff.IsEnabled = false;
-            if (MigrateMergeRejected != null) MigrateMergeRejected.IsEnabled = false;
+            MigrateOpenFolder?.IsEnabled = false;
+            MigrateApplyDiff?.IsEnabled = false;
+            MigrateMergeRejected?.IsEnabled = false;
         }
 
         private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)

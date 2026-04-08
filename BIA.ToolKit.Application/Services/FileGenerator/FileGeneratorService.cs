@@ -44,6 +44,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
         private FileGeneratorContext _currentContext;
         private Manifest _currentManifest;
         private string _prettierAngularProjectPath;
+        private string _prettierAngularProjectPathOverride;
         private bool _fromUnitTest;
 
         public bool IsInit { get; private set; }
@@ -68,6 +69,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             IsInit = false;
             _currentProject = project;
             _fromUnitTest = fromUnitTest;
+            _prettierAngularProjectPathOverride = null;
 
             try
             {
@@ -171,6 +173,41 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
                 throw new Exception($"Unable to init prettier from unexisting front folder {path}");
             }
             _prettierAngularProjectPath = path;
+        }
+
+        /// <summary>
+        /// Sets a prettier path that takes precedence over the project folder path normally derived
+        /// from <see cref="_currentProject"/>. Useful when generating features into a temporary
+        /// folder that does not have <c>node_modules</c> installed.
+        /// The override is cleared automatically when <see cref="Init"/> is called.
+        /// </summary>
+        public void SetPrettierProjectPathOverride(string path)
+        {
+            if (!Directory.Exists(path))
+            {
+                throw new Exception($"Unable to set prettier path override from unexisting folder {path}");
+            }
+            _prettierAngularProjectPathOverride = path;
+        }
+
+        /// <summary>
+        /// Returns all template output paths declared in the current manifest, together with a flag
+        /// indicating whether each path belongs to a DotNet (<c>true</c>) or Angular (<c>false</c>)
+        /// template. Returns an empty collection when the generator is not initialised.
+        /// </summary>
+        public IEnumerable<(string OutputPath, bool IsDotNet)> GetAllManifestOutputPaths()
+        {
+            if (!IsInit || _currentManifest == null)
+                return [];
+
+            var result = new List<(string, bool)>();
+            foreach (Manifest.Feature feature in _currentManifest.Features)
+            {
+                result.AddRange(feature.DotNetTemplates.Select(t => (t.OutputPath, true)));
+                result.AddRange(feature.AngularTemplates.Select(t => (t.OutputPath, false)));
+            }
+
+            return result;
         }
 
         public async Task GenerateDtoAsync(FileGeneratorDtoContext dtoContext)
@@ -333,7 +370,9 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
 
             if (!_fromUnitTest)
             {
-                SetPrettierAngularProjectPath(angularProjectFolder);
+                // Use externally supplied path if set (e.g. when generating into a temp folder that
+                // does not have node_modules); otherwise fall back to the project's own front folder.
+                SetPrettierAngularProjectPath(_prettierAngularProjectPathOverride ?? angularProjectFolder);
             }
 
             await RunGenerateTemplatesAsync(templates, model, GenerateAngularTemplateAsync);

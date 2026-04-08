@@ -245,20 +245,8 @@ namespace BIA.ToolKit.Application.ViewModel
 
         public void SetFeaturesSelection(List<string> projectGenerationTags, List<string> projectGenerationExcludedFolders, List<FeatureSetting> originFeatureSettings)
         {
-            foreach (FeatureSetting feature in FeatureSettings.Select(x => x.FeatureSetting))
-            {
-                bool isFeatureTagUsedInProjectGeneration = projectGenerationTags.Any(feature.Tags.Contains);
-                bool isFeatureExcludedFoldersInProjectGeneration = projectGenerationExcludedFolders.Any(feature.FoldersToExcludes.Contains);
-                bool isSelected = isFeatureTagUsedInProjectGeneration || isFeatureExcludedFoldersInProjectGeneration;
-
-                if (!isSelected && originFeatureSettings is not null)
-                {
-                    FeatureSetting originFeature = originFeatureSettings.FirstOrDefault(x => x.Id == feature.Id);
-                    isSelected = originFeature is null && feature.IsSelected;
-                }
-
-                feature.IsSelected = isSelected;
-            }
+            FeatureSettingService.ApplyFeaturesSelection(
+                VersionAndOption.FeatureSettings, projectGenerationTags, projectGenerationExcludedFolders, originFeatureSettings);
         }
 
         public bool HasFeature
