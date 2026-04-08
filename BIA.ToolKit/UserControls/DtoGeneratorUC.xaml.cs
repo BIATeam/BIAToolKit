@@ -49,7 +49,7 @@ namespace BIA.ToolKit.UserControls
         /// Injection of services.
         /// </summary>
         public void Inject(CSharpParserService parserService, SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
-            UIEventBroker uiEventBroker, Application.Services.DtoMappingService dtoMappingService)
+            UIEventBroker uiEventBroker, DtoMappingService dtoMappingService)
         {
             this.parserService = parserService;
             settings = new(settingsService);
