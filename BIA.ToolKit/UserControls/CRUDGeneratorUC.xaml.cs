@@ -266,6 +266,7 @@ namespace BIA.ToolKit.UserControls
             uiEventBroker.RequestExecuteActionWithWaiter(async ct =>
             {
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
+                {
                     await fileGeneratorService.GenerateCRUDAsync(new FileGeneratorCrudContext
                     {
                         CompanyName = vm.CurrentProject.CompanyName,
