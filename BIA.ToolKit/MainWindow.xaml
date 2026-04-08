@@ -249,10 +249,24 @@
                 <TextBlock Name="OutputText" TextWrapping="Wrap" LineHeight="10" Padding="5" Background="#1a1a1a" >
                 </TextBlock>
             </ScrollViewer>
-            <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Right" Margin="0,5,0,0">
-                <Button Content="Clear" Margin="0,0,5,0"  Click="ClearConsole_Click" Style="{StaticResource MaterialDesignOutlinedSecondaryDarkButton}"/>
-                <Button Content="Copy to clipboard" Click="CopyConsoleContentToClipboard_Click" Style="{StaticResource MaterialDesignOutlinedSecondaryDarkButton}"/>
-            </StackPanel>
+            <Grid Grid.Row="2" Margin="0,5,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button x:Name="StopButton" Grid.Column="0" IsEnabled="False" Click="StopButton_Click"
+                        Background="Red" Foreground="White" BorderBrush="DarkRed"
+                        ToolTip="Interrompre l'action en cours" Padding="8,4">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="StopCircle" Height="16" Width="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="STOP" Margin="4,0,0,0" VerticalAlignment="Center" FontWeight="Bold"/>
+                    </StackPanel>
+                </Button>
+                <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
+                    <Button Content="Clear" Margin="0,0,5,0"  Click="ClearConsole_Click" Style="{StaticResource MaterialDesignOutlinedSecondaryDarkButton}"/>
+                    <Button Content="Copy to clipboard" Click="CopyConsoleContentToClipboard_Click" Style="{StaticResource MaterialDesignOutlinedSecondaryDarkButton}"/>
+                </StackPanel>
+            </Grid>
         </Grid>
 
         <Grid x:Name="Waiter" Visibility="Visible" d:Visibility="Hidden">

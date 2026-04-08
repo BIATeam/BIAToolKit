@@ -323,22 +323,50 @@ namespace BIA.ToolKit
         }
 
         private readonly SemaphoreSlim semaphore = new(1, 1);
+        private CancellationTokenSource currentCts;
+
         private async Task ExecuteTaskWithWaiterAsync(Func<Task> task)
         {
             await semaphore.WaitAsync();
+            currentCts = new CancellationTokenSource();
+            uiEventBroker.SetCurrentCancellationToken(currentCts.Token);
             await Dispatcher.InvokeAsync(async () =>
             {
                 try
                 {
+                    StopButton.IsEnabled = true;
                     Waiter.Visibility = Visibility.Visible;
-                    await task().ConfigureAwait(true);
+
+                    var cancellationTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    using var registration = currentCts.Token.Register(() => cancellationTcs.TrySetResult(true));
+
+                    var runningTask = task();
+                    var completedTask = await Task.WhenAny(runningTask, cancellationTcs.Task).ConfigureAwait(true);
+
+                    if (completedTask == cancellationTcs.Task)
+                    {
+                        consoleWriter.AddMessageLine("⛔ Action interrompue par l'utilisateur.", "Orange");
+                    }
+                    else
+                    {
+                        await runningTask.ConfigureAwait(true);
+                    }
                 }
                 finally
                 {
+                    currentCts?.Dispose();
+                    currentCts = null;
+                    uiEventBroker.SetCurrentCancellationToken(CancellationToken.None);
+                    StopButton.IsEnabled = false;
                     semaphore.Release();
                     Waiter.Visibility = Visibility.Hidden;
                 }
             }).Task.Unwrap();
+        }
+
+        private void StopButton_Click(object sender, RoutedEventArgs e)
+        {
+            currentCts?.Cancel();
         }
 
         private void CreateProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using BIA.ToolKit.Application.ViewModel;
 using BIA.ToolKit.Domain;
@@ -32,6 +33,13 @@ namespace BIA.ToolKit.Application.Services
         public delegate void SolutionClassesParsed();
         public delegate void OriginFeatureSettingsChanged(List<FeatureSetting> featureSettings);
         public delegate void RepositoryViewModelReleaseDataUpdated(RepositoryViewModel repository);
+
+        public CancellationToken CurrentCancellationToken { get; private set; } = CancellationToken.None;
+
+        public void SetCurrentCancellationToken(CancellationToken token)
+        {
+            CurrentCancellationToken = token;
+        }
 
         public event ProjectChanged OnProjectChanged;
         public event NewVersionAvailable OnNewVersionAvailable;
