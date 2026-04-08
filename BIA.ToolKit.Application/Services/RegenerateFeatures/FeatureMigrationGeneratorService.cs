@@ -7,8 +7,8 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
-    using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
@@ -17,36 +17,12 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
     using BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures;
     using BIA.ToolKit.Domain.ProjectAnalysis;
-    using Humanizer;
 
     public class FeatureMigrationGeneratorService(IConsoleWriter consoleWriter, DtoMappingService dtoMappingService)
     {
-        private class MutedConsoleWriter : IConsoleWriter
-        {
-            public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
-            {
-                return;
-            }
-        }
-
-        private const int REGENERATE_FEATURES_VERSION_MINIMUM = 500;
         private static readonly Regex PlaceholderPattern = new(@"\{[^}]+\}", RegexOptions.Compiled);
         private readonly IConsoleWriter consoleWriter = consoleWriter;
         private readonly DtoMappingService dtoMappingService = dtoMappingService;
-
-        public static bool IsProjectCompatibleForRegenerateFeatures(Project project)
-        {
-            if (!string.IsNullOrEmpty(project?.FrameworkVersion))
-            {
-                string version = project.FrameworkVersion.Replace(".", "");
-                if (int.TryParse(version, out int value))
-                {
-                    return value >= REGENERATE_FEATURES_VERSION_MINIMUM;
-                }
-            }
-
-            return false;
-        }
 
         /// <summary>
         /// Generates features (CRUD, Option, DTO) into the target project folder (FROM or TO)
@@ -129,20 +105,8 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             OptionGenerationHistory history = entity.OptionHistory;
             try
             {
-                await fileGenerator.GenerateOptionAsync(new FileGeneratorOptionContext
-                {
-                    CompanyName = targetProject.CompanyName,
-                    ProjectName = targetProject.Name,
-                    DomainName = history.Domain,
-                    EntityName = history.EntityNameSingular,
-                    EntityNamePlural = history.EntityNamePlural,
-                    BaseKeyType = entity.OptionEntityInfo?.BaseKeyType,
-                    DisplayName = history.DisplayItem,
-                    AngularFront = history.BiaFront,
-                    UseHubForClient = history.UseHubClient,
-                    GenerateBack = true,
-                    GenerateFront = true,
-                });
+                await fileGenerator.GenerateOptionAsync(
+                    FeatureGenerationContextFactory.CreateOptionContext(history, entity.OptionEntityInfo, targetProject));
             }
             catch (Exception ex)
             {
@@ -162,24 +126,8 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             {
                 List<MappingEntityProperty> properties = BuildDtoMappingProperties(entity, currentProject, parserService, history);
 
-                await fileGenerator.GenerateDtoAsync(new FileGeneratorDtoContext
-                {
-                    CompanyName = targetProject.CompanyName,
-                    ProjectName = targetProject.Name,
-                    DomainName = history.Domain,
-                    EntityName = history.EntityName,
-                    EntityNamePlural = history.EntityNamePlural ?? history.EntityName.Pluralize(),
-                    BaseKeyType = history.EntityBaseKeyType ?? entity.DtoEntityInfo?.BaseKeyType,
-                    Properties = properties,
-                    IsTeam = history.IsTeam,
-                    IsVersioned = history.IsVersioned,
-                    IsArchivable = history.IsArchivable,
-                    IsFixable = history.IsFixable,
-                    AncestorTeamName = history.AncestorTeam,
-                    HasAncestorTeam = !string.IsNullOrEmpty(history.AncestorTeam),
-                    HasAudit = history.UseDedicatedAudit,
-                    GenerateBack = true,
-                });
+                await fileGenerator.GenerateDtoAsync(
+                    FeatureGenerationContextFactory.CreateDtoContext(history, properties, targetProject, entity.DtoEntityInfo));
             }
             catch (Exception ex)
             {
@@ -321,41 +269,8 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                 bool generateFront = history.Generation.Any(g => g.GenerationType == "Front")
                                      && !string.IsNullOrEmpty(history.BiaFront);
 
-                await fileGenerator.GenerateCRUDAsync(new FileGeneratorCrudContext
-                {
-                    CompanyName = targetProject.CompanyName,
-                    ProjectName = targetProject.Name,
-                    DomainName = history.Domain,
-                    EntityName = history.EntityNameSingular,
-                    EntityNamePlural = history.EntityNamePlural,
-                    BaseKeyType = history.EntityBaseKeyType,
-                    IsTeam = history.IsTeam,
-                    Properties = [.. entityInfo.Properties],
-                    OptionItems = history.OptionItems ?? [],
-                    HasParent = history.HasParent,
-                    ParentName = history.ParentName,
-                    ParentNamePlural = history.ParentNamePlural,
-                    AncestorTeamName = history.AncestorTeam,
-                    HasAncestorTeam = !string.IsNullOrEmpty(history.AncestorTeam),
-                    AngularFront = generateFront ? history.BiaFront : null,
-                    GenerateBack = generateBack,
-                    GenerateFront = generateFront,
-                    DisplayItemName = history.DisplayItem,
-                    TeamTypeId = history.TeamTypeId,
-                    TeamRoleId = history.TeamRoleId,
-                    UseHubForClient = history.UseHubClient,
-                    HasCustomRepository = history.UseCustomRepository,
-                    HasReadOnlyMode = history.HasFormReadOnlyMode,
-                    CanImport = history.UseImport,
-                    IsFixable = history.IsFixable,
-                    HasFixableParent = history.HasFixableParent,
-                    HasAdvancedFilter = history.HasAdvancedFilter,
-                    FormReadOnlyMode = history.FormReadOnlyMode,
-                    IsVersioned = history.IsVersioned,
-                    IsArchivable = history.IsArchivable,
-                    DisplayHistorical = history.DisplayHistorical,
-                    UseDomainUrl = history.UseDomainUrl,
-                });
+                await fileGenerator.GenerateCRUDAsync(
+                    FeatureGenerationContextFactory.CreateCrudContext(history, entityInfo, targetProject, generateBack, generateFront));
             }
             catch (Exception ex)
             {

@@ -50,7 +50,7 @@ namespace BIA.ToolKit
             ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
             IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UIEventBroker uiEventBroker, UpdateService updateService,
             Application.Services.RegenerateFeatures.RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
-            Application.Services.RegenerateFeatures.FeatureMigrationGeneratorService featureMigrationGeneratorService,
+            Application.Services.RegenerateFeatures.RegenerationOrchestrationService regenerationOrchestrationService,
             TemplateVersionService templateVersionService, FeatureSettingService featureSettingService,
             Application.ViewModel.ProjectViewModel projectViewModel,
             Application.Services.DtoMappingService dtoMappingService)
@@ -76,7 +76,7 @@ namespace BIA.ToolKit
             CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, templateVersionService, featureSettingService);
             projectViewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
             ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, settingsService, uiEventBroker, regenerateFeaturesDiscoveryService, featureMigrationGeneratorService,
+                projectCreatorService, settingsService, uiEventBroker, regenerateFeaturesDiscoveryService, regenerationOrchestrationService,
                 templateVersionService, featureSettingService, projectViewModel);
             GenerateProject.Inject(projectViewModel, cSharpParserService, zipParserService, crudService, settingsService, consoleWriter, fileGeneratorService, uiEventBroker, dtoMappingService);
 

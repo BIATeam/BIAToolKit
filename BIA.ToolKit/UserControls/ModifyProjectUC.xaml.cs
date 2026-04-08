@@ -36,8 +36,6 @@ namespace BIA.ToolKit.UserControls
         CRUDSettings crudSettings;
         UIEventBroker uiEventBroker;
         SettingsService settingsService;
-        RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService;
-        FeatureMigrationGeneratorService featureMigrationGeneratorService;
 
         public ModifyProjectViewModel ViewModel => _viewModel;
 
@@ -49,7 +47,7 @@ namespace BIA.ToolKit.UserControls
         public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, CSharpParserService cSharpParserService,
             ProjectCreatorService projectCreatorService, SettingsService settingsService,
             UIEventBroker uiEventBroker, RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
-            FeatureMigrationGeneratorService featureMigrationGeneratorService,
+            RegenerationOrchestrationService regenerationOrchestrationService,
             TemplateVersionService templateVersionService, FeatureSettingService featureSettingService,
             ProjectViewModel projectViewModel)
         {
@@ -62,8 +60,6 @@ namespace BIA.ToolKit.UserControls
             this.projectCreatorService = projectCreatorService;
             MigrateOriginVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, templateVersionService, featureSettingService);
             MigrateTargetVersionAndOption.Inject(repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, templateVersionService, featureSettingService);
-            this.regenerateFeaturesDiscoveryService = regenerateFeaturesDiscoveryService;
-            this.featureMigrationGeneratorService = featureMigrationGeneratorService;
             crudSettings = new(settingsService);
             this.uiEventBroker = uiEventBroker;
             this.settingsService = settingsService;
@@ -71,10 +67,8 @@ namespace BIA.ToolKit.UserControls
             ProjectSelector.Inject(projectViewModel);
             ProjectSelector.RootPathTextChanged += (_, _) => ParameterModifyChange();
 
-            RegenerateFeatures.Inject(consoleWriter, uiEventBroker, settingsService,
-                regenerateFeaturesDiscoveryService, featureMigrationGeneratorService,
-                gitService, cSharpParserService, projectCreatorService,
-                templateVersionService, featureSettingService, repositoryService);
+            RegenerateFeatures.Inject(consoleWriter, uiEventBroker,
+                regenerateFeaturesDiscoveryService, regenerationOrchestrationService);
 
             uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
         }
