@@ -157,12 +157,12 @@ namespace BIA.ToolKit.Application.ViewModel
                 }
 
                 // 4. Collect rows that have at least one of CRUD or DTO selected
-                List<RegenerableEntityRowViewModel> crudDtoRows = EntityRows
+                var crudDtoRows = EntityRows
                     .Where(r => (r.IsCrudEnabled && r.IsCrudSelected) || (r.IsDtoSelected && r.Entity.CanRegenerateDto))
                     .ToList();
 
                 // 5. Sort them in dependency order (parents before children, alphabetical within same level)
-                IEnumerable<RegenerableEntityRowViewModel> sortedRows = TopologicalSort(crudDtoRows);
+                List<RegenerableEntityRowViewModel> sortedRows = TopologicalSort(crudDtoRows);
 
                 // 6. For each entity in dependency order: DTO first, then CRUD
                 foreach (RegenerableEntityRowViewModel row in sortedRows)
@@ -247,7 +247,7 @@ namespace BIA.ToolKit.Application.ViewModel
         /// Returns the rows sorted in dependency order: parents before their children.
         /// Rows without a parent (or whose parent is not in the list) appear first, sorted alphabetically.
         /// </summary>
-        private static IEnumerable<RegenerableEntityRowViewModel> TopologicalSort(List<RegenerableEntityRowViewModel> rows)
+        private static List<RegenerableEntityRowViewModel> TopologicalSort(List<RegenerableEntityRowViewModel> rows)
         {
             var lookup = rows.ToDictionary(r => r.EntityNameSingular, StringComparer.OrdinalIgnoreCase);
             var result = new List<RegenerableEntityRowViewModel>(rows.Count);

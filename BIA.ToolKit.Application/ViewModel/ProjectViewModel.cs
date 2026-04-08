@@ -240,7 +240,7 @@ namespace BIA.ToolKit.Application.ViewModel
             await fileGeneratorService.Init(project);
             IsFileGeneratorServiceInit = fileGeneratorService.IsInit;
             IsProjectCompatibleCrudGenerator = GenerateCrudService.IsProjectCompatible(project);
-            IsProjectCompatibleRegenerateFeatures = FeatureMigrationGeneratorService.IsProjectCompatibleForRegenerateFeatures(project);
+            IsProjectCompatibleRegenerateFeatures = RegenerateFeaturesDiscoveryService.IsProjectCompatibleForRegenerateFeatures(project);
         }
 
         private async Task LoadProject(Project project)

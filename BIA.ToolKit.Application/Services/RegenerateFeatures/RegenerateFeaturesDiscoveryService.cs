@@ -169,7 +169,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         /// <summary>
         /// Runs cross-history coherence checks and populates warning messages and blocking statuses.
         /// </summary>
-        private void RunCoherenceChecks(Dictionary<string, RegenerableEntity> entities)
+        private static void RunCoherenceChecks(Dictionary<string, RegenerableEntity> entities)
         {
             foreach (RegenerableEntity entity in entities.Values)
             {

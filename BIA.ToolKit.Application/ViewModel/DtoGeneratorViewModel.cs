@@ -296,7 +296,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 return;
 
             // Delegate to DtoMappingService to keep the tree-building logic in one place.
-            List<EntityProperty> tree = dtoMappingService.BuildEntityPropertyTree(Entity, Entities);
+            List<EntityProperty> tree = DtoMappingService.BuildEntityPropertyTree(Entity, Entities);
             foreach (EntityProperty ep in tree)
                 EntityProperties.Add(ep);
         }

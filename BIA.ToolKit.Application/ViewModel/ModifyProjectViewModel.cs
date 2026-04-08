@@ -33,7 +33,7 @@ namespace BIA.ToolKit.Application.ViewModel
         public string Name => ModifyProject.CurrentProject?.Name ?? "???";
         public string CompanyName => ModifyProject.CurrentProject?.CompanyName ?? "???";
         public bool IsProjectSelected => ModifyProject.CurrentProject != null;
-        public bool IsTabFeaturesEnabled => IsProjectSelected && FeatureMigrationGeneratorService.IsProjectCompatibleForRegenerateFeatures(CurrentProject);
+        public bool IsTabFeaturesEnabled => IsProjectSelected && RegenerateFeaturesDiscoveryService.IsProjectCompatibleForRegenerateFeatures(CurrentProject);
 
         // ── Migration-specific state ─────────────────────────────────────────
         public bool OverwriteBIAFromOriginal { get; set; }

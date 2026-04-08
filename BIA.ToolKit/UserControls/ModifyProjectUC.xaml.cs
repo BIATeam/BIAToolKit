@@ -111,9 +111,9 @@ namespace BIA.ToolKit.UserControls
 
         private void ParameterModifyChange()
         {
-            if (MigrateOpenFolder != null) MigrateOpenFolder.IsEnabled = false;
-            if (MigrateApplyDiff != null) MigrateApplyDiff.IsEnabled = false;
-            if (MigrateMergeRejected != null) MigrateMergeRejected.IsEnabled = false;
+            MigrateOpenFolder?.IsEnabled = false;
+            MigrateApplyDiff?.IsEnabled = false;
+            MigrateMergeRejected?.IsEnabled = false;
         }
 
         private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)

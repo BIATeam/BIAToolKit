@@ -176,7 +176,7 @@ namespace BIA.ToolKit.Application.Services
         /// <see cref="OptionGenerationHistory.EntityNamespace"/> in older history entries.
         /// Returns <see langword="null"/> when the file cannot be found or has no namespace.
         /// </summary>
-        public string ResolveOptionEntityNamespace(OptionGenerationHistory entry, Project project)
+        public static string ResolveOptionEntityNamespace(OptionGenerationHistory entry, Project project)
         {
             string entityPath = FindOptionEntityInProjectFiles(entry, project);
             return entityPath != null ? ReadNamespaceFromCsFile(entityPath) : null;

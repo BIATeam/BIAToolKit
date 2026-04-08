@@ -154,7 +154,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                 ClearProjectPermissions(toPath, currentProject);
 
                 // Build entity list for this version group.
-                List<RegenerableEntity> entities = group
+                var entities = group
                     .Select(feature => BuildEntityForFeature(feature, entityRows))
                     .Where(e => e != null)
                     .ToList();

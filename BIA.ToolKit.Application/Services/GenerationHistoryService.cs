@@ -99,7 +99,7 @@ namespace BIA.ToolKit.Application.Services
                             // the fix so future discovery can use the fast namespace-based path.
                             if (string.IsNullOrEmpty(entry.EntityNamespace))
                             {
-                                string ns = entityResolutionService.ResolveOptionEntityNamespace(entry, project);
+                                string ns = EntityResolutionService.ResolveOptionEntityNamespace(entry, project);
                                 if (!string.IsNullOrEmpty(ns))
                                     entry.EntityNamespace = ns;
                             }

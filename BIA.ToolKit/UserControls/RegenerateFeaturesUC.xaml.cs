@@ -66,7 +66,7 @@ namespace BIA.ToolKit.UserControls
             try
             {
                 List<RegenerableEntity> entities = discoveryService.DiscoverRegenerableEntities(currentProject);
-                List<string> versions = orchestrationService.GetAvailableVersions().Select(w => w.Version).ToList();
+                var versions = orchestrationService.GetAvailableVersions().Select(w => w.Version).ToList();
                 viewModel.Initialize(currentProject, entities, versions);
             }
             catch (Exception ex)
@@ -89,7 +89,7 @@ namespace BIA.ToolKit.UserControls
             }
 
             // Validate all selected features have a FROM version.
-            List<FeatureRegenerationItem> missingVersion = viewModel.SelectedFeatures
+            var missingVersion = viewModel.SelectedFeatures
                 .Where(f => string.IsNullOrEmpty(f.EffectiveFromVersion))
                 .ToList();
 

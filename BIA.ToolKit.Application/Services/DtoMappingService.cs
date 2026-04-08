@@ -67,7 +67,7 @@ namespace BIA.ToolKit.Application.Services
         /// Mirrors <c>DtoGeneratorViewModel.RefreshEntityPropertiesTreeView</c> and
         /// <c>DtoGeneratorViewModel.FillEntityProperties</c>.
         /// </summary>
-        public List<EntityProperty> BuildEntityPropertyTree(EntityInfo entityInfo, IEnumerable<EntityInfo> allDomainEntities)
+        public static List<EntityProperty> BuildEntityPropertyTree(EntityInfo entityInfo, IEnumerable<EntityInfo> allDomainEntities)
         {
             var allEntities = allDomainEntities.ToList();
             var result = new List<EntityProperty>();

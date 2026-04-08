@@ -18,9 +18,9 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     using BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures;
     using BIA.ToolKit.Domain.ProjectAnalysis;
 
-    public class FeatureMigrationGeneratorService(IConsoleWriter consoleWriter, DtoMappingService dtoMappingService)
+    public partial class FeatureMigrationGeneratorService(IConsoleWriter consoleWriter, DtoMappingService dtoMappingService)
     {
-        private static readonly Regex PlaceholderPattern = new(@"\{[^}]+\}", RegexOptions.Compiled);
+        private static readonly Regex PlaceholderPattern = MyRegex();
         private readonly IConsoleWriter consoleWriter = consoleWriter;
         private readonly DtoMappingService dtoMappingService = dtoMappingService;
 
@@ -156,7 +156,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                 {
                     // Build the entity property tree the same way DtoGeneratorViewModel does.
                     IEnumerable<EntityInfo> allDomainEntities = parserService.GetDomainEntities(currentProject);
-                    List<EntityProperty> entityPropertyTree = dtoMappingService.BuildEntityPropertyTree(entity.DtoEntityInfo, allDomainEntities);
+                    List<EntityProperty> entityPropertyTree = DtoMappingService.BuildEntityPropertyTree(entity.DtoEntityInfo, allDomainEntities);
 
                     // Mark only the properties referenced in the generation history as selected.
                     var selectedNames = new HashSet<string>(
@@ -205,7 +205,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
 
             // Fallback: build from history data only. Missing fields: EntityType (real C# type),
             // OptionType, OptionRelationType, OptionRelationFirstIdProperty, OptionRelationSecondIdProperty.
-            return history.PropertyMappings.Select(pm => new MappingEntityProperty
+            return [.. history.PropertyMappings.Select(pm => new MappingEntityProperty
             {
                 EntityCompositeName = pm.EntityPropertyCompositeName,
                 MappingName = pm.MappingName ?? pm.EntityPropertyCompositeName,
@@ -220,7 +220,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     : !string.IsNullOrEmpty(pm.OptionMappingIdProperty)
                         ? Constants.BiaClassName.OptionDto
                         : string.Empty,
-            }).ToList();
+            })];
         }
 
         private static IEnumerable<EntityProperty> GetAllEntityPropertiesRecursively(IEnumerable<EntityProperty> properties)
@@ -309,7 +309,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         /// and empty directories are removed. This limits the FROM/TO diff to feature-relevant
         /// files only.
         /// </summary>
-        private async Task CleanProjectForFeatureGenerationAsync(FileGeneratorService fileGenerator, Project targetProject)
+        private static async Task CleanProjectForFeatureGenerationAsync(FileGeneratorService fileGenerator, Project targetProject)
         {
             var manifestPaths = fileGenerator.GetAllManifestOutputPaths().ToList();
             string projectPrefix = $"{targetProject.CompanyName}.{targetProject.Name}";
@@ -373,5 +373,8 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     Directory.Delete(subdirectory);
             }
         }
+
+        [GeneratedRegex(@"\{[^}]+\}", RegexOptions.Compiled)]
+        private static partial Regex MyRegex();
     }
 }
