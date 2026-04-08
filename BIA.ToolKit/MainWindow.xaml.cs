@@ -120,7 +120,7 @@ namespace BIA.ToolKit
 
         public async Task Init()
         {
-            await ExecuteTaskWithWaiterAsync(async ct =>
+            await ExecuteTaskWithWaiterAsync(async () =>
             {
                 await InitSettings();
 
@@ -325,17 +325,18 @@ namespace BIA.ToolKit
         private readonly SemaphoreSlim semaphore = new(1, 1);
         private CancellationTokenSource currentCts;
 
-        private async Task ExecuteTaskWithWaiterAsync(Func<CancellationToken, Task> task)
+        private async Task ExecuteTaskWithWaiterAsync(Func<Task> task)
         {
             await semaphore.WaitAsync();
             await Dispatcher.InvokeAsync(async () =>
             {
                 currentCts = new CancellationTokenSource();
+                uiEventBroker.SetCurrentTokenSource(currentCts);
                 try
                 {
                     StopButton.IsEnabled = true;
                     Waiter.Visibility = Visibility.Visible;
-                    await task(currentCts.Token).ConfigureAwait(true);
+                    await task();
                 }
                 catch (OperationCanceledException)
                 {
@@ -343,6 +344,7 @@ namespace BIA.ToolKit
                 }
                 finally
                 {
+                    uiEventBroker.SetCurrentTokenSource(null);
                     currentCts?.Dispose();
                     currentCts = null;
                     StopButton.IsEnabled = false;
@@ -421,7 +423,7 @@ namespace BIA.ToolKit
                 return;
             }
 
-            await ExecuteTaskWithWaiterAsync(async ct =>
+            await ExecuteTaskWithWaiterAsync(async () =>
             {
                 await projectCreatorService.Create(
                     true,
@@ -505,7 +507,7 @@ namespace BIA.ToolKit
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    await ExecuteTaskWithWaiterAsync(_ => updateService.DownloadUpdateAsync());
+                    await ExecuteTaskWithWaiterAsync(updateService.DownloadUpdateAsync);
                 }
             }
             catch (Exception ex)
@@ -526,7 +528,7 @@ namespace BIA.ToolKit
 
         private async void CheckUpdateButton_Click(object sender, RoutedEventArgs e)
         {
-            await ExecuteTaskWithWaiterAsync(_ => updateService.CheckForUpdatesAsync());
+            await ExecuteTaskWithWaiterAsync(updateService.CheckForUpdatesAsync);
         }
 
         private async void ImportConfigButton_Click(object sender, RoutedEventArgs e)
@@ -540,7 +542,7 @@ namespace BIA.ToolKit
 
             consoleWriter.AddMessageLine($"New configuration imported from {configFile}", "yellow");
 
-            await ExecuteTaskWithWaiterAsync(async ct =>
+            await ExecuteTaskWithWaiterAsync(async () =>
             {
                 await GetReleasesData(config, true);
 

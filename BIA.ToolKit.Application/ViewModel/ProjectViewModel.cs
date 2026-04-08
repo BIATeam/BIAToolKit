@@ -156,7 +156,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 if (value == Folder)
                     return;
 
-                eventBroker.RequestExecuteActionWithWaiter(async ct =>
+                eventBroker.RequestExecuteActionWithWaiter(async () =>
                 {
                     IsFileGeneratorServiceInit = false;
                     IsProjectCompatibleCrudGenerator = false;
@@ -317,7 +317,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
         private void RefreshProjectInformations()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async ct =>
+            eventBroker.RequestExecuteActionWithWaiter(async () =>
             {
                 await LoadProject(CurrentProject);
                 await InitFileGeneratorServiceFromProject(CurrentProject);

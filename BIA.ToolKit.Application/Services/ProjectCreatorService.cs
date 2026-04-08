@@ -7,6 +7,7 @@ namespace BIA.ToolKit.Application.Services
     using System.Text;
     using System.Text.Json;
     using System.Text.RegularExpressions;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Xml.Linq;
     using BIA.ToolKit.Application.Helper;
@@ -18,11 +19,13 @@ namespace BIA.ToolKit.Application.Services
     using static BIA.ToolKit.Common.Constants;
 
     public partial class ProjectCreatorService(IConsoleWriter consoleWriter,
+        UIEventBroker eventBroker,
         RepositoryService repositoryService,
         SettingsService settingsService,
         CSharpParserService parserService)
     {
         private readonly IConsoleWriter consoleWriter = consoleWriter;
+        private readonly UIEventBroker eventBroker = eventBroker;
         private readonly RepositoryService repositoryService = repositoryService;
         private readonly CSharpParserService parserService = parserService;
         private readonly SettingsService settingsService = settingsService;
@@ -36,16 +39,23 @@ namespace BIA.ToolKit.Application.Services
             int tryCount = 0
             )
         {
-            using var cts = new System.Threading.CancellationTokenSource(CreateTimeout);
+            using var timeoutCts = new System.Threading.CancellationTokenSource(CreateTimeout);
+            using var linkedCts = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(
+                timeoutCts.Token, eventBroker.CurrentCancellationToken);
             bool success;
             try
             {
-                success = await CreateCore(actionFinishedAtEnd, projectPath, projectParameters, cts.Token);
+                success = await CreateCore(actionFinishedAtEnd, projectPath, projectParameters, linkedCts.Token);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
             {
                 consoleWriter.AddMessageLine($"Project creation timed out.", "Red");
                 success = false;
+            }
+            catch (OperationCanceledException)
+            {
+                // Re-throw so the outer ExecuteTaskWithWaiterAsync catches it and shows the interruption message.
+                throw;
             }
             catch (Exception ex)
             {

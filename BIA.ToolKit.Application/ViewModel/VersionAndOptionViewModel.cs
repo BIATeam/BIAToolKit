@@ -129,7 +129,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
                     if (WorkCompanyFile != null)
                     {
-                        eventBroker.RequestExecuteActionWithWaiter(async ct =>
+                        eventBroker.RequestExecuteActionWithWaiter(async () =>
                         {
                             try
                             {

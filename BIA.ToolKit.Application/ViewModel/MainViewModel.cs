@@ -54,7 +54,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
             if (repository.Model.RepositoryType == Domain.RepositoryType.Git && repository.Model is IRepositoryGit repositoryGit)
             {
-                eventBroker.RequestExecuteActionWithWaiter(async ct => await gitService.Synchronize(repositoryGit, ct));
+                eventBroker.RequestExecuteActionWithWaiter(async () => await gitService.Synchronize(repositoryGit));
             }
         }
 
@@ -76,10 +76,10 @@ namespace BIA.ToolKit.Application.ViewModel
                 }
             }
 
-            eventBroker.RequestExecuteActionWithWaiter(async ct =>
+            eventBroker.RequestExecuteActionWithWaiter(async () =>
             {
                 consoleWriter.AddMessageLine($"Deleting repository {repository.Name}...", "pink");
-                await Task.Run(repository.Model.Clean, ct);
+                await Task.Run(repository.Model.Clean);
                 consoleWriter.AddMessageLine("Repository deleted", "green");
             });
         }

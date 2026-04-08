@@ -109,7 +109,7 @@ namespace BIA.ToolKit.UserControls
             // Set form enabled
             vm.IsProjectChosen = true;
 
-            uiEventBroker.RequestExecuteActionWithWaiter(_ => InitProjectTask());
+            uiEventBroker.RequestExecuteActionWithWaiter(InitProjectTask);
         }
 
         private Task InitProjectTask()
@@ -180,7 +180,7 @@ namespace BIA.ToolKit.UserControls
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async ct =>
+            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
             {
 
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
