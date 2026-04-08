@@ -34,19 +34,6 @@ namespace BIA.ToolKit.Application.Services
         public delegate void OriginFeatureSettingsChanged(List<FeatureSetting> featureSettings);
         public delegate void RepositoryViewModelReleaseDataUpdated(RepositoryViewModel repository);
 
-        private readonly object _cancellationTokenLock = new();
-        private CancellationToken _currentCancellationToken = CancellationToken.None;
-
-        public CancellationToken CurrentCancellationToken
-        {
-            get { lock (_cancellationTokenLock) { return _currentCancellationToken; } }
-        }
-
-        public void SetCurrentCancellationToken(CancellationToken token)
-        {
-            lock (_cancellationTokenLock) { _currentCancellationToken = token; }
-        }
-
         public event ProjectChanged OnProjectChanged;
         public event NewVersionAvailable OnNewVersionAvailable;
         public event ExecuteActionWithWaiterAsyncRequest OnExecuteActionWithWaiterAsyncRequest;

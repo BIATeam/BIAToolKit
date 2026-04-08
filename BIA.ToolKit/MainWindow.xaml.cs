@@ -329,7 +329,6 @@ namespace BIA.ToolKit
         {
             await semaphore.WaitAsync();
             currentCts = new CancellationTokenSource();
-            uiEventBroker.SetCurrentCancellationToken(currentCts.Token);
             await Dispatcher.InvokeAsync(async () =>
             {
                 try
@@ -338,14 +337,14 @@ namespace BIA.ToolKit
                     Waiter.Visibility = Visibility.Visible;
 
                     var cancellationSignal = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    using var registration = currentCts.Token.Register(() => cancellationSignal.TrySetResult(true));
+                    using CancellationTokenRegistration registration = currentCts.Token.Register(() => cancellationSignal.TrySetResult(true));
 
-                    var runningTask = task();
-                    var completedTask = await Task.WhenAny(runningTask, cancellationSignal.Task).ConfigureAwait(true);
+                    Task runningTask = task();
+                    Task completedTask = await Task.WhenAny(runningTask, cancellationSignal.Task).ConfigureAwait(true);
 
                     if (completedTask == cancellationSignal.Task)
                     {
-                        consoleWriter.AddMessageLine("⛔ Action interrompue par l'utilisateur.", "Orange");
+                        consoleWriter.AddMessageLine("Action cancelled by user.", "Red");
                         _ = runningTask.ContinueWith(_ => { }, TaskContinuationOptions.OnlyOnFaulted);
                     }
                     else
@@ -357,7 +356,6 @@ namespace BIA.ToolKit
                 {
                     currentCts?.Dispose();
                     currentCts = null;
-                    uiEventBroker.SetCurrentCancellationToken(CancellationToken.None);
                     StopButton.IsEnabled = false;
                     semaphore.Release();
                     Waiter.Visibility = Visibility.Hidden;
