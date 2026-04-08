@@ -256,14 +256,18 @@ namespace BIA.ToolKit.Application.Services
 
         /// <summary>
         /// Returns <see langword="true"/> when <paramref name="filePath"/> resides in a C# project
-        /// folder whose name ends with exactly <c>.Domain</c> directly under the DotNet folder,
-        /// excluding companion projects such as <c>.Domain.Dto</c>, <c>.Domain.DataAccess</c>.
+        /// folder whose name ends with exactly the segment <c>.Domain</c> directly under the DotNet
+        /// folder. The check uses the first path segment after the DotNet folder, so a folder named
+        /// <c>Company.Name.Domain.Dto</c> ends with <c>.Dto</c> and is correctly rejected.
+        /// Only exactly <c>Company.Name.Domain</c> (and similarly named folders) are accepted.
         /// </summary>
         private static bool IsInDomainProject(string filePath, string dotNetPrefix)
         {
             string relativeToDotNet = filePath[dotNetPrefix.Length..];
             int separatorIndex = relativeToDotNet.IndexOf(Path.DirectorySeparatorChar);
             if (separatorIndex < 0) return false;
+            // projectFolderName is the whole project directory name (e.g. "Company.Name.Domain"),
+            // not a sub-path, so EndsWith(".Domain") cannot match "Company.Name.Domain.Dto".
             string projectFolderName = relativeToDotNet[..separatorIndex];
             return projectFolderName.EndsWith(".Domain", StringComparison.OrdinalIgnoreCase);
         }
