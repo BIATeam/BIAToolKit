@@ -478,7 +478,7 @@ namespace BIA.ToolKit.Application.Services
                             process.Kill(entireProcessTree: true);
                         }
                     }
-                    catch (InvalidOperationException) { }
+                    catch (InvalidOperationException) { /* process already exited between HasExited check and Kill call */ }
                     catch (Exception ex)
                     {
                         outPut.AddMessageLine($"Error while killing process: {ex.Message}", "Red");

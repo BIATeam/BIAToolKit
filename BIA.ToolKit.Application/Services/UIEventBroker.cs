@@ -48,7 +48,7 @@ namespace BIA.ToolKit.Application.Services
         public event OriginFeatureSettingsChanged OnOriginFeatureSettingsChanged;
         public event RepositoryViewModelReleaseDataUpdated OnRepositoryViewModelReleaseDataUpdated;
 
-        private CancellationTokenSource currentTokenSource;
+        private volatile CancellationTokenSource currentTokenSource;
 
         public CancellationToken CurrentCancellationToken => currentTokenSource?.Token ?? CancellationToken.None;
 

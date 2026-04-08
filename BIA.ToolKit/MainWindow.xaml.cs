@@ -345,8 +345,9 @@ namespace BIA.ToolKit
                 finally
                 {
                     uiEventBroker.SetCurrentTokenSource(null);
-                    currentCts?.Dispose();
+                    var cts = currentCts;
                     currentCts = null;
+                    cts?.Dispose();
                     StopButton.IsEnabled = false;
                     semaphore.Release();
                     Waiter.Visibility = Visibility.Hidden;
