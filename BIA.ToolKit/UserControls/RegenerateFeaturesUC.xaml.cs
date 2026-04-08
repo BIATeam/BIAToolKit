@@ -77,7 +77,7 @@ namespace BIA.ToolKit.UserControls
 
         private void Regenerate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(Regenerate_Run);
+            uiEventBroker.RequestExecuteActionWithWaiter(_ => Regenerate_Run());
         }
 
         private async Task Regenerate_Run()

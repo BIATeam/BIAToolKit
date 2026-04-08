@@ -96,7 +96,7 @@ namespace BIA.ToolKit.UserControls
 
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(Migrate_Run);
+            uiEventBroker.RequestExecuteActionWithWaiter(_ => Migrate_Run());
         }
         private async Task Migrate_Run()
         {
@@ -118,7 +118,7 @@ namespace BIA.ToolKit.UserControls
 
         private void MigrateGenerateOnly_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(MigrateGenerateOnly_Run);
+            uiEventBroker.RequestExecuteActionWithWaiter(_ => MigrateGenerateOnly_Run());
         }
 
         private async Task<bool> MigrateGenerateOnly_Run()
@@ -149,7 +149,7 @@ namespace BIA.ToolKit.UserControls
 
         private void MigrateApplyDiff_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(MigrateApplyDiff_Run);
+            uiEventBroker.RequestExecuteActionWithWaiter(_ => MigrateApplyDiff_Run());
         }
 
         private async Task<bool> MigrateApplyDiff_Run()
@@ -168,7 +168,7 @@ namespace BIA.ToolKit.UserControls
 
         private void MigrateMergeRejected_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(MigrateMergeRejected_Run);
+            uiEventBroker.RequestExecuteActionWithWaiter(_ => MigrateMergeRejected_Run());
         }
 
         private async Task MigrateMergeRejected_Run()
@@ -214,7 +214,7 @@ namespace BIA.ToolKit.UserControls
 
         private void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () => await OverwriteBIAFolder(true));
+            uiEventBroker.RequestExecuteActionWithWaiter(async ct => await OverwriteBIAFolder(true));
         }
 
         private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion)
@@ -378,7 +378,7 @@ namespace BIA.ToolKit.UserControls
 
         private void FixUsings_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(FixUsings_Run);
+            uiEventBroker.RequestExecuteActionWithWaiter(_ => FixUsings_Run());
         }
 
         private async Task FixUsings_Run()

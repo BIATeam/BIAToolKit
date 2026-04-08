@@ -114,7 +114,7 @@ namespace BIA.ToolKit.UserControls
 
         private void RefreshEntitiesList_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(ListEntities);
+            uiEventBroker.RequestExecuteActionWithWaiter(_ => ListEntities());
         }
 
         private void SelectProperties_Click(object sender, RoutedEventArgs e)
@@ -143,7 +143,7 @@ namespace BIA.ToolKit.UserControls
 
         private void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            uiEventBroker.RequestExecuteActionWithWaiter(async ct =>
             {
                 UpdateHistoryFile();
                 await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext

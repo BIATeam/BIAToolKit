@@ -2,6 +2,7 @@ namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using System;
     using LibGit2Sharp;
@@ -19,7 +20,7 @@ namespace BIA.ToolKit.Application.Services
         private readonly IConsoleWriter outPut = outPut;
         private readonly UIEventBroker eventBroker = eventBroker;
 
-        public async Task Synchronize(IRepositoryGit repository)
+        public async Task Synchronize(IRepositoryGit repository, CancellationToken cancellationToken = default)
         {
             if (!repository.UseLocalClonedFolder)
             {
@@ -37,19 +38,19 @@ namespace BIA.ToolKit.Application.Services
                     }
 
                     Directory.CreateDirectory(repository.LocalPath);
-                });
+                }, cancellationToken);
 
-                await Clone(repository.Url, repository.LocalPath);
+                await Clone(repository.Url, repository.LocalPath, cancellationToken);
                 return;
             }
 
-            await Synchronize(repository.Url, repository.LocalPath);
+            await Synchronize(repository.Url, repository.LocalPath, cancellationToken);
         }
 
-        public async Task Synchronize(string url, string localPath)
+        public async Task Synchronize(string url, string localPath, CancellationToken cancellationToken = default)
         {
             outPut.AddMessageLine($"Synchronize {url} into {localPath}...", "Pink");
-            if (await RunScript("git", "pull", localPath) == 0)
+            if (await RunScript("git", "pull", localPath, cancellationToken) == 0)
             {
                 outPut.AddMessageLine($"Synchronize finished", "Green");
             }
@@ -59,11 +60,11 @@ namespace BIA.ToolKit.Application.Services
             }
         }
 
-        public async Task Clone(string url, string localPath)
+        public async Task Clone(string url, string localPath, CancellationToken cancellationToken = default)
         {
             outPut.AddMessageLine($"Clone {url} into {localPath}...", "Pink");
 
-            if (await RunScript("git", $"clone \"" + url + "\" \"" + localPath + "\"") == 0)
+            if (await RunScript("git", $"clone \"" + url + "\" \"" + localPath + "\"", cancellationToken: cancellationToken) == 0)
             {
                 outPut.AddMessageLine($"Clone finished", "Green");
             }
@@ -367,7 +368,8 @@ namespace BIA.ToolKit.Application.Services
         /// <param name="program">The program name.</param>
         /// <param name="arguments">The argument.</param>
         /// <param name="workingDirectory">The working directory.</param>
-        private async Task<int> RunScript(string program, string arguments, string workingDirectory = null)
+        /// <param name="cancellationToken">Token to cancel the process.</param>
+        private async Task<int> RunScript(string program, string arguments, string workingDirectory = null, CancellationToken cancellationToken = default)
         {
             //bool ret = true;
             try
@@ -392,7 +394,7 @@ namespace BIA.ToolKit.Application.Services
                     EnableRaisingEvents = true
                 };
 
-                return await RunProcessAsync(process).ConfigureAwait(false);
+                return await RunProcessAsync(process, cancellationToken).ConfigureAwait(false);
                 /*
                 process.Start();
                 while (!process.StandardOutput.EndOfStream && !process.StandardError.EndOfStream)
@@ -432,11 +434,11 @@ namespace BIA.ToolKit.Application.Services
             return -1;
         }
 
-        private Task<int> RunProcessAsync(Process process)
+        private Task<int> RunProcessAsync(Process process, CancellationToken cancellationToken = default)
         {
             var tcs = new TaskCompletionSource<int>();
 
-            process.Exited += (s, ea) => tcs.SetResult(process.ExitCode);
+            process.Exited += (s, ea) => tcs.TrySetResult(process.ExitCode);
             process.OutputDataReceived += (s, ea) =>
             {
                 if (!string.IsNullOrEmpty(ea.Data))
@@ -464,6 +466,22 @@ namespace BIA.ToolKit.Application.Services
 
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
+
+            if (cancellationToken.CanBeCanceled)
+            {
+                cancellationToken.Register(() =>
+                {
+                    try
+                    {
+                        if (!process.HasExited)
+                        {
+                            process.Kill(entireProcessTree: true);
+                        }
+                    }
+                    catch { }
+                    tcs.TrySetCanceled(cancellationToken);
+                });
+            }
 
             return tcs.Task;
         }

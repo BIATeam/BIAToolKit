@@ -133,13 +133,13 @@ namespace BIA.ToolKit.Application.ViewModel
 
         private void Synchronize()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            eventBroker.RequestExecuteActionWithWaiter(async ct =>
             {
                 try
                 {
                     if (IsGitRepository && repository is RepositoryGit repositoryGit)
                     {
-                        await gitService.Synchronize(repositoryGit);
+                        await gitService.Synchronize(repositoryGit, ct);
                     }
                 }
                 catch (Exception ex)
@@ -151,7 +151,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
         private void GetReleasesData()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            eventBroker.RequestExecuteActionWithWaiter(async ct =>
             {
                 try
                 {
@@ -173,12 +173,12 @@ namespace BIA.ToolKit.Application.ViewModel
 
         private void CleanReleases()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            eventBroker.RequestExecuteActionWithWaiter(async ct =>
             {
                 try
                 {
                     consoleWriter.AddMessageLine($"Cleaning releases of repository {Name}...", "pink");
-                    await Task.Run(repository.CleanReleases);
+                    await Task.Run(repository.CleanReleases, ct);
                     consoleWriter.AddMessageLine($"Releases cleaned", "green");
                 }
                 catch (Exception ex)
@@ -190,21 +190,21 @@ namespace BIA.ToolKit.Application.ViewModel
 
         private void OpenSynchronizedFolder()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            eventBroker.RequestExecuteActionWithWaiter(async ct =>
             {
                 if (!Directory.Exists(Model.LocalPath))
                 {
                     consoleWriter.AddMessageLine($"Synchronized folder {Model.LocalPath} not found");
                 }
 
-                await Task.Run(() => Process.Start("explorer.exe", Model.LocalPath));
+                await Task.Run(() => Process.Start("explorer.exe", Model.LocalPath), ct);
             });
 
         }
 
         private void OpenSource()
         {
-            eventBroker.RequestExecuteActionWithWaiter(async () =>
+            eventBroker.RequestExecuteActionWithWaiter(async ct =>
             {
                 if (Model is RepositoryFolder repoFolder)
                 {
@@ -213,12 +213,12 @@ namespace BIA.ToolKit.Application.ViewModel
                         consoleWriter.AddMessageLine($"Source folder {repoFolder.Path} not found");
                     }
 
-                    await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = Model.LocalPath, UseShellExecute = true }));
+                    await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = Model.LocalPath, UseShellExecute = true }), ct);
                 }
 
                 if (Model is RepositoryGit repoGit)
                 {
-                    await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = repoGit.Url, UseShellExecute = true }));
+                    await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = repoGit.Url, UseShellExecute = true }), ct);
                 }
             });
         }

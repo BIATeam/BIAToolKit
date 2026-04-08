@@ -178,7 +178,7 @@ namespace BIA.ToolKit.UserControls
 
         private void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            uiEventBroker.RequestExecuteActionWithWaiter(async ct =>
             {
                 await FillVersionFolderPathAsync();
                 LoadfeatureSetting();

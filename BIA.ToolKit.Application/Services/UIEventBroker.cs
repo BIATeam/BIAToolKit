@@ -22,7 +22,7 @@ namespace BIA.ToolKit.Application.Services
     {
         public delegate void ProjectChanged(Project project);
         public delegate void NewVersionAvailable();
-        public delegate void ExecuteActionWithWaiterAsyncRequest(Func<Task> action);
+        public delegate void ExecuteActionWithWaiterAsyncRequest(Func<CancellationToken, Task> action);
         public delegate void SettingsUpdated(IBIATKSettings settings);
         public delegate void RepositoriesUpdated();
         public delegate void RepositoryViewModelChanged(RepositoryViewModel oldRepository, RepositoryViewModel newRepository);
@@ -58,7 +58,7 @@ namespace BIA.ToolKit.Application.Services
             OnNewVersionAvailable?.Invoke();
         }
 
-        public void RequestExecuteActionWithWaiter(Func<Task> task)
+        public void RequestExecuteActionWithWaiter(Func<CancellationToken, Task> task)
         {
             OnExecuteActionWithWaiterAsyncRequest?.Invoke(task);
         }

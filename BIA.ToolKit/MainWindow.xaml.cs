@@ -120,7 +120,7 @@ namespace BIA.ToolKit
 
         public async Task Init()
         {
-            await ExecuteTaskWithWaiterAsync(async () =>
+            await ExecuteTaskWithWaiterAsync(async ct =>
             {
                 await InitSettings();
 
@@ -325,32 +325,21 @@ namespace BIA.ToolKit
         private readonly SemaphoreSlim semaphore = new(1, 1);
         private CancellationTokenSource currentCts;
 
-        private async Task ExecuteTaskWithWaiterAsync(Func<Task> task)
+        private async Task ExecuteTaskWithWaiterAsync(Func<CancellationToken, Task> task)
         {
             await semaphore.WaitAsync();
-            currentCts = new CancellationTokenSource();
             await Dispatcher.InvokeAsync(async () =>
             {
+                currentCts = new CancellationTokenSource();
                 try
                 {
                     StopButton.IsEnabled = true;
                     Waiter.Visibility = Visibility.Visible;
-
-                    var cancellationSignal = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    using CancellationTokenRegistration registration = currentCts.Token.Register(() => cancellationSignal.TrySetResult(true));
-
-                    Task runningTask = task();
-                    Task completedTask = await Task.WhenAny(runningTask, cancellationSignal.Task).ConfigureAwait(true);
-
-                    if (completedTask == cancellationSignal.Task)
-                    {
-                        consoleWriter.AddMessageLine("Action cancelled by user.", "Red");
-                        _ = runningTask.ContinueWith(_ => { }, TaskContinuationOptions.OnlyOnFaulted);
-                    }
-                    else
-                    {
-                        await runningTask.ConfigureAwait(true);
-                    }
+                    await task(currentCts.Token).ConfigureAwait(true);
+                }
+                catch (OperationCanceledException)
+                {
+                    consoleWriter.AddMessageLine("⛔ Action interrompue par l'utilisateur.", "Orange");
                 }
                 finally
                 {
@@ -432,7 +421,7 @@ namespace BIA.ToolKit
                 return;
             }
 
-            await ExecuteTaskWithWaiterAsync(async () =>
+            await ExecuteTaskWithWaiterAsync(async ct =>
             {
                 await projectCreatorService.Create(
                     true,
@@ -516,7 +505,7 @@ namespace BIA.ToolKit
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    await ExecuteTaskWithWaiterAsync(updateService.DownloadUpdateAsync);
+                    await ExecuteTaskWithWaiterAsync(_ => updateService.DownloadUpdateAsync());
                 }
             }
             catch (Exception ex)
@@ -537,7 +526,7 @@ namespace BIA.ToolKit
 
         private async void CheckUpdateButton_Click(object sender, RoutedEventArgs e)
         {
-            await ExecuteTaskWithWaiterAsync(updateService.CheckForUpdatesAsync);
+            await ExecuteTaskWithWaiterAsync(_ => updateService.CheckForUpdatesAsync());
         }
 
         private async void ImportConfigButton_Click(object sender, RoutedEventArgs e)
@@ -551,7 +540,7 @@ namespace BIA.ToolKit
 
             consoleWriter.AddMessageLine($"New configuration imported from {configFile}", "yellow");
 
-            await ExecuteTaskWithWaiterAsync(async () =>
+            await ExecuteTaskWithWaiterAsync(async ct =>
             {
                 await GetReleasesData(config, true);
 
