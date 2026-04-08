@@ -478,7 +478,11 @@ namespace BIA.ToolKit.Application.Services
                             process.Kill(entireProcessTree: true);
                         }
                     }
-                    catch { }
+                    catch (InvalidOperationException) { }
+                    catch (Exception ex)
+                    {
+                        outPut.AddMessageLine($"Error while killing process: {ex.Message}", "Red");
+                    }
                     tcs.TrySetCanceled(cancellationToken);
                 });
             }
