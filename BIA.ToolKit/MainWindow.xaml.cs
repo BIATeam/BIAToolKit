@@ -337,15 +337,16 @@ namespace BIA.ToolKit
                     StopButton.IsEnabled = true;
                     Waiter.Visibility = Visibility.Visible;
 
-                    var cancellationTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    using var registration = currentCts.Token.Register(() => cancellationTcs.TrySetResult(true));
+                    var cancellationSignal = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    using var registration = currentCts.Token.Register(() => cancellationSignal.TrySetResult(true));
 
                     var runningTask = task();
-                    var completedTask = await Task.WhenAny(runningTask, cancellationTcs.Task).ConfigureAwait(true);
+                    var completedTask = await Task.WhenAny(runningTask, cancellationSignal.Task).ConfigureAwait(true);
 
-                    if (completedTask == cancellationTcs.Task)
+                    if (completedTask == cancellationSignal.Task)
                     {
                         consoleWriter.AddMessageLine("⛔ Action interrompue par l'utilisateur.", "Orange");
+                        _ = runningTask.ContinueWith(_ => { }, TaskContinuationOptions.OnlyOnFaulted);
                     }
                     else
                     {
