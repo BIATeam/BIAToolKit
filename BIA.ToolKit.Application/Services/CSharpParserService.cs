@@ -241,7 +241,7 @@ using Roslyn.Services;*/
             }
         }
 
-        public async Task LoadSolution(string solutionPath)
+        public async Task LoadSolution(string solutionPath, CancellationToken ct = default)
         {
             if (Workspace is null)
             {
@@ -249,12 +249,14 @@ using Roslyn.Services;*/
                 return;
             }
 
-            if (!await RestoreSolution(solutionPath))
+            if (!await RestoreSolution(solutionPath, ct))
                 return;
+
+            ct.ThrowIfCancellationRequested();
 
             consoleWriter.AddMessageLine("Opening solution...", "darkgray");
             Workspace.CloseSolution();
-            Solution solution = await Workspace.OpenSolutionAsync(solutionPath);
+            Solution solution = await Workspace.OpenSolutionAsync(solutionPath, cancellationToken: ct);
 
             if (solution == null)
             {
@@ -266,7 +268,7 @@ using Roslyn.Services;*/
             CurrentSolution = solution;
         }
 
-        public async Task ParseSolutionClasses()
+        public async Task ParseSolutionClasses(CancellationToken ct = default)
         {
             if (CurrentSolution is null)
             {
@@ -274,11 +276,13 @@ using Roslyn.Services;*/
                 return;
             }
 
-            var result = new List<ClassInfo>();
             consoleWriter.AddMessageLine("Parsing classes...", "darkgray");
 
-            IEnumerable<Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)>> classesInfosPerProjectTasks = CurrentSolution.Projects.Select(GetClassesInfoFromProject);
+            IEnumerable<Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)>> classesInfosPerProjectTasks = CurrentSolution.Projects.Select(p => GetClassesInfoFromProject(p, ct));
             (List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)[] classesInfosReports = await Task.WhenAll(classesInfosPerProjectTasks);
+
+            ct.ThrowIfCancellationRequested();
+
             foreach ((List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds) report in classesInfosReports)
             {
                 consoleWriter.AddMessageLine($"{report.Project} : {report.ClassesCount} classes parsed in {report.ElapsedSeconds} seconds", "gray");
@@ -288,14 +292,16 @@ using Roslyn.Services;*/
             consoleWriter.AddMessageLine($"Classes parsed successfully", "lightgreen");
         }
 
-        private async Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)> GetClassesInfoFromProject(Project project)
+        private async Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)> GetClassesInfoFromProject(Project project, CancellationToken ct = default)
         {
             var result = new List<ClassInfo>();
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
+            ct.ThrowIfCancellationRequested();
+
             // Compilation (nécessaire pour symboles/semantics)
-            Compilation compilation = await project.GetCompilationAsync().ConfigureAwait(false);
+            Compilation compilation = await project.GetCompilationAsync(ct).ConfigureAwait(false);
             if (compilation is null)
             {
                 return (result, project.Name, 0, 0);
@@ -443,7 +449,7 @@ using Roslyn.Services;*/
             }
         }
 
-        private async Task<bool> RestoreSolution(string solutionPath)
+        private async Task<bool> RestoreSolution(string solutionPath, CancellationToken ct = default)
         {
             if (IsSolutionRestored(solutionPath))
                 return true;
@@ -469,8 +475,18 @@ using Roslyn.Services;*/
 
             using var process = new Process { StartInfo = startInfo };
             process.Start();
+
+            // Register cancellation to kill the restore process
+            using var registration = ct.Register(() =>
+            {
+                try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
+                catch { /* process may have already exited */ }
+            });
+
             string stdError = await process.StandardError.ReadToEndAsync();
-            await process.WaitForExitAsync();
+            await process.WaitForExitAsync(ct);
+
+            ct.ThrowIfCancellationRequested();
 
             if (process.ExitCode != 0)
             {

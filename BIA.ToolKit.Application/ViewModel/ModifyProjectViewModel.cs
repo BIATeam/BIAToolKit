@@ -20,6 +20,7 @@
     using System.IO;
     using System.Linq;
     using System.Text.RegularExpressions;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public partial class ModifyProjectViewModel : ObservableObject, IDisposable,
@@ -306,12 +307,17 @@
             }
         }
 
-        private async Task ParseProject(Project currentProject)
+        private async Task ParseProject(Project currentProject, CancellationToken ct = default)
         {
             try
             {
-                await parserService.LoadSolution(currentProject.SolutionPath);
-                await parserService.ParseSolutionClasses();
+                await parserService.LoadSolution(currentProject.SolutionPath, ct);
+                await parserService.ParseSolutionClasses(ct);
+            }
+            catch (OperationCanceledException)
+            {
+                consoleWriter.AddMessageLine("Operation cancelled.", "Yellow");
+                throw;
             }
             catch (Exception ex)
             {
@@ -326,7 +332,7 @@
             {
                 await LoadProject(CurrentProject);
                 await InitFileGeneratorServiceFromProject(CurrentProject);
-                await ParseProject(CurrentProject);
+                await ParseProject(CurrentProject, ct);
                 RefreshUI();
             }));
         }

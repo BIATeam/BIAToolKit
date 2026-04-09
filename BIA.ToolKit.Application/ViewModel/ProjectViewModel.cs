@@ -315,8 +315,13 @@ namespace BIA.ToolKit.Application.ViewModel
             ct.ThrowIfCancellationRequested();
             try
             {
-                await parserService.LoadSolution(project.SolutionPath);
-                await parserService.ParseSolutionClasses();
+                await parserService.LoadSolution(project.SolutionPath, ct);
+                await parserService.ParseSolutionClasses(ct);
+            }
+            catch (OperationCanceledException)
+            {
+                consoleWriter.AddMessageLine("Operation cancelled.", "Yellow");
+                throw;
             }
             catch (Exception ex)
             {

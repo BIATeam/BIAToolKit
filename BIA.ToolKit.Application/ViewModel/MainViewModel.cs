@@ -101,6 +101,10 @@ namespace BIA.ToolKit.Application.ViewModel
                 IsBusy = true;
                 await task(currentTokenSource.Token);
             }
+            catch (OperationCanceledException)
+            {
+                consoleWriter.AddMessageLine("Operation cancelled by user.", "Yellow");
+            }
             finally
             {
                 IsBusy = false;
