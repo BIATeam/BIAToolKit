@@ -66,7 +66,12 @@ namespace BIA.ToolKit
                 Assembly.GetExecutingAssembly().GetName().Version,
                 sp.GetRequiredService<SettingsService>(),
                 sp.GetRequiredService<GitService>(),
-                sp.GetRequiredService<IConsoleWriter>()));
+                sp.GetRequiredService<IConsoleWriter>(),
+                sp.GetRequiredService<RepositoryService>(),
+                sp.GetRequiredService<ProjectCreatorService>(),
+                sp.GetRequiredService<UpdateService>(),
+                sp.GetRequiredService<CSharpParserService>(),
+                sp.GetRequiredService<IDialogService>()));
 
             // Infrastructure
             services.AddSingleton<IDialogService, DialogService>();

@@ -28,6 +28,9 @@ namespace BIA.ToolKit.Test.Templates
             {
                 messageSink.OnMessage(new DiagnosticMessage($"[{fixtureName} {stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}]\t{message}"));
             }
+
+            public void Clear() { }
+            public void CopyToClipboard() { }
         }
 
         public FileGeneratorService FileGeneratorService { get; private set; }

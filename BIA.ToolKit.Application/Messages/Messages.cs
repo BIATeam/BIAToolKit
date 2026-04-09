@@ -46,6 +46,8 @@ namespace BIA.ToolKit.Application.Messages
 
     public sealed record ExecuteActionWithWaiterMessage(Func<Task> Action);
 
+    public sealed record NavigateToConfigTabMessage;
+
     // --- Enums (moved from UIEventBroker) ---
 
     public enum RepositoryFormMode

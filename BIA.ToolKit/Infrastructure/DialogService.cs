@@ -36,5 +36,15 @@ namespace BIA.ToolKit.Infrastructure
             var result = MessageBox.Show(Owner, message, title, MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
             return result == MessageBoxResult.OK;
         }
+
+        public void ShowMessage(string message, string title = null)
+        {
+            MessageBox.Show(Owner, message, title ?? string.Empty, MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        public string BrowseFile(string defaultFolder, string fileFilter = null)
+        {
+            return FileDialog.BrowseFile(defaultFolder, fileFilter);
+        }
     }
 }

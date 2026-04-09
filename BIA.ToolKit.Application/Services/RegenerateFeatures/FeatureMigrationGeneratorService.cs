@@ -22,10 +22,9 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     {
         private class MutedConsoleWriter : IConsoleWriter
         {
-            public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
-            {
-                return;
-            }
+            public void AddMessageLine(string message, string color = null, bool refreshimediate = true) { }
+            public void Clear() { }
+            public void CopyToClipboard() { }
         }
 
         private const int REGENERATE_FEATURES_VERSION_MINIMUM = 500;

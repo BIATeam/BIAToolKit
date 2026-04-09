@@ -22,6 +22,17 @@ namespace BIA.ToolKit.Application.Helper
         /// Shows a confirmation dialog. Returns true if the user confirms.
         /// </summary>
         bool Confirm(string message, string title = "Warning");
+
+        /// <summary>
+        /// Shows an informational message to the user.
+        /// </summary>
+        void ShowMessage(string message, string title = null);
+
+        /// <summary>
+        /// Opens a file browser dialog and returns the selected file path.
+        /// Returns empty string if the user cancels.
+        /// </summary>
+        string BrowseFile(string defaultFolder, string fileFilter = null);
     }
 
     /// <summary>
