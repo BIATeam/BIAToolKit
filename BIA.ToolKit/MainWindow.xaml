@@ -1,4 +1,4 @@
-﻿<Window x:Class="BIA.ToolKit.MainWindow"
+<Window x:Class="BIA.ToolKit.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -255,12 +255,11 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Button x:Name="StopButton" Grid.Column="0" IsEnabled="False" Click="StopButton_Click"
-                        Background="Red" Foreground="White" BorderBrush="DarkRed"
-                        ToolTip="Interrompre l'action en cours" Padding="8,4">
+                        Background="Transparent" BorderBrush="Transparent"
+                        ToolTip="Stop current action" Padding="2">
                     <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="StopCircle" Height="16" Width="16" VerticalAlignment="Center"/>
-                        <TextBlock Text="STOP" Margin="4,0,0,0" VerticalAlignment="Center" FontWeight="Bold"/>
-                    </StackPanel>
+            <materialDesign:PackIcon Background="DarkRed" Foreground="White" Kind="Stop" Height="25" Width="25" VerticalAlignment="Center"/>
+          </StackPanel>
                 </Button>
                 <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
                     <Button Content="Clear" Margin="0,0,5,0"  Click="ClearConsole_Click" Style="{StaticResource MaterialDesignOutlinedSecondaryDarkButton}"/>
