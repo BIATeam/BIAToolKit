@@ -240,20 +240,22 @@ using Roslyn.Services;*/
             }
         }
 
-        public async Task LoadSolution(string solutionPath)
+        public async Task LoadSolution(string solutionPath, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             if (Workspace is null)
             {
                 consoleWriter.AddMessageLine($"MSBuildWorkspace has not been initialized", "red");
                 return;
             }
 
-            if (!await RestoreSolution(solutionPath))
+            if (!await RestoreSolution(solutionPath, ct))
                 return;
 
             consoleWriter.AddMessageLine("Opening solution...", "darkgray");
             Workspace.CloseSolution();
-            Solution solution = await Workspace.OpenSolutionAsync(solutionPath);
+            Solution solution = await Workspace.OpenSolutionAsync(solutionPath, cancellationToken: ct);
 
             if (solution == null)
             {
@@ -265,8 +267,10 @@ using Roslyn.Services;*/
             CurrentSolution = solution;
         }
 
-        public async Task ParseSolutionClasses()
+        public async Task ParseSolutionClasses(CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             if (CurrentSolution is null)
             {
                 consoleWriter.AddMessageLine("No solution loaded to parse.", "red");
@@ -276,10 +280,11 @@ using Roslyn.Services;*/
             var result = new List<ClassInfo>();
             consoleWriter.AddMessageLine("Parsing classes...", "darkgray");
 
-            IEnumerable<Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)>> classesInfosPerProjectTasks = CurrentSolution.Projects.Select(GetClassesInfoFromProject);
+            IEnumerable<Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)>> classesInfosPerProjectTasks = CurrentSolution.Projects.Select(project => GetClassesInfoFromProject(project, ct));
             (List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)[] classesInfosReports = await Task.WhenAll(classesInfosPerProjectTasks);
             foreach ((List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds) report in classesInfosReports)
             {
+                ct.ThrowIfCancellationRequested();
                 consoleWriter.AddMessageLine($"{report.Project} : {report.ClassesCount} classes parsed in {report.ElapsedSeconds} seconds", "gray");
             }
             CurrentSolutionClasses = [.. classesInfosReports.SelectMany(x => x.ClassesInfo)];
@@ -287,14 +292,15 @@ using Roslyn.Services;*/
             consoleWriter.AddMessageLine($"Classes parsed successfully", "lightgreen");
         }
 
-        private async Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)> GetClassesInfoFromProject(Project project)
+        private async Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)> GetClassesInfoFromProject(Project project, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             var result = new List<ClassInfo>();
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
             // Compilation (nécessaire pour symboles/semantics)
-            Compilation compilation = await project.GetCompilationAsync().ConfigureAwait(false);
+            Compilation compilation = await project.GetCompilationAsync(ct).ConfigureAwait(false);
             if (compilation is null)
             {
                 return (result, project.Name, 0, 0);
@@ -311,6 +317,8 @@ using Roslyn.Services;*/
 
             foreach (INamedTypeSymbol cls in allTypes)
             {
+                ct.ThrowIfCancellationRequested();
+
                 // Fichier source principal (si partiel, on prend la 1re location source)
                 string filePath = cls.Locations.FirstOrDefault(l => l.IsInSource)?.SourceTree?.FilePath ?? string.Empty;
 
@@ -371,18 +379,19 @@ using Roslyn.Services;*/
 
             try
             {
-                await LoadSolution(CurrentSolution.FilePath);
+                await LoadSolution(CurrentSolution.FilePath, ct);
                 foreach (Project project in CurrentSolution.Projects)
                 {
+                    ct.ThrowIfCancellationRequested();
                     try
                     {
                         consoleWriter.AddMessageLine($"Analyzing project {project.Name}...", "darkgray");
 
                         foreach (Document document in project.Documents)
                         {
+                            ct.ThrowIfCancellationRequested();
                             try
                             {
-                                ct.ThrowIfCancellationRequested();
                                 if (await document.GetSyntaxRootAsync(ct) is not CompilationUnitSyntax syntaxRoot)
                                 {
                                     consoleWriter.AddMessageLine($"-> {document.Name} : No compilation unit syntax root found.", "orange");
@@ -420,17 +429,29 @@ using Roslyn.Services;*/
                                     File.WriteAllText(document.FilePath!, formattedRoot.ToFullString());
                                 }
                             }
+                            catch(OperationCanceledException)
+                            {
+                                throw;
+                            }
                             catch (Exception docEx)
                             {
                                 consoleWriter.AddMessageLine($"-> {document.Name} : {docEx.Message}\n{docEx.StackTrace}", "red");
                             }
                         }
                     }
+                    catch(OperationCanceledException)
+                        {
+                            throw;
+                        }
                     catch (Exception projEx)
                     {
                         consoleWriter.AddMessageLine($"{projEx.Message}\n{projEx.StackTrace}", "red");
                     }
                 }
+            }
+            catch(OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception solEx)
             {
@@ -442,7 +463,7 @@ using Roslyn.Services;*/
             }
         }
 
-        private async Task<bool> RestoreSolution(string solutionPath)
+        private async Task<bool> RestoreSolution(string solutionPath, CancellationToken ct = default)
         {
             if (IsSolutionRestored(solutionPath))
                 return true;
@@ -468,8 +489,8 @@ using Roslyn.Services;*/
 
             using var process = new Process { StartInfo = startInfo };
             process.Start();
-            string stdError = await process.StandardError.ReadToEndAsync();
-            await process.WaitForExitAsync();
+            string stdError = await process.StandardError.ReadToEndAsync(ct);
+            await process.WaitForExitAsync(ct);
 
             if (process.ExitCode != 0)
             {
