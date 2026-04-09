@@ -5,31 +5,23 @@ namespace BIA.ToolKit
     using System.Linq;
     using System.Windows;
     using System.Windows.Controls;
-    using System.Windows.Input;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using System.Collections.Generic;
     using System;
     using System.Diagnostics;
-    using BIA.ToolKit.UserControls;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Dialogs;
-    using System.Text.Json;
     using BIA.ToolKit.Common;
     using System.Threading.Tasks;
     using BIA.ToolKit.Domain.Settings;
-    using BIA.ToolKit.Application.Services.FileGenerator;
     using System.Reflection;
     using System.Threading;
     using BIA.ToolKit.Domain;
     using CommunityToolkit.Mvvm.Messaging;
-    using Microsoft.Extensions.DependencyInjection;
     using Newtonsoft.Json;
-    using BIA.ToolKit.Common.Helpers;
     using System.Configuration;
-    using BIA.ToolKit.Infrastructure;
-
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -43,17 +35,13 @@ namespace BIA.ToolKit
         private readonly CSharpParserService cSharpParserService;
         private readonly ProjectCreatorService projectCreatorService;
         private readonly SettingsService settingsService;
-        private readonly FileGeneratorService fileGeneratorService;
         private readonly UpdateService updateService;
         private readonly GenerateFilesService generateFilesService;
         private readonly ConsoleWriter consoleWriter;
 
         public MainWindow(RepositoryService repositoryService, GitService gitService, CSharpParserService cSharpParserService, GenerateFilesService genFilesService,
-            ProjectCreatorService projectCreatorService, ZipParserService zipParserService, GenerateCrudService crudService, SettingsService settingsService,
-            IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService, UpdateService updateService,
-            Application.Services.RegenerateFeatures.RegenerateFeaturesDiscoveryService regenerateFeaturesDiscoveryService,
-            Application.Services.RegenerateFeatures.FeatureMigrationGeneratorService featureMigrationGeneratorService,
-            Application.ViewModel.ProjectViewModel projectViewModel)
+            ProjectCreatorService projectCreatorService, SettingsService settingsService,
+            IConsoleWriter consoleWriter, UpdateService updateService)
         {
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
@@ -63,7 +51,6 @@ namespace BIA.ToolKit
             this.cSharpParserService = cSharpParserService;
             this.projectCreatorService = projectCreatorService;
             this.settingsService = settingsService;
-            this.fileGeneratorService = fileGeneratorService;
             this.updateService = updateService;
             this.generateFilesService = genFilesService;
 
@@ -76,15 +63,9 @@ namespace BIA.ToolKit
 
             CreateVersionAndOption.DataContext = App.GetService<VersionAndOptionViewModel>();
 
-            projectViewModel.Inject(fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
-            ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
-                projectCreatorService, zipParserService, crudService, settingsService, fileGeneratorService,
-                regenerateFeaturesDiscoveryService, featureMigrationGeneratorService, projectViewModel);
-            GenerateProject.Inject(projectViewModel, cSharpParserService, zipParserService, crudService, settingsService, consoleWriter, fileGeneratorService);
-
             txtFileGenerator_Folder.Text = Path.GetTempPath() + "BIAToolKit\\";
 
-            ViewModel = new MainViewModel(Assembly.GetExecutingAssembly().GetName().Version, settingsService, gitService, consoleWriter);
+            ViewModel = App.GetService<MainViewModel>();
             DataContext = ViewModel;
 
             WeakReferenceMessenger.Default.Register<NewVersionAvailableMessage>(this, (r, m) => HandleNewVersionAvailable());

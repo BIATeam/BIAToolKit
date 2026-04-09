@@ -404,6 +404,11 @@ namespace BIA.ToolKit.Application.ViewModel
                     WorkCompanyFile = GetWorkCompanyFile(WorkTemplate.Version);
                 }
             }
+
+            if (WorkTemplate is not null)
+            {
+                OnFrameworkVersionSelectionChanged();
+            }
         }
 
         private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, IRepository repository)

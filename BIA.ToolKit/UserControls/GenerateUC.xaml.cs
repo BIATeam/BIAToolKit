@@ -1,11 +1,7 @@
 namespace BIA.ToolKit.UserControls
 {
     using System.Windows.Controls;
-    using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.ViewModel;
-    using BIA.ToolKit.Common;
 
     /// <summary>
     /// Interaction logic for GenerateUC.xaml
@@ -15,18 +11,14 @@ namespace BIA.ToolKit.UserControls
         public GenerateUC()
         {
             InitializeComponent();
-        }
 
-        public void Inject(ProjectViewModel projectViewModel, CSharpParserService cSharpParserService, ZipParserService zipService, GenerateCrudService crudService,
-            SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService)
-        {
-            // DataContext = ProjectViewModel so tab IsEnabled bindings resolve directly.
+            var projectViewModel = App.GetService<ProjectViewModel>();
             DataContext = projectViewModel;
 
-            ProjectSelector.Inject(projectViewModel);
+            ProjectSelector.DataContext = projectViewModel;
 
+            CRUDGenerator.DataContext = App.GetService<CRUDGeneratorViewModel>();
             DtoGenerator.DataContext = App.GetService<DtoGeneratorViewModel>();
-            CRUDGenerator.Inject(cSharpParserService, zipService, crudService, settingsService, consoleWriter, fileGeneratorService);
             OptionGenerator.DataContext = App.GetService<OptionGeneratorViewModel>();
         }
     }

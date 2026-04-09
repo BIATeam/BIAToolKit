@@ -373,6 +373,7 @@
                 if (ModifyProject.CurrentProject != value)
                 {
                     ModifyProject.CurrentProject = value;
+                    ResetMigrationStepStates();
                     RefreshUI();
                     WeakReferenceMessenger.Default.Send(new ProjectChangedMessage(value));
                 }

@@ -61,6 +61,12 @@ namespace BIA.ToolKit
             services.AddTransient<ModifyProjectViewModel>();
             services.AddTransient<OptionGeneratorViewModel>();
             services.AddTransient<DtoGeneratorViewModel>();
+            services.AddTransient<CRUDGeneratorViewModel>();
+            services.AddTransient<MainViewModel>(sp => new MainViewModel(
+                Assembly.GetExecutingAssembly().GetName().Version,
+                sp.GetRequiredService<SettingsService>(),
+                sp.GetRequiredService<GitService>(),
+                sp.GetRequiredService<IConsoleWriter>()));
 
             // Infrastructure
             services.AddSingleton<IDialogService, DialogService>();

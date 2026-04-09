@@ -30,33 +30,22 @@ namespace BIA.ToolKit.Application.ViewModel
         private const string DOTNET_TYPE = "DotNet";
         private const string ANGULAR_TYPE = "Angular";
 
-        private CSharpParserService parserService;
-        private ZipParserService zipService;
-        private GenerateCrudService crudService;
-        private CRUDSettings settings;
-        private FileGeneratorService fileGeneratorService;
-        private IConsoleWriter consoleWriter;
-        private IDialogService dialogService;
+        private readonly CSharpParserService parserService;
+        private readonly ZipParserService zipService;
+        private readonly GenerateCrudService crudService;
+        private readonly CRUDSettings settings;
+        private readonly FileGeneratorService fileGeneratorService;
+        private readonly IConsoleWriter consoleWriter;
+        private readonly IDialogService dialogService;
         private CRUDGeneration crudHistory;
         private string crudHistoryFileName;
         private readonly List<FeatureGenerationSettings> backSettingsList = [];
         private List<FeatureGenerationSettings> frontSettingsList = [];
 
-        /// <summary>  
+        /// <summary>
         /// Constructor.
         /// </summary>
-        public CRUDGeneratorViewModel()
-        {
-            OptionItems = [];
-            ZipFeatureTypeList = [];
-            FeatureNames = [];
-            DtoEntities = [];
-        }
-
-        /// <summary>
-        /// Injection of services.
-        /// </summary>
-        public void Inject(CSharpParserService parserService, ZipParserService zipService, GenerateCrudService crudService,
+        public CRUDGeneratorViewModel(CSharpParserService parserService, ZipParserService zipService, GenerateCrudService crudService,
             SettingsService settingsService, IConsoleWriter consoleWriter,
             FileGeneratorService fileGeneratorService, IDialogService dialogService)
         {
@@ -67,6 +56,14 @@ namespace BIA.ToolKit.Application.ViewModel
             this.consoleWriter = consoleWriter;
             this.fileGeneratorService = fileGeneratorService;
             this.dialogService = dialogService;
+
+            OptionItems = [];
+            ZipFeatureTypeList = [];
+            FeatureNames = [];
+            DtoEntities = [];
+
+            WeakReferenceMessenger.Default.Register<ProjectChangedMessage>(this, (r, m) => SetCurrentProject(m.Project));
+            WeakReferenceMessenger.Default.Register<SolutionClassesParsedMessage>(this, (r, m) => OnSolutionClassesParsed());
         }
 
         #region CurrentProject

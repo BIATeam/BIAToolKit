@@ -28,34 +28,25 @@ namespace BIA.ToolKit.UserControls
     /// </summary>
     public partial class RegenerateFeaturesUC : UserControl
     {
-        private RegenerateFeaturesViewModel viewModel;
-        private IConsoleWriter consoleWriter;
-        private SettingsService settingsService;
-        private RegenerateFeaturesDiscoveryService discoveryService;
-        private FeatureMigrationGeneratorService featureMigrationGeneratorService;
-        private GitService gitService;
-        private CSharpParserService cSharpParserService;
+        private readonly RegenerateFeaturesViewModel viewModel;
+        private readonly IConsoleWriter consoleWriter;
+        private readonly SettingsService settingsService;
+        private readonly RegenerateFeaturesDiscoveryService discoveryService;
+        private readonly FeatureMigrationGeneratorService featureMigrationGeneratorService;
+        private readonly GitService gitService;
+        private readonly CSharpParserService cSharpParserService;
         private Project currentProject;
 
         public RegenerateFeaturesUC()
         {
             InitializeComponent();
-        }
 
-        public void Inject(
-            IConsoleWriter consoleWriter,
-            SettingsService settingsService,
-            RegenerateFeaturesDiscoveryService discoveryService,
-            FeatureMigrationGeneratorService featureMigrationGeneratorService,
-            GitService gitService,
-            CSharpParserService cSharpParserService)
-        {
-            this.consoleWriter = consoleWriter;
-            this.settingsService = settingsService;
-            this.discoveryService = discoveryService;
-            this.featureMigrationGeneratorService = featureMigrationGeneratorService;
-            this.gitService = gitService;
-            this.cSharpParserService = cSharpParserService;
+            consoleWriter = App.GetService<IConsoleWriter>();
+            settingsService = App.GetService<SettingsService>();
+            discoveryService = App.GetService<RegenerateFeaturesDiscoveryService>();
+            featureMigrationGeneratorService = App.GetService<FeatureMigrationGeneratorService>();
+            gitService = App.GetService<GitService>();
+            cSharpParserService = App.GetService<CSharpParserService>();
 
             viewModel = new RegenerateFeaturesViewModel();
             DataContext = viewModel;

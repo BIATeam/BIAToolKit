@@ -7,11 +7,9 @@
              xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
              xmlns:c="clr-namespace:BIA.ToolKit.Controls"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=local:CRUDGeneratorViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="430" d:DesignWidth="1400">
-    <UserControl.DataContext>
-        <local:CRUDGeneratorViewModel />
-    </UserControl.DataContext>
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
         <Thickness x:Key="FormFirstRowMargin">0,0,0,5</Thickness>

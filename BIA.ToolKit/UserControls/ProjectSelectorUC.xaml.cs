@@ -11,11 +11,13 @@ namespace BIA.ToolKit.UserControls
     /// </summary>
     public partial class ProjectSelectorUC : UserControl
     {
-        private ProjectViewModel viewModel;
+        private ProjectViewModel ViewModel => (ProjectViewModel)DataContext;
 
         /// <summary>
         /// Raised when the root path TextBox content changes.
-        /// Subscribe to this in parent UCs that need to react (e.g. ModifyProjectUC resets migration buttons).
+        /// Previously used by ModifyProjectUC to reset migration buttons;
+        /// now handled in ModifyProjectViewModel.CurrentProject setter.
+        /// Kept as a public extension point for parent UCs.
         /// </summary>
         public event EventHandler RootPathTextChanged;
 
@@ -24,20 +26,14 @@ namespace BIA.ToolKit.UserControls
             InitializeComponent();
         }
 
-        public void Inject(ProjectViewModel vm)
-        {
-            viewModel = vm;
-            DataContext = vm;
-        }
-
         private void BrowseRootFolder_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            viewModel.RootProjectsPath = FileDialog.BrowseFolder(viewModel.RootProjectsPath, "Choose project root path");
+            ViewModel.RootProjectsPath = FileDialog.BrowseFolder(ViewModel.RootProjectsPath, "Choose project root path");
         }
 
         private void RefreshProjectList_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            viewModel.RefreshProjetsList();
+            ViewModel.RefreshProjetsList();
         }
 
         private void RootPathTextBox_TextChanged(object sender, TextChangedEventArgs e)

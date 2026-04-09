@@ -25,14 +25,14 @@ namespace BIA.ToolKit.Application.ViewModel
     public class ProjectViewModel : ObservableObject,
         IRecipient<SettingsUpdatedMessage>
     {
-        private FileGeneratorService fileGeneratorService;
-        private IConsoleWriter consoleWriter;
-        private SettingsService settingsService;
-        private CSharpParserService parserService;
+        private readonly FileGeneratorService fileGeneratorService;
+        private readonly IConsoleWriter consoleWriter;
+        private readonly SettingsService settingsService;
+        private readonly CSharpParserService parserService;
 
         private Project currentProject;
 
-        public void Inject(FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter,
+        public ProjectViewModel(FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter,
             SettingsService settingsService, CSharpParserService parserService)
         {
             this.fileGeneratorService = fileGeneratorService;
