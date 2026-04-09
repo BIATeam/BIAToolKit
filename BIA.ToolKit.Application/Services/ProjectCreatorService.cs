@@ -98,7 +98,7 @@ namespace BIA.ToolKit.Application.Services
             // Ensure to have namespaces correctly formated
             projectParameters.ProjectName = $"{char.ToUpper(projectParameters.ProjectName[0])}{projectParameters.ProjectName[1..]}";
 
-            var featureSettings = projectParameters.VersionAndOption?.FeatureSettings.ToList();
+            List<FeatureSetting> featureSettings = projectParameters.VersionAndOption?.FeatureSettings.ToList() ?? [];
 
             List<string> foldersToExcludes = [];
             List<string> localFilesToExcludes = [];
@@ -222,8 +222,20 @@ namespace BIA.ToolKit.Application.Services
 
             CleanBiaToolkitJsonFiles(projectPath);
 
+            if(featureSettings.Any(f => f.Id == (int)BiaFeatureSettingsEnum.CreateDefaultTeam && f.IsSelected))
+            {
+                await CreateDefaultTeam(projectPath, projectParameters, consoleWriter, cancellationToken);
+            }
+
             consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd ? "Green" : "Blue");
             return true;
+        }
+
+        private async Task CreateDefaultTeam(string projectPath, ProjectParameters projectParameters, IConsoleWriter consoleWriter, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            consoleWriter.AddMessageLine("Start create default team.", "Pink");
+            consoleWriter.AddMessageLine("End create default team.", "Pink");
         }
 
         private async Task RenameInProject(string projectPath, ProjectParameters projectParameters, System.Threading.CancellationToken cancellationToken)
