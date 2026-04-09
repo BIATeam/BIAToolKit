@@ -39,13 +39,13 @@ using Roslyn.Services;*/
 
         private MSBuildWorkspace Workspace { get; set; }
 
-        public ClassDefinition ParseClassFile(string fileName)
+        public ClassDefinition ParseClassFile(string fileName, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
 #if DEBUG
             consoleWriter.AddMessageLine($"Parse file: '{fileName}'", "Green");
 #endif
-
-            var cancellationToken = new CancellationToken();
 
             string fileText = File.ReadAllText(fileName);
 
@@ -357,8 +357,10 @@ using Roslyn.Services;*/
             return (result, project.Name, result.Count, stopwatch.Elapsed.TotalSeconds);
         }
 
-        public async Task FixUsings()
+        public async Task FixUsings(CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+            
             if (string.IsNullOrWhiteSpace(CurrentSolution?.FilePath))
             {
                 consoleWriter.AddMessageLine("No solution loaded to fix usings.", "red");
@@ -380,20 +382,21 @@ using Roslyn.Services;*/
                         {
                             try
                             {
-                                if (await document.GetSyntaxRootAsync() is not CompilationUnitSyntax syntaxRoot)
+                                ct.ThrowIfCancellationRequested();
+                                if (await document.GetSyntaxRootAsync(ct) is not CompilationUnitSyntax syntaxRoot)
                                 {
                                     consoleWriter.AddMessageLine($"-> {document.Name} : No compilation unit syntax root found.", "orange");
                                     continue;
                                 }
 
-                                Compilation compilation = await project.GetCompilationAsync();
+                                Compilation compilation = await project.GetCompilationAsync(ct);
                                 if (compilation == null)
                                 {
                                     consoleWriter.AddMessageLine($"-> {document.Name} : Compilation not available.", "orange");
                                     continue;
                                 }
 
-                                SyntaxTree documentSyntaxTree = await document.GetSyntaxTreeAsync();
+                                SyntaxTree documentSyntaxTree = await document.GetSyntaxTreeAsync(ct);
                                 if (documentSyntaxTree == null)
                                 {
                                     consoleWriter.AddMessageLine($"-> {document.Name} : No syntax tree available.", "orange");
@@ -413,7 +416,7 @@ using Roslyn.Services;*/
 
                                 if (missingUsingsAdded || obsoleteUsingsRemoved || usingsReordered)
                                 {
-                                    SyntaxNode formattedRoot = Microsoft.CodeAnalysis.Formatting.Formatter.Format(finalRoot, Workspace);
+                                    SyntaxNode formattedRoot = Microsoft.CodeAnalysis.Formatting.Formatter.Format(finalRoot, Workspace, cancellationToken: ct);
                                     File.WriteAllText(document.FilePath!, formattedRoot.ToFullString());
                                 }
                             }

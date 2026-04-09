@@ -3,6 +3,7 @@ namespace BIA.ToolKit.UserControls
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
@@ -80,8 +81,10 @@ namespace BIA.ToolKit.UserControls
             uiEventBroker.RequestExecuteActionWithWaiter(Regenerate_Run);
         }
 
-        private async Task Regenerate_Run()
+        private async Task Regenerate_Run(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            
             if (currentProject == null)
             {
                 MessageBox.Show("Select a project before regenerating.");
@@ -106,7 +109,7 @@ namespace BIA.ToolKit.UserControls
                 return;
             }
 
-            await orchestrationService.RegenerateAsync(currentProject, viewModel.SelectedFeatures, viewModel.EntityRows);
+            await orchestrationService.RegenerateAsync(currentProject, viewModel.SelectedFeatures, viewModel.EntityRows, cancellationToken);
         }
     }
 }

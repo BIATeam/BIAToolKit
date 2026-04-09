@@ -1,6 +1,7 @@
 namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
+    using System.Threading;
     using System.Threading.Tasks;
     using LibGit2Sharp;
     using System.IO;
@@ -78,16 +79,18 @@ namespace BIA.ToolKit.Application.Services
             }
         }
 
-        public async Task<string> PrepareVersionFolder(Domain.IRepository repository, string version)
+        public async Task<string> PrepareVersionFolder(Domain.IRepository repository, string version, CancellationToken ct = default)
         {
             try
             {
+                ct.ThrowIfCancellationRequested();
+
                 Release release = repository.Releases.FirstOrDefault(r => r.Name == version)
                         ?? throw new Exception($"Release {version} not found for repository {repository.Name}");
 
                 if (!release.IsDownloaded)
                 {
-                    await DownloadReleaseAsync(repository, release);
+                    await DownloadReleaseAsync(repository, release, ct);
                 }
 
                 return release.LocalPath;
@@ -99,10 +102,12 @@ namespace BIA.ToolKit.Application.Services
             }
         }
 
-        private async Task DownloadReleaseAsync(Domain.IRepository repository, Release release)
+        private async Task DownloadReleaseAsync(Domain.IRepository repository, Release release, CancellationToken ct = default)
         {
             if (repository.UseDownloadedReleases)
                 return;
+
+            ct.ThrowIfCancellationRequested();
 
             outPut.AddMessageLine($"Downloading release {release.Name} of repository {repository.Name}...", "pink");
             await release.DownloadAsync();
@@ -112,18 +117,19 @@ namespace BIA.ToolKit.Application.Services
                 && repository is RepositoryGit repositoryGit
                 && repositoryGit.ReleaseType == ReleaseType.Git)
             {
-                await UnzipReleaseArchive(repository, release);
+                await UnzipReleaseArchive(repository, release, ct);
             }
             else if (repository.RepositoryType == RepositoryType.Folder
                 && Directory.EnumerateFiles(release.LocalPath, "*").Count() == 1
                 && Directory.EnumerateFiles(release.LocalPath, "*.zip").Count() == 1)
             {
-                await UnzipReleaseArchive(repository, release);
+                await UnzipReleaseArchive(repository, release, ct);
             }
         }
 
-        private async Task UnzipReleaseArchive(Domain.IRepository repository, Release release)
+        private async Task UnzipReleaseArchive(Domain.IRepository repository, Release release, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             string archivePath = Path.Combine(release.LocalPath, $"{release.Name}.zip");
             if (!File.Exists(archivePath))
             {
@@ -149,7 +155,7 @@ namespace BIA.ToolKit.Application.Services
                     }
                     Directory.Delete(contentDirectory, true);
                 }
-            });
+            }, ct);
             outPut.AddMessageLine($"{Path.GetFileName(archivePath)} of repository {repository.Name} unzipped", "green");
         }
     }

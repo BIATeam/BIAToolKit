@@ -20,6 +20,7 @@ namespace BIA.ToolKit.UserControls
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
+    using System.Threading;
 
     /// <summary>
     /// Interaction logic for OptionGenerator.xaml
@@ -112,8 +113,10 @@ namespace BIA.ToolKit.UserControls
             uiEventBroker.RequestExecuteActionWithWaiter(InitProjectTask);
         }
 
-        private Task InitProjectTask()
+        private Task InitProjectTask(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Load BIA settings + history + parse zips
             InitProject();
 
@@ -180,7 +183,7 @@ namespace BIA.ToolKit.UserControls
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            uiEventBroker.RequestExecuteActionWithWaiter(async (ct) =>
             {
 
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
@@ -198,12 +201,12 @@ namespace BIA.ToolKit.UserControls
                         UseHubForClient = vm.UseHubClient,
                         GenerateFront = true,
                         GenerateBack = true,
-                    });
+                    }, ct);
                     UpdateOptionGenerationHistory();
                     return;
                 }
 
-                if (!zipService.ParseZips(vm.ZipFeatureTypeList, vm.CurrentProject, vm.BiaFront, settings))
+                if (!zipService.ParseZips(vm.ZipFeatureTypeList, vm.CurrentProject, vm.BiaFront, settings, ct))
                     return;
 
                 crudService.CrudNames.InitRenameValues(vm.Entity.Name, vm.EntityNamePlural);

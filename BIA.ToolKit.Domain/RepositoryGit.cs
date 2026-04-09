@@ -7,6 +7,7 @@ namespace BIA.ToolKit.Domain
     using System.Net.Http.Headers;
     using System.Text;
     using System.Text.RegularExpressions;
+    using System.Threading;
     using System.Threading.Tasks;
     using BIA.ToolKit.Domain.Settings;
     using LibGit2Sharp;
@@ -76,8 +77,10 @@ namespace BIA.ToolKit.Domain
             };
         }
 
-        public override async Task FillReleasesAsync()
+        public override async Task FillReleasesAsync(CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+            
             try
             {
                 UseDownloadedReleases = false;

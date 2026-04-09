@@ -120,7 +120,7 @@ namespace BIA.ToolKit
 
         public async Task Init()
         {
-            await ExecuteTaskWithWaiterAsync(async () =>
+            await ExecuteTaskWithWaiterAsync(async (ct) =>
             {
                 await InitSettings();
 
@@ -128,10 +128,10 @@ namespace BIA.ToolKit
 
                 if (Properties.Settings.Default.AutoUpdate)
                 {
-                    await updateService.CheckForUpdatesAsync();
+                    await updateService.CheckForUpdatesAsync(ct);
                 }
 
-                await Task.Run(() => cSharpParserService.RegisterMSBuild(consoleWriter));
+                await Task.Run(() => cSharpParserService.RegisterMSBuild(consoleWriter), ct);
             });
         }
 
@@ -323,22 +323,38 @@ namespace BIA.ToolKit
         }
 
         private readonly SemaphoreSlim semaphore = new(1, 1);
-        private async Task ExecuteTaskWithWaiterAsync(Func<Task> task)
+        private CancellationTokenSource currentTokenSource;
+
+        private async Task ExecuteTaskWithWaiterAsync(Func<CancellationToken, Task> task)
         {
             await semaphore.WaitAsync();
+            currentTokenSource = new CancellationTokenSource();
             await Dispatcher.InvokeAsync(async () =>
             {
                 try
                 {
+                    StopButton.IsEnabled = true;
                     Waiter.Visibility = Visibility.Visible;
-                    await task().ConfigureAwait(true);
+                    await task(currentTokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    consoleWriter.AddMessageLine("Action canceled by user.", "Red");
                 }
                 finally
                 {
+                    StopButton.IsEnabled = false;
                     semaphore.Release();
                     Waiter.Visibility = Visibility.Hidden;
                 }
             }).Task.Unwrap();
+        }
+
+        private void StopButton_Click(object sender, RoutedEventArgs e)
+        {
+            currentTokenSource?.Cancel();
+            currentTokenSource?.Dispose();
+            currentTokenSource = null;
         }
 
         private void CreateProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
@@ -405,7 +421,7 @@ namespace BIA.ToolKit
                 return;
             }
 
-            await ExecuteTaskWithWaiterAsync(async () =>
+            await ExecuteTaskWithWaiterAsync(async (ct) =>
             {
                 await projectCreatorService.Create(
                     true,
@@ -416,7 +432,8 @@ namespace BIA.ToolKit
                         ProjectName = CreateProjectName.Text,
                         VersionAndOption = CreateVersionAndOption.vm.VersionAndOption,
                         AngularFronts = [Constants.FolderAngular]
-                    });
+                    },
+                    ct: ct);
             });
         }
 
@@ -524,7 +541,7 @@ namespace BIA.ToolKit
 
             consoleWriter.AddMessageLine($"New configuration imported from {configFile}", "yellow");
 
-            await ExecuteTaskWithWaiterAsync(async () =>
+            await ExecuteTaskWithWaiterAsync(async (ct) =>
             {
                 await GetReleasesData(config, true);
 

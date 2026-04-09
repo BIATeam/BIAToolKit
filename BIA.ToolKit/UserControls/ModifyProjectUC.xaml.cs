@@ -6,6 +6,7 @@ namespace BIA.ToolKit.UserControls
     using System.IO;
     using System.Linq;
     using System.Text.RegularExpressions;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
@@ -98,15 +99,17 @@ namespace BIA.ToolKit.UserControls
         {
             uiEventBroker.RequestExecuteActionWithWaiter(Migrate_Run);
         }
-        private async Task Migrate_Run()
+        private async Task Migrate_Run(CancellationToken cancellationToken = default)
         {
-            if (!await MigrateGenerateOnly_Run())
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (!await MigrateGenerateOnly_Run(cancellationToken))
                 return;
 
-            if (!await MigrateApplyDiff_Run())
+            if (!await MigrateApplyDiff_Run(cancellationToken))
                 return;
 
-            await MigrateMergeRejected_Run();
+            await MigrateMergeRejected_Run(cancellationToken);
         }
 
         private void ParameterModifyChange()
@@ -121,8 +124,10 @@ namespace BIA.ToolKit.UserControls
             uiEventBroker.RequestExecuteActionWithWaiter(MigrateGenerateOnly_Run);
         }
 
-        private async Task<bool> MigrateGenerateOnly_Run()
+        private async Task<bool> MigrateGenerateOnly_Run(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (_viewModel.ModifyProject.CurrentProject == null)
             {
                 MessageBox.Show("Select a project before click migrate.");
@@ -136,7 +141,7 @@ namespace BIA.ToolKit.UserControls
 
             MigratePreparePath(out _, out string projectOriginPath, out _, out _, out string projectTargetPath, out _);
 
-            if (!await GenerateProjects(true, projectOriginPath, projectTargetPath))
+            if (!await GenerateProjects(true, projectOriginPath, projectTargetPath, cancellationToken))
             {
                 consoleWriter.AddMessageLine("Generate projects failed.", "Red");
                 return false;
@@ -152,16 +157,18 @@ namespace BIA.ToolKit.UserControls
             uiEventBroker.RequestExecuteActionWithWaiter(MigrateApplyDiff_Run);
         }
 
-        private async Task<bool> MigrateApplyDiff_Run()
+        private async Task<bool> MigrateApplyDiff_Run(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out _, out string projectTargetFolderName, out _, out _);
 
             if (_viewModel.OverwriteBIAFromOriginal == true)
             {
-                await projectCreatorService.OverwriteBIAFolder(projectOriginPath, _viewModel.ModifyProject.CurrentProject.Folder, false);
+                await projectCreatorService.OverwriteBIAFolder(projectOriginPath, _viewModel.ModifyProject.CurrentProject.Folder, false, cancellationToken);
             }
 
-            bool result = await ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName);
+            bool result = await ApplyDiff(true, projectOriginalFolderName, projectTargetFolderName, cancellationToken);
             MigrateMergeRejected.IsEnabled = result;
             return result;
         }
@@ -171,9 +178,11 @@ namespace BIA.ToolKit.UserControls
             uiEventBroker.RequestExecuteActionWithWaiter(MigrateMergeRejected_Run);
         }
 
-        private async Task MigrateMergeRejected_Run()
+        private async Task MigrateMergeRejected_Run(CancellationToken cancellationToken = default)
         {
-            await MergeRejected(true);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await MergeRejected(true, cancellationToken);
 
             MigrateMergeRejected.IsEnabled = false;
 
@@ -209,12 +218,12 @@ namespace BIA.ToolKit.UserControls
 
                     File.Copy(fileToCopy, fileToCheck);
                 }
-            });
+            }, cancellationToken);
         }
 
         private void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () => await OverwriteBIAFolder(true));
+            uiEventBroker.RequestExecuteActionWithWaiter(async (ct) => await OverwriteBIAFolder(true, ct));
         }
 
         private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion)
@@ -228,16 +237,18 @@ namespace BIA.ToolKit.UserControls
             projectTargetPath = AppSettings.TmpFolderPath + projectTargetFolderName;
         }
 
-        private async Task<bool> GenerateProjects(bool actionFinishedAtEnd, string projectOriginPath, string projectTargetPath)
+        private async Task<bool> GenerateProjects(bool actionFinishedAtEnd, string projectOriginPath, string projectTargetPath, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             // Create project at original version.
             if (Directory.Exists(projectOriginPath))
             {
-                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectOriginPath));
+                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectOriginPath), ct);
             }
 
             consoleWriter.AddMessageLine($"Generate project FROM with version {MigrateOriginVersionAndOption.vm.WorkTemplate.Version}", "Blue");
-            if (!await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, _viewModel.CurrentProject.BIAFronts))
+            if (!await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectOriginPath, MigrateOriginVersionAndOption, _viewModel.CurrentProject.BIAFronts, ct))
             {
                 return false;
             }
@@ -245,12 +256,12 @@ namespace BIA.ToolKit.UserControls
             // Create project at target version.
             if (Directory.Exists(projectTargetPath))
             {
-                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectTargetPath));
+                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectTargetPath), ct);
             }
 
 
             consoleWriter.AddMessageLine($"Generate project TO with version {MigrateTargetVersionAndOption.vm.WorkTemplate.Version}", "Blue");
-            if (!await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, _viewModel.CurrentProject.BIAFronts))
+            if (!await CreateProject(false, _viewModel.CompanyName, _viewModel.Name, projectTargetPath, MigrateTargetVersionAndOption, _viewModel.CurrentProject.BIAFronts, ct))
             {
                 return false;
             }
@@ -259,8 +270,10 @@ namespace BIA.ToolKit.UserControls
             return true;
         }
 
-        private async Task<bool> CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, List<string> fronts)
+        private async Task<bool> CreateProject(bool actionFinishedAtEnd, string CompanyName, string ProjectName, string projectPath, VersionAndOptionUserControl versionAndOption, List<string> fronts, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             bool result = await projectCreatorService.Create(
                 actionFinishedAtEnd,
                 projectPath,
@@ -270,7 +283,8 @@ namespace BIA.ToolKit.UserControls
                     ProjectName = ProjectName,
                     VersionAndOption = versionAndOption.vm.VersionAndOption,
                     AngularFronts = fronts
-                }
+                },
+                ct: ct
             );
 
             if (result)
@@ -287,27 +301,31 @@ namespace BIA.ToolKit.UserControls
             Process.Start("explorer.exe", AppSettings.TmpFolderPath);
         }
 
-        private async Task<bool> ApplyDiff(bool actionFinishedAtEnd, string projectOriginalFolderName, string projectTargetFolderName)
+        private async Task<bool> ApplyDiff(bool actionFinishedAtEnd, string projectOriginalFolderName, string projectTargetFolderName, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             // Make the differential
             string migrateFilePath = GenerateMigrationPatchFilePath(projectOriginalFolderName, projectTargetFolderName);
-            if (!await gitService.DiffFolder(false, AppSettings.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath))
+            if (!await gitService.DiffFolder(false, AppSettings.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath, ct))
             {
                 return false;
             }
             //Apply the differential
-            if (!await gitService.ApplyDiff(actionFinishedAtEnd, _viewModel.ModifyProject.CurrentProject.Folder, migrateFilePath))
+            if (!await gitService.ApplyDiff(actionFinishedAtEnd, _viewModel.ModifyProject.CurrentProject.Folder, migrateFilePath, ct))
             {
                 return false;
             }
 
-            await HandleDeletedFilesFailed(_viewModel.ModifyProject.CurrentProject, migrateFilePath, projectOriginalFolderName, projectTargetFolderName);
+            await HandleDeletedFilesFailed(_viewModel.ModifyProject.CurrentProject, migrateFilePath, projectOriginalFolderName, projectTargetFolderName, ct);
             return true;
         }
 
-        private async Task HandleDeletedFilesFailed(Project currentProject, string migrateFilePath, string projectOriginalFolder, string _)
+        private async Task HandleDeletedFilesFailed(Project currentProject, string migrateFilePath, string projectOriginalFolder, string _, CancellationToken ct = default)
         {
-            List<string> migrateFileContent = [.. (await File.ReadAllLinesAsync(migrateFilePath))];
+            ct.ThrowIfCancellationRequested();
+
+            List<string> migrateFileContent = [.. await File.ReadAllLinesAsync(migrateFilePath, ct)];
             var deleteFileInstructionIndexes = new List<int>();
             for (int i = 0; i < migrateFileContent.Count; i++)
             {
@@ -349,8 +367,10 @@ namespace BIA.ToolKit.UserControls
             }
         }
 
-        private async Task MergeRejected(bool actionFinishedAtEnd)
+        private async Task MergeRejected(bool actionFinishedAtEnd, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion);
 
             await gitService.MergeRejected(actionFinishedAtEnd, new GitService.MergeParameter()
@@ -361,7 +381,7 @@ namespace BIA.ToolKit.UserControls
                 ProjectTargetPath = projectTargetPath,
                 ProjectTargetVersion = projectTargetVersion,
                 MigrationPatchFilePath = GenerateMigrationPatchFilePath(projectOriginalFolderName, projectTargetFolderName)
-            }); ;
+            }, ct);
         }
 
         private static string GenerateMigrationPatchFilePath(string projectOriginalFolderName, string projectTargetFolderName)
@@ -369,11 +389,13 @@ namespace BIA.ToolKit.UserControls
             return AppSettings.TmpFolderPath + $"Migration_{projectOriginalFolderName}-{projectTargetFolderName}.patch";
         }
 
-        private async Task OverwriteBIAFolder(bool actionFinishedAtEnd)
+        private async Task OverwriteBIAFolder(bool actionFinishedAtEnd, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             MigratePreparePath(out _, out _, out _, out _, out string projectTargetPath, out _);
 
-            await projectCreatorService.OverwriteBIAFolder(projectTargetPath, _viewModel.ModifyProject.CurrentProject.Folder, actionFinishedAtEnd);
+            await projectCreatorService.OverwriteBIAFolder(projectTargetPath, _viewModel.ModifyProject.CurrentProject.Folder, actionFinishedAtEnd, ct);
         }
 
         private void FixUsings_Click(object sender, RoutedEventArgs e)
@@ -381,9 +403,10 @@ namespace BIA.ToolKit.UserControls
             uiEventBroker.RequestExecuteActionWithWaiter(FixUsings_Run);
         }
 
-        private async Task FixUsings_Run()
+        private async Task FixUsings_Run(CancellationToken cancellationToken = default)
         {
-            await cSharpParserService.FixUsings();
+            cancellationToken.ThrowIfCancellationRequested();
+            await cSharpParserService.FixUsings(cancellationToken);
         }
     }
 }

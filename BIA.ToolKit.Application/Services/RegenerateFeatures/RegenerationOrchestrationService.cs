@@ -4,6 +4,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Settings;
@@ -82,8 +83,11 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         public async Task RegenerateAsync(
             Project currentProject,
             IEnumerable<FeatureRegenerationItem> selectedFeatures,
-            IReadOnlyList<RegenerableEntityRowViewModel> entityRows)
+            IReadOnlyList<RegenerableEntityRowViewModel> entityRows,
+            CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             List<WorkRepository> workTemplates = GetAvailableVersions();
             string toVersionNorm = NormalizeVersion(currentProject.FrameworkVersion);
 
@@ -101,7 +105,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             string masterFolderName = $"{currentProject.Name}_RegenerateFeatures";
             string masterFolderPath = Path.Combine(AppSettings.TmpFolderPath, masterFolderName);
             if (Directory.Exists(masterFolderPath))
-                await Task.Run(() => FileTransform.ForceDeleteDirectory(masterFolderPath));
+                await Task.Run(() => FileTransform.ForceDeleteDirectory(masterFolderPath), ct);
             Directory.CreateDirectory(masterFolderPath);
 
             // Group features by FROM version so each version pair shares the same FROM/TO projects.
@@ -136,7 +140,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                 string toPath = Path.Combine(masterFolderPath, toFolderName);
 
                 consoleWriter.AddMessageLine($"Creating FROM project at version {fromVersionNorm}...", "Blue");
-                if (!await projectCreatorService.Create(false, fromPath, await BuildProjectParametersAsync(fromWorkRepo, currentProject)))
+                if (!await projectCreatorService.Create(false, fromPath, await BuildProjectParametersAsync(fromWorkRepo, currentProject, ct), ct: ct))
                 {
                     consoleWriter.AddMessageLine($"Failed to create FROM project at version {fromVersionNorm}. Skipping group.", "Red");
                     continue;
@@ -145,7 +149,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                 ClearProjectPermissions(fromPath, currentProject);
 
                 consoleWriter.AddMessageLine($"Creating TO project at version {toVersionNorm}...", "Blue");
-                if (!await projectCreatorService.Create(false, toPath, await BuildProjectParametersAsync(toWorkRepo, currentProject)))
+                if (!await projectCreatorService.Create(false, toPath, await BuildProjectParametersAsync(toWorkRepo, currentProject, ct), ct: ct))
                 {
                     consoleWriter.AddMessageLine($"Failed to create TO project at version {toVersionNorm}. Skipping group.", "Red");
                     continue;
@@ -171,11 +175,11 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                     $"Regen_{fromFolderName}-{toFolderName}.patch");
 
                 bool hasDiff = await gitService.DiffFolder(
-                    false, masterFolderPath, fromFolderName, toFolderName, patchFilePath);
+                    false, masterFolderPath, fromFolderName, toFolderName, patchFilePath, ct);
 
                 if (hasDiff)
                 {
-                    await gitService.ApplyDiff(false, currentProject.Folder, patchFilePath);
+                    await gitService.ApplyDiff(false, currentProject.Folder, patchFilePath, ct);
                     await gitService.MergeRejected(false, new GitService.MergeParameter
                     {
                         ProjectPath = currentProject.Folder,
@@ -184,7 +188,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
                         ProjectTargetPath = toPath,
                         ProjectTargetVersion = toWorkRepo.Version,
                         MigrationPatchFilePath = patchFilePath
-                    });
+                    }, ct);
                 }
 
                 // Stamp FrameworkVersion in history for every feature in this group.
@@ -212,12 +216,14 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         /// Feature settings are loaded and merged so that generated FROM/TO projects match the
         /// project's actual feature selection. Company-file overlays are intentionally skipped.
         /// </summary>
-        private async Task<ProjectParameters> BuildProjectParametersAsync(WorkRepository workRepo, Project currentProject)
+        private async Task<ProjectParameters> BuildProjectParametersAsync(WorkRepository workRepo, Project currentProject, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             if (string.IsNullOrEmpty(workRepo.VersionFolderPath))
             {
                 workRepo.VersionFolderPath = await repositoryService.PrepareVersionFolder(
-                    workRepo.Repository, workRepo.Version);
+                    workRepo.Repository, workRepo.Version, ct);
             }
 
             List<FeatureSetting> featureSettings = FeatureSettingService.LoadAndMergeFeatureSettings(
