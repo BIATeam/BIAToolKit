@@ -6,6 +6,7 @@ namespace BIA.ToolKit.Domain
     using System.Text;
     using System.Text.Json.Serialization;
     using System.Text.RegularExpressions;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public sealed class RepositoryFolder(string name, string path, string releasesFolderRegexPattern = null, string companyName = null, string projectName = null, bool useRepository = false) : Repository(name, RepositoryType.Folder, companyName, projectName, useRepository), IRepositoryFolder
@@ -14,8 +15,10 @@ namespace BIA.ToolKit.Domain
         public string Path { get; set; } = path;
         public string ReleasesFolderRegexPattern { get; set; } = releasesFolderRegexPattern;
 
-        public override Task FillReleasesAsync()
+        public override Task FillReleasesAsync(CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+            
             try
             {
                 UseDownloadedReleases = false;

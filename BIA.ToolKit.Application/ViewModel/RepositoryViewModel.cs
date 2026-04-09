@@ -128,13 +128,13 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private void Synchronize()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
                 try
                 {
                     if (IsGitRepository && repository is RepositoryGit repositoryGit)
                     {
-                        await gitService.Synchronize(repositoryGit);
+                        await gitService.Synchronize(repositoryGit, ct);
                     }
                 }
                 catch (Exception ex)
@@ -147,7 +147,7 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private void OpenSource()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
                 if (Model is RepositoryFolder repoFolder)
                 {
@@ -156,12 +156,12 @@ namespace BIA.ToolKit.Application.ViewModel
                         consoleWriter.AddMessageLine($"Source folder {repoFolder.Path} not found");
                     }
 
-                    await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = Model.LocalPath, UseShellExecute = true }));
+                    await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = Model.LocalPath, UseShellExecute = true }), ct);
                 }
 
                 if(Model is RepositoryGit repoGit)
                 {
-                    await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = repoGit.Url, UseShellExecute = true }));
+                    await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = repoGit.Url, UseShellExecute = true }), ct);
                 }
             }));
         }
@@ -169,26 +169,26 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private void OpenSynchronizedFolder()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
                 if (!Directory.Exists(Model.LocalPath))
                 {
                     consoleWriter.AddMessageLine($"Synchronized folder {Model.LocalPath} not found");
                 }
 
-                await Task.Run(() => Process.Start("explorer.exe", Model.LocalPath));
+                await Task.Run(() => Process.Start("explorer.exe", Model.LocalPath), ct);
             }));
         }
 
         [RelayCommand]
         private void GetReleasesData()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
                 try
                 {
                     consoleWriter.AddMessageLine("Getting releases data...", "pink");
-                    await repository.FillReleasesAsync();
+                    await repository.FillReleasesAsync(ct);
                     WeakReferenceMessenger.Default.Send(new RepositoryReleaseDataUpdatedMessage(this));
                     consoleWriter.AddMessageLine("Releases data got successfully", "green");
                     if (repository.UseDownloadedReleases)
@@ -206,12 +206,12 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private void CleanReleases()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
                 try
                 {
                     consoleWriter.AddMessageLine($"Cleaning releases of repository {Name}...", "pink");
-                    await Task.Run(repository.CleanReleases);
+                    await Task.Run(repository.CleanReleases, ct);
                     consoleWriter.AddMessageLine($"Releases cleaned", "green");
                 }
                 catch (Exception ex)

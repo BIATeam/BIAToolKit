@@ -303,7 +303,7 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private void Generate()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
                 {
@@ -333,7 +333,7 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private void DeleteLastGeneration()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(() =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage((ct) =>
             {
                 if (optionHistory == null || string.IsNullOrEmpty(optionHistoryFileName))
                 {
@@ -365,7 +365,7 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private void DeleteBIAToolkitAnnotations()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
                 try
                 {
@@ -397,7 +397,7 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private void OnEntitySelectionChanged()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
                 if (Entity == null)
                 {
@@ -437,7 +437,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
         private void OnSolutionClassesParsed()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
                 await LoadEntitiesAsync();
             }));

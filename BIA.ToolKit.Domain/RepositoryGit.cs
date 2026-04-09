@@ -7,6 +7,7 @@ namespace BIA.ToolKit.Domain
     using System.Net.Http.Headers;
     using System.Text;
     using System.Text.RegularExpressions;
+    using System.Threading;
     using System.Threading.Tasks;
     using BIA.ToolKit.Domain.Settings;
     using LibGit2Sharp;
@@ -76,8 +77,10 @@ namespace BIA.ToolKit.Domain
             };
         }
 
-        public override async Task FillReleasesAsync()
+        public override async Task FillReleasesAsync(CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+            
             try
             {
                 UseDownloadedReleases = false;
@@ -166,12 +169,13 @@ namespace BIA.ToolKit.Domain
         {
             using var gitRepo = new LibGit2Sharp.Repository(LocalPath);
 
-            // Try to reach the repository
             Remote remoteOrigin = gitRepo.Network.Remotes["origin"] ?? throw new NullReferenceException();
             static LibGit2Sharp.Credentials credHandler(string url, string usernameFromUrl, SupportedCredentialTypes types) => new DefaultCredentials();
-            _ = gitRepo.Network.ListReferences(remoteOrigin, credHandler) ?? throw new Exception();
+            IEnumerable<LibGit2Sharp.Reference> remoteRefs = gitRepo.Network.ListReferences(remoteOrigin, credHandler) ?? throw new Exception();
 
-            IEnumerable<ReleaseTag> releases = gitRepo.Tags.Select(t => new ReleaseTag(t.FriendlyName, this));
+            IEnumerable<ReleaseTag> releases = remoteRefs
+                .Where(r => r.CanonicalName.StartsWith("refs/tags/") && !r.CanonicalName.EndsWith("^{}"))
+                .Select(r => new ReleaseTag(r.CanonicalName["refs/tags/".Length..], this));
 
             this.releases.Clear();
             this.releases.AddRange(releases);

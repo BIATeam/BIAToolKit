@@ -90,19 +90,30 @@ namespace BIA.ToolKit.Application.ViewModel
         [ObservableProperty]
         private bool isBusy;
 
-        public async Task ExecuteWithBusyAsync(Func<Task> task)
+        private CancellationTokenSource currentTokenSource;
+
+        public async Task ExecuteWithBusyAsync(Func<CancellationToken, Task> task)
         {
             await semaphore.WaitAsync();
+            currentTokenSource = new CancellationTokenSource();
             try
             {
                 IsBusy = true;
-                await task();
+                await task(currentTokenSource.Token);
             }
             finally
             {
                 IsBusy = false;
+                currentTokenSource?.Dispose();
+                currentTokenSource = null;
                 semaphore.Release();
             }
+        }
+
+        [RelayCommand]
+        private void StopAction()
+        {
+            currentTokenSource?.Cancel();
         }
 
         // --- Initialization ---
@@ -113,24 +124,24 @@ namespace BIA.ToolKit.Application.ViewModel
         /// </summary>
         public async Task InitAsync(BIATKSettings settings)
         {
-            await ExecuteWithBusyAsync(async () =>
+            await ExecuteWithBusyAsync(async (ct) =>
             {
                 settings.InitRepositoriesInterfaces();
-                await GetReleasesData(settings);
+                await GetReleasesData(settings, ct: ct);
                 settingsService.Init(settings);
 
                 updateService.SetAppVersion(applicationVersion);
 
                 if (settings.AutoUpdate)
                 {
-                    await updateService.CheckForUpdatesAsync();
+                    await updateService.CheckForUpdatesAsync(ct);
                 }
 
-                await Task.Run(() => cSharpParserService.RegisterMSBuild(consoleWriter));
+                await Task.Run(() => cSharpParserService.RegisterMSBuild(consoleWriter), ct);
             });
         }
 
-        public async Task GetReleasesData(BIATKSettings settings, bool syncBefore = false)
+        public async Task GetReleasesData(BIATKSettings settings, bool syncBefore = false, CancellationToken ct = default)
         {
             IEnumerable<Task> fillReleasesTasks = settings.TemplateRepositories
                 .Concat(settings.CompanyFilesRepositories)
@@ -144,7 +155,7 @@ namespace BIA.ToolKit.Application.ViewModel
                             if (r is IRepositoryGit repoGit)
                             {
                                 consoleWriter.AddMessageLine($"Synchronizing repository {r.Name}...", "pink");
-                                await gitService.Synchronize(repoGit);
+                                await gitService.Synchronize(repoGit, ct);
                                 consoleWriter.AddMessageLine($"Synchronized successfully of repository {r.Name}", "green");
                             }
                         }
@@ -157,7 +168,7 @@ namespace BIA.ToolKit.Application.ViewModel
                     try
                     {
                         consoleWriter.AddMessageLine($"Getting releases data for repository {r.Name}...", "pink");
-                        await r.FillReleasesAsync();
+                        await r.FillReleasesAsync(ct);
                         consoleWriter.AddMessageLine($"Releases data got successfully for repository {r.Name}", "green");
                         if (r.UseDownloadedReleases)
                         {
@@ -255,7 +266,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
             if (repository.Model.RepositoryType == RepositoryType.Git && repository.Model is IRepositoryGit repositoryGit)
             {
-                WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () => await gitService.Synchronize(repositoryGit)));
+                WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await gitService.Synchronize(repositoryGit, ct)));
             }
         }
 
@@ -277,10 +288,10 @@ namespace BIA.ToolKit.Application.ViewModel
                 }
             }
 
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
                 consoleWriter.AddMessageLine($"Deleting repository {repository.Name}...", "pink");
-                await Task.Run(repository.Model.Clean);
+                await Task.Run(repository.Model.Clean, ct);
                 consoleWriter.AddMessageLine("Repository deleted", "green");
             }));
         }
@@ -518,7 +529,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 return;
             }
 
-            await ExecuteWithBusyAsync(async () =>
+            await ExecuteWithBusyAsync(async (ct) =>
             {
                 await projectCreatorService.Create(
                     true,
@@ -529,7 +540,8 @@ namespace BIA.ToolKit.Application.ViewModel
                         ProjectName = CreateProjectName,
                         VersionAndOption = CreateVersionAndOptionVM.VersionAndOption,
                         AngularFronts = new List<string> { Constants.FolderAngular }
-                    });
+                    },
+                    ct: ct);
             });
         }
 
@@ -557,7 +569,7 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private async Task CheckForUpdate()
         {
-            await ExecuteWithBusyAsync(updateService.CheckForUpdatesAsync);
+            await ExecuteWithBusyAsync(async (ct) => await updateService.CheckForUpdatesAsync(ct));
         }
 
         [RelayCommand]
@@ -571,7 +583,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
                 if (confirmed)
                 {
-                    await ExecuteWithBusyAsync(updateService.DownloadUpdateAsync);
+                    await ExecuteWithBusyAsync(async (ct) => await updateService.DownloadUpdateAsync(ct));
                 }
             }
             catch (Exception ex)
@@ -610,9 +622,9 @@ namespace BIA.ToolKit.Application.ViewModel
 
             consoleWriter.AddMessageLine($"New configuration imported from {configFile}", "yellow");
 
-            await ExecuteWithBusyAsync(async () =>
+            await ExecuteWithBusyAsync(async (ct) =>
             {
-                await GetReleasesData(config, true);
+                await GetReleasesData(config, true, ct);
 
                 settingsService.SetToolkitRepository(config.ToolkitRepository);
                 settingsService.SetTemplateRepositories(config.TemplateRepositories);

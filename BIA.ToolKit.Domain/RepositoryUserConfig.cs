@@ -6,6 +6,7 @@ namespace BIA.ToolKit.Domain
     using System.Text;
     using System.Text.Json.Serialization;
     using System.Text.RegularExpressions;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public class RepositoryUserConfig : IRepositoryFolder, IRepositoryGit
@@ -62,7 +63,7 @@ namespace BIA.ToolKit.Domain
             throw new NotImplementedException();
         }
 
-        public Task FillReleasesAsync()
+        public Task FillReleasesAsync(CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }

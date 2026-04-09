@@ -15,6 +15,7 @@ namespace BIA.ToolKit.Application.ViewModel
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Input;
 
@@ -160,7 +161,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 if (value == Folder)
                     return;
 
-                WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+                WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
                 {
                     IsFileGeneratorServiceInit = false;
                     IsProjectCompatibleCrudGenerator = false;
@@ -173,15 +174,15 @@ namespace BIA.ToolKit.Application.ViewModel
                             Name = value,
                             Folder = Path.Combine(RootProjectsPath, value)
                         };
-                        await LoadProject(project);
+                        await LoadProject(project, ct);
                     }
 
-                    await InitFileGeneratorServiceFromProject(project);
+                    await InitFileGeneratorServiceFromProject(project, ct);
                     CurrentProject = project;
 
                     if (CurrentProject is not null)
                     {
-                        await ParseProject(project);
+                        await ParseProject(project, ct);
                     }
 
                     OnPropertyChanged(nameof(Folder));
@@ -239,16 +240,19 @@ namespace BIA.ToolKit.Application.ViewModel
 
         #region Private loading methods
 
-        private async Task InitFileGeneratorServiceFromProject(Project project)
+        private async Task InitFileGeneratorServiceFromProject(Project project, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             await fileGeneratorService.Init(project);
             IsFileGeneratorServiceInit = fileGeneratorService.IsInit;
             IsProjectCompatibleCrudGenerator = GenerateCrudService.IsProjectCompatible(project);
-            IsProjectCompatibleRegenerateFeatures = FeatureMigrationGeneratorService.IsProjectCompatibleForRegenerateFeatures(project);
+            IsProjectCompatibleRegenerateFeatures = RegenerateFeaturesDiscoveryService.IsProjectCompatibleForRegenerateFeatures(project);
         }
 
-        private async Task LoadProject(Project project)
+        private async Task LoadProject(Project project, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             try
             {
                 consoleWriter.AddMessageLine($"Loading project {project.Name}", "pink");
@@ -289,8 +293,8 @@ namespace BIA.ToolKit.Application.ViewModel
                     FrontFileNameSearchPattern = "bia-core.module.ts"
                 };
 
-                var resolverTask = Task.Run(() => nvResolver.ResolveNamesAndVersion(project));
-                var resolverOldVersionsTask = Task.Run(() => nvResolverOldVersions.ResolveNamesAndVersion(project));
+                var resolverTask = Task.Run(() => nvResolver.ResolveNamesAndVersion(project), ct);
+                var resolverOldVersionsTask = Task.Run(() => nvResolverOldVersions.ResolveNamesAndVersion(project), ct);
                 await Task.WhenAll(resolverTask, resolverOldVersionsTask);
 
                 consoleWriter.AddMessageLine("Names and version resolved", "lightgreen");
@@ -306,8 +310,9 @@ namespace BIA.ToolKit.Application.ViewModel
             }
         }
 
-        private async Task ParseProject(Project project)
+        private async Task ParseProject(Project project, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             try
             {
                 await parserService.LoadSolution(project.SolutionPath);
@@ -321,11 +326,11 @@ namespace BIA.ToolKit.Application.ViewModel
 
         private void RefreshProjectInformations()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
-                await LoadProject(CurrentProject);
-                await InitFileGeneratorServiceFromProject(CurrentProject);
-                await ParseProject(CurrentProject);
+                await LoadProject(CurrentProject, ct);
+                await InitFileGeneratorServiceFromProject(CurrentProject, ct);
+                await ParseProject(CurrentProject, ct);
                 RefreshProjectDisplayProperties();
             }));
         }

@@ -19,6 +19,7 @@ namespace BIA.ToolKit.Application.ViewModel
     using System.IO;
     using System.Linq;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Input;
 
@@ -167,18 +168,18 @@ namespace BIA.ToolKit.Application.ViewModel
 
                     if (WorkCompanyFile != null)
                     {
-                        WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(() => LoadCompanyFileSettingsAsync()));
+                        WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await LoadCompanyFileSettingsAsync(ct)));
                     }
                     OnPropertyChanged(nameof(WorkCompanyFile));
                 }
             }
         }
 
-        private async Task LoadCompanyFileSettingsAsync()
+        private async Task LoadCompanyFileSettingsAsync(CancellationToken ct = default)
         {
             try
             {
-                WorkCompanyFile.VersionFolderPath = await repositoryService.PrepareVersionFolder(WorkCompanyFile.Repository, WorkCompanyFile.Version);
+                WorkCompanyFile.VersionFolderPath = await repositoryService.PrepareVersionFolder(WorkCompanyFile.Repository, WorkCompanyFile.Version, ct);
                 string fileName = Path.Combine(WorkCompanyFile.VersionFolderPath, "biaCompanyFiles.json");
 
                 string jsonString = await Task.Run(() => File.ReadAllText(fileName));
@@ -284,20 +285,8 @@ namespace BIA.ToolKit.Application.ViewModel
 
         public void SetFeaturesSelection(List<string> projectGenerationTags, List<string> projectGenerationExcludedFolders, List<FeatureSetting> originFeatureSettings)
         {
-            foreach (FeatureSetting feature in FeatureSettings.Select(x => x.FeatureSetting))
-            {
-                bool isFeatureTagUsedInProjectGeneration = projectGenerationTags.Any(feature.Tags.Contains);
-                bool isFeatureExcludedFoldersInProjectGeneration = projectGenerationExcludedFolders.Any(feature.FoldersToExcludes.Contains);
-                bool isSelected = isFeatureTagUsedInProjectGeneration || isFeatureExcludedFoldersInProjectGeneration;
-
-                if (!isSelected && originFeatureSettings is not null)
-                {
-                    FeatureSetting originFeature = originFeatureSettings.FirstOrDefault(x => x.Id == feature.Id);
-                    isSelected = originFeature is null && feature.IsSelected;
-                }
-
-                feature.IsSelected = isSelected;
-            }
+            FeatureSettingService.ApplyFeaturesSelection(
+                VersionAndOption.FeatureSettings, projectGenerationTags, projectGenerationExcludedFolders, originFeatureSettings);
         }
 
         public bool HasFeature
@@ -518,7 +507,7 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private void OnFrameworkVersionSelectionChanged()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
                 await this.FillVersionFolderPathAsync();
                 this.LoadfeatureSetting();

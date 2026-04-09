@@ -18,7 +18,6 @@ namespace BIA.ToolKit.Application.ViewModel
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
-    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
     public partial class DtoGeneratorViewModel : ObservableObject, IDisposable,
@@ -69,44 +68,7 @@ namespace BIA.ToolKit.Application.ViewModel
         public void Receive(ProjectChangedMessage message) => OnProjectChanged(message.Project);
         public void Receive(SolutionClassesParsedMessage message) => OnSolutionClassesParsed();
 
-        private readonly List<string> optionCollectionsMappingTypes =
-        [
-            "icollection",
-            "list"
-        ];
-        private readonly List<string> standardMappingTypes =
-        [
-            "bool",
-            "byte",
-            "sbyte",
-            "char",
-            "decimal",
-            "double",
-            "float",
-            "int",
-            "uint",
-            "long",
-            "ulong",
-            "short",
-            "ushort",
-            "string",
-            "DateTime",
-            "DateOnly",
-            "TimeOnly",
-            "byte[]",
-            "Guid"
-        ];
-        private readonly Dictionary<string, string> specialdTypeToRemap = new()
-        {
-            { "TimeSpan", "string" },
-            { "TimeSpan?", "string" },
-        };
-
-        private readonly Dictionary<string, List<string>> biaDtoFieldDateTypesByPropertyType = new()
-        {
-            { "TimeSpan", new List<string> { "time" } },
-            { "DateTime", new List<string> { "datetime", "date", "time" } },
-        };
+        private readonly Dictionary<string, List<string>> biaDtoFieldDateTypesByPropertyType = DtoMappingService.DateTypesByPropertyType;
 
         private bool isProjectChosen;
         public bool IsProjectChosen
@@ -426,7 +388,7 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private void Generate()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
                 UpdateHistoryFile();
                 await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext
@@ -556,19 +518,10 @@ namespace BIA.ToolKit.Application.ViewModel
             if (Entity == null)
                 return;
 
-            foreach (Domain.ModifyProject.DtoGenerator.PropertyInfo property in Entity.Properties.OrderBy(x => x.Name))
-            {
-                var propertyViewModel = new EntityProperty
-                {
-                    Name = property.Name,
-                    Type = property.Type,
-                    CompositeName = property.Name,
-                    IsSelected = true,
-                    ParentType = Entity.Name
-                };
-                FillEntityProperties(propertyViewModel, Entity.Name);
-                EntityProperties.Add(propertyViewModel);
-            }
+            // Delegate to DtoMappingService to keep the tree-building logic in one place.
+            List<EntityProperty> tree = DtoMappingService.BuildEntityPropertyTree(Entity, Entities);
+            foreach (EntityProperty ep in tree)
+                EntityProperties.Add(ep);
         }
 
         private void FillEntityProperties(EntityProperty property, string rootPropertyType)
@@ -628,7 +581,7 @@ namespace BIA.ToolKit.Application.ViewModel
                         EntityType = selectedEntityProperty.Type,
                         ParentEntityType = selectedEntityProperty.ParentType,
                         MappingName = selectedEntityProperty.CompositeName.Replace(".", string.Empty),
-                        MappingType = ComputeMappingType(selectedEntityProperty)
+                        MappingType = DtoMappingService.ComputeMappingType(selectedEntityProperty)
                     };
 
                     if (biaDtoFieldDateTypesByPropertyType.TryGetValue(mappingEntityProperty.MappingType.Replace("?", string.Empty), out List<string> biaDtoFieldDateTypes))
@@ -645,7 +598,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
                     if (mappingEntityProperty.IsOption || mappingEntityProperty.IsOptionCollection)
                     {
-                        mappingEntityProperty.OptionType = ExtractOptionType(selectedEntityProperty.Type);
+                        mappingEntityProperty.OptionType = DtoMappingService.ExtractOptionType(selectedEntityProperty.Type);
                         EntityInfo optionEntity = Entities.FirstOrDefault(x => x.Name == mappingEntityProperty.OptionType);
                         if (optionEntity != null)
                         {
@@ -716,7 +669,7 @@ namespace BIA.ToolKit.Application.ViewModel
                                 mappingEntityProperty.OptionRelationSecondIdProperty = entityInfo.Properties.SingleOrDefault(x => x.Name.Equals(optionRelationSecondIdPropertyName))?.Name;
                                 if (string.IsNullOrWhiteSpace(mappingEntityProperty.OptionRelationSecondIdProperty))
                                 {
-                                    consoleWriter.AddMessageLine($"Unable to find matching relation property {optionRelationSecondIdPropertyName} in the entity {entityInfo.Name} to map {mappingEntityProperty.EntityCompositeName}, the mapping for this property has been ignored.", "orange");
+                                    consoleWriter.AddMessageLine($"Unable to find matching relation property {optionRelationSecondIdPropertyName} in the entity {entityInfo.Name} to map {mappingEntityProperty.EntityCompositeName}", "orange");
                                     selectedEntityProperty.IsSelected = false;
                                     continue;
                                 }
@@ -732,35 +685,6 @@ namespace BIA.ToolKit.Application.ViewModel
 
                 AddMappingProperties(selectedEntityProperty.Properties, mappingEntityProperties);
             }
-        }
-
-        private string ComputeMappingType(EntityProperty entityProperty)
-        {
-            if (optionCollectionsMappingTypes.Any(x => entityProperty.Type.StartsWith(x, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                return Constants.BiaClassName.CollectionOptionDto;
-            }
-
-            if (standardMappingTypes.Any(x => entityProperty.Type.Replace("?", string.Empty).Equals(x, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                return entityProperty.Type;
-            }
-
-            if (specialdTypeToRemap.Any(x => x.Key.Equals(entityProperty.Type)))
-            {
-                return specialdTypeToRemap.First(x => x.Key.Equals(entityProperty.Type)).Value;
-            }
-
-            return Constants.BiaClassName.OptionDto;
-        }
-
-        private static string ExtractOptionType(string optionType)
-        {
-            if (!optionType.Contains('<'))
-                return optionType;
-
-            Regex regex = MyRegex();
-            return regex.Match(optionType).Groups[1].Value;
         }
 
         [RelayCommand]
@@ -822,9 +746,6 @@ namespace BIA.ToolKit.Application.ViewModel
 
             MappingEntityProperties.Move(args.OldIndex, args.NewIndex);
         }
-
-        [GeneratedRegex(@"<\s*(\w+)\s*>")]
-        private static partial Regex MyRegex();
     }
 
     public partial class EntityProperty : ObservableObject

@@ -2,6 +2,7 @@ namespace BIA.ToolKit.Application.Messages
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.Model;
@@ -44,7 +45,7 @@ namespace BIA.ToolKit.Application.Messages
 
     // --- UI coordination ---
 
-    public sealed record ExecuteActionWithWaiterMessage(Func<Task> Action);
+    public sealed record ExecuteActionWithWaiterMessage(Func<CancellationToken, Task> Action);
 
     public sealed record NavigateToConfigTabMessage;
 

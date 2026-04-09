@@ -9,6 +9,7 @@ namespace BIA.ToolKit.Application.Services
     using System.Net;
     using System.Net.Http;
     using System.Reflection;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows;
     using BIA.ToolKit.Application.Helper;
@@ -39,12 +40,14 @@ namespace BIA.ToolKit.Application.Services
             BiaToolkitVersion.ApplicationVersion = version.ToString();
         }
 
-        public async Task CheckForUpdatesAsync()
+        public async Task CheckForUpdatesAsync(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            
             try
             {
                 IRepository toolkitRepository = settingsService.Settings.ToolkitRepository;
-                await toolkitRepository.FillReleasesAsync();
+                await toolkitRepository.FillReleasesAsync(cancellationToken);
 
                 if (toolkitRepository.Releases.Count == 0)
                 {
@@ -92,11 +95,12 @@ namespace BIA.ToolKit.Application.Services
             }
         }
 
-        public async Task DownloadUpdateAsync()
+        public async Task DownloadUpdateAsync(CancellationToken cancellationToken = default)
         {
             if (Debugger.IsAttached)
                 return;
 
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
                 consoleWriter.AddMessageLine($"Start download assets of release {lastRelease.Name}...", "Pink");

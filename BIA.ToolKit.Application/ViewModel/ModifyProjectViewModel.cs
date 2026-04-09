@@ -213,7 +213,7 @@
                 if (value == Folder)
                     return;
 
-                WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+                WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
                 {
                     IsFileGeneratorServiceInit = false;
                     IsProjectCompatibleCrudGenerator = false;
@@ -322,7 +322,7 @@
         [RelayCommand]
         private void RefreshProjectInformations()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () =>
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
                 await LoadProject(CurrentProject);
                 await InitFileGeneratorServiceFromProject(CurrentProject);
@@ -383,7 +383,7 @@
         public bool OverwriteBIAFromOriginal { get; set; }
 
         public bool IsProjectSelected => CurrentProject != null;
-        public bool IsTabFeaturesEnabled => IsProjectSelected && FeatureMigrationGeneratorService.IsProjectCompatibleForRegenerateFeatures(CurrentProject);
+        public bool IsTabFeaturesEnabled => IsProjectSelected && RegenerateFeaturesDiscoveryService.IsProjectCompatibleForRegenerateFeatures(CurrentProject);
 
         [ObservableProperty]
         private int selectedTabIndex;
@@ -405,7 +405,7 @@
         [RelayCommand]
         private void Migrate()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(MigrateRunAsync));
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await MigrateRunAsync()));
         }
 
         private async Task MigrateRunAsync()
@@ -421,7 +421,7 @@
         [RelayCommand]
         private void MigrateGenerateOnly()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () => await MigrateGenerateOnlyRunAsync()));
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await MigrateGenerateOnlyRunAsync()));
         }
 
         private async Task<int> MigrateGenerateOnlyRunAsync()
@@ -455,7 +455,7 @@
         [RelayCommand]
         private void MigrateApplyDiff()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () => await MigrateApplyDiffRunAsync()));
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await MigrateApplyDiffRunAsync()));
         }
 
         private async Task<bool> MigrateApplyDiffRunAsync()
@@ -478,7 +478,7 @@
         [RelayCommand]
         private void MigrateMergeRejected()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(MigrateMergeRejectedRunAsync));
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await MigrateMergeRejectedRunAsync()));
         }
 
         private async Task MigrateMergeRejectedRunAsync()
@@ -523,13 +523,13 @@
         [RelayCommand]
         private void MigrateOverwriteBIAFolder()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () => await OverwriteBIAFolderAsync(true)));
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await OverwriteBIAFolderAsync(true)));
         }
 
         [RelayCommand]
         private void FixUsings()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async () => await parserService.FixUsings()));
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await parserService.FixUsings()));
         }
 
         // --- Migration helper methods ---

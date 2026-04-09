@@ -15,6 +15,7 @@ namespace BIA.ToolKit.Application.Services
     using System.IO.Compression;
     using System.Linq;
     using System.Text.RegularExpressions;
+    using System.Threading;
 
     /// <summary>
     /// Constructor.
@@ -37,12 +38,12 @@ namespace BIA.ToolKit.Application.Services
         /// <summary>
         /// Parse all zips.
         /// </summary>
-        public bool ParseZips(IEnumerable<ZipFeatureType> zipFeatures, Project project, string biaFront, CRUDSettings settings)
+        public bool ParseZips(IEnumerable<ZipFeatureType> zipFeatures, Project project, string biaFront, CRUDSettings settings, CancellationToken cancellationToken = default)
         {
             bool parsed = false;
             foreach (ZipFeatureType zipFeatureType in zipFeatures)
             {
-                parsed |= ParseZipFile(zipFeatureType, project, biaFront, settings);
+                parsed |= ParseZipFile(zipFeatureType, project, biaFront, settings, cancellationToken);
             }
 
             if (!parsed)
@@ -54,8 +55,9 @@ namespace BIA.ToolKit.Application.Services
         /// <summary>
         /// Parse Zip files (WebApi, CRUD, option or team).
         /// </summary>
-        private bool ParseZipFile(ZipFeatureType zipData, Project project, string biaFront, CRUDSettings settings)
+        private bool ParseZipFile(ZipFeatureType zipData, Project project, string biaFront, CRUDSettings settings, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
                 string folderName = (zipData.GenerationType == GenerationType.WebApi) ? Constants.FolderDotNet : biaFront;
@@ -65,7 +67,7 @@ namespace BIA.ToolKit.Application.Services
                     return false;
                 }
 
-                return ParseZipFile(zipData, biaFolder, settings.DtoCustomAttributeFieldName);
+                return ParseZipFile(zipData, biaFolder, settings.DtoCustomAttributeFieldName, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -77,8 +79,10 @@ namespace BIA.ToolKit.Application.Services
         /// <summary>
         /// Unzip archive on temp local folder and analyze files.
         /// </summary>
-        private bool ParseZipFile(ZipFeatureType zipData, string folderName, string dtoCustomAttributeName)
+        private bool ParseZipFile(ZipFeatureType zipData, string folderName, string dtoCustomAttributeName, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (string.IsNullOrWhiteSpace(zipData.ZipName))
             {
                 return false;
@@ -117,7 +121,7 @@ namespace BIA.ToolKit.Application.Services
                         {
                             if (fileType != WebApiFileType.Partial)
                             {
-                                ClassDefinition classFile = service.ParseClassFile(Path.Combine(workingDirectoryPath, file.Key));
+                                ClassDefinition classFile = service.ParseClassFile(Path.Combine(workingDirectoryPath, file.Key), cancellationToken);
                                 if (classFile != null)
                                 {
                                     classFile.EntityName = GetEntityName(file.Value, fileType);
