@@ -83,6 +83,8 @@ namespace BIA.ToolKit.UserControls
 
         private async Task Regenerate_Run(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            
             if (currentProject == null)
             {
                 MessageBox.Show("Select a project before regenerating.");
@@ -107,7 +109,7 @@ namespace BIA.ToolKit.UserControls
                 return;
             }
 
-            await orchestrationService.RegenerateAsync(currentProject, viewModel.SelectedFeatures, viewModel.EntityRows);
+            await orchestrationService.RegenerateAsync(currentProject, viewModel.SelectedFeatures, viewModel.EntityRows, cancellationToken);
         }
     }
 }

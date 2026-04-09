@@ -5,6 +5,7 @@ namespace BIA.ToolKit.UserControls
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Controls;
     using BIA.ToolKit.Application.Helper;
@@ -130,8 +131,10 @@ namespace BIA.ToolKit.UserControls
             vm.FeatureSettings = featureSettingViewModels;
         }
 
-        public async Task FillVersionFolderPathAsync()
+        public async Task FillVersionFolderPathAsync(CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             if (vm?.WorkTemplate?.Repository != null)
             {
                 if (vm.WorkTemplate.Version == "VX.Y.Z")
@@ -140,7 +143,7 @@ namespace BIA.ToolKit.UserControls
                 }
                 else
                 {
-                    vm.WorkTemplate.VersionFolderPath = await repositoryService.PrepareVersionFolder(vm.WorkTemplate.Repository, vm.WorkTemplate.Version);
+                    vm.WorkTemplate.VersionFolderPath = await repositoryService.PrepareVersionFolder(vm.WorkTemplate.Repository, vm.WorkTemplate.Version, ct);
                 }
             }
         }
@@ -180,7 +183,7 @@ namespace BIA.ToolKit.UserControls
         {
             uiEventBroker.RequestExecuteActionWithWaiter(async (ct) =>
             {
-                await FillVersionFolderPathAsync();
+                await FillVersionFolderPathAsync(ct);
                 LoadfeatureSetting();
                 LoadVersionAndOption(false, false);
                 if (OriginFeatureSettings is null)

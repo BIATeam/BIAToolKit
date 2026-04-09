@@ -15,12 +15,11 @@ namespace BIA.ToolKit.Application.Services
     using System.Text.RegularExpressions;
     using BIA.ToolKit.Domain;
 
-    public class GitService(IConsoleWriter outPut, UIEventBroker eventBroker)
+    public class GitService(IConsoleWriter outPut)
     {
         private readonly IConsoleWriter outPut = outPut;
-        private readonly UIEventBroker eventBroker = eventBroker;
 
-        public async Task Synchronize(IRepositoryGit repository)
+        public async Task Synchronize(IRepositoryGit repository, CancellationToken ct = default)
         {
             if (!repository.UseLocalClonedFolder)
             {
@@ -38,19 +37,20 @@ namespace BIA.ToolKit.Application.Services
                     }
 
                     Directory.CreateDirectory(repository.LocalPath);
-                }, eventBroker.CurrentCancellationToken);
+                }, ct);
 
-                await Clone(repository.Url, repository.LocalPath);
+                await Clone(repository.Url, repository.LocalPath, ct);
                 return;
             }
 
-            await Synchronize(repository.Url, repository.LocalPath);
+            await Synchronize(repository.Url, repository.LocalPath, ct);
         }
 
-        public async Task Synchronize(string url, string localPath)
+        public async Task Synchronize(string url, string localPath, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             outPut.AddMessageLine($"Synchronize {url} into {localPath}...", "Pink");
-            if (await RunScript("git", "pull", localPath) == 0)
+            if (await RunScript("git", "pull", localPath, ct) == 0)
             {
                 outPut.AddMessageLine($"Synchronize finished", "Green");
             }
@@ -60,11 +60,12 @@ namespace BIA.ToolKit.Application.Services
             }
         }
 
-        public async Task Clone(string url, string localPath)
+        public async Task Clone(string url, string localPath, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             outPut.AddMessageLine($"Clone {url} into {localPath}...", "Pink");
 
-            if (await RunScript("git", $"clone \"" + url + "\" \"" + localPath + "\"") == 0)
+            if (await RunScript("git", $"clone \"" + url + "\" \"" + localPath + "\"", ct: ct) == 0)
             {
                 outPut.AddMessageLine($"Clone finished", "Green");
             }
@@ -74,14 +75,15 @@ namespace BIA.ToolKit.Application.Services
             }
         }
 
-        public async Task<bool> DiffFolder(bool actionFinishedAtEnd, string rootPath, string name1, string name2, string migrateFilePath)
+        public async Task<bool> DiffFolder(bool actionFinishedAtEnd, string rootPath, string name1, string name2, string migrateFilePath, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             outPut.AddMessageLine($"Diff {name1} <> {name2}", "Pink");
 
 
             // git diff --no-index V3.3.3 V3.4.0 > .\\Migration\\CF_3.3.3-3.4.0.patch
             //await RunScript($"cd {rootPath} \r\n git diff --no-index --binary {name1} {name2} > {migrateFilePath}");
-            int result = await RunScript("git", $"diff --ignore-blank-lines --no-index --binary {name1} {name2} --output={migrateFilePath}", rootPath);
+            int result = await RunScript("git", $"diff --ignore-blank-lines --no-index --binary {name1} {name2} --output={migrateFilePath}", rootPath, ct);
             if (result == 0)
             {
                 outPut.AddMessageLine("Diff folder: No difference found ", "Green");
@@ -90,17 +92,17 @@ namespace BIA.ToolKit.Application.Services
             else if (result == 1)
             {
                 // Replace a/{name1}/ by a/
-                await FileTransform.ReplaceInFile(migrateFilePath, $"a/{name1}/", "a/", outPut);
-                await FileTransform.ReplaceInFile(migrateFilePath, $"a/{name2}/", "a/", outPut);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"a/{name1}/", "a/", outPut, ct);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"a/{name2}/", "a/", outPut, ct);
 
-                await FileTransform.ReplaceInFile(migrateFilePath, $"rename from {name1}/", "rename from ", outPut);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"rename from {name1}/", "rename from ", outPut, ct);
 
                 // Replace b/{name2}/ by b/
-                await FileTransform.ReplaceInFile(migrateFilePath, $"b/{name2}/", "b/", outPut);
-                await FileTransform.ReplaceInFile(migrateFilePath, $"b/{name1}/", "b/", outPut);
-                await FileTransform.ReplaceInFile(migrateFilePath, $"rename to {name2}/", "rename to ", outPut);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"b/{name2}/", "b/", outPut, ct);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"b/{name1}/", "b/", outPut, ct);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"rename to {name2}/", "rename to ", outPut, ct);
 
-                await FileTransform.ReplaceInFile(migrateFilePath, $"\r\n", "\n", outPut);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"\r\n", "\n", outPut, ct);
 
                 outPut.AddMessageLine("Diff folder finished", actionFinishedAtEnd ? "Green" : "Blue");
                 return true;
@@ -112,12 +114,13 @@ namespace BIA.ToolKit.Application.Services
             }
         }
 
-        public async Task<bool> ApplyDiff(bool actionFinishedAtEnd, string projectPath, string migrateFilePath)
+        public async Task<bool> ApplyDiff(bool actionFinishedAtEnd, string projectPath, string migrateFilePath, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             outPut.AddMessageLine($"Apply diff", "Pink");
             outPut.AddMessageLine($"On project : {projectPath}", "Pink");
             // cd "...\\YourProject" git apply --reject --whitespace=fix "3.2.2-3.3.0.patch" \
-            int result = await RunScript("git", $"apply --reject --unsafe-paths --whitespace=fix {migrateFilePath}", projectPath);
+            int result = await RunScript("git", $"apply --reject --unsafe-paths --whitespace=fix {migrateFilePath}", projectPath, ct);
             if (result == 0)
             {
                 outPut.AddMessageLine("Apply diff finished !", actionFinishedAtEnd ? "Green" : "Blue");
@@ -152,33 +155,39 @@ namespace BIA.ToolKit.Application.Services
             public required string MigrationPatchFilePath { get; set; }
         }
 
-        public async Task MergeRejected(bool actionFinishedAtEnd, MergeParameter param)
+        public async Task MergeRejected(bool actionFinishedAtEnd, MergeParameter param, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             outPut.AddMessageLine($"Apply merge on rejected", "Pink");
 
-            await MergeRejectedDirectory(param.ProjectPath, param);
+            await MergeRejectedDirectory(param.ProjectPath, param, ct);
 
             outPut.AddMessageLine("Apply merge on rejected", actionFinishedAtEnd ? "Green" : "Blue");
         }
 
         // Process all files in the directory passed in, recurse on any directories
         // that are found, and process the files they contain.
-        public async Task MergeRejectedDirectory(string targetDirectory, MergeParameter param)
+        public async Task MergeRejectedDirectory(string targetDirectory, MergeParameter param, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             // Process the list of files found in the directory.
             string[] fileEntries = Directory.GetFiles(targetDirectory, "*.rej");
             foreach (string fileName in fileEntries)
-                await MergeRejectedFileAsync(fileName, param);
+                await MergeRejectedFileAsync(fileName, param, ct);
 
             // Recurse into subdirectories of this directory.
             string[] subdirectoryEntries = Directory.GetDirectories(targetDirectory);
             foreach (string subdirectory in subdirectoryEntries)
-                await MergeRejectedDirectory(subdirectory, param);
+                await MergeRejectedDirectory(subdirectory, param, ct);
         }
 
         // Insert logic for processing found files here.
-        public async Task MergeRejectedFileAsync(string rejectedFilePath, MergeParameter param)
+        public async Task MergeRejectedFileAsync(string rejectedFilePath, MergeParameter param, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+            
             outPut.AddMessageLine("Merge rejected file '" + rejectedFilePath + "'.", "White");
 
             string rejectedFileDiffInstruction = File.ReadAllLines(rejectedFilePath).First();
@@ -250,7 +259,8 @@ namespace BIA.ToolKit.Application.Services
 
             int result = await RunScript("git",
                 $"merge-file -L Src -L {param.ProjectOriginVersion} -L {param.ProjectTargetVersion} " +
-                $"\"{finalProjectFile}\" \"{originalProjectFile}\" \"{targetProjectFile}\"");
+                $"\"{finalProjectFile}\" \"{originalProjectFile}\" \"{targetProjectFile}\"",
+                ct: ct);
 
             if (result == 0)
             {
@@ -368,7 +378,7 @@ namespace BIA.ToolKit.Application.Services
         /// <param name="program">The program name.</param>
         /// <param name="arguments">The argument.</param>
         /// <param name="workingDirectory">The working directory.</param>
-        private async Task<int> RunScript(string program, string arguments, string workingDirectory = null)
+        private async Task<int> RunScript(string program, string arguments, string workingDirectory = null, CancellationToken ct = default)
         {
             //bool ret = true;
             try
@@ -393,7 +403,7 @@ namespace BIA.ToolKit.Application.Services
                     EnableRaisingEvents = true
                 };
 
-                return await RunProcessAsync(process).ConfigureAwait(false);
+                return await RunProcessAsync(process, ct).ConfigureAwait(false);
                 /*
                 process.Start();
                 while (!process.StandardOutput.EndOfStream && !process.StandardError.EndOfStream)
@@ -433,10 +443,9 @@ namespace BIA.ToolKit.Application.Services
             return -1;
         }
 
-        private Task<int> RunProcessAsync(Process process)
+        private Task<int> RunProcessAsync(Process process, CancellationToken ct)
         {
             var tcs = new TaskCompletionSource<int>();
-            var cancellationToken = eventBroker.CurrentCancellationToken;
 
             process.Exited += (s, ea) => tcs.TrySetResult(process.ExitCode);
             process.OutputDataReceived += (s, ea) =>
@@ -467,9 +476,9 @@ namespace BIA.ToolKit.Application.Services
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-            if (cancellationToken.CanBeCanceled)
+            if (ct.CanBeCanceled)
             {
-                cancellationToken.Register(() =>
+                ct.Register(() =>
                 {
                     try
                     {
@@ -483,7 +492,7 @@ namespace BIA.ToolKit.Application.Services
                     {
                         outPut.AddMessageLine($"Error while killing process: {ex.Message}", "Red");
                     }
-                    tcs.TrySetCanceled(cancellationToken);
+                    tcs.TrySetCanceled(ct);
                 });
             }
 

@@ -19,13 +19,11 @@ namespace BIA.ToolKit.Application.Services
     using static BIA.ToolKit.Common.Constants;
 
     public partial class ProjectCreatorService(IConsoleWriter consoleWriter,
-        UIEventBroker eventBroker,
         RepositoryService repositoryService,
         SettingsService settingsService,
         CSharpParserService parserService)
     {
         private readonly IConsoleWriter consoleWriter = consoleWriter;
-        private readonly UIEventBroker eventBroker = eventBroker;
         private readonly RepositoryService repositoryService = repositoryService;
         private readonly CSharpParserService parserService = parserService;
         private readonly SettingsService settingsService = settingsService;
@@ -36,12 +34,13 @@ namespace BIA.ToolKit.Application.Services
             bool actionFinishedAtEnd,
             string projectPath,
             ProjectParameters projectParameters,
-            int tryCount = 0
+            int tryCount = 0,
+            CancellationToken ct = default
             )
         {
             using var timeoutCts = new System.Threading.CancellationTokenSource(CreateTimeout);
             using var linkedCts = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(
-                timeoutCts.Token, eventBroker.CurrentCancellationToken);
+                timeoutCts.Token, ct);
             bool success;
             try
             {
@@ -70,15 +69,15 @@ namespace BIA.ToolKit.Application.Services
                 if (Directory.Exists(projectPath))
                 {
                     consoleWriter.AddMessageLine("Cleaning up created project due to errors...", "Gray");
-                    await Task.Run(() => Directory.Delete(projectPath, true));
+                    await Task.Run(() => Directory.Delete(projectPath, true), ct);
                 }
 
                 if (tryCount < MaxRetryCount)
                 {
                     consoleWriter.AddMessageLine("Waiting before retrying...", "Gray");
-                    await Task.Delay(5000);
+                    await Task.Delay(5000, ct);
                     consoleWriter.AddMessageLine($"Retrying project creation (Attempt {++tryCount}/{MaxRetryCount})...", "Yellow");
-                    return await Create(actionFinishedAtEnd: actionFinishedAtEnd, projectPath: projectPath, projectParameters: projectParameters, tryCount: tryCount);
+                    return await Create(actionFinishedAtEnd: actionFinishedAtEnd, projectPath: projectPath, projectParameters: projectParameters, tryCount: tryCount, ct: ct);
                 }
 
                 return false;
@@ -94,6 +93,8 @@ namespace BIA.ToolKit.Application.Services
             System.Threading.CancellationToken cancellationToken
             )
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Ensure to have namespaces correctly formated
             projectParameters.ProjectName = $"{char.ToUpper(projectParameters.ProjectName[0])}{projectParameters.ProjectName[1..]}";
 
@@ -110,7 +111,7 @@ namespace BIA.ToolKit.Application.Services
             }
             else
             {
-                projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath = await repositoryService.PrepareVersionFolder(projectParameters.VersionAndOption.WorkTemplate.Repository, projectParameters.VersionAndOption.WorkTemplate.Version);
+                projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath = await repositoryService.PrepareVersionFolder(projectParameters.VersionAndOption.WorkTemplate.Repository, projectParameters.VersionAndOption.WorkTemplate.Version, cancellationToken);
             }
 
             if (!Directory.Exists(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath))
@@ -227,6 +228,8 @@ namespace BIA.ToolKit.Application.Services
 
         private async Task RenameInProject(string projectPath, ProjectParameters projectParameters, System.Threading.CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            
             consoleWriter.AddMessageLine("Start rename.", "Pink");
             await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.CompanyName, projectParameters.CompanyName, FileTransform.projectFileExtensions, consoleWriter, cancellationToken);
             await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.ProjectName, projectParameters.ProjectName, FileTransform.projectFileExtensions, consoleWriter, cancellationToken);
@@ -378,7 +381,7 @@ namespace BIA.ToolKit.Application.Services
             return sb.ToString();
         }
 
-        public async Task OverwriteBIAFolder(string sourceFolder, string targetFolder, bool actionFinishedAtEnd)
+        public async Task OverwriteBIAFolder(string sourceFolder, string targetFolder, bool actionFinishedAtEnd, CancellationToken ct = default)
         {
             consoleWriter.AddMessageLine("Start overwrite BIA Folder.", "Pink");
             await Task.Run(() =>
@@ -390,7 +393,7 @@ namespace BIA.ToolKit.Application.Services
                     string relativePath = biaDirectory[sourceFolder.Length..];
                     Match matchBia = reg.Match(relativePath);
 
-                    // treat only root folder 
+                    // treat only root folder
                     if (matchBia.Length == 0)
                     {
                         string targetDirectory = targetFolder + relativePath;
@@ -400,7 +403,7 @@ namespace BIA.ToolKit.Application.Services
                         FileTransform.CopyFilesRecursively(biaDirectory, targetDirectory);
                     }
                 }
-            });
+            }, ct);
             consoleWriter.AddMessageLine("Overwrite BIA Folder finished.", actionFinishedAtEnd ? "Green" : "Blue");
         }
 

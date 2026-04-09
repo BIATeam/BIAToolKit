@@ -5,6 +5,7 @@ namespace BIA.ToolKit.Test.Templates
     using System.Diagnostics;
     using System.IO.Compression;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services.FileGenerator;
@@ -218,7 +219,7 @@ namespace BIA.ToolKit.Test.Templates
         private async Task RunTestGenerateAllFilesEqualsAsync<TContext>(
             TContext context,
             Feature.FeatureType featureType,
-            Func<TContext, Task> generateAsync,
+            Func<TContext, CancellationToken, Task> generateAsync,
             List<string> partialMarkupIdentifiersToIgnore = null,
             Action<TContext> preProcess = null)
             where TContext : FileGeneratorContext
@@ -231,7 +232,7 @@ namespace BIA.ToolKit.Test.Templates
             preProcess?.Invoke(context);
             ImportTargetedPartialFiles(context);
 
-            await generateAsync(context);
+            await generateAsync(context, CancellationToken.None);
             GenerationAssertions.AssertAllFilesEquals(this, context);
         }
 

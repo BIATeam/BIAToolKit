@@ -5,6 +5,7 @@ namespace BIA.ToolKit.Domain
     using System.Collections.Immutable;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using BIA.ToolKit.Domain.Settings;
     using Newtonsoft.Json;
@@ -28,7 +29,7 @@ namespace BIA.ToolKit.Domain
         protected List<Release> releases = [];
         public IReadOnlyList<Release> Releases => releases;
 
-        public abstract Task FillReleasesAsync();
+        public abstract Task FillReleasesAsync(CancellationToken ct = default);
 
         protected void EnsureReleasesDownloaded()
         {

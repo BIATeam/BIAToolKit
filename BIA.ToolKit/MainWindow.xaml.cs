@@ -128,10 +128,10 @@ namespace BIA.ToolKit
 
                 if (Properties.Settings.Default.AutoUpdate)
                 {
-                    await updateService.CheckForUpdatesAsync();
+                    await updateService.CheckForUpdatesAsync(ct);
                 }
 
-                await Task.Run(() => cSharpParserService.RegisterMSBuild(consoleWriter));
+                await Task.Run(() => cSharpParserService.RegisterMSBuild(consoleWriter), ct);
             });
         }
 
@@ -323,17 +323,19 @@ namespace BIA.ToolKit
         }
 
         private readonly SemaphoreSlim semaphore = new(1, 1);
+        private CancellationTokenSource currentTokenSource;
 
         private async Task ExecuteTaskWithWaiterAsync(Func<CancellationToken, Task> task)
         {
             await semaphore.WaitAsync();
+            currentTokenSource = new CancellationTokenSource();
             await Dispatcher.InvokeAsync(async () =>
             {
                 try
                 {
                     StopButton.IsEnabled = true;
                     Waiter.Visibility = Visibility.Visible;
-                    await task(uiEventBroker.CurrentCancellationToken);
+                    await task(currentTokenSource.Token);
                 }
                 catch (OperationCanceledException)
                 {
@@ -345,12 +347,14 @@ namespace BIA.ToolKit
                     semaphore.Release();
                     Waiter.Visibility = Visibility.Hidden;
                 }
-            }, System.Windows.Threading.DispatcherPriority.Normal, uiEventBroker.CurrentCancellationToken).Task.Unwrap();
+            }).Task.Unwrap();
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestStopActionWithWaiter();
+            currentTokenSource?.Cancel();
+            currentTokenSource?.Dispose();
+            currentTokenSource = null;
         }
 
         private void CreateProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
@@ -428,7 +432,8 @@ namespace BIA.ToolKit
                         ProjectName = CreateProjectName.Text,
                         VersionAndOption = CreateVersionAndOption.vm.VersionAndOption,
                         AngularFronts = [Constants.FolderAngular]
-                    });
+                    },
+                    ct: ct);
             });
         }
 

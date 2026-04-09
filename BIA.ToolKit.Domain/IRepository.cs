@@ -2,6 +2,7 @@ namespace BIA.ToolKit.Domain
 {
     using System.Collections.Generic;
     using System.Text.Json.Serialization;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public interface IRepository
@@ -17,7 +18,7 @@ namespace BIA.ToolKit.Domain
         bool UseRepository { get; }
         bool UseDownloadedReleases { get; }
 
-        Task FillReleasesAsync();
+        Task FillReleasesAsync(CancellationToken ct = default);
         void CleanReleases();
         void Clean();
     }

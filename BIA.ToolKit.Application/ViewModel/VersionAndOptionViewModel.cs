@@ -133,7 +133,7 @@ namespace BIA.ToolKit.Application.ViewModel
                         {
                             try
                             {
-                                WorkCompanyFile.VersionFolderPath = await repositoryService.PrepareVersionFolder(WorkCompanyFile.Repository, WorkCompanyFile.Version);
+                                WorkCompanyFile.VersionFolderPath = await repositoryService.PrepareVersionFolder(WorkCompanyFile.Repository, WorkCompanyFile.Version, ct);
                                 string fileName = WorkCompanyFile.VersionFolderPath + "\\biaCompanyFiles.json";
 
                                 string jsonString = File.ReadAllText(fileName);

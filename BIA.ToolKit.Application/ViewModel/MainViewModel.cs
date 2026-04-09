@@ -54,7 +54,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
             if (repository.Model.RepositoryType == Domain.RepositoryType.Git && repository.Model is IRepositoryGit repositoryGit)
             {
-                eventBroker.RequestExecuteActionWithWaiter(async (ct) => await gitService.Synchronize(repositoryGit));
+                eventBroker.RequestExecuteActionWithWaiter(async (ct) => await gitService.Synchronize(repositoryGit, ct));
             }
         }
 

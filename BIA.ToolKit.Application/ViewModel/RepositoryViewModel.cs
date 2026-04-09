@@ -139,7 +139,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 {
                     if (IsGitRepository && repository is RepositoryGit repositoryGit)
                     {
-                        await gitService.Synchronize(repositoryGit);
+                        await gitService.Synchronize(repositoryGit, ct);
                     }
                 }
                 catch (Exception ex)
@@ -156,7 +156,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 try
                 {
                     consoleWriter.AddMessageLine("Getting releases data...", "pink");
-                    await repository.FillReleasesAsync();
+                    await repository.FillReleasesAsync(ct);
                     eventBroker.NotifyRepositoryViewModelReleaseDataUpdated(this);
                     consoleWriter.AddMessageLine("Releases data got successfully", "green");
                     if (repository.UseDownloadedReleases)

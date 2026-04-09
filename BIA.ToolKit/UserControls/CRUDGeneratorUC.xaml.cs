@@ -301,13 +301,13 @@ namespace BIA.ToolKit.UserControls
                         IsArchivable = vm.IsArchivable,
                         DisplayHistorical = vm.DisplayHistorical,
                         UseDomainUrl = vm.UseDomainUrl,
-                    });
+                    }, ct);
 
                     UpdateCrudGenerationHistory();
                     return;
                 }
 
-                if (!zipService.ParseZips(vm.ZipFeatureTypeList, vm.CurrentProject, vm.BiaFront, settings))
+                if (!zipService.ParseZips(vm.ZipFeatureTypeList, vm.CurrentProject, vm.BiaFront, settings, ct))
                     return;
 
                 var crudParent = new CrudParent

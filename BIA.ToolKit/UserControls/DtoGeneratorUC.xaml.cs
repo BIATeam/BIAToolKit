@@ -96,6 +96,8 @@ namespace BIA.ToolKit.UserControls
 
         private Task ListEntities(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            
             if (project is null)
                 return Task.CompletedTask;
 
@@ -164,7 +166,7 @@ namespace BIA.ToolKit.UserControls
                     HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
                     GenerateBack = true,
                     HasAudit = vm.UseDedicatedAudit
-                });
+                }, ct);
             });
         }
 

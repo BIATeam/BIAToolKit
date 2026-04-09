@@ -115,6 +115,8 @@ namespace BIA.ToolKit.UserControls
 
         private Task InitProjectTask(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Load BIA settings + history + parse zips
             InitProject();
 
@@ -199,12 +201,12 @@ namespace BIA.ToolKit.UserControls
                         UseHubForClient = vm.UseHubClient,
                         GenerateFront = true,
                         GenerateBack = true,
-                    });
+                    }, ct);
                     UpdateOptionGenerationHistory();
                     return;
                 }
 
-                if (!zipService.ParseZips(vm.ZipFeatureTypeList, vm.CurrentProject, vm.BiaFront, settings))
+                if (!zipService.ParseZips(vm.ZipFeatureTypeList, vm.CurrentProject, vm.BiaFront, settings, ct))
                     return;
 
                 crudService.CrudNames.InitRenameValues(vm.Entity.Name, vm.EntityNamePlural);

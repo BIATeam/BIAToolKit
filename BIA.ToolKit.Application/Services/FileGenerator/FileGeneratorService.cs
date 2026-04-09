@@ -210,8 +210,9 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             return result;
         }
 
-        public async Task GenerateDtoAsync(FileGeneratorDtoContext dtoContext)
+        public async Task GenerateDtoAsync(FileGeneratorDtoContext dtoContext, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             try
             {
                 _consoleWriter.AddMessageLine($"=== GENERATE DTO ===", color: "lightblue");
@@ -233,8 +234,9 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             }
         }
 
-        public async Task GenerateOptionAsync(FileGeneratorOptionContext optionContext)
+        public async Task GenerateOptionAsync(FileGeneratorOptionContext optionContext, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             try
             {
                 _consoleWriter.AddMessageLine($"=== GENERATE OPTION ===", color: "lightblue");
@@ -257,8 +259,9 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             }
         }
 
-        public async Task GenerateCRUDAsync(FileGeneratorCrudContext crudContext)
+        public async Task GenerateCRUDAsync(FileGeneratorCrudContext crudContext, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             try
             {
                 _consoleWriter.AddMessageLine($"=== GENERATE CRUD ===", color: "lightblue");
