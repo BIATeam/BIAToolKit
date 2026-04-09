@@ -1,0 +1,33 @@
+﻿      // BIAToolKit - Begin Partial Config Plane
+      // Plane
+      {
+        "Names": [
+          "Plane_List_Access",
+          "Plane_Read"
+        ],
+        "Roles": [
+          "Admin",
+          "Site_Member"
+        ]
+      },
+      {
+        "Names": [
+          "Plane_Update",
+          "Plane_Save"
+        ],
+        "Roles": [
+          "Admin",
+          "Site_Admin"
+        ]
+      },
+      {
+        "Names": [
+          "Plane_Create",
+          "Plane_Delete"
+        ],
+        "Roles": [
+          "Admin",
+          "Site_Admin"
+        ]
+      },
+      // BIAToolKit - End Partial Config Plane
