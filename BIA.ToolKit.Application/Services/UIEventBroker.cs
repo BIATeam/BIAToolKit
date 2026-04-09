@@ -22,7 +22,8 @@ namespace BIA.ToolKit.Application.Services
     {
         public delegate void ProjectChanged(Project project);
         public delegate void NewVersionAvailable();
-        public delegate void ExecuteActionWithWaiterAsyncRequest(Func<Task> action);
+        public delegate void ExecuteActionWithWaiterAsyncRequest(Func<CancellationToken, Task> action);
+        public delegate void StopActionWithWaiterRequest();
         public delegate void SettingsUpdated(IBIATKSettings settings);
         public delegate void RepositoriesUpdated();
         public delegate void RepositoryViewModelChanged(RepositoryViewModel oldRepository, RepositoryViewModel newRepository);
@@ -47,15 +48,11 @@ namespace BIA.ToolKit.Application.Services
         public event SolutionClassesParsed OnSolutionClassesParsed;
         public event OriginFeatureSettingsChanged OnOriginFeatureSettingsChanged;
         public event RepositoryViewModelReleaseDataUpdated OnRepositoryViewModelReleaseDataUpdated;
+        public event StopActionWithWaiterRequest OnStopActionWithWaiterRequest;
 
-        private volatile CancellationTokenSource currentTokenSource;
+        private CancellationTokenSource currentTokenSource;
 
         public CancellationToken CurrentCancellationToken => currentTokenSource?.Token ?? CancellationToken.None;
-
-        internal void SetCurrentTokenSource(CancellationTokenSource cts)
-        {
-            currentTokenSource = cts;
-        }
 
         public void NotifyProjectChanged(Project project)
         {
@@ -67,9 +64,18 @@ namespace BIA.ToolKit.Application.Services
             OnNewVersionAvailable?.Invoke();
         }
 
-        public void RequestExecuteActionWithWaiter(Func<Task> task)
+        public void RequestExecuteActionWithWaiter(Func<CancellationToken, Task> task)
         {
+            currentTokenSource = new CancellationTokenSource();
             OnExecuteActionWithWaiterAsyncRequest?.Invoke(task);
+        }
+
+        public void RequestStopActionWithWaiter()
+        {
+            currentTokenSource?.Cancel();
+            currentTokenSource?.Dispose();
+            currentTokenSource = null;
+            OnStopActionWithWaiterRequest?.Invoke();
         }
 
         public void NotifySettingsUpdated(IBIATKSettings settings)

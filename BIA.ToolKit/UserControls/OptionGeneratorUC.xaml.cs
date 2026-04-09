@@ -20,6 +20,7 @@ namespace BIA.ToolKit.UserControls
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
+    using System.Threading;
 
     /// <summary>
     /// Interaction logic for OptionGenerator.xaml
@@ -112,7 +113,7 @@ namespace BIA.ToolKit.UserControls
             uiEventBroker.RequestExecuteActionWithWaiter(InitProjectTask);
         }
 
-        private Task InitProjectTask()
+        private Task InitProjectTask(CancellationToken cancellationToken = default)
         {
             // Load BIA settings + history + parse zips
             InitProject();
@@ -180,7 +181,7 @@ namespace BIA.ToolKit.UserControls
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            uiEventBroker.RequestExecuteActionWithWaiter(async (ct) =>
             {
 
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())

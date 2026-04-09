@@ -120,7 +120,7 @@ namespace BIA.ToolKit
 
         public async Task Init()
         {
-            await ExecuteTaskWithWaiterAsync(async () =>
+            await ExecuteTaskWithWaiterAsync(async (ct) =>
             {
                 await InitSettings();
 
@@ -323,41 +323,34 @@ namespace BIA.ToolKit
         }
 
         private readonly SemaphoreSlim semaphore = new(1, 1);
-        private CancellationTokenSource currentCts;
 
-        private async Task ExecuteTaskWithWaiterAsync(Func<Task> task)
+        private async Task ExecuteTaskWithWaiterAsync(Func<CancellationToken, Task> task)
         {
             await semaphore.WaitAsync();
             await Dispatcher.InvokeAsync(async () =>
             {
-                currentCts = new CancellationTokenSource();
-                uiEventBroker.SetCurrentTokenSource(currentCts);
                 try
                 {
                     StopButton.IsEnabled = true;
                     Waiter.Visibility = Visibility.Visible;
-                    await task();
+                    await task(uiEventBroker.CurrentCancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
-                    consoleWriter.AddMessageLine("⛔ Action interrompue par l'utilisateur.", "Orange");
+                    consoleWriter.AddMessageLine("Action canceled by user.", "Red");
                 }
                 finally
                 {
-                    uiEventBroker.SetCurrentTokenSource(null);
-                    var cts = currentCts;
-                    currentCts = null;
-                    cts?.Dispose();
                     StopButton.IsEnabled = false;
                     semaphore.Release();
                     Waiter.Visibility = Visibility.Hidden;
                 }
-            }).Task.Unwrap();
+            }, System.Windows.Threading.DispatcherPriority.Normal, uiEventBroker.CurrentCancellationToken).Task.Unwrap();
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
-            currentCts?.Cancel();
+            uiEventBroker.RequestStopActionWithWaiter();
         }
 
         private void CreateProjectRootFolderBrowse_Click(object sender, RoutedEventArgs e)
@@ -424,7 +417,7 @@ namespace BIA.ToolKit
                 return;
             }
 
-            await ExecuteTaskWithWaiterAsync(async () =>
+            await ExecuteTaskWithWaiterAsync(async (ct) =>
             {
                 await projectCreatorService.Create(
                     true,
@@ -543,7 +536,7 @@ namespace BIA.ToolKit
 
             consoleWriter.AddMessageLine($"New configuration imported from {configFile}", "yellow");
 
-            await ExecuteTaskWithWaiterAsync(async () =>
+            await ExecuteTaskWithWaiterAsync(async (ct) =>
             {
                 await GetReleasesData(config, true);
 

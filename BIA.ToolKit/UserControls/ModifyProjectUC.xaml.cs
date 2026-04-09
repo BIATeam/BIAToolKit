@@ -6,6 +6,7 @@ namespace BIA.ToolKit.UserControls
     using System.IO;
     using System.Linq;
     using System.Text.RegularExpressions;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
@@ -98,7 +99,7 @@ namespace BIA.ToolKit.UserControls
         {
             uiEventBroker.RequestExecuteActionWithWaiter(Migrate_Run);
         }
-        private async Task Migrate_Run()
+        private async Task Migrate_Run(CancellationToken cancellationToken = default)
         {
             if (!await MigrateGenerateOnly_Run())
                 return;
@@ -121,7 +122,7 @@ namespace BIA.ToolKit.UserControls
             uiEventBroker.RequestExecuteActionWithWaiter(MigrateGenerateOnly_Run);
         }
 
-        private async Task<bool> MigrateGenerateOnly_Run()
+        private async Task<bool> MigrateGenerateOnly_Run(CancellationToken cancellationToken = default)
         {
             if (_viewModel.ModifyProject.CurrentProject == null)
             {
@@ -152,7 +153,7 @@ namespace BIA.ToolKit.UserControls
             uiEventBroker.RequestExecuteActionWithWaiter(MigrateApplyDiff_Run);
         }
 
-        private async Task<bool> MigrateApplyDiff_Run()
+        private async Task<bool> MigrateApplyDiff_Run(CancellationToken cancellationToken = default)
         {
             MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out _, out string projectTargetFolderName, out _, out _);
 
@@ -171,7 +172,7 @@ namespace BIA.ToolKit.UserControls
             uiEventBroker.RequestExecuteActionWithWaiter(MigrateMergeRejected_Run);
         }
 
-        private async Task MigrateMergeRejected_Run()
+        private async Task MigrateMergeRejected_Run(CancellationToken cancellationToken = default)
         {
             await MergeRejected(true);
 
@@ -209,12 +210,12 @@ namespace BIA.ToolKit.UserControls
 
                     File.Copy(fileToCopy, fileToCheck);
                 }
-            });
+            }, cancellationToken);
         }
 
         private void MigrateOverwriteBIAFolder_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () => await OverwriteBIAFolder(true));
+            uiEventBroker.RequestExecuteActionWithWaiter(async (ct) => await OverwriteBIAFolder(true));
         }
 
         private void MigratePreparePath(out string projectOriginalFolderName, out string projectOriginPath, out string projectOriginalVersion, out string projectTargetFolderName, out string projectTargetPath, out string projectTargetVersion)
@@ -381,7 +382,7 @@ namespace BIA.ToolKit.UserControls
             uiEventBroker.RequestExecuteActionWithWaiter(FixUsings_Run);
         }
 
-        private async Task FixUsings_Run()
+        private async Task FixUsings_Run(CancellationToken cancellationToken = default)
         {
             await cSharpParserService.FixUsings();
         }

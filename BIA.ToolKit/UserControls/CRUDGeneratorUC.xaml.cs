@@ -263,7 +263,7 @@ namespace BIA.ToolKit.UserControls
         /// </summary>
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            uiEventBroker.RequestExecuteActionWithWaiter(async (ct) =>
             {
                 if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
                 {

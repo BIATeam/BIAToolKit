@@ -21,6 +21,7 @@ namespace BIA.ToolKit.UserControls
     using System.Windows.Controls;
     using System.Windows.Input;
     using static BIA.ToolKit.Application.Services.UIEventBroker;
+    using System.Threading;
 
     /// <summary>
     /// Interaction logic for DtoGenerator.xaml
@@ -93,7 +94,7 @@ namespace BIA.ToolKit.UserControls
             InitHistoryFile(project);
         }
 
-        private Task ListEntities()
+        private Task ListEntities(CancellationToken cancellationToken = default)
         {
             if (project is null)
                 return Task.CompletedTask;
@@ -143,7 +144,7 @@ namespace BIA.ToolKit.UserControls
 
         private void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
+            uiEventBroker.RequestExecuteActionWithWaiter(async (ct) =>
             {
                 UpdateHistoryFile();
                 await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext
