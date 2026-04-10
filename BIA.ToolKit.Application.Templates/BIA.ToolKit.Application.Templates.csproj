@@ -83,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\Enum\FormReadOnlyMode.cs" />
+    <Compile Include="Common\Interfaces\IEntityTeamModel.cs" />
     <Compile Include="Common\Models\DotNetModel.cs" />
     <Compile Include="Common\Models\EntityModel.cs" />
     <Compile Include="Common\Interfaces\IEntityCrudModel.cs" />
@@ -97,14 +98,20 @@
     <Compile Include="_4_0_0\Models\EntityDtoModel.cs" />
     <Compile Include="Common\Interfaces\IPropertyDtoModel.cs" />
     <Compile Include="Common\Interfaces\IEntityDtoModel.cs" />
+    <Compile Include="_4_0_0\Models\EntityTeamModel.cs" />
     <Compile Include="_4_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_4_0_0\Models\PropertyDtoModel.cs" />
+    <Compile Include="_5_0_0\Models\EntityTeamModel.cs" />
+    <Compile Include="_6_0_0\Models\EntityTeamModel.cs" />
+    <Compile Include="_7_0_0\Models\EntityTeamModel.cs" />
     <Compile Include="_8_0_0\Mocks\EntityCrudMock.cs" />
     <Compile Include="_8_0_0\Mocks\EntityDtoMock.cs" />
     <Compile Include="_8_0_0\Mocks\EntityOptionMock.cs" />
+    <Compile Include="_8_0_0\Mocks\EntityTeamMock.cs" />
     <Compile Include="_8_0_0\Models\EntityCrudModel.cs" />
     <Compile Include="_8_0_0\Models\EntityDtoModel.cs" />
     <Compile Include="_8_0_0\Models\EntityOptionModel.cs" />
+    <Compile Include="_8_0_0\Models\EntityTeamModel.cs" />
     <Compile Include="_8_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_8_0_0\Models\PropertyDtoModel.cs" />
     <None Include="_8_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.cs">

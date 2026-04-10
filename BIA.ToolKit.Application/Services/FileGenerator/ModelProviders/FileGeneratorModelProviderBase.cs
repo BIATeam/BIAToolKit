@@ -7,12 +7,13 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
     using BIA.ToolKit.Common;
 
-    internal abstract class FileGeneratorModelProviderBase<TEntityDtoModel, TEntityCrudModel, TEntityOptionModel, TPropertyDtoModel, TPropertyCrudModel>(IConsoleWriter consoleWriter) : IFileGeneratorModelProvider
+    internal abstract class FileGeneratorModelProviderBase<TEntityDtoModel, TEntityCrudModel, TEntityOptionModel, TEntityTeamModel, TPropertyDtoModel, TPropertyCrudModel>(IConsoleWriter consoleWriter) : IFileGeneratorModelProvider
         where TPropertyDtoModel : class, IPropertyDtoModel, new()
         where TEntityDtoModel : class, IEntityDtoModel<TPropertyDtoModel>, new()
         where TPropertyCrudModel : class, IPropertyCrudModel, new()
         where TEntityCrudModel : class, IEntityCrudModel<TPropertyCrudModel>, new()
         where TEntityOptionModel : class, IEntityOptionModel, new()
+        where TEntityTeamModel : class, IEntityTeamModel, new()
     {
         protected readonly IConsoleWriter consoleWriter = consoleWriter;
 
@@ -23,6 +24,8 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
         protected static TEntityDtoModel CreateDtoTemplateModel() => new();
 
         protected static TEntityOptionModel CreateOptionTemplateModel() => new();
+
+        protected static TEntityTeamModel CreateTeamTemplateModel() => new();
 
         public virtual object GetCrudTemplateModel(FileGeneratorCrudContext crudContext)
         {
@@ -172,6 +175,27 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
             model.DomainName = optionContext.DomainName;
             model.OptionDisplayName = optionContext.DisplayName;
             model.UseHubForClient = optionContext.UseHubForClient;
+
+            return model;
+        }
+
+        public virtual object GetTeamTemplateModel(FileGeneratorTeamContext teamContext)
+        {
+            TEntityTeamModel model = CreateTeamTemplateModel();
+            model.CompanyName = teamContext.CompanyName;
+            model.ProjectName = teamContext.ProjectName;
+            model.EntityNameArticle = Common.ComputeNameArticle(teamContext.EntityName);
+            model.EntityName = teamContext.EntityName;
+            model.EntityNamePlural = teamContext.EntityNamePlural;
+            model.BaseKeyType = teamContext.BaseKeyType;
+            if (string.IsNullOrWhiteSpace(model.BaseKeyType))
+            {
+                consoleWriter.AddMessageLine($"WARNING: Unable to retrieve entity's base key type, you'll must replace the template '{Common.TemplateValue_BaseKeyType}' by corresponding type value after generation.", "orange");
+                model.BaseKeyType = Common.TemplateValue_BaseKeyType;
+            }
+
+            model.DomainName = teamContext.DomainName;
+            model.IsTeamType = true;
 
             return model;
         }

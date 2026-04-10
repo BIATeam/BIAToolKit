@@ -289,6 +289,36 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             }
         }
 
+        public async Task GenerateTeamAsync(FileGeneratorTeamContext teamContext, CancellationToken ct = default)
+        {
+            ct.ThrowIfCancellationRequested();
+            try
+            {
+                _consoleWriter.AddMessageLine($"=== GENERATE TEAM ===", color: "lightblue");
+
+                if (!IsInit)
+                    throw new Exception("file generator has not been initialiazed");
+
+                if (teamContext.GenerateFront && teamContext.HasParent)
+                {
+                    teamContext.ComputeAngularParentLocation(_currentProject.Folder);
+                }
+
+                object templateModel = _modelProvider.GetTeamTemplateModel(teamContext);
+                Manifest.Feature teamFeature = GetCurrentManifestFeature(Manifest.Feature.FeatureType.Team);
+
+                _currentContext = teamContext;
+
+                await GenerateTemplatesFromManifestFeatureAsync(teamFeature, templateModel);
+
+                _consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
+            }
+            catch (Exception ex)
+            {
+                _consoleWriter.AddMessageLine($"CRUD generation failed : {ex}", color: "red");
+            }
+        }
+
         public Manifest.Feature GetCurrentManifestFeature(Manifest.Feature.FeatureType featureType)
         {
             return _currentManifest.Features.SingleOrDefault(f => f.Type == featureType)

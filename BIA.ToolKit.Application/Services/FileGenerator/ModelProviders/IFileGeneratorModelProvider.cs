@@ -11,5 +11,6 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
         object GetDtoTemplateModel(FileGeneratorDtoContext dtoContext);
         object GetOptionTemplateModel(FileGeneratorOptionContext optionContext);
         object GetCrudTemplateModel(FileGeneratorCrudContext crudContext);
+        object GetTeamTemplateModel(FileGeneratorTeamContext teamContext);
     }
 }

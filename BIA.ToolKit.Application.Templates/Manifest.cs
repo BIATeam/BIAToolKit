@@ -14,7 +14,8 @@ namespace BIA.ToolKit.Application.Templates
             {
                 Dto,
                 Option,
-                Crud
+                Crud,
+                Team
             }
 
             public class Template : IEquatable<Template>
