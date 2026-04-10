@@ -73,198 +73,80 @@ namespace BIA.ToolKit.Application.ViewModel
         public void Receive(SolutionClassesParsedMessage message) => OnSolutionClassesParsed();
 
         #region CurrentProject
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsProjectCompatibleV7))]
         private Project currentProject;
-        public Project CurrentProject
+
+        partial void OnCurrentProjectChanged(Project value)
         {
-            get => currentProject;
-            set
+            BiaFronts.Clear();
+            if (value != null)
             {
-                currentProject = value;
-                BiaFronts.Clear();
-                if (currentProject != null)
+                foreach (string biaFront in value.BIAFronts)
                 {
-                    foreach (string biaFront in currentProject.BIAFronts)
-                    {
-                        BiaFronts.Add(biaFront);
-                    }
-                    BiaFront = BiaFronts.FirstOrDefault();
+                    BiaFronts.Add(biaFront);
                 }
-
-                OnPropertyChanged(nameof(IsProjectCompatibleV7));
+                BiaFront = BiaFronts.FirstOrDefault();
             }
         }
 
+        [ObservableProperty]
         private bool isProjectChosen;
-        public bool IsProjectChosen
-        {
-            get => isProjectChosen;
-            set
-            {
-                isProjectChosen = value;
-                OnPropertyChanged(nameof(IsProjectChosen));
-            }
-        }
 
-        private string _biaFront;
-        public string BiaFront
-        {
-            get => _biaFront;
-            set
-            {
-                _biaFront = value;
-                OnPropertyChanged(nameof(BiaFront));
-            }
-        }
+        [ObservableProperty]
+        private string biaFront;
 
-        private ObservableCollection<string> _biaFronts = [];
-        public ObservableCollection<string> BiaFronts
-        {
-            get => _biaFronts;
-            set
-            {
-                _biaFronts = value;
-                OnPropertyChanged(nameof(BiaFronts));
-            }
-        }
+        [ObservableProperty]
+        private ObservableCollection<string> biaFronts = [];
+
         #endregion
 
         #region Entity
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateOptionEnable))]
         private EntityInfo entity;
-        public EntityInfo Entity
-        {
-            get => entity;
-            set
-            {
-                if (entity != value)
-                {
-                    entity = value;
-                    OnPropertyChanged(nameof(IsButtonGenerateOptionEnable));
-                }
-            }
-        }
 
+        [ObservableProperty]
         private ObservableCollection<EntityInfo> entities;
-        public ObservableCollection<EntityInfo> Entities
-        {
-            get => entities;
-            set
-            {
-                if (entities != value)
-                {
-                    entities = value;
-                    OnPropertyChanged(nameof(Entities));
-                }
-            }
-        }
 
+        [ObservableProperty]
         private ObservableCollection<string> entityDisplayItems;
-        public ObservableCollection<string> EntityDisplayItems
-        {
-            get => entityDisplayItems;
-            set
-            {
-                if (entityDisplayItems != value)
-                {
-                    entityDisplayItems = value;
-                    OnPropertyChanged(nameof(EntityDisplayItems));
-                }
-            }
-        }
 
-        private bool isEntityParsed = false;
-        public bool IsEntityParsed
-        {
-            get => isEntityParsed;
-            set
-            {
-                if (isEntityParsed != value)
-                {
-                    isEntityParsed = value;
-                    OnPropertyChanged(nameof(IsEntityParsed));
-                    OnPropertyChanged(nameof(IsButtonGenerateOptionEnable));
-                }
-            }
-        }
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateOptionEnable))]
+        private bool isEntityParsed;
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateOptionEnable))]
         private string entityDisplayItemSelected;
-        public string EntityDisplayItemSelected
-        {
-            get => entityDisplayItemSelected;
-            set
-            {
-                if (entityDisplayItemSelected != value)
-                {
-                    entityDisplayItemSelected = value;
-                    OnPropertyChanged(nameof(EntityDisplayItemSelected));
-                    OnPropertyChanged(nameof(IsButtonGenerateOptionEnable));
-                }
-            }
-        }
 
-        private bool isGenerated = false;
-        public bool IsGenerated
-        {
-            get => isGenerated;
-            set
-            {
-                if (isGenerated != value)
-                {
-                    isGenerated = value;
-                    OnPropertyChanged(nameof(IsGenerated));
-                }
-            }
-        }
+        [ObservableProperty]
+        private bool isGenerated;
+
         #endregion
 
         #region Entity Name
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateOptionEnable))]
         private string entityNamePlural;
-        public string EntityNamePlural
-        {
-            get => entityNamePlural;
-            set
-            {
-                if (entityNamePlural != value)
-                {
-                    entityNamePlural = value;
-                    OnPropertyChanged(nameof(EntityNamePlural));
-                }
-            }
-        }
+
         #endregion
 
         #region Domain
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateOptionEnable))]
         private string domain;
-        public string Domain
-        {
-            get { return domain; }
-            set
-            {
-                if (domain != value)
-                {
-                    domain = value;
-                    OnPropertyChanged(nameof(Domain));
-                    OnPropertyChanged(nameof(IsButtonGenerateOptionEnable));
-                }
-            }
-        }
 
         #endregion
 
         #region ZipFile
-        private List<ZipFeatureType> zipFeatureTypeList;
-        public List<ZipFeatureType> ZipFeatureTypeList
-        {
-            get => zipFeatureTypeList;
-            set
-            {
-                if (zipFeatureTypeList != value)
-                {
-                    zipFeatureTypeList = value;
-                }
-            }
-        }
+
+        public List<ZipFeatureType> ZipFeatureTypeList { get; set; }
+
         #endregion
 
         #region Button
@@ -274,7 +156,7 @@ namespace BIA.ToolKit.Application.ViewModel
             {
                 return IsEntityParsed
                     && !string.IsNullOrWhiteSpace(EntityNamePlural)
-                    && !string.IsNullOrWhiteSpace(entityDisplayItemSelected)
+                    && !string.IsNullOrWhiteSpace(EntityDisplayItemSelected)
                     && !string.IsNullOrEmpty(Domain);
             }
         }
@@ -284,17 +166,8 @@ namespace BIA.ToolKit.Application.ViewModel
 
         public bool IsProjectCompatibleV7 => Version.TryParse(CurrentProject?.FrameworkVersion, out Version version) && version.Major >= 7;
 
-        private bool _useHubClient;
-
-        public bool UseHubClient
-        {
-            get { return _useHubClient; }
-            set
-            {
-                _useHubClient = value;
-                OnPropertyChanged(nameof(UseHubClient));
-            }
-        }
+        [ObservableProperty]
+        private bool useHubClient;
 
         #endregion
 

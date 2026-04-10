@@ -15,17 +15,15 @@
     using CommunityToolkit.Mvvm.Messaging;
     using System;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Text.RegularExpressions;
-    using System.Threading;
     using System.Threading.Tasks;
 
     public partial class ModifyProjectViewModel : ObservableObject, IDisposable,
-        IRecipient<SettingsUpdatedMessage>,
-        IRecipient<SolutionClassesParsedMessage>
+        IRecipient<SolutionClassesParsedMessage>,
+        IRecipient<ProjectChangedMessage>
     {
         private readonly FileGeneratorService fileGeneratorService;
         private readonly IConsoleWriter consoleWriter;
@@ -33,7 +31,6 @@
         private readonly CSharpParserService parserService;
         private readonly GitService gitService;
         private readonly ProjectCreatorService projectCreatorService;
-        private readonly IDialogService dialogService;
         private readonly CRUDSettings crudSettings;
         private bool disposed;
 
@@ -50,8 +47,7 @@
             SettingsService settingsService,
             CSharpParserService parserService,
             GitService gitService,
-            ProjectCreatorService projectCreatorService,
-            IDialogService dialogService)
+            ProjectCreatorService projectCreatorService)
         {
             this.fileGeneratorService = fileGeneratorService ?? throw new ArgumentNullException(nameof(fileGeneratorService));
             this.consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
@@ -59,7 +55,6 @@
             this.parserService = parserService ?? throw new ArgumentNullException(nameof(parserService));
             this.gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
             this.projectCreatorService = projectCreatorService ?? throw new ArgumentNullException(nameof(projectCreatorService));
-            this.dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
 
             this.crudSettings = new CRUDSettings(settingsService);
             ModifyProject = new ModifyProject();
@@ -75,21 +70,27 @@
             WeakReferenceMessenger.Default.UnregisterAll(this);
         }
 
-        public void Receive(SettingsUpdatedMessage message) => EventBroker_OnSettingsUpdated(message.Settings);
         public void Receive(SolutionClassesParsedMessage message) => EventBroker_OnSolutionClassesParsed();
 
-        // --- Event broker handlers ---
-
-        private bool firstTimeSettingsUpdated = true;
-        private void EventBroker_OnSettingsUpdated(IBIATKSettings settings)
+        /// <summary>
+        /// Mirror the project selected in the shared <see cref="ProjectViewModel"/>
+        /// (which is the singleton bound to <c>ProjectSelectorUC</c>).
+        /// Sets the underlying model field directly to avoid re-broadcasting
+        /// <see cref="ProjectChangedMessage"/> (which would loop back to the
+        /// other generator VMs that already received the original message).
+        /// </summary>
+        public void Receive(ProjectChangedMessage message)
         {
-            OnPropertyChanged(nameof(RootProjectsPath));
-            if (firstTimeSettingsUpdated)
-            {
-                RefreshProjetsList();
-                firstTimeSettingsUpdated = false;
-            }
+            var project = message?.Project;
+            if (ModifyProject.CurrentProject == project)
+                return;
+
+            ModifyProject.CurrentProject = project;
+            ResetMigrationStepStates();
+            RefreshUI();
         }
+
+        // --- Event broker handlers ---
 
         private void EventBroker_OnSolutionClassesParsed()
         {
@@ -119,272 +120,32 @@
 
         public ModifyProject ModifyProject { get; set; }
 
-        [ObservableProperty]
-        private bool isFileGeneratorServiceInit;
-
-        [ObservableProperty]
-        private bool isProjectCompatibleCrudGenerator;
-
-
-        private ObservableCollection<string> projects = [];
-        public ObservableCollection<string> Projects
-        {
-            get => projects;
-            set
-            {
-                if (projects != value)
-                {
-                    projects = value;
-                    ModifyProject.Projects = [.. value];
-                    OnPropertyChanged(nameof(Projects));
-                }
-            }
-        }
-
-        [RelayCommand]
-        public void RefreshProjetsList()
-        {
-            List<string> newProjects = null;
-
-            if (!Directory.Exists(RootProjectsPath))
-                return;
-
-            DirectoryInfo di = new(RootProjectsPath);
-            DirectoryInfo[] versionDirectories = di.GetDirectories("*", SearchOption.TopDirectoryOnly);
-
-            newProjects = new();
-            foreach (DirectoryInfo dir in versionDirectories)
-            {
-                newProjects.Add(dir.Name);
-            }
-
-            if (!newProjects.Select(x => Path.Combine(RootProjectsPath, x)).Contains(CurrentProject?.Folder))
-            {
-                Folder = null;
-            }
-
-            for (int i = 0; i < newProjects.Count; i++)
-            {
-                var existingProjectInNewProjects = Projects.FirstOrDefault(x => x == newProjects[i]);
-                if (existingProjectInNewProjects is not null)
-                    continue;
-
-                Projects.Insert(i, newProjects[i]);
-            }
-
-            for (int i = 0; i < Projects.Count; i++)
-            {
-                var newProjectInExistingProjects = newProjects.FirstOrDefault(x => x == Projects[i]);
-                if (newProjectInExistingProjects is not null)
-                    continue;
-
-                Projects.RemoveAt(i);
-                i--;
-            }
-        }
-
-        public string CurrentRootProjectsPath { get; set; }
-        public string RootProjectsPath
-        {
-            get => settingsService?.Settings?.ModifyProjectRootProjectsPath;
-            set
-            {
-                if (settingsService.Settings.ModifyProjectRootProjectsPath != value)
-                {
-                    CurrentRootProjectsPath = value;
-                    settingsService.SetModifyProjectRootProjectPath(value);
-                    RefreshProjetsList();
-                }
-            }
-        }
-
-        [RelayCommand]
-        private void BrowseRootProjectsFolder()
-        {
-            RootProjectsPath = dialogService.BrowseFolder(RootProjectsPath, "Choose modify project root path");
-        }
-
-        public Dictionary<string, NamesAndVersionResolver> CurrentProjectDetections { get; set; }
-
-        public string Folder
-        {
-            get { return Path.GetFileName(ModifyProject.CurrentProject?.Folder); }
-            set
-            {
-                if (value == Folder)
-                    return;
-
-                WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
-                {
-                    IsFileGeneratorServiceInit = false;
-                    IsProjectCompatibleCrudGenerator = false;
-
-                    Project currentProject = null;
-                    if (value is not null)
-                    {
-                        currentProject = new Project
-                        {
-                            Name = value,
-                            Folder = Path.Combine(RootProjectsPath, value)
-                        };
-                        await LoadProject(currentProject);
-                    }
-
-                    await InitFileGeneratorServiceFromProject(currentProject);
-                    CurrentProject = currentProject;
-
-                    if (CurrentProject is not null)
-                    {
-                        await ParseProject(currentProject);
-                    }
-
-                    OnPropertyChanged(nameof(Folder));
-                }));
-            }
-        }
-
-        private async Task InitFileGeneratorServiceFromProject(Project currentProject)
-        {
-            await fileGeneratorService.Init(currentProject);
-            IsFileGeneratorServiceInit = fileGeneratorService.IsInit;
-            IsProjectCompatibleCrudGenerator = GenerateCrudService.IsProjectCompatible(currentProject);
-        }
-
-        private async Task LoadProject(Project project)
-        {
-            try
-            {
-                consoleWriter.AddMessageLine($"Loading project {project.Name}", "pink");
-
-                consoleWriter.AddMessageLine("List project's files...", "darkgray");
-                await project.ListProjectFiles();
-                project.SolutionPath = project.ProjectFiles.FirstOrDefault(path => path.EndsWith($"{project.Name}.sln", StringComparison.InvariantCultureIgnoreCase));
-                consoleWriter.AddMessageLine("Project's files listed", "lightgreen");
-
-                consoleWriter.AddMessageLine("Resolving names and version...", "darkgray");
-                NamesAndVersionResolver nvResolverOldVersions = new()
-                {
-                    ConstantFileRegExpPath = @"\\.*\\(.*)\.(.*)\.Common\\Constants\.cs$",
-                    ConstantFileNameSearchPattern = "Constants.cs",
-                    ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
-                    ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
-                    FrontFileRegExpPath = null,
-                    FrontFileUsingBiaNg = null,
-                    FrontFileBiaNgImportRegExp = null,
-                    FrontFileNameSearchPattern = null
-                };
-
-                NamesAndVersionResolver nvResolver = new()
-                {
-                    ConstantFileRegExpPath = @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\Constants\.cs$",
-                    ConstantFileNameSearchPattern = "Constants.cs",
-                    ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
-                    ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
-                    FrontFileRegExpPath =
-                    [
-                        @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$",
-                    @"\\(.*)\\packages\\bia-ng\\core\\bia-core.module\.ts$"
-                    ],
-                    FrontFileUsingBiaNg = @"\\(?!.*(?:\\node_modules\\|\\dist\\|\\\.angular\\))(.*)\\package\.json$",
-                    FrontFileBiaNgImportRegExp = "\"@bia-team/bia-ng\":",
-                    FrontFileNameSearchPattern = "bia-core.module.ts"
-                };
-
-                var resolverTask = Task.Run(() => nvResolver.ResolveNamesAndVersion(project));
-                var resolverOldVersionsTask = Task.Run(() => nvResolverOldVersions.ResolveNamesAndVersion(project));
-                await Task.WhenAll(resolverTask, resolverOldVersionsTask);
-
-                consoleWriter.AddMessageLine("Names and version resolved", "lightgreen");
-
-                if (project.BIAFronts.Count == 0)
-                {
-                    consoleWriter.AddMessageLine("Unable to find any BIA front folder for this project", "orange");
-                }
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine($"Error while loading project : {ex.Message}", "red");
-            }
-        }
-
-        private async Task ParseProject(Project currentProject, CancellationToken ct = default)
-        {
-            try
-            {
-                await parserService.LoadSolution(currentProject.SolutionPath, ct);
-                await parserService.ParseSolutionClasses(ct);
-            }
-            catch (OperationCanceledException)
-            {
-                consoleWriter.AddMessageLine("Operation cancelled.", "Yellow");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine($"Error while loading project solution : {ex.Message}", "red");
-            }
-        }
-
-        [RelayCommand]
-        private void RefreshProjectInformations()
-        {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
-            {
-                await LoadProject(CurrentProject);
-                await InitFileGeneratorServiceFromProject(CurrentProject);
-                await ParseProject(CurrentProject, ct);
-                RefreshUI();
-            }));
-        }
-
+        /// <summary>
+        /// Re-evaluates UI state that depends on <see cref="CurrentProject"/>.
+        /// Project loading/parsing and the related compatibility flags live in
+        /// <see cref="ProjectViewModel"/>; here we only need to refresh the
+        /// notifications consumed by ModifyProjectUC bindings and reset the
+        /// active tab if the file generator is no longer initialized.
+        /// </summary>
         private void RefreshUI()
         {
-            OnPropertyChanged(nameof(FrameworkVersion));
-            OnPropertyChanged(nameof(CompanyName));
-            OnPropertyChanged(nameof(Name));
             OnPropertyChanged(nameof(IsProjectSelected));
             OnPropertyChanged(nameof(IsTabFeaturesEnabled));
-            OnPropertyChanged(nameof(BIAFronts));
-            if ((!IsProjectCompatibleCrudGenerator && !IsFileGeneratorServiceInit)
-                || (SelectedTabIndex == 2 && !IsFileGeneratorServiceInit))
+
+            bool fileGenInit = fileGeneratorService.IsInit;
+            bool crudCompatible = GenerateCrudService.IsProjectCompatible(CurrentProject);
+            if ((!crudCompatible && !fileGenInit)
+                || (SelectedTabIndex == 2 && !fileGenInit))
             {
                 SelectedTabIndex = 0;
             }
         }
 
-        public string FrameworkVersion
-        {
-            get { return String.IsNullOrEmpty(ModifyProject.CurrentProject?.FrameworkVersion) ? "???" : ModifyProject.CurrentProject.FrameworkVersion; }
-        }
+        // Used internally by MigratePreparePath / CreateProjectAsync.
+        private string Name => ModifyProject.CurrentProject?.Name ?? string.Empty;
+        private string CompanyName => ModifyProject.CurrentProject?.CompanyName ?? string.Empty;
 
-        public string CompanyName
-        {
-            get { return String.IsNullOrEmpty(ModifyProject.CurrentProject?.CompanyName) ? "???" : ModifyProject.CurrentProject.CompanyName; }
-        }
-
-        public string Name
-        {
-            get { return String.IsNullOrEmpty(ModifyProject.CurrentProject?.Name) ? "???" : ModifyProject.CurrentProject.Name; }
-        }
-
-        public string BIAFronts => ModifyProject.CurrentProject?.BIAFronts != null && ModifyProject.CurrentProject?.BIAFronts.Count > 0 ?
-            string.Join(", ", ModifyProject.CurrentProject.BIAFronts) :
-            "???";
-
-        public Project CurrentProject
-        {
-            get { return ModifyProject.CurrentProject; }
-            set
-            {
-                if (ModifyProject.CurrentProject != value)
-                {
-                    ModifyProject.CurrentProject = value;
-                    ResetMigrationStepStates();
-                    RefreshUI();
-                    WeakReferenceMessenger.Default.Send(new ProjectChangedMessage(value));
-                }
-            }
-        }
+        public Project CurrentProject => ModifyProject.CurrentProject;
 
         public bool OverwriteBIAFromOriginal { get; set; }
 
@@ -398,12 +159,25 @@
 
         public void InitVersionAndOptionComponents()
         {
-            OriginVersionAndOptionVM?.SelectVersion(CurrentProject?.FrameworkVersion);
-            OriginVersionAndOptionVM?.SetCurrentProjectPath(CurrentProject?.Folder, true, true);
-            TargetVersionAndOptionVM?.SetCurrentProjectPath(CurrentProject?.Folder, false, false,
-                CurrentProject is null ?
-                null :
-                OriginVersionAndOptionVM?.FeatureSettings.Select(x => x.FeatureSetting));
+            // Run via the busy waiter so we can await SetCurrentProjectPathAsync (which awaits
+            // version-folder preparation before loading feature settings). The previous synchronous
+            // call ordering raced with the XAML EventTrigger and left Origin features empty.
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
+            {
+                if (OriginVersionAndOptionVM is not null)
+                {
+                    OriginVersionAndOptionVM.SelectVersion(CurrentProject?.FrameworkVersion);
+                    await OriginVersionAndOptionVM.SetCurrentProjectPathAsync(CurrentProject?.Folder, true, true);
+                }
+
+                if (TargetVersionAndOptionVM is not null)
+                {
+                    var originFeatures = CurrentProject is null
+                        ? null
+                        : OriginVersionAndOptionVM?.FeatureSettings.Select(x => x.FeatureSetting);
+                    await TargetVersionAndOptionVM.SetCurrentProjectPathAsync(CurrentProject?.Folder, false, false, originFeatures);
+                }
+            }));
         }
 
         // --- Migration commands ---

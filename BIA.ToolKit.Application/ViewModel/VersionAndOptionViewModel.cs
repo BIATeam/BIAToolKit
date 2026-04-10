@@ -34,8 +34,6 @@ namespace BIA.ToolKit.Application.ViewModel
         private readonly GitService gitService;
         private readonly IConsoleWriter consoleWriter;
 
-        private bool hasFeature = false;
-        private bool areFeatureInitialized = false;
         private string currentProjectPath;
         private List<FeatureSetting> OriginFeatureSettings;
         private bool disposed;
@@ -208,17 +206,9 @@ namespace BIA.ToolKit.Application.ViewModel
             }
         }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(SettingsNotUseCompanyFiles))]
         private bool settingsUseCompanyFiles;
-        public bool SettingsUseCompanyFiles
-        {
-            get { return settingsUseCompanyFiles; }
-            set
-            {
-                settingsUseCompanyFiles = value;
-                OnPropertyChanged(nameof(SettingsUseCompanyFiles));
-                OnPropertyChanged(nameof(SettingsNotUseCompanyFiles));
-            }
-        }
 
         public bool SettingsNotUseCompanyFiles => !SettingsUseCompanyFiles;
 
@@ -266,21 +256,14 @@ namespace BIA.ToolKit.Application.ViewModel
             Options = new ObservableCollection<CFOption>(options);
         }
 
+        [ObservableProperty]
         private ObservableCollection<FeatureSettingViewModel> featureSettings = [];
-        public ObservableCollection<FeatureSettingViewModel> FeatureSettings
+
+        partial void OnFeatureSettingsChanged(ObservableCollection<FeatureSettingViewModel> value)
         {
-            get { return featureSettings; }
-            set
-            {
-                if (featureSettings != value)
-                {
-                    featureSettings = value ?? [];
-                    HasFeature = featureSettings.Any();
-                    AreFeatureInitialized = true;
-                    OnPropertyChanged(nameof(FeatureSettings));
-                    VersionAndOption.FeatureSettings = [.. featureSettings.Select(x => x.FeatureSetting)];
-                }
-            }
+            HasFeature = value?.Any() == true;
+            AreFeatureInitialized = true;
+            VersionAndOption.FeatureSettings = [.. (value ?? []).Select(x => x.FeatureSetting)];
         }
 
         public void SetFeaturesSelection(List<string> projectGenerationTags, List<string> projectGenerationExcludedFolders, List<FeatureSetting> originFeatureSettings)
@@ -289,46 +272,20 @@ namespace BIA.ToolKit.Application.ViewModel
                 VersionAndOption.FeatureSettings, projectGenerationTags, projectGenerationExcludedFolders, originFeatureSettings);
         }
 
-        public bool HasFeature
-        {
-            get { return hasFeature; }
-            set
-            {
-                if (hasFeature != value)
-                {
-                    hasFeature = value;
-                    OnPropertyChanged(nameof(HasFeature));
-                    OnPropertyChanged(nameof(AreFeatureVisible));
-                    OnPropertyChanged(nameof(IsVisibileNoFeature));
-                }
-            }
-        }
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(AreFeatureVisible))]
+        [NotifyPropertyChangedFor(nameof(IsVisibileNoFeature))]
+        private bool hasFeature;
 
-        public bool AreFeatureInitialized
-        {
-            get { return areFeatureInitialized; }
-            set
-            {
-                if (areFeatureInitialized != value)
-                {
-                    areFeatureInitialized = value;
-                    OnPropertyChanged(nameof(AreFeatureInitialized));
-                    OnPropertyChanged(nameof(AreFeatureVisible));
-                    OnPropertyChanged(nameof(AreFeatureLoading));
-                    OnPropertyChanged(nameof(IsVisibileNoFeature));
-                }
-            }
-        }
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(AreFeatureVisible))]
+        [NotifyPropertyChangedFor(nameof(AreFeatureLoading))]
+        [NotifyPropertyChangedFor(nameof(IsVisibileNoFeature))]
+        private bool areFeatureInitialized;
 
-        public bool AreFeatureVisible
-        {
-            get { return hasFeature && areFeatureInitialized; }
-        }
+        public bool AreFeatureVisible => HasFeature && AreFeatureInitialized;
 
-        public bool AreFeatureLoading
-        {
-            get { return !areFeatureInitialized; }
-        }
+        public bool AreFeatureLoading => !AreFeatureInitialized;
 
         public bool IsVisibileNoFeature => !AreFeatureVisible;
 
@@ -415,10 +372,9 @@ namespace BIA.ToolKit.Application.ViewModel
             WorkTemplate = WorkTemplates.FirstOrDefault(workTemplate => workTemplate.Version == $"V{version}");
         }
 
-        public void SetCurrentProjectPath(string path, bool mapCompanyFileVersion, bool mapFrameworkVersion, IEnumerable<FeatureSetting> originFeatureSettings = null)
+        public async Task SetCurrentProjectPathAsync(string path, bool mapCompanyFileVersion, bool mapFrameworkVersion, IEnumerable<FeatureSetting> originFeatureSettings = null)
         {
             this.currentProjectPath = path;
-            this.LoadfeatureSetting();
 
             if (originFeatureSettings != null)
             {
@@ -426,6 +382,13 @@ namespace BIA.ToolKit.Application.ViewModel
                 OriginFeatureSettings = new List<FeatureSetting>(originFeatureSettings);
             }
 
+            // The version folder must be prepared (potentially downloaded) before we can read
+            // its feature settings. The XAML SelectionChanged EventTrigger normally handles this
+            // for user-driven version changes, but when InitVersionAndOptionComponents calls us
+            // programmatically that path races with us — so we await it here explicitly.
+            await this.FillVersionFolderPathAsync();
+
+            this.LoadfeatureSetting();
             this.LoadVersionAndOption(mapCompanyFileVersion, mapFrameworkVersion);
         }
 

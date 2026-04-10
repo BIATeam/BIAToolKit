@@ -386,16 +386,8 @@ namespace BIA.ToolKit.Application.ViewModel
         public ObservableCollection<RepositoryViewModel> TemplateRepositories { get; } = [];
         public ObservableCollection<RepositoryViewModel> CompanyFilesRepositories { get; } = [];
 
+        [ObservableProperty]
         private RepositoryViewModel toolkitRepository;
-        public RepositoryViewModel ToolkitRepository
-        {
-            get => toolkitRepository;
-            set
-            {
-                toolkitRepository = value;
-                OnPropertyChanged(nameof(ToolkitRepository));
-            }
-        }
 
         public void UpdateRepositories(IBIATKSettings settings)
         {

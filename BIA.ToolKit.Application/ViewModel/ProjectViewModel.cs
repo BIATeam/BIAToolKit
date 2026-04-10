@@ -23,15 +23,13 @@ namespace BIA.ToolKit.Application.ViewModel
     /// Singleton ViewModel shared between ModifyProjectUC and GenerateUC.
     /// Manages project selection, loading, and parsed project state.
     /// </summary>
-    public class ProjectViewModel : ObservableObject,
+    public partial class ProjectViewModel : ObservableObject,
         IRecipient<SettingsUpdatedMessage>
     {
         private readonly FileGeneratorService fileGeneratorService;
         private readonly IConsoleWriter consoleWriter;
         private readonly SettingsService settingsService;
         private readonly CSharpParserService parserService;
-
-        private Project currentProject;
 
         public ProjectViewModel(FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter,
             SettingsService settingsService, CSharpParserService parserService)
@@ -56,56 +54,21 @@ namespace BIA.ToolKit.Application.ViewModel
 
         #region Project compatibility flags
 
+        [ObservableProperty]
         private bool isFileGeneratorServiceInit;
-        public bool IsFileGeneratorServiceInit
-        {
-            get => isFileGeneratorServiceInit;
-            set
-            {
-                isFileGeneratorServiceInit = value;
-                OnPropertyChanged(nameof(IsFileGeneratorServiceInit));
-            }
-        }
 
+        [ObservableProperty]
         private bool isProjectCompatibleCrudGenerator;
-        public bool IsProjectCompatibleCrudGenerator
-        {
-            get => isProjectCompatibleCrudGenerator;
-            set
-            {
-                isProjectCompatibleCrudGenerator = value;
-                OnPropertyChanged(nameof(IsProjectCompatibleCrudGenerator));
-            }
-        }
 
+        [ObservableProperty]
         private bool isProjectCompatibleRegenerateFeatures;
-        public bool IsProjectCompatibleRegenerateFeatures
-        {
-            get => isProjectCompatibleRegenerateFeatures;
-            set
-            {
-                isProjectCompatibleRegenerateFeatures = value;
-                OnPropertyChanged(nameof(IsProjectCompatibleRegenerateFeatures));
-            }
-        }
 
         #endregion
 
         #region Project list
 
+        [ObservableProperty]
         private ObservableCollection<string> projects = [];
-        public ObservableCollection<string> Projects
-        {
-            get => projects;
-            set
-            {
-                if (projects != value)
-                {
-                    projects = value;
-                    OnPropertyChanged(nameof(Projects));
-                }
-            }
-        }
 
         public void RefreshProjetsList()
         {
@@ -196,18 +159,17 @@ namespace BIA.ToolKit.Application.ViewModel
 
         public Dictionary<string, NamesAndVersionResolver> CurrentProjectDetections { get; set; }
 
-        public Project CurrentProject
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(FrameworkVersion))]
+        [NotifyPropertyChangedFor(nameof(CompanyName))]
+        [NotifyPropertyChangedFor(nameof(Name))]
+        [NotifyPropertyChangedFor(nameof(IsProjectSelected))]
+        [NotifyPropertyChangedFor(nameof(BIAFronts))]
+        private Project currentProject;
+
+        partial void OnCurrentProjectChanged(Project value)
         {
-            get => currentProject;
-            set
-            {
-                if (currentProject != value)
-                {
-                    currentProject = value;
-                    RefreshProjectDisplayProperties();
-                    WeakReferenceMessenger.Default.Send(new ProjectChangedMessage(value));
-                }
-            }
+            WeakReferenceMessenger.Default.Send(new ProjectChangedMessage(value));
         }
 
         public bool IsProjectSelected => CurrentProject != null;
@@ -226,9 +188,12 @@ namespace BIA.ToolKit.Application.ViewModel
                 ? string.Join(", ", CurrentProject.BIAFronts)
                 : "???";
 
+        /// <summary>
+        /// Forces re-evaluation of computed properties when <see cref="CurrentProject"/> is mutated
+        /// in place (same reference). [NotifyPropertyChangedFor] only fires when the reference changes.
+        /// </summary>
         private void RefreshProjectDisplayProperties()
         {
-            OnPropertyChanged(nameof(CurrentProject));
             OnPropertyChanged(nameof(FrameworkVersion));
             OnPropertyChanged(nameof(CompanyName));
             OnPropertyChanged(nameof(Name));

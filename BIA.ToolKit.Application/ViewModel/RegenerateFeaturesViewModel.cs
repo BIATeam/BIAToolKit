@@ -11,7 +11,7 @@ namespace BIA.ToolKit.Application.ViewModel
     /// <summary>
     /// ViewModel for the "Regenerate Features" tab in ModifyProject.
     /// </summary>
-    public class RegenerateFeaturesViewModel : ObservableObject
+    public partial class RegenerateFeaturesViewModel : ObservableObject
     {
         /// <summary>Minimum framework version from which CRUD and Option migration is supported.</summary>
         private static readonly Version MinVersionCrudOption = new(5, 0, 0);
@@ -19,18 +19,16 @@ namespace BIA.ToolKit.Application.ViewModel
         /// <summary>Minimum framework version from which DTO migration is supported.</summary>
         private static readonly Version MinVersionDto = new(4, 0, 0);
 
-        private bool isLoaded;
         private bool isRefreshing;
         private List<string> availableVersions = [];
 
         public ObservableCollection<RegenerableEntityRowViewModel> EntityRows { get; } = [];
         public ObservableCollection<FeatureRegenerationItem> SelectedFeatures { get; } = [];
 
-        public bool IsLoaded
-        {
-            get => isLoaded;
-            private set { isLoaded = value; OnPropertyChanged(nameof(IsLoaded)); OnPropertyChanged(nameof(HasEntities)); OnPropertyChanged(nameof(NoEntities)); }
-        }
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasEntities))]
+        [NotifyPropertyChangedFor(nameof(NoEntities))]
+        private bool isLoaded;
 
         public bool HasEntities => IsLoaded && EntityRows.Count > 0;
         public bool NoEntities => IsLoaded && EntityRows.Count == 0;

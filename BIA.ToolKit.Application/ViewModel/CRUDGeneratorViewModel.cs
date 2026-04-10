@@ -67,50 +67,30 @@ namespace BIA.ToolKit.Application.ViewModel
         }
 
         #region CurrentProject
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsProjectCompatibleV6))]
+        [NotifyPropertyChangedFor(nameof(IsFrontAvailable))]
         private Project currentProject;
-        public Project CurrentProject
-        {
-            get => currentProject;
-            set
-            {
-                currentProject = value;
 
-                BiaFronts.Clear();
-                if(currentProject != null)
+        partial void OnCurrentProjectChanged(Project value)
+        {
+            BiaFronts.Clear();
+            if (value != null)
+            {
+                foreach (var biaFront in value.BIAFronts)
                 {
-                    foreach(var biaFront in currentProject.BIAFronts)
-                    {
-                        BiaFronts.Add(biaFront);
-                    }
-                    BiaFront = BiaFronts.FirstOrDefault();
+                    BiaFronts.Add(biaFront);
                 }
-
-                OnPropertyChanged(nameof(IsProjectCompatibleV6));
-                OnPropertyChanged(nameof(IsFrontAvailable));
+                BiaFront = BiaFronts.FirstOrDefault();
             }
         }
 
+        [ObservableProperty]
         private bool isProjectChosen;
-        public bool IsProjectChosen
-        {
-            get => isProjectChosen;
-            set
-            {
-                isProjectChosen = value;
-                OnPropertyChanged(nameof(IsProjectChosen));
-            }
-        }
 
-        private bool _useFileGenerator;
-        public bool UseFileGenerator
-        {
-            get => _useFileGenerator;
-            set
-            {
-                _useFileGenerator = value;
-                OnPropertyChanged(nameof(UseFileGenerator));
-            }
-        }
+        [ObservableProperty]
+        private bool useFileGenerator;
         #endregion
 
         #region Dto
@@ -130,108 +110,34 @@ namespace BIA.ToolKit.Application.ViewModel
             }
         }
 
+        [ObservableProperty]
         private ObservableCollection<EntityInfo> dtoEntities;
-        public ObservableCollection<EntityInfo> DtoEntities
-        {
-            get => dtoEntities;
-            set
-            {
-                if (dtoEntities != value)
-                {
-                    dtoEntities = value;
-                    OnPropertyChanged(nameof(DtoEntities));
-                }
-            }
-        }
 
+        [ObservableProperty]
         private List<string> dtoDisplayItems;
-        public List<string> DtoDisplayItems
-        {
-            get => dtoDisplayItems;
-            set
-            {
-                if (dtoDisplayItems != value)
-                {
-                    dtoDisplayItems = value;
-                    OnPropertyChanged(nameof(DtoDisplayItems));
-                }
-            }
-        }
 
-        private bool isDtoParsed = false;
-        public bool IsDtoParsed
-        {
-            get => isDtoParsed;
-            set
-            {
-                if (isDtoParsed != value)
-                {
-                    isDtoParsed = value;
-                    OnPropertyChanged(nameof(IsDtoParsed));
-                    OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                    OnPropertyChanged(nameof(IsOptionItemEnable));
-                }
-            }
-        }
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
+        [NotifyPropertyChangedFor(nameof(IsOptionItemEnable))]
+        private bool isDtoParsed;
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private string dtoDisplayItemSelected;
-        public string DtoDisplayItemSelected
-        {
-            get => dtoDisplayItemSelected;
-            set
-            {
-                if (dtoDisplayItemSelected != value)
-                {
-                    dtoDisplayItemSelected = value;
-                    OnPropertyChanged(nameof(DtoDisplayItemSelected));
-                    OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                }
-            }
-        }
 
+        [ObservableProperty]
         private ObservableCollection<OptionItem> optionItems = [];
-        public ObservableCollection<OptionItem> OptionItems
-        {
-            get => optionItems;
-            set
-            {
-                if (optionItems != value)
-                {
-                    optionItems = value;
-                    OnPropertyChanged(nameof(OptionItems));
-                }
-            }
-        }
 
         public static IEnumerable<string> BaseKeyTypeItems => Constants.PrimitiveTypes;
-        private string selectedBaseKeyType;
 
-        public string SelectedBaseKeyType
-        {
-            get { return selectedBaseKeyType; }
-            set
-            {
-                selectedBaseKeyType = value;
-                OnPropertyChanged(nameof(SelectedBaseKeyType));
-                OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
-            }
-        }
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
+        private string selectedBaseKeyType;
 
         public string SelectedOptionItems => string.Join(", ", OptionItems.Where(x => x.Check).Select(x => x.OptionName));
 
-        private bool isDtoGenerated = false;
-        public bool IsDtoGenerated
-        {
-            get => isDtoGenerated;
-            set
-            {
-                if (isDtoGenerated != value)
-                {
-                    isDtoGenerated = value;
-                    OnPropertyChanged(nameof(IsDtoGenerated));
-                }
-            }
-        }
+        [ObservableProperty]
+        private bool isDtoGenerated;
 
         public void AddOptionItems(IEnumerable<OptionItem> optionItems)
         {
@@ -253,19 +159,9 @@ namespace BIA.ToolKit.Application.ViewModel
         #endregion
 
         #region Feature
+
+        [ObservableProperty]
         private ObservableCollection<string> featureNames;
-        public ObservableCollection<string> FeatureNames
-        {
-            get => featureNames;
-            set
-            {
-                if (featureNames != value)
-                {
-                    featureNames = value;
-                    OnPropertyChanged(nameof(FeatureNames));
-                }
-            }
-        }
 
         private string featureNameSelected;
         public string FeatureNameSelected
@@ -302,12 +198,12 @@ namespace BIA.ToolKit.Application.ViewModel
 
             foreach (var zipFeatureType in ZipFeatureTypeList.Where(x => x.Feature == FeatureNameSelected))
             {
-                if (zipFeatureType.GenerationType == GenerationType.WebApi && isWebApiSelected)
+                if (zipFeatureType.GenerationType == GenerationType.WebApi && IsWebApiSelected)
                 {
                     zipFeatureType.IsChecked = true;
                     continue;
                 }
-                if (zipFeatureType.GenerationType == GenerationType.Front && isFrontSelected)
+                if (zipFeatureType.GenerationType == GenerationType.Front && IsFrontSelected)
                 {
                     zipFeatureType.IsChecked = true;
                     continue;
@@ -318,34 +214,17 @@ namespace BIA.ToolKit.Application.ViewModel
         #endregion
 
         #region CRUD Name
-        private string entityNameSingular;
-        public string CRUDNameSingular
+
+        [ObservableProperty]
+        private string cRUDNameSingular;
+
+        partial void OnCRUDNameSingularChanged(string value)
         {
-            get => entityNameSingular;
-            set
-            {
-                if (entityNameSingular != value)
-                {
-                    entityNameSingular = value;
-                    OnPropertyChanged(nameof(CRUDNameSingular));
-                    CRUDNamePlural = value.Pluralize();
-                }
-            }
+            CRUDNamePlural = value.Pluralize();
         }
 
-        private string entityNamePlural;
-        public string CRUDNamePlural
-        {
-            get => entityNamePlural;
-            set
-            {
-                if (entityNamePlural != value)
-                {
-                    entityNamePlural = value;
-                    OnPropertyChanged(nameof(CRUDNamePlural));
-                }
-            }
-        }
+        [ObservableProperty]
+        private string cRUDNamePlural;
         #endregion
 
         #region Parent
@@ -371,76 +250,39 @@ namespace BIA.ToolKit.Application.ViewModel
             }
         }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private bool hasParent;
-        public bool HasParent
-        {
-            get { return hasParent; }
-            set
-            {
-                if (hasParent != value)
-                {
-                    hasParent = value;
-                    OnPropertyChanged(nameof(HasParent));
-                    OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
 
-                    if (value == false)
-                    {
-                        ParentName = null;
-                        ParentNamePlural = null;
-                    }
-                    else
-                    {
-                        UpdateParentPreSelection();
-                    }
-                }
+        partial void OnHasParentChanged(bool value)
+        {
+            if (value == false)
+            {
+                ParentName = null;
+                ParentNamePlural = null;
+            }
+            else
+            {
+                UpdateParentPreSelection();
             }
         }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private string domain;
-        public string Domain
-        {
-            get { return domain; }
-            set
-            {
-                if (domain != value)
-                {
-                    domain = value;
-                    OnPropertyChanged(nameof(Domain));
-                    OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                }
-            }
-        }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private string parentName;
-        public string ParentName
+
+        partial void OnParentNameChanged(string value)
         {
-            get { return parentName; }
-            set
-            {
-                if (parentName != value)
-                {
-                    parentName = value;
-                    OnPropertyChanged(nameof(ParentName));
-                    OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                    ParentNamePlural = value.Pluralize();
-                }
-            }
+            ParentNamePlural = value?.Pluralize();
         }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private string parentNamePlural;
-        public string ParentNamePlural
-        {
-            get { return parentNamePlural; }
-            set
-            {
-                if (parentNamePlural != value)
-                {
-                    parentNamePlural = value;
-                    OnPropertyChanged(nameof(ParentNamePlural));
-                    OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                }
-            }
-        }
 
         private void UpdateParentPreSelection()
         {
@@ -510,82 +352,41 @@ namespace BIA.ToolKit.Application.ViewModel
             }
         }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private bool isWebApiSelected;
-        public bool IsWebApiSelected
-        {
-            get => isWebApiSelected;
-            set
-            {
-                if (isWebApiSelected != value)
-                {
-                    isWebApiSelected = value;
-                    OnPropertyChanged(nameof(IsWebApiSelected));
-                }
-                UpdateFeatureSelection();
-                OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
-            }
-        }
 
+        partial void OnIsWebApiSelectedChanged(bool value) => UpdateFeatureSelection();
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private bool isFrontSelected;
-        public bool IsFrontSelected
+
+        partial void OnIsFrontSelectedChanged(bool value)
         {
-            get => isFrontSelected;
-            set
+            if (value == false)
             {
-                if (isFrontSelected != value)
-                {
-                    isFrontSelected = value;
-                    OnPropertyChanged(nameof(IsFrontSelected));
-                    if(value == false)
-                    {
-                        BiaFront = null;
-                    }
-                }
-                UpdateFeatureSelection();
-                OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
+                BiaFront = null;
             }
+            UpdateFeatureSelection();
         }
 
-        private string _biaFront;
-        public string BiaFront
-        {
-            get => _biaFront;
-            set
-            {
-                _biaFront = value;
-                OnPropertyChanged(nameof(BiaFront));
-                OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
-                OnBiaFrontChanged();
-            }
-        }
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
+        private string biaFront;
 
-        private ObservableCollection<string> _biaFronts = [];
-        public ObservableCollection<string> BiaFronts
-        {
-            get => _biaFronts;
-            set
-            {
-                _biaFronts = value;
-                OnPropertyChanged(nameof(BiaFronts));
-            }
-        }
+        partial void OnBiaFrontChanged(string value) => OnBiaFrontChanged();
+
+        [ObservableProperty]
+        private ObservableCollection<string> biaFronts = [];
 
         public bool IsWebApiAvailable => UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.WebApi));
         public bool IsFrontAvailable => (UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.Front))) && (CurrentProject != null && CurrentProject.BIAFronts.Count > 0);
 
-        private bool _isTeam;
-
-        public bool IsTeam
-        {
-            get => _isTeam;
-            set
-            {
-                _isTeam = value;
-                OnPropertyChanged(nameof(IsTeam));
-                OnPropertyChanged(nameof(IsCheckBoxIsTeamEnable));
-                OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
-            }
-        }
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsCheckBoxIsTeamEnable))]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
+        private bool isTeam;
 
         public bool IsCheckBoxIsTeamEnable
         {
@@ -601,156 +402,50 @@ namespace BIA.ToolKit.Application.ViewModel
             }
         }
 
-        private bool _useHubClient;
+        [ObservableProperty]
+        private bool useHubClient;
 
-        public bool UseHubClient
+        [ObservableProperty]
+        private bool hasCustomRepository;
+
+        [ObservableProperty]
+        private bool hasFormReadOnlyMode;
+
+        partial void OnHasFormReadOnlyModeChanged(bool value)
         {
-            get { return _useHubClient; }
-            set 
-            { 
-                _useHubClient = value; 
-                OnPropertyChanged(nameof(UseHubClient));
-            }
+            SelectedFormReadOnlyMode = value ? FormReadOnlyModes.First() : string.Empty;
         }
 
-        private bool _hasCustomRepository;
+        [ObservableProperty]
+        private bool useImport;
 
-        public bool HasCustomRepository
-        {
-            get { return _hasCustomRepository; }
-            set
-            {
-                _hasCustomRepository = value;
-                OnPropertyChanged(nameof(HasCustomRepository));
-            }
-        }
+        [ObservableProperty]
+        private bool isFixable;
 
-        private bool _hasFormReadOnlyMode;
+        [ObservableProperty]
+        private bool hasFixableParent;
 
-        public bool HasFormReadOnlyMode
-        {
-            get { return _hasFormReadOnlyMode; }
-            set
-            {
-                _hasFormReadOnlyMode = value;
-                OnPropertyChanged(nameof(HasFormReadOnlyMode));
-                SelectedFormReadOnlyMode = value ? FormReadOnlyModes.First() : string.Empty;
-            }
-        }
+        [ObservableProperty]
+        private bool isVersioned;
 
-        private bool _useImport;
+        [ObservableProperty]
+        private bool isArchivable;
 
-        public bool UseImport
-        {
-            get { return _useImport; }
-            set
-            {
-                _useImport = value;
-                OnPropertyChanged(nameof(UseImport));
-            }
-        }
-
-        private bool _isFixable;
-
-        public bool IsFixable
-        {
-            get { return _isFixable; }
-            set
-            {
-                _isFixable = value;
-                OnPropertyChanged(nameof(IsFixable));
-            }
-        }
-
-        private bool _hasFixableParent;
-
-        public bool HasFixableParent
-        {
-            get { return _hasFixableParent; }
-            set
-            {
-                _hasFixableParent = value;
-                OnPropertyChanged(nameof(HasFixableParent));
-            }
-        }
-
-        private bool _isVersioned;
-
-        public bool IsVersioned
-        {
-            get { return _isVersioned; }
-            set
-            {
-                _isVersioned = value;
-                OnPropertyChanged(nameof(IsVersioned));
-            }
-        }
-
-        private bool _isArchivable;
-
-        public bool IsArchivable
-        {
-            get { return _isArchivable; }
-            set
-            {
-                _isArchivable = value;
-                OnPropertyChanged(nameof(IsArchivable));
-            }
-        }
-
-
-
-        private bool _useAdvancedFilter;
-
-        public bool UseAdvancedFilter
-        {
-            get { return _useAdvancedFilter; }
-            set
-            {
-                _useAdvancedFilter = value;
-                OnPropertyChanged(nameof(UseAdvancedFilter));
-            }
-        }
+        [ObservableProperty]
+        private bool useAdvancedFilter;
 
         public bool IsProjectCompatibleV6 => Version.TryParse(CurrentProject?.FrameworkVersion, out var version) && version.Major >= 6;
 
+        [ObservableProperty]
         private bool displayHistorical;
-        public bool DisplayHistorical
-        {
-            get { return displayHistorical; }
-            set
-            {
-                displayHistorical = value;
-                OnPropertyChanged(nameof(DisplayHistorical));
-            }
-        }
 
+        [ObservableProperty]
         private bool useDomainUrl;
-        public bool UseDomainUrl
-        {
-            get { return useDomainUrl; }
-            set
-            {
-                useDomainUrl = value;
-                OnPropertyChanged(nameof(UseDomainUrl));
-            }
-        }
 
         #endregion
 
         #region ZipFile
-        private List<ZipFeatureType> zipFeatureTypeList;
-        public List<ZipFeatureType> ZipFeatureTypeList
-        {
-            get => zipFeatureTypeList;
-            set
-            {
-                if (zipFeatureTypeList != value)
-                {
-                    zipFeatureTypeList = value;
-                }
-            }
-        }
+        public List<ZipFeatureType> ZipFeatureTypeList { get; set; }
         #endregion
 
         #region Button
@@ -758,7 +453,7 @@ namespace BIA.ToolKit.Application.ViewModel
         {
             get
             {
-                return isDtoParsed && UseFileGenerator || (!string.IsNullOrEmpty(featureNameSelected) && !ZipFeatureTypeList.Any(x => x.Feature == featureNameSelected && x.FeatureType == FeatureType.Option));
+                return IsDtoParsed && UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && !ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option));
             }
         }
 
@@ -770,10 +465,10 @@ namespace BIA.ToolKit.Application.ViewModel
                     && !string.IsNullOrWhiteSpace(CRUDNameSingular)
                     && !string.IsNullOrWhiteSpace(CRUDNamePlural)
                     && !string.IsNullOrEmpty(Domain)
-                    && (!string.IsNullOrWhiteSpace(dtoDisplayItemSelected) || ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option))
+                    && (!string.IsNullOrWhiteSpace(DtoDisplayItemSelected) || ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option))
                     && ((IsWebApiSelected && !IsFrontSelected) || (IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)) || (!IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)))
-                    && !string.IsNullOrEmpty(featureNameSelected)
-                    && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(parentNamePlural)))
+                    && !string.IsNullOrEmpty(FeatureNameSelected)
+                    && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(ParentNamePlural)))
                     && (!IsTeam || (IsTeam && !UseFileGenerator) || (UseFileGenerator && IsTeam && TeamRoleId > 0 && TeamTypeId > 0))
                     && !string.IsNullOrWhiteSpace(SelectedBaseKeyType);
             }
@@ -781,43 +476,17 @@ namespace BIA.ToolKit.Application.ViewModel
         #endregion
 
         #region Team
-        private string _ancestorTeam;
 
-        public string AncestorTeam
-        {
-            get { return _ancestorTeam; }
-            set 
-            { 
-                _ancestorTeam = value;
-                OnPropertyChanged(nameof(AncestorTeam));
-            }
-        }
+        [ObservableProperty]
+        private string ancestorTeam;
 
-        private int _teamTypeId;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
+        private int teamTypeId;
 
-        public int TeamTypeId
-        {
-            get { return _teamTypeId; }
-            set 
-            { 
-                _teamTypeId = value; 
-                OnPropertyChanged(nameof(TeamTypeId));
-                OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
-            }
-        }
-
-        private int _teamRoleId;
-
-        public int TeamRoleId
-        {
-            get { return _teamRoleId; }
-            set
-            {
-                _teamRoleId = value;
-                OnPropertyChanged(nameof(TeamRoleId));
-                OnPropertyChanged(nameof(IsButtonGenerateCrudEnable));
-            }
-        }
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
+        private int teamRoleId;
 
         #endregion
 
@@ -833,17 +502,8 @@ namespace BIA.ToolKit.Application.ViewModel
             }
         }
 
-        private string _selectedFormReadOnlyMode;
-
-        public string SelectedFormReadOnlyMode
-        {
-            get { return _selectedFormReadOnlyMode; }
-            set 
-            { 
-                _selectedFormReadOnlyMode = value; 
-                OnPropertyChanged(nameof(SelectedFormReadOnlyMode));
-            }
-        }
+        [ObservableProperty]
+        private string selectedFormReadOnlyMode;
         #endregion
 
         #region Commands
@@ -1488,16 +1148,8 @@ namespace BIA.ToolKit.Application.ViewModel
 
     public partial class OptionItem : ObservableObject
     {
+        [ObservableProperty]
         private bool check;
-        public bool Check
-        {
-            get => check;
-            set
-            {
-                check = value;
-                OnPropertyChanged(nameof(Check));
-            }
-        }
 
         public string OptionName { get; set; }
 

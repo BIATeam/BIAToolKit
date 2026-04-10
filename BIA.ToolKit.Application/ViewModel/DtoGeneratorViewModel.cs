@@ -70,194 +70,86 @@ namespace BIA.ToolKit.Application.ViewModel
 
         private readonly Dictionary<string, List<string>> biaDtoFieldDateTypesByPropertyType = DtoMappingService.DateTypesByPropertyType;
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsFileGeneratorInit))]
         private bool isProjectChosen;
-        public bool IsProjectChosen
-        {
-            get => isProjectChosen;
-            set
-            {
-                isProjectChosen = value;
-                OnPropertyChanged(nameof(IsProjectChosen));
-                OnPropertyChanged(nameof(IsFileGeneratorInit));
-            }
-        }
 
         public bool IsFileGeneratorInit => fileGeneratorService?.IsInit == true;
 
+        [ObservableProperty]
         private ObservableCollection<EntityInfo> entities = [];
-        public ObservableCollection<EntityInfo> Entities
-        {
-            get => entities;
-            set
-            {
-                entities = value;
-                OnPropertyChanged(nameof(Entities));
-            }
-        }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsEntitySelected))]
+        [NotifyPropertyChangedFor(nameof(IsAuditable))]
         private EntityInfo entity;
-        public EntityInfo Entity
-        {
-            get => entity;
-            set
-            {
-                entity = value;
-                OnPropertyChanged(nameof(Entity));
-                AncestorTeam = null;
-                EntityDomain = null;
 
-                if (entity is not null)
+        partial void OnEntityChanged(EntityInfo value)
+        {
+            AncestorTeam = null;
+            EntityDomain = null;
+
+            if (value is not null)
+            {
+                List<string> namespaceElements = [.. value.Namespace.Split('.')];
+                int dtoNamespaceIndex = namespaceElements.FindIndex(x => x == "Domain");
+                if (dtoNamespaceIndex != -1)
                 {
-                    List<string> namespaceElements = [.. entity.Namespace.Split('.')];
-                    int dtoNamespaceIndex = namespaceElements.FindIndex(x => x == "Domain");
-                    if (dtoNamespaceIndex != -1)
-                    {
-                        EntityDomain = namespaceElements.ElementAt(dtoNamespaceIndex + 1);
-                    }
+                    EntityDomain = namespaceElements.ElementAt(dtoNamespaceIndex + 1);
                 }
-
-                OnPropertyChanged(nameof(IsEntitySelected));
-                OnPropertyChanged(nameof(IsAuditable));
-
-                RefreshEntityPropertiesTreeView();
-                RemoveAllMappingProperties();
-
-                IsTeam = entity?.IsTeam == true;
-                IsVersioned = entity?.IsVersioned == true;
-                IsFixable = entity?.IsFixable == true;
-                IsArchivable = entity?.IsArchivable == true;
-                SelectedBaseKeyType = entity?.BaseKeyType;
-                UseDedicatedAudit = false;
-
-                OnEntitySelected();
             }
+
+            RefreshEntityPropertiesTreeView();
+            RemoveAllMappingProperties();
+
+            IsTeam = value?.IsTeam == true;
+            IsVersioned = value?.IsVersioned == true;
+            IsFixable = value?.IsFixable == true;
+            IsArchivable = value?.IsArchivable == true;
+            SelectedBaseKeyType = value?.BaseKeyType;
+            UseDedicatedAudit = false;
+
+            OnEntitySelected();
         }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsGenerationEnabled))]
         private string entityDomain;
-        public string EntityDomain
-        {
-            get => entityDomain;
-            set
-            {
-                entityDomain = value;
-                OnPropertyChanged(nameof(EntityDomain));
-                OnPropertyChanged(nameof(IsGenerationEnabled));
-            }
-        }
 
+        [ObservableProperty]
         private string ancestorTeam;
 
-        public string AncestorTeam
-        {
-            get => ancestorTeam;
-            set
-            {
-                ancestorTeam = value;
-                OnPropertyChanged(nameof(AncestorTeam));
-            }
-        }
-
-        private ObservableCollection<EntityProperty> entityProperties = [];
-        public ObservableCollection<EntityProperty> EntityProperties
-        {
-            get => entityProperties;
-            set { entityProperties = value; }
-        }
+        public ObservableCollection<EntityProperty> EntityProperties { get; } = [];
 
         public IEnumerable<EntityProperty> AllEntityPropertiesRecursively => EntityProperties.SelectMany(x => x.GetAllPropertiesRecursively());
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsGenerationEnabled))]
         private ObservableCollection<MappingEntityProperty> mappingEntityProperties = [];
-        public ObservableCollection<MappingEntityProperty> MappingEntityProperties
-        {
-            get => mappingEntityProperties;
-            set
-            {
-                mappingEntityProperties = value;
-                OnPropertyChanged(nameof(MappingEntityProperties));
-                OnPropertyChanged(nameof(IsGenerationEnabled));
-            }
-        }
 
+        [ObservableProperty]
         private bool wasAlreadyGenerated;
-        public bool WasAlreadyGenerated
-        {
-            get => wasAlreadyGenerated;
-            set
-            {
-                wasAlreadyGenerated = value;
-                OnPropertyChanged(nameof(WasAlreadyGenerated));
-            }
-        }
 
-        private bool _isTeam;
-        public bool IsTeam
-        {
-            get => _isTeam;
-            set
-            {
-                _isTeam = value;
-                OnPropertyChanged(nameof(IsTeam));
-            }
-        }
+        [ObservableProperty]
+        private bool isTeam;
 
-        private bool _isVersioned;
-        public bool IsVersioned
-        {
-            get => _isVersioned;
-            set
-            {
-                _isVersioned = value;
-                OnPropertyChanged(nameof(IsVersioned));
-            }
-        }
+        [ObservableProperty]
+        private bool isVersioned;
 
-        private bool _isArchivable;
-        public bool IsArchivable
-        {
-            get => _isArchivable;
-            set
-            {
-                _isArchivable = value;
-                OnPropertyChanged(nameof(IsArchivable));
-            }
-        }
+        [ObservableProperty]
+        private bool isArchivable;
 
-        private bool _isFixable;
-        public bool IsFixable
-        {
-            get => _isFixable;
-            set
-            {
-                _isFixable = value;
-                OnPropertyChanged(nameof(IsFixable));
-            }
-        }
+        [ObservableProperty]
+        private bool isFixable;
 
         public static IEnumerable<string> BaseKeyTypeItems => Constants.PrimitiveTypes;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsGenerationEnabled))]
         private string selectedBaseKeyType;
 
-        public string SelectedBaseKeyType
-        {
-            get { return selectedBaseKeyType; }
-            set
-            {
-                selectedBaseKeyType = value;
-                OnPropertyChanged(nameof(SelectedBaseKeyType));
-                OnPropertyChanged(nameof(IsGenerationEnabled));
-            }
-        }
-
+        [ObservableProperty]
         private bool useDedicatedAudit;
-
-        public bool UseDedicatedAudit
-        {
-            get { return useDedicatedAudit; }
-            set
-            {
-                useDedicatedAudit = value;
-                OnPropertyChanged(nameof(UseDedicatedAudit));
-            }
-        }
 
         public string ProjectDomainNamespace { get; private set; }
         public bool IsEntitySelected => Entity != null;
@@ -753,16 +645,9 @@ namespace BIA.ToolKit.Application.ViewModel
         public string Name { get; set; }
         public string Type { get; set; }
 
+        [ObservableProperty]
         private bool isSelected;
-        public bool IsSelected
-        {
-            get => isSelected;
-            set
-            {
-                isSelected = value;
-                OnPropertyChanged(nameof(IsSelected));
-            }
-        }
+
         public string CompositeName { get; set; }
         public List<EntityProperty> Properties { get; set; } = [];
         public string ParentType { get; set; }
@@ -801,58 +686,30 @@ namespace BIA.ToolKit.Application.ViewModel
         public bool IsOptionCollection => MappingType.Equals(Constants.BiaClassName.CollectionOptionDto);
         public string OptionType { get; set; }
 
+        [ObservableProperty]
         private bool isRequired;
-        public bool IsRequired
-        {
-            get => isRequired;
-            set
-            {
-                isRequired = value;
-                OnPropertyChanged(nameof(IsRequired));
-            }
-        }
 
         public List<string> OptionIdProperties { get; set; } = [];
         public List<string> OptionDisplayProperties { get; set; } = [];
         public List<string> OptionEntityIdProperties { get; set; } = [];
 
+        [ObservableProperty]
         private string optionDisplayProperty;
-        public string OptionDisplayProperty
-        {
-            get => optionDisplayProperty;
-            set
-            {
-                optionDisplayProperty = value;
-                OnPropertyChanged(nameof(OptionDisplayProperty));
-            }
-        }
 
+        [ObservableProperty]
         private string optionIdProperty;
-        public string OptionIdProperty
-        {
-            get => optionIdProperty;
-            set
-            {
-                optionIdProperty = value;
-                OnPropertyChanged(nameof(OptionIdProperty));
-            }
-        }
 
         public bool IsVisibleOptionPropertiesComboBox => IsOption || IsOptionCollection;
         public string OptionEntityIdPropertyComposite { get; private set; }
 
+        [ObservableProperty]
         private string optionEntityIdProperty;
-        public string OptionEntityIdProperty
+
+        partial void OnOptionEntityIdPropertyChanged(string value)
         {
-            get => optionEntityIdProperty;
-            set
-            {
-                optionEntityIdProperty = value;
-                OptionEntityIdPropertyComposite = IsCompositeName ?
-                    string.Join(".", EntityCompositeName.Split('.').SkipLast(1)) + $".{value}" :
-                    value;
-                OnPropertyChanged(nameof(OptionEntityIdProperty));
-            }
+            OptionEntityIdPropertyComposite = IsCompositeName ?
+                string.Join(".", EntityCompositeName.Split('.').SkipLast(1)) + $".{value}" :
+                value;
         }
 
         public string OptionRelationType { get; set; }
@@ -860,16 +717,8 @@ namespace BIA.ToolKit.Application.ViewModel
         public string OptionRelationSecondIdProperty { get; set; }
         public string OptionRelationPropertyComposite { get; set; }
 
+        [ObservableProperty]
         private string mappingDateType;
-        public string MappingDateType
-        {
-            get => mappingDateType;
-            set
-            {
-                mappingDateType = value;
-                OnPropertyChanged(nameof(MappingDateType));
-            }
-        }
 
         public List<string> MappingDateTypes { get; set; } = [];
         public bool IsVisibleDateTypesComboxBox => MappingDateTypes.Count > 0;
@@ -878,39 +727,16 @@ namespace BIA.ToolKit.Application.ViewModel
         private bool IsCompositeName => EntityCompositeName.Contains('.');
 
         public bool HasMappingNameError => !string.IsNullOrWhiteSpace(MappingNameError);
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasMappingNameError))]
         private string mappingNameError;
-        public string MappingNameError
-        {
-            get => mappingNameError;
-            set
-            {
-                mappingNameError = value;
-                OnPropertyChanged(nameof(MappingNameError));
-                OnPropertyChanged(nameof(HasMappingNameError));
-            }
-        }
 
+        [ObservableProperty]
         private bool isParent;
-        public bool IsParent
-        {
-            get => isParent;
-            set
-            {
-                isParent = value;
-                OnPropertyChanged(nameof(IsParent));
-            }
-        }
 
+        [ObservableProperty]
         private bool asLocalDateTime;
-        public bool AsLocalDateTime
-        {
-            get => asLocalDateTime;
-            set
-            {
-                asLocalDateTime = value;
-                OnPropertyChanged(nameof(AsLocalDateTime));
-            }
-        }
 
         public bool IsVisibleIsParentCheckbox =>
             EntityCompositeName.EndsWith("Id")

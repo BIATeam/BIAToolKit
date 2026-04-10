@@ -1,21 +1,18 @@
 namespace BIA.ToolKit.Application.ViewModel
 {
-    using System.ComponentModel;
-    using System.Runtime.CompilerServices;
     using BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures;
+    using CommunityToolkit.Mvvm.ComponentModel;
 
     /// <summary>
     /// ViewModel row representing one entity and its regenerable features (CRUD, Option, DTO)
     /// for the RegenerateFeatures tab.
     /// </summary>
-    public class RegenerableEntityRowViewModel(RegenerableEntity entity) : INotifyPropertyChanged
+    public class RegenerableEntityRowViewModel(RegenerableEntity entity) : ObservableObject
     {
         private bool isCrudSelected;
         private bool isOptionSelected;
         private bool isDtoSelected;
         private bool updatingAll;
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         public RegenerableEntity Entity { get; } = entity;
 
@@ -162,8 +159,5 @@ namespace BIA.ToolKit.Application.ViewModel
             OnPropertyChanged(nameof(IsEntitySelected));
             SelectionChanged?.Invoke(this, System.EventArgs.Empty);
         }
-
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
