@@ -249,6 +249,7 @@ namespace BIA.ToolKit.Application.Services
         private async Task CreateDefaultTeam(string projectPath, ProjectParameters projectParameters, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
             consoleWriter.AddMessageLine("Start create default team.", "Pink");
             var project = new Domain.ModifyProject.Project
             {
@@ -264,6 +265,13 @@ namespace BIA.ToolKit.Application.Services
             var fileGeneratorService = new FileGeneratorService(consoleWriter);
             await fileGeneratorService.Init(project, cancellationToken: cancellationToken);
 
+            bool hasFront = projectParameters.AngularFronts.Count > 0;
+            string prettierTemporaryToolProjectPath = null;
+            if(hasFront)
+            {
+                prettierTemporaryToolProjectPath = await fileGeneratorService.CreateTemporaryPrettierToolProject(project.BIAFronts.First(), cancellationToken);
+            }
+
             await fileGeneratorService.GenerateTeamAsync(new FileGenerator.Contexts.FileGeneratorTeamContext
             {
                 CompanyName = projectParameters.CompanyName,
@@ -273,7 +281,7 @@ namespace BIA.ToolKit.Application.Services
                 DomainName = projectParameters.VersionAndOption.DefaultTeamDomainName,
                 IsTeam = true,
                 GenerateBack = true,
-                GenerateFront = projectParameters.AngularFronts.Count > 0,
+                GenerateFront = hasFront,
             }, cancellationToken);
 
             await fileGeneratorService.GenerateDtoAsync(new FileGenerator.Contexts.FileGeneratorDtoContext
@@ -285,7 +293,7 @@ namespace BIA.ToolKit.Application.Services
                 DomainName = projectParameters.VersionAndOption.DefaultTeamDomainName,
                 IsTeam = true,
                 GenerateBack = true,
-                GenerateFront = projectParameters.AngularFronts.Count > 0,
+                GenerateFront = hasFront,
             }, cancellationToken);
 
             await fileGeneratorService.GenerateCRUDAsync(new FileGenerator.Contexts.FileGeneratorCrudContext
@@ -297,8 +305,13 @@ namespace BIA.ToolKit.Application.Services
                 DomainName = projectParameters.VersionAndOption.DefaultTeamDomainName,
                 IsTeam = true,
                 GenerateBack = true,
-                GenerateFront = projectParameters.AngularFronts.Count > 0,
+                GenerateFront = hasFront,
             }, cancellationToken);
+
+            if(hasFront && !string.IsNullOrWhiteSpace(prettierTemporaryToolProjectPath))
+            {
+                await fileGeneratorService.CleanupTemporaryPrettierToolProject(prettierTemporaryToolProjectPath, cancellationToken);
+            }
         }
 
         private async Task RenameInProject(string projectPath, ProjectParameters projectParameters, System.Threading.CancellationToken cancellationToken)

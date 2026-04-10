@@ -190,6 +190,86 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             _prettierAngularProjectPathOverride = path;
         }
 
+        public async Task<string> CreateTemporaryPrettierToolProject(string referenceProjectAngularPath, CancellationToken cancellationToken)
+        {
+            string prettierAngularProjectPath = Path.Combine(Path.GetTempPath(), $"BIAToolKit_Prettier_{Guid.NewGuid()}");
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    Directory.CreateDirectory(prettierAngularProjectPath);
+
+                    string prettierrcSourcePath = Path.Combine(referenceProjectAngularPath, ".prettierrc");
+                    if (!File.Exists(prettierrcSourcePath))
+                    {
+                        throw new Exception($"Unable to find .prettierrc into {prettierrcSourcePath}");
+                    }
+
+                    File.Copy(prettierrcSourcePath, Path.Combine(prettierAngularProjectPath, ".prettierrc"));
+
+                    string packageJson = @"{
+  ""name"": ""biatoolkit-prettier-temp"",
+  ""version"": ""1.0.0"",
+  ""private"": true,
+  ""dependencies"": {},
+  ""devDependencies"": {
+    ""prettier"": ""~3.8.1"",
+    ""prettier-plugin-organize-imports"": ""~4.3.0"",
+    ""typescript"": ""~5.9.3""
+  }
+}";
+                    File.WriteAllText(Path.Combine(prettierAngularProjectPath, "package.json"), packageJson);
+                }, cancellationToken);
+
+                var npmInstallProcess = new Process();
+                npmInstallProcess.StartInfo.WorkingDirectory = prettierAngularProjectPath;
+                npmInstallProcess.StartInfo.FileName = "cmd.exe";
+                npmInstallProcess.StartInfo.Arguments = "/C npm install";
+                npmInstallProcess.StartInfo.UseShellExecute = false;
+                npmInstallProcess.StartInfo.CreateNoWindow = false;
+
+                _consoleWriter.AddMessageLine($"Installing prettier packages in temporary project...");
+                npmInstallProcess.Start();
+                await npmInstallProcess.WaitForExitAsync(cancellationToken);
+
+                if (npmInstallProcess.ExitCode != 0)
+                {
+                    throw new Exception($"npm install failed");
+                }
+
+                _consoleWriter.AddMessageLine($"Prettier tool project ready at {prettierAngularProjectPath}");
+                return prettierAngularProjectPath;
+            }
+            catch (Exception ex)
+            {
+                _consoleWriter.AddMessageLine($"Failed to create temporary prettier project: {ex.Message}");
+                await CleanupTemporaryPrettierToolProject(prettierAngularProjectPath, cancellationToken);
+                throw;
+            }
+        }
+
+        public async Task CleanupTemporaryPrettierToolProject(string prettierAngularProjectPath, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrEmpty(prettierAngularProjectPath) || !Directory.Exists(prettierAngularProjectPath))
+            {
+                return;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    Directory.Delete(prettierAngularProjectPath, true);
+                    _consoleWriter.AddMessageLine($"Cleaned up temporary prettier project");
+                }
+                catch (Exception ex)
+                {
+                    _consoleWriter.AddMessageLine($"Failed to cleanup temporary prettier project: {ex.Message}");
+                }
+            }, cancellationToken);
+        }
+
         /// <summary>
         /// Returns all template output paths declared in the current manifest, together with a flag
         /// indicating whether each path belongs to a DotNet (<c>true</c>) or Angular (<c>false</c>)
