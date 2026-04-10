@@ -67,8 +67,7 @@ All services are registered as singletons in `App.xaml.cs` using `Microsoft.Exte
 - **CSharpParserService** — Opens MSBuild solutions via Roslyn to extract class/entity metadata for generation.
 - **ProjectCreatorService** — Creates new projects from BIA templates with namespace renaming, feature selection, and company file overlay.
 - **RepositoryService** / **GitService** — Clone/sync repositories and download releases (LibGit2Sharp + Octokit).
-- **UIEventBroker** — Central event bus (~14 delegate-based events) for cross-component UI communication.
-- **GenerateCrudService** / **GenerateFilesService** — Legacy generation services (marker-based extraction from zip archives).
+- **GenerateCrudService** — Legacy generation service (marker-based extraction from zip archives).
 - **UpdateService** — Auto-update via GitHub releases.
 
 ### T4 Template System

@@ -12,11 +12,14 @@ namespace BIA.ToolKit.Application.Services
     using System.Xml.Linq;
 
     /// <summary>
-    /// Constructor.
+    /// Owns the current <see cref="BIATKSettings"/> and delegates reading/writing
+    /// to an injected <see cref="ISettingsPersistence"/> so that the Application
+    /// layer remains unaware of any specific storage backend.
     /// </summary>
-    public class SettingsService(IConsoleWriter consoleWriter)
+    public class SettingsService(IConsoleWriter consoleWriter, ISettingsPersistence persistence)
     {
         private readonly IConsoleWriter consoleWriter = consoleWriter;
+        private readonly ISettingsPersistence persistence = persistence;
         private BIATKSettings settings = new();
         public IBIATKSettings Settings => settings;
 
@@ -37,9 +40,26 @@ namespace BIA.ToolKit.Application.Services
             return result;
         }
 
-        public void Init(BIATKSettings settings)
+        /// <summary>
+        /// Loads settings from persistence and wires up repository interfaces.
+        /// The returned instance is the one the service will keep and broadcast.
+        /// Call <see cref="NotifyInitialized"/> once the caller has finished any
+        /// asynchronous post-load work to fire the initial update.
+        /// </summary>
+        public BIATKSettings Load()
         {
-            this.settings = settings;
+            settings = persistence.Load();
+            settings.InitRepositoriesInterfaces();
+            return settings;
+        }
+
+        /// <summary>
+        /// Broadcasts a <see cref="SettingsUpdatedMessage"/> for the currently
+        /// loaded settings. Intended to be called after <see cref="Load"/> and
+        /// any startup enrichment step (e.g. fetching repository releases).
+        /// </summary>
+        public void NotifyInitialized()
+        {
             WeakReferenceMessenger.Default.Send(new SettingsUpdatedMessage(settings));
         }
 
@@ -98,6 +118,7 @@ namespace BIA.ToolKit.Application.Services
         private void ExecuteAndNotifySettingsUpdated(Action action)
         {
             action.Invoke();
+            persistence.Save(settings);
             WeakReferenceMessenger.Default.Send(new SettingsUpdatedMessage(settings));
         }
     }

@@ -27,7 +27,8 @@ namespace BIA.ToolKit.Application.ViewModel
         IRecipient<RepositoryAddedMessage>,
         IRecipient<RepositoriesUpdatedMessage>,
         IRecipient<ExecuteActionWithWaiterMessage>,
-        IRecipient<NewVersionAvailableMessage>
+        IRecipient<NewVersionAvailableMessage>,
+        IRecipient<OpenRepositoryFormMessage>
     {
         private readonly Version applicationVersion;
         private readonly SettingsService settingsService;
@@ -84,6 +85,7 @@ namespace BIA.ToolKit.Application.ViewModel
         public void Receive(RepositoriesUpdatedMessage message) => OnRepositoriesUpdated();
         public async void Receive(ExecuteActionWithWaiterMessage message) => await ExecuteWithBusyAsync(message.Action);
         public async void Receive(NewVersionAvailableMessage message) => await OnNewVersionAvailable();
+        public void Receive(OpenRepositoryFormMessage message) => OnOpenRepositoryForm(message.Repository, message.Mode);
 
         // --- IsBusy / Waiter ---
 
@@ -124,15 +126,16 @@ namespace BIA.ToolKit.Application.ViewModel
 
         /// <summary>
         /// Called by the host (App/MainWindow) after the window is shown.
-        /// Receives the raw settings read from Properties.Settings.Default.
+        /// Loads persisted settings, fetches repository releases, then broadcasts
+        /// the initial SettingsUpdatedMessage.
         /// </summary>
-        public async Task InitAsync(BIATKSettings settings)
+        public async Task InitAsync()
         {
             await ExecuteWithBusyAsync(async (ct) =>
             {
-                settings.InitRepositoriesInterfaces();
+                BIATKSettings settings = settingsService.Load();
                 await GetReleasesData(settings, ct: ct);
-                settingsService.Init(settings);
+                settingsService.NotifyInitialized();
 
                 updateService.SetAppVersion(applicationVersion);
 
@@ -330,6 +333,25 @@ namespace BIA.ToolKit.Application.ViewModel
         private void OnRepositoriesUpdated()
         {
             WeakReferenceMessenger.Default.Send(new SettingsUpdatedMessage(settingsService.Settings));
+        }
+
+        private void OnOpenRepositoryForm(RepositoryViewModel repository, RepositoryFormMode mode)
+        {
+            RepositoryViewModel result = dialogService.ShowRepositoryForm(repository);
+            if (result is null)
+                return;
+
+            switch (mode)
+            {
+                case RepositoryFormMode.Edit:
+                    WeakReferenceMessenger.Default.Send(new RepositoryChangedMessage(repository, result));
+                    break;
+                case RepositoryFormMode.Create:
+                    WeakReferenceMessenger.Default.Send(new RepositoryAddedMessage(result));
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         private void CompanyFilesRepositories_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)

@@ -10,20 +10,23 @@ Résumé des tâches complétées :
 - UIEventBroker remplacé par CommunityToolkit.Mvvm WeakReferenceMessenger (14 messages, 7 VMs IRecipient)
 - Checkpoints 2.1, 2.2, 2.3 validés (build 0 erreur, 0 warning)
 
-## Pass 2 — Corrections et retours
+## Pass 2 — TERMINÉ
 
-_En attente des retours utilisateur pour définir les tâches._
-
-## Tâches restantes (en pause)
-
-- [ ] Migrer MainWindow (orchestration globale) — EN PAUSE
-- [ ] Retirer MicroMvvm complètement
-- [ ] Vérification post-migration (MVVM-guidelines.md)
-- [ ] Build final sans erreur
+- [x] MainWindow code-behind nettoyé :
+  - Suppression de `BuildSettingsFromUserPreferences` et `HandleSettingsUpdated`
+  - Suppression de `HandleRepositoryFormOpened` (déplacé dans `IDialogService`)
+  - Suppression des handlers legacy File Generator + XAML du tab + `GenerateFilesService`
+  - Code-behind réduit à ~50 lignes (wiring de vue uniquement)
+- [x] Abstraction `ISettingsPersistence` créée (Application.Helper)
+- [x] Implémentation `UserPreferencesSettingsPersistence` (WPF/Infrastructure) : seul endroit
+  où `Properties.Settings.Default` est référencé. Gère aussi l'upgrade one-shot.
+- [x] `SettingsService.Load()` / `NotifyInitialized()` + save automatique sur chaque setter
+- [x] `MainViewModel.InitAsync()` (sans paramètre) charge via `SettingsService`
+- [x] `IDialogService.ShowRepositoryForm` + `MainViewModel` recipient de `OpenRepositoryFormMessage`
+- [x] MicroMvvm déjà totalement retiré (0 référence en code)
+- [x] Build final : 0 warning, 0 erreur
 
 ## Notes
 
 - Avant de modifier un fichier, le lire en entier
 - Après chaque tâche terminée, build le projet et corriger les erreurs avant de passer à la suivante
-- Les fichiers modèles à imiter sont listés en section 12 de MVVM-guidelines.md
-- Ne pas toucher au code marqué "CONSERVER" dans la section 11.4 de MVVM-guidelines.md

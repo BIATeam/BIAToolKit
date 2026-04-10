@@ -10,14 +10,8 @@ namespace BIA.ToolKit
     using BIA.ToolKit.ViewModels;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using System;
-    using System.Configuration;
-    using System.IO;
-    using System.Linq;
     using System.Reflection;
-    using System.Threading.Tasks;
     using System.Windows;
-    using System.Windows.Input;
 
     /// <summary>
     /// Interaction logic for App.xaml
@@ -40,10 +34,10 @@ namespace BIA.ToolKit
         {
             // Services
             services.AddSingleton<IConsoleWriter, ConsoleWriter>();
+            services.AddSingleton<ISettingsPersistence, UserPreferencesSettingsPersistence>();
             services.AddSingleton<RepositoryService>();
             services.AddSingleton<GitService>();
             services.AddSingleton<ProjectCreatorService>();
-            services.AddSingleton<GenerateFilesService>();
             services.AddSingleton<CSharpParserService>();
             services.AddSingleton<ZipParserService>();
             services.AddSingleton<GenerateCrudService>();
@@ -92,14 +86,6 @@ namespace BIA.ToolKit
         }
         private async void OnStartup(object sender, StartupEventArgs e)
         {
-            if (ToolKit.Properties.Settings.Default.ApplicationUpdated)
-            {
-                ToolKit.Properties.Settings.Default.Upgrade();
-
-                ToolKit.Properties.Settings.Default.ApplicationUpdated = false;
-                ToolKit.Properties.Settings.Default.Save();
-            }
-
             await host.StartAsync();
 
             var mainWindow = host.Services.GetRequiredService<MainWindow>();

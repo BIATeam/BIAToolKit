@@ -1,6 +1,8 @@
 namespace BIA.ToolKit.Infrastructure
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Dialogs;
     using BIA.ToolKit.Helper;
     using System.Collections.Generic;
@@ -12,8 +14,11 @@ namespace BIA.ToolKit.Infrastructure
     /// Responsible for creating and showing dialog windows.
     /// Owner window is resolved lazily to avoid circular DI dependencies.
     /// </summary>
-    public class DialogService : IDialogService
+    public class DialogService(GitService gitService, IConsoleWriter consoleWriter) : IDialogService
     {
+        private readonly GitService gitService = gitService;
+        private readonly IConsoleWriter consoleWriter = consoleWriter;
+
         private Window Owner => Application.Current.MainWindow;
 
         public bool? ShowLogDetail(List<LogMessage> messages)
@@ -24,6 +29,12 @@ namespace BIA.ToolKit.Infrastructure
 
             var dialog = new LogDetailUC { Owner = Owner };
             return dialog.ShowDialogWithMessages(wpfMessages);
+        }
+
+        public RepositoryViewModel ShowRepositoryForm(RepositoryViewModel repository)
+        {
+            var form = new RepositoryFormUC(repository, gitService, consoleWriter) { Owner = Owner };
+            return form.ShowDialog() == true ? form.ViewModel.Repository : null;
         }
 
         public string BrowseFolder(string defaultFolder, string description = null)

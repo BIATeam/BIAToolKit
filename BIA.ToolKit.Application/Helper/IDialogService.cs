@@ -1,12 +1,20 @@
 namespace BIA.ToolKit.Application.Helper
 {
     using System.Collections.Generic;
+    using BIA.ToolKit.Application.ViewModel;
 
     /// <summary>
     /// Abstraction for opening dialogs from ViewModels without coupling to UI types.
     /// </summary>
     public interface IDialogService
     {
+        /// <summary>
+        /// Opens the repository form dialog pre-populated with the given repository.
+        /// Returns the resulting <see cref="RepositoryViewModel"/> if the user
+        /// confirmed, or null if the dialog was cancelled.
+        /// </summary>
+        RepositoryViewModel ShowRepositoryForm(RepositoryViewModel repository);
+
         /// <summary>
         /// Shows a log detail dialog with the given messages.
         /// </summary>
