@@ -57,7 +57,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             LoadTemplatesManifests();
         }
 
-        public async Task Init(Project project, bool fromUnitTest = false)
+        public async Task Init(Project project, bool fromUnitTest = false, CancellationToken cancellationToken = default)
         {
             if (project is null)
             {
@@ -93,7 +93,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
                     SetCurrentManifest(_modelProviderVersion);
 
                     IsInit = true;
-                });
+                }, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -164,15 +164,6 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
         public bool IsProjectCompatibleForCrudOrOptionFeature()
         {
             return Version.TryParse(_currentProject?.FrameworkVersion, out Version projectVersion) && projectVersion >= new Version(5, 0);
-        }
-
-        /// <summary>
-        /// Check if current project is compatible for generation with current file generator service for Team feature.
-        /// </summary>
-        /// <returns></returns>
-        public bool IsProjectCompatibleForTeamFeature()
-        {
-            return Version.TryParse(_currentProject?.FrameworkVersion, out Version projectVersion) && projectVersion >= new Version(8, 0);
         }
 
         public void SetPrettierAngularProjectPath(string path)

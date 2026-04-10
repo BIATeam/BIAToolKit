@@ -53,7 +53,7 @@ namespace BIA.ToolKit
             Application.Services.RegenerateFeatures.RegenerationOrchestrationService regenerationOrchestrationService,
             TemplateVersionService templateVersionService, FeatureSettingService featureSettingService,
             Application.ViewModel.ProjectViewModel projectViewModel,
-            Application.Services.DtoMappingService dtoMappingService)
+            Application.Services.DtoMappingService dtoMappingService, ProjectService projectService)
         {
 
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
@@ -74,7 +74,7 @@ namespace BIA.ToolKit
             InitializeComponent();
 
             CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, templateVersionService, featureSettingService);
-            projectViewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
+            projectViewModel.Inject(uiEventBroker, fileGeneratorService, settingsService, projectService);
             ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
                 projectCreatorService, settingsService, uiEventBroker, regenerateFeaturesDiscoveryService, regenerationOrchestrationService,
                 templateVersionService, featureSettingService, projectViewModel);

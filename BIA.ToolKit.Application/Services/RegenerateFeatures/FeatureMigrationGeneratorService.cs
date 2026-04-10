@@ -17,6 +17,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
     using BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures;
     using BIA.ToolKit.Domain.ProjectAnalysis;
+    using System.Threading;
 
     public partial class FeatureMigrationGeneratorService(IConsoleWriter consoleWriter, DtoMappingService dtoMappingService)
     {
@@ -33,7 +34,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             string targetFolderPath,
             string targetVersion,
             List<RegenerableEntity> entities,
-            CSharpParserService parserService)
+            CSharpParserService parserService, CancellationToken cancellationToken = default)
         {
             consoleWriter.AddMessageLine($"Feature migration: Generating features for version {targetVersion} into {targetFolderPath}", "pink");
 
@@ -47,7 +48,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             };
 
             var fileGenerator = new FileGeneratorService(consoleWriter);
-            await fileGenerator.Init(targetProject, fromUnitTest: false);
+            await fileGenerator.Init(targetProject, fromUnitTest: false, cancellationToken);
 
             if (!fileGenerator.IsInit)
             {

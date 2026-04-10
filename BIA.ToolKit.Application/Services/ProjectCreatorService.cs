@@ -21,11 +21,13 @@ namespace BIA.ToolKit.Application.Services
 
     public partial class ProjectCreatorService(IConsoleWriter consoleWriter,
         RepositoryService repositoryService,
-        SettingsService settingsService)
+        SettingsService settingsService,
+        ProjectService projectService)
     {
         private readonly IConsoleWriter consoleWriter = consoleWriter;
         private readonly RepositoryService repositoryService = repositoryService;
         private readonly SettingsService settingsService = settingsService;
+        private readonly ProjectService projectService = projectService;
         private static readonly TimeSpan CreateTimeout = TimeSpan.FromSeconds(60);
         private static readonly int MaxRetryCount = 3;
 
@@ -211,17 +213,16 @@ namespace BIA.ToolKit.Application.Services
                 }
             }, cancellationToken);
 
-
-            // TODO: mock purpose, implements UI
-            projectParameters.VersionAndOption.HasDefaultTeam = true;
-            projectParameters.VersionAndOption.DefaultTeamName = "Site";
-            projectParameters.VersionAndOption.DefaultTeamNamePlural = "Sites";
-            projectParameters.VersionAndOption.DefaultTeamDomainName = "Site";
-            // --------
-
-            if (projectParameters.VersionAndOption.HasDefaultTeam && featureSettings.Any(f => f.Id == (int)BiaFeatureSettingsEnum.CreateDefaultTeam && f.IsSelected))
+            if (featureSettings.Any(f => f.Id == (int)BiaFeatureSettingsEnum.CreateDefaultTeam && f.IsSelected))
             {
-                await CreateDefaultTeam(projectPath, projectParameters, consoleWriter, cancellationToken);
+                // TODO: mock purpose, implements UI
+                projectParameters.VersionAndOption.HasDefaultTeam = true;
+                projectParameters.VersionAndOption.DefaultTeamName = "Site";
+                projectParameters.VersionAndOption.DefaultTeamNamePlural = "Sites";
+                projectParameters.VersionAndOption.DefaultTeamDomainName = "Site";
+                // --------
+
+                await CreateDefaultTeam(projectPath, projectParameters, cancellationToken);
             }
 
             await Task.Run(() =>
@@ -245,26 +246,23 @@ namespace BIA.ToolKit.Application.Services
             return true;
         }
 
-        private static async Task CreateDefaultTeam(string projectPath, ProjectParameters projectParameters, IConsoleWriter consoleWriter, CancellationToken cancellationToken)
+        private async Task CreateDefaultTeam(string projectPath, ProjectParameters projectParameters, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             consoleWriter.AddMessageLine("Start create default team.", "Pink");
-
-            var fileGeneratorService = new FileGeneratorService(consoleWriter);
-            await fileGeneratorService.Init(new Domain.ModifyProject.Project
+            var project = new Domain.ModifyProject.Project
             {
                 Folder = projectPath,
                 Name = projectParameters.ProjectName,
                 CompanyName = projectParameters.CompanyName,
                 FrameworkVersion = projectParameters.VersionAndOption.WorkTemplate.Version,
                 BIAFronts = projectParameters.AngularFronts,
-            });
+            };
 
-            if(!fileGeneratorService.IsProjectCompatibleForTeamFeature())
-            {
-                consoleWriter.AddMessageLine("Project is not compatible for team generation", "Orange");
-                return;
-            }
+            await projectService.LoadProject(project, cancellationToken);
+
+            var fileGeneratorService = new FileGeneratorService(consoleWriter);
+            await fileGeneratorService.Init(project, cancellationToken: cancellationToken);
 
             await fileGeneratorService.GenerateTeamAsync(new FileGenerator.Contexts.FileGeneratorTeamContext
             {
