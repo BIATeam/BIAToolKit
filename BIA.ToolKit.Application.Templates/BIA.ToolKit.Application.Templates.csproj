@@ -114,6 +114,16 @@
     <Compile Include="_8_0_0\Models\EntityTeamModel.cs" />
     <Compile Include="_8_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_8_0_0\Models\PropertyDtoModel.cs" />
+    <None Include="_8_0_0\Templates\DotNet\InfrastructureData\PartialTeamDataContextTemplate_DbSet.cs">
+      <DependentUpon>PartialTeamDataContextTemplate_DbSet.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_8_0_0\Templates\DotNet\InfrastructureData\PartialTeamDataContextTemplate_DomainModelBuilder.cs">
+      <DependentUpon>PartialTeamDataContextTemplate_DomainModelBuilder.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_8_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\EntityTeamModelBuilder.cs">
       <DependentUpon>EntityTeamModelBuilder.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -3005,6 +3015,16 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="_8_0_0\Templates\DotNet\InfrastructureData\PartialTeamDataContextTemplate_DbSet.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialTeamDataContextTemplate_DbSet.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="_8_0_0\Templates\DotNet\InfrastructureData\PartialTeamDataContextTemplate_DomainModelBuilder.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialTeamDataContextTemplate_DomainModelBuilder.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="_8_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\EntityTeamModelBuilder.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityTeamModelBuilder.cs</LastGenOutput>

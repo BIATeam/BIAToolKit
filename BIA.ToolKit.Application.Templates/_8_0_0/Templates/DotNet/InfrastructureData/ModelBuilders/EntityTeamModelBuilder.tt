@@ -16,10 +16,19 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Infr
     public static class <#= ModelInstance.DomainName #>ModelBuilder
     {
         /// <summary>
+        /// Create the model for projects.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder.</param>
+        public static void CreateModel(ModelBuilder modelBuilder)
+        {
+            Create<#= ModelInstance.EntityName #>Model(modelBuilder);
+        }
+
+        /// <summary>
         /// Create the model for <#= ModelInstance.EntityNamePlural.ToLiteral() #>.
         /// </summary>
         /// <param name="modelBuilder">The model builder.</param>
-        public static void Create<#= ModelInstance.EntityName #>Model(ModelBuilder modelBuilder)
+        private static void Create<#= ModelInstance.EntityName #>Model(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<<#= ModelInstance.EntityName #>>().ToTable("<#= ModelInstance.EntityNamePlural #>");
         }

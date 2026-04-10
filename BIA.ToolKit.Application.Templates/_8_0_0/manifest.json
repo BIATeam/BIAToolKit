@@ -471,6 +471,19 @@
         {
           "inputPath": "InfrastructureData\\ModelBuilders\\EntityTeamModelBuilder.tt",
           "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\{Domain}ModelBuilder.cs"
+        },
+        {
+          "inputPath": "InfrastructureData\\PartialTeamDataContextTemplate_DomainModelBuilder.tt",
+          "outputPath": "{Project}.Infrastructure.Data\\DataContext.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "DomainModelBuilder",
+          "UseDomainPartialInsertionMarkup": true
+        },
+        {
+          "inputPath": "InfrastructureData\\PartialTeamDataContextTemplate_DbSet.tt",
+          "outputPath": "{Project}.Infrastructure.Data\\DataContext.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "DbSet"
         }
       ]
     }
