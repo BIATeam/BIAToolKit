@@ -1,17 +1,16 @@
-// BIADemo only
-// <copyright file="SiteDomainModelBuilder.cs" company="TheBIADevCompany">
+// <copyright file="SiteModelBuilder.cs" company="TheBIADevCompany">
 // Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 
 namespace TheBIADevCompany.BIADemo.Infrastructure.Data.ModelBuilders
 {
     using Microsoft.EntityFrameworkCore;
-    using TheBIADevCompany.BIADemo.Domain.SiteDomain.Entities;
+    using TheBIADevCompany.BIADemo.Domain.Site.Entities;
 
     /// <summary>
-    /// Class used to update the model builder for site domain domain.
+    /// Class used to update the model builder for site domain.
     /// </summary>
-    public static class SiteDomainModelBuilder
+    public static class SiteModelBuilder
     {
         /// <summary>
         /// Create the model for sites.

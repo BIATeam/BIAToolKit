@@ -1,9 +1,8 @@
-// BIADemo only
 // <copyright file="Site.cs" company="TheBIADevCompany">
 // Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 
-namespace TheBIADevCompany.BIADemo.Domain.SiteDomain.Entities
+namespace TheBIADevCompany.BIADemo.Domain.Site.Entities
 {
     using Audit.EntityFramework;
     using BIA.Net.Core.Common.Attributes;

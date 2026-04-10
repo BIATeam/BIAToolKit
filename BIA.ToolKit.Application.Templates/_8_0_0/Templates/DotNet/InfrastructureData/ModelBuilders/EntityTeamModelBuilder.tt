@@ -1,7 +1,6 @@
 <#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_8_0_0)\TemplateTeam.ttinclude" #>
 <#@ output extension=".cs" #>
-// BIADemo only
 // <copyright file="<#= ModelInstance.DomainName #>ModelBuilder.cs" company="TheBIADevCompany">
 // Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>

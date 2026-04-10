@@ -1,7 +1,6 @@
 <#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_8_0_0)\TemplateTeam.ttinclude" #>
 <#@ output extension=".cs" #>
-// BIADemo only
 // <copyright file="<#= ModelInstance.EntityName #>.cs" company="<#= ModelInstance.CompanyName #>">
 // Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
