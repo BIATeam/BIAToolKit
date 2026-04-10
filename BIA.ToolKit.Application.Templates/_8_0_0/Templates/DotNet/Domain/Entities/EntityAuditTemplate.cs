@@ -1,4 +1,4 @@
-﻿// <copyright file="PlaneAudit.cs" company="TheBIADevCompany">
+// <copyright file="PlaneAudit.cs" company="TheBIADevCompany">
 // Copyright (c) TheBIADevCompany. All rights reserved.
 // </copyright>
 

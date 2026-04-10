@@ -14,7 +14,7 @@ namespace BIA.ToolKit.Application.Templates._8_0_0.Mocks
             CompanyName = "TheBIADevCompany";
             ProjectName = "BIADemo";
             EntityNameArticle = "a";
-            DomainName = "Fleet";
+            DomainName = "Site";
             EntityName = "Site";
             BaseKeyType = "int";
             EntityNamePlural = "Sites";

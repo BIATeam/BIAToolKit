@@ -114,6 +114,16 @@
     <Compile Include="_8_0_0\Models\EntityTeamModel.cs" />
     <Compile Include="_8_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_8_0_0\Models\PropertyDtoModel.cs" />
+    <None Include="_8_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\EntityTeamModelBuilder.cs">
+      <DependentUpon>EntityTeamModelBuilder.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="_8_0_0\Templates\DotNet\Domain\Entities\EntityTeamTemplate.cs">
+      <DependentUpon>EntityTeamTemplate.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_8_0_0\Templates\DotNet\Application\EntityAppServiceTemplate.cs">
       <DependentUpon>EntityAppServiceTemplate.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -319,6 +329,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="_8_0_0\Templates\Includes\TemplateDto.ttinclude">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="_8_0_0\Templates\Includes\TemplateTeam.ttinclude">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="_8_0_0\Templates\Includes\TemplateOption.ttinclude">
@@ -2992,6 +3005,16 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="_8_0_0\Templates\DotNet\InfrastructureData\ModelBuilders\EntityTeamModelBuilder.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityTeamModelBuilder.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="_8_0_0\Templates\DotNet\Domain\Entities\EntityTeamTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityTeamTemplate.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="_7_0_0\Templates\Angular\src\app\features\EntityListConstantsTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityListConstantsTemplate.ts</LastGenOutput>

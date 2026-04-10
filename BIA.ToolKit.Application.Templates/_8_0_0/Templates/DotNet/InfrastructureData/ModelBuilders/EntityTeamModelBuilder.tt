@@ -1,0 +1,28 @@
+<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_8_0_0)\TemplateTeam.ttinclude" #>
+<#@ output extension=".cs" #>
+// BIADemo only
+// <copyright file="<#= ModelInstance.DomainName #>ModelBuilder.cs" company="TheBIADevCompany">
+// Copyright (c) TheBIADevCompany. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Infrastructure.Data.ModelBuilders
+{
+    using Microsoft.EntityFrameworkCore;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
+
+    /// <summary>
+    /// Class used to update the model builder for <#= ModelInstance.DomainName.ToLiteral() #> domain.
+    /// </summary>
+    public static class <#= ModelInstance.DomainName #>ModelBuilder
+    {
+        /// <summary>
+        /// Create the model for <#= ModelInstance.EntityNamePlural.ToLiteral() #>.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder.</param>
+        public static void Create<#= ModelInstance.EntityName #>Model(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<<#= ModelInstance.EntityName #>>().ToTable("<#= ModelInstance.EntityNamePlural #>");
+        }
+    }
+}

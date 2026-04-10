@@ -39,7 +39,7 @@
           "outputPath": "{Project}.Infrastructure.Data\\Features\\AuditFeature.cs",
           "isPartial": true,
           "partialInsertionMarkup": "AuditTypeMapperUsing",
-          "UseDomainPartialInsertionMarkup":  true
+          "UseDomainPartialInsertionMarkup": true
         },
         {
           "inputPath": "InfrastructureData\\PartialDtoDataContextTemplate_DbSetAudit.tt",
@@ -458,6 +458,19 @@
         {
           "inputPath": "src\\app\\features\\views\\historical\\EntityHistoricalComponentTsTemplate.tt",
           "outputPath": "src\\app\\features\\{ParentChildrenRelativePath}\\{EntityPlural}\\views\\{Entity}-historical\\{Entity}-historical.component.ts"
+        }
+      ]
+    },
+    {
+      "type": "Team",
+      "dotNetTemplates": [
+        {
+          "inputPath": "Domain\\Entities\\EntityTeamTemplate.tt",
+          "outputPath": "{Project}.Domain\\{Domain}\\Entities\\{Entity}.cs"
+        },
+        {
+          "inputPath": "InfrastructureData\\ModelBuilders\\EntityTeamModelBuilder.tt",
+          "outputPath": "{Project}.Infrastructure.Data\\ModelBuilders\\{Domain}ModelBuilder.cs"
         }
       ]
     }
