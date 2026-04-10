@@ -243,6 +243,8 @@ using Roslyn.Services;*/
 
         public async Task LoadSolution(string solutionPath, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             if (Workspace is null)
             {
                 consoleWriter.AddMessageLine($"MSBuildWorkspace has not been initialized", "red");
@@ -270,6 +272,8 @@ using Roslyn.Services;*/
 
         public async Task ParseSolutionClasses(CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             if (CurrentSolution is null)
             {
                 consoleWriter.AddMessageLine("No solution loaded to parse.", "red");
@@ -278,13 +282,11 @@ using Roslyn.Services;*/
 
             consoleWriter.AddMessageLine("Parsing classes...", "darkgray");
 
-            IEnumerable<Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)>> classesInfosPerProjectTasks = CurrentSolution.Projects.Select(p => GetClassesInfoFromProject(p, ct));
+            IEnumerable<Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)>> classesInfosPerProjectTasks = CurrentSolution.Projects.Select(project => GetClassesInfoFromProject(project, ct));
             (List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)[] classesInfosReports = await Task.WhenAll(classesInfosPerProjectTasks);
-
-            ct.ThrowIfCancellationRequested();
-
             foreach ((List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds) report in classesInfosReports)
             {
+                ct.ThrowIfCancellationRequested();
                 consoleWriter.AddMessageLine($"{report.Project} : {report.ClassesCount} classes parsed in {report.ElapsedSeconds} seconds", "gray");
             }
             CurrentSolutionClasses = [.. classesInfosReports.SelectMany(x => x.ClassesInfo)];
@@ -294,11 +296,10 @@ using Roslyn.Services;*/
 
         private async Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)> GetClassesInfoFromProject(Project project, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             var result = new List<ClassInfo>();
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-
-            ct.ThrowIfCancellationRequested();
 
             // Compilation (nécessaire pour symboles/semantics)
             Compilation compilation = await project.GetCompilationAsync(ct).ConfigureAwait(false);
@@ -318,6 +319,8 @@ using Roslyn.Services;*/
 
             foreach (INamedTypeSymbol cls in allTypes)
             {
+                ct.ThrowIfCancellationRequested();
+
                 // Fichier source principal (si partiel, on prend la 1re location source)
                 string filePath = cls.Locations.FirstOrDefault(l => l.IsInSource)?.SourceTree?.FilePath ?? string.Empty;
 
@@ -378,18 +381,19 @@ using Roslyn.Services;*/
 
             try
             {
-                await LoadSolution(CurrentSolution.FilePath);
+                await LoadSolution(CurrentSolution.FilePath, ct);
                 foreach (Project project in CurrentSolution.Projects)
                 {
+                    ct.ThrowIfCancellationRequested();
                     try
                     {
                         consoleWriter.AddMessageLine($"Analyzing project {project.Name}...", "darkgray");
 
                         foreach (Document document in project.Documents)
                         {
+                            ct.ThrowIfCancellationRequested();
                             try
                             {
-                                ct.ThrowIfCancellationRequested();
                                 if (await document.GetSyntaxRootAsync(ct) is not CompilationUnitSyntax syntaxRoot)
                                 {
                                     consoleWriter.AddMessageLine($"-> {document.Name} : No compilation unit syntax root found.", "orange");
@@ -427,17 +431,29 @@ using Roslyn.Services;*/
                                     File.WriteAllText(document.FilePath!, formattedRoot.ToFullString());
                                 }
                             }
+                            catch(OperationCanceledException)
+                            {
+                                throw;
+                            }
                             catch (Exception docEx)
                             {
                                 consoleWriter.AddMessageLine($"-> {document.Name} : {docEx.Message}\n{docEx.StackTrace}", "red");
                             }
                         }
                     }
+                    catch(OperationCanceledException)
+                        {
+                            throw;
+                        }
                     catch (Exception projEx)
                     {
                         consoleWriter.AddMessageLine($"{projEx.Message}\n{projEx.StackTrace}", "red");
                     }
                 }
+            }
+            catch(OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception solEx)
             {
@@ -476,14 +492,15 @@ using Roslyn.Services;*/
             using var process = new Process { StartInfo = startInfo };
             process.Start();
 
-            // Register cancellation to kill the restore process
+            // Register cancellation to kill the restore process (ct alone won't
+            // terminate the dotnet child process — we must kill it explicitly).
             using var registration = ct.Register(() =>
             {
                 try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
                 catch { /* process may have already exited */ }
             });
 
-            string stdError = await process.StandardError.ReadToEndAsync();
+            string stdError = await process.StandardError.ReadToEndAsync(ct);
             await process.WaitForExitAsync(ct);
 
             ct.ThrowIfCancellationRequested();
