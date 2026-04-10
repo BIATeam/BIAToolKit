@@ -59,6 +59,11 @@ namespace BIA.ToolKit.Application.Mapper
             dto.CompanyFileVersion = model.WorkCompanyFile?.Version;
             dto.Profile = model.Profile;
             dto.Options = model.Options?.Where(o => o.IsChecked).Select(o => o.Key).ToList();
+
+            dto.HasDefaultTeam = model.HasDefaultTeam;
+            dto.DefaultTeamName = model.DefaultTeamName;
+            dto.DefaultTeamDomainName = model.DefaultTeamDomainName;
+            dto.DefaultTeamNamePlural = model.DefaultTeamNamePlural;
         }
 
     }

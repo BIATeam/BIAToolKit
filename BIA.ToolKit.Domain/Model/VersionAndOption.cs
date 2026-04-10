@@ -31,5 +31,25 @@ namespace BIA.ToolKit.Domain.Model
         public WorkRepository WorkCompanyFile { get; set; }
         // Profile selected
         public string Profile { get; set; }
+
+        /// <summary>
+        /// Indicates whether the default team should be created for the entity.
+        /// </summary>
+        public bool HasDefaultTeam { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default team name.
+        /// </summary>
+        public string DefaultTeamName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default team name plural.
+        /// </summary>
+        public string DefaultTeamNamePlural { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default team domain name.
+        /// </summary>
+        public string DefaultTeamDomainName { get; set; }
     }
 }

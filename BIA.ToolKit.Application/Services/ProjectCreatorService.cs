@@ -12,6 +12,7 @@ namespace BIA.ToolKit.Application.Services
     using System.Xml.Linq;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Mapper;
+    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Common.Helpers;
     using BIA.ToolKit.Domain.Model;
@@ -20,12 +21,10 @@ namespace BIA.ToolKit.Application.Services
 
     public partial class ProjectCreatorService(IConsoleWriter consoleWriter,
         RepositoryService repositoryService,
-        SettingsService settingsService,
-        CSharpParserService parserService)
+        SettingsService settingsService)
     {
         private readonly IConsoleWriter consoleWriter = consoleWriter;
         private readonly RepositoryService repositoryService = repositoryService;
-        private readonly CSharpParserService parserService = parserService;
         private readonly SettingsService settingsService = settingsService;
         private static readonly TimeSpan CreateTimeout = TimeSpan.FromSeconds(60);
         private static readonly int MaxRetryCount = 3;
@@ -178,6 +177,7 @@ namespace BIA.ToolKit.Application.Services
 
             if (projectParameters.VersionAndOption.WorkTemplate.Version.Equals("VX.Y.Z") || Version.TryParse(projectParameters.VersionAndOption.WorkTemplate.Version.Replace("V", ""), out Version projectVersion) && projectVersion >= new Version("3.10.0"))
             {
+                consoleWriter.AddMessageLine("Start order usings.", "Pink");
                 await Task.Run(() => FileTransform.OrderUsingFromFolder(projectPath), cancellationToken);
             }
 
@@ -186,6 +186,7 @@ namespace BIA.ToolKit.Application.Services
                 bool containsFrontAngular = false;
                 if (projectParameters.AngularFronts.Count > 0)
                 {
+                    consoleWriter.AddMessageLine("Start copy Angular files.", "Pink");
                     foreach (string angularFront in projectParameters.AngularFronts)
                     {
                         if (!angularFront.Equals("angular", StringComparison.CurrentCultureIgnoreCase))
@@ -199,43 +200,107 @@ namespace BIA.ToolKit.Application.Services
                         }
                     }
                 }
+
                 if (!containsFrontAngular)
                 {
                     if (Directory.Exists(projectPath + "\\Angular"))
                     {
+                        consoleWriter.AddMessageLine("Start remove Angular folder.", "Pink");
                         Directory.Delete(projectPath + "\\Angular", true);
                     }
                 }
+            }, cancellationToken);
 
 
+            // TODO: mock purpose, implements UI
+            projectParameters.VersionAndOption.HasDefaultTeam = true;
+            projectParameters.VersionAndOption.DefaultTeamName = "Site";
+            projectParameters.VersionAndOption.DefaultTeamNamePlural = "Sites";
+            projectParameters.VersionAndOption.DefaultTeamDomainName = "Site";
+            // --------
+
+            if (projectParameters.VersionAndOption.HasDefaultTeam && featureSettings.Any(f => f.Id == (int)BiaFeatureSettingsEnum.CreateDefaultTeam && f.IsSelected))
+            {
+                await CreateDefaultTeam(projectPath, projectParameters, consoleWriter, cancellationToken);
+            }
+
+            await Task.Run(() =>
+            {
                 string rootBiaFolder = Path.Combine(projectPath, Constants.FolderBia);
                 if (!Directory.Exists(rootBiaFolder))
                 {
                     Directory.CreateDirectory(rootBiaFolder);
                 }
 
+                consoleWriter.AddMessageLine("Start generation file creation.", "Pink");
                 string projectGenerationFile = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
                 var versionAndOptionDto = new VersionAndOptionDto();
                 VersionAndOptionMapper.ModelToDto(projectParameters.VersionAndOption, versionAndOptionDto);
                 CommonTools.SerializeToJsonFile(versionAndOptionDto, projectGenerationFile);
+
+                CleanBiaToolkitJsonFiles(projectPath);
             }, cancellationToken);
-
-            CleanBiaToolkitJsonFiles(projectPath);
-
-            if(featureSettings.Any(f => f.Id == (int)BiaFeatureSettingsEnum.CreateDefaultTeam && f.IsSelected))
-            {
-                await CreateDefaultTeam(projectPath, projectParameters, consoleWriter, cancellationToken);
-            }
 
             consoleWriter.AddMessageLine("Create project finished.", actionFinishedAtEnd ? "Green" : "Blue");
             return true;
         }
 
-        private async Task CreateDefaultTeam(string projectPath, ProjectParameters projectParameters, IConsoleWriter consoleWriter, CancellationToken cancellationToken)
+        private static async Task CreateDefaultTeam(string projectPath, ProjectParameters projectParameters, IConsoleWriter consoleWriter, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             consoleWriter.AddMessageLine("Start create default team.", "Pink");
-            consoleWriter.AddMessageLine("End create default team.", "Pink");
+
+            var fileGeneratorService = new FileGeneratorService(consoleWriter);
+            await fileGeneratorService.Init(new Domain.ModifyProject.Project
+            {
+                Folder = projectPath,
+                Name = projectParameters.ProjectName,
+                CompanyName = projectParameters.CompanyName,
+                FrameworkVersion = projectParameters.VersionAndOption.WorkTemplate.Version,
+                BIAFronts = projectParameters.AngularFronts,
+            });
+
+            if(!fileGeneratorService.IsProjectCompatibleForTeamFeature())
+            {
+                consoleWriter.AddMessageLine("Project is not compatible for team generation", "Orange");
+                return;
+            }
+
+            await fileGeneratorService.GenerateTeamAsync(new FileGenerator.Contexts.FileGeneratorTeamContext
+            {
+                CompanyName = projectParameters.CompanyName,
+                ProjectName = projectParameters.ProjectName,
+                EntityName = projectParameters.VersionAndOption.DefaultTeamName,
+                EntityNamePlural = projectParameters.VersionAndOption.DefaultTeamNamePlural,
+                DomainName = projectParameters.VersionAndOption.DefaultTeamDomainName,
+                IsTeam = true,
+                GenerateBack = true,
+                GenerateFront = projectParameters.AngularFronts.Count > 0,
+            }, cancellationToken);
+
+            await fileGeneratorService.GenerateDtoAsync(new FileGenerator.Contexts.FileGeneratorDtoContext
+            {
+                CompanyName = projectParameters.CompanyName,
+                ProjectName = projectParameters.ProjectName,
+                EntityName = projectParameters.VersionAndOption.DefaultTeamName,
+                EntityNamePlural = projectParameters.VersionAndOption.DefaultTeamNamePlural,
+                DomainName = projectParameters.VersionAndOption.DefaultTeamDomainName,
+                IsTeam = true,
+                GenerateBack = true,
+                GenerateFront = projectParameters.AngularFronts.Count > 0,
+            }, cancellationToken);
+
+            await fileGeneratorService.GenerateCRUDAsync(new FileGenerator.Contexts.FileGeneratorCrudContext
+            {
+                CompanyName = projectParameters.CompanyName,
+                ProjectName = projectParameters.ProjectName,
+                EntityName = projectParameters.VersionAndOption.DefaultTeamName,
+                EntityNamePlural = projectParameters.VersionAndOption.DefaultTeamNamePlural,
+                DomainName = projectParameters.VersionAndOption.DefaultTeamDomainName,
+                IsTeam = true,
+                GenerateBack = true,
+                GenerateFront = projectParameters.AngularFronts.Count > 0,
+            }, cancellationToken);
         }
 
         private async Task RenameInProject(string projectPath, ProjectParameters projectParameters, System.Threading.CancellationToken cancellationToken)
