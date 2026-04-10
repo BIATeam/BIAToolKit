@@ -303,7 +303,7 @@ namespace BIA.ToolKit.Application.Services
                     DomainName = projectParameters.VersionAndOption.DefaultTeamDomainName,
                     BaseKeyType = baseKeyType,
                     IsTeam = true,
-                    TeamTypeId = 1,
+                    TeamTypeId = 2,
                     TeamRoleId = 1,
                     DisplayItemName = "Title",
                     GenerateBack = true,
