@@ -18,6 +18,10 @@
         <WindowChrome CaptionHeight="36" ResizeBorderThickness="5" GlassFrameThickness="0" CornerRadius="0"/>
     </WindowChrome.WindowChrome>
 
+    <Window.InputBindings>
+        <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding StopActionCommand}"/>
+    </Window.InputBindings>
+
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
 
@@ -419,7 +423,11 @@
         <!-- Waiter overlay (covers content + output) -->
         <Grid x:Name="Waiter" Grid.Row="1" Grid.RowSpan="2" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Hidden">
             <Grid Background="{DynamicResource MaterialDesign.Brush.Card.Background}" Opacity="0.8" />
-            <uc:PixelLeafLoaderUC Height="200" Width="200"/>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <uc:PixelLeafLoaderUC Height="200" Width="200"/>
+                <uc:PixelStopButtonUC Width="160" Height="50" Margin="0,40,0,0"
+                                      Command="{Binding StopActionCommand}"/>
+            </StackPanel>
         </Grid>
 
     </Grid>
