@@ -1,9 +1,9 @@
 namespace BIA.ToolKit.Dialogs
 {
-    using System.Windows;
+    using System.Windows.Controls;
     using BIA.ToolKit.ViewModels;
 
-    public partial class DefaultTeamSettingsWindow : Window
+    public partial class DefaultTeamSettingsWindow : UserControl
     {
         public DefaultTeamSettingsViewModel ViewModel => DataContext as DefaultTeamSettingsViewModel;
 
@@ -12,7 +12,5 @@ namespace BIA.ToolKit.Dialogs
             DataContext = new DefaultTeamSettingsViewModel(teamName, teamNamePlural, domainName);
             InitializeComponent();
         }
-
-        private void SubmitButton_Click(object sender, RoutedEventArgs e) => DialogResult = true;
     }
 }

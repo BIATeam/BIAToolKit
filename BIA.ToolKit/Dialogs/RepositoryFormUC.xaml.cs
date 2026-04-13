@@ -1,18 +1,12 @@
 namespace BIA.ToolKit.Dialogs
 {
-    using System.Windows;
+    using System.Windows.Controls;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.ViewModels;
-    using BIA.ToolKit.Infrastructure;
 
-    /// <summary>
-    /// Interaction logic for RepositoryFormUC.xaml
-    /// DataContext (RepositoryFormViewModel) is set in constructor.
-    /// Code-behind contains NO business logic.
-    /// </summary>
-    public partial class RepositoryFormUC : Window
+    public partial class RepositoryFormUC : UserControl
     {
         public RepositoryFormViewModel ViewModel => DataContext as RepositoryFormViewModel;
 

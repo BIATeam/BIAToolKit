@@ -41,7 +41,7 @@ namespace BIA.ToolKit
             };
 
             consoleWriterInstance = (ConsoleWriter)consoleWriter;
-            consoleWriterInstance.InitOutput(OutputText, OutputTextViewer, this, App.GetService<IDialogService>());
+            consoleWriterInstance.InitOutput(OutputRichTextBox, this, App.GetService<IDialogService>());
 
             var createVersionAndOptionVM = App.GetService<VersionAndOptionViewModel>();
             CreateVersionAndOption.DataContext = createVersionAndOptionVM;
@@ -117,7 +117,7 @@ namespace BIA.ToolKit
 
         private void ToggleOutputPanel(object sender, MouseButtonEventArgs e)
         {
-            if (OutputTextViewer.Visibility == Visibility.Visible)
+            if (OutputRichTextBox.Visibility == Visibility.Visible)
                 CollapseOutputPanel();
             else
                 ExpandOutputPanel();
@@ -125,32 +125,33 @@ namespace BIA.ToolKit
 
         private void ExpandOutputPanel()
         {
-            OutputTextViewer.Visibility = Visibility.Visible;
+            OutputRichTextBox.Visibility = Visibility.Visible;
             ChevronRotation.Angle = 90;
         }
 
         private void CollapseOutputPanel()
         {
-            OutputTextViewer.Visibility = Visibility.Collapsed;
+            OutputRichTextBox.Visibility = Visibility.Collapsed;
             ChevronRotation.Angle = 0;
         }
 
         #endregion
 
-        private void OnOpenDefaultTeamSettings(object viewModel)
+        private async void OnOpenDefaultTeamSettings(object viewModel)
         {
             if (viewModel is not VersionAndOptionViewModel vm)
                 return;
 
-            var window = new Dialogs.DefaultTeamSettingsWindow(
-                vm.DefaultTeamName, vm.DefaultTeamNamePlural, vm.DefaultTeamDomainName)
-                { Owner = this };
+            var dialog = new Dialogs.DefaultTeamSettingsWindow(
+                vm.DefaultTeamName, vm.DefaultTeamNamePlural, vm.DefaultTeamDomainName);
 
-            if (window.ShowDialog() == true)
+            var result = await MaterialDesignThemes.Wpf.DialogHost.Show(dialog, "RootDialog");
+
+            if (result is true or "True")
             {
-                vm.DefaultTeamName = window.ViewModel.DefaultTeamName;
-                vm.DefaultTeamNamePlural = window.ViewModel.DefaultTeamNamePlural;
-                vm.DefaultTeamDomainName = window.ViewModel.DefaultTeamDomainName;
+                vm.DefaultTeamName = dialog.ViewModel.DefaultTeamName;
+                vm.DefaultTeamNamePlural = dialog.ViewModel.DefaultTeamNamePlural;
+                vm.DefaultTeamDomainName = dialog.ViewModel.DefaultTeamDomainName;
             }
         }
 

@@ -58,6 +58,9 @@
         </Style>
     </Window.Resources>
 
+    <materialDesign:DialogHost x:Name="RootDialogHost" Identifier="RootDialog"
+                               DialogTheme="Inherit"
+                               CloseOnClickAway="False">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -398,12 +401,19 @@
                 </Grid>
             </Border>
 
-            <!-- Console output (collapsible) -->
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Name="OutputTextViewer"
-                          MaxHeight="200" Visibility="Collapsed">
-                <TextBlock Name="OutputText" TextWrapping="Wrap" LineHeight="10" Padding="5"
-                           Background="{DynamicResource MaterialDesign.Brush.Card.Background}"/>
-            </ScrollViewer>
+            <!-- Console output (collapsible, selectable) -->
+            <RichTextBox Grid.Row="1" Name="OutputRichTextBox"
+                         MaxHeight="200" Visibility="Collapsed"
+                         IsReadOnly="True" IsReadOnlyCaretVisible="True"
+                         BorderThickness="0" Padding="5"
+                         Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                         Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
+                         VerticalScrollBarVisibility="Auto"
+                         HorizontalScrollBarVisibility="Disabled">
+                <RichTextBox.Document>
+                    <FlowDocument PagePadding="0"/>
+                </RichTextBox.Document>
+            </RichTextBox>
         </Grid>
 
         <!-- Waiter overlay (covers content + output) -->
@@ -413,4 +423,5 @@
         </Grid>
 
     </Grid>
+    </materialDesign:DialogHost>
 </Window>

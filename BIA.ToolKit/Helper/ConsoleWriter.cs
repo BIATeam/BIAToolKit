@@ -17,8 +17,7 @@ namespace BIA.ToolKit.Helper
 
     public class ConsoleWriter : IConsoleWriter
     {
-        TextBlock OutputText;
-        ScrollViewer OutputTextViewer;
+        RichTextBox OutputRichTextBox;
         Window WindowOwner;
         IDialogService dialogService;
         List<Message> messages = [];
@@ -31,10 +30,9 @@ namespace BIA.ToolKit.Helper
 
         }
 
-        public void InitOutput(TextBlock _outputText, ScrollViewer _outputTextViewer, Window _windowOwner, IDialogService _dialogService)
+        public void InitOutput(RichTextBox _outputRichTextBox, Window _windowOwner, IDialogService _dialogService)
         {
-            OutputText = _outputText;
-            OutputTextViewer = _outputTextViewer;
+            OutputRichTextBox = _outputRichTextBox;
             WindowOwner = _windowOwner;
             dialogService = _dialogService;
         }
@@ -55,7 +53,7 @@ namespace BIA.ToolKit.Helper
             {
                 if (messages.Count > 0)
                 {
-                    var run = new Run(@"[🔍 OPEN LOG DETAIL]" + "\r\n")
+                    var run = new Run(@"[🔍 OPEN LOG DETAIL]")
                     {
                         Foreground = IsDarkTheme ? Brushes.YellowGreen : Brushes.DarkOliveGreen,
                         Cursor = Cursors.Hand,
@@ -63,16 +61,11 @@ namespace BIA.ToolKit.Helper
                     };
                     run.MouseDown += new MouseButtonEventHandler(OpenDetail);
                     run.DataContext = messages;
-                    OutputText.Inlines.Add(run);
+                    AppendInline(OutputRichTextBox, run);
 
                     messages = [];
                 }
-                //foreach (Message msg in messages)
-                //{
-                //    _AddMsgLine(msg.message, msg.color, refreshimediate);
-                //}
-                //messages.Clear();
-                AddMsgLine(OutputText, OutputTextViewer, message, color, refreshimediate, IsDarkTheme);
+                AddMsgLine(OutputRichTextBox, message, color, refreshimediate, IsDarkTheme);
                 displayedMessages.Add(new Message { message = message, color = color });
             }
         }
@@ -87,7 +80,7 @@ namespace BIA.ToolKit.Helper
         public void Clear()
         {
             displayedMessages.Clear();
-            OutputText.Inlines.Clear();
+            OutputRichTextBox.Document.Blocks.Clear();
         }
 
         public void CopyToClipboard()
@@ -101,15 +94,15 @@ namespace BIA.ToolKit.Helper
         /// </summary>
         public void ReRenderMessages()
         {
-            OutputText.Inlines.Clear();
+            OutputRichTextBox.Document.Blocks.Clear();
             foreach (var msg in displayedMessages)
             {
-                AddMsgLine(OutputText, OutputTextViewer, msg.message, msg.color, false, IsDarkTheme);
+                AddMsgLine(OutputRichTextBox, msg.message, msg.color, false, IsDarkTheme);
             }
-            OutputTextViewer.ScrollToEnd();
+            OutputRichTextBox.ScrollToEnd();
         }
 
-        public static void AddMsgLine(TextBlock OutputText, ScrollViewer OutputTextViewer, string message, string color, bool refreshimediate = true, bool isDarkTheme = true)
+        public static void AddMsgLine(RichTextBox richTextBox, string message, string color, bool refreshimediate = true, bool isDarkTheme = true)
         {
             Brush brush;
             if (string.IsNullOrEmpty(color))
@@ -122,7 +115,7 @@ namespace BIA.ToolKit.Helper
                 var col = (Color)ColorConverter.ConvertFromString(resolvedColor);
                 brush = new SolidColorBrush(col);
             }
-            AddMessageLine(OutputText, OutputTextViewer, message, brush, refreshimediate);
+            AddMessageLine(richTextBox, message, brush, refreshimediate);
         }
 
         private static string MapColorForLightTheme(string color)
@@ -139,27 +132,33 @@ namespace BIA.ToolKit.Helper
             };
         }
 
-        public static void AddMessageLine(TextBlock OutputText, ScrollViewer OutputTextViewer, string message, Brush brush, bool refreshimediate = true)
+        public static void AddMessageLine(RichTextBox richTextBox, string message, Brush brush, bool refreshimediate = true)
         {
             System.Windows.Application.Current.Dispatcher.Invoke(
                 DispatcherPriority.Normal,
             (ThreadStart)delegate
             {
+                var run = new Run(message) { Foreground = brush };
+                AppendInline(richTextBox, run);
 
-                var run = new Run(message + "\r\n")
-                {
-                    Foreground = brush
-                };
-                OutputText.Inlines.Add(run);
                 if (refreshimediate)
                 {
-                    if (OutputTextViewer.VerticalOffset == OutputTextViewer.ScrollableHeight)
-                    {
-                        OutputTextViewer.ScrollToEnd();
-                    }
+                    richTextBox.ScrollToEnd();
                     System.Windows.Forms.Application.DoEvents();
                 }
             });
+        }
+
+        private static void AppendInline(RichTextBox richTextBox, Inline inline)
+        {
+            var doc = richTextBox.Document;
+            if (doc.Blocks.LastBlock is not Paragraph paragraph)
+            {
+                paragraph = new Paragraph { Margin = new Thickness(0), LineHeight = 1 };
+                doc.Blocks.Add(paragraph);
+            }
+            paragraph.Inlines.Add(inline);
+            paragraph.Inlines.Add(new LineBreak());
         }
     }
 }
