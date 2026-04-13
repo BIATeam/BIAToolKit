@@ -53,7 +53,7 @@ namespace BIA.ToolKit
             Application.Services.RegenerateFeatures.RegenerationOrchestrationService regenerationOrchestrationService,
             TemplateVersionService templateVersionService, FeatureSettingService featureSettingService,
             Application.ViewModel.ProjectViewModel projectViewModel,
-            Application.Services.DtoMappingService dtoMappingService)
+            Application.Services.DtoMappingService dtoMappingService, ProjectService projectService)
         {
 
             AppSettings.AppFolderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.Windows.Forms.Application.LocalUserAppDataPath));
@@ -74,7 +74,7 @@ namespace BIA.ToolKit
             InitializeComponent();
 
             CreateVersionAndOption.Inject(this.repositoryService, gitService, consoleWriter, settingsService, uiEventBroker, templateVersionService, featureSettingService);
-            projectViewModel.Inject(uiEventBroker, fileGeneratorService, consoleWriter, settingsService, cSharpParserService);
+            projectViewModel.Inject(uiEventBroker, fileGeneratorService, settingsService, projectService);
             ModifyProject.Inject(this.repositoryService, gitService, consoleWriter, cSharpParserService,
                 projectCreatorService, settingsService, uiEventBroker, regenerateFeaturesDiscoveryService, regenerationOrchestrationService,
                 templateVersionService, featureSettingService, projectViewModel);
@@ -92,6 +92,21 @@ namespace BIA.ToolKit
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
             uiEventBroker.OnRepositoriesUpdated += UiEventBroker_OnRepositoriesUpdated;
             uiEventBroker.OnOpenRepositoryFormRequest += UiEventBroker_OnRepositoryFormOpened;
+            uiEventBroker.OnOpenDefaultTeamSettingsRequest += UiEventBroker_OnOpenDefaultTeamSettings;
+        }
+
+        private void UiEventBroker_OnOpenDefaultTeamSettings(VersionAndOptionViewModel vm)
+        {
+            var window = new DefaultTeamSettingsWindow(
+                vm.DefaultTeamName, vm.DefaultTeamNamePlural, vm.DefaultTeamDomainName)
+                { Owner = this };
+
+            if (window.ShowDialog() == true)
+            {
+                vm.DefaultTeamName = window.ViewModel.DefaultTeamName;
+                vm.DefaultTeamNamePlural = window.ViewModel.DefaultTeamNamePlural;
+                vm.DefaultTeamDomainName = window.ViewModel.DefaultTeamDomainName;
+            }
         }
 
         private void UiEventBroker_OnRepositoryFormOpened(RepositoryViewModel repository, RepositoryFormMode mode)

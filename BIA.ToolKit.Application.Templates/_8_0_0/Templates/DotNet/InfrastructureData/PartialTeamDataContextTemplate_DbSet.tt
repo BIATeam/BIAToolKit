@@ -1,0 +1,11 @@
+<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_8_0_0)\TemplateTeam.ttinclude" #>
+<#@ output extension=".cs" #>
+        // BIAToolKit - Begin Partial DbSet <#= ModelInstance.EntityName #>
+
+        /// <summary>
+        /// Gets or sets the <#= ModelInstance.EntityNamePlural #>.
+        /// </summary>
+        public DbSet<<#= ModelInstance.EntityName #>> <#= ModelInstance.EntityNamePlural #> { get; set; }
+
+        // BIAToolKit - End Partial DbSet <#= ModelInstance.EntityName #>

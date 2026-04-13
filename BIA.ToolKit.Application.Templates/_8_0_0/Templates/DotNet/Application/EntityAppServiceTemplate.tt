@@ -1,0 +1,200 @@
+<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_8_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+// <copyright file="<#= ModelInstance.EntityName #>AppService.cs" company="<#= ModelInstance.CompanyName #>">
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.DomainName #>
+{
+<#  if(ModelInstance.IsTeam || ModelInstance.HasParent) { #>
+    using System.Linq.Expressions;
+<#  } #>
+    using System.Security.Principal;
+    using System.Threading.Tasks;
+    using BIA.Net.Core.Application.Services;
+<#  if(ModelInstance.HasAncestorTeam || ModelInstance.IsFixable) { #>
+    using BIA.Net.Core.Common.Exceptions;
+<#  } #>
+<#  if(ModelInstance.HasAncestorTeam) { #>
+    using BIA.Net.Core.Domain.Authentication;
+<#  } #>
+    using BIA.Net.Core.Domain.Dto.Base;
+<#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
+    using BIA.Net.Core.Domain.Dto.Base.Interface;
+<# } #>
+<#  if(ModelInstance.IsTeam) { #>
+    using BIA.Net.Core.Domain.Dto.User;
+<#  } #>
+    using BIA.Net.Core.Domain.RepoContract;
+    using BIA.Net.Core.Domain.Service;
+    using BIA.Net.Core.Domain.Specification;
+<#  if(ModelInstance.IsTeam) { #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.User;
+<#  } #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Crosscutting.Common.Enum;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.User;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Mappers;
+<#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Specifications;
+<#  } #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.RepoContract;
+<#  if(ModelInstance.IsTeam) { #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.User;
+<#  } #>
+
+    /// <summary>
+    /// The application service used for <#= ModelInstance.EntityName.ToCamelCase() #>.
+    /// </summary>
+<#  if (ModelInstance.HasListAndItemModels) { #>
+    public class <#= ModelInstance.EntityName #>AppService : CrudAppServiceListAndItemBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>ListDto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto<# if(ModelInstance.IsTeam) {  #><TeamAdvancedFilterDto><# } #>, <#= ModelInstance.EntityName #>Mapper, <#= ModelInstance.EntityName #>ListMapper>, I<#= ModelInstance.EntityName #>AppService
+<#  } else { #>
+    public class <#= ModelInstance.EntityName #>AppService : CrudAppServiceBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto<# if(ModelInstance.IsTeam) {  #><TeamAdvancedFilterDto><# } #>, <#= ModelInstance.EntityName #>Mapper>, I<#= ModelInstance.EntityName #>AppService
+<#  } #>
+    {
+<#  if(ModelInstance.HasAncestorTeam) { #>
+        /// <summary>
+        /// The current AncestorTeamId.
+        /// </summary>
+        private readonly int currentAncestorTeamId;
+
+<#  } #>
+<#  if(ModelInstance.HasCustomRepository) { #>
+        /// <summary>
+        /// The repository.
+        /// </summary>
+        private readonly I<#= ModelInstance.EntityName #>Repository repository;
+
+<#  } #>
+<#  if(ModelInstance.HasFixableParent) { #>
+        /// <summary>
+        /// The <#= ModelInstance.ParentName.ToCamelCase() #> repository.
+        /// </summary>
+        private readonly ITGenericRepository<<#= ModelInstance.ParentName #>, int> <#= ModelInstance.ParentName.ToCamelCase() #>Repository;
+
+<#  } #>
+<#  if(ModelInstance.IsFixable) { #>
+        // BIAToolKit - Begin FixedChildrenRepositoryDefinition<#= ModelInstance.EntityName #>
+        // BIAToolKit - End FixedChildrenRepositoryDefinition<#= ModelInstance.EntityName #>
+#pragma warning disable SA1515 // Single-line comment should be preceded by blank line
+#pragma warning disable SA1611 // Element parameters should be documented
+<#  } #>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>AppService"/> class.
+        /// </summary>
+        /// <param name="repository">The repository.</param>
+<#  if(ModelInstance.HasFixableParent) { #>
+        /// <param name="<#= ModelInstance.ParentName.ToCamelCase() #>Repository">The <#= ModelInstance.ParentName.ToCamelCase() #> repository.</param>
+<#  } #>
+<#  if(ModelInstance.IsFixable) { #>
+        // BIAToolKit - Begin FixedChildrenRepositoryConstructorParam<#= ModelInstance.EntityName #>
+        // BIAToolKit - End FixedChildrenRepositoryConstructorParam<#= ModelInstance.EntityName #>
+<#  } #>
+        /// <param name="principal">The claims principal.</param>
+        public <#= ModelInstance.EntityName #>AppService(
+<#  if(!ModelInstance.HasCustomRepository) { #>
+            ITGenericRepository<<#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>> repository,
+<#  } else { #>
+            I<#= ModelInstance.EntityName #>Repository repository,
+<#  } #>
+<#  if(ModelInstance.HasFixableParent) { #>
+            ITGenericRepository<<#= ModelInstance.ParentName #>, int> <#= ModelInstance.ParentName.ToCamelCase() #>Repository,
+<#  } #>
+<#  if(ModelInstance.IsFixable) { #>
+            // BIAToolKit - Begin FixedChildrenRepositoryInjection<#= ModelInstance.EntityName #>
+            // BIAToolKit - End FixedChildrenRepositoryInjection<#= ModelInstance.EntityName #>
+<#  } #>
+            IPrincipal principal)
+            : base(repository)
+        {
+<#  if(ModelInstance.HasCustomRepository) { #>
+            this.repository = repository;
+<#  } #>
+<#  if(ModelInstance.HasFixableParent) { #>
+            this.<#= ModelInstance.ParentName.ToCamelCase() #>Repository = <#= ModelInstance.ParentName.ToCamelCase() #>Repository;
+<#  } #>
+<#  if(ModelInstance.IsTeam) {  #>
+            this.FiltersContext.Add(
+                AccessMode.Read,
+                TeamAppService.ReadSpecification<<#= ModelInstance.EntityName #>>(TeamTypeId.<#= ModelInstance.EntityName #>, principal, TeamConfig.Config));
+
+            this.FiltersContext.Add(
+                AccessMode.Update,
+                TeamAppService.UpdateSpecification<<#= ModelInstance.EntityName #>, UserDataDto>(TeamTypeId.<#= ModelInstance.EntityName #>, principal));
+<#  } #>
+<#  if(ModelInstance.HasAncestorTeam) {  #>
+            var userData = (principal as BiaClaimsPrincipal).GetUserData<UserDataDto>();
+            this.currentAncestorTeamId = userData != null ? userData.GetCurrentTeamId((int)TeamTypeId.<#= ModelInstance.AncestorTeamName #>) : 0;
+<#  if(!ModelInstance.IsTeam) { #>
+
+            // For child : set the TeamId of the Ancestor that contain a team Parent
+<#  if(ModelInstance.HasParent) { #>
+            this.FiltersContext.Add(AccessMode.Read, new DirectSpecification<<#= ModelInstance.EntityName #>>(x => x.<#= ModelInstance.ParentName #>.<#= ModelInstance.AncestorTeamName #>Id == this.currentAncestorTeamId));
+<#  } else { #>
+            this.FiltersContext.Add(AccessMode.Read, new DirectSpecification<<#= ModelInstance.EntityName #>>(x => x.<#= ModelInstance.AncestorTeamName #>Id == this.currentAncestorTeamId));
+<#  } #>
+<#  } #>
+<#  } #>
+<#  if(ModelInstance.IsFixable) { #>
+
+            // BIAToolKit - Begin FixedChildrenRepositorySet<#= ModelInstance.EntityName #>
+            // BIAToolKit - End FixedChildrenRepositorySet<#= ModelInstance.EntityName #>
+<#  } #>
+        }
+<#  if(ModelInstance.IsFixable) { #>
+#pragma warning restore SA1611 // Element parameters should be documented
+#pragma warning restore SA1515 // Single-line comment should be preceded by blank line
+<#  } #>
+<#  if(ModelInstance.HasAncestorTeam) { #>
+
+        /// <inheritdoc/>
+        public override async Task<<#= ModelInstance.EntityName #>Dto> AddAsync(<#= ModelInstance.EntityName #>Dto dto, string mapperMode = null, bool autoCommit = true)
+        {
+<#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
+            var <#= ModelInstance.ParentName.ToCamelCase() #>Parent = await this.<#= ModelInstance.ParentName.ToCamelCase() #>Repository.GetEntityAsync(dto.<#= ModelInstance.ParentName #>Id, isReadOnlyMode: true);
+            if (<#= ModelInstance.ParentName.ToCamelCase() #>Parent.SiteId != this.currentAncestorTeamId)
+            {
+                throw new ForbiddenException("Can only add <#= ModelInstance.EntityName #> on current parent Team.");
+            }
+<#  if(ModelInstance.HasFixableParent) { #>
+
+            if (<#= ModelInstance.ParentName.ToCamelCase() #>Parent.IsFixed)
+            {
+                throw new FrontUserException("<#= ModelInstance.ParentName #> parent is fixed");
+            }
+<#  } #>
+<#  } else { #>
+            if (dto.<#= ModelInstance.AncestorTeamName #>Id != this.currentAncestorTeamId)
+            {
+                throw new ForbiddenException("Can only add <#= ModelInstance.EntityName #> on current parent Team.");
+            }
+<#  } #>
+
+            return await base.AddAsync(dto, mapperMode, autoCommit: autoCommit);
+        }
+<#  } #>
+<#  if(ModelInstance.IsFixable) { #>
+
+        /// <inheritdoc/>
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        protected override async Task ExecuteActionsOnUpdateFixedAsync(<#= ModelInstance.BaseKeyType #> entityUpdatedId, bool isFixed)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        {
+            // BIAToolKit - Begin UpdateFixedChildren<#= ModelInstance.EntityName #>
+            // BIAToolKit - End UpdateFixedChildren<#= ModelInstance.EntityName #>
+        }
+<#  } #>
+<#  if(!ModelInstance.IsTeam && ModelInstance.HasParent) { #>
+
+        /// <inheritdoc/>
+        protected override Specification<<#= ModelInstance.EntityName #>> GetFilterSpecification(IPagingFilterFormatDto filters)
+        {
+            var specification = base.GetFilterSpecification(filters);
+            specification &= <#= ModelInstance.EntityName #>Specification.SearchGetAll(filters);
+            return specification;
+        }
+<#  } #>
+    }
+}

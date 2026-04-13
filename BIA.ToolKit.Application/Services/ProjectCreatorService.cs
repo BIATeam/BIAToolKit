@@ -12,6 +12,7 @@ namespace BIA.ToolKit.Application.Services
     using System.Xml.Linq;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Mapper;
+    using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Common.Helpers;
     using BIA.ToolKit.Domain.Model;
@@ -21,13 +22,12 @@ namespace BIA.ToolKit.Application.Services
     public partial class ProjectCreatorService(IConsoleWriter consoleWriter,
         RepositoryService repositoryService,
         SettingsService settingsService,
-        CSharpParserService parserService)
+        ProjectService projectService)
     {
         private readonly IConsoleWriter consoleWriter = consoleWriter;
         private readonly RepositoryService repositoryService = repositoryService;
-        private readonly CSharpParserService parserService = parserService;
         private readonly SettingsService settingsService = settingsService;
-        private static readonly TimeSpan CreateTimeout = TimeSpan.FromSeconds(60);
+        private readonly ProjectService projectService = projectService;
         private static readonly int MaxRetryCount = 3;
 
         public async Task<bool> Create(
@@ -38,22 +38,13 @@ namespace BIA.ToolKit.Application.Services
             CancellationToken ct = default
             )
         {
-            using var timeoutCts = new System.Threading.CancellationTokenSource(CreateTimeout);
-            using var linkedCts = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(
-                timeoutCts.Token, ct);
             bool success;
             try
             {
-                success = await CreateCore(actionFinishedAtEnd, projectPath, projectParameters, linkedCts.Token);
-            }
-            catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
-            {
-                consoleWriter.AddMessageLine($"Project creation timed out.", "Red");
-                success = false;
+                success = await CreateCore(actionFinishedAtEnd, projectPath, projectParameters, ct);
             }
             catch (OperationCanceledException)
             {
-                // Re-throw so the outer ExecuteTaskWithWaiterAsync catches it and shows the interruption message.
                 throw;
             }
             catch (Exception ex)
@@ -98,7 +89,7 @@ namespace BIA.ToolKit.Application.Services
             // Ensure to have namespaces correctly formated
             projectParameters.ProjectName = $"{char.ToUpper(projectParameters.ProjectName[0])}{projectParameters.ProjectName[1..]}";
 
-            var featureSettings = projectParameters.VersionAndOption?.FeatureSettings.ToList();
+            List<FeatureSetting> featureSettings = projectParameters.VersionAndOption?.FeatureSettings.ToList() ?? [];
 
             List<string> foldersToExcludes = [];
             List<string> localFilesToExcludes = [];
@@ -178,47 +169,68 @@ namespace BIA.ToolKit.Application.Services
 
             if (projectParameters.VersionAndOption.WorkTemplate.Version.Equals("VX.Y.Z") || Version.TryParse(projectParameters.VersionAndOption.WorkTemplate.Version.Replace("V", ""), out Version projectVersion) && projectVersion >= new Version("3.10.0"))
             {
+                consoleWriter.AddMessageLine("Start order usings.", "Pink");
                 await Task.Run(() => FileTransform.OrderUsingFromFolder(projectPath), cancellationToken);
             }
 
-            await Task.Run(() =>
+            bool containsFrontAngular = false;
+            if (projectParameters.AngularFronts.Count > 0)
             {
-                bool containsFrontAngular = false;
-                if (projectParameters.AngularFronts.Count > 0)
+                consoleWriter.AddMessageLine("Start copy Angular files.", "Pink");
+                foreach (string angularFront in projectParameters.AngularFronts)
                 {
-                    foreach (string angularFront in projectParameters.AngularFronts)
+                    if (!angularFront.Equals("angular", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        if (!angularFront.Equals("angular", StringComparison.CurrentCultureIgnoreCase))
+                        await Task.Run(() =>
                         {
                             Directory.CreateDirectory(projectPath + "\\" + angularFront);
                             FileTransform.CopyFilesRecursively(projectPath + "\\Angular", projectPath + "\\" + angularFront);
-                        }
-                        else
-                        {
-                            containsFrontAngular = true;
-                        }
+                        }, cancellationToken);
+                    }
+                    else
+                    {
+                        containsFrontAngular = true;
                     }
                 }
-                if (!containsFrontAngular)
+            }
+
+            if (!containsFrontAngular)
+            {
+                if (Directory.Exists(projectPath + "\\Angular"))
                 {
-                    if (Directory.Exists(projectPath + "\\Angular"))
+                    consoleWriter.AddMessageLine("Start remove Angular folder.", "Pink");
+                    await Task.Run(() =>
                     {
                         Directory.Delete(projectPath + "\\Angular", true);
-                    }
+                    }, cancellationToken);
                 }
+            }
 
+            if (featureSettings.Any(f => f.Id == (int)BiaFeatureSettingsEnum.CreateDefaultTeam && f.IsSelected))
+            {
+                projectParameters.VersionAndOption.HasDefaultTeam = true;
 
-                string rootBiaFolder = Path.Combine(projectPath, Constants.FolderBia);
+                // ✅ Validation stricte: Les valeurs DOIVENT être remplies
+                // Cette vérification est un filet de sécurité (validation UI devrait bloquer avant)
+                ValidateDefaultTeamSettings(projectParameters.VersionAndOption);
+
+                await CreateDefaultTeam(projectPath, projectParameters, cancellationToken);
+            }
+
+            string rootBiaFolder = Path.Combine(projectPath, Constants.FolderBia);
+            await Task.Run(() =>
+            {
                 if (!Directory.Exists(rootBiaFolder))
                 {
                     Directory.CreateDirectory(rootBiaFolder);
                 }
-
-                string projectGenerationFile = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
-                var versionAndOptionDto = new VersionAndOptionDto();
-                VersionAndOptionMapper.ModelToDto(projectParameters.VersionAndOption, versionAndOptionDto);
-                CommonTools.SerializeToJsonFile(versionAndOptionDto, projectGenerationFile);
             }, cancellationToken);
+
+            consoleWriter.AddMessageLine("Start generation file creation.", "Pink");
+            string projectGenerationFile = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
+            var versionAndOptionDto = new VersionAndOptionDto();
+            VersionAndOptionMapper.ModelToDto(projectParameters.VersionAndOption, versionAndOptionDto);
+            CommonTools.SerializeToJsonFile(versionAndOptionDto, projectGenerationFile);
 
             CleanBiaToolkitJsonFiles(projectPath);
 
@@ -226,10 +238,91 @@ namespace BIA.ToolKit.Application.Services
             return true;
         }
 
+        private async Task CreateDefaultTeam(string projectPath, ProjectParameters projectParameters, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            consoleWriter.AddMessageLine("Start create default team.", "Pink");
+            var project = new Domain.ModifyProject.Project
+            {
+                Folder = projectPath,
+            };
+
+            await projectService.LoadProject(project, cancellationToken);
+
+            var fileGeneratorService = new FileGeneratorService(consoleWriter);
+            await fileGeneratorService.Init(project, cancellationToken: cancellationToken);
+
+            bool hasFront = project.BIAFronts.Count > 0;
+            string angularFront = Path.Combine(projectPath, project.BIAFronts.FirstOrDefault() ?? string.Empty);
+            string prettierTemporaryToolProjectPath = null;
+            if (hasFront)
+            {
+                prettierTemporaryToolProjectPath = await fileGeneratorService.CreateTemporaryPrettierToolProject(angularFront, cancellationToken);
+                fileGeneratorService.SetPrettierAngularProjectPath(prettierTemporaryToolProjectPath);
+            }
+
+            try
+            {
+                string baseKeyType = "int";
+                await fileGeneratorService.GenerateTeamAsync(new FileGenerator.Contexts.FileGeneratorTeamContext
+                {
+                    CompanyName = projectParameters.CompanyName,
+                    ProjectName = projectParameters.ProjectName,
+                    EntityName = projectParameters.VersionAndOption.DefaultTeamName,
+                    EntityNamePlural = projectParameters.VersionAndOption.DefaultTeamNamePlural,
+                    DomainName = projectParameters.VersionAndOption.DefaultTeamDomainName,
+                    BaseKeyType = baseKeyType,
+                    IsTeam = true,
+                    GenerateBack = true,
+                    GenerateFront = hasFront,
+                    AngularFront = angularFront
+                }, cancellationToken);
+
+                await fileGeneratorService.GenerateDtoAsync(new FileGenerator.Contexts.FileGeneratorDtoContext
+                {
+                    CompanyName = projectParameters.CompanyName,
+                    ProjectName = projectParameters.ProjectName,
+                    EntityName = projectParameters.VersionAndOption.DefaultTeamName,
+                    EntityNamePlural = projectParameters.VersionAndOption.DefaultTeamNamePlural,
+                    DomainName = projectParameters.VersionAndOption.DefaultTeamDomainName,
+                    BaseKeyType = baseKeyType,
+                    IsTeam = true,
+                    GenerateBack = true,
+                    GenerateFront = hasFront,
+                    AngularFront = angularFront
+                }, cancellationToken);
+
+                await fileGeneratorService.GenerateCRUDAsync(new FileGenerator.Contexts.FileGeneratorCrudContext
+                {
+                    CompanyName = projectParameters.CompanyName,
+                    ProjectName = projectParameters.ProjectName,
+                    EntityName = projectParameters.VersionAndOption.DefaultTeamName,
+                    EntityNamePlural = projectParameters.VersionAndOption.DefaultTeamNamePlural,
+                    DomainName = projectParameters.VersionAndOption.DefaultTeamDomainName,
+                    BaseKeyType = baseKeyType,
+                    IsTeam = true,
+                    TeamTypeId = 2,
+                    TeamRoleId = 1,
+                    DisplayItemName = "Title",
+                    GenerateBack = true,
+                    GenerateFront = hasFront,
+                    AngularFront = angularFront
+                }, cancellationToken);
+            }
+            finally
+            {
+                if (hasFront && !string.IsNullOrWhiteSpace(prettierTemporaryToolProjectPath))
+                {
+                    await fileGeneratorService.CleanupTemporaryPrettierToolProject(prettierTemporaryToolProjectPath, CancellationToken.None);
+                }
+            }
+        }
+
         private async Task RenameInProject(string projectPath, ProjectParameters projectParameters, System.Threading.CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            
+
             consoleWriter.AddMessageLine("Start rename.", "Pink");
             await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.CompanyName, projectParameters.CompanyName, FileTransform.projectFileExtensions, consoleWriter, cancellationToken);
             await FileTransform.ReplaceInFileAndFileName(projectPath, projectParameters.VersionAndOption.WorkTemplate.Repository.ProjectName, projectParameters.ProjectName, FileTransform.projectFileExtensions, consoleWriter, cancellationToken);
@@ -586,6 +679,22 @@ namespace BIA.ToolKit.Application.Services
                 consoleWriter.AddMessageLine($"-> Delete {file}", "orange");
                 File.Delete(file);
             }
+        }
+
+        /// <summary>
+        /// Valide que les paramètres de Default Team sont correctement remplis.
+        /// Lève une exception si validation échoue (sécurité en couche).
+        /// </summary>
+        private static void ValidateDefaultTeamSettings(VersionAndOption versionAndOption)
+        {
+            if (string.IsNullOrWhiteSpace(versionAndOption.DefaultTeamName))
+                throw new InvalidOperationException("DefaultTeamName is required when CreateDefaultTeam feature is selected.");
+
+            if (string.IsNullOrWhiteSpace(versionAndOption.DefaultTeamNamePlural))
+                throw new InvalidOperationException("DefaultTeamNamePlural is required when CreateDefaultTeam feature is selected.");
+
+            if (string.IsNullOrWhiteSpace(versionAndOption.DefaultTeamDomainName))
+                throw new InvalidOperationException("DefaultTeamDomainName is required when CreateDefaultTeam feature is selected.");
         }
 
         [GeneratedRegex(@"\\bia-.*\\", RegexOptions.IgnoreCase, "fr-FR")]
