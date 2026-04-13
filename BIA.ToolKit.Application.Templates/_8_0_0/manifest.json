@@ -484,6 +484,13 @@
           "outputPath": "{Project}.Infrastructure.Data\\DataContext.cs",
           "isPartial": true,
           "partialInsertionMarkup": "DbSet"
+        },
+        {
+          "inputPath": "InfrastructureData\\PartialTeamDataContextTemplate_EntityDomainUsing.tt",
+          "outputPath": "{Project}.Infrastructure.Data\\DataContext.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "EntityDomainUsing",
+          "UseDomainPartialInsertionMarkup": true
         }
       ]
     }

@@ -114,6 +114,11 @@
     <Compile Include="_8_0_0\Models\EntityTeamModel.cs" />
     <Compile Include="_8_0_0\Models\PropertyCrudModel.cs" />
     <Compile Include="_8_0_0\Models\PropertyDtoModel.cs" />
+    <None Include="_8_0_0\Templates\DotNet\InfrastructureData\PartialTeamDataContextTemplate_EntityDomainUsing.cs">
+      <DependentUpon>PartialTeamDataContextTemplate_EntityDomainUsing.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="_8_0_0\Templates\DotNet\InfrastructureData\PartialTeamDataContextTemplate_DbSet.cs">
       <DependentUpon>PartialTeamDataContextTemplate_DbSet.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -3015,6 +3020,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="_8_0_0\Templates\DotNet\InfrastructureData\PartialTeamDataContextTemplate_EntityDomainUsing.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialTeamDataContextTemplate_EntityDomainUsing.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="_8_0_0\Templates\DotNet\InfrastructureData\PartialTeamDataContextTemplate_DbSet.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PartialTeamDataContextTemplate_DbSet.cs</LastGenOutput>
