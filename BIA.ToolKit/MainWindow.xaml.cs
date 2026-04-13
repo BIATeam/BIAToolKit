@@ -1,10 +1,11 @@
 namespace BIA.ToolKit
 {
     using System;
+    using System.ComponentModel;
     using System.IO;
     using System.Runtime.InteropServices;
     using System.Windows;
-    using System.Windows.Controls;
+    using System.Windows.Input;
     using System.Windows.Interop;
     using System.Windows.Media;
     using BIA.ToolKit.Application.Helper;
@@ -18,7 +19,7 @@ namespace BIA.ToolKit
     /// <summary>
     /// Interaction logic for MainWindow.xaml.
     /// Code-behind is limited to view wiring (DataContext, console output control,
-    /// tab-navigation message handling). All business logic lives in MainViewModel.
+    /// navigation handling). All business logic lives in MainViewModel.
     /// </summary>
     public partial class MainWindow : Window
     {
@@ -45,17 +46,96 @@ namespace BIA.ToolKit
             var createVersionAndOptionVM = App.GetService<VersionAndOptionViewModel>();
             CreateVersionAndOption.DataContext = createVersionAndOptionVM;
 
+            // Wire shared ProjectSelector to the singleton ProjectViewModel
+            var projectViewModel = App.GetService<ProjectViewModel>();
+            SharedProjectSelector.DataContext = projectViewModel;
+
             ViewModel = App.GetService<MainViewModel>();
             ViewModel.CreateVersionAndOptionVM = createVersionAndOptionVM;
             DataContext = ViewModel;
 
-            WeakReferenceMessenger.Default.Register<NavigateToConfigTabMessage>(this, (r, m) => Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0)));
+            // Navigate to Configuration page when repos are invalid
+            WeakReferenceMessenger.Default.Register<NavigateToConfigTabMessage>(this, (r, m) => Dispatcher.BeginInvoke((Action)(() => NavConfig.IsChecked = true)));
             WeakReferenceMessenger.Default.Register<OpenDefaultTeamSettingsMessage>(this, (r, m) => OnOpenDefaultTeamSettings(m.ViewModel));
+
+            // Auto-expand output panel when a busy operation starts
+            ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+
+            // Trigger initial navigation after window is loaded
+            Loaded += (_, _) => OnNavChanged(null, null);
 
             // Read IsDarkTheme directly from persisted settings because
             // SettingsService.Load() hasn't been called yet at this point.
             ApplyTheme(Properties.Settings.Default.IsDarkTheme);
         }
+
+        private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(MainViewModel.IsBusy) && ViewModel.IsBusy)
+            {
+                ExpandOutputPanel();
+            }
+        }
+
+        #region Navigation
+
+        private void OnNavChanged(object sender, RoutedEventArgs e)
+        {
+            if (!IsLoaded)
+                return;
+
+            // Hide all pages
+            PageConfig.Visibility = Visibility.Collapsed;
+            PageCreate.Visibility = Visibility.Collapsed;
+            ModifyProject.Visibility = Visibility.Collapsed;
+            GenerateProject.Visibility = Visibility.Collapsed;
+
+            // Show selected page
+            if (NavConfig.IsChecked == true)
+                PageConfig.Visibility = Visibility.Visible;
+            else if (NavCreation.IsChecked == true)
+                PageCreate.Visibility = Visibility.Visible;
+            else if (NavMigration.IsChecked == true)
+                ModifyProject.Visibility = Visibility.Visible;
+            else if (NavGeneration.IsChecked == true)
+                GenerateProject.Visibility = Visibility.Visible;
+
+            // Show shared ProjectSelector for Migration/Generation only
+            SharedProjectSelector.Visibility = (NavMigration.IsChecked == true || NavGeneration.IsChecked == true)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
+            // Validate repository configuration when leaving Config
+            // Guard: ViewModel.InitAsync() may not have run yet at first Loaded
+            if (NavConfig.IsChecked != true && ViewModel?.IsInitialized == true)
+                ViewModel.EnsureValidRepositoriesConfiguration();
+        }
+
+        #endregion
+
+        #region Output Panel
+
+        private void ToggleOutputPanel(object sender, MouseButtonEventArgs e)
+        {
+            if (OutputTextViewer.Visibility == Visibility.Visible)
+                CollapseOutputPanel();
+            else
+                ExpandOutputPanel();
+        }
+
+        private void ExpandOutputPanel()
+        {
+            OutputTextViewer.Visibility = Visibility.Visible;
+            ChevronRotation.Angle = 90;
+        }
+
+        private void CollapseOutputPanel()
+        {
+            OutputTextViewer.Visibility = Visibility.Collapsed;
+            ChevronRotation.Angle = 0;
+        }
+
+        #endregion
 
         private void OnOpenDefaultTeamSettings(object viewModel)
         {
@@ -132,14 +212,6 @@ namespace BIA.ToolKit
                 MaximizeIcon.Kind = WindowState == WindowState.Maximized
                     ? PackIconKind.WindowRestore
                     : PackIconKind.WindowMaximize;
-            }
-        }
-
-        private void OnTabSelected(object sender, RoutedEventArgs e)
-        {
-            if (sender is TabItem)
-            {
-                ViewModel.EnsureValidRepositoriesConfiguration();
             }
         }
 

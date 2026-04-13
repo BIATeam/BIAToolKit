@@ -8,12 +8,7 @@
              mc:Ignorable="d"
              d:Height="550" d:Width="1280">
     <Grid x:Name="TabModify">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
-        <uc:ProjectSelectorUC x:Name="ProjectSelector" Grid.Row="0" Margin="10"/>
-        <Grid Grid.Row="1" Margin="10,0,10,0">
+        <Grid Margin="10,0,10,0">
             <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2"/>
             <TabControl x:Name="TabActions" SelectedIndex="{Binding SelectedTabIndex}" IsEnabled="{Binding IsProjectSelected}">
                 <TabItem x:Name="TabProject" Header="Project" >

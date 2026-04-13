@@ -63,6 +63,8 @@ namespace BIA.ToolKit.ViewModels
         /// Loads persisted settings, fetches repository releases, then broadcasts
         /// the initial SettingsUpdatedMessage.
         /// </summary>
+        public bool IsInitialized { get; private set; }
+
         public async Task InitAsync()
         {
             await ExecuteWithBusyAsync(async (ct) =>
@@ -80,6 +82,8 @@ namespace BIA.ToolKit.ViewModels
 
                 await Task.Run(() => cSharpParserService.RegisterMSBuild(consoleWriter), ct);
             });
+
+            IsInitialized = true;
         }
 
         public async Task GetReleasesData(BIATKSettings settings, bool syncBefore = false, CancellationToken ct = default)

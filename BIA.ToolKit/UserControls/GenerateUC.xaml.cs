@@ -14,7 +14,6 @@ namespace BIA.ToolKit.UserControls
 
             ProjectViewModel projectViewModel = App.GetService<ProjectViewModel>();
             DataContext = projectViewModel;
-            ProjectSelector.DataContext = projectViewModel;
 
             CRUDGenerator.DataContext = App.GetService<CRUDGeneratorViewModel>();
             DtoGenerator.DataContext = App.GetService<DtoGeneratorViewModel>();
