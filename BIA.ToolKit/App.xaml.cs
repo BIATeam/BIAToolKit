@@ -45,6 +45,7 @@ namespace BIA.ToolKit
             services.AddSingleton<UpdateService>();
             services.AddSingleton<TemplateVersionService>();
             services.AddSingleton<FeatureSettingService>();
+            services.AddSingleton<ProjectService>();
             services.AddSingleton<Application.Services.DtoMappingService>();
             services.AddSingleton<Application.Services.EntityResolutionService>();
             services.AddSingleton<Application.Services.GenerationHistoryService>();

@@ -164,10 +164,10 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
 
                 // Generate features into FROM then TO projects.
                 await featureMigrationGeneratorService.GenerateFeaturesAsync(
-                    currentProject, fromPath, fromWorkRepo.Version, entities, cSharpParserService);
+                    currentProject, fromPath, fromWorkRepo.Version, entities, cSharpParserService, ct);
 
                 await featureMigrationGeneratorService.GenerateFeaturesAsync(
-                    currentProject, toPath, toWorkRepo.Version, entities, cSharpParserService);
+                    currentProject, toPath, toWorkRepo.Version, entities, cSharpParserService, ct);
 
                 // Apply three-point diff to the real project.
                 string patchFilePath = Path.Combine(AppSettings.TmpFolderPath,

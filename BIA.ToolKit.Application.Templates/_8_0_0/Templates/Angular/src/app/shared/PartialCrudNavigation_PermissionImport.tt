@@ -1,0 +1,4 @@
+<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_8_0_0)\TemplateTeam.ttinclude" #>
+<#@ output extension=".ts" #>
+import { Permission } from './permission';

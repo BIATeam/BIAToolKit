@@ -4,6 +4,7 @@ namespace BIA.ToolKit.Test.Templates.Assertions
     using System.Collections.Generic;
     using System.Linq;
     using System.Text.RegularExpressions;
+    using System.Threading;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Templates;
@@ -107,7 +108,7 @@ namespace BIA.ToolKit.Test.Templates.Assertions
                 // Prettier front files (excluded HTML)
                 if (isAngularTemplate && !referencePath.EndsWith("html"))
                 {
-                    testFixture.FileGeneratorService.RunPrettierAsync(referencePath).Wait();
+                    testFixture.FileGeneratorService.RunPrettierAsync(referencePath, CancellationToken.None).Wait();
                 }
             }
         }

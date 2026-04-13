@@ -1,0 +1,80 @@
+<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_8_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".ts" #>
+<#  if(ModelInstance.HasListAndItemModels) { #>
+import {
+  BaseDto,
+  BiaFieldConfig,
+  BiaFieldsConfig,
+<#  if(ModelInstance.IsFixable) { #>
+  FixableDto,
+<#  } #>
+<#  if(ModelInstance.IsArchivable) { #>
+  ArchivableDto,
+<#  } #>
+<#  if(ModelInstance.HasOptions) { #>
+  OptionDto,
+<#  } #>
+<#  if(ModelInstance.IsTeam) { #>
+  TeamDto,
+  teamFieldsConfigurationColumns,
+<#  } #>
+<#  if(ModelInstance.IsVersioned) { #>
+  VersionedDto,
+<#  } #>
+} from '@bia-team/bia-ng/models';
+import { PropType } from '@bia-team/bia-ng/models/enum';
+<#  if(ModelInstance.Properties.Any(x => x.HasAngularValidators)) { #>
+import { Validators } from '@angular/forms';
+<#  } #>
+
+// TODO after creation of CRUD<# if(ModelInstance.IsTeam) {#> Team<# } #> <#= ModelInstance.EntityName #> : adapt the model
+export interface <#= ModelInstance.EntityName #>List
+  extends <#=  ModelInstance.AngularModelInterfaceInheritance #> {
+<#  foreach(var property in ModelInstance.ListPropertiesToGenerate) { #>
+  <#= property.Name.ToCamelCase() #>: <#= property.AngularType #>;
+<# }  #>
+}
+
+// TODO after creation of CRUD<# if(ModelInstance.IsTeam) {#> Team<# } #> <#= ModelInstance.EntityName #> : adapt the field configuration
+export const <#= ModelInstance.EntityName.ToCamelCase() #>ListFieldsConfiguration: BiaFieldsConfig<<#= ModelInstance.EntityName #>List> = {
+  columns: [
+<#  if(ModelInstance.BaseKeyType == "string") { #>
+    Object.assign(new BiaFieldConfig('id', '<#= ModelInstance.EntityName.ToCamelCase() #>.id'), {
+      type: PropType.String,
+      isRequired: true,
+      isOnlyInitializable: true,
+    }),
+<#  } #>
+<#  if(ModelInstance.IsTeam) { #>
+      ...teamFieldsConfigurationColumns,
+      ...[
+<#  } #>
+<#  foreach(var property in ModelInstance.ListBiaFieldConfigProperties) { #>
+    Object.assign(new BiaFieldConfig('<#= property.Name.ToCamelCase() #>', '<#= ModelInstance.EntityName.ToCamelCase() #>.<#= property.Name.ToCamelCase() #>'), {
+<#  if(property.HasAngularPropType) { #>
+      type: PropType.<#= property.AngularPropType #>,
+<#  } #>
+<#  if(property.IsRequired) { #>
+      isRequired: true,
+<#  } #>
+<#  if(property.HasAngularValidators) { #>
+      validators: [<#= property.AngularValidators #>],
+<#  } #>
+<#  if(property.AsLocalDateTime) { #>
+      asLocalDateTime: true,
+<#  } #>
+    }),
+<# }  #>
+<#  if(ModelInstance.IsVersioned) { #>
+    Object.assign(new BiaFieldConfig('rowVersion', '<#= ModelInstance.EntityName.ToCamelCase() #>.rowVersion'), {
+      isVisible: false,
+      isVisibleInTable: false,
+    }),
+<#  } #>
+<#  if(ModelInstance.IsTeam) { #>
+    ],
+<#  } #>
+  ],
+};
+<#  } #>

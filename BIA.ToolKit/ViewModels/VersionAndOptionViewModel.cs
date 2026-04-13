@@ -95,6 +95,9 @@ namespace BIA.ToolKit.ViewModels
                 {
                     VersionAndOption.WorkTemplate = value;
                     AreFeatureInitialized = false;
+                    DefaultTeamName = null;
+                    DefaultTeamNamePlural = null;
+                    DefaultTeamDomainName = null;
                     foreach (WorkRepository workCompanyFile in WorkCompanyFiles)
                     {
                         if (WorkTemplate?.Version == workCompanyFile.Version)
@@ -264,6 +267,20 @@ namespace BIA.ToolKit.ViewModels
             // Feature
             SetFeaturesSelection(dto.Tags, dto.Folders, originFeatureSettings);
 
+            if (dto.HasDefaultTeam)
+            {
+                FeatureSettingViewModel createDefaultTeamVm = FeatureSettings?.FirstOrDefault(f => f.IsCreateDefaultTeam);
+                if (createDefaultTeamVm != null)
+                {
+                    createDefaultTeamVm.IsSelected = true;
+                }
+            }
+
+            // Default Team
+            DefaultTeamName = dto.DefaultTeamName;
+            DefaultTeamNamePlural = dto.DefaultTeamNamePlural;
+            DefaultTeamDomainName = dto.DefaultTeamDomainName;
+
             // Company Files
             if (mapCompanyFileVersion)
             {
@@ -295,6 +312,7 @@ namespace BIA.ToolKit.ViewModels
             HasFeature = value?.Any() == true;
             AreFeatureInitialized = true;
             VersionAndOption.FeatureSettings = [.. (value ?? []).Select(x => x.FeatureSetting)];
+            RefreshDefaultTeamConfigStatus();
         }
 
         public void SetFeaturesSelection(List<string> projectGenerationTags, List<string> projectGenerationExcludedFolders, List<FeatureSetting> originFeatureSettings)
@@ -320,6 +338,84 @@ namespace BIA.ToolKit.ViewModels
 
         public bool IsVisibileNoFeature => !AreFeatureVisible;
 
+        #region Default Team
+
+        public string DefaultTeamName
+        {
+            get => VersionAndOption.DefaultTeamName;
+            set
+            {
+                if (VersionAndOption.DefaultTeamName != value)
+                {
+                    VersionAndOption.DefaultTeamName = value;
+                    OnPropertyChanged(nameof(DefaultTeamName));
+                    RefreshDefaultTeamConfigStatus();
+                }
+            }
+        }
+
+        public string DefaultTeamNamePlural
+        {
+            get => VersionAndOption.DefaultTeamNamePlural;
+            set
+            {
+                if (VersionAndOption.DefaultTeamNamePlural != value)
+                {
+                    VersionAndOption.DefaultTeamNamePlural = value;
+                    OnPropertyChanged(nameof(DefaultTeamNamePlural));
+                    RefreshDefaultTeamConfigStatus();
+                }
+            }
+        }
+
+        public string DefaultTeamDomainName
+        {
+            get => VersionAndOption.DefaultTeamDomainName;
+            set
+            {
+                if (VersionAndOption.DefaultTeamDomainName != value)
+                {
+                    VersionAndOption.DefaultTeamDomainName = value;
+                    OnPropertyChanged(nameof(DefaultTeamDomainName));
+                    RefreshDefaultTeamConfigStatus();
+                }
+            }
+        }
+
+        public bool IsDefaultTeamSetupValid
+        {
+            get
+            {
+                bool isSelected = FeatureSettings?.Any(f =>
+                    f.FeatureSetting.Id == (int)BiaFeatureSettingsEnum.CreateDefaultTeam &&
+                    f.IsSelected) ?? false;
+
+                return !isSelected ||
+                    (!string.IsNullOrWhiteSpace(VersionAndOption.DefaultTeamName) &&
+                     !string.IsNullOrWhiteSpace(VersionAndOption.DefaultTeamNamePlural) &&
+                     !string.IsNullOrWhiteSpace(VersionAndOption.DefaultTeamDomainName));
+            }
+        }
+
+        private void RefreshDefaultTeamConfigStatus()
+        {
+            bool isValid = IsDefaultTeamSetupValid;
+            FeatureSettingViewModel fvm = FeatureSettings?.FirstOrDefault(f => f.IsCreateDefaultTeam);
+            if (fvm != null)
+            {
+                fvm.IsDefaultTeamConfigValid = isValid;
+            }
+            OnPropertyChanged(nameof(IsDefaultTeamSetupValid));
+        }
+
+        [RelayCommand]
+        private void OpenDefaultTeamSettings()
+        {
+            WeakReferenceMessenger.Default.Send(new OpenDefaultTeamSettingsMessage(this));
+        }
+
+        #endregion
+
         [RelayCommand]
         private void OnFeatureSettingSelectionChanged()
         {
@@ -328,6 +424,8 @@ namespace BIA.ToolKit.ViewModels
             {
                 FeatureSettings.Single(x => x.FeatureSetting.Id == notSelectedFeature.Id).IsSelected = false;
             }
+
+            RefreshDefaultTeamConfigStatus();
         }
 
         // Event broker handlers

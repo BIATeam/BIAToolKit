@@ -14,7 +14,8 @@ namespace BIA.ToolKit.Application.Templates
             {
                 Dto,
                 Option,
-                Crud
+                Crud,
+                Team
             }
 
             public class Template : IEquatable<Template>
@@ -25,6 +26,7 @@ namespace BIA.ToolKit.Application.Templates
                 public string PartialInsertionMarkup { get; set; }
                 public bool UseDomainPartialInsertionMarkup { get; set; }
                 public List<string> IgnoredInnerMarkups { get; set; } = [];
+                public bool HasNoPartialInsertionMarkupSuffix { get; set; }
 
                 public bool Equals(Template other)
                 {
@@ -33,6 +35,8 @@ namespace BIA.ToolKit.Application.Templates
                         && OutputPath == other.OutputPath
                         && IsPartial == other.IsPartial
                         && other.PartialInsertionMarkup == PartialInsertionMarkup
+                        && UseDomainPartialInsertionMarkup == other.UseDomainPartialInsertionMarkup
+                        && HasNoPartialInsertionMarkupSuffix == other.HasNoPartialInsertionMarkupSuffix
                         && IgnoredInnerMarkups.Count == other.IgnoredInnerMarkups.Count
                         && IgnoredInnerMarkups.All(other.IgnoredInnerMarkups.Contains);
                 }

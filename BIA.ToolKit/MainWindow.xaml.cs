@@ -50,10 +50,28 @@ namespace BIA.ToolKit
             DataContext = ViewModel;
 
             WeakReferenceMessenger.Default.Register<NavigateToConfigTabMessage>(this, (r, m) => Dispatcher.BeginInvoke((Action)(() => MainTab.SelectedIndex = 0)));
+            WeakReferenceMessenger.Default.Register<OpenDefaultTeamSettingsMessage>(this, (r, m) => OnOpenDefaultTeamSettings(m.ViewModel));
 
             // Read IsDarkTheme directly from persisted settings because
             // SettingsService.Load() hasn't been called yet at this point.
             ApplyTheme(Properties.Settings.Default.IsDarkTheme);
+        }
+
+        private void OnOpenDefaultTeamSettings(object viewModel)
+        {
+            if (viewModel is not VersionAndOptionViewModel vm)
+                return;
+
+            var window = new Dialogs.DefaultTeamSettingsWindow(
+                vm.DefaultTeamName, vm.DefaultTeamNamePlural, vm.DefaultTeamDomainName)
+                { Owner = this };
+
+            if (window.ShowDialog() == true)
+            {
+                vm.DefaultTeamName = window.ViewModel.DefaultTeamName;
+                vm.DefaultTeamNamePlural = window.ViewModel.DefaultTeamNamePlural;
+                vm.DefaultTeamDomainName = window.ViewModel.DefaultTeamDomainName;
+            }
         }
 
         public System.Threading.Tasks.Task Init() => ViewModel.InitAsync();

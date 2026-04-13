@@ -238,7 +238,8 @@
                                 <TextBox Grid.Row="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Company Name" Text="{Binding Settings_CreateCompanyName}" TextWrapping="Wrap"/>
                                 <TextBox Margin="0,10" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Project Name" Text="{Binding CreateProjectName, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" x:Name="CreateProjectName" IsEnabled="True"/>
                             </Grid>
-                            <Button Grid.Column="2" Style="{StaticResource MaterialDesignRaisedSecondaryButton}" Height="50" Width="150" Content="Create" HorizontalAlignment="Right" Command="{Binding CreateProjectCommand}" VerticalAlignment="Top"/>
+                            <Button Grid.Column="2" Style="{StaticResource MaterialDesignRaisedSecondaryButton}" Height="50" Width="150" Content="Create" HorizontalAlignment="Right" Command="{Binding CreateProjectCommand}" VerticalAlignment="Top"
+                                    IsEnabled="{Binding IsFeatureConfigValid, ElementName=CreateVersionAndOption}"/>
                         </Grid>
 
                         <uc:VersionAndOptionUserControl Grid.Row="1" VerticalAlignment="Bottom" x:Name="CreateVersionAndOption" Margin="10" Height="auto"/>

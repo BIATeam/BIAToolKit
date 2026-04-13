@@ -18,7 +18,7 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
 
-        <ComboBox Grid.Column="0" ItemsSource="{Binding WorkTemplates}" 
+        <ComboBox Grid.Column="0" ItemsSource="{Binding WorkTemplates}"
                   DisplayMemberPath="VersionLabel"
                   SelectedItem="{Binding WorkTemplate}"
                   Style="{StaticResource MaterialDesignFilledComboBox}"
@@ -46,6 +46,25 @@
                                             </StackPanel>
                                         </materialDesign:PackIcon.ToolTip>
                                     </materialDesign:PackIcon>
+                                    <!-- Bouton config: uniquement pour CreateDefaultTeam -->
+                                    <Button Margin="5,0,0,0"
+                                            Padding="0"
+                                            Width="20" Height="20"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                            Visibility="{Binding IsCreateDefaultTeam, Converter={StaticResource BoolToVisConverter}}"
+                                            Command="{Binding DataContext.OpenDefaultTeamSettingsCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            ToolTip="Configure Default Team Settings">
+                                        <materialDesign:PackIcon Kind="Cog" Height="16" Width="16"/>
+                                    </Button>
+                                    <!-- Icône erreur: CreateDefaultTeam sélectionné mais config incomplète -->
+                                    <materialDesign:PackIcon Margin="3,0,0,0"
+                                                             Height="18" Width="18"
+                                                             VerticalAlignment="Center"
+                                                             Kind="AlertCircle"
+                                                             Foreground="OrangeRed"
+                                                             Visibility="{Binding ShowDefaultTeamConfigError, Converter={StaticResource BoolToVisConverter}}"
+                                                             ToolTip="Default Team configuration is required."/>
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

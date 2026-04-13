@@ -1,6 +1,5 @@
 namespace BIA.ToolKit.ViewModels
 {
-    using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
@@ -11,7 +10,6 @@ namespace BIA.ToolKit.ViewModels
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.Settings;
     using System;
-    using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
@@ -27,17 +25,15 @@ namespace BIA.ToolKit.ViewModels
         IRecipient<SettingsUpdatedMessage>
     {
         private readonly FileGeneratorService fileGeneratorService;
-        private readonly IConsoleWriter consoleWriter;
         private readonly SettingsService settingsService;
-        private readonly CSharpParserService parserService;
+        private readonly ProjectService projectService;
 
-        public ProjectViewModel(FileGeneratorService fileGeneratorService, IConsoleWriter consoleWriter,
-            SettingsService settingsService, CSharpParserService parserService)
+        public ProjectViewModel(FileGeneratorService fileGeneratorService,
+            SettingsService settingsService, ProjectService projectService)
         {
             this.fileGeneratorService = fileGeneratorService;
-            this.consoleWriter = consoleWriter;
             this.settingsService = settingsService;
-            this.parserService = parserService;
+            this.projectService = projectService;
 
             WeakReferenceMessenger.Default.RegisterAll(this);
         }
@@ -138,7 +134,7 @@ namespace BIA.ToolKit.ViewModels
                             Name = value,
                             Folder = Path.Combine(RootProjectsPath, value)
                         };
-                        await LoadProject(project, ct);
+                        await projectService.LoadProject(project, ct);
                     }
 
                     await InitFileGeneratorServiceFromProject(project, ct);
@@ -146,7 +142,7 @@ namespace BIA.ToolKit.ViewModels
 
                     if (CurrentProject is not null)
                     {
-                        await ParseProject(project, ct);
+                        await projectService.ParseProject(project, ct);
                     }
 
                     OnPropertyChanged(nameof(Folder));
@@ -158,7 +154,7 @@ namespace BIA.ToolKit.ViewModels
 
         #region Current project
 
-        public Dictionary<string, NamesAndVersionResolver> CurrentProjectDetections { get; set; }
+        public System.Collections.Generic.Dictionary<string, Application.Helper.NamesAndVersionResolver> CurrentProjectDetections { get; set; }
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(FrameworkVersion))]
@@ -209,99 +205,19 @@ namespace BIA.ToolKit.ViewModels
         private async Task InitFileGeneratorServiceFromProject(Project project, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
-            await fileGeneratorService.Init(project);
+            await fileGeneratorService.Init(project, cancellationToken: ct);
             IsFileGeneratorServiceInit = fileGeneratorService.IsInit;
             IsProjectCompatibleCrudGenerator = GenerateCrudService.IsProjectCompatible(project);
             IsProjectCompatibleRegenerateFeatures = RegenerateFeaturesDiscoveryService.IsProjectCompatibleForRegenerateFeatures(project);
-        }
-
-        private async Task LoadProject(Project project, CancellationToken ct = default)
-        {
-            ct.ThrowIfCancellationRequested();
-
-            try
-            {
-                consoleWriter.AddMessageLine($"Loading project {project.Name}", "pink");
-
-                consoleWriter.AddMessageLine("List project's files...", "darkgray");
-                await project.ListProjectFiles();
-                project.SolutionPath = project.ProjectFiles.FirstOrDefault(path =>
-                    path.EndsWith($"{project.Name}.sln", StringComparison.InvariantCultureIgnoreCase));
-                consoleWriter.AddMessageLine("Project's files listed", "lightgreen");
-
-                consoleWriter.AddMessageLine("Resolving names and version...", "darkgray");
-
-                NamesAndVersionResolver nvResolverOldVersions = new()
-                {
-                    ConstantFileRegExpPath = @"\\.*\\(.*)\.(.*)\.Common\\Constants\.cs$",
-                    ConstantFileNameSearchPattern = "Constants.cs",
-                    ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
-                    ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
-                    FrontFileRegExpPath = null,
-                    FrontFileUsingBiaNg = null,
-                    FrontFileBiaNgImportRegExp = null,
-                    FrontFileNameSearchPattern = null
-                };
-
-                NamesAndVersionResolver nvResolver = new()
-                {
-                    ConstantFileRegExpPath = @"\\DotNet\\(.*)\.(.*)\.Crosscutting\.Common\\[Bia\\]*Constants\.cs$",
-                    ConstantFileNameSearchPattern = "Constants.cs",
-                    ConstantFileNamespace = @"^namespace\s+([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\.",
-                    ConstantFileRegExpVersion = @" FrameworkVersion[\s]*=[\s]* ""([0-9]+\.[0-9]+\.[0-9]+)""[\s]*;[\s]*$",
-                    FrontFileRegExpPath =
-                    [
-                        @"\\(.*)\\src\\app\\core\\bia-core\\bia-core.module\.ts$",
-                        @"\\(.*)\\packages\\bia-ng\\core\\bia-core.module\.ts$"
-                    ],
-                    FrontFileUsingBiaNg = @"\\(?!.*(?:\\node_modules\\|\\dist\\|\\\.angular\\))(.*)\\package\.json$",
-                    FrontFileBiaNgImportRegExp = "\"@bia-team/bia-ng\":",
-                    FrontFileNameSearchPattern = "bia-core.module.ts"
-                };
-
-                var resolverTask = Task.Run(() => nvResolver.ResolveNamesAndVersion(project), ct);
-                var resolverOldVersionsTask = Task.Run(() => nvResolverOldVersions.ResolveNamesAndVersion(project), ct);
-                await Task.WhenAll(resolverTask, resolverOldVersionsTask);
-
-                consoleWriter.AddMessageLine("Names and version resolved", "lightgreen");
-
-                if (project.BIAFronts.Count == 0)
-                {
-                    consoleWriter.AddMessageLine("Unable to find any BIA front folder for this project", "orange");
-                }
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine($"Error while loading project : {ex.Message}", "red");
-            }
-        }
-
-        private async Task ParseProject(Project project, CancellationToken ct = default)
-        {
-            ct.ThrowIfCancellationRequested();
-            try
-            {
-                await parserService.LoadSolution(project.SolutionPath, ct);
-                await parserService.ParseSolutionClasses(ct);
-            }
-            catch (OperationCanceledException)
-            {
-                consoleWriter.AddMessageLine("Operation cancelled.", "Yellow");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine($"Error while loading project solution : {ex.Message}", "red");
-            }
         }
 
         private void RefreshProjectInformations()
         {
             WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
-                await LoadProject(CurrentProject, ct);
+                await projectService.LoadProject(CurrentProject, ct);
                 await InitFileGeneratorServiceFromProject(CurrentProject, ct);
-                await ParseProject(CurrentProject, ct);
+                await projectService.ParseProject(CurrentProject, ct);
                 RefreshProjectDisplayProperties();
             }));
         }
