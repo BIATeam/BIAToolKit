@@ -2,8 +2,10 @@ namespace BIA.ToolKit
 {
     using System;
     using System.IO;
+    using System.Runtime.InteropServices;
     using System.Windows;
     using System.Windows.Controls;
+    using System.Windows.Interop;
     using System.Windows.Media;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Messages;
@@ -30,6 +32,12 @@ namespace BIA.ToolKit
             AppSettings.TmpFolderPath = Path.GetTempPath() + "BIAToolKit\\";
 
             InitializeComponent();
+
+            SourceInitialized += (s, e) =>
+            {
+                var handle = new WindowInteropHelper(this).Handle;
+                HwndSource.FromHwnd(handle)?.AddHook(WndProc);
+            };
 
             consoleWriterInstance = (ConsoleWriter)consoleWriter;
             consoleWriterInstance.InitOutput(OutputText, OutputTextViewer, this, App.GetService<IDialogService>());
@@ -64,8 +72,8 @@ namespace BIA.ToolKit
 
             if (isDark)
             {
-                theme.SetPrimaryColor(Color.FromRgb(0x90, 0xEE, 0x90));
-                theme.SetSecondaryColor(Color.FromRgb(0x00, 0xFF, 0x00));
+                theme.SetPrimaryColor(Color.FromRgb(0x8B, 0xC3, 0x4A)); // MaterialDesign LightGreen 500
+                theme.SetSecondaryColor(Color.FromRgb(0xCD, 0xDC, 0x39)); // MaterialDesign Lime 500
             }
             else
             {
@@ -116,5 +124,64 @@ namespace BIA.ToolKit
                 ViewModel.EnsureValidRepositoriesConfiguration();
             }
         }
+
+        #region WinAPI — constrain maximized window to work area (exclude taskbar)
+
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            const int WM_GETMINMAXINFO = 0x0024;
+            if (msg == WM_GETMINMAXINFO)
+            {
+                var mmi = Marshal.PtrToStructure<MINMAXINFO>(lParam);
+                var monitor = MonitorFromWindow(hwnd, 2 /* MONITOR_DEFAULTTONEAREST */);
+                if (monitor != IntPtr.Zero)
+                {
+                    var monitorInfo = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+                    GetMonitorInfo(monitor, ref monitorInfo);
+                    var work = monitorInfo.rcWork;
+                    var monitorRect = monitorInfo.rcMonitor;
+                    mmi.ptMaxPosition.X = work.Left - monitorRect.Left;
+                    mmi.ptMaxPosition.Y = work.Top - monitorRect.Top;
+                    mmi.ptMaxSize.X = work.Right - work.Left;
+                    mmi.ptMaxSize.Y = work.Bottom - work.Top;
+                }
+                Marshal.StructureToPtr(mmi, lParam, true);
+                handled = true;
+            }
+            return IntPtr.Zero;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+
+        [DllImport("user32.dll")]
+        private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct POINT { public int X, Y; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT { public int Left, Top, Right, Bottom; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MINMAXINFO
+        {
+            public POINT ptReserved;
+            public POINT ptMaxSize;
+            public POINT ptMaxPosition;
+            public POINT ptMaxTrackSize;
+            public POINT ptMinTrackSize;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MONITORINFO
+        {
+            public int cbSize;
+            public RECT rcMonitor;
+            public RECT rcWork;
+            public uint dwFlags;
+        }
+
+        #endregion
     }
 }
