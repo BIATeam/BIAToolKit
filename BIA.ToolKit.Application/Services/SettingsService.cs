@@ -73,6 +73,11 @@ namespace BIA.ToolKit.Application.Services
             ExecuteAndNotifySettingsUpdated(() => settings.AutoUpdate = autoUpdate);
         }
 
+        public void SetIsDarkTheme(bool isDark)
+        {
+            ExecuteAndNotifySettingsUpdated(() => settings.IsDarkTheme = isDark);
+        }
+
         public void SetCreateProjectRootProjectPath(string path)
         {
             ExecuteAndNotifySettingsUpdated(() => settings.CreateProjectRootProjectsPath = path);

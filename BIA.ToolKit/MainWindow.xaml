@@ -7,9 +7,16 @@
         xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
         xmlns:uc="clr-namespace:BIA.ToolKit.UserControls" d:DataContext="{d:DesignInstance Type=local:MainViewModel}"
         mc:Ignorable="d"
-        Style="{StaticResource MaterialDesignWindow}"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        Title="BIA Toolkit" Height="820" Width="1300" Icon="/Images/Tools.ico" WindowStartupLocation="CenterScreen" MinHeight="800" MinWidth="1300" d:Background="#4d4d4d">
+        WindowStyle="None"
+        Title="BIA Toolkit" Height="820" Width="1300" Icon="/Images/Tools.ico" WindowStartupLocation="CenterScreen" MinHeight="800" MinWidth="1300"
+        Background="{DynamicResource MaterialDesign.Brush.Background}"
+        Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
+        TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="36" ResizeBorderThickness="5" GlassFrameThickness="0" CornerRadius="0"/>
+    </WindowChrome.WindowChrome>
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
@@ -17,19 +24,67 @@
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="0.25*"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
+        <!-- Custom title bar -->
+        <Grid Grid.Row="0" Height="36" Background="{DynamicResource MaterialDesign.Brush.AppBar.Background}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- App icon + title -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="8,0">
+                <Image Source="/Images/Tools.ico" Width="18" Height="18" RenderOptions.BitmapScalingMode="Fant" VerticalAlignment="Center"/>
+                <TextBlock Text="BIA Toolkit" VerticalAlignment="Center" Margin="8,0,0,0" FontSize="13"
+                           Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"/>
+            </StackPanel>
+
+            <!-- Theme toggle -->
+            <Button Grid.Column="2" x:Name="ThemeButton"
+                    WindowChrome.IsHitTestVisibleInChrome="True"
+                    Click="ThemeToggleClick"
+                    Style="{StaticResource MaterialDesignFlatButton}" Padding="0"
+                    Width="40" Height="36"
+                    materialDesign:RippleAssist.IsDisabled="True"
+                    ToolTip="Basculer thème Sombre/Clair">
+                <materialDesign:PackIcon x:Name="ThemeIcon" Kind="WeatherNight" Width="18" Height="18"/>
+            </Button>
+
+            <!-- Window buttons -->
+            <StackPanel Grid.Column="3" Orientation="Horizontal" WindowChrome.IsHitTestVisibleInChrome="True">
+                <Button x:Name="MinimizeButton" Click="MinimizeClick" Width="46" Height="36"
+                        Style="{StaticResource MaterialDesignFlatButton}" Padding="0"
+                        materialDesign:RippleAssist.IsDisabled="True">
+                    <materialDesign:PackIcon Kind="WindowMinimize" Width="16" Height="16"/>
+                </Button>
+                <Button x:Name="MaximizeButton" Click="MaximizeClick" Width="46" Height="36"
+                        Style="{StaticResource MaterialDesignFlatButton}" Padding="0"
+                        materialDesign:RippleAssist.IsDisabled="True">
+                    <materialDesign:PackIcon Kind="WindowMaximize" Width="16" Height="16" x:Name="MaximizeIcon"/>
+                </Button>
+                <Button x:Name="CloseButton" Click="CloseClick" Width="46" Height="36"
+                        Style="{StaticResource MaterialDesignFlatButton}" Padding="0"
+                        materialDesign:RippleAssist.IsDisabled="True">
+                    <materialDesign:PackIcon Kind="WindowClose" Width="16" Height="16"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition Height="0.02*"/>
             </Grid.RowDefinitions>
-            <Grid Background="Black" Opacity="0.2"/>
+            <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2"/>
             <TabControl Grid.Row="0" Name="MainTab">
                 <TabItem Header="CONFIGURATION">
-                    <Grid Background="#FF000000" x:Name="TabConfig">
+                    <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" x:Name="TabConfig">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto"/>
@@ -52,12 +107,12 @@
                                     <Button x:Name="ImportConfigButton" Grid.Row="0" Height="35" Command="{Binding ImportConfigCommand}">
                                         <StackPanel Orientation="Horizontal">
                                             <materialDesign:PackIcon Kind="Import" Height="25" Width="25"/>
-                                            <Label Content="Import Configuration" Foreground="Black"/>
+                                            <TextBlock Text="Import Configuration" VerticalAlignment="Center" Margin="5,0,0,0"/>
                                         </StackPanel>
                                     </Button>
                                     <Button x:Name="ExportConfigButton" Grid.Row="1" Height="35" Style="{StaticResource MaterialDesignPaperButton}" Command="{Binding ExportConfigCommand}">
                                         <StackPanel Orientation="Horizontal">
-                                            <Label Content="Export Configuration" Foreground="White"/>
+                                            <TextBlock Text="Export Configuration" VerticalAlignment="Center" Margin="0,0,5,0"/>
                                             <materialDesign:PackIcon Kind="Export" Height="25" Width="25"/>
                                         </StackPanel>
                                     </Button>
@@ -73,14 +128,14 @@
                                         <Button Height="20" Padding="0" x:Name="UpdateButton" VerticalAlignment="Center" ToolTip="New version available !" Background="Transparent" Foreground="Transparent" BorderThickness="0" Cursor="Hand" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisConverter}}" Command="{Binding PromptAndDownloadUpdateCommand}">
                                             <Image Source="/Images/update.png" />
                                         </Button>
-                                        <Label Grid.ColumnSpan="2" Content="{Binding ApplicationVersion}" VerticalAlignment="Center" Foreground="#FFF0F0F0" d:Content="V0.0.0.0"/>
+                                        <Label Grid.ColumnSpan="2" Content="{Binding ApplicationVersion}" VerticalAlignment="Center" d:Content="V0.0.0.0"/>
                                         <Button Height="18" x:Name="CheckUpdateButton" VerticalAlignment="Center" ToolTip="Check for update" Padding="1" Margin="2,0" Command="{Binding CheckForUpdateCommand}" IsEnabled="{Binding IsCheckUpdateEnabled}">
                                             <Image Source="/Images/rafraichir-32.png" Cursor="Hand" RenderOptions.BitmapScalingMode="Fant" />
                                         </Button>
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
                                         <CheckBox Name="AutoUpdateCheckbox" IsChecked="{Binding Settings_AutoUpdate}"/>
-                                        <Label VerticalAlignment="Center" Foreground="White" Content="Auto update" FontSize="10" Margin="0,1,0,0"/>
+                                        <Label VerticalAlignment="Center" Content="Auto update" FontSize="10" Margin="0,1,0,0"/>
                                     </StackPanel>
                                     <Button Margin="0,5" Style="{StaticResource MaterialDesignPaperButton}" Content="Toolkit Repository Settings" Grid.Row="2" Width="auto" HorizontalAlignment="Right" Command="{Binding OpenToolkitRepositorySettingsCommand}"/>
                                 </Grid>
@@ -99,9 +154,9 @@
                                         <RowDefinition/>
                                     </Grid.RowDefinitions>
 
-                                    <Grid Grid.RowSpan="2" Background="Black" Opacity="0.4"/>
+                                    <Grid Grid.RowSpan="2" Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.4"/>
                                     <StackPanel Grid.Row="0" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,5">
-                                        <Label Grid.Row="0" Margin="0,2,0,0" Content="TEMPLATES REPOSITORIES" Foreground="White" FontWeight="Bold" FontSize="25"/>
+                                        <Label Grid.Row="0" Margin="0,2,0,0" Content="TEMPLATES REPOSITORIES" FontWeight="Bold" FontSize="25"/>
                                         <Button Padding="5,0" Margin="10,0,0,0"  Command="{Binding AddTemplateRepositoryCommand}" ToolTip="Add Template Repository">
                                             <materialDesign:PackIcon Kind="Add" Height="25" Width="25"/>
                                         </Button>
@@ -124,10 +179,10 @@
                                         <RowDefinition/>
                                     </Grid.RowDefinitions>
 
-                                    <Grid Grid.RowSpan="2" Background="Black" Opacity="0.4"/>
+                                    <Grid Grid.RowSpan="2" Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.4"/>
                                     <StackPanel Grid.Row="0" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,5">
                                         <ToggleButton Margin="0,0,10,0" Style="{StaticResource MaterialDesignSwitchToggleButton}" IsChecked="{Binding Settings_UseCompanyFiles}" ToolTip="Use Company Files"/>
-                                        <Label Grid.Row="0" Margin="0,2,0,0" Content="COMPANY FILES REPOSITORIES" Foreground="White" FontWeight="Bold" FontSize="25" IsEnabled="{Binding Settings_UseCompanyFiles}"/>
+                                        <Label Grid.Row="0" Margin="0,2,0,0" Content="COMPANY FILES REPOSITORIES" FontWeight="Bold" FontSize="25" IsEnabled="{Binding Settings_UseCompanyFiles}"/>
                                         <Button Padding="5,0" Margin="10,0,0,0" Command="{Binding AddCompanyFilesRepositoryCommand}" ToolTip="Add Company Files Repository" IsEnabled="{Binding Settings_UseCompanyFiles}">
                                             <materialDesign:PackIcon Kind="Add" Height="25" Width="25"/>
                                         </Button>
@@ -181,7 +236,7 @@
                                 <TextBox Grid.Row="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Company Name" Text="{Binding Settings_CreateCompanyName}" TextWrapping="Wrap"/>
                                 <TextBox Margin="0,10" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Project Name" Text="{Binding CreateProjectName, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" x:Name="CreateProjectName" IsEnabled="True"/>
                             </Grid>
-                            <Button Grid.Column="2" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Height="50" Width="150" Content="Create" HorizontalAlignment="Right" Command="{Binding CreateProjectCommand}" VerticalAlignment="Top"/>
+                            <Button Grid.Column="2" Style="{StaticResource MaterialDesignRaisedSecondaryButton}" Height="50" Width="150" Content="Create" HorizontalAlignment="Right" Command="{Binding CreateProjectCommand}" VerticalAlignment="Top"/>
                         </Grid>
 
                         <uc:VersionAndOptionUserControl Grid.Row="1" VerticalAlignment="Bottom" x:Name="CreateVersionAndOption" Margin="10" Height="auto"/>
@@ -206,15 +261,15 @@
             </TabControl>
         </Grid>
 
-        <Grid Grid.Row="1" Margin="10,0,10,10">
+        <Grid Grid.Row="2" Margin="10,0,10,10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition/>
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
-            <Label FontWeight="Bold" Background="#1a1a1a" Content="OUTPUT" Width="auto" HorizontalAlignment="Left" Padding="10,5" FontSize="11" Foreground="#a6a6a6"/>
+            <Label FontWeight="Bold" Background="{DynamicResource MaterialDesign.Brush.Card.Background}" Content="OUTPUT" Width="auto" HorizontalAlignment="Left" Padding="10,5" FontSize="11" Foreground="{DynamicResource MaterialDesign.Brush.Foreground}" Opacity="0.6"/>
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Name="OutputTextViewer">
-                <TextBlock Name="OutputText" TextWrapping="Wrap" LineHeight="10" Padding="5" Background="#1a1a1a" >
+                <TextBlock Name="OutputText" TextWrapping="Wrap" LineHeight="10" Padding="5" Background="{DynamicResource MaterialDesign.Brush.Card.Background}" >
                 </TextBlock>
             </ScrollViewer>
             <Grid Grid.Row="2" Margin="0,5,0,0">
@@ -231,15 +286,16 @@
                     </StackPanel>
                 </Button>
                 <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
-                    <Button Content="Clear" Margin="0,0,5,0" Command="{Binding ClearConsoleCommand}" Style="{StaticResource MaterialDesignOutlinedSecondaryDarkButton}"/>
-                    <Button Content="Copy to clipboard" Command="{Binding CopyConsoleToClipboardCommand}" Style="{StaticResource MaterialDesignOutlinedSecondaryDarkButton}"/>
+                    <Button Content="Clear" Margin="0,0,5,0" Command="{Binding ClearConsoleCommand}" Style="{StaticResource MaterialDesignOutlinedSecondaryButton}"/>
+                    <Button Content="Copy to clipboard" Command="{Binding CopyConsoleToClipboardCommand}" Style="{StaticResource MaterialDesignOutlinedSecondaryButton}"/>
                 </StackPanel>
             </Grid>
         </Grid>
 
-        <Grid x:Name="Waiter" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Hidden">
-            <Grid Grid.Row="0" Background="#323232" Opacity="0.8" />
+        <Grid x:Name="Waiter" Grid.Row="1" Grid.RowSpan="2" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Hidden">
+            <Grid Grid.Row="0" Background="{DynamicResource MaterialDesign.Brush.Card.Background}" Opacity="0.8" />
             <Image gif:ImageBehavior.AnimatedSource="Images\spinner_light.gif" Height="200"/>
         </Grid>
+
     </Grid>
 </Window>

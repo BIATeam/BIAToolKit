@@ -10,9 +10,7 @@
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
-        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}">
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
+        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}"/>
     </UserControl.Resources>
 
     <Grid Margin="5">
@@ -30,10 +28,10 @@
             </Grid.ColumnDefinitions>
 
             <!-- ── Left panel: generated features by entity ──────────────── -->
-            <GroupBox Grid.Column="0" Header="Generated features" Foreground="White"
+            <GroupBox Grid.Column="0" Header="Generated features"
                       Style="{StaticResource MaterialDesignGroupBox}"
                       materialDesign:ColorZoneAssist.Mode="Custom"
-                      materialDesign:ColorZoneAssist.Background="#608000"
+                      materialDesign:ColorZoneAssist.Background="{DynamicResource MaterialDesign.Brush.Primary}"
                       materialDesign:ColorZoneAssist.Foreground="White">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -49,12 +47,12 @@
                             <ColumnDefinition Width="80"/>
                             <ColumnDefinition Width="80"/>
                         </Grid.ColumnDefinitions>
-                        <CheckBox Grid.Column="0" Content="All" Foreground="White" FontWeight="Bold"
+                        <CheckBox Grid.Column="0" Content="All" Foreground="{DynamicResource MaterialDesign.Brush.Foreground}" FontWeight="Bold"
                                   IsChecked="{Binding SelectAllEntities, Mode=TwoWay}"
                                   VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="1" Text="CRUD" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
-                        <TextBlock Grid.Column="2" Text="Option" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
-                        <TextBlock Grid.Column="3" Text="DTO" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="CRUD" Foreground="{DynamicResource MaterialDesign.Brush.Foreground}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="Option" Foreground="{DynamicResource MaterialDesign.Brush.Foreground}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Grid.Column="3" Text="DTO" Foreground="{DynamicResource MaterialDesign.Brush.Foreground}" FontWeight="Bold" HorizontalAlignment="Center"/>
                     </Grid>
 
                     <!-- No entities message -->
@@ -66,7 +64,7 @@
                         <ItemsControl ItemsSource="{Binding EntityRows}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border BorderBrush="#404040" BorderThickness="0,0,0,1" Padding="5,4">
+                                    <Border BorderBrush="{DynamicResource MaterialDesign.Brush.TextBox.HoverBackground}" BorderThickness="0,0,0,1" Padding="5,4">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
@@ -77,7 +75,7 @@
 
                                             <!-- Entity name with select-all checkbox -->
                                             <CheckBox Grid.Column="0"
-                                                      Foreground="White" FontWeight="Bold"
+                                                      Foreground="{DynamicResource MaterialDesign.Brush.Foreground}" FontWeight="Bold"
                                                       Content="{Binding EntityNameSingular}"
                                                       IsChecked="{Binding IsEntitySelected}"
                                                       VerticalAlignment="Center"/>
@@ -86,8 +84,7 @@
                                             <StackPanel Grid.Column="1" Orientation="Horizontal"
                                                         HorizontalAlignment="Center" VerticalAlignment="Center"
                                                         Visibility="{Binding HasCrud, Converter={StaticResource BoolToVisConverter}}">
-                                                <CheckBox Foreground="White"
-                                                          IsChecked="{Binding IsCrudSelected, Mode=TwoWay}"
+                                                <CheckBox                                                          IsChecked="{Binding IsCrudSelected, Mode=TwoWay}"
                                                           IsEnabled="{Binding IsCrudEnabled}"
                                                           VerticalAlignment="Center"/>
                                                 <TextBlock Text="⚠" Foreground="Orange" FontSize="13" Margin="3,0,0,0"
@@ -103,8 +100,7 @@
                                             <StackPanel Grid.Column="2" Orientation="Horizontal"
                                                         HorizontalAlignment="Center" VerticalAlignment="Center"
                                                         Visibility="{Binding HasOption, Converter={StaticResource BoolToVisConverter}}">
-                                                <CheckBox Foreground="White"
-                                                          IsChecked="{Binding IsOptionSelected, Mode=TwoWay}"
+                                                <CheckBox                                                          IsChecked="{Binding IsOptionSelected, Mode=TwoWay}"
                                                           IsEnabled="{Binding IsOptionEnabled}"
                                                           VerticalAlignment="Center"/>
                                                 <TextBlock Text="⚠" Foreground="Orange" FontSize="13" Margin="3,0,0,0"
@@ -120,8 +116,7 @@
                                             <StackPanel Grid.Column="3" Orientation="Horizontal"
                                                         HorizontalAlignment="Center" VerticalAlignment="Center"
                                                         Visibility="{Binding HasDto, Converter={StaticResource BoolToVisConverter}}">
-                                                <CheckBox Foreground="White"
-                                                          IsChecked="{Binding IsDtoSelected, Mode=TwoWay}"
+                                                <CheckBox                                                          IsChecked="{Binding IsDtoSelected, Mode=TwoWay}"
                                                           IsEnabled="{Binding IsDtoEnabled}"
                                                           VerticalAlignment="Center"/>
                                                 <TextBlock Text="⚠" Foreground="Orange" FontSize="13" Margin="3,0,0,0"
@@ -141,23 +136,22 @@
                 </Grid>
             </GroupBox>
 
-            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" Background="#404040"/>
+            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" Background="{DynamicResource MaterialDesign.Brush.TextBox.HoverBackground}"/>
 
             <!-- ── Right panel: summary with editable FROM version ────────── -->
-            <GroupBox Grid.Column="2" Header="Selected for regeneration" Foreground="White"
+            <GroupBox Grid.Column="2" Header="Selected for regeneration"
                       Style="{StaticResource MaterialDesignGroupBox}"
                       materialDesign:ColorZoneAssist.Mode="Custom"
-                      materialDesign:ColorZoneAssist.Background="#608000"
+                      materialDesign:ColorZoneAssist.Background="{DynamicResource MaterialDesign.Brush.Primary}"
                       materialDesign:ColorZoneAssist.Foreground="White">
                 <DataGrid ItemsSource="{Binding SelectedFeatures}"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
-                          Background="#323232"
-                          Foreground="White"
-                          GridLinesVisibility="Horizontal"
-                          HorizontalGridLinesBrush="#404040"
-                          RowBackground="#2A2A2A"
-                          AlternatingRowBackground="#303030"
+                          Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                                                   GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="{DynamicResource MaterialDesign.Brush.TextBox.HoverBackground}"
+                          RowBackground="{DynamicResource MaterialDesign.Brush.Background}"
+                          AlternatingRowBackground="{DynamicResource MaterialDesign.Brush.Card.Background}"
                           materialDesign:DataGridAssist.CellPadding="8 4"
                           materialDesign:DataGridAssist.ColumnHeaderPadding="8 4">
                     <DataGrid.Columns>
@@ -169,8 +163,7 @@
                                 <DataTemplate>
                                     <Grid>
                                         <!-- Stored version: displayed as text -->
-                                        <TextBlock Text="{Binding StoredFromVersion}" Foreground="White"
-                                                   Visibility="{Binding IsFromVersionFixed, Converter={StaticResource BoolToVisConverter}}"
+                                        <TextBlock Text="{Binding StoredFromVersion}"                                                   Visibility="{Binding IsFromVersionFixed, Converter={StaticResource BoolToVisConverter}}"
                                                    VerticalAlignment="Center"/>
                                         <!-- No stored version: inline ComboBox -->
                                         <ComboBox ItemsSource="{Binding AvailableVersions}"
@@ -178,7 +171,7 @@
                                                   Visibility="{Binding IsFromVersionEditable, Converter={StaticResource BoolToVisConverter}}"
                                                   materialDesign:HintAssist.Hint="Select version"
                                                   Style="{StaticResource MaterialDesignComboBox}"
-                                                  Foreground="White"/>
+                                                  Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"/>
                                     </Grid>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -195,7 +188,7 @@
                     Content="Clear"
                     Margin="0,0,10,0"/>
             <Button x:Name="RegenerateButton"
-                    Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}"
+                    Style="{StaticResource MaterialDesignRaisedSecondaryButton}"
                     Content="Regenerate selected features"
                     Command="{Binding RegenerateCommand}"/>
         </StackPanel>

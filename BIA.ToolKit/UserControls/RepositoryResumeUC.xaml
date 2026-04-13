@@ -23,7 +23,7 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
 
-            <materialDesign:ColorZone Padding="8" Grid.Row="0" Mode="Dark">
+            <materialDesign:ColorZone Padding="8" Grid.Row="0" Mode="PrimaryMid">
                 <Grid  >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
@@ -35,7 +35,7 @@
                         <Label Margin="10,0" VerticalAlignment="Center" Content="{Binding Name}" Foreground="White" FontWeight="Bold" FontSize="15" d:Content="REPOSITORY NAME" IsEnabled="{Binding UseRepository}"/>
                         <materialDesign:ColorZone Padding="0" Mode="SecondaryDark" VerticalAlignment="Center" CornerRadius="5" Visibility="{Binding IsVersionXYZ, Converter={StaticResource BoolToVisConverter}}">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0">
-                                <Label Content="Version X.Y.Z" VerticalAlignment="Center" Foreground="Black"/>
+                                <Label Content="Version X.Y.Z" VerticalAlignment="Center"/>
                                 <materialDesign:PackIcon Kind="ArchiveStar" VerticalAlignment="Center" Margin="0,0,0,2"/>
                             </StackPanel>
                         </materialDesign:ColorZone>

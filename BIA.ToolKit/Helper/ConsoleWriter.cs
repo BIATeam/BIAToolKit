@@ -22,7 +22,9 @@ namespace BIA.ToolKit.Helper
         Window WindowOwner;
         IDialogService dialogService;
         List<Message> messages = [];
-        readonly List<string> displayedMessages = [];
+        readonly List<Message> displayedMessages = [];
+
+        public bool IsDarkTheme { get; set; } = true;
 
         public ConsoleWriter()
         {
@@ -55,7 +57,7 @@ namespace BIA.ToolKit.Helper
                 {
                     var run = new Run(@"[🔍 OPEN LOG DETAIL]" + "\r\n")
                     {
-                        Foreground = Brushes.YellowGreen,
+                        Foreground = IsDarkTheme ? Brushes.YellowGreen : Brushes.DarkOliveGreen,
                         Cursor = Cursors.Hand,
                         TextDecorations = TextDecorations.Underline
                     };
@@ -70,8 +72,8 @@ namespace BIA.ToolKit.Helper
                 //    _AddMsgLine(msg.message, msg.color, refreshimediate);
                 //}
                 //messages.Clear();
-                AddMsgLine(OutputText, OutputTextViewer, message, color, refreshimediate);
-                displayedMessages.Add(message);
+                AddMsgLine(OutputText, OutputTextViewer, message, color, refreshimediate, IsDarkTheme);
+                displayedMessages.Add(new Message { message = message, color = color });
             }
         }
 
@@ -90,22 +92,51 @@ namespace BIA.ToolKit.Helper
 
         public void CopyToClipboard()
         {
-            Clipboard.SetText(string.Join(Environment.NewLine, displayedMessages));
+            Clipboard.SetText(string.Join(Environment.NewLine, displayedMessages.Select(m => m.message)));
         }
 
-        public static void AddMsgLine(TextBlock OutputText, ScrollViewer OutputTextViewer, string message, string color, bool refreshimediate = true)
+        /// <summary>
+        /// Re-renders all displayed messages with current theme colors.
+        /// Called when the user toggles between dark and light themes.
+        /// </summary>
+        public void ReRenderMessages()
+        {
+            OutputText.Inlines.Clear();
+            foreach (var msg in displayedMessages)
+            {
+                AddMsgLine(OutputText, OutputTextViewer, msg.message, msg.color, false, IsDarkTheme);
+            }
+            OutputTextViewer.ScrollToEnd();
+        }
+
+        public static void AddMsgLine(TextBlock OutputText, ScrollViewer OutputTextViewer, string message, string color, bool refreshimediate = true, bool isDarkTheme = true)
         {
             Brush brush;
             if (string.IsNullOrEmpty(color))
             {
-                brush = Brushes.White;
+                brush = isDarkTheme ? Brushes.White : Brushes.Black;
             }
             else
             {
-                var col = (Color)ColorConverter.ConvertFromString(color);
+                var resolvedColor = isDarkTheme ? color : MapColorForLightTheme(color);
+                var col = (Color)ColorConverter.ConvertFromString(resolvedColor);
                 brush = new SolidColorBrush(col);
             }
             AddMessageLine(OutputText, OutputTextViewer, message, brush, refreshimediate);
+        }
+
+        private static string MapColorForLightTheme(string color)
+        {
+            return color.ToLowerInvariant() switch
+            {
+                "green" => "DarkGreen",
+                "yellow" => "#795508",  // Dark amber (VS Code warning style)
+                "yellowgreen" => "#556B2F", // DarkOliveGreen
+                "red" => "DarkRed",
+                "orange" => "#CC7000",
+                "blue" => "#1565C0", // Blue 800
+                _ => color
+            };
         }
 
         public static void AddMessageLine(TextBlock OutputText, ScrollViewer OutputTextViewer, string message, Brush brush, bool refreshimediate = true)

@@ -45,7 +45,7 @@
                         <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
                     <ComboBox Grid.Column="0" Grid.Row="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Entity" x:Name="EntitiesComboBox" ItemsSource="{Binding Entities}" SelectedItem="{Binding Entity, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsProjectChosen}" ItemTemplate="{StaticResource EntityDisplayTemplate}"/>
-                    <Label Grid.Column="0" Grid.Row="1" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="{Binding WasAlreadyGenerated, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible"/>
+                    <Label Grid.Column="0" Grid.Row="1" Content="Generation was already done for this Entity" Foreground="Orange" Visibility="{Binding WasAlreadyGenerated, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible"/>
                 </Grid>
                 <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Domain" Text="{Binding EntityDomain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsEntitySelected}"/>
                 <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Ancestor Team" Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
@@ -64,15 +64,15 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 <ComboBox Margin="{StaticResource FormFirstRowMargin}" Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Base Key Type"  ItemsSource="{Binding BaseKeyTypeItems}" SelectedValue="{Binding SelectedBaseKeyType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsEntitySelected}"/>
-                <CheckBox Grid.Row="1" Content="Team" Foreground="White" IsChecked="{Binding IsTeam,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
-                <CheckBox Grid.Row="2" Content="Versioned" Foreground="White" IsChecked="{Binding IsVersioned,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
-                <CheckBox Grid.Row="3" Content="Fixable" Foreground="White" IsChecked="{Binding IsFixable,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
-                <CheckBox Grid.Row="4" Content="Archivable" Foreground="White" IsChecked="{Binding IsArchivable,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
+                <CheckBox Grid.Row="1" Content="Team" IsChecked="{Binding IsTeam,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
+                <CheckBox Grid.Row="2" Content="Versioned" IsChecked="{Binding IsVersioned,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
+                <CheckBox Grid.Row="3" Content="Fixable" IsChecked="{Binding IsFixable,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
+                <CheckBox Grid.Row="4" Content="Archivable" IsChecked="{Binding IsArchivable,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}"/>
                 
-                <CheckBox Grid.Column="1" Grid.Row="1" Content="Use dedicated audit" Foreground="White" IsChecked="{Binding UseDedicatedAudit,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsAuditable}" Visibility="{Binding IsVisibleUseDedicatedAudit, Converter={StaticResource BoolToVisConverter}}"/>
+                <CheckBox Grid.Column="1" Grid.Row="1" Content="Use dedicated audit" IsChecked="{Binding UseDedicatedAudit,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsAuditable}" Visibility="{Binding IsVisibleUseDedicatedAudit, Converter={StaticResource BoolToVisConverter}}"/>
             </Grid>
 
-            <Button VerticalAlignment="Top" Grid.Column="6" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" x:Name="GenerateButton" Content="Generate" Height="50" Command="{Binding GenerateCommand}" IsEnabled="{Binding IsGenerationEnabled}"></Button>
+            <Button VerticalAlignment="Top" Grid.Column="6" Style="{StaticResource MaterialDesignRaisedSecondaryButton}" x:Name="GenerateButton" Content="Generate" Height="50" Command="{Binding GenerateCommand}" IsEnabled="{Binding IsGenerationEnabled}"></Button>
         </Grid>
 
         <Grid Grid.Row="1" Margin="0,10,0,0">
@@ -89,7 +89,7 @@
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Content="Properties" FontWeight="Bold"/>
                 <Grid Grid.Row="1" Margin="10,5,10,0">
-                    <Grid Background="#323232" Opacity="0.7"/>
+                    <Grid Background="{DynamicResource MaterialDesign.Brush.Card.Background}" Opacity="0.7"/>
                     <TreeView Name="ClassTreeView" HorizontalAlignment="Stretch" ItemsSource="{Binding EntityProperties}" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Visible">
                         <TreeView.Resources>
                             <HierarchicalDataTemplate DataType="{x:Type local:EntityProperty}" ItemsSource="{Binding Properties}">
@@ -121,7 +121,7 @@
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Content="Mapping" FontWeight="Bold"/>
                 <Grid Grid.Row="1" Margin="10,5,10,0">
-                    <Grid Background="#323232" Opacity="0.7"/>
+                    <Grid Background="{DynamicResource MaterialDesign.Brush.Card.Background}" Opacity="0.7"/>
                     <ListView Name="PropertiesListView" ItemsSource="{Binding MappingEntityProperties}" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
                         <i:Interaction.Behaviors>
                             <behaviors:ListViewDragDropBehavior MoveCommand="{Binding MoveMappedPropertyCommand}" />

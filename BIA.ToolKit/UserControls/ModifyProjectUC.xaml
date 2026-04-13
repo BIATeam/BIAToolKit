@@ -14,7 +14,7 @@
         </Grid.RowDefinitions>
         <uc:ProjectSelectorUC x:Name="ProjectSelector" Grid.Row="0" Margin="10"/>
         <Grid Grid.Row="1" Margin="10,0,10,0">
-            <Grid Background="Black" Opacity="0.2"/>
+            <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2"/>
             <TabControl x:Name="TabActions" SelectedIndex="{Binding SelectedTabIndex}" IsEnabled="{Binding IsProjectSelected}">
                 <TabItem x:Name="TabProject" Header="Project" >
                     <Grid Margin="5" IsEnabled="{Binding IsProjectSelected}">
@@ -22,17 +22,17 @@
                             <ColumnDefinition Width="1*"/>
                             <ColumnDefinition Width="auto"/>
                         </Grid.ColumnDefinitions>
-                        <Grid Background="Black" Opacity="0.2" Margin="-5" Grid.ColumnSpan="2"/>
+                        <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2" Margin="-5" Grid.ColumnSpan="2"/>
                         <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="auto">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="auto"/>
                                     <RowDefinition Height="auto"/>
                                 </Grid.RowDefinitions>
-                                <GroupBox Header="Original" Margin="10" Foreground="White" x:Name="CompanyFileGroup" Grid.Row="0" Style="{StaticResource MaterialDesignGroupBox}" materialDesign:ColorZoneAssist.Mode="Custom" materialDesign:ColorZoneAssist.Background="#608000" materialDesign:ColorZoneAssist.Foreground="White">
+                                <GroupBox Header="Original" Margin="10" x:Name="CompanyFileGroup" Grid.Row="0" Style="{StaticResource MaterialDesignGroupBox}" materialDesign:ColorZoneAssist.Mode="Custom" materialDesign:ColorZoneAssist.Background="{DynamicResource MaterialDesign.Brush.Primary}" materialDesign:ColorZoneAssist.Foreground="White">
                                     <uc:VersionAndOptionUserControl x:Name="MigrateOriginVersionAndOption"/>
                                 </GroupBox>
-                                <GroupBox Margin="10" Header="Target"  Foreground="White" Grid.Row="1" Style="{StaticResource MaterialDesignGroupBox}" materialDesign:ColorZoneAssist.Mode="Custom" materialDesign:ColorZoneAssist.Background="#608000" materialDesign:ColorZoneAssist.Foreground="White">
+                                <GroupBox Margin="10" Header="Target" Grid.Row="1" Style="{StaticResource MaterialDesignGroupBox}" materialDesign:ColorZoneAssist.Mode="Custom" materialDesign:ColorZoneAssist.Background="{DynamicResource MaterialDesign.Brush.Primary}" materialDesign:ColorZoneAssist.Foreground="White">
                                     <uc:VersionAndOptionUserControl x:Name="MigrateTargetVersionAndOption"/>
                                 </GroupBox>
                             </Grid>
@@ -45,9 +45,9 @@
                                 <RowDefinition Height="auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <CheckBox Grid.Row="0" Content="Overwrite BIA first" HorizontalAlignment="Center" Foreground="White" Name="CFOverwriteBIAFirst" IsChecked="{Binding Path=OverwriteBIAFromOriginal, Mode=TwoWay}"/>
-                            <Button Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Margin="0,10" Height="50" Grid.Row="1" HorizontalAlignment="Stretch" Content="Migrate" x:Name="MigrateBtn" Command="{Binding MigrateCommand}" IsEnabled="{Binding IsProjectSelected}"/>
-                            <Label Grid.Row="2" Content="Or by step :" Foreground="White" HorizontalAlignment="Center"/>
+                            <CheckBox Grid.Row="0" Content="Overwrite BIA first" HorizontalAlignment="Center" Name="CFOverwriteBIAFirst" IsChecked="{Binding Path=OverwriteBIAFromOriginal, Mode=TwoWay}"/>
+                            <Button Style="{StaticResource MaterialDesignRaisedSecondaryButton}" Margin="0,10" Height="50" Grid.Row="1" HorizontalAlignment="Stretch" Content="Migrate" x:Name="MigrateBtn" Command="{Binding MigrateCommand}" IsEnabled="{Binding IsProjectSelected}"/>
+                            <Label Grid.Row="2" Content="Or by step :" HorizontalAlignment="Center"/>
                             <StackPanel Grid.Row="3" Margin="0,10">
                                 <Button Margin="0,3" Content="1 - Generate Only" Command="{Binding MigrateGenerateOnlyCommand}" IsEnabled="{Binding IsProjectSelected}"/>
                                 <Button Margin="0,3" Content="2 - Open Folder" Command="{Binding MigrateOpenFolderCommand}" IsEnabled="{Binding CanOpenFolder}"/>

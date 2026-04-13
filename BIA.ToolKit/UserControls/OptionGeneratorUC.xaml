@@ -42,7 +42,7 @@
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
                 </ComboBox>
-                <Label Grid.Row="1" Name="OptionAlreadyGeneratedLabel" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="Collapsed" d:Visibility="Visible" />
+                <Label Grid.Row="1" Name="OptionAlreadyGeneratedLabel" Content="Generation was already done for this Entity" Foreground="Orange" Visibility="Collapsed" d:Visibility="Visible" />
             </Grid>
             <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Domain" Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextWrapping="Wrap" IsEnabled="{Binding IsEntityParsed}"/>
             <ComboBox Margin="{StaticResource FormRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="BIA Front" x:Name="BIAFront" ItemsSource="{Binding BiaFronts}" SelectedValue="{Binding BiaFront, Mode=TwoWay}" IsEnabled="{Binding IsProjectChosen}">
@@ -73,8 +73,8 @@
                     <ColumnDefinition Width="0.1*"/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <Label Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" Content="Feature" Foreground="White" FontWeight="Bold" />
-                <CheckBox Margin="10,0,0,0" Grid.Column="0" Grid.Row="1" Content="Use HUB client" Foreground="White" IsChecked="{Binding UseHubClient}" IsEnabled="{Binding IsProjectChosen}" />
+                <Label Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" Content="Feature" FontWeight="Bold" />
+                <CheckBox Margin="10,0,0,0" Grid.Column="0" Grid.Row="1" Content="Use HUB client" IsChecked="{Binding UseHubClient}" IsEnabled="{Binding IsProjectChosen}" />
             </Grid>
         </Grid>
 
@@ -83,7 +83,7 @@
                 <RowDefinition Height="auto"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <Button Grid.Row="0" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Content="Generate" IsEnabled="{Binding IsButtonGenerateOptionEnable}" x:Name="GenerateCrud" Height="50" Command="{Binding GenerateCommand}"/>
+            <Button Grid.Row="0" Style="{StaticResource MaterialDesignRaisedSecondaryButton}" Content="Generate" IsEnabled="{Binding IsButtonGenerateOptionEnable}" x:Name="GenerateCrud" Height="50" Command="{Binding GenerateCommand}"/>
             <Grid Grid.Row="1" VerticalAlignment="Bottom">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
@@ -91,7 +91,7 @@
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <Button Visibility="Hidden" Grid.Row="0" Content="Delete previous generation" x:Name="DeleteGeneration" Command="{Binding DeleteLastGenerationCommand}" IsEnabled="{Binding IsEntityParsed}"/>
-                <Label Margin="0,10,0,0" Grid.Row="1" Content="After generation :" Foreground="White" HorizontalAlignment="Center"/>
+                <Label Margin="0,10,0,0" Grid.Row="1" Content="After generation :" HorizontalAlignment="Center"/>
                 <Button Grid.Row="2" Content="Delete annotations" x:Name="DeleteAnnotations" Command="{Binding DeleteBIAToolkitAnnotationsCommand}" IsEnabled="{Binding IsProjectChosen}"/>
             </Grid>
         </Grid>

@@ -16,6 +16,7 @@ namespace BIA.ToolKit.Application.ViewModel
             OnPropertyChanged(nameof(Settings_CreateCompanyName));
             OnPropertyChanged(nameof(Settings_UseCompanyFiles));
             OnPropertyChanged(nameof(Settings_AutoUpdate));
+            OnPropertyChanged(nameof(Settings_IsDarkTheme));
             OnPropertyChanged(nameof(ToolkitRepository));
         }
 
@@ -63,6 +64,18 @@ namespace BIA.ToolKit.Application.ViewModel
                 if (settingsService.Settings.AutoUpdate != value)
                 {
                     settingsService.SetAutoUpdate(value);
+                }
+            }
+        }
+
+        public bool Settings_IsDarkTheme
+        {
+            get => settingsService.Settings.IsDarkTheme;
+            set
+            {
+                if (settingsService.Settings.IsDarkTheme != value)
+                {
+                    settingsService.SetIsDarkTheme(value);
                 }
             }
         }

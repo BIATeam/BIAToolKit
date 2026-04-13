@@ -26,6 +26,7 @@ namespace BIA.ToolKit.Infrastructure
                 CreateCompanyName = Properties.Settings.Default.CreateCompanyName,
                 ModifyProjectRootProjectsPath = Properties.Settings.Default.ModifyProjectRootFolderText,
                 AutoUpdate = Properties.Settings.Default.AutoUpdate,
+                IsDarkTheme = Properties.Settings.Default.IsDarkTheme,
 
                 ToolkitRepositoryConfig = !string.IsNullOrEmpty(Properties.Settings.Default.ToolkitRepository)
                     ? JsonConvert.DeserializeObject<RepositoryUserConfig>(Properties.Settings.Default.ToolkitRepository)
@@ -71,6 +72,7 @@ namespace BIA.ToolKit.Infrastructure
             Properties.Settings.Default.ModifyProjectRootFolderText = settings.ModifyProjectRootProjectsPath;
             Properties.Settings.Default.CreateCompanyName = settings.CreateCompanyName;
             Properties.Settings.Default.AutoUpdate = settings.AutoUpdate;
+            Properties.Settings.Default.IsDarkTheme = settings.IsDarkTheme;
             Properties.Settings.Default.ToolkitRepository = JsonConvert.SerializeObject(settings.ToolkitRepository);
             Properties.Settings.Default.TemplateRepositories = JsonConvert.SerializeObject(settings.TemplateRepositories);
             Properties.Settings.Default.CompanyFilesRepositories = JsonConvert.SerializeObject(settings.CompanyFilesRepositories);
