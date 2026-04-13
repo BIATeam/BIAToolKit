@@ -57,7 +57,7 @@
                     IsEnabled="{Binding IsProjectSelected}"
                     Command="{Binding RefreshProjectInformationsCommand}">
                 <StackPanel Orientation="Horizontal">
-                    <Label Content="Refresh project informations"/>
+                    <TextBlock Text="Refresh project informations" VerticalAlignment="Center"/>
                     <materialDesign:PackIcon Margin="5,0,0,0" Kind="CogRefreshOutline" VerticalAlignment="Center" Height="20" Width="20"/>
                 </StackPanel>
             </Button>

@@ -7,7 +7,7 @@
              xmlns:gif="http://wpfanimatedgif.codeplex.com"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-             mc:Ignorable="d" d:DesignWidth="800" MaxHeight="250">
+             mc:Ignorable="d" d:DesignWidth="800">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     </UserControl.Resources>
@@ -30,8 +30,8 @@
             </i:Interaction.Triggers>
         </ComboBox>
 
-        <GroupBox Margin="10,0" Grid.Column="1" Header="Feature Settings" Name="FeatureSettingsGroup" VerticalAlignment="Top" Background="{DynamicResource MaterialDesign.Brush.Card.Background}" d:Visibility="Visible">
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="135">
+        <GroupBox Margin="10,0" Grid.Column="1" Header="Feature Settings" Name="FeatureSettingsGroup" VerticalAlignment="Stretch" Background="{DynamicResource MaterialDesign.Brush.Card.Background}" d:Visibility="Visible">
+            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto">
                 <Grid>
                     <ItemsControl Visibility="{Binding AreFeatureVisible, Converter={StaticResource BoolToVisConverter}}" Margin="0,0,10,0" ItemsSource="{Binding FeatureSettings}">
                         <ItemsControl.ItemTemplate>
@@ -74,7 +74,7 @@
             </ScrollViewer>
         </GroupBox>
 
-        <GroupBox Grid.Column="2" Header="Company files" Name="CompanyFileGroup" Background="{DynamicResource MaterialDesign.Brush.Card.Background}" VerticalAlignment="Top">
+        <GroupBox Grid.Column="2" Header="Company files" Name="CompanyFileGroup" Background="{DynamicResource MaterialDesign.Brush.Card.Background}" VerticalAlignment="Stretch">
             <Grid Margin="0,0,10,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
@@ -116,7 +116,7 @@
                     </Grid>
 
                     <Grid Grid.Column="1" Margin="10,0" Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}">
-                        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="135">
+                        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto">
                             <ItemsControl Grid.Row="1" ItemsSource="{Binding Options}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
