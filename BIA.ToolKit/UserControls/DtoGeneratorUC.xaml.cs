@@ -23,10 +23,7 @@ namespace BIA.ToolKit.UserControls
             // Subscribe to VM event for UI-only operation (GridView column width reset)
             DataContextChanged += (s, e) =>
             {
-                if (ViewModel != null)
-                {
-                    ViewModel.OnMappingRefreshed += ResetMappingColumnsWidths;
-                }
+                ViewModel?.OnMappingRefreshed += ResetMappingColumnsWidths;
             };
         }
 
@@ -36,10 +33,9 @@ namespace BIA.ToolKit.UserControls
         /// </summary>
         private void ResetMappingColumnsWidths()
         {
-            var gridView = PropertiesListView.View as GridView;
-            if (gridView == null) return;
+            if (PropertiesListView.View is not GridView gridView) return;
 
-            foreach (var column in gridView.Columns)
+            foreach (GridViewColumn column in gridView.Columns)
             {
                 column.Width = 0;
                 column.Width = double.NaN;

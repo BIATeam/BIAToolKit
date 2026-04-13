@@ -42,7 +42,7 @@ namespace BIA.ToolKit.Application.ViewModel
 
         public bool CheckTemplateRepositories(IBIATKSettings biaTKsettings)
         {
-            if (!biaTKsettings.TemplateRepositories.Where(r => r.UseRepository).Any())
+            if (!biaTKsettings.TemplateRepositories.Any(r => r.UseRepository))
             {
                 consoleWriter.AddMessageLine("You must use at least one Templates repository", "red");
                 return false;
@@ -72,7 +72,7 @@ namespace BIA.ToolKit.Application.ViewModel
         {
             if (biaTKsettings.UseCompanyFiles)
             {
-                if (!biaTKsettings.CompanyFilesRepositories.Where(r => r.UseRepository).Any())
+                if (!biaTKsettings.CompanyFilesRepositories.Any(r => r.UseRepository))
                 {
                     consoleWriter.AddMessageLine("You must use at least one Company Files repository", "red");
                     return false;
