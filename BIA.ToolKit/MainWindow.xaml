@@ -313,7 +313,7 @@
 
         <Grid x:Name="Waiter" Grid.Row="1" Grid.RowSpan="2" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Hidden">
             <Grid Grid.Row="0" Background="{DynamicResource MaterialDesign.Brush.Card.Background}" Opacity="0.8" />
-            <Image gif:ImageBehavior.AnimatedSource="Images\spinner_light.gif" Height="200"/>
+            <uc:PixelLeafLoaderUC Height="200" Width="200"/>
         </Grid>
 
     </Grid>
