@@ -708,6 +708,7 @@ namespace BIA.ToolKit.ViewModels
             DisplayHistorical = false;
             UseDomainUrl = false;
 
+            CurrentProject = null;
             crudHistory = null;
         }
 
@@ -734,6 +735,9 @@ namespace BIA.ToolKit.ViewModels
             {
                 File.Move(oldCrudHistoryFilePath, crudHistoryFileName);
             }
+
+            CurrentProject = project;
+            IsProjectChosen = true;
 
             if (fileGeneratorService.IsProjectCompatibleForCrudOrOptionFeature())
             {
@@ -776,9 +780,6 @@ namespace BIA.ToolKit.ViewModels
 
                 crudHistory = CommonTools.DeserializeJsonFile<CRUDGeneration>(crudHistoryFileName);
             }
-
-            CurrentProject = project;
-            IsProjectChosen = true;
 
             crudService.CurrentProject = project;
             crudService.CrudNames = new(backSettingsList, frontSettingsList);
