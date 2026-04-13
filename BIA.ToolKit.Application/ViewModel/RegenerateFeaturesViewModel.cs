@@ -4,14 +4,23 @@ namespace BIA.ToolKit.Application.ViewModel
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
-    using CommunityToolkit.Mvvm.ComponentModel;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
+    using BIA.ToolKit.Application.Services.RegenerateFeatures;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures;
+    using CommunityToolkit.Mvvm.ComponentModel;
+    using CommunityToolkit.Mvvm.Input;
+    using CommunityToolkit.Mvvm.Messaging;
 
     /// <summary>
     /// ViewModel for the "Regenerate Features" tab in ModifyProject.
     /// </summary>
-    public partial class RegenerateFeaturesViewModel : ObservableObject
+    public partial class RegenerateFeaturesViewModel : ObservableObject, IDisposable,
+        IRecipient<ProjectChangedMessage>,
+        IRecipient<SolutionClassesParsedMessage>
     {
         /// <summary>Minimum framework version from which CRUD and Option migration is supported.</summary>
         private static readonly Version MinVersionCrudOption = new(5, 0, 0);
@@ -19,8 +28,35 @@ namespace BIA.ToolKit.Application.ViewModel
         /// <summary>Minimum framework version from which DTO migration is supported.</summary>
         private static readonly Version MinVersionDto = new(4, 0, 0);
 
+        private readonly IConsoleWriter consoleWriter;
+        private readonly RegenerateFeaturesDiscoveryService discoveryService;
+        private readonly RegenerationOrchestrationService orchestrationService;
+
         private bool isRefreshing;
+        private bool disposed;
         private List<string> availableVersions = [];
+
+        public RegenerateFeaturesViewModel(
+            IConsoleWriter consoleWriter,
+            RegenerateFeaturesDiscoveryService discoveryService,
+            RegenerationOrchestrationService orchestrationService)
+        {
+            this.consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
+            this.discoveryService = discoveryService ?? throw new ArgumentNullException(nameof(discoveryService));
+            this.orchestrationService = orchestrationService ?? throw new ArgumentNullException(nameof(orchestrationService));
+
+            WeakReferenceMessenger.Default.RegisterAll(this);
+        }
+
+        public void Dispose()
+        {
+            if (disposed) return;
+            disposed = true;
+            WeakReferenceMessenger.Default.UnregisterAll(this);
+        }
+
+        public void Receive(ProjectChangedMessage message) => CurrentProject = message.Project;
+        public void Receive(SolutionClassesParsedMessage message) => LoadFeatures();
 
         public ObservableCollection<RegenerableEntityRowViewModel> EntityRows { get; } = [];
         public ObservableCollection<FeatureRegenerationItem> SelectedFeatures { get; } = [];
@@ -64,12 +100,32 @@ namespace BIA.ToolKit.Application.ViewModel
         public Project CurrentProject { get; private set; }
 
         /// <summary>
+        /// Discover regenerable entities for the current project and populate the view.
+        /// Called automatically when <see cref="SolutionClassesParsedMessage"/> fires.
+        /// </summary>
+        private void LoadFeatures()
+        {
+            if (CurrentProject == null) return;
+            if (!RegenerateFeaturesDiscoveryService.IsProjectCompatibleForRegenerateFeatures(CurrentProject)) return;
+
+            try
+            {
+                List<RegenerableEntity> entities = discoveryService.DiscoverRegenerableEntities(CurrentProject);
+                var versions = orchestrationService.GetAvailableVersions().Select(w => w.Version).ToList();
+                Initialize(CurrentProject, entities, versions);
+            }
+            catch (Exception ex)
+            {
+                consoleWriter?.AddMessageLine($"Error loading regenerable features: {ex.Message}", "orange");
+            }
+        }
+
+        /// <summary>
         /// Load entities discovered from the project history files and the list of available framework versions.
         /// Only entities whose stored framework version is lower than the current project version (or has no stored version) are shown.
         /// </summary>
-        public void Initialize(Project project, IEnumerable<RegenerableEntity> allEntities, IEnumerable<string> versions)
+        private void Initialize(Project project, IEnumerable<RegenerableEntity> allEntities, IEnumerable<string> versions)
         {
-            CurrentProject = project;
             availableVersions = [.. versions];
             EntityRows.Clear();
             SelectedFeatures.Clear();
@@ -181,11 +237,25 @@ namespace BIA.ToolKit.Application.ViewModel
                 OnPropertyChanged(nameof(CanRegenerate));
                 OnPropertyChanged(nameof(SelectAllEntities));
                 OnPropertyChanged(nameof(SelectedFeatures));
+                RegenerateCommand.NotifyCanExecuteChanged();
             }
             finally
             {
                 isRefreshing = false;
             }
+        }
+
+        [RelayCommand(CanExecute = nameof(CanRegenerate))]
+        private void Regenerate()
+        {
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(RegenerateAsync));
+        }
+
+        private async Task RegenerateAsync(CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (CurrentProject == null) return;
+            await orchestrationService.RegenerateAsync(CurrentProject, SelectedFeatures, EntityRows, ct);
         }
 
         // ── Private helpers ───────────────────────────────────────────────────
@@ -276,7 +346,10 @@ namespace BIA.ToolKit.Application.ViewModel
         private void OnFeatureItemPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(FeatureRegenerationItem.EffectiveFromVersion))
+            {
                 OnPropertyChanged(nameof(CanRegenerate));
+                RegenerateCommand.NotifyCanExecuteChanged();
+            }
         }
 
         private FeatureRegenerationItem BuildItem(string entityName, string featureType, string storedVersion, Version minVersion)

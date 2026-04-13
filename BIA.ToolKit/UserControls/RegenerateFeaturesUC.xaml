@@ -197,8 +197,7 @@
             <Button x:Name="RegenerateButton"
                     Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}"
                     Content="Regenerate selected features"
-                    IsEnabled="{Binding CanRegenerate}"
-                    Click="Regenerate_Click"/>
+                    Command="{Binding RegenerateCommand}"/>
         </StackPanel>
     </Grid>
 </UserControl>

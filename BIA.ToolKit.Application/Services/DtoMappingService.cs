@@ -67,6 +67,14 @@ namespace BIA.ToolKit.Application.Services
         /// Mirrors <c>DtoGeneratorViewModel.RefreshEntityPropertiesTreeView</c> and
         /// <c>DtoGeneratorViewModel.FillEntityProperties</c>.
         /// </summary>
+        /// <summary>
+        /// Hard cap on the depth of the property tree. Prevents runaway expansion when the
+        /// entity graph contains mutual references deeper than the parent-only cycle check
+        /// can detect. A value of 10 comfortably accommodates realistic DTO drill-down patterns
+        /// (e.g. Project → Owner → Manager → Team → Site) while ruling out exponential blow-up.
+        /// </summary>
+        private const int MaxPropertyTreeDepth = 10;
+
         public static List<EntityProperty> BuildEntityPropertyTree(EntityInfo entityInfo, IEnumerable<EntityInfo> allDomainEntities)
         {
             var allEntities = allDomainEntities.ToList();
@@ -82,7 +90,7 @@ namespace BIA.ToolKit.Application.Services
                     IsSelected = true,
                     ParentType = entityInfo.Name,
                 };
-                FillEntityPropertyChildren(entityProperty, entityInfo.Name, allEntities);
+                FillEntityPropertyChildren(entityProperty, entityInfo.Name, allEntities, depth: 1);
                 result.Add(entityProperty);
             }
 
@@ -169,9 +177,19 @@ namespace BIA.ToolKit.Application.Services
         /// <summary>
         /// Fills child properties of <paramref name="property"/> by looking up the property's type
         /// in the domain entity list (mirrors <c>DtoGeneratorViewModel.FillEntityProperties</c>).
+        /// <para>
+        /// The parent/root cycle check is preserved for backward compatibility with existing DTO
+        /// generation output. A <see cref="MaxPropertyTreeDepth"/> hard cap additionally guards
+        /// against entity graphs whose mutual references slip past the parent-only check and
+        /// would otherwise cause exponential tree expansion (which previously froze and crashed
+        /// the DTO generator tab).
+        /// </para>
         /// </summary>
-        private static void FillEntityPropertyChildren(EntityProperty property, string rootPropertyType, List<EntityInfo> allEntities)
+        private static void FillEntityPropertyChildren(EntityProperty property, string rootPropertyType, List<EntityInfo> allEntities, int depth)
         {
+            if (depth >= MaxPropertyTreeDepth)
+                return;
+
             EntityInfo propertyInfo = allEntities.FirstOrDefault(e => e.Name == property.Type);
             if (propertyInfo == null)
                 return;
@@ -187,7 +205,7 @@ namespace BIA.ToolKit.Application.Services
                 });
 
             property.Properties.AddRange(childProperties);
-            property.Properties.ForEach(p => FillEntityPropertyChildren(p, rootPropertyType, allEntities));
+            property.Properties.ForEach(p => FillEntityPropertyChildren(p, rootPropertyType, allEntities, depth + 1));
         }
 
         private void BuildMappingPropertiesRecursive(

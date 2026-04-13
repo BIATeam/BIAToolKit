@@ -38,7 +38,7 @@
                 <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Entity" ItemsSource="{Binding Entities}" SelectedItem="{Binding Entity, Mode=TwoWay}" IsEnabled="{Binding IsProjectChosen}" ItemTemplate="{StaticResource EntityDisplayTemplate}">
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="SelectionChanged">
-                            <i:InvokeCommandAction Command="{Binding OnEntitySelectionChangedCommand}" />
+                            <i:InvokeCommandAction Command="{Binding EntitySelectionChangedCommand}" />
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
                 </ComboBox>
@@ -48,7 +48,7 @@
             <ComboBox Margin="{StaticResource FormRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="BIA Front" x:Name="BIAFront" ItemsSource="{Binding BiaFronts}" SelectedValue="{Binding BiaFront, Mode=TwoWay}" IsEnabled="{Binding IsProjectChosen}">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="SelectionChanged">
-                        <i:InvokeCommandAction Command="{Binding OnBiaFrontSelectionChangedCommand}" CommandParameter="{Binding BiaFront}" />
+                        <i:InvokeCommandAction Command="{Binding BiaFrontSelectionChangedCommand}" CommandParameter="{Binding BiaFront}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </ComboBox>

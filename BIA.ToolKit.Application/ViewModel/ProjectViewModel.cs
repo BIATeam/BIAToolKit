@@ -70,6 +70,7 @@ namespace BIA.ToolKit.Application.ViewModel
         [ObservableProperty]
         private ObservableCollection<string> projects = [];
 
+        [RelayCommand]
         public void RefreshProjetsList()
         {
             if (!Directory.Exists(RootProjectsPath))

@@ -25,7 +25,7 @@
                   materialDesign:HintAssist.Hint="Framework Version" VerticalAlignment="Top">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="SelectionChanged">
-                    <i:InvokeCommandAction Command="{Binding OnFrameworkVersionSelectionChangedCommand}" />
+                    <i:InvokeCommandAction Command="{Binding FrameworkVersionSelectionChangedCommand}" />
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </ComboBox>
@@ -37,7 +37,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
-                                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" ToolTip="{Binding Description}" Command="{Binding DataContext.OnFeatureSettingSelectionChangedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Foreground="White" />
+                                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" ToolTip="{Binding Description}" Command="{Binding DataContext.FeatureSettingSelectionChangedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Foreground="White" />
                                     <materialDesign:PackIcon Margin="5,0,0,0" Height="20" Width="20" VerticalAlignment="Center" Kind="AlertCircle" Visibility="{Binding DisplayDisabledFeatures, Converter={StaticResource BoolToVisConverter}}">
                                         <materialDesign:PackIcon.ToolTip>
                                             <StackPanel Orientation="Horizontal">
@@ -86,7 +86,7 @@
                                     materialDesign:HintAssist.Hint="Company File Version">
                             <i:Interaction.Triggers>
                                 <i:EventTrigger EventName="SelectionChanged">
-                                    <i:InvokeCommandAction Command="{Binding OnCFVersionSelectionChangedCommand}" />
+                                    <i:InvokeCommandAction Command="{Binding CFVersionSelectionChangedCommand}" />
                                 </i:EventTrigger>
                             </i:Interaction.Triggers>
                         </ComboBox>

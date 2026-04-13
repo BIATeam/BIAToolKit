@@ -20,6 +20,8 @@ namespace BIA.ToolKit.UserControls
             MigrateOriginVersionAndOption.DataContext = viewModel.OriginVersionAndOptionVM;
             MigrateTargetVersionAndOption.DataContext = viewModel.TargetVersionAndOptionVM;
 
+            RegenerateFeatures.DataContext = App.GetService<RegenerateFeaturesViewModel>();
+
             var projectViewModel = App.GetService<ProjectViewModel>();
             ProjectSelector.DataContext = projectViewModel;
         }

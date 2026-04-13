@@ -62,6 +62,7 @@ namespace BIA.ToolKit
             services.AddTransient<OptionGeneratorViewModel>();
             services.AddTransient<DtoGeneratorViewModel>();
             services.AddTransient<CRUDGeneratorViewModel>();
+            services.AddTransient<RegenerateFeaturesViewModel>();
             services.AddTransient<MainViewModel>(sp => new MainViewModel(
                 Assembly.GetExecutingAssembly().GetName().Version,
                 sp.GetRequiredService<SettingsService>(),

@@ -29,8 +29,7 @@
                      Style="{StaticResource MaterialDesignFilledTextBox}"
                      materialDesign:HintAssist.Hint="Projects Parent Path"
                      Text="{Binding RootProjectsPath}"
-                     TextWrapping="Wrap"
-                     TextChanged="RootPathTextBox_TextChanged"/>
+                     TextWrapping="Wrap"/>
             <Button Grid.Column="1" Margin="5,0" Content="..." Click="BrowseRootFolder_Click"/>
         </Grid>
 
@@ -49,7 +48,7 @@
                       materialDesign:HintAssist.Hint="Project Folder"
                       ItemsSource="{Binding Projects}"
                       SelectedValue="{Binding Folder}"/>
-            <Button Grid.Column="1" Click="RefreshProjectList_Click"
+            <Button Grid.Column="1" Command="{Binding RefreshProjetsListCommand}"
                     ToolTip="Refresh project folder list" Padding="5" Margin="5,0">
                 <Image Source="/Images/rafraichir-32.png" />
             </Button>
