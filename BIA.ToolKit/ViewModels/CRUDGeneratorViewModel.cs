@@ -218,6 +218,7 @@ namespace BIA.ToolKit.ViewModels
         #region CRUD Name
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private string cRUDNameSingular;
 
         partial void OnCRUDNameSingularChanged(string value)
@@ -226,6 +227,7 @@ namespace BIA.ToolKit.ViewModels
         }
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsButtonGenerateCrudEnable))]
         private string cRUDNamePlural;
         #endregion
 
@@ -369,6 +371,10 @@ namespace BIA.ToolKit.ViewModels
             if (value == false)
             {
                 BiaFront = null;
+            }
+            else if (string.IsNullOrWhiteSpace(BiaFront) && BiaFronts.Count > 0)
+            {
+                BiaFront = BiaFronts.FirstOrDefault();
             }
             UpdateFeatureSelection();
         }
@@ -870,7 +876,7 @@ namespace BIA.ToolKit.ViewModels
                         ParentName = history.ParentName;
                         ParentNamePlural = history.ParentNamePlural;
                         Domain = history.Domain;
-                        BiaFront = history.BiaFront;
+                        BiaFront = !string.IsNullOrEmpty(history.BiaFront) ? history.BiaFront : BiaFronts.FirstOrDefault();
                         IsTeam = history.IsTeam;
                         TeamTypeId = history.TeamTypeId;
                         TeamRoleId = history.TeamRoleId;
