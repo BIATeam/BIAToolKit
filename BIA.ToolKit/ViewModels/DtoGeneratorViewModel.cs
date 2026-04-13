@@ -1,7 +1,8 @@
-namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.ViewModels
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Messages;
+    using BIA.ToolKit.Application.Models.DtoGenerator;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
@@ -115,7 +116,7 @@ namespace BIA.ToolKit.Application.ViewModel
             }
             catch (Exception ex)
             {
-                Helper.DiagLog.Write($"Dto.OnEntityChanged: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+                DiagLog.Write($"Dto.OnEntityChanged: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
                 // Surface the error to the console rather than crashing the WPF Dispatcher.
                 consoleWriter?.AddMessageLine($"Error while preparing DTO entity '{value?.Name}': {ex.Message}", "red");
             }
@@ -646,138 +647,6 @@ namespace BIA.ToolKit.Application.ViewModel
                 return;
 
             MappingEntityProperties.Move(args.OldIndex, args.NewIndex);
-        }
-    }
-
-    public partial class EntityProperty : ObservableObject
-    {
-        public string Name { get; set; }
-        public string Type { get; set; }
-
-        [ObservableProperty]
-        private bool isSelected;
-
-        public string CompositeName { get; set; }
-        public List<EntityProperty> Properties { get; set; } = [];
-        public string ParentType { get; set; }
-
-        public List<EntityProperty> GetAllPropertiesRecursively()
-        {
-            var allProperties = new List<EntityProperty> { this };
-            allProperties.AddRange(Properties.SelectMany(x => x.GetAllPropertiesRecursively()));
-            return allProperties;
-        }
-    }
-
-    public partial class MappingEntityProperty : ObservableObject
-    {
-        public string EntityCompositeName { get; set; }
-        public string EntityType { get; set; }
-
-        private string mappingName = null;
-        public string MappingName
-        {
-            // Inteligent getter to simplify unitary test
-            get { if (mappingName != null) { return mappingName; } else { return EntityCompositeName; } }
-            set { mappingName = value; OnPropertyChanged(nameof(MappingName)); }
-        }
-
-        private string mappingType = null;
-        public string MappingType
-        {
-            // Inteligent getter to simplify unitary test
-            get { if (mappingType != null) { return mappingType; } else { return EntityType; } }
-            set { mappingType = value; }
-        }
-
-        public string ParentEntityType { get; set; }
-        public bool IsOption => MappingType.Equals(Constants.BiaClassName.OptionDto);
-        public bool IsOptionCollection => MappingType.Equals(Constants.BiaClassName.CollectionOptionDto);
-        public string OptionType { get; set; }
-
-        [ObservableProperty]
-        private bool isRequired;
-
-        public List<string> OptionIdProperties { get; set; } = [];
-        public List<string> OptionDisplayProperties { get; set; } = [];
-        public List<string> OptionEntityIdProperties { get; set; } = [];
-
-        [ObservableProperty]
-        private string optionDisplayProperty;
-
-        [ObservableProperty]
-        private string optionIdProperty;
-
-        public bool IsVisibleOptionPropertiesComboBox => IsOption || IsOptionCollection;
-        public string OptionEntityIdPropertyComposite { get; private set; }
-
-        [ObservableProperty]
-        private string optionEntityIdProperty;
-
-        partial void OnOptionEntityIdPropertyChanged(string value)
-        {
-            OptionEntityIdPropertyComposite = IsCompositeName ?
-                string.Join(".", EntityCompositeName.Split('.').SkipLast(1)) + $".{value}" :
-                value;
-        }
-
-        public string OptionRelationType { get; set; }
-        public string OptionRelationFirstIdProperty { get; set; }
-        public string OptionRelationSecondIdProperty { get; set; }
-        public string OptionRelationPropertyComposite { get; set; }
-
-        [ObservableProperty]
-        private string mappingDateType;
-
-        public List<string> MappingDateTypes { get; set; } = [];
-        public bool IsVisibleDateTypesComboxBox => MappingDateTypes.Count > 0;
-
-        public bool IsValid => ComputeValidity();
-        private bool IsCompositeName => EntityCompositeName.Contains('.');
-
-        public bool HasMappingNameError => !string.IsNullOrWhiteSpace(MappingNameError);
-
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(HasMappingNameError))]
-        private string mappingNameError;
-
-        [ObservableProperty]
-        private bool isParent;
-
-        [ObservableProperty]
-        private bool asLocalDateTime;
-
-        public bool IsVisibleIsParentCheckbox =>
-            EntityCompositeName.EndsWith("Id")
-            && !EntityCompositeName.Equals("Id")
-            ;
-
-
-        private bool ComputeValidity()
-        {
-            // Common validity
-            bool isMappingNameValid = !string.IsNullOrWhiteSpace(MappingName) && !HasMappingNameError;
-            // Options validity
-            bool isOptionIdPropertyValid = !string.IsNullOrWhiteSpace(OptionIdProperty);
-            bool isOptionDisplayPropertyValid = !string.IsNullOrWhiteSpace(OptionDisplayProperty);
-
-            if (IsOption)
-            {
-                bool isOptionEntityIdPropertyValid = !string.IsNullOrWhiteSpace(OptionEntityIdProperty);
-                return isMappingNameValid && isOptionIdPropertyValid && isOptionDisplayPropertyValid && isOptionEntityIdPropertyValid;
-            }
-
-            if (IsOptionCollection)
-            {
-                bool isOptionRelationTypeValid = !string.IsNullOrWhiteSpace(OptionRelationType);
-                bool isOptionRelationPropertyValid = !string.IsNullOrWhiteSpace(OptionRelationPropertyComposite);
-                bool isOptionRelationFirstIdPropertyValid = !string.IsNullOrWhiteSpace(OptionRelationFirstIdProperty);
-                bool isOptionRelationSecondIdPropertyValid = !string.IsNullOrWhiteSpace(OptionRelationSecondIdProperty);
-                return isMappingNameValid && isOptionIdPropertyValid && isOptionDisplayPropertyValid && isOptionRelationTypeValid && isOptionRelationPropertyValid
-                    && isOptionRelationFirstIdPropertyValid && isOptionRelationSecondIdPropertyValid;
-            }
-
-            return isMappingNameValid;
         }
     }
 }

@@ -3,11 +3,10 @@ namespace BIA.ToolKit
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModels;
     using BIA.ToolKit.Dialogs;
     using BIA.ToolKit.Helper;
     using BIA.ToolKit.Infrastructure;
-    using BIA.ToolKit.ViewModels;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using System.Reflection;
@@ -52,7 +51,7 @@ namespace BIA.ToolKit
             services.AddSingleton<Application.Services.RegenerateFeatures.RegenerateFeaturesDiscoveryService>();
             services.AddSingleton<Application.Services.RegenerateFeatures.FeatureMigrationGeneratorService>();
             services.AddSingleton<Application.Services.RegenerateFeatures.RegenerationOrchestrationService>();
-            services.AddSingleton<Application.ViewModel.ProjectViewModel>();
+            services.AddSingleton<ProjectViewModel>();
             services.AddLogging();
 
             // ViewModels

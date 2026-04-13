@@ -3,7 +3,8 @@ namespace BIA.ToolKit.Dialogs
     using System.Windows;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Helper;
+    using BIA.ToolKit.ViewModels;
     using BIA.ToolKit.Infrastructure;
 
     /// <summary>

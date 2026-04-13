@@ -1,7 +1,7 @@
-namespace BIA.ToolKit.Application.Helper
+namespace BIA.ToolKit.Helper
 {
     using System.Collections.Generic;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModels;
 
     /// <summary>
     /// Abstraction for opening dialogs from ViewModels without coupling to UI types.

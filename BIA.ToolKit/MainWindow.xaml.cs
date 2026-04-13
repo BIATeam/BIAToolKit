@@ -9,7 +9,7 @@ namespace BIA.ToolKit
     using System.Windows.Media;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Messages;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModels;
     using BIA.ToolKit.Domain.Settings;
     using BIA.ToolKit.Helper;
     using CommunityToolkit.Mvvm.Messaging;

@@ -2,7 +2,7 @@ namespace BIA.ToolKit.Application.Services
 {
     using System.Collections.Generic;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.Models.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;

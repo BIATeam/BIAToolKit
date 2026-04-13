@@ -1,8 +1,9 @@
-namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.ViewModels
 {
     using System;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Helper;
     using BIA.ToolKit.Domain;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;

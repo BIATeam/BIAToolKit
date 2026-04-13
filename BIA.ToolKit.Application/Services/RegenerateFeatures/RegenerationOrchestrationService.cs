@@ -8,7 +8,6 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Settings;
-    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -83,7 +82,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         public async Task RegenerateAsync(
             Project currentProject,
             IEnumerable<FeatureRegenerationItem> selectedFeatures,
-            IReadOnlyList<RegenerableEntityRowViewModel> entityRows,
+            IReadOnlyList<IRegenerableEntityRow> entityRows,
             CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -269,9 +268,9 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
         /// </summary>
         private static RegenerableEntity BuildEntityForFeature(
             FeatureRegenerationItem feature,
-            IReadOnlyList<RegenerableEntityRowViewModel> entityRows)
+            IReadOnlyList<IRegenerableEntityRow> entityRows)
         {
-            RegenerableEntityRowViewModel row = entityRows.FirstOrDefault(r =>
+            IRegenerableEntityRow row = entityRows.FirstOrDefault(r =>
                 string.Equals(r.EntityNameSingular, feature.EntityNameSingular, StringComparison.OrdinalIgnoreCase));
 
             if (row == null)

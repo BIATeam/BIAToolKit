@@ -5,7 +5,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.Contexts
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.Models.DtoGenerator;
 
     public sealed class FileGeneratorDtoContext : FileGeneratorContext
     {

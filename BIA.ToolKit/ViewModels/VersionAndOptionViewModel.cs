@@ -1,9 +1,9 @@
-namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.ViewModels
 {
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Mapper;
     using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Messages;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Model;
@@ -256,6 +256,37 @@ namespace BIA.ToolKit.Application.ViewModel
             Options = new ObservableCollection<CFOption>(options);
         }
 
+        public void ApplyFromDto(VersionAndOptionDto dto, bool mapCompanyFileVersion, bool mapFrameworkVersion, List<FeatureSetting> originFeatureSettings)
+        {
+            // Company Files
+            UseCompanyFiles = dto.UseCompanyFiles;
+
+            // Feature
+            SetFeaturesSelection(dto.Tags, dto.Folders, originFeatureSettings);
+
+            // Company Files
+            if (mapCompanyFileVersion)
+            {
+                WorkCompanyFile = GetWorkCompanyFile(dto.CompanyFileVersion);
+            }
+
+            if (Profiles.Any(p => p == dto.Profile))
+            {
+                Profile = dto.Profile;
+            }
+
+            CheckOptions(dto.Options);
+
+            if (mapFrameworkVersion)
+            {
+                WorkRepository workTemplate = WorkTemplates.FirstOrDefault(x => x.Version == dto.FrameworkVersion);
+                if (workTemplate is not null)
+                {
+                    WorkTemplate = workTemplate;
+                }
+            }
+        }
+
         [ObservableProperty]
         private ObservableCollection<FeatureSettingViewModel> featureSettings = [];
 
@@ -410,7 +441,7 @@ namespace BIA.ToolKit.Application.ViewModel
             try
             {
                 VersionAndOptionDto versionAndOptionDto = CommonTools.DeserializeJsonFile<VersionAndOptionDto>(projectGenerationFile);
-                VersionAndOptionMapper.DtoToModel(versionAndOptionDto, this, mapCompanyFileVersion, mapFrameworkVersion, OriginFeatureSettings);
+                ApplyFromDto(versionAndOptionDto, mapCompanyFileVersion, mapFrameworkVersion, OriginFeatureSettings);
             }
             catch (Exception ex)
             {

@@ -1,4 +1,4 @@
-namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.ViewModels
 {
     using BIA.ToolKit.Domain.ModifyProject.RegenerateFeatures;
     using CommunityToolkit.Mvvm.ComponentModel;
@@ -7,7 +7,7 @@ namespace BIA.ToolKit.Application.ViewModel
     /// ViewModel row representing one entity and its regenerable features (CRUD, Option, DTO)
     /// for the RegenerateFeatures tab.
     /// </summary>
-    public class RegenerableEntityRowViewModel(RegenerableEntity entity) : ObservableObject
+    public class RegenerableEntityRowViewModel(RegenerableEntity entity) : ObservableObject, IRegenerableEntityRow
     {
         private bool isCrudSelected;
         private bool isOptionSelected;

@@ -1,4 +1,4 @@
-namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.ViewModels
 {
     using System;
     using System.Threading;
@@ -6,6 +6,8 @@ namespace BIA.ToolKit.Application.ViewModel
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Helper;
+    using BIA.ToolKit.Messages;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Messaging;
 

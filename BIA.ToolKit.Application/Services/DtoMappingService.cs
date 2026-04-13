@@ -5,7 +5,7 @@ namespace BIA.ToolKit.Application.Services
     using System.Linq;
     using System.Text.RegularExpressions;
     using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.Models.DtoGenerator;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
 
@@ -54,7 +54,7 @@ namespace BIA.ToolKit.Application.Services
             { "TimeSpan?", "string" },
         };
 
-        internal static readonly Dictionary<string, List<string>> DateTypesByPropertyType = new()
+        public static readonly Dictionary<string, List<string>> DateTypesByPropertyType = new()
         {
             { "TimeSpan", new List<string> { "time" } },
             { "DateTime", new List<string> { "datetime", "date", "time" } },

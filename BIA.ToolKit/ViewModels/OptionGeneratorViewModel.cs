@@ -1,6 +1,7 @@
-namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.ViewModels
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Models.CrudGenerator;
     using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
@@ -285,7 +286,7 @@ namespace BIA.ToolKit.Application.ViewModel
                 }
                 catch (Exception ex)
                 {
-                    Helper.DiagLog.Write($"Option.OnEntitySelectionChanged: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+                    DiagLog.Write($"Option.OnEntitySelectionChanged: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
                     consoleWriter.AddMessageLine($"Error parsing entity: {ex.Message}", "Red");
                     IsEntityParsed = false;
                 }
@@ -391,7 +392,7 @@ namespace BIA.ToolKit.Application.ViewModel
             }
             catch (Exception ex)
             {
-                Helper.DiagLog.Write($"Option.ParseEntityFileAsync: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+                DiagLog.Write($"Option.ParseEntityFileAsync: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
                 consoleWriter.AddMessageLine($"Error parsing entity file: {ex.Message}", "Red");
                 IsEntityParsed = false;
             }

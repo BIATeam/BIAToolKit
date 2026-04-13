@@ -4,7 +4,6 @@ namespace BIA.ToolKit.Application.Messages
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using BIA.ToolKit.Application.ViewModel;
     using BIA.ToolKit.Domain.Model;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.Settings;
@@ -23,18 +22,6 @@ namespace BIA.ToolKit.Application.Messages
 
     public sealed record RepositoriesUpdatedMessage;
 
-    public sealed record RepositoryChangedMessage(RepositoryViewModel OldRepository, RepositoryViewModel NewRepository);
-
-    public sealed record RepositoryDeletedMessage(RepositoryViewModel Repository);
-
-    public sealed record RepositoryAddedMessage(RepositoryViewModel Repository);
-
-    public sealed record RepositoryVersionXYZChangedMessage(RepositoryViewModel Repository);
-
-    public sealed record RepositoryReleaseDataUpdatedMessage(RepositoryViewModel Repository);
-
-    public sealed record OpenRepositoryFormMessage(RepositoryViewModel Repository, RepositoryFormMode Mode);
-
     // --- Features ---
 
     public sealed record OriginFeatureSettingsChangedMessage(List<FeatureSetting> FeatureSettings);
@@ -48,12 +35,4 @@ namespace BIA.ToolKit.Application.Messages
     public sealed record ExecuteActionWithWaiterMessage(Func<CancellationToken, Task> Action);
 
     public sealed record NavigateToConfigTabMessage;
-
-    // --- Enums (moved from UIEventBroker) ---
-
-    public enum RepositoryFormMode
-    {
-        Create,
-        Edit
-    }
 }

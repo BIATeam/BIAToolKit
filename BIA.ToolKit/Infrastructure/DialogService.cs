@@ -2,7 +2,7 @@ namespace BIA.ToolKit.Infrastructure
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModels;
     using BIA.ToolKit.Dialogs;
     using BIA.ToolKit.Helper;
     using System.Collections.Generic;

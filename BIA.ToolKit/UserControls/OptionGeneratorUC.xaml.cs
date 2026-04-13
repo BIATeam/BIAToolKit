@@ -1,6 +1,6 @@
 namespace BIA.ToolKit.UserControls
 {
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModels;
     using System.Windows.Controls;
 
     /// <summary>

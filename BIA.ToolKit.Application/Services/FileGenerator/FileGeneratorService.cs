@@ -13,7 +13,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Services.FileGenerator.ModelProviders;
     using BIA.ToolKit.Application.Templates;
-    using BIA.ToolKit.Application.ViewModel;
+
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;

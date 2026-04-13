@@ -1,4 +1,4 @@
-namespace BIA.ToolKit.Application.ViewModel
+namespace BIA.ToolKit.ViewModels
 {
     using System.IO;
     using BIA.ToolKit.Application.Helper;

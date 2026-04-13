@@ -9,7 +9,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.Models.DtoGenerator;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;

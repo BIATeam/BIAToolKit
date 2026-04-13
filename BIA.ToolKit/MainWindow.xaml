@@ -4,8 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:gif="http://wpfanimatedgif.codeplex.com"
-        xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
-        xmlns:uc="clr-namespace:BIA.ToolKit.UserControls" d:DataContext="{d:DesignInstance Type=local:MainViewModel}"
+        xmlns:vm="clr-namespace:BIA.ToolKit.ViewModels"
+        xmlns:uc="clr-namespace:BIA.ToolKit.UserControls" d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         mc:Ignorable="d"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         WindowStyle="None"
@@ -166,7 +166,7 @@
                                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" Margin="10,0,0,0">
                                         <ItemsControl ItemsSource="{Binding TemplateRepositories}" VerticalAlignment="Top">
                                             <ItemsControl.ItemTemplate>
-                                                <DataTemplate DataType="{x:Type local:RepositoryViewModel}">
+                                                <DataTemplate DataType="{x:Type vm:RepositoryViewModel}">
                                                     <uc:RepositoryResumeUC Margin="0,0,0,10" DataContext="{Binding}"/>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
@@ -192,7 +192,7 @@
                                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" Margin="10,0,0,0" IsEnabled="{Binding Settings_UseCompanyFiles}">
                                         <ItemsControl ItemsSource="{Binding CompanyFilesRepositories}" VerticalAlignment="Top">
                                             <ItemsControl.ItemTemplate>
-                                                <DataTemplate DataType="{x:Type local:RepositoryViewModel}">
+                                                <DataTemplate DataType="{x:Type vm:RepositoryViewModel}">
                                                     <uc:RepositoryResumeUC Margin="0,0,0,10" DataContext="{Binding}"/>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
