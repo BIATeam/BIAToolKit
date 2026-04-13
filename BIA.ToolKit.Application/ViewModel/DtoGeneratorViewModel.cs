@@ -86,30 +86,46 @@ namespace BIA.ToolKit.Application.ViewModel
 
         partial void OnEntityChanged(EntityInfo value)
         {
-            AncestorTeam = null;
-            EntityDomain = null;
-
-            if (value is not null)
+            Helper.DiagLog.Write($"Dto.OnEntityChanged: ENTER (Entity={value?.Name ?? "null"})");
+            try
             {
-                List<string> namespaceElements = [.. value.Namespace.Split('.')];
-                int dtoNamespaceIndex = namespaceElements.FindIndex(x => x == "Domain");
-                if (dtoNamespaceIndex != -1)
+                AncestorTeam = null;
+                EntityDomain = null;
+
+                if (value is not null)
                 {
-                    EntityDomain = namespaceElements.ElementAt(dtoNamespaceIndex + 1);
+                    List<string> namespaceElements = [.. value.Namespace.Split('.')];
+                    int dtoNamespaceIndex = namespaceElements.FindIndex(x => x == "Domain");
+                    if (dtoNamespaceIndex != -1)
+                    {
+                        EntityDomain = namespaceElements.ElementAt(dtoNamespaceIndex + 1);
+                    }
                 }
+
+                Helper.DiagLog.Write("Dto.OnEntityChanged: BEFORE RefreshEntityPropertiesTreeView");
+                RefreshEntityPropertiesTreeView();
+                Helper.DiagLog.Write("Dto.OnEntityChanged: AFTER RefreshEntityPropertiesTreeView");
+                RemoveAllMappingProperties();
+                Helper.DiagLog.Write("Dto.OnEntityChanged: AFTER RemoveAllMappingProperties");
+
+                IsTeam = value?.IsTeam == true;
+                IsVersioned = value?.IsVersioned == true;
+                IsFixable = value?.IsFixable == true;
+                IsArchivable = value?.IsArchivable == true;
+                SelectedBaseKeyType = value?.BaseKeyType;
+                UseDedicatedAudit = false;
+
+                Helper.DiagLog.Write("Dto.OnEntityChanged: BEFORE OnEntitySelected");
+                OnEntitySelected();
+                Helper.DiagLog.Write("Dto.OnEntityChanged: AFTER OnEntitySelected");
             }
-
-            RefreshEntityPropertiesTreeView();
-            RemoveAllMappingProperties();
-
-            IsTeam = value?.IsTeam == true;
-            IsVersioned = value?.IsVersioned == true;
-            IsFixable = value?.IsFixable == true;
-            IsArchivable = value?.IsArchivable == true;
-            SelectedBaseKeyType = value?.BaseKeyType;
-            UseDedicatedAudit = false;
-
-            OnEntitySelected();
+            catch (Exception ex)
+            {
+                Helper.DiagLog.Write($"Dto.OnEntityChanged: CAUGHT EXCEPTION: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+                // Surface the error to the console rather than crashing the WPF Dispatcher.
+                consoleWriter?.AddMessageLine($"Error while preparing DTO entity '{value?.Name}': {ex.Message}", "red");
+            }
+            Helper.DiagLog.Write("Dto.OnEntityChanged: EXIT");
         }
 
         [ObservableProperty]
@@ -406,14 +422,21 @@ namespace BIA.ToolKit.Application.ViewModel
 
         private void RefreshEntityPropertiesTreeView()
         {
+            Helper.DiagLog.Write($"Dto.RefreshEntityPropertiesTreeView: ENTER (Entity={Entity?.Name ?? "null"}, Entities.Count={Entities?.Count ?? -1})");
             EntityProperties.Clear();
             if (Entity == null)
+            {
+                Helper.DiagLog.Write("Dto.RefreshEntityPropertiesTreeView: EXIT early (Entity null)");
                 return;
+            }
 
             // Delegate to DtoMappingService to keep the tree-building logic in one place.
+            Helper.DiagLog.Write("Dto.RefreshEntityPropertiesTreeView: BEFORE BuildEntityPropertyTree");
             List<EntityProperty> tree = DtoMappingService.BuildEntityPropertyTree(Entity, Entities);
+            Helper.DiagLog.Write($"Dto.RefreshEntityPropertiesTreeView: AFTER BuildEntityPropertyTree (tree.Count={tree?.Count ?? -1})");
             foreach (EntityProperty ep in tree)
                 EntityProperties.Add(ep);
+            Helper.DiagLog.Write("Dto.RefreshEntityPropertiesTreeView: EXIT");
         }
 
         private void FillEntityProperties(EntityProperty property, string rootPropertyType)

@@ -270,12 +270,15 @@ namespace BIA.ToolKit.Application.ViewModel
         [RelayCommand]
         private void OnEntitySelectionChanged()
         {
+            Helper.DiagLog.Write($"Option.OnEntitySelectionChanged: ENTER (Entity={Entity?.Name ?? "null"})");
             WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
+                Helper.DiagLog.Write($"Option.OnEntitySelectionChanged: action START (Entity={Entity?.Name ?? "null"})");
                 if (Entity == null)
                 {
                     IsEntityParsed = false;
                     EntityDisplayItems.Clear();
+                    Helper.DiagLog.Write("Option.OnEntitySelectionChanged: action END (Entity was null)");
                     return;
                 }
 
@@ -285,10 +288,13 @@ namespace BIA.ToolKit.Application.ViewModel
                 }
                 catch (Exception ex)
                 {
+                    Helper.DiagLog.Write($"Option.OnEntitySelectionChanged: CAUGHT EXCEPTION: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
                     consoleWriter.AddMessageLine($"Error parsing entity: {ex.Message}", "Red");
                     IsEntityParsed = false;
                 }
+                Helper.DiagLog.Write("Option.OnEntitySelectionChanged: action END");
             }));
+            Helper.DiagLog.Write("Option.OnEntitySelectionChanged: EXIT (message sent)");
         }
 
         [RelayCommand]
@@ -353,16 +359,30 @@ namespace BIA.ToolKit.Application.ViewModel
 
         private async Task ParseEntityFileAsync()
         {
+            Helper.DiagLog.Write($"Option.ParseEntityFileAsync: ENTER (Entity={Entity?.Name ?? "null"}, Project={CurrentProject?.Name ?? "null"})");
             if (Entity == null || CurrentProject == null)
+            {
+                Helper.DiagLog.Write("Option.ParseEntityFileAsync: EXIT early (null entity or project)");
                 return;
+            }
 
             try
             {
                 var entityFilePath = Entity.Path;
-                var parsedEntity = await Task.Run(() => parserService.ParseClassFile(entityFilePath));
+                Helper.DiagLog.Write($"Option.ParseEntityFileAsync: entityFilePath={entityFilePath}");
+                Helper.DiagLog.Write("Option.ParseEntityFileAsync: BEFORE Task.Run(ParseClassFile)");
+                var parsedEntity = await Task.Run(() =>
+                {
+                    Helper.DiagLog.Write("Option.ParseEntityFileAsync: INSIDE Task.Run, calling ParseClassFile");
+                    var result = parserService.ParseClassFile(entityFilePath);
+                    Helper.DiagLog.Write($"Option.ParseEntityFileAsync: ParseClassFile returned {(result == null ? "null" : "non-null")}");
+                    return result;
+                });
+                Helper.DiagLog.Write("Option.ParseEntityFileAsync: AFTER Task.Run(ParseClassFile)");
 
                 if (parsedEntity != null)
                 {
+                    Helper.DiagLog.Write($"Option.ParseEntityFileAsync: PropertyList count={parsedEntity.PropertyList?.Count ?? -1}");
                     // Extract display items (string properties) from PropertyList
                     var displayItems = new List<string>();
                     foreach (var prop in parsedEntity.PropertyList)
@@ -375,24 +395,35 @@ namespace BIA.ToolKit.Application.ViewModel
                             displayItems.Add(propName);
                         }
                     }
+                    Helper.DiagLog.Write($"Option.ParseEntityFileAsync: displayItems count={displayItems.Count}");
 
                     EntityDisplayItems = new ObservableCollection<string>(displayItems);
                     EntityDisplayItemSelected = displayItems.FirstOrDefault();
+                    Helper.DiagLog.Write($"Option.ParseEntityFileAsync: EntityDisplayItemSelected={EntityDisplayItemSelected ?? "null"}");
 
                     // Auto-fill EntityNamePlural
                     EntityNamePlural = Entity.Name.Pluralize();
+                    Helper.DiagLog.Write($"Option.ParseEntityFileAsync: EntityNamePlural={EntityNamePlural}");
 
                     // Auto-fill Domain from namespace
                     UpdateDomainPreSelection();
+                    Helper.DiagLog.Write($"Option.ParseEntityFileAsync: Domain={Domain ?? "null"}");
 
                     IsEntityParsed = true;
+                    Helper.DiagLog.Write("Option.ParseEntityFileAsync: IsEntityParsed=true");
+                }
+                else
+                {
+                    Helper.DiagLog.Write("Option.ParseEntityFileAsync: parsedEntity was null, skipping population");
                 }
             }
             catch (Exception ex)
             {
+                Helper.DiagLog.Write($"Option.ParseEntityFileAsync: CAUGHT EXCEPTION: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
                 consoleWriter.AddMessageLine($"Error parsing entity file: {ex.Message}", "Red");
                 IsEntityParsed = false;
             }
+            Helper.DiagLog.Write("Option.ParseEntityFileAsync: EXIT");
         }
 
         private void UpdateDomainPreSelection()
