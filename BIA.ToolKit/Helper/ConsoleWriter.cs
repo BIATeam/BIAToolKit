@@ -144,7 +144,6 @@ namespace BIA.ToolKit.Helper
                 if (refreshimediate)
                 {
                     richTextBox.ScrollToEnd();
-                    System.Windows.Forms.Application.DoEvents();
                 }
             });
         }

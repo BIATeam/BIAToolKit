@@ -41,6 +41,11 @@ namespace BIA.ToolKit.Helper
         /// Returns empty string if the user cancels.
         /// </summary>
         string BrowseFile(string defaultFolder, string fileFilter = null);
+
+        /// <summary>
+        /// Copies the given text to the system clipboard.
+        /// </summary>
+        void CopyToClipboard(string text);
     }
 
     /// <summary>

@@ -53,7 +53,10 @@ namespace BIA.ToolKit.ViewModels
         [RelayCommand]
         private void StopAction()
         {
-            currentTokenSource?.Cancel();
+            // Capture local reference to avoid ObjectDisposedException
+            // if the token source is disposed concurrently in the finally block.
+            var cts = currentTokenSource;
+            try { cts?.Cancel(); } catch (ObjectDisposedException) { }
         }
 
         // --- Initialization ---

@@ -395,7 +395,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             }
             catch (Exception ex)
             {
-                _consoleWriter.AddMessageLine($"CRUD generation failed : {ex}", color: "red");
+                _consoleWriter.AddMessageLine($"Team generation failed : {ex}", color: "red");
             }
         }
 
@@ -561,8 +561,13 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
         {
             var process = new Process();
             process.StartInfo.WorkingDirectory = _prettierAngularProjectPath;
-            process.StartInfo.FileName = "cmd.exe";
-            process.StartInfo.Arguments = $"/C npx prettier --write \"{path}\" --plugin=prettier-plugin-organize-imports --config \"{Path.Combine(_prettierAngularProjectPath, ".prettierrc")}\"";
+            process.StartInfo.FileName = "npx";
+            process.StartInfo.ArgumentList.Add("prettier");
+            process.StartInfo.ArgumentList.Add("--write");
+            process.StartInfo.ArgumentList.Add(path);
+            process.StartInfo.ArgumentList.Add("--plugin=prettier-plugin-organize-imports");
+            process.StartInfo.ArgumentList.Add("--config");
+            process.StartInfo.ArgumentList.Add(Path.Combine(_prettierAngularProjectPath, ".prettierrc"));
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
 

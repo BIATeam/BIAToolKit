@@ -65,6 +65,11 @@ namespace BIA.ToolKit.Infrastructure
             return FileDialog.BrowseFile(defaultFolder, fileFilter);
         }
 
+        public void CopyToClipboard(string text)
+        {
+            Clipboard.SetText(text);
+        }
+
         private static UserControl BuildMessageDialogContent(string title, string message, string okText, string cancelText)
         {
             var panel = new StackPanel { Margin = new Thickness(20) };

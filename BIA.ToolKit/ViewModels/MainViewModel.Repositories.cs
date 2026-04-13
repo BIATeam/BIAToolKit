@@ -120,6 +120,7 @@ namespace BIA.ToolKit.ViewModels
                 if (TemplateRepositories[i] == repository)
                 {
                     TemplateRepositories.RemoveAt(i);
+                    break;
                 }
             }
 
@@ -128,6 +129,7 @@ namespace BIA.ToolKit.ViewModels
                 if (CompanyFilesRepositories[i] == repository)
                 {
                     CompanyFilesRepositories.RemoveAt(i);
+                    break;
                 }
             }
 

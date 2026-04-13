@@ -10,8 +10,9 @@ namespace BIA.ToolKit.ViewModels
     /// <summary>
     /// ViewModel for LogDetailUC - displays detailed log messages.
     /// </summary>
-    public partial class LogDetailViewModel : ObservableObject
+    public partial class LogDetailViewModel(IDialogService dialogService) : ObservableObject
     {
+        private readonly IDialogService dialogService = dialogService;
         [ObservableProperty]
         private List<ConsoleWriter.Message> messages = new();
 
@@ -43,7 +44,7 @@ namespace BIA.ToolKit.ViewModels
                 return;
 
             var text = string.Join(Environment.NewLine, Messages.Select(m => m.message));
-            System.Windows.Clipboard.SetText(text);
+            dialogService.CopyToClipboard(text);
         }
     }
 }
