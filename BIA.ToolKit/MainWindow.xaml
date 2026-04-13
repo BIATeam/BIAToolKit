@@ -389,12 +389,27 @@
                         <ColumnDefinition Width="auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <materialDesign:PackIcon x:Name="OutputChevron" Grid.Column="0" Kind="ChevronRight"
+                    <materialDesign:PackIcon Grid.Column="0" Kind="ChevronRight"
                                              Width="16" Height="16" VerticalAlignment="Center" Margin="8,0,0,0"
                                              RenderTransformOrigin="0.5,0.5">
-                        <materialDesign:PackIcon.RenderTransform>
-                            <RotateTransform x:Name="ChevronRotation" Angle="0"/>
-                        </materialDesign:PackIcon.RenderTransform>
+                        <materialDesign:PackIcon.Style>
+                            <Style TargetType="materialDesign:PackIcon">
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <RotateTransform Angle="0"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsOutputExpanded}" Value="True">
+                                        <Setter Property="RenderTransform">
+                                            <Setter.Value>
+                                                <RotateTransform Angle="90"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </materialDesign:PackIcon.Style>
                     </materialDesign:PackIcon>
 
                     <Label Grid.Column="1" FontWeight="Bold" Content="OUTPUT" Padding="4,4"
@@ -426,7 +441,7 @@
 
             <!-- Console output (collapsible, selectable) -->
             <RichTextBox Grid.Row="1" Name="OutputRichTextBox"
-                         MaxHeight="200" Visibility="Collapsed"
+                         MaxHeight="200" Visibility="{Binding IsOutputExpanded, Converter={StaticResource BoolToVisConverter}}"
                          IsReadOnly="True" IsReadOnlyCaretVisible="True"
                          BorderThickness="0" Padding="5"
                          Background="{DynamicResource MaterialDesign.Brush.Card.Background}"

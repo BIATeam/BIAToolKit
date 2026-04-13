@@ -1,7 +1,6 @@
 namespace BIA.ToolKit
 {
     using System;
-    using System.ComponentModel;
     using System.IO;
     using System.Runtime.InteropServices;
     using System.Windows;
@@ -56,48 +55,20 @@ namespace BIA.ToolKit
 
             // Navigate to Configuration page when repos are invalid
             WeakReferenceMessenger.Default.Register<NavigateToConfigTabMessage>(this, (r, m) => Dispatcher.BeginInvoke((Action)(() => ViewModel.NavigateToConfig())));
-            // Auto-expand output panel when a busy operation starts
-            ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+            // Auto-expand on IsBusy is now handled in MainViewModel.BusyState.cs (OnIsBusyChanged).
 
             // Read IsDarkTheme directly from persisted settings because
             // SettingsService.Load() hasn't been called yet at this point.
             ApplyTheme(Properties.Settings.Default.IsDarkTheme);
         }
 
-        private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(MainViewModel.IsBusy) && ViewModel.IsBusy)
-            {
-                ExpandOutputPanel();
-            }
-        }
-
-        // Navigation is now fully ViewModel-driven via SelectedPage bindings.
-        // See MainViewModel.Navigation.cs for the AppPage enum and OnSelectedPageChanged logic.
-
-        #region Output Panel
+        // Navigation and output panel state are fully ViewModel-driven.
+        // See MainViewModel.Navigation.cs and MainViewModel.BusyState.cs.
 
         private void ToggleOutputPanel(object sender, MouseButtonEventArgs e)
         {
-            if (OutputRichTextBox.Visibility == Visibility.Visible)
-                CollapseOutputPanel();
-            else
-                ExpandOutputPanel();
+            ViewModel.IsOutputExpanded = !ViewModel.IsOutputExpanded;
         }
-
-        private void ExpandOutputPanel()
-        {
-            OutputRichTextBox.Visibility = Visibility.Visible;
-            ChevronRotation.Angle = 90;
-        }
-
-        private void CollapseOutputPanel()
-        {
-            OutputRichTextBox.Visibility = Visibility.Collapsed;
-            ChevronRotation.Angle = 0;
-        }
-
-        #endregion
 
         public System.Threading.Tasks.Task Init() => ViewModel.InitAsync();
 

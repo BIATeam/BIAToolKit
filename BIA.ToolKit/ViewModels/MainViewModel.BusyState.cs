@@ -19,6 +19,17 @@ namespace BIA.ToolKit.ViewModels
         [ObservableProperty]
         private bool isBusy;
 
+        // --- Output Panel ---
+
+        [ObservableProperty]
+        private bool isOutputExpanded;
+
+        partial void OnIsBusyChanged(bool value)
+        {
+            if (value)
+                IsOutputExpanded = true;
+        }
+
         private CancellationTokenSource currentTokenSource;
 
         public async Task ExecuteWithBusyAsync(Func<CancellationToken, Task> task)
