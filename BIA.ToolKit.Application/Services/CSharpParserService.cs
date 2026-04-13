@@ -42,40 +42,27 @@ using Roslyn.Services;*/
 
         public ClassDefinition ParseClassFile(string fileName, CancellationToken cancellationToken = default)
         {
-            DiagLog.Write($"ParseClassFile: ENTER fileName={fileName}");
+            DiagLog.Write($"ParseClassFile: {fileName}");
             cancellationToken.ThrowIfCancellationRequested();
 
             // NOTE: consoleWriter.AddMessageLine is NOT thread-safe — it touches WPF controls
             // without dispatching, so calling it from a worker thread (Task.Run) crashes the app.
             // Diagnostic logging goes through DiagLog instead.
 
-            DiagLog.Write("ParseClassFile: BEFORE File.ReadAllText");
             string fileText = File.ReadAllText(fileName);
-            DiagLog.Write($"ParseClassFile: AFTER File.ReadAllText (length={fileText?.Length ?? -1})");
 
-            DiagLog.Write("ParseClassFile: BEFORE CSharpSyntaxTree.ParseText");
             SyntaxTree tree = CSharpSyntaxTree.ParseText(fileText, cancellationToken: cancellationToken);
-            DiagLog.Write("ParseClassFile: AFTER CSharpSyntaxTree.ParseText");
-
-            DiagLog.Write("ParseClassFile: BEFORE GetCompilationUnitRoot");
             CompilationUnitSyntax root = tree.GetCompilationUnitRoot(cancellationToken: cancellationToken);
-            DiagLog.Write("ParseClassFile: AFTER GetCompilationUnitRoot");
-
-            DiagLog.Write("ParseClassFile: BEFORE ContainsDiagnostics check");
             if (root.ContainsDiagnostics)
             {
-                DiagLog.Write("ParseClassFile: ContainsDiagnostics=true, throwing ParseException");
                 // source contains syntax error
                 throw new ParseException(root.GetDiagnostics().Select(diag => diag.ToString()));
             }
-            DiagLog.Write("ParseClassFile: ContainsDiagnostics=false");
 
             TypeDeclarationSyntax typeDeclaration;
-            DiagLog.Write("ParseClassFile: BEFORE Descendants<TypeDeclarationSyntax>");
             // Materialize the list ONCE — the underlying enumerable walks the whole syntax tree
             // each time it is enumerated, so previous code was re-walking the tree three times.
             List<TypeDeclarationSyntax> descendants = [.. root.Descendants<TypeDeclarationSyntax>()];
-            DiagLog.Write($"ParseClassFile: AFTER Descendants<TypeDeclarationSyntax> (count={descendants.Count})");
             if (descendants.Count == 1)
             {
                 typeDeclaration = descendants[0];
@@ -87,12 +74,10 @@ using Roslyn.Services;*/
             }
             else
             {
-                DiagLog.Write($"ParseClassFile: No declaration found on file '{fileName}'");
+                DiagLog.Write($"ParseClassFile: no declaration found in '{fileName}'");
                 typeDeclaration = null;
             }
-            DiagLog.Write("ParseClassFile: BEFORE Descendants<NamespaceDeclarationSyntax>");
             NamespaceDeclarationSyntax namespaceSyntax = root.Descendants<NamespaceDeclarationSyntax>().SingleOrDefault();
-            DiagLog.Write($"ParseClassFile: AFTER Descendants<NamespaceDeclarationSyntax> (namespaceSyntax={(namespaceSyntax == null ? "null" : "non-null")})");
 
             ClassDefinition classDefinition = new(fileName)
             {

@@ -96,27 +96,22 @@ namespace BIA.ToolKit.Application.ViewModel
 
         public async Task ExecuteWithBusyAsync(Func<CancellationToken, Task> task)
         {
-            Helper.DiagLog.Write("MainViewModel.ExecuteWithBusyAsync: ENTER (waiting on semaphore)");
             await semaphore.WaitAsync();
-            Helper.DiagLog.Write("MainViewModel.ExecuteWithBusyAsync: semaphore acquired");
             currentTokenSource = new CancellationTokenSource();
             try
             {
                 IsBusy = true;
-                Helper.DiagLog.Write("MainViewModel.ExecuteWithBusyAsync: BEFORE task()");
                 await task(currentTokenSource.Token);
-                Helper.DiagLog.Write("MainViewModel.ExecuteWithBusyAsync: AFTER task()");
             }
             catch (OperationCanceledException)
             {
-                Helper.DiagLog.Write("MainViewModel.ExecuteWithBusyAsync: OperationCanceledException");
                 consoleWriter.AddMessageLine("Operation cancelled by user.", "Yellow");
             }
             catch (Exception ex)
             {
                 // Last-resort catch: without this, an unhandled exception in an async void Receive()
                 // handler crashes the WPF Dispatcher and terminates the app before any log is written.
-                Helper.DiagLog.Write($"MainViewModel.ExecuteWithBusyAsync: UNHANDLED EXCEPTION: {ex.GetType().FullName}: {ex.Message}\n{ex.StackTrace}");
+                Helper.DiagLog.Write($"ExecuteWithBusyAsync: UNHANDLED {ex.GetType().FullName}: {ex.Message}\n{ex.StackTrace}");
                 try { consoleWriter.AddMessageLine($"Unhandled error: {ex.Message}", "Red"); } catch { }
             }
             finally
@@ -125,7 +120,6 @@ namespace BIA.ToolKit.Application.ViewModel
                 currentTokenSource?.Dispose();
                 currentTokenSource = null;
                 semaphore.Release();
-                Helper.DiagLog.Write("MainViewModel.ExecuteWithBusyAsync: EXIT (semaphore released)");
             }
         }
 
