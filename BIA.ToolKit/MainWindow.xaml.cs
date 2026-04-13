@@ -92,6 +92,21 @@ namespace BIA.ToolKit
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
             uiEventBroker.OnRepositoriesUpdated += UiEventBroker_OnRepositoriesUpdated;
             uiEventBroker.OnOpenRepositoryFormRequest += UiEventBroker_OnRepositoryFormOpened;
+            uiEventBroker.OnOpenDefaultTeamSettingsRequest += UiEventBroker_OnOpenDefaultTeamSettings;
+        }
+
+        private void UiEventBroker_OnOpenDefaultTeamSettings(VersionAndOptionViewModel vm)
+        {
+            var window = new DefaultTeamSettingsWindow(
+                vm.DefaultTeamName, vm.DefaultTeamNamePlural, vm.DefaultTeamDomainName)
+                { Owner = this };
+
+            if (window.ShowDialog() == true)
+            {
+                vm.DefaultTeamName = window.ViewModel.DefaultTeamName;
+                vm.DefaultTeamNamePlural = window.ViewModel.DefaultTeamNamePlural;
+                vm.DefaultTeamDomainName = window.ViewModel.DefaultTeamDomainName;
+            }
         }
 
         private void UiEventBroker_OnRepositoryFormOpened(RepositoryViewModel repository, RepositoryFormMode mode)

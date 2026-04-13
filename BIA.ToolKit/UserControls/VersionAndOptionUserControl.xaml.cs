@@ -7,6 +7,7 @@ namespace BIA.ToolKit.UserControls
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Windows;
     using System.Windows.Controls;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Mapper;
@@ -34,6 +35,22 @@ namespace BIA.ToolKit.UserControls
         private List<FeatureSetting> OriginFeatureSettings;
         public VersionAndOptionViewModel vm;
 
+        /// <summary>
+        /// DependencyProperty exposant la validité de la configuration des features au parent (binding XAML).
+        /// </summary>
+        public static readonly DependencyProperty IsFeatureConfigValidProperty =
+            DependencyProperty.Register(
+                nameof(IsFeatureConfigValid),
+                typeof(bool),
+                typeof(VersionAndOptionUserControl),
+                new PropertyMetadata(true));
+
+        public bool IsFeatureConfigValid
+        {
+            get => (bool)GetValue(IsFeatureConfigValidProperty);
+            private set => SetValue(IsFeatureConfigValidProperty, value);
+        }
+
         public VersionAndOptionUserControl()
         {
             InitializeComponent();
@@ -51,6 +68,13 @@ namespace BIA.ToolKit.UserControls
             this.uiEventBroker = uiEventBroker;
             this.consoleWriter = consoleWriter;
             vm.Inject(repositoryService, consoleWriter, uiEventBroker);
+
+            // Synchroniser la DependencyProperty IsFeatureConfigValid avec le ViewModel
+            vm.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(VersionAndOptionViewModel.IsDefaultTeamSetupValid))
+                    IsFeatureConfigValid = vm.IsDefaultTeamSetupValid;
+            };
 
             uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
             uiEventBroker.OnRepositoryViewModelReleaseDataUpdated += UiEventBroker_OnRepositoryViewModelReleaseDataUpdated;

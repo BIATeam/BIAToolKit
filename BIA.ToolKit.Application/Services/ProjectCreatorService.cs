@@ -208,12 +208,11 @@ namespace BIA.ToolKit.Application.Services
 
             if (featureSettings.Any(f => f.Id == (int)BiaFeatureSettingsEnum.CreateDefaultTeam && f.IsSelected))
             {
-                // TODO: mock purpose, implements UI
                 projectParameters.VersionAndOption.HasDefaultTeam = true;
-                projectParameters.VersionAndOption.DefaultTeamName = "Site";
-                projectParameters.VersionAndOption.DefaultTeamNamePlural = "Sites";
-                projectParameters.VersionAndOption.DefaultTeamDomainName = "Site";
-                // --------
+
+                // ✅ Validation stricte: Les valeurs DOIVENT être remplies
+                // Cette vérification est un filet de sécurité (validation UI devrait bloquer avant)
+                ValidateDefaultTeamSettings(projectParameters.VersionAndOption);
 
                 await CreateDefaultTeam(projectPath, projectParameters, cancellationToken);
             }
@@ -680,6 +679,22 @@ namespace BIA.ToolKit.Application.Services
                 consoleWriter.AddMessageLine($"-> Delete {file}", "orange");
                 File.Delete(file);
             }
+        }
+
+        /// <summary>
+        /// Valide que les paramètres de Default Team sont correctement remplis.
+        /// Lève une exception si validation échoue (sécurité en couche).
+        /// </summary>
+        private static void ValidateDefaultTeamSettings(VersionAndOption versionAndOption)
+        {
+            if (string.IsNullOrWhiteSpace(versionAndOption.DefaultTeamName))
+                throw new InvalidOperationException("DefaultTeamName is required when CreateDefaultTeam feature is selected.");
+
+            if (string.IsNullOrWhiteSpace(versionAndOption.DefaultTeamNamePlural))
+                throw new InvalidOperationException("DefaultTeamNamePlural is required when CreateDefaultTeam feature is selected.");
+
+            if (string.IsNullOrWhiteSpace(versionAndOption.DefaultTeamDomainName))
+                throw new InvalidOperationException("DefaultTeamDomainName is required when CreateDefaultTeam feature is selected.");
         }
 
         [GeneratedRegex(@"\\bia-.*\\", RegexOptions.IgnoreCase, "fr-FR")]

@@ -16,6 +16,12 @@ namespace BIA.ToolKit.Application.Mapper
             // Feature
             vm.SetFeaturesSelection(dto.Tags, dto.Folders, originFeatureSettings);
 
+            if (dto.HasDefaultTeam)
+            {
+                FeatureSettingViewModel createDefaultTeamVm = vm.FeatureSettings.FirstOrDefault(f => f.IsCreateDefaultTeam);
+                createDefaultTeamVm?.IsSelected = true;
+            }
+
             // Company Files
             if (mapCompanyFileVersion)
             {
@@ -28,6 +34,11 @@ namespace BIA.ToolKit.Application.Mapper
             }
 
             vm.CheckOptions(dto.Options);
+
+            // Default Team
+            vm.DefaultTeamName = dto.DefaultTeamName;
+            vm.DefaultTeamNamePlural = dto.DefaultTeamNamePlural;
+            vm.DefaultTeamDomainName = dto.DefaultTeamDomainName;
 
             if (mapFrameworkVersion)
             {
