@@ -667,7 +667,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
 
             (string partialInsertionMarkupBegin, string partialInsertionMarkupEnd) = GetPartialInsertionMarkups(_currentContext, template, outputPath);
             // Partial content already exists
-            if (outputContent.Any(line => line.Trim().Equals(partialInsertionMarkupBegin)) && outputContent.Any(line => line.Trim().Equals(partialInsertionMarkupEnd)))
+            if (!template.HasNoPartialInsertionMarkupSuffix && outputContent.Any(line => line.Trim().Equals(partialInsertionMarkupBegin)) && outputContent.Any(line => line.Trim().Equals(partialInsertionMarkupEnd)))
             {
                 // Retrieve content into ignored inner markups
                 var ignoredInnerMarkupsContent = new Dictionary<(string insertionMarkup, string insertionMarkupBegin, string insertionMarkupEnd), List<string>>();

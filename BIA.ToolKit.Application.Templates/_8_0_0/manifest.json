@@ -492,6 +492,15 @@
           "partialInsertionMarkup": "EntityDomainUsing",
           "UseDomainPartialInsertionMarkup": true
         }
+      ],
+      "angularTemplates": [
+        {
+          "inputPath": "src\\app\\shared\\PartialCrudNavigation_PermissionImport.tt",
+          "outputPath": "src\\app\\shared\\navigation.ts",
+          "isPartial": true,
+          "partialInsertionMarkup": "PermissionImport",
+          "hasNoPartialInsertionMarkupSuffix": true
+        }
       ]
     }
   ]

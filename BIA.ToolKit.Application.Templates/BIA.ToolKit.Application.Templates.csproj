@@ -2395,6 +2395,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>EntityIndexComponentTsTemplate.tt</DependentUpon>
     </TypeScriptCompile>
+    <None Include="_8_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation_PermissionImport.ts">
+      <DependentUpon>PartialCrudNavigation_PermissionImport.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="_6_0_0\Templates\Angular\src\app\domains\EntityOptionConstantsTemplate.tt">
@@ -3020,6 +3025,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="_8_0_0\Templates\Angular\src\app\shared\PartialCrudNavigation_PermissionImport.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PartialCrudNavigation_PermissionImport.ts</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="_8_0_0\Templates\DotNet\InfrastructureData\PartialTeamDataContextTemplate_EntityDomainUsing.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PartialTeamDataContextTemplate_EntityDomainUsing.cs</LastGenOutput>
