@@ -56,8 +56,6 @@ namespace BIA.ToolKit
 
             // Navigate to Configuration page when repos are invalid
             WeakReferenceMessenger.Default.Register<NavigateToConfigTabMessage>(this, (r, m) => Dispatcher.BeginInvoke((Action)(() => NavConfig.IsChecked = true)));
-            WeakReferenceMessenger.Default.Register<OpenDefaultTeamSettingsMessage>(this, (r, m) => OnOpenDefaultTeamSettings(m.ViewModel));
-
             // Auto-expand output panel when a busy operation starts
             ViewModel.PropertyChanged += OnViewModelPropertyChanged;
 
@@ -136,24 +134,6 @@ namespace BIA.ToolKit
         }
 
         #endregion
-
-        private async void OnOpenDefaultTeamSettings(object viewModel)
-        {
-            if (viewModel is not VersionAndOptionViewModel vm)
-                return;
-
-            var dialog = new Dialogs.DefaultTeamSettingsWindow(
-                vm.DefaultTeamName, vm.DefaultTeamNamePlural, vm.DefaultTeamDomainName);
-
-            var result = await MaterialDesignThemes.Wpf.DialogHost.Show(dialog, "RootDialog");
-
-            if (result is true or "True")
-            {
-                vm.DefaultTeamName = dialog.ViewModel.DefaultTeamName;
-                vm.DefaultTeamNamePlural = dialog.ViewModel.DefaultTeamNamePlural;
-                vm.DefaultTeamDomainName = dialog.ViewModel.DefaultTeamDomainName;
-            }
-        }
 
         public System.Threading.Tasks.Task Init() => ViewModel.InitAsync();
 

@@ -35,8 +35,4 @@ namespace BIA.ToolKit.Application.Messages
     public sealed record ExecuteActionWithWaiterMessage(Func<CancellationToken, Task> Action);
 
     public sealed record NavigateToConfigTabMessage;
-
-    // --- Default Team Settings ---
-
-    public sealed record OpenDefaultTeamSettingsMessage(object ViewModel);
 }

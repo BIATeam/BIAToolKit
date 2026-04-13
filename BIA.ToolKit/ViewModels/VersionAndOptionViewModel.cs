@@ -3,6 +3,7 @@ namespace BIA.ToolKit.ViewModels
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Helper;
     using BIA.ToolKit.Messages;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain;
@@ -33,6 +34,7 @@ namespace BIA.ToolKit.ViewModels
         private readonly SettingsService settingsService;
         private readonly GitService gitService;
         private readonly IConsoleWriter consoleWriter;
+        private readonly IDialogService dialogService;
 
         private string currentProjectPath;
         private List<FeatureSetting> OriginFeatureSettings;
@@ -43,12 +45,14 @@ namespace BIA.ToolKit.ViewModels
             RepositoryService repositoryService,
             SettingsService settingsService,
             GitService gitService,
-            IConsoleWriter consoleWriter)
+            IConsoleWriter consoleWriter,
+            IDialogService dialogService)
         {
             this.repositoryService = repositoryService ?? throw new ArgumentNullException(nameof(repositoryService));
             this.settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
             this.gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
             this.consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
+            this.dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
 
             VersionAndOption = new VersionAndOption();
 
@@ -411,7 +415,14 @@ namespace BIA.ToolKit.ViewModels
         [RelayCommand]
         private void OpenDefaultTeamSettings()
         {
-            WeakReferenceMessenger.Default.Send(new OpenDefaultTeamSettingsMessage(this));
+            var result = dialogService.ShowDefaultTeamSettings(
+                DefaultTeamName, DefaultTeamNamePlural, DefaultTeamDomainName);
+            if (result.HasValue)
+            {
+                DefaultTeamName = result.Value.TeamName;
+                DefaultTeamNamePlural = result.Value.TeamNamePlural;
+                DefaultTeamDomainName = result.Value.DomainName;
+            }
         }
 
         #endregion

@@ -18,6 +18,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
@@ -185,26 +186,26 @@
         [RelayCommand]
         private void Migrate()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await MigrateRunAsync()));
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await MigrateRunAsync(ct)));
         }
 
-        private async Task MigrateRunAsync()
+        private async Task MigrateRunAsync(CancellationToken ct = default)
         {
-            var generated = await MigrateGenerateOnlyRunAsync();
-            var applyDiff = await MigrateApplyDiffRunAsync();
+            var generated = await MigrateGenerateOnlyRunAsync(ct);
+            var applyDiff = await MigrateApplyDiffRunAsync(ct);
             if (generated == 0 && applyDiff)
             {
-                await MigrateMergeRejectedRunAsync();
+                await MigrateMergeRejectedRunAsync(ct);
             }
         }
 
         [RelayCommand]
         private void MigrateGenerateOnly()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await MigrateGenerateOnlyRunAsync()));
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await MigrateGenerateOnlyRunAsync(ct)));
         }
 
-        private async Task<int> MigrateGenerateOnlyRunAsync()
+        private async Task<int> MigrateGenerateOnlyRunAsync(CancellationToken ct = default)
         {
             if (ModifyProject.CurrentProject == null)
             {
@@ -235,10 +236,10 @@
         [RelayCommand]
         private void MigrateApplyDiff()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await MigrateApplyDiffRunAsync()));
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await MigrateApplyDiffRunAsync(ct)));
         }
 
-        private async Task<bool> MigrateApplyDiffRunAsync()
+        private async Task<bool> MigrateApplyDiffRunAsync(CancellationToken ct = default)
         {
             bool result = false;
 
@@ -258,10 +259,10 @@
         [RelayCommand]
         private void MigrateMergeRejected()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await MigrateMergeRejectedRunAsync()));
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await MigrateMergeRejectedRunAsync(ct)));
         }
 
-        private async Task MigrateMergeRejectedRunAsync()
+        private async Task MigrateMergeRejectedRunAsync(CancellationToken ct = default)
         {
             await MergeRejectedAsync(true);
 
@@ -303,13 +304,13 @@
         [RelayCommand]
         private void MigrateOverwriteBIAFolder()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await OverwriteBIAFolderAsync(true)));
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await OverwriteBIAFolderAsync(true, ct)));
         }
 
         [RelayCommand]
         private void FixUsings()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await parserService.FixUsings()));
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await parserService.FixUsings(ct)));
         }
 
         // --- Migration helper methods ---
@@ -438,8 +439,9 @@
             return AppSettings.TmpFolderPath + $"Migration_{projectOriginalFolderName}-{projectTargetFolderName}.patch";
         }
 
-        private async Task OverwriteBIAFolderAsync(bool actionFinishedAtEnd)
+        private async Task OverwriteBIAFolderAsync(bool actionFinishedAtEnd, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             MigratePreparePath(out _, out _, out _, out _, out var projectTargetPath, out _);
             await projectCreatorService.OverwriteBIAFolder(projectTargetPath, ModifyProject.CurrentProject.Folder, actionFinishedAtEnd);
         }

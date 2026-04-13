@@ -70,6 +70,18 @@ namespace BIA.ToolKit.Infrastructure
             Clipboard.SetText(text);
         }
 
+        public (string TeamName, string TeamNamePlural, string DomainName)? ShowDefaultTeamSettings(
+            string currentName, string currentNamePlural, string currentDomainName)
+        {
+            var dialog = new Dialogs.DefaultTeamSettingsWindow(currentName, currentNamePlural, currentDomainName);
+            var result = ShowDialogSync(dialog);
+            if (result is true or "True")
+            {
+                return (dialog.ViewModel.DefaultTeamName, dialog.ViewModel.DefaultTeamNamePlural, dialog.ViewModel.DefaultTeamDomainName);
+            }
+            return null;
+        }
+
         private static UserControl BuildMessageDialogContent(string title, string message, string okText, string cancelText)
         {
             var panel = new StackPanel { Margin = new Thickness(20) };

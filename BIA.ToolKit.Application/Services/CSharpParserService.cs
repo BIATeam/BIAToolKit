@@ -31,7 +31,7 @@ using Roslyn.Compilers.Common;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services;*/
 
-    public class CSharpParserService(IConsoleWriter consoleWriter)
+    public class CSharpParserService(IConsoleWriter consoleWriter) : IDisposable
     {
         private readonly List<string> excludedEntitiesFilesSuffixes = ["Mapper", "Service", "Repository", "Customizer", "Specification", "Dto"];
         private readonly IConsoleWriter consoleWriter = consoleWriter;
@@ -39,6 +39,12 @@ using Roslyn.Services;*/
         public IReadOnlyList<ClassInfo> CurrentSolutionClasses { get; private set; } = [];
 
         private MSBuildWorkspace Workspace { get; set; }
+
+        public void Dispose()
+        {
+            Workspace?.Dispose();
+            Workspace = null;
+        }
 
         public ClassDefinition ParseClassFile(string fileName, CancellationToken cancellationToken = default)
         {
@@ -235,6 +241,7 @@ using Roslyn.Services;*/
 
         private void InitWorkspace()
         {
+            Workspace?.Dispose();
             Workspace = MSBuildWorkspace.Create();
 
             if (Workspace == null)

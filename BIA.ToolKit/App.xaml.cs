@@ -96,6 +96,8 @@ namespace BIA.ToolKit
 
         protected override async void OnExit(ExitEventArgs e)
         {
+            GetService<CSharpParserService>()?.Dispose();
+
             using (host)
             {
                 await host.StopAsync();

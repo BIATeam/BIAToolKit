@@ -27,7 +27,7 @@ namespace BIA.ToolKit.ViewModels
     using System.Text;
     using System.Threading.Tasks;
 
-    public partial class CRUDGeneratorViewModel : ObservableObject
+    public partial class CRUDGeneratorViewModel : ObservableObject, IDisposable
     {
         private const string DOTNET_TYPE = "DotNet";
         private const string ANGULAR_TYPE = "Angular";
@@ -143,12 +143,16 @@ namespace BIA.ToolKit.ViewModels
 
         public void AddOptionItems(IEnumerable<OptionItem> optionItems)
         {
+            foreach (var oldItem in OptionItems)
+            {
+                oldItem.PropertyChanged -= OptionItem_PropertyChanged;
+            }
             OptionItems.Clear();
             foreach (var optionItem in optionItems.OrderBy(x => x.OptionName))
             {
                 OptionItems.Add(optionItem);
             }
-            foreach(var optionItem in OptionItems)
+            foreach (var optionItem in OptionItems)
             {
                 optionItem.PropertyChanged += OptionItem_PropertyChanged;
             }
@@ -1153,6 +1157,15 @@ namespace BIA.ToolKit.ViewModels
             return DtoEntity.Path.Replace(dotNetPath, "").TrimStart(Path.DirectorySeparatorChar);
         }
         #endregion
+
+        public void Dispose()
+        {
+            foreach (var item in OptionItems)
+            {
+                item.PropertyChanged -= OptionItem_PropertyChanged;
+            }
+            WeakReferenceMessenger.Default.UnregisterAll(this);
+        }
     }
 
     public partial class OptionItem : ObservableObject

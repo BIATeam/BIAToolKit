@@ -46,6 +46,13 @@ namespace BIA.ToolKit.Helper
         /// Copies the given text to the system clipboard.
         /// </summary>
         void CopyToClipboard(string text);
+
+        /// <summary>
+        /// Shows the DefaultTeamSettings dialog and returns the results (name, plural, domain)
+        /// or null if the user cancelled.
+        /// </summary>
+        (string TeamName, string TeamNamePlural, string DomainName)? ShowDefaultTeamSettings(
+            string currentName, string currentNamePlural, string currentDomainName);
     }
 
     /// <summary>
