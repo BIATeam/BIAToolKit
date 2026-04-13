@@ -55,12 +55,9 @@ namespace BIA.ToolKit
             DataContext = ViewModel;
 
             // Navigate to Configuration page when repos are invalid
-            WeakReferenceMessenger.Default.Register<NavigateToConfigTabMessage>(this, (r, m) => Dispatcher.BeginInvoke((Action)(() => NavConfig.IsChecked = true)));
+            WeakReferenceMessenger.Default.Register<NavigateToConfigTabMessage>(this, (r, m) => Dispatcher.BeginInvoke((Action)(() => ViewModel.NavigateToConfig())));
             // Auto-expand output panel when a busy operation starts
             ViewModel.PropertyChanged += OnViewModelPropertyChanged;
-
-            // Trigger initial navigation after window is loaded
-            Loaded += (_, _) => OnNavChanged(null, null);
 
             // Read IsDarkTheme directly from persisted settings because
             // SettingsService.Load() hasn't been called yet at this point.
@@ -75,41 +72,8 @@ namespace BIA.ToolKit
             }
         }
 
-        #region Navigation
-
-        private void OnNavChanged(object sender, RoutedEventArgs e)
-        {
-            if (!IsLoaded)
-                return;
-
-            // Hide all pages
-            PageConfig.Visibility = Visibility.Collapsed;
-            PageCreate.Visibility = Visibility.Collapsed;
-            ModifyProject.Visibility = Visibility.Collapsed;
-            GenerateProject.Visibility = Visibility.Collapsed;
-
-            // Show selected page
-            if (NavConfig.IsChecked == true)
-                PageConfig.Visibility = Visibility.Visible;
-            else if (NavCreation.IsChecked == true)
-                PageCreate.Visibility = Visibility.Visible;
-            else if (NavMigration.IsChecked == true)
-                ModifyProject.Visibility = Visibility.Visible;
-            else if (NavGeneration.IsChecked == true)
-                GenerateProject.Visibility = Visibility.Visible;
-
-            // Show shared ProjectSelector for Migration/Generation only
-            SharedProjectSelector.Visibility = (NavMigration.IsChecked == true || NavGeneration.IsChecked == true)
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-
-            // Validate repository configuration when leaving Config
-            // Guard: ViewModel.InitAsync() may not have run yet at first Loaded
-            if (NavConfig.IsChecked != true && ViewModel?.IsInitialized == true)
-                ViewModel.EnsureValidRepositoriesConfiguration();
-        }
-
-        #endregion
+        // Navigation is now fully ViewModel-driven via SelectedPage bindings.
+        // See MainViewModel.Navigation.cs for the AppPage enum and OnSelectedPageChanged logic.
 
         #region Output Panel
 

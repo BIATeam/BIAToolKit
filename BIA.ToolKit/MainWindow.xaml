@@ -5,7 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:gif="http://wpfanimatedgif.codeplex.com"
         xmlns:vm="clr-namespace:BIA.ToolKit.ViewModels"
-        xmlns:uc="clr-namespace:BIA.ToolKit.UserControls" d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
+        xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
+        xmlns:inf="clr-namespace:BIA.ToolKit.Infrastructure"
+        d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         mc:Ignorable="d"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         WindowStyle="None"
@@ -24,6 +26,9 @@
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+        <inf:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
+        <inf:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter"/>
+        <inf:EnumToVisibilityMultiConverter x:Key="EnumToVisibilityMultiConverter"/>
 
         <!-- Navigation Rail Item Style -->
         <Style x:Key="NavRailItem" TargetType="RadioButton">
@@ -157,7 +162,8 @@
                     <!-- Configuration at bottom, separated visually -->
                     <StackPanel DockPanel.Dock="Bottom" Margin="0,0,0,8">
                         <Separator Margin="12,4"/>
-                        <RadioButton x:Name="NavConfig" Style="{StaticResource NavRailItem}" Checked="OnNavChanged">
+                        <RadioButton x:Name="NavConfig" Style="{StaticResource NavRailItem}"
+                                     IsChecked="{Binding SelectedPage, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Configuration}">
                             <StackPanel HorizontalAlignment="Center">
                                 <materialDesign:PackIcon Kind="Cog" Width="24" Height="24" HorizontalAlignment="Center" Foreground="{DynamicResource MaterialDesign.Brush.Secondary}"/>
                                 <TextBlock Text="Config" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" Foreground="{DynamicResource MaterialDesign.Brush.Secondary}"/>
@@ -167,19 +173,22 @@
 
                     <!-- Main workflow sections -->
                     <StackPanel Margin="0,8,0,0">
-                        <RadioButton x:Name="NavCreation" Style="{StaticResource NavRailItem}" Checked="OnNavChanged">
+                        <RadioButton x:Name="NavCreation" Style="{StaticResource NavRailItem}"
+                                     IsChecked="{Binding SelectedPage, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Creation}">
                             <StackPanel HorizontalAlignment="Center">
                                 <materialDesign:PackIcon Kind="FolderPlus" Width="24" Height="24" HorizontalAlignment="Center" Foreground="{DynamicResource MaterialDesign.Brush.Secondary}"/>
                                 <TextBlock Text="Création" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" Foreground="{DynamicResource MaterialDesign.Brush.Secondary}"/>
                             </StackPanel>
                         </RadioButton>
-                        <RadioButton x:Name="NavMigration" Style="{StaticResource NavRailItem}" Checked="OnNavChanged">
+                        <RadioButton x:Name="NavMigration" Style="{StaticResource NavRailItem}"
+                                     IsChecked="{Binding SelectedPage, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Migration}">
                             <StackPanel HorizontalAlignment="Center">
                                 <materialDesign:PackIcon Kind="Sync" Width="24" Height="24" HorizontalAlignment="Center" Foreground="{DynamicResource MaterialDesign.Brush.Secondary}"/>
                                 <TextBlock Text="Migration" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" Foreground="{DynamicResource MaterialDesign.Brush.Secondary}"/>
                             </StackPanel>
                         </RadioButton>
-                        <RadioButton x:Name="NavGeneration" Style="{StaticResource NavRailItem}" IsChecked="True" Checked="OnNavChanged">
+                        <RadioButton x:Name="NavGeneration" Style="{StaticResource NavRailItem}"
+                                     IsChecked="{Binding SelectedPage, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Generation}">
                             <StackPanel HorizontalAlignment="Center">
                                 <materialDesign:PackIcon Kind="Flash" Width="24" Height="24" HorizontalAlignment="Center" Foreground="{DynamicResource MaterialDesign.Brush.Secondary}"/>
                                 <TextBlock Text="Génération" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" Foreground="{DynamicResource MaterialDesign.Brush.Secondary}"/>
@@ -197,13 +206,14 @@
                 </Grid.RowDefinitions>
 
                 <!-- Shared Project Selector (visible for Migration/Generation only) -->
-                <uc:ProjectSelectorUC x:Name="SharedProjectSelector" Grid.Row="0" Margin="10"/>
+                <uc:ProjectSelectorUC x:Name="SharedProjectSelector" Grid.Row="0" Margin="10"
+                                      Visibility="{Binding DataContext.SelectedPage, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource EnumToVisibilityMultiConverter}, ConverterParameter='Migration,Generation', FallbackValue=Collapsed}"/>
 
                 <!-- Page content (stacked, visibility-switched) -->
                 <Grid Grid.Row="1">
 
                     <!--#region Configuration Page -->
-                    <Grid x:Name="PageConfig" Visibility="Collapsed">
+                    <Grid x:Name="PageConfig" Visibility="{Binding SelectedPage, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Configuration, FallbackValue=Collapsed}">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto"/>
@@ -299,7 +309,7 @@
                     <!--#endregion-->
 
                     <!--#region Creation Page -->
-                    <Grid x:Name="PageCreate" Visibility="Collapsed">
+                    <Grid x:Name="PageCreate" Visibility="{Binding SelectedPage, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Creation, FallbackValue=Collapsed}">
                         <Grid Margin="10">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto"/>
@@ -341,11 +351,11 @@
                     <!--#endregion-->
 
                     <!--#region Migration Page -->
-                    <uc:ModifyProjectUC x:Name="ModifyProject" Visibility="Collapsed"/>
+                    <uc:ModifyProjectUC x:Name="ModifyProject" Visibility="{Binding DataContext.SelectedPage, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Migration, FallbackValue=Collapsed}"/>
                     <!--#endregion-->
 
                     <!--#region Generation Page -->
-                    <uc:GenerateUC x:Name="GenerateProject" Visibility="Visible"/>
+                    <uc:GenerateUC x:Name="GenerateProject" Visibility="{Binding DataContext.SelectedPage, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Generation, FallbackValue=Collapsed}"/>
                     <!--#endregion-->
 
                 </Grid>
