@@ -305,7 +305,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
 
                 _currentContext = dtoContext;
 
-                await GenerateTemplatesFromManifestFeatureAsync(dtoFeature, templateModel);
+                await GenerateTemplatesFromManifestFeatureAsync(dtoFeature, templateModel, ct);
                 _consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
             }
             catch (Exception ex)
@@ -329,7 +329,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
 
                 _currentContext = optionContext;
 
-                await GenerateTemplatesFromManifestFeatureAsync(optionFeature, templateModel);
+                await GenerateTemplatesFromManifestFeatureAsync(optionFeature, templateModel, ct);
 
                 _consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
             }
@@ -359,7 +359,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
 
                 _currentContext = crudContext;
 
-                await GenerateTemplatesFromManifestFeatureAsync(crudFeature, templateModel);
+                await GenerateTemplatesFromManifestFeatureAsync(crudFeature, templateModel, ct);
 
                 _consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
             }
@@ -389,7 +389,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
 
                 _currentContext = teamContext;
 
-                await GenerateTemplatesFromManifestFeatureAsync(teamFeature, templateModel);
+                await GenerateTemplatesFromManifestFeatureAsync(teamFeature, templateModel, ct);
 
                 _consoleWriter.AddMessageLine($"=== END ===", color: "lightblue");
             }
@@ -416,8 +416,10 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             manifestsFiles.ForEach(m => _manifests.Add(JsonConvert.DeserializeObject<Manifest>(File.ReadAllText(m), jsonSerializersettings)));
         }
 
-        private async Task GenerateTemplatesFromManifestFeatureAsync(Manifest.Feature manifestFeature, object model)
+        private async Task GenerateTemplatesFromManifestFeatureAsync(Manifest.Feature manifestFeature, object model, CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
+
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
@@ -428,12 +430,12 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
 
             if (_currentContext.GenerateFront)
             {
-                generateAngularTemplatesTask = GenerateAngularTemplates(manifestFeature.AngularTemplates, model);
+                generateAngularTemplatesTask = GenerateAngularTemplates(manifestFeature.AngularTemplates, model, ct);
             }
 
             if (_currentContext.GenerateBack)
             {
-                generateDotNetTemplatesTask = GenerateDotNetTemplatesAsync(manifestFeature.DotNetTemplates, model);
+                generateDotNetTemplatesTask = GenerateDotNetTemplatesAsync(manifestFeature.DotNetTemplates, model, ct);
             }
 
             await Task.WhenAll(generateAngularTemplatesTask, generateDotNetTemplatesTask);
@@ -442,9 +444,11 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             _consoleWriter.AddMessageLine($"[Generated in {stopwatch.Elapsed.Minutes:D2}:{stopwatch.Elapsed.Seconds:D2}min]", "darkgray");
         }
 
-        private async Task GenerateDotNetTemplatesAsync(IEnumerable<Manifest.Feature.Template> templates, object model)
+        private async Task GenerateDotNetTemplatesAsync(IEnumerable<Manifest.Feature.Template> templates, object model, CancellationToken ct)
         {
-            await RunGenerateTemplatesAsync(templates, model, GenerateDotNetTemplateAsync);
+            ct.ThrowIfCancellationRequested();
+
+            await RunGenerateTemplatesAsync(templates, model, GenerateDotNetTemplateAsync, ct);
             IEnumerable<string> csharpFiles = _currentContext.GenerationReport.TemplatesGenerated
                 .Select(x => GetDotNetTemplateOutputPath(x.OutputPath, _currentContext, _currentProject.Folder))
                 .Where(x => Path.GetExtension(x).Equals(".cs"));
@@ -458,10 +462,12 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             }
         }
 
-        private async Task GenerateDotNetTemplateAsync(Manifest.Feature.Template template, object model)
+        private async Task GenerateDotNetTemplateAsync(Manifest.Feature.Template template, object model, CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
+
             string templatePath = Path.Combine(_templatesPath, Constants.FolderDotNet, template.InputPath);
-            await GenerateFromTemplateAsync(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder));
+            await GenerateFromTemplateAsync(template, templatePath, model, GetDotNetTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder), ct);
         }
 
         public static string GetDotNetTemplateOutputPath(string templateOutputPath, FileGeneratorContext context, string projectFolder)
@@ -477,8 +483,10 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             );
         }
 
-        private async Task GenerateAngularTemplates(IEnumerable<Manifest.Feature.Template> templates, object model)
+        private async Task GenerateAngularTemplates(IEnumerable<Manifest.Feature.Template> templates, object model, CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
+
             string angularProjectFolder = Path.Combine(_currentProject.Folder, _currentContext.AngularFront);
 
             if (!_fromUnitTest)
@@ -488,40 +496,42 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
                 SetPrettierAngularProjectPath(_prettierAngularProjectPathOverride ?? angularProjectFolder);
             }
 
-            await RunGenerateTemplatesAsync(templates, model, GenerateAngularTemplateAsync);
+            await RunGenerateTemplatesAsync(templates, model, GenerateAngularTemplateAsync, ct);
 
             var filesExtensionToPrettier = new List<string> { ".html", ".ts" };
             var templatesWithFileToPrettier = _currentContext.GenerationReport.TemplatesGenerated.Where(x => filesExtensionToPrettier.Contains(Path.GetExtension(x.OutputPath))).ToList();
             var prettierTasks = templatesWithFileToPrettier.Select(async template =>
             {
                 string filePath = GetAngularTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder);
-                await RunPrettierAsync(filePath);
+                await RunPrettierAsync(filePath, ct);
             }).ToList();
             await Task.WhenAll(prettierTasks);
         }
 
-        private async Task GenerateAngularTemplateAsync(Manifest.Feature.Template template, object model)
+        private async Task GenerateAngularTemplateAsync(Manifest.Feature.Template template, object model, CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
+
             string templatePath = Path.Combine(_templatesPath, Constants.FolderAngular, template.InputPath);
             string outputPath = GetAngularTemplateOutputPath(template.OutputPath, _currentContext, _currentProject.Folder);
-            await GenerateFromTemplateAsync(template, templatePath, model, outputPath);
+            await GenerateFromTemplateAsync(template, templatePath, model, outputPath, ct);
         }
 
-        private static async Task RunGenerateTemplatesAsync(IEnumerable<Manifest.Feature.Template> templates, object model, Func<Manifest.Feature.Template, object, Task> generateTemplateTask)
+        private static async Task RunGenerateTemplatesAsync(IEnumerable<Manifest.Feature.Template> templates, object model, Func<Manifest.Feature.Template, object, CancellationToken, Task> generateTemplateTask, CancellationToken ct)
         {
             var groupTemplates = templates.GroupBy(t => t.OutputPath).Where(g => g.Count() > 1).ToList();
             var uniqueTemplates = templates.Where(t => !groupTemplates.Any(gt => gt.Key == t.OutputPath)).ToList();
 
             IEnumerable<Task> uniqueTemplatesGenerationTasks = uniqueTemplates.Select(async (template) =>
             {
-                await generateTemplateTask(template, model);
+                await generateTemplateTask(template, model, ct);
             });
 
             IEnumerable<Task> groupTemplatesGenerationTasks = groupTemplates.Select(async (templates) =>
             {
                 foreach (Template template in templates)
                 {
-                    await generateTemplateTask(template, model);
+                    await generateTemplateTask(template, model, ct);
                 }
             });
 
@@ -547,10 +557,8 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
 
         private readonly SemaphoreSlim _prettierSemaphore = new(10);
 
-        public async Task RunPrettierAsync(string path)
+        public async Task RunPrettierAsync(string path, CancellationToken ct)
         {
-            var cts = new CancellationTokenSource();
-
             var process = new Process();
             process.StartInfo.WorkingDirectory = _prettierAngularProjectPath;
             process.StartInfo.FileName = "cmd.exe";
@@ -560,11 +568,10 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
 
             try
             {
-                await _prettierSemaphore.WaitAsync();
+                await _prettierSemaphore.WaitAsync(ct);
                 _consoleWriter.AddMessageLine($"Prettier {path}...", "gray");
                 process.Start();
-                cts.CancelAfter(30000);
-                await process.WaitForExitAsync(cts.Token);
+                await process.WaitForExitAsync(ct);
                 _consoleWriter.AddMessageLine($"Prettier succeed for {path} !", "lightgreen");
             }
             catch (Exception ex)
@@ -579,8 +586,9 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             }
         }
 
-        private async Task GenerateFromTemplateAsync(Manifest.Feature.Template template, string templatePath, object model, string outputPath)
+        private async Task GenerateFromTemplateAsync(Manifest.Feature.Template template, string templatePath, object model, string outputPath, CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
             string relativeOutputPath = outputPath.Replace(_currentProject.Folder, string.Empty);
             string relativeTemplatePath = templatePath.Replace(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), string.Empty);
             string logMessagePrefix = $"Generation of {(template.IsPartial ? $"partial content '{template.PartialInsertionMarkup}' into" : "file")} '{relativeOutputPath}'";
@@ -591,8 +599,8 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             try
             {
                 string generationTemplatePath = Path.GetTempFileName();
-                string templateContent = await File.ReadAllTextAsync(templatePath);
-                await File.WriteAllTextAsync(generationTemplatePath, templateContent);
+                string templateContent = await File.ReadAllTextAsync(templatePath, ct);
+                await File.WriteAllTextAsync(generationTemplatePath, templateContent, ct);
 
                 // Ensure DOTNET_ROOT is set for Mono.TextTemplating (not set when running as WPF app)
                 if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOTNET_ROOT")))
@@ -614,7 +622,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
 
                 // Generate content from template into temp file
                 string generatedTemplatePath = Path.Combine(Path.GetTempPath(), Path.GetFileName(outputPath));
-                bool success = await templateGenerator.ProcessTemplateAsync(generationTemplatePath, generatedTemplatePath);
+                bool success = await templateGenerator.ProcessTemplateAsync(generationTemplatePath, generatedTemplatePath, ct);
                 File.Delete(generationTemplatePath);
                 if (!success)
                 {
@@ -622,7 +630,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
                 }
 
                 // Check if generated content has any line
-                List<string> generatedTemplateContent = [.. (await File.ReadAllLinesAsync(generatedTemplatePath))];
+                List<string> generatedTemplateContent = [.. (await File.ReadAllLinesAsync(generatedTemplatePath, ct))];
                 File.Delete(generatedTemplatePath);
                 if (generatedTemplateContent.Count == 0)
                 {
@@ -635,12 +643,12 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
 
                 if (template.IsPartial)
                 {
-                    await WritePartialContentAsync(template, outputPath, relativeOutputPath, generatedTemplateContent);
+                    await WritePartialContentAsync(template, outputPath, relativeOutputPath, generatedTemplateContent, ct);
                 }
                 else
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
-                    await File.WriteAllLinesAsync(outputPath, generatedTemplateContent);
+                    await File.WriteAllLinesAsync(outputPath, generatedTemplateContent, ct);
                 }
 
                 _consoleWriter.AddMessageLine($"{logMessagePrefix} : [SUCCESS]", "lightgreen");
@@ -653,11 +661,12 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             }
         }
 
-        private async Task WritePartialContentAsync(Manifest.Feature.Template template, string outputPath, string relativeOutputPath, List<string> generatedTemplateContent)
+        private async Task WritePartialContentAsync(Manifest.Feature.Template template, string outputPath, string relativeOutputPath, List<string> generatedTemplateContent, CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
             string insertionMarkup = GetInsertionMarkup(template, _currentContext);
 
-            List<string> outputContent = [.. (await File.ReadAllLinesAsync(outputPath))];
+            List<string> outputContent = [.. await File.ReadAllLinesAsync(outputPath, ct)];
             string insertionMarkupBegin = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupBeginPattern, insertionMarkup), outputPath);
             string insertionMarkupEnd = AdaptBiaToolKitMarkup(string.Format(BiaToolKitMarkupEndPattern, insertionMarkup), outputPath);
             if (!outputContent.Any(line => line.Trim().Equals(insertionMarkupBegin)) || !outputContent.Any(line => line.Trim().Equals(insertionMarkupEnd)))
@@ -712,7 +721,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
                 outputContent.InsertRange(indexBegin, generatedTemplateContent);
             }
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
-            await File.WriteAllLinesAsync(outputPath, outputContent);
+            await File.WriteAllLinesAsync(outputPath, outputContent, ct);
         }
 
         public static (string partialInsertionMarkupBegin, string partialInsertionMarkupEnd) GetPartialInsertionMarkups(FileGeneratorContext context, Manifest.Feature.Template template, string outputPath)
