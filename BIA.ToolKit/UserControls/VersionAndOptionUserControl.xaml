@@ -199,23 +199,38 @@
                         <TextBlock Grid.Row="2" Style="{StaticResource CardDescriptionStyle}"
                                    Text="Front-end + API + Database + Worker Service. Recommended for most projects."/>
                         <Border Grid.Row="4" Style="{StaticResource CardFooterPanelStyle}">
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="PackageVariantClosed" Height="16" Width="16"
-                                                             VerticalAlignment="Center" Opacity="0.7"/>
-                                    <TextBlock Style="{StaticResource CardFooterLabelStyle}" Text="Company files"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="PackageVariantClosed" Height="16" Width="16"
+                                                                 VerticalAlignment="Center" Opacity="0.7"/>
+                                        <TextBlock Style="{StaticResource CardFooterLabelStyle}" Text="Company files"/>
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource CardFooterValueStyle}">
+                                        <Run Text="{Binding WorkCompanyFile.Version, Mode=OneWay, FallbackValue=—, TargetNullValue=—}"
+                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
+                                        <Run Text=" · "/>
+                                        <Run Text="{Binding Profile, Mode=OneWay, FallbackValue=Wiring, TargetNullValue=Wiring}"
+                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
+                                        <Run Text=" · "/>
+                                        <Run Text="{Binding CheckedOptionsSummary, Mode=OneWay}"/>
+                                        <Run Text="{Binding RemoveExampleSettingsSuffix, Mode=OneWay}"/>
+                                    </TextBlock>
                                 </StackPanel>
-                                <TextBlock Style="{StaticResource CardFooterValueStyle}">
-                                    <Run Text="{Binding WorkCompanyFile.Version, Mode=OneWay, FallbackValue=—, TargetNullValue=—}"
-                                         Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
-                                    <Run Text=" · "/>
-                                    <Run Text="{Binding Profile, Mode=OneWay, FallbackValue=Wiring, TargetNullValue=Wiring}"
-                                         Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
-                                    <Run Text=" · "/>
-                                    <Run Text="{Binding CheckedOptionsSummary, Mode=OneWay}"/>
-                                    <Run Text="{Binding RemoveExampleSettingsSuffix, Mode=OneWay}"/>
-                                </TextBlock>
-                            </StackPanel>
+                                <Button Grid.Column="1" VerticalAlignment="Top"
+                                        Style="{StaticResource MaterialDesignIconButton}"
+                                        Width="28" Height="28" Padding="2"
+                                        Focusable="False"
+                                        Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                        Command="{Binding EditCompanyFilesCommand}"
+                                        ToolTip="Edit company files">
+                                    <materialDesign:PackIcon Kind="PencilOutline" Height="16" Width="16"/>
+                                </Button>
+                            </Grid>
                         </Border>
                     </Grid>
                 </RadioButton>
@@ -245,23 +260,38 @@
                         <TextBlock Grid.Row="2" Style="{StaticResource CardDescriptionStyle}"
                                    Text="Back-end only: API, Database, Worker Service. No Front-end."/>
                         <Border Grid.Row="4" Style="{StaticResource CardFooterPanelStyle}">
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="PackageVariantClosed" Height="16" Width="16"
-                                                             VerticalAlignment="Center" Opacity="0.7"/>
-                                    <TextBlock Style="{StaticResource CardFooterLabelStyle}" Text="Company files"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="PackageVariantClosed" Height="16" Width="16"
+                                                                 VerticalAlignment="Center" Opacity="0.7"/>
+                                        <TextBlock Style="{StaticResource CardFooterLabelStyle}" Text="Company files"/>
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource CardFooterValueStyle}">
+                                        <Run Text="{Binding WorkCompanyFile.Version, Mode=OneWay, FallbackValue=—, TargetNullValue=—}"
+                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
+                                        <Run Text=" · "/>
+                                        <Run Text="{Binding Profile, Mode=OneWay, FallbackValue=Wiring, TargetNullValue=Wiring}"
+                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
+                                        <Run Text=" · "/>
+                                        <Run Text="{Binding CheckedOptionsSummary, Mode=OneWay}"/>
+                                        <Run Text="{Binding RemoveExampleSettingsSuffix, Mode=OneWay}"/>
+                                    </TextBlock>
                                 </StackPanel>
-                                <TextBlock Style="{StaticResource CardFooterValueStyle}">
-                                    <Run Text="{Binding WorkCompanyFile.Version, Mode=OneWay, FallbackValue=—, TargetNullValue=—}"
-                                         Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
-                                    <Run Text=" · "/>
-                                    <Run Text="{Binding Profile, Mode=OneWay, FallbackValue=Wiring, TargetNullValue=Wiring}"
-                                         Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
-                                    <Run Text=" · "/>
-                                    <Run Text="{Binding CheckedOptionsSummary, Mode=OneWay}"/>
-                                    <Run Text="{Binding RemoveExampleSettingsSuffix, Mode=OneWay}"/>
-                                </TextBlock>
-                            </StackPanel>
+                                <Button Grid.Column="1" VerticalAlignment="Top"
+                                        Style="{StaticResource MaterialDesignIconButton}"
+                                        Width="28" Height="28" Padding="2"
+                                        Focusable="False"
+                                        Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                        Command="{Binding EditCompanyFilesCommand}"
+                                        ToolTip="Edit company files">
+                                    <materialDesign:PackIcon Kind="PencilOutline" Height="16" Width="16"/>
+                                </Button>
+                            </Grid>
                         </Border>
                     </Grid>
                 </RadioButton>
@@ -291,23 +321,38 @@
                         <TextBlock Grid.Row="2" Style="{StaticResource CardDescriptionStyle}"
                                    Text="Database layer only (schema, migrations, deploy). No API, no Front-end."/>
                         <Border Grid.Row="4" Style="{StaticResource CardFooterPanelStyle}">
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="PackageVariantClosed" Height="16" Width="16"
-                                                             VerticalAlignment="Center" Opacity="0.7"/>
-                                    <TextBlock Style="{StaticResource CardFooterLabelStyle}" Text="Company files"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="PackageVariantClosed" Height="16" Width="16"
+                                                                 VerticalAlignment="Center" Opacity="0.7"/>
+                                        <TextBlock Style="{StaticResource CardFooterLabelStyle}" Text="Company files"/>
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource CardFooterValueStyle}">
+                                        <Run Text="{Binding WorkCompanyFile.Version, Mode=OneWay, FallbackValue=—, TargetNullValue=—}"
+                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
+                                        <Run Text=" · "/>
+                                        <Run Text="{Binding Profile, Mode=OneWay, FallbackValue=Wiring, TargetNullValue=Wiring}"
+                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
+                                        <Run Text=" · "/>
+                                        <Run Text="{Binding CheckedOptionsSummary, Mode=OneWay}"/>
+                                        <Run Text="{Binding RemoveExampleSettingsSuffix, Mode=OneWay}"/>
+                                    </TextBlock>
                                 </StackPanel>
-                                <TextBlock Style="{StaticResource CardFooterValueStyle}">
-                                    <Run Text="{Binding WorkCompanyFile.Version, Mode=OneWay, FallbackValue=—, TargetNullValue=—}"
-                                         Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
-                                    <Run Text=" · "/>
-                                    <Run Text="{Binding Profile, Mode=OneWay, FallbackValue=Wiring, TargetNullValue=Wiring}"
-                                         Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
-                                    <Run Text=" · "/>
-                                    <Run Text="{Binding CheckedOptionsSummary, Mode=OneWay}"/>
-                                    <Run Text="{Binding RemoveExampleSettingsSuffix, Mode=OneWay}"/>
-                                </TextBlock>
-                            </StackPanel>
+                                <Button Grid.Column="1" VerticalAlignment="Top"
+                                        Style="{StaticResource MaterialDesignIconButton}"
+                                        Width="28" Height="28" Padding="2"
+                                        Focusable="False"
+                                        Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                        Command="{Binding EditCompanyFilesCommand}"
+                                        ToolTip="Edit company files">
+                                    <materialDesign:PackIcon Kind="PencilOutline" Height="16" Width="16"/>
+                                </Button>
+                            </Grid>
                         </Border>
                     </Grid>
                 </RadioButton>
@@ -464,10 +509,10 @@
                     <TextBlock Margin="4,0,0,0" VerticalAlignment="Center">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
-                                <Setter Property="Text" Value="Advanced options"/>
+                                <Setter Property="Text" Value="More options"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsAdvancedMode}" Value="True">
-                                        <Setter Property="Text" Value="Simple view"/>
+                                        <Setter Property="Text" Value="Less options"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>

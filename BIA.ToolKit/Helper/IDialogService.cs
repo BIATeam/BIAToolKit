@@ -53,6 +53,13 @@ namespace BIA.ToolKit.Helper
         /// </summary>
         (string TeamName, string TeamNamePlural, string DomainName)? ShowDefaultTeamSettings(
             string currentName, string currentNamePlural, string currentDomainName);
+
+        /// <summary>
+        /// Opens a lightweight popup to edit the Company Files settings (version, profile, options).
+        /// Bindings are live on the passed <paramref name="viewModel"/>; closing the dialog
+        /// simply dismisses the popup.
+        /// </summary>
+        void ShowCompanyFilesEditor(VersionAndOptionViewModel viewModel);
     }
 
     /// <summary>

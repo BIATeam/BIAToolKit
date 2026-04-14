@@ -70,6 +70,12 @@ namespace BIA.ToolKit.Infrastructure
             Clipboard.SetText(text);
         }
 
+        public void ShowCompanyFilesEditor(VersionAndOptionViewModel viewModel)
+        {
+            var dialog = new CompanyFilesDialogUC(viewModel);
+            ShowDialogSync(dialog);
+        }
+
         public (string TeamName, string TeamNamePlural, string DomainName)? ShowDefaultTeamSettings(
             string currentName, string currentNamePlural, string currentDomainName)
         {

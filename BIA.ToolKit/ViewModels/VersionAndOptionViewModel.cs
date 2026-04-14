@@ -351,6 +351,17 @@ namespace BIA.ToolKit.ViewModels
             IsAdvancedMode = !IsAdvancedMode;
         }
 
+        /// <summary>
+        /// Opens a dedicated popup to edit only the Company Files (version, profile, options).
+        /// Distinct from "More options" which reveals the full feature grid — this is a
+        /// targeted editor for the card's footer summary.
+        /// </summary>
+        [RelayCommand]
+        private void EditCompanyFiles()
+        {
+            dialogService.ShowCompanyFilesEditor(this);
+        }
+
         partial void OnIsAdvancedModeChanged(bool value)
         {
             // Intentionally no-op: toggling between Normal and Advanced must preserve
