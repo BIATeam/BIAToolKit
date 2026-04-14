@@ -41,13 +41,15 @@ namespace BIA.ToolKit.Helper
         {
             public string message;
             public string color;
+            public DateTime timestamp;
         }
 
         public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
         {
+            var now = DateTime.Now;
             if (!refreshimediate)
             {
-                messages.Add(new Message { message = message, color = color });
+                messages.Add(new Message { message = message, color = color, timestamp = now });
             }
             else
             {
@@ -65,8 +67,8 @@ namespace BIA.ToolKit.Helper
 
                     messages = [];
                 }
-                AddMsgLine(OutputRichTextBox, message, color, refreshimediate, IsDarkTheme);
-                displayedMessages.Add(new Message { message = message, color = color });
+                AddMsgLine(OutputRichTextBox, message, color, refreshimediate, IsDarkTheme, now);
+                displayedMessages.Add(new Message { message = message, color = color, timestamp = now });
             }
         }
 
@@ -85,7 +87,7 @@ namespace BIA.ToolKit.Helper
 
         public void CopyToClipboard()
         {
-            Clipboard.SetText(string.Join(Environment.NewLine, displayedMessages.Select(m => m.message)));
+            Clipboard.SetText(string.Join(Environment.NewLine, displayedMessages.Select(m => $"[{m.timestamp:HH:mm:ss}]  {m.message}")));
         }
 
         /// <summary>
@@ -97,12 +99,12 @@ namespace BIA.ToolKit.Helper
             OutputRichTextBox.Document.Blocks.Clear();
             foreach (var msg in displayedMessages)
             {
-                AddMsgLine(OutputRichTextBox, msg.message, msg.color, false, IsDarkTheme);
+                AddMsgLine(OutputRichTextBox, msg.message, msg.color, false, IsDarkTheme, msg.timestamp);
             }
             OutputRichTextBox.ScrollToEnd();
         }
 
-        public static void AddMsgLine(RichTextBox richTextBox, string message, string color, bool refreshimediate = true, bool isDarkTheme = true)
+        public static void AddMsgLine(RichTextBox richTextBox, string message, string color, bool refreshimediate = true, bool isDarkTheme = true, DateTime? timestamp = null)
         {
             Brush brush;
             if (string.IsNullOrEmpty(color))
@@ -111,33 +113,73 @@ namespace BIA.ToolKit.Helper
             }
             else
             {
-                var resolvedColor = isDarkTheme ? color : MapColorForLightTheme(color);
+                var resolvedColor = isDarkTheme ? MapColorForDarkTheme(color) : MapColorForLightTheme(color);
                 var col = (Color)ColorConverter.ConvertFromString(resolvedColor);
                 brush = new SolidColorBrush(col);
             }
-            AddMessageLine(richTextBox, message, brush, refreshimediate);
+            var timestampBrush = isDarkTheme ? new SolidColorBrush(Color.FromRgb(0x80, 0x80, 0x80)) : new SolidColorBrush(Color.FromRgb(0x90, 0x90, 0x90));
+            AddMessageLine(richTextBox, message, brush, refreshimediate, timestamp ?? DateTime.Now, timestampBrush);
         }
 
+        // Dark theme palette — bright / saturated colors that read well on a dark background.
+        // Tune this list independently of the light palette.
+        private static string MapColorForDarkTheme(string color)
+        {
+            return color.ToLowerInvariant() switch
+            {
+                "green" => "#4CAF50",       // Green 500
+                "lightgreen" => "#81C784",  // Green 300
+                "lime" => "#CDDC39",        // Lime 500
+                "yellow" => "#FFEB3B",      // Yellow 500
+                "yellowgreen" => "YellowGreen",
+                "red" => "#EF5350",         // Red 400
+                "orange" => "#FFA726",      // Orange 400
+                "blue" => "#42A5F5",        // Blue 400
+                "lightblue" => "#4FC3F7",   // Light Blue 300
+                "pink" => "#F06292",        // Pink 300
+                "purple" => "#BA68C8",      // Purple 300
+                "white" => "White",
+                "gray" => "#B0B0B0",
+                "darkgray" => "#9E9E9E",
+                _ => color
+            };
+        }
+
+        // Light theme palette — darker / muted variants for readability on a white background.
+        // Tune this list independently of the dark palette.
         private static string MapColorForLightTheme(string color)
         {
             return color.ToLowerInvariant() switch
             {
                 "green" => "DarkGreen",
-                "yellow" => "#795508",  // Dark amber (VS Code warning style)
+                "lightgreen" => "#2E7D32",  // Green 800
+                "lime" => "#558B2F",        // Light Green 800
+                "yellow" => "#795508",      // Dark amber (VS Code warning style)
                 "yellowgreen" => "#556B2F", // DarkOliveGreen
                 "red" => "DarkRed",
                 "orange" => "#CC7000",
-                "blue" => "#1565C0", // Blue 800
+                "blue" => "#1565C0",        // Blue 800
+                "lightblue" => "#0277BD",   // Light Blue 800
+                "pink" => "#C2185B",        // Pink 700
+                "purple" => "#6A1B9A",      // Purple 800
+                "white" => "Black",
+                "gray" => "#616161",
+                "darkgray" => "#424242",
                 _ => color
             };
         }
 
-        public static void AddMessageLine(RichTextBox richTextBox, string message, Brush brush, bool refreshimediate = true)
+        public static void AddMessageLine(RichTextBox richTextBox, string message, Brush brush, bool refreshimediate = true, DateTime? timestamp = null, Brush timestampBrush = null)
         {
             System.Windows.Application.Current.Dispatcher.Invoke(
                 DispatcherPriority.Normal,
             (ThreadStart)delegate
             {
+                var ts = timestamp ?? DateTime.Now;
+                var tsBrush = timestampBrush ?? Brushes.Gray;
+                var timestampRun = new Run($"[{ts:HH:mm:ss}]  ") { Foreground = tsBrush };
+                AppendInline(richTextBox, timestampRun, addLineBreak: false);
+
                 var run = new Run(message) { Foreground = brush };
                 AppendInline(richTextBox, run);
 
@@ -148,7 +190,7 @@ namespace BIA.ToolKit.Helper
             });
         }
 
-        private static void AppendInline(RichTextBox richTextBox, Inline inline)
+        private static void AppendInline(RichTextBox richTextBox, Inline inline, bool addLineBreak = true)
         {
             var doc = richTextBox.Document;
             if (doc.Blocks.LastBlock is not Paragraph paragraph)
@@ -157,7 +199,10 @@ namespace BIA.ToolKit.Helper
                 doc.Blocks.Add(paragraph);
             }
             paragraph.Inlines.Add(inline);
-            paragraph.Inlines.Add(new LineBreak());
+            if (addLineBreak)
+            {
+                paragraph.Inlines.Add(new LineBreak());
+            }
         }
     }
 }
