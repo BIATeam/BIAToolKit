@@ -23,8 +23,11 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
 
-            <materialDesign:ColorZone Padding="8" Grid.Row="0" Mode="PrimaryMid">
-                <Grid  >
+            <Border Padding="8" Grid.Row="0"
+                    Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                    BorderThickness="4,0,0,0"
+                    BorderBrush="{DynamicResource MaterialDesign.Brush.Primary}">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition Width="auto"/>
@@ -32,7 +35,7 @@
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                         <ToggleButton Style="{StaticResource MaterialDesignSwitchToggleButton}" IsChecked="{Binding UseRepository}" ToolTip="Use Repository"/>
-                        <Label Margin="10,0" VerticalAlignment="Center" Content="{Binding Name}" Foreground="White" FontWeight="Bold" FontSize="15" d:Content="REPOSITORY NAME" IsEnabled="{Binding UseRepository}"/>
+                        <Label Margin="10,0" VerticalAlignment="Center" Content="{Binding Name}" FontWeight="Bold" FontSize="15" d:Content="REPOSITORY NAME" IsEnabled="{Binding UseRepository}"/>
                         <materialDesign:ColorZone Padding="0" Mode="SecondaryDark" VerticalAlignment="Center" CornerRadius="5" Visibility="{Binding IsVersionXYZ, Converter={StaticResource BoolToVisConverter}}">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0">
                                 <Label Content="Version X.Y.Z" VerticalAlignment="Center"/>
@@ -43,15 +46,15 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Style="{StaticResource MaterialDesignRaisedButton}"  Padding="5,0"  Command="{Binding DeleteCommand}" Margin="0,0,5,0" ToolTip="Remove">
-                            <materialDesign:PackIcon Kind="Bin" Height="25" Width="25" />
+                        <Button Style="{StaticResource MaterialDesignIconButton}" Padding="5,0" Command="{Binding DeleteCommand}" Margin="0,0,5,0" ToolTip="Remove">
+                            <materialDesign:PackIcon Kind="Bin" Height="22" Width="22"/>
                         </Button>
-                        <Button Style="{StaticResource MaterialDesignRaisedButton}"  Padding="5,0"  Command="{Binding OpenFormCommand}" ToolTip="Edit">
-                            <materialDesign:PackIcon Kind="Cog" Height="25" Width="25" />
+                        <Button Style="{StaticResource MaterialDesignIconButton}" Padding="5,0" Command="{Binding OpenFormCommand}" ToolTip="Edit">
+                            <materialDesign:PackIcon Kind="Cog" Height="22" Width="22"/>
                         </Button>
                     </StackPanel>
                 </Grid>
-            </materialDesign:ColorZone>
+            </Border>
 
             <Grid Grid.Row="1" Margin="10">
                 <Grid.ColumnDefinitions>

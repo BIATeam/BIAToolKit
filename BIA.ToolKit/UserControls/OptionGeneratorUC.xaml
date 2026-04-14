@@ -83,7 +83,7 @@
                 <RowDefinition Height="auto"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <Button Grid.Row="0" Style="{StaticResource MaterialDesignRaisedSecondaryButton}" Content="Generate" IsEnabled="{Binding IsButtonGenerateOptionEnable}" x:Name="GenerateCrud" Height="50" Command="{Binding GenerateCommand}"/>
+            <Button Grid.Row="0" Style="{StaticResource MaterialDesignRaisedSecondaryButton}" Foreground="White" Content="Generate" IsEnabled="{Binding IsButtonGenerateOptionEnable}" x:Name="GenerateCrud" Height="50" Command="{Binding GenerateCommand}"/>
             <Grid Grid.Row="1" VerticalAlignment="Bottom">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>

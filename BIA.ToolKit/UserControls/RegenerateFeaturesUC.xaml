@@ -189,6 +189,7 @@
                     Margin="0,0,10,0"/>
             <Button x:Name="RegenerateButton"
                     Style="{StaticResource MaterialDesignRaisedSecondaryButton}"
+                    Foreground="White"
                     Content="Regenerate selected features"
                     Command="{Binding RegenerateCommand}"/>
         </StackPanel>

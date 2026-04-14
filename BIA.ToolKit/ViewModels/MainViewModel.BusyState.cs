@@ -24,10 +24,27 @@ namespace BIA.ToolKit.ViewModels
         [ObservableProperty]
         private bool isOutputExpanded;
 
+        [ObservableProperty]
+        private bool isOutputMaximized;
+
         partial void OnIsBusyChanged(bool value)
         {
             if (value)
                 IsOutputExpanded = true;
+        }
+
+        partial void OnIsOutputMaximizedChanged(bool value)
+        {
+            if (value)
+                IsOutputExpanded = true;
+        }
+
+        partial void OnIsOutputExpandedChanged(bool value)
+        {
+            // Collapsing the panel also drops the maximized state, otherwise
+            // the Grid row would keep filling the whole window with an invisible RichTextBox.
+            if (!value)
+                IsOutputMaximized = false;
         }
 
         private CancellationTokenSource currentTokenSource;
@@ -59,6 +76,12 @@ namespace BIA.ToolKit.ViewModels
                 currentTokenSource = null;
                 semaphore.Release();
             }
+        }
+
+        [RelayCommand]
+        private void ToggleOutputMaximized()
+        {
+            IsOutputMaximized = !IsOutputMaximized;
         }
 
         [RelayCommand]

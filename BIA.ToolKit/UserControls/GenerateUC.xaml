@@ -9,11 +9,35 @@
              d:Height="550" d:Width="1280">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+        <Style x:Key="HighlightedTabControl" TargetType="TabControl" BasedOn="{StaticResource {x:Type TabControl}}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Border Grid.Row="0"
+                                    Background="{DynamicResource MaterialDesign.Brush.Foreground}"
+                                    Opacity="0.18"
+                                    CornerRadius="4,4,0,0"/>
+                            <TabPanel Grid.Row="0"
+                                      x:Name="HeaderPanel"
+                                      IsItemsHost="True"
+                                      KeyboardNavigation.TabIndex="1"/>
+                            <ContentPresenter Grid.Row="1"
+                                              ContentSource="SelectedContent"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
     <Grid x:Name="TabGenerate">
         <Grid Margin="10,0,10,0">
             <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2"/>
-            <TabControl x:Name="TabActions">
+            <TabControl x:Name="TabActions" Style="{StaticResource HighlightedTabControl}">
                 <TabItem x:Name="TabOptionGenerator" Header="Option" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <Grid>
