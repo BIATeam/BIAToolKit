@@ -206,6 +206,9 @@ namespace BIA.ToolKit.ViewModels
                     options.Add(option);
                 }
                 Options = new ObservableCollection<CFOption>(options);
+
+                // Normal mode: auto-apply preferred defaults (profile Wiring, DMEU, Remove example settings).
+                ApplyCompanyFilesDefaults();
             }
             catch (Exception ex)
             {
@@ -248,6 +251,9 @@ namespace BIA.ToolKit.ViewModels
                 {
                     VersionAndOption.Options = value;
                     OnPropertyChanged(nameof(Options));
+                    OnPropertyChanged(nameof(CheckedOptionsSummary));
+                    OnPropertyChanged(nameof(RemoveExampleSettingsChecked));
+                    OnPropertyChanged(nameof(RemoveExampleSettingsSuffix));
                 }
             }
         }
@@ -317,7 +323,166 @@ namespace BIA.ToolKit.ViewModels
             AreFeatureInitialized = true;
             VersionAndOption.FeatureSettings = [.. (value ?? []).Select(x => x.FeatureSetting)];
             RefreshDefaultTeamConfigStatus();
+
+            // In Normal mode, reapply the current project-type preset each time a new feature
+            // list is loaded (e.g. framework version change) so the card selection stays in sync.
+            if (!IsAdvancedMode)
+            {
+                ApplyProjectTypePreset(SelectedProjectType);
+            }
         }
+
+        #region Normal / Advanced mode
+
+        [ObservableProperty]
+        private bool isAdvancedMode;
+
+        [ObservableProperty]
+        private ProjectTypeKind selectedProjectType = ProjectTypeKind.Complete;
+
+        partial void OnSelectedProjectTypeChanged(ProjectTypeKind value)
+        {
+            ApplyProjectTypePreset(value);
+        }
+
+        [RelayCommand]
+        private void ToggleAdvancedMode()
+        {
+            IsAdvancedMode = !IsAdvancedMode;
+        }
+
+        partial void OnIsAdvancedModeChanged(bool value)
+        {
+            // Intentionally no-op: toggling between Normal and Advanced must preserve
+            // whatever the user has already configured (features + Company Files).
+            // Presets are only (re)applied when the user explicitly selects a card or
+            // when a new framework version is loaded.
+        }
+
+        /// <summary>
+        /// Applies the feature-settings checkbox preset associated with a project type.
+        /// Leaves <see cref="BiaFeatureSettingsEnum.UserCustomFields"/> and
+        /// <see cref="BiaFeatureSettingsEnum.CreateDefaultTeam"/> untouched.
+        /// </summary>
+        private void ApplyProjectTypePreset(ProjectTypeKind projectType)
+        {
+            if (FeatureSettings is null || FeatureSettings.Count == 0)
+                return;
+
+            bool frontEnd, auth, db, deployDb, worker;
+            switch (projectType)
+            {
+                case ProjectTypeKind.ApiAndDb:
+                    frontEnd = false; auth = true; db = true; deployDb = true; worker = true;
+                    break;
+                case ProjectTypeKind.DbOnly:
+                    frontEnd = false; auth = false; db = true; deployDb = true; worker = false;
+                    break;
+                case ProjectTypeKind.Complete:
+                default:
+                    frontEnd = true; auth = true; db = true; deployDb = true; worker = true;
+                    break;
+            }
+
+            SetFeatureSelected(BiaFeatureSettingsEnum.FrontEnd, frontEnd);
+            SetFeatureSelected(BiaFeatureSettingsEnum.BackToBackAuth, auth);
+            SetFeatureSelected(BiaFeatureSettingsEnum.Database, db);
+            SetFeatureSelected(BiaFeatureSettingsEnum.DeployDb, deployDb);
+            SetFeatureSelected(BiaFeatureSettingsEnum.WorkerService, worker);
+
+            // Honour DisabledFeatures constraints declared by the JSON (same as user click).
+            OnFeatureSettingSelectionChanged();
+        }
+
+        private void SetFeatureSelected(BiaFeatureSettingsEnum feature, bool isSelected)
+        {
+            var fvm = FeatureSettings?.FirstOrDefault(f => f.FeatureSetting.Id == (int)feature);
+            if (fvm != null && fvm.IsSelected != isSelected)
+            {
+                fvm.IsSelected = isSelected;
+            }
+        }
+
+        /// <summary>
+        /// In Normal mode, force Company Files defaults: profile = "Wiring", option "DMEU" checked,
+        /// option "Remove example settings" checked. Called after each company-file settings load.
+        /// </summary>
+        private void ApplyCompanyFilesDefaults()
+        {
+            if (IsAdvancedMode)
+                return;
+
+            UseCompanyFiles = true;
+
+            if (Profiles?.Any() == true)
+            {
+                string wiring = Profiles.FirstOrDefault(p => string.Equals(p, "Wiring", StringComparison.OrdinalIgnoreCase));
+                if (wiring != null)
+                    Profile = wiring;
+            }
+
+            if (Options?.Any() == true)
+            {
+                foreach (var opt in Options)
+                {
+                    if (IsDmeuOption(opt))
+                        opt.IsChecked = true;
+                    else if (IsRemoveExampleOption(opt))
+                        opt.IsChecked = true;
+                }
+                // Refresh the collection so the UI (if ever shown later) picks up IsChecked changes.
+                Options = new ObservableCollection<CFOption>(Options);
+            }
+        }
+
+        private static bool IsDmeuOption(CFOption opt)
+            => string.Equals(opt?.Key, "DMEU", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(opt?.Name, "DMEU", StringComparison.OrdinalIgnoreCase);
+
+        private static bool IsRemoveExampleOption(CFOption opt)
+            => (opt?.Key?.Contains("RemoveExample", StringComparison.OrdinalIgnoreCase) == true)
+            || (opt?.Name?.Contains("Remove example", StringComparison.OrdinalIgnoreCase) == true);
+
+        /// <summary>
+        /// Summary of the checked Company Files options (excluding "Remove example settings"
+        /// which is surfaced separately), shown on the Normal-mode cards.
+        /// </summary>
+        public string CheckedOptionsSummary
+        {
+            get
+            {
+                if (Options is null || Options.Count == 0)
+                    return "—";
+                var checkedNames = Options
+                    .Where(o => o.IsChecked && !IsRemoveExampleOption(o))
+                    .Select(o => string.IsNullOrWhiteSpace(o.Name) ? o.Key : o.Name)
+                    .ToList();
+                return checkedNames.Count == 0 ? "—" : string.Join(", ", checkedNames);
+            }
+        }
+
+        public bool RemoveExampleSettingsChecked
+            => Options?.Any(o => o.IsChecked && IsRemoveExampleOption(o)) == true;
+
+        /// <summary>
+        /// Suffix appended to the card footer summary when "Remove example settings" is on.
+        /// </summary>
+        public string RemoveExampleSettingsSuffix
+            => RemoveExampleSettingsChecked ? " · Remove examples" : string.Empty;
+
+        /// <summary>
+        /// Called by the Advanced-mode Company Files option checkboxes so the Normal-mode
+        /// card footer stays in sync with user tweaks.
+        /// </summary>
+        [RelayCommand]
+        private void OptionCheckedChanged()
+        {
+            OnPropertyChanged(nameof(CheckedOptionsSummary));
+            OnPropertyChanged(nameof(RemoveExampleSettingsChecked));
+            OnPropertyChanged(nameof(RemoveExampleSettingsSuffix));
+        }
+
+        #endregion
 
         public void SetFeaturesSelection(List<string> projectGenerationTags, List<string> projectGenerationExcludedFolders, List<FeatureSetting> originFeatureSettings)
         {
