@@ -492,10 +492,14 @@
             </RichTextBox>
         </Grid>
 
-        <!-- Waiter overlay (covers content + output) -->
-        <Grid x:Name="Waiter" Grid.Row="1" Grid.RowSpan="2" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Hidden">
-            <Grid Background="{DynamicResource MaterialDesign.Brush.Card.Background}" Opacity="0.7" />
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <!-- Waiter overlay: dim covers content only (output stays readable),
+             loader stays centered across the full window (content + output). -->
+        <Grid x:Name="WaiterDim" Grid.Row="1" IsHitTestVisible="{Binding IsBusy}"
+              Background="{DynamicResource MaterialDesign.Brush.Card.Background}" Opacity="0.7"
+              Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Hidden"/>
+        <Grid x:Name="Waiter" Grid.Row="1" Grid.RowSpan="2" IsHitTestVisible="False"
+              Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Hidden">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="True">
                 <uc:PixelLeafLoaderUC Height="200" Width="200"/>
                 <uc:PixelStopButtonUC Width="160" Height="50" Margin="0,40,0,0"
                                       Command="{Binding StopActionCommand}"/>

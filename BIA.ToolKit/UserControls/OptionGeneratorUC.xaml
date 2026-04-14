@@ -91,8 +91,19 @@
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <Button Visibility="Hidden" Grid.Row="0" Content="Delete previous generation" x:Name="DeleteGeneration" Command="{Binding DeleteLastGenerationCommand}" IsEnabled="{Binding IsEntityParsed}"/>
-                <Label Margin="0,10,0,0" Grid.Row="1" Content="After generation :" HorizontalAlignment="Center"/>
-                <Button Grid.Row="2" Content="Delete annotations" x:Name="DeleteAnnotations" Command="{Binding DeleteBIAToolkitAnnotationsCommand}" IsEnabled="{Binding IsProjectChosen}"/>
+                <Label Margin="0,10,0,0" Grid.Row="1" Content="After generation:" HorizontalAlignment="Center" Opacity="0.7"/>
+                <Button Grid.Row="2" x:Name="DeleteAnnotations"
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        HorizontalAlignment="Center" Margin="0,4,0,0"
+                        Padding="8,4" MinWidth="0"
+                        Command="{Binding DeleteBIAToolkitAnnotationsCommand}"
+                        IsEnabled="{Binding IsProjectChosen}"
+                        ToolTip="Remove BIAToolkit generation markers from the project">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="TagRemoveOutline" Height="18" Width="18" VerticalAlignment="Center"/>
+                        <TextBlock Text="Delete annotations" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
             </Grid>
         </Grid>
     </Grid>
