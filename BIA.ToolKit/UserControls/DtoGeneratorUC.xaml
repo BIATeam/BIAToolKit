@@ -72,7 +72,7 @@
                 <CheckBox Grid.Column="1" Grid.Row="1" Content="Use dedicated audit" IsChecked="{Binding UseDedicatedAudit,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsAuditable}" Visibility="{Binding IsVisibleUseDedicatedAudit, Converter={StaticResource BoolToVisConverter}}"/>
             </Grid>
 
-            <Button VerticalAlignment="Top" Grid.Column="6" Style="{StaticResource MaterialDesignRaisedSecondaryButton}" x:Name="GenerateButton" Content="Generate" Height="50" Command="{Binding GenerateCommand}" IsEnabled="{Binding IsGenerationEnabled}"></Button>
+            <Button VerticalAlignment="Top" Grid.Column="6" Style="{StaticResource MaterialDesignRaisedSecondaryButton}" Foreground="White" x:Name="GenerateButton" Content="Generate" Height="50" Command="{Binding GenerateCommand}" IsEnabled="{Binding IsGenerationEnabled}"></Button>
         </Grid>
 
         <Grid Grid.Row="1" Margin="0,10,0,0">

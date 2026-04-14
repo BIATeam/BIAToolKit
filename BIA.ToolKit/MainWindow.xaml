@@ -360,6 +360,7 @@
 
                             <!-- Row 2: Create button (end of flow, bottom-right) -->
                             <Button Grid.Row="2" Style="{StaticResource MaterialDesignRaisedSecondaryButton}"
+                                    Foreground="White"
                                     Height="50" Width="180" Content="Create" FontSize="16"
                                     HorizontalAlignment="Right" Margin="0,10,0,0"
                                     Command="{Binding CreateProjectCommand}"
