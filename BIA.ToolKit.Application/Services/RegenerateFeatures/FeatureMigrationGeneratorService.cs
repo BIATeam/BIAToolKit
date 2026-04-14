@@ -56,7 +56,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             };
 
             var fileGenerator = new FileGeneratorService(consoleWriter);
-            await fileGenerator.Init(targetProject, fromUnitTest: false, cancellationToken);
+            await fileGenerator.Init(targetProject, cancellationToken);
 
             if (!fileGenerator.IsInit)
             {
@@ -303,7 +303,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             {
                 try
                 {
-                    fileGenerator.SetPrettierProjectPathOverride(prettierPath);
+                    fileGenerator.SetPrettierAngularProjectPath(prettierPath);
                 }
                 catch (Exception ex)
                 {

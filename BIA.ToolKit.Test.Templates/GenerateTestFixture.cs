@@ -94,7 +94,7 @@ namespace BIA.ToolKit.Test.Templates
 
             consoleWriter.AddMessageLine($"Init service...");
             FileGeneratorService = new FileGeneratorService(consoleWriter);
-            FileGeneratorService.Init(TestProject, true).Wait();
+            FileGeneratorService.Init(TestProject, cancellationToken: CancellationToken.None).Wait();
 
             if (referenceProject.BIAFronts.Count != 0)
             {
