@@ -10,6 +10,9 @@
              mc:Ignorable="d" d:DesignWidth="800">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+        <DataTemplate x:Key="GroupBoxWhiteHeaderTemplate">
+            <TextBlock Text="{Binding}" Foreground="White" FontWeight="Bold"/>
+        </DataTemplate>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -30,7 +33,7 @@
             </i:Interaction.Triggers>
         </ComboBox>
 
-        <GroupBox Margin="10,0" Grid.Column="1" Header="Feature Settings" Name="FeatureSettingsGroup" VerticalAlignment="Stretch" Background="{DynamicResource MaterialDesign.Brush.Card.Background}" d:Visibility="Visible">
+        <GroupBox Margin="10,0" Grid.Column="1" Header="Feature Settings" HeaderTemplate="{StaticResource GroupBoxWhiteHeaderTemplate}" Name="FeatureSettingsGroup" VerticalAlignment="Stretch" Background="{DynamicResource MaterialDesign.Brush.Card.Background}" d:Visibility="Visible">
             <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto">
                 <Grid>
                     <ItemsControl Visibility="{Binding AreFeatureVisible, Converter={StaticResource BoolToVisConverter}}" Margin="0,0,10,0" ItemsSource="{Binding FeatureSettings}">
@@ -74,7 +77,7 @@
             </ScrollViewer>
         </GroupBox>
 
-        <GroupBox Grid.Column="2" Header="Company files" Name="CompanyFileGroup" Background="{DynamicResource MaterialDesign.Brush.Card.Background}" VerticalAlignment="Stretch">
+        <GroupBox Grid.Column="2" Header="Company files" HeaderTemplate="{StaticResource GroupBoxWhiteHeaderTemplate}" Name="CompanyFileGroup" Background="{DynamicResource MaterialDesign.Brush.Card.Background}" VerticalAlignment="Stretch">
             <Grid Margin="0,0,10,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>

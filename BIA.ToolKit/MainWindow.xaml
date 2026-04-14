@@ -328,13 +328,16 @@
                                     <ColumnDefinition/>
                                     <ColumnDefinition/>
                                 </Grid.ColumnDefinitions>
-                                <Grid Grid.Column="0" VerticalAlignment="Top">
+                                <Grid Grid.Column="0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition/>
                                         <ColumnDefinition Width="auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Projects Parent Path" Text="{Binding Settings_RootProjectsPath}" TextWrapping="Wrap"/>
-                                    <Button Grid.Column="1" Margin="5"
+                                    <TextBox Grid.Column="0" VerticalAlignment="Top"
+                                             Style="{StaticResource MaterialDesignFilledTextBox}"
+                                             materialDesign:HintAssist.Hint="Projects Parent Path"
+                                             Text="{Binding Settings_RootProjectsPath}"/>
+                                    <Button Grid.Column="1" Margin="5" VerticalAlignment="Top"
                                             Style="{StaticResource MaterialDesignIconButton}"
                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
                                             ToolTip="Browse..."
