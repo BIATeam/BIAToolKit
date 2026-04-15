@@ -27,13 +27,20 @@ namespace BIA.ToolKit.Domain
                     CleanFolder(gitCopyFolder);
                 }
 
+                static Credentials credHandler(string url, string usernameFromUrl, SupportedCredentialTypes types) => new DefaultCredentials();
 
-                LibGit2Sharp.Repository.Clone(repository.LocalPath, gitCopyFolder);
+                var cloneOptions = new CloneOptions();
+                cloneOptions.FetchOptions.CredentialsProvider = credHandler;
+
+                LibGit2Sharp.Repository.Clone(repository.Url, gitCopyFolder, cloneOptions);
                 using (var gitRepository = new LibGit2Sharp.Repository(gitCopyFolder))
                 {
-                    Tag tag = gitRepository.Tags.FirstOrDefault(t => t.FriendlyName == Name)
+                    Remote remoteOrigin = gitRepository.Network.Remotes["origin"] ?? throw new NullReferenceException();
+                    IEnumerable<Reference> remoteRefs = gitRepository.Network.ListReferences(remoteOrigin, credHandler) ?? throw new Exception();
+
+                    Reference reference = remoteRefs.FirstOrDefault(r => r.CanonicalName.StartsWith("refs/tags/" + Name) && !r.CanonicalName.EndsWith("^{}"))
                         ?? throw new NotFoundException($"Tag {Name} not found in repository {repository.Name}");
-                    Commit commit = tag.Target.Peel<Commit>()
+                    string commit = reference.TargetIdentifier
                         ?? throw new NotFoundException($"Tag {Name} does not resolve to a commit.");
                     Commands.Checkout(gitRepository, commit);
                 }
