@@ -107,7 +107,7 @@ namespace BIA.ToolKit.Test.Templates.Assertions
                 // Prettier front files (excluded HTML)
                 if (isAngularTemplate && !referencePath.EndsWith("html"))
                 {
-                    testFixture.FileGeneratorService.RunPrettierAsync(referencePath).Wait();
+                    testFixture.FileGeneratorService.RunPrettierAsync(referencePath, default).Wait();
                 }
             }
         }
