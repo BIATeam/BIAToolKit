@@ -66,6 +66,69 @@ namespace BIA.ToolKit.ViewModels
 
             WeakReferenceMessenger.Default.Register<ProjectChangedMessage>(this, (r, m) => SetCurrentProject(m.Project));
             WeakReferenceMessenger.Default.Register<SolutionClassesParsedMessage>(this, (r, m) => OnSolutionClassesParsed());
+
+            PropertyChanged += OnAnyPropertyChanged;
+        }
+
+        private void OnAnyPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            // Fan-out property changes to computed summary/preview/badge properties without
+            // having to modify every existing partial OnXxxChanged method.
+            switch (e.PropertyName)
+            {
+                case nameof(IsVersioned):
+                case nameof(IsArchivable):
+                case nameof(IsFixable):
+                case nameof(DisplayHistorical):
+                    OnPropertyChanged(nameof(LifecycleActiveCount));
+                    OnPropertyChanged(nameof(HasLifecycleActive));
+                    OnPropertyChanged(nameof(GenerationSummary));
+                    break;
+                case nameof(IsTeam):
+                case nameof(HasFormReadOnlyMode):
+                    OnPropertyChanged(nameof(AccessActiveCount));
+                    OnPropertyChanged(nameof(HasAccessActive));
+                    OnPropertyChanged(nameof(GenerationSummary));
+                    break;
+                case nameof(AncestorTeam):
+                    OnPropertyChanged(nameof(TeamRolesPreview));
+                    OnPropertyChanged(nameof(HasTeamRolesPreview));
+                    break;
+                case nameof(HasParent):
+                case nameof(HasFixableParent):
+                    OnPropertyChanged(nameof(RelationsActiveCount));
+                    OnPropertyChanged(nameof(HasRelationsActive));
+                    OnPropertyChanged(nameof(GenerationSummary));
+                    OnPropertyChanged(nameof(ParentRolesPreview));
+                    OnPropertyChanged(nameof(HasParentRolesPreview));
+                    break;
+                case nameof(ParentName):
+                    OnPropertyChanged(nameof(ParentRolesPreview));
+                    OnPropertyChanged(nameof(HasParentRolesPreview));
+                    break;
+                case nameof(UseImport):
+                case nameof(UseHubClient):
+                case nameof(UseDomainUrl):
+                    OnPropertyChanged(nameof(IntegrationsActiveCount));
+                    OnPropertyChanged(nameof(HasIntegrationsActive));
+                    OnPropertyChanged(nameof(GenerationSummary));
+                    break;
+                case nameof(UseAdvancedFilter):
+                case nameof(HasCustomRepository):
+                    OnPropertyChanged(nameof(BehaviorActiveCount));
+                    OnPropertyChanged(nameof(HasBehaviorActive));
+                    OnPropertyChanged(nameof(GenerationSummary));
+                    break;
+                case nameof(CRUDNameSingular):
+                case nameof(IsWebApiSelected):
+                case nameof(IsFrontSelected):
+                case nameof(SelectedBaseKeyType):
+                    OnPropertyChanged(nameof(GenerationSummary));
+                    break;
+                case nameof(CRUDNamePlural):
+                    OnPropertyChanged(nameof(IsPluralAutoDerived));
+                    break;
+            }
         }
 
         #region CurrentProject
@@ -602,6 +665,18 @@ namespace BIA.ToolKit.ViewModels
                     consoleWriter.AddMessageLine($"No previous '{CRUDNameSingular}' generation found.", "Orange");
                     return;
                 }
+
+                var confirmMessage = $"Reverse the last generation for '{CRUDNameSingular}'?\n\n"
+                    + "This will:\n"
+                    + "  • delete every file that was produced by the last Generate for this DTO,\n"
+                    + "  • remove the BIAToolkit-inserted blocks from shared files (routes, DI, permissions…),\n"
+                    + "  • also reverse linked CRUD options if any.\n\n"
+                    + "Warning: this is not a git revert. Any manual edit you made to a generated file "
+                    + "will be lost, and there is no way to restore it from this tool.\n\n"
+                    + "Continue?";
+
+                if (!dialogService.Confirm(confirmMessage))
+                    return;
 
                 // Get generation histories used by options
                 List<CRUDGenerationHistory> historyOptions = crudHistory?.CRUDGenerationHistory?.Where(h => h.OptionItems.Contains(CRUDNameSingular)).ToList();
@@ -1158,8 +1233,77 @@ namespace BIA.ToolKit.ViewModels
         }
         #endregion
 
+        #region Pedagogy helpers (summary, previews, badge counts)
+
+        public bool IsPluralAutoDerived =>
+            !string.IsNullOrWhiteSpace(CRUDNameSingular)
+            && !string.IsNullOrWhiteSpace(CRUDNamePlural)
+            && string.Equals(CRUDNamePlural, CRUDNameSingular.Pluralize(), StringComparison.Ordinal);
+
+        public int LifecycleActiveCount =>
+            (IsVersioned ? 1 : 0) + (IsArchivable ? 1 : 0) + (IsFixable ? 1 : 0) + (DisplayHistorical ? 1 : 0);
+
+        public bool HasLifecycleActive => LifecycleActiveCount > 0;
+
+        public int AccessActiveCount =>
+            (IsTeam ? 1 : 0) + (HasFormReadOnlyMode ? 1 : 0);
+
+        public bool HasAccessActive => AccessActiveCount > 0;
+
+        public int RelationsActiveCount => HasParent ? 1 : 0;
+
+        public bool HasRelationsActive => RelationsActiveCount > 0;
+
+        public int IntegrationsActiveCount =>
+            (UseImport ? 1 : 0) + (UseHubClient ? 1 : 0) + (UseDomainUrl ? 1 : 0);
+
+        public bool HasIntegrationsActive => IntegrationsActiveCount > 0;
+
+        public int BehaviorActiveCount =>
+            (UseAdvancedFilter ? 1 : 0) + (HasCustomRepository ? 1 : 0);
+
+        public bool HasBehaviorActive => BehaviorActiveCount > 0;
+
+        public string TeamRolesPreview =>
+            string.IsNullOrWhiteSpace(AncestorTeam)
+                ? null
+                : $"{AncestorTeam}_Admin · {AncestorTeam}_Member";
+
+        public bool HasTeamRolesPreview => !string.IsNullOrWhiteSpace(AncestorTeam);
+
+        public string ParentRolesPreview =>
+            HasParent && !string.IsNullOrWhiteSpace(ParentName)
+                ? $"{ParentName}_Admin · {ParentName}_Member"
+                : null;
+
+        public bool HasParentRolesPreview => HasParent && !string.IsNullOrWhiteSpace(ParentName);
+
+        public string GenerationSummary
+        {
+            get
+            {
+                var name = string.IsNullOrWhiteSpace(CRUDNameSingular) ? "—" : CRUDNameSingular;
+                string target;
+                if (IsWebApiSelected && IsFrontSelected) target = "Back+Front";
+                else if (IsWebApiSelected) target = "Back";
+                else if (IsFrontSelected) target = "Front";
+                else target = "—";
+
+                var key = string.IsNullOrWhiteSpace(SelectedBaseKeyType) ? "—" : SelectedBaseKeyType;
+
+                var total = LifecycleActiveCount + AccessActiveCount + RelationsActiveCount
+                    + IntegrationsActiveCount + BehaviorActiveCount;
+                var featuresLabel = total <= 1 ? "feature" : "features";
+
+                return $"{name} · {target} · {key} · {total} {featuresLabel}";
+            }
+        }
+
+        #endregion
+
         public void Dispose()
         {
+            PropertyChanged -= OnAnyPropertyChanged;
             foreach (var item in OptionItems)
             {
                 item.PropertyChanged -= OptionItem_PropertyChanged;

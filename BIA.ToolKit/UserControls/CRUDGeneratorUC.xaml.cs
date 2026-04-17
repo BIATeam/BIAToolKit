@@ -1,5 +1,6 @@
 namespace BIA.ToolKit.UserControls
 {
+    using System.Windows;
     using System.Windows.Controls;
 
     /// <summary>
@@ -13,6 +14,11 @@ namespace BIA.ToolKit.UserControls
         public CRUDGeneratorUC()
         {
             InitializeComponent();
+        }
+
+        private void RootScrollViewer_RequestBringIntoView(object sender, RequestBringIntoViewEventArgs e)
+        {
+            e.Handled = true;
         }
     }
 }

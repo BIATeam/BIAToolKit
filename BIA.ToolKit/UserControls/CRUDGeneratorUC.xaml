@@ -1,218 +1,1019 @@
-﻿<UserControl x:Class="BIA.ToolKit.UserControls.CRUDGeneratorUC"
+<UserControl x:Class="BIA.ToolKit.UserControls.CRUDGeneratorUC"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:BIA.ToolKit.ViewModels"
-             xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
-             xmlns:c="clr-namespace:BIA.ToolKit.Controls"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:CRUDGeneratorViewModel, IsDesignTimeCreatable=False}"
-             d:DesignHeight="430" d:DesignWidth="1400">
+             d:DesignHeight="900" d:DesignWidth="1200">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
-        <Thickness x:Key="FormFirstRowMargin">0,0,0,5</Thickness>
-        <Thickness x:Key="FormRowMargin">0,5</Thickness>
-        <Thickness x:Key="FormGroupFirstRowMargin">0,10,0,5</Thickness>
+
+        <!-- Section card: outer container for each numbered section. -->
+        <Style x:Key="SectionCardStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
+            <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Card.Background}"/>
+            <Setter Property="Padding" Value="16,14"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+        </Style>
+
+        <!-- Section header: small primary-colored uppercase label "① TITLE". -->
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+            <Setter Property="Margin" Value="0,0,0,2"/>
+        </Style>
+
+        <!-- Section subtitle: one-line description under the section header. -->
+        <Style x:Key="SectionSubtitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Opacity" Value="0.7"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+
+        <!-- Micro-description below a field label (Niveau 2 pedagogy). -->
+        <Style x:Key="FieldHelpStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Opacity" Value="0.65"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,2,0,4"/>
+        </Style>
+
+        <!-- Base feature tile (inactive look). Active look is set per-tile via DataTrigger
+             on the feature's own bool property (see each tile below). -->
+        <Style x:Key="FeatureTileStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
+            <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Card.Background}"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,0"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+        </Style>
+
+        <!-- Feature title (inside a tile). -->
+        <Style x:Key="FeatureTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Feature description (always visible, no hover needed). -->
+        <Style x:Key="FeatureDescriptionStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Opacity" Value="0.75"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+            <Setter Property="LineHeight" Value="16"/>
+        </Style>
+
+        <!-- Sub-parameter label inside an expanded feature tile. -->
+        <Style x:Key="SubFieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Opacity" Value="0.85"/>
+            <Setter Property="Margin" Value="0,0,0,0"/>
+        </Style>
+
+        <!-- Preview panel ("⚡ Ce qui sera généré ...") -->
+        <Style x:Key="PreviewBoxStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="BorderThickness" Value="0,0,0,0"/>
+            <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Background}"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Margin" Value="0,8,0,0"/>
+        </Style>
+
+        <Style x:Key="PreviewLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+        </Style>
+
+        <Style x:Key="PreviewValueStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+
+        <!-- Target toggle card (Web API / Angular Front). Border styled with triggers
+             on a ToggleButton's IsChecked so clicking the surface toggles the value. -->
+        <Style x:Key="TargetCardToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="CardBorder"
+                                CornerRadius="6"
+                                BorderThickness="1"
+                                BorderBrush="{DynamicResource MaterialDesign.Brush.Card.Border}"
+                                Background="{DynamicResource MaterialDesign.Brush.Card.Background}">
+                            <ContentPresenter Margin="14,12"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="CardBorder" Property="BorderBrush"
+                                        Value="{DynamicResource MaterialDesign.Brush.Primary.Light}"/>
+                                <Setter TargetName="CardBorder" Property="BorderThickness" Value="1.5"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CardBorder" Property="BorderBrush"
+                                        Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                <Setter TargetName="CardBorder" Property="BorderThickness" Value="1.5"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="CardBorder" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Tab header with badge counter (e.g. "🔐 Accès (2)"). -->
+        <DataTemplate x:Key="TabHeaderTemplate">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Title}" FontSize="12"/>
+                <Border Margin="6,0,0,0" Padding="5,1"
+                        CornerRadius="8"
+                        Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                        Visibility="{Binding HasBadge, Converter={StaticResource BoolToVisConverter}}">
+                    <TextBlock Text="{Binding Count}" FontSize="10" FontWeight="SemiBold" Foreground="White"/>
+                </Border>
+            </StackPanel>
+        </DataTemplate>
     </UserControl.Resources>
 
-    <Grid Margin="10">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition Width="0.03*"/>
-            <ColumnDefinition Width="160"/>
-        </Grid.ColumnDefinitions>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
 
-        <Grid Grid.Column="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition Width="0.1*"/>
-                <ColumnDefinition/>
-                <ColumnDefinition Width="0.1*"/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-            </Grid.RowDefinitions>
+        <!-- Row 0: scrollable body with sectioned cards -->
+        <ScrollViewer x:Name="RootScrollViewer" Grid.Row="0"
+                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                      Padding="10,10,10,0"
+                      RequestBringIntoView="RootScrollViewer_RequestBringIntoView">
+            <StackPanel>
 
-            <!--#region Column 0 -->
-            <Grid Grid.Column="0" Grid.Row="0" Margin="{StaticResource FormFirstRowMargin}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
-                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="DTO Entity File" ItemsSource="{Binding DtoEntities}" SelectedItem="{Binding DtoEntity}" IsEnabled="{Binding IsProjectChosen}" ItemTemplate="{StaticResource EntityDisplayTemplate}"/>
-                <Label Grid.Row="1" Content="Generation was already done for this Entity" Foreground="Orange" Visibility="{Binding IsDtoGenerated, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible" />
-            </Grid>
-            <ComboBox Grid.Column="0" Grid.Row="1" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Generation" ItemsSource="{Binding FeatureNames}" SelectedItem="{Binding FeatureNameSelected}" IsEnabled="{Binding IsDtoParsed}"/>
-            <TextBox Grid.Column="0" Grid.Row="2" Margin="{StaticResource FormGroupFirstRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Entity Name Singular" Text="{Binding CRUDNameSingular,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" IsEnabled="{Binding IsDtoParsed}"/>
-            <TextBox Grid.Column="0" Grid.Row="3" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Domain" Text="{Binding Domain,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" IsEnabled="{Binding IsDtoParsed}"/>
-            <ComboBox Grid.Column="0" Grid.Row="4" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Items" ItemsSource="{Binding OptionItems}" IsEnabled="{Binding IsOptionItemEnable}" Text="{Binding SelectedOptionItems, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" IsReadOnly="True">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate >
-                        <CheckBox Content="{Binding OptionName}" IsChecked="{Binding Check}"/>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-            <CheckBox Grid.Column="0" Grid.Row="5" Margin="{StaticResource FormGroupFirstRowMargin}" Content="Has parent" IsChecked="{Binding HasParent,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsCheckboxParentEnable}"/>
-            <TextBox Grid.Column="0" Grid.Row="6" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Parent Name Singular" Text="{Binding ParentName,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" IsEnabled="{Binding HasParent}"/>
-            <!--#endregion-->
-            <!--#region Column 2 -->
-            <Grid Grid.Column="2" Grid.Row="0" Margin="{StaticResource FormFirstRowMargin}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="0.8*"/>
-                    <ColumnDefinition Width="0.1*"/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Base Key Type"  ItemsSource="{Binding BaseKeyTypeItems}" SelectedValue="{Binding SelectedBaseKeyType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsEnabled="{Binding IsDtoParsed}"/>
-                <ComboBox Grid.Column="2" Grid.Row="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="BIA Front" x:Name="BiaFront" ItemsSource="{Binding BiaFronts}" SelectedValue="{Binding BiaFront}" IsEnabled="{Binding IsFrontSelected}"/>
-            </Grid>
-            <Grid Grid.Column="2" Grid.Row="1" Margin="{StaticResource FormRowMargin}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition Width="0.1*"/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <Label Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" Content="Generation Type:" FontWeight="Bold" />
-                <CheckBox Margin="10,0,0,0" Grid.Column="0" Grid.Row="1" Content="Web Api" IsChecked="{Binding IsWebApiSelected}" IsEnabled="{Binding IsWebApiAvailable}"/>
-                <CheckBox Grid.Column="2" Grid.Row="1" Content="Front" IsChecked="{Binding IsFrontSelected}" IsEnabled="{Binding IsFrontAvailable}"/>
-            </Grid>
-            <TextBox Grid.Column="2" Margin="{StaticResource FormGroupFirstRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Entity Name Plural" Text="{Binding CRUDNamePlural,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" IsEnabled="{Binding IsDtoParsed}"/>
-            <ComboBox Grid.Column="2" Grid.Row="3" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Display Property Name" ItemsSource="{Binding DtoDisplayItems}" SelectedValue="{Binding DtoDisplayItemSelected}" IsEnabled="{Binding IsDtoParsed}"/>
-            <TextBox Grid.Column="2" Margin="{StaticResource FormRowMargin}" Grid.Row="6" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Parent Name Plural"  Text="{Binding ParentNamePlural,UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap"  IsEnabled="{Binding HasParent}"/>
-            <!--#endregion-->
-            <!--#region Column 4 -->
-            <CheckBox Grid.Column="4" Grid.Row="0" Margin="{StaticResource FormFirstRowMargin}"  Content="Team" IsChecked="{Binding IsTeam,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsCheckBoxIsTeamEnable}"/>
-            <Grid Grid.Column="4" Grid.Row="1" Grid.RowSpan="6" Visibility="{Binding UseFileGenerator, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
-                <Grid Grid.Row="0" Margin="{StaticResource FormRowMargin}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="0.1*"/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <materialDesign:NumericUpDown Grid.Column="0" Style="{StaticResource MaterialDesignFilledNumericUpDown}" materialDesign:HintAssist.Hint="Team Type ID" Value="{Binding TeamTypeId}" IsEnabled="{Binding IsTeam}"/>
-                    <materialDesign:NumericUpDown Grid.Column="2" Style="{StaticResource MaterialDesignFilledNumericUpDown}" materialDesign:HintAssist.Hint="Team Role Type ID" Value="{Binding TeamRoleId}" IsEnabled="{Binding IsTeam}"/>
-                </Grid>
-                <TextBox Grid.Row="1" Margin="{StaticResource FormGroupFirstRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Ancestor Team" Text="{Binding AncestorTeam}"/>
-                <Grid Grid.Row="3" Margin="{StaticResource FormGroupFirstRowMargin}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                    </Grid.RowDefinitions>
-                    <Label Grid.Row="0" Content="Features" FontWeight="Bold"/>
-                    <Grid Grid.Row="1" Margin="10,0,0,0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                        </Grid.RowDefinitions>
-                        <Grid Grid.Row="0" Margin="{StaticResource FormRowMargin}">
+                <!-- ================= Section ① Source de l'entité ================= -->
+                <Border Style="{StaticResource SectionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="① SOURCE DE L'ENTITÉ"/>
+                        <TextBlock Style="{StaticResource SectionSubtitleStyle}"
+                                   Text="D'où vient l'entité à générer et quel type de code on veut produire."/>
+                        <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition Width="0.1*"/>
-                                <ColumnDefinition/>
+                                <ColumnDefinition Width="2.4*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Content="Versioned" IsChecked="{Binding IsVersioned}"/>
-                            <CheckBox Grid.Column="2" Content="Fixable" IsChecked="{Binding IsFixable}"/>
-                        </Grid>
-                        <Grid Grid.Row="1" Margin="{StaticResource FormRowMargin}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition Width="0.1*"/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Content="Archivable" IsChecked="{Binding IsArchivable}"/>
-                            <CheckBox Grid.Column="2" Content="Fixable Parent" IsChecked="{Binding HasFixableParent}"/>
-                        </Grid>
-                        <Grid Grid.Row="2">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition Width="0.1*"/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0"  Content="Form Read Only" IsChecked="{Binding HasFormReadOnlyMode}"/>
-                            <ComboBox Grid.Column="2" Style="{StaticResource MaterialDesignFilledComboBox}" Height="38" IsEnabled="{Binding HasFormReadOnlyMode}" ItemsSource="{Binding FormReadOnlyModes}" SelectedValue="{Binding SelectedFormReadOnlyMode}"/>
-                        </Grid>
-                        <Grid Grid.Row="3" Margin="{StaticResource FormRowMargin}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition Width="0.1*"/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Content="Custom Repository" IsChecked="{Binding HasCustomRepository}"/>
-                            <CheckBox Grid.Column="2" Content="Import" IsChecked="{Binding UseImport}"/>
-                        </Grid>
-                        <Grid Grid.Row="4" Margin="{StaticResource FormRowMargin}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition Width="0.1*"/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Content="Advanced Filter" IsChecked="{Binding UseAdvancedFilter}"/>
-                            <CheckBox Grid.Column="2" Content="Use HUB client" IsChecked="{Binding UseHubClient}"/>
-                        </Grid>
-                        <Grid Grid.Row="5" Margin="{StaticResource FormRowMargin}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition Width="0.1*"/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Content="Display Historical" IsChecked="{Binding DisplayHistorical}" Visibility="{Binding IsProjectCompatibleV6, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible"/>
-                            <CheckBox Grid.Column="2" Content="Use Domain URL" IsChecked="{Binding UseDomainUrl}" Visibility="{Binding IsProjectCompatibleV6, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Visible"/>
-                        </Grid>
-                    </Grid>
-                </Grid>
-            </Grid>
-            <!--#endregion-->
-        </Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
 
-        <Grid Grid.Column="6">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
-            <Button Grid.Row="0" Style="{StaticResource MaterialDesignRaisedSecondaryButton}" Foreground="White" Content="Generate" IsEnabled="{Binding IsButtonGenerateCrudEnable}" x:Name="GenerateCrud" Height="50" Command="{Binding GenerateCommand}"/>
-            <Grid Grid.Row="1" VerticalAlignment="Bottom">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
-                <Button Visibility="Hidden" Grid.Row="0" Content="Delete previous generation" x:Name="DeleteGeneration" Command="{Binding DeleteLastGenerationCommand}" IsEnabled="{Binding IsDtoParsed}"/>
-                <Label Margin="0,10,0,0" Grid.Row="1" Content="After generation:" HorizontalAlignment="Center" Opacity="0.7"/>
-                <Button Grid.Row="2" x:Name="DeleteAnnotations"
-                        Style="{StaticResource MaterialDesignOutlinedButton}"
-                        HorizontalAlignment="Center" Margin="0,4,0,0"
-                        Padding="8,4" MinWidth="0"
-                        Command="{Binding DeleteBIAToolkitAnnotationsCommand}"
-                        IsEnabled="{Binding IsProjectChosen}"
-                        ToolTip="Remove BIAToolkit generation markers from the project">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="TagRemoveOutline" Height="18" Width="18" VerticalAlignment="Center"/>
-                        <TextBlock Text="Delete annotations" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                            <!-- DTO Entity File -->
+                            <StackPanel Grid.Column="0" Grid.Row="0">
+                                <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
+                                          materialDesign:HintAssist.Hint="DTO Entity File"
+                                          ItemsSource="{Binding DtoEntities}" SelectedItem="{Binding DtoEntity}"
+                                          IsEnabled="{Binding IsProjectChosen}"
+                                          ItemTemplate="{StaticResource EntityDisplayTemplate}"/>
+                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                           Text="Fichier DTO qui sert de source : les champs, le nom et le domaine sont déduits de ce fichier."/>
+                            </StackPanel>
+
+                            <!-- Generation (Feature à générer) -->
+                            <StackPanel Grid.Column="2" Grid.Row="0">
+                                <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
+                                          materialDesign:HintAssist.Hint="Feature à générer"
+                                          ItemsSource="{Binding FeatureNames}" SelectedItem="{Binding FeatureNameSelected}"
+                                          IsEnabled="{Binding IsDtoParsed}"/>
+                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                           Text="Type de génération : CRUD complet, Option, Team..."/>
+                            </StackPanel>
+
+                            <!-- Base Key Type -->
+                            <StackPanel Grid.Column="4" Grid.Row="0">
+                                <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
+                                          materialDesign:HintAssist.Hint="Base Key Type"
+                                          ItemsSource="{Binding BaseKeyTypeItems}"
+                                          SelectedValue="{Binding SelectedBaseKeyType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                          IsEnabled="{Binding IsDtoParsed}"/>
+                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                           Text="Type de la clé primaire (int, long, Guid...)."/>
+                            </StackPanel>
+
+                            <!-- Domain -->
+                            <StackPanel Grid.Column="6" Grid.Row="0">
+                                <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
+                                         materialDesign:HintAssist.Hint="Domain"
+                                         Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding IsDtoParsed}"/>
+                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                           Text="Dossier métier où ranger les fichiers générés (déduit du namespace)."/>
+                            </StackPanel>
+
+                            <!-- Generation-already-done warning, full width -->
+                            <Label Grid.Row="1" Grid.ColumnSpan="7" Margin="0,6,0,0"
+                                   Content="⚠ Une génération a déjà été faite pour cette entité"
+                                   Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                   FontWeight="SemiBold"
+                                   Visibility="{Binding IsDtoGenerated, Converter={StaticResource BoolToVisConverter}}"/>
+                        </Grid>
                     </StackPanel>
-                </Button>
+                </Border>
+
+                <!-- ================= Section ② Nom & affichage ================= -->
+                <Border Style="{StaticResource SectionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="② NOM DE L'ENTITÉ &amp; AFFICHAGE"/>
+                        <TextBlock Style="{StaticResource SectionSubtitleStyle}"
+                                   Text="Comment l'entité est nommée dans le code et affichée dans l'UI."/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Singular -->
+                            <StackPanel Grid.Column="0">
+                                <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
+                                         materialDesign:HintAssist.Hint="Nom (singulier)"
+                                         Text="{Binding CRUDNameSingular, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding IsDtoParsed}"/>
+                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                           Text="Nom de l'entité au singulier (ex: Plane, Product). Sera utilisé tel quel dans les classes C# et les composants Angular."/>
+                            </StackPanel>
+
+                            <!-- Plural -->
+                            <StackPanel Grid.Column="2">
+                                <Grid>
+                                    <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
+                                             materialDesign:HintAssist.Hint="Pluriel"
+                                             Text="{Binding CRUDNamePlural, UpdateSourceTrigger=PropertyChanged}"
+                                             IsEnabled="{Binding IsDtoParsed}"/>
+                                    <Border HorizontalAlignment="Right" VerticalAlignment="Top"
+                                            Margin="0,6,8,0" Padding="4,1" CornerRadius="3"
+                                            Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                                            Visibility="{Binding IsPluralAutoDerived, Converter={StaticResource BoolToVisConverter}}">
+                                        <TextBlock Text="auto" FontSize="9" FontWeight="SemiBold" Foreground="White"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                           Text="Auto-dérivé du singulier via Humanizer. Édite-le si le pluriel généré n'est pas correct."/>
+                            </StackPanel>
+
+                            <!-- Display property -->
+                            <StackPanel Grid.Column="4">
+                                <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
+                                          materialDesign:HintAssist.Hint="Propriété d'affichage"
+                                          ItemsSource="{Binding DtoDisplayItems}"
+                                          SelectedValue="{Binding DtoDisplayItemSelected}"
+                                          IsEnabled="{Binding IsDtoParsed}"/>
+                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                           Text="Propriété utilisée dans les listes/écrans parents pour identifier la ligne (ex: Name, Title)."/>
+                            </StackPanel>
+
+                            <!-- Option items -->
+                            <StackPanel Grid.Column="6">
+                                <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
+                                          materialDesign:HintAssist.Hint="Options liées"
+                                          ItemsSource="{Binding OptionItems}"
+                                          IsEnabled="{Binding IsOptionItemEnable}"
+                                          Text="{Binding SelectedOptionItems, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                                          IsEditable="True" IsReadOnly="True">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox Content="{Binding OptionName}" IsChecked="{Binding Check}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                           Text="Options (dropdowns) déjà présentes qui peuvent être référencées par cette entité."/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= Section ③ Cible de génération ================= -->
+                <Border Style="{StaticResource SectionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="③ CIBLE DE GÉNÉRATION"/>
+                        <TextBlock Style="{StaticResource SectionSubtitleStyle}"
+                                   Text="Quelles couches générer. Tu peux cocher une ou les deux."/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="1.2*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Web API card -->
+                            <ToggleButton Grid.Column="0"
+                                          Style="{StaticResource TargetCardToggleStyle}"
+                                          IsChecked="{Binding IsWebApiSelected}"
+                                          IsEnabled="{Binding IsWebApiAvailable}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="36" Height="36" CornerRadius="18" VerticalAlignment="Center"
+                                            Background="{DynamicResource MaterialDesign.Brush.Primary}">
+                                        <materialDesign:PackIcon Kind="Api" Height="20" Width="20"
+                                                                 Foreground="White"
+                                                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="Web API (Back)" FontSize="14" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Controller, Service, DTO, Repository"
+                                                   Style="{StaticResource FeatureDescriptionStyle}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                    <materialDesign:PackIcon Grid.Column="2" VerticalAlignment="Center"
+                                                             Kind="CheckboxMarkedCircle" Height="22" Width="22"
+                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                             Visibility="{Binding IsWebApiSelected, Converter={StaticResource BoolToVisConverter}}"/>
+                                </Grid>
+                            </ToggleButton>
+
+                            <!-- Angular Front card -->
+                            <ToggleButton Grid.Column="2"
+                                          Style="{StaticResource TargetCardToggleStyle}"
+                                          IsChecked="{Binding IsFrontSelected}"
+                                          IsEnabled="{Binding IsFrontAvailable}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="36" Height="36" CornerRadius="18" VerticalAlignment="Center"
+                                            Background="{DynamicResource MaterialDesign.Brush.Primary}">
+                                        <materialDesign:PackIcon Kind="Angular" Height="20" Width="20"
+                                                                 Foreground="White"
+                                                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="Angular Front" FontSize="14" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Pages, Routes, Form, Store NgRx"
+                                                   Style="{StaticResource FeatureDescriptionStyle}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                    <materialDesign:PackIcon Grid.Column="2" VerticalAlignment="Center"
+                                                             Kind="CheckboxMarkedCircle" Height="22" Width="22"
+                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                             Visibility="{Binding IsFrontSelected, Converter={StaticResource BoolToVisConverter}}"/>
+                                </Grid>
+                            </ToggleButton>
+
+                            <!-- BIA Front version -->
+                            <StackPanel Grid.Column="4" VerticalAlignment="Center">
+                                <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
+                                          materialDesign:HintAssist.Hint="Version BIA Front"
+                                          x:Name="BiaFront"
+                                          ItemsSource="{Binding BiaFronts}"
+                                          SelectedValue="{Binding BiaFront}"
+                                          IsEnabled="{Binding IsFrontSelected}"/>
+                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                           Text="Version du front-end BIA à utiliser comme cible (requis si Angular Front est coché)."/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= Section ④ Features ================= -->
+                <Border Style="{StaticResource SectionCardStyle}">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="④ FEATURES"/>
+                                <TextBlock Style="{StaticResource SectionSubtitleStyle}"
+                                           Text="Options de génération, groupées par thème. Les paramètres d'une feature apparaissent dans sa propre tuile quand elle est activée."/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TabControl Background="Transparent"
+                                    BorderThickness="0"
+                                    IsEnabled="{Binding IsDtoParsed}">
+
+                            <!-- ==== Onglet : Cycle de vie ==== -->
+                            <TabItem>
+                                <TabItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="FileDocumentMultipleOutline" Height="16" Width="16" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Cycle de vie" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                        <Border Margin="6,0,0,0" Padding="5,1" CornerRadius="8"
+                                                Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                Visibility="{Binding HasLifecycleActive, Converter={StaticResource BoolToVisConverter}}">
+                                            <TextBlock Text="{Binding LifecycleActiveCount}" FontSize="10" FontWeight="SemiBold" Foreground="White"/>
+                                        </Border>
+                                    </StackPanel>
+                                </TabItem.Header>
+
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="8"/>
+                                        <RowDefinition Height="auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Versioned -->
+                                    <Border Grid.Column="0" Grid.Row="0">
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsVersioned}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <CheckBox IsChecked="{Binding IsVersioned}">
+                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Versioned"/>
+                                            </CheckBox>
+                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                                       Text="Conserve un historique complet de toutes les modifications de l'entité (qui a modifié quoi, quand)."/>
+                                            <Border Style="{StaticResource PreviewBoxStyle}"
+                                                    Visibility="{Binding IsVersioned, Converter={StaticResource BoolToVisConverter}}">
+                                                <StackPanel>
+                                                    <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ CE QUI SERA GÉNÉRÉ"/>
+                                                    <TextBlock Style="{StaticResource PreviewValueStyle}">
+                                                        <Run Text="→ table "/><Run Text="History_" FontWeight="SemiBold" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/><Run Text="{Binding CRUDNameSingular, Mode=OneWay, FallbackValue=Entity}" FontWeight="SemiBold" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/><Run Text=" créée"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Archivable -->
+                                    <Border Grid.Column="2" Grid.Row="0">
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsArchivable}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <CheckBox IsChecked="{Binding IsArchivable}">
+                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Archivable"/>
+                                            </CheckBox>
+                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                                       Text="Suppression logique (soft-delete) au lieu de supprimer définitivement. La ligne reste en base avec un indicateur IsDeleted."/>
+                                            <Border Style="{StaticResource PreviewBoxStyle}"
+                                                    Visibility="{Binding IsArchivable, Converter={StaticResource BoolToVisConverter}}">
+                                                <StackPanel>
+                                                    <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ CE QUI SERA GÉNÉRÉ"/>
+                                                    <TextBlock Style="{StaticResource PreviewValueStyle}"
+                                                               Text="→ colonne IsDeleted ajoutée · Delete devient UPDATE IsDeleted=true"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Fixable -->
+                                    <Border Grid.Column="0" Grid.Row="2">
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsFixable}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <CheckBox IsChecked="{Binding IsFixable}">
+                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Fixable (épinglage)"/>
+                                            </CheckBox>
+                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                                       Text="Permet à l'utilisateur d'épingler une ligne en tête de liste (ex: entités importantes toujours visibles en premier)."/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Display Historical (V6+) -->
+                                    <Border Grid.Column="2" Grid.Row="2"
+                                            Visibility="{Binding IsProjectCompatibleV6, Converter={StaticResource BoolToVisConverter}}">
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding DisplayHistorical}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <CheckBox IsChecked="{Binding DisplayHistorical}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Show History"/>
+                                                    <Border Margin="8,0,0,0" Padding="4,1" CornerRadius="3"
+                                                            Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Text="V6+" FontSize="9" FontWeight="SemiBold" Foreground="White"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </CheckBox>
+                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                                       Text="Affiche la timeline des modifications directement dans l'écran de détail de l'entité (nécessite Versioned)."/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </TabItem>
+
+                            <!-- ==== Onglet : Accès ==== -->
+                            <TabItem>
+                                <TabItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="ShieldAccountOutline" Height="16" Width="16" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Accès" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                        <Border Margin="6,0,0,0" Padding="5,1" CornerRadius="8"
+                                                Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                Visibility="{Binding HasAccessActive, Converter={StaticResource BoolToVisConverter}}">
+                                            <TextBlock Text="{Binding AccessActiveCount}" FontSize="10" FontWeight="SemiBold" Foreground="White"/>
+                                        </Border>
+                                    </StackPanel>
+                                </TabItem.Header>
+
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Équipe (Team) -->
+                                    <Border Grid.Column="0">
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsTeam}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <CheckBox IsChecked="{Binding IsTeam, UpdateSourceTrigger=PropertyChanged}"
+                                                      IsEnabled="{Binding IsCheckBoxIsTeamEnable}">
+                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Équipe (droits d'accès)"/>
+                                            </CheckBox>
+                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                                       Text="L'entité appartient à une équipe. Les utilisateurs doivent être membres de cette équipe pour y accéder (rôles Admin / Member)."/>
+
+                                            <!-- Expanded Team sub-parameters (only when IsTeam) -->
+                                            <StackPanel Visibility="{Binding IsTeam, Converter={StaticResource BoolToVisConverter}}">
+                                                <Border Margin="0,10,0,8" Height="1" Background="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
+
+                                                <!-- Only shown when UseFileGenerator is true (matches previous XAML) -->
+                                                <StackPanel Visibility="{Binding UseFileGenerator, Converter={StaticResource BoolToVisConverter}}">
+                                                    <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="PARAMÈTRES DE L'ÉQUIPE" Margin="0,0,0,6"/>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="10"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Grid.Column="0">
+                                                            <materialDesign:NumericUpDown Style="{StaticResource MaterialDesignFilledNumericUpDown}"
+                                                                                          materialDesign:HintAssist.Hint="Team Type ID"
+                                                                                          Value="{Binding TeamTypeId}"/>
+                                                            <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                                                       Text="ID dans la table TeamType (ex: 3 = Squad)."/>
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="2">
+                                                            <materialDesign:NumericUpDown Style="{StaticResource MaterialDesignFilledNumericUpDown}"
+                                                                                          materialDesign:HintAssist.Hint="Team Role Type ID"
+                                                                                          Value="{Binding TeamRoleId}"/>
+                                                            <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                                                       Text="ID dans la table RoleType (ex: 2 = Squad Role)."/>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </StackPanel>
+
+                                                <StackPanel Margin="0,8,0,0">
+                                                    <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                             materialDesign:HintAssist.Hint="Type d'équipe parent (optionnel)"
+                                                             Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged}"/>
+                                                    <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                                               Text="Nom du type d'équipe dont cette entité hérite dans la hiérarchie (ex: Site). Laisse vide si pas d'héritage."/>
+                                                </StackPanel>
+
+                                                <!-- Team roles preview -->
+                                                <Border Style="{StaticResource PreviewBoxStyle}"
+                                                        Visibility="{Binding HasTeamRolesPreview, Converter={StaticResource BoolToVisConverter}}">
+                                                    <StackPanel>
+                                                        <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ RÔLES QUI SERONT AJOUTÉS"/>
+                                                        <TextBlock Style="{StaticResource PreviewValueStyle}" Text="{Binding TeamRolesPreview}"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Form Read-Only -->
+                                    <Border Grid.Column="2">
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasFormReadOnlyMode}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <CheckBox IsChecked="{Binding HasFormReadOnlyMode}">
+                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Formulaire lecture seule"/>
+                                            </CheckBox>
+                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                                       Text="Génère un mode d'affichage en lecture seule du formulaire de l'entité (ex: pour les consultations sans édition)."/>
+
+                                            <StackPanel Visibility="{Binding HasFormReadOnlyMode, Converter={StaticResource BoolToVisConverter}}">
+                                                <Border Margin="0,10,0,8" Height="1" Background="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
+                                                <TextBlock Style="{StaticResource SubFieldLabelStyle}" Text="Mode"/>
+                                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                                           Text="Choisit entre lecture seule partout ou uniquement sur la page de détail."/>
+                                                <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
+                                                          Margin="0,2,0,0"
+                                                          ItemsSource="{Binding FormReadOnlyModes}"
+                                                          SelectedValue="{Binding SelectedFormReadOnlyMode}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </TabItem>
+
+                            <!-- ==== Onglet : Relations ==== -->
+                            <TabItem>
+                                <TabItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="LinkVariant" Height="16" Width="16" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Relations" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                        <Border Margin="6,0,0,0" Padding="5,1" CornerRadius="8"
+                                                Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                Visibility="{Binding HasRelationsActive, Converter={StaticResource BoolToVisConverter}}">
+                                            <TextBlock Text="{Binding RelationsActiveCount}" FontSize="10" FontWeight="SemiBold" Foreground="White"/>
+                                        </Border>
+                                    </StackPanel>
+                                </TabItem.Header>
+
+                                <Grid Margin="0,10,0,0">
+                                    <!-- Parent (HasParent) -->
+                                    <Border>
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasParent}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <CheckBox IsChecked="{Binding HasParent, UpdateSourceTrigger=PropertyChanged}"
+                                                      IsEnabled="{Binding IsCheckboxParentEnable}">
+                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Entité parent"/>
+                                            </CheckBox>
+                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                                       Text="Indique que cette entité est rattachée à une entité parente (ex: une Plane appartient à un Site). Les rôles Admin/Member du parent sont ajoutés aux permissions."/>
+
+                                            <StackPanel Visibility="{Binding HasParent, Converter={StaticResource BoolToVisConverter}}">
+                                                <Border Margin="0,10,0,8" Height="1" Background="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="10"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                                 materialDesign:HintAssist.Hint="Nom du parent (singulier)"
+                                                                 Text="{Binding ParentName, UpdateSourceTrigger=PropertyChanged}"/>
+                                                        <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                                                   Text="Nom de l'entité parente (ex: Site, Airport)."/>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="2">
+                                                        <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                                 materialDesign:HintAssist.Hint="Pluriel"
+                                                                 Text="{Binding ParentNamePlural, UpdateSourceTrigger=PropertyChanged}"/>
+                                                        <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                                                   Text="Pluriel du parent (auto-dérivé, éditable)."/>
+                                                    </StackPanel>
+                                                </Grid>
+
+                                                <CheckBox Margin="0,8,0,0" IsChecked="{Binding HasFixableParent}">
+                                                    <StackPanel>
+                                                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="Fixable Parent"/>
+                                                        <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                                                   Text="Permet à l'utilisateur d'épingler une ligne au niveau du parent (utile pour les vues filtrées)."/>
+                                                    </StackPanel>
+                                                </CheckBox>
+
+                                                <Border Style="{StaticResource PreviewBoxStyle}"
+                                                        Visibility="{Binding HasParentRolesPreview, Converter={StaticResource BoolToVisConverter}}">
+                                                    <StackPanel>
+                                                        <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ RÔLES QUI SERONT AJOUTÉS"/>
+                                                        <TextBlock Style="{StaticResource PreviewValueStyle}" Text="{Binding ParentRolesPreview}"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </TabItem>
+
+                            <!-- ==== Onglet : Intégrations ==== -->
+                            <TabItem>
+                                <TabItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="PuzzleOutline" Height="16" Width="16" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Intégrations" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                        <Border Margin="6,0,0,0" Padding="5,1" CornerRadius="8"
+                                                Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                Visibility="{Binding HasIntegrationsActive, Converter={StaticResource BoolToVisConverter}}">
+                                            <TextBlock Text="{Binding IntegrationsActiveCount}" FontSize="10" FontWeight="SemiBold" Foreground="White"/>
+                                        </Border>
+                                    </StackPanel>
+                                </TabItem.Header>
+
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Import -->
+                                    <Border Grid.Column="0">
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding UseImport}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <CheckBox IsChecked="{Binding UseImport}">
+                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Import"/>
+                                            </CheckBox>
+                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                                       Text="Ajoute un endpoint d'import CSV/Excel côté API et un ImportDialogComponent côté Angular."/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Hub Client -->
+                                    <Border Grid.Column="2">
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding UseHubClient}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <CheckBox IsChecked="{Binding UseHubClient}">
+                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Hub client (SignalR)"/>
+                                            </CheckBox>
+                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                                       Text="Synchronisation temps réel : quand un user modifie une ligne, les autres utilisateurs voient le changement instantanément."/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Use Domain URL (V6+) -->
+                                    <Border Grid.Column="4"
+                                            Visibility="{Binding IsProjectCompatibleV6, Converter={StaticResource BoolToVisConverter}}">
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding UseDomainUrl}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <CheckBox IsChecked="{Binding UseDomainUrl}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="URL par domaine"/>
+                                                    <Border Margin="8,0,0,0" Padding="4,1" CornerRadius="3"
+                                                            Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Text="V6+" FontSize="9" FontWeight="SemiBold" Foreground="White"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </CheckBox>
+                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                                       Text="Préfixe les URLs générées par le nom du domaine (ex: /products/planes au lieu de /planes)."/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </TabItem>
+
+                            <!-- ==== Onglet : Comportement ==== -->
+                            <TabItem>
+                                <TabItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="CogOutline" Height="16" Width="16" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Comportement" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                        <Border Margin="6,0,0,0" Padding="5,1" CornerRadius="8"
+                                                Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                Visibility="{Binding HasBehaviorActive, Converter={StaticResource BoolToVisConverter}}">
+                                            <TextBlock Text="{Binding BehaviorActiveCount}" FontSize="10" FontWeight="SemiBold" Foreground="White"/>
+                                        </Border>
+                                    </StackPanel>
+                                </TabItem.Header>
+
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Advanced Filter -->
+                                    <Border Grid.Column="0">
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding UseAdvancedFilter}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <CheckBox IsChecked="{Binding UseAdvancedFilter}">
+                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Advanced Filter"/>
+                                            </CheckBox>
+                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                                       Text="Panneau de recherche avancée côté Angular (opérateurs multiples, filtres par colonne, sauvegarde de filtres)."/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Custom Repository -->
+                                    <Border Grid.Column="2">
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasCustomRepository}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <CheckBox IsChecked="{Binding HasCustomRepository}">
+                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Custom Repository"/>
+                                            </CheckBox>
+                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                                       Text="Génère une classe Repository personnalisable où tu peux écrire des requêtes EF spécifiques (override du Repository générique)."/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </TabItem>
+
+                        </TabControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Row 1: Footer — summary + secondary actions + primary Generate button -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                BorderBrush="{DynamicResource MaterialDesign.Brush.Card.Border}"
+                BorderThickness="0,1,0,0"
+                Padding="14,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: summary + secondary actions -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <materialDesign:PackIcon Kind="ClipboardTextOutline" Height="18" Width="18" VerticalAlignment="Center" Opacity="0.6"/>
+                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="12">
+                        <Run Text="Résumé : "/>
+                        <Run Text="{Binding GenerationSummary, Mode=OneWay}"
+                             FontWeight="SemiBold"
+                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- Right: action buttons -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="DeleteGeneration"
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Margin="0,0,8,0" Padding="10,4" MinWidth="0"
+                            Command="{Binding DeleteLastGenerationCommand}"
+                            IsEnabled="{Binding IsDtoParsed}"
+                            ToolTipService.InitialShowDelay="200"
+                            ToolTipService.ShowDuration="20000">
+                        <Button.ToolTip>
+                            <StackPanel Orientation="Vertical" MaxWidth="340">
+                                <TextBlock FontWeight="SemiBold" Margin="0,0,0,4"
+                                           Text="Reverse la dernière génération"/>
+                                <TextBlock TextWrapping="Wrap"
+                                           Text="Supprime les fichiers produits et retire les blocs insérés dans les fichiers partagés (routes, DI…) pour ce DTO."/>
+                                <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Opacity="0.75" FontStyle="Italic"
+                                           Text="Attention : pas de git revert. Les modifs manuelles sur les fichiers générés seront perdues. Une confirmation sera demandée."/>
+                            </StackPanel>
+                        </Button.ToolTip>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="UndoVariant" Height="16" Width="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Delete last generation" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="DeleteAnnotations"
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Margin="0,0,8,0" Padding="10,4" MinWidth="0"
+                            Command="{Binding DeleteBIAToolkitAnnotationsCommand}"
+                            IsEnabled="{Binding IsProjectChosen}"
+                            ToolTip="Supprime les marqueurs BIAToolkit présents dans le code (irréversible).">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="TagRemoveOutline" Height="16" Width="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Delete annotations" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="GenerateCrud"
+                            Style="{StaticResource MaterialDesignRaisedSecondaryButton}"
+                            Foreground="White"
+                            Height="40" Padding="16,0" MinWidth="150"
+                            Command="{Binding GenerateCommand}"
+                            IsEnabled="{Binding IsButtonGenerateCrudEnable}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon Kind="FlashOutline" Height="20" Width="20" VerticalAlignment="Center"/>
+                            <TextBlock Text="Générer" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
             </Grid>
-        </Grid>
+        </Border>
     </Grid>
 </UserControl>

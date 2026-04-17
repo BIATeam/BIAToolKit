@@ -53,12 +53,10 @@
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="TabCrudGenerator" Header="CRUD" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <Grid>
-                            <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2" Grid.ColumnSpan="2"/>
-                            <uc:CRUDGeneratorUC x:Name="CRUDGenerator" Margin="10"/>
-                        </Grid>
-                    </ScrollViewer>
+                    <Grid>
+                        <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2" Grid.ColumnSpan="2"/>
+                        <uc:CRUDGeneratorUC x:Name="CRUDGenerator" Margin="10"/>
+                    </Grid>
                 </TabItem>
             </TabControl>
         </Grid>
