@@ -537,13 +537,8 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
         {
             var process = new Process();
             process.StartInfo.WorkingDirectory = _prettierAngularProjectPath;
-            process.StartInfo.FileName = "npx";
-            process.StartInfo.ArgumentList.Add("prettier");
-            process.StartInfo.ArgumentList.Add("--write");
-            process.StartInfo.ArgumentList.Add(path);
-            process.StartInfo.ArgumentList.Add("--plugin=prettier-plugin-organize-imports");
-            process.StartInfo.ArgumentList.Add("--config");
-            process.StartInfo.ArgumentList.Add(".prettierrc");
+            process.StartInfo.FileName = "cmd.exe";
+            process.StartInfo.Arguments = $"/C npx prettier --write \"{path}\" --plugin=prettier-plugin-organize-imports --config .prettierrc";
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
 
