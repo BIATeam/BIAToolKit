@@ -177,12 +177,12 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Section 1 : Source de l'entité -->
+            <!-- Section 1: Entity source -->
             <Border Grid.Column="0" Style="{StaticResource SectionCardStyle}">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="① SOURCE DE L'ENTITÉ"/>
+                    <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="① ENTITY SOURCE"/>
                     <TextBlock Style="{StaticResource SectionSubtitleStyle}"
-                               Text="Entité source pour le DTO et sa configuration de base."/>
+                               Text="Source entity for the DTO and its base configuration."/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*"/>
@@ -206,7 +206,7 @@
                                       IsEnabled="{Binding IsProjectChosen}"
                                       ItemTemplate="{StaticResource EntityDisplayTemplate}"/>
                             <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                       Text="Classe C# source dont les propriétés seront exposées dans le DTO."/>
+                                       Text="Source C# class whose properties will be exposed in the DTO."/>
                         </StackPanel>
 
                         <!-- Base Key Type -->
@@ -217,7 +217,7 @@
                                       SelectedValue="{Binding SelectedBaseKeyType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                       IsEnabled="{Binding IsEntitySelected}"/>
                             <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                       Text="Type de la clé primaire (int, Guid…)."/>
+                                       Text="Primary key type (int, Guid…)."/>
                         </StackPanel>
 
                         <!-- Domain -->
@@ -227,7 +227,7 @@
                                      Text="{Binding EntityDomain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                      IsEnabled="{Binding IsEntitySelected}"/>
                             <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                       Text="Dossier métier (déduit du namespace)."/>
+                                       Text="Business folder (derived from namespace)."/>
                         </StackPanel>
 
                         <!-- Ancestor Team -->
@@ -236,7 +236,7 @@
                                      materialDesign:HintAssist.Hint="Ancestor Team"
                                      Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
                             <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                       Text="Type d'équipe parent (optionnel)."/>
+                                       Text="Parent team type (optional)."/>
                         </StackPanel>
 
                         <!-- Already generated warning -->
@@ -248,7 +248,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <materialDesign:PackIcon Kind="AlertOutline" Height="18" Width="18"
                                                          Foreground="Orange" VerticalAlignment="Center"/>
-                                <TextBlock Text="Une génération a déjà été faite pour cette entité"
+                                <TextBlock Text="A generation has already been performed for this entity"
                                            Foreground="Orange" FontWeight="SemiBold" FontSize="12"
                                            VerticalAlignment="Center" Margin="8,0,0,0"/>
                             </StackPanel>
@@ -257,12 +257,12 @@
                 </StackPanel>
             </Border>
 
-            <!-- Section 2 : Caractéristiques -->
+            <!-- Section 2: Features -->
             <Border Grid.Column="2" Style="{StaticResource SectionCardStyle}">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="② CARACTÉRISTIQUES"/>
+                    <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="② FEATURES"/>
                     <TextBlock Style="{StaticResource SectionSubtitleStyle}"
-                               Text="Interfaces implémentées par l'entité. Affecte les colonnes et le mapping générés."/>
+                               Text="Interfaces implemented by the entity. Affects generated columns and mapping."/>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -295,7 +295,7 @@
                                     <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Team"/>
                                 </CheckBox>
                                 <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                           Text="Entité gérée par une équipe (droits d'accès)."/>
+                                           Text="Entity managed by a team (access rights)."/>
                             </StackPanel>
                         </Border>
 
@@ -316,7 +316,7 @@
                                     <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Versioned"/>
                                 </CheckBox>
                                 <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                           Text="Historique complet des modifications."/>
+                                           Text="Full history of changes."/>
                             </StackPanel>
                         </Border>
 
@@ -337,7 +337,7 @@
                                     <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Fixable"/>
                                 </CheckBox>
                                 <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                           Text="Permet d'épingler une ligne en tête de liste."/>
+                                           Text="Allows pinning a row at the top of the list."/>
                             </StackPanel>
                         </Border>
 
@@ -358,7 +358,7 @@
                                     <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Archivable"/>
                                 </CheckBox>
                                 <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                           Text="Suppression logique (soft-delete)."/>
+                                           Text="Logical deletion (soft-delete)."/>
                             </StackPanel>
                         </Border>
 
@@ -387,7 +387,7 @@
                                     </StackPanel>
                                 </CheckBox>
                                 <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                           Text="Utilise une table d'audit dédiée à cette entité."/>
+                                           Text="Uses a dedicated audit table for this entity."/>
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -651,7 +651,7 @@
 
         <!-- ================= Fixed footer ================= -->
         <Border Grid.Row="1"
-                Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                Background="Transparent"
                 BorderBrush="{DynamicResource MaterialDesign.Brush.Card.Border}"
                 BorderThickness="0,1,0,0"
                 Padding="14,10">
@@ -670,7 +670,7 @@
                         IsEnabled="{Binding IsGenerationEnabled}">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <materialDesign:PackIcon Kind="FlashOutline" Height="20" Width="20" VerticalAlignment="Center"/>
-                        <TextBlock Text="Générer" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        <TextBlock Text="Generate" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
                     </StackPanel>
                 </Button>
             </Grid>

@@ -37,7 +37,17 @@
     <Grid x:Name="TabGenerate">
         <Grid Margin="10,0,10,0">
             <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2"/>
-            <TabControl x:Name="TabActions" Style="{StaticResource HighlightedTabControl}">
+            <TabControl x:Name="TabActions" IsEnabled="{Binding IsProjectSelected}">
+                <TabControl.Style>
+                    <Style TargetType="TabControl" BasedOn="{StaticResource HighlightedTabControl}">
+                        <Setter Property="Opacity" Value="1"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsProjectSelected}" Value="False">
+                                <Setter Property="Opacity" Value="0.35"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TabControl.Style>
                 <TabItem x:Name="TabOptionGenerator" Header="Option" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
                     <Grid>
                         <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2" Grid.ColumnSpan="2"/>
@@ -57,6 +67,38 @@
                     </Grid>
                 </TabItem>
             </TabControl>
+
+            <!-- Empty-state overlay: shown only when no project is selected -->
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                    BorderBrush="{DynamicResource MaterialDesign.Brush.Primary}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="32,24"
+                    IsHitTestVisible="False">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsProjectSelected}" Value="False">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                    <materialDesign:PackIcon Kind="FolderOpenOutline" Width="48" Height="48"
+                                             HorizontalAlignment="Center"
+                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                    <TextBlock Text="Select a project to begin"
+                               FontSize="18" FontWeight="SemiBold"
+                               Margin="0,12,0,4"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="Use the project selector above to choose a project to generate from."
+                               Opacity="0.7"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
         </Grid>
     </Grid>
 </UserControl>

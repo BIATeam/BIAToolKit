@@ -165,6 +165,9 @@
                             <DataTrigger Binding="{Binding IsAdvancedMode}" Value="True">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                             </DataTrigger>
+                            <DataTrigger Binding="{Binding ForceAdvanced, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </Grid.Style>
@@ -359,7 +362,20 @@
             </Grid>
 
             <!-- Advanced mode: the original Feature Settings + Company Files -->
-            <Grid Visibility="{Binding IsAdvancedMode, Converter={StaticResource BoolToVisConverter}}">
+            <Grid>
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsAdvancedMode}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ForceAdvanced, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -486,8 +502,18 @@
             </Grid>
         </Grid>
 
-        <!-- Row 2: Advanced / Simple toggle link -->
+        <!-- Row 2: Advanced / Simple toggle link (hidden when ForceAdvanced=True) -->
         <Grid Grid.Row="2" Margin="0,8,0,0">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ForceAdvanced, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
             <Button HorizontalAlignment="Left"
                     Style="{StaticResource MaterialDesignFlatButton}"
                     Foreground="{DynamicResource MaterialDesign.Brush.Primary}"

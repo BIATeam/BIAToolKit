@@ -27,12 +27,6 @@ namespace BIA.ToolKit.ViewModels
         [ObservableProperty]
         private bool isOutputMaximized;
 
-        partial void OnIsBusyChanged(bool value)
-        {
-            if (value)
-                IsOutputExpanded = true;
-        }
-
         partial void OnIsOutputMaximizedChanged(bool value)
         {
             if (value)

@@ -29,6 +29,24 @@ namespace BIA.ToolKit.UserControls
             private set => SetValue(IsFeatureConfigValidProperty, value);
         }
 
+        /// <summary>
+        /// Quand true, force l'affichage du mode Advanced (options detaillees)
+        /// et masque le toggle "More / Less options". Utilise par l'ecran Migration
+        /// qui n'a pas besoin du mode cartes.
+        /// </summary>
+        public static readonly DependencyProperty ForceAdvancedProperty =
+            DependencyProperty.Register(
+                nameof(ForceAdvanced),
+                typeof(bool),
+                typeof(VersionAndOptionUserControl),
+                new PropertyMetadata(false));
+
+        public bool ForceAdvanced
+        {
+            get => (bool)GetValue(ForceAdvancedProperty);
+            set => SetValue(ForceAdvancedProperty, value);
+        }
+
         public VersionAndOptionUserControl()
         {
             InitializeComponent();

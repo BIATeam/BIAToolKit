@@ -38,7 +38,7 @@
             <Setter Property="Margin" Value="0,0,0,10"/>
         </Style>
 
-        <!-- Micro-description below a field label (Niveau 2 pedagogy). -->
+        <!-- Micro-description below a field label (Level 2 pedagogy). -->
         <Style x:Key="FieldHelpStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="10"/>
             <Setter Property="Opacity" Value="0.65"/>
@@ -82,7 +82,7 @@
             <Setter Property="Margin" Value="0,0,0,0"/>
         </Style>
 
-        <!-- Preview panel ("⚡ Ce qui sera généré ...") -->
+        <!-- Preview panel ("⚡ What will be generated ...") -->
         <Style x:Key="PreviewBoxStyle" TargetType="Border">
             <Setter Property="CornerRadius" Value="4"/>
             <Setter Property="BorderThickness" Value="0,0,0,0"/>
@@ -145,7 +145,7 @@
             </Setter>
         </Style>
 
-        <!-- Tab header with badge counter (e.g. "🔐 Accès (2)"). -->
+        <!-- Tab header with badge counter (e.g. "🔐 Access (2)"). -->
         <DataTemplate x:Key="TabHeaderTemplate">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding Title}" FontSize="12"/>
@@ -172,12 +172,12 @@
                       RequestBringIntoView="RootScrollViewer_RequestBringIntoView">
             <StackPanel>
 
-                <!-- ================= Section ① Source de l'entité ================= -->
+                <!-- ================= Section ① Entity source ================= -->
                 <Border Style="{StaticResource SectionCardStyle}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="① SOURCE DE L'ENTITÉ"/>
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="① ENTITY SOURCE"/>
                         <TextBlock Style="{StaticResource SectionSubtitleStyle}"
-                                   Text="D'où vient l'entité à générer et quel type de code on veut produire."/>
+                                   Text="Where the entity to generate comes from and what kind of code to produce."/>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="2.4*"/>
@@ -201,17 +201,17 @@
                                           IsEnabled="{Binding IsProjectChosen}"
                                           ItemTemplate="{StaticResource EntityDisplayTemplate}"/>
                                 <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                           Text="Fichier DTO qui sert de source : les champs, le nom et le domaine sont déduits de ce fichier."/>
+                                           Text="Source DTO file: fields, name and domain are derived from this file."/>
                             </StackPanel>
 
-                            <!-- Generation (Feature à générer) -->
+                            <!-- Generation (Feature to generate) -->
                             <StackPanel Grid.Column="2" Grid.Row="0">
                                 <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
-                                          materialDesign:HintAssist.Hint="Feature à générer"
+                                          materialDesign:HintAssist.Hint="Feature to generate"
                                           ItemsSource="{Binding FeatureNames}" SelectedItem="{Binding FeatureNameSelected}"
                                           IsEnabled="{Binding IsDtoParsed}"/>
                                 <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                           Text="Type de génération : CRUD complet, Option, Team..."/>
+                                           Text="Generation type: full CRUD, Option, Team..."/>
                             </StackPanel>
 
                             <!-- Base Key Type -->
@@ -222,7 +222,7 @@
                                           SelectedValue="{Binding SelectedBaseKeyType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                           IsEnabled="{Binding IsDtoParsed}"/>
                                 <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                           Text="Type de la clé primaire (int, long, Guid...)."/>
+                                           Text="Primary key type (int, long, Guid...)."/>
                             </StackPanel>
 
                             <!-- Domain -->
@@ -232,7 +232,7 @@
                                          Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding IsDtoParsed}"/>
                                 <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                           Text="Dossier métier où ranger les fichiers générés (déduit du namespace)."/>
+                                           Text="Business folder where generated files will be placed (derived from namespace)."/>
                             </StackPanel>
 
                             <!-- Generation-already-done warning, full width -->
@@ -244,7 +244,7 @@
                                 <StackPanel Orientation="Horizontal">
                                     <materialDesign:PackIcon Kind="AlertOutline" Height="18" Width="18"
                                                              Foreground="Orange" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Une génération a déjà été faite pour cette entité"
+                                    <TextBlock Text="A generation has already been performed for this entity"
                                                Foreground="Orange" FontWeight="SemiBold" FontSize="12"
                                                VerticalAlignment="Center" Margin="8,0,0,0"/>
                                 </StackPanel>
@@ -253,12 +253,12 @@
                     </StackPanel>
                 </Border>
 
-                <!-- ================= Section ② Nom & affichage ================= -->
+                <!-- ================= Section ② Name & display ================= -->
                 <Border Style="{StaticResource SectionCardStyle}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="② NOM DE L'ENTITÉ &amp; AFFICHAGE"/>
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="② ENTITY NAME &amp; DISPLAY"/>
                         <TextBlock Style="{StaticResource SectionSubtitleStyle}"
-                                   Text="Comment l'entité est nommée dans le code et affichée dans l'UI."/>
+                                   Text="How the entity is named in code and displayed in the UI."/>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -276,18 +276,18 @@
                             <!-- Singular -->
                             <StackPanel Grid.Column="0">
                                 <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
-                                         materialDesign:HintAssist.Hint="Nom (singulier)"
+                                         materialDesign:HintAssist.Hint="Name (singular)"
                                          Text="{Binding CRUDNameSingular, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding IsDtoParsed}"/>
                                 <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                           Text="Nom de l'entité au singulier (ex: Plane, Product). Sera utilisé tel quel dans les classes C# et les composants Angular."/>
+                                           Text="Singular entity name (e.g. Plane, Product). Used as-is in C# classes and Angular components."/>
                             </StackPanel>
 
                             <!-- Plural -->
                             <StackPanel Grid.Column="2">
                                 <Grid>
                                     <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
-                                             materialDesign:HintAssist.Hint="Pluriel"
+                                             materialDesign:HintAssist.Hint="Plural"
                                              Text="{Binding CRUDNamePlural, UpdateSourceTrigger=PropertyChanged}"
                                              IsEnabled="{Binding IsDtoParsed}"/>
                                     <Border HorizontalAlignment="Right" VerticalAlignment="Top"
@@ -298,24 +298,24 @@
                                     </Border>
                                 </Grid>
                                 <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                           Text="Auto-dérivé du singulier via Humanizer. Édite-le si le pluriel généré n'est pas correct."/>
+                                           Text="Auto-derived from singular via Humanizer. Edit it if the generated plural isn't correct."/>
                             </StackPanel>
 
                             <!-- Display property -->
                             <StackPanel Grid.Column="4">
                                 <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
-                                          materialDesign:HintAssist.Hint="Propriété d'affichage"
+                                          materialDesign:HintAssist.Hint="Display property"
                                           ItemsSource="{Binding DtoDisplayItems}"
                                           SelectedValue="{Binding DtoDisplayItemSelected}"
                                           IsEnabled="{Binding IsDtoParsed}"/>
                                 <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                           Text="Propriété utilisée dans les listes/écrans parents pour identifier la ligne (ex: Name, Title)."/>
+                                           Text="Property used in lists/parent screens to identify the row (e.g. Name, Title)."/>
                             </StackPanel>
 
                             <!-- Option items -->
                             <StackPanel Grid.Column="6">
                                 <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
-                                          materialDesign:HintAssist.Hint="Options liées"
+                                          materialDesign:HintAssist.Hint="Linked options"
                                           ItemsSource="{Binding OptionItems}"
                                           IsEnabled="{Binding IsOptionItemEnable}"
                                           Text="{Binding SelectedOptionItems, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
@@ -327,18 +327,18 @@
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                                 <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                           Text="Options (dropdowns) déjà présentes qui peuvent être référencées par cette entité."/>
+                                           Text="Existing options (dropdowns) that can be referenced by this entity."/>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
                 </Border>
 
-                <!-- ================= Section ③ Cible de génération ================= -->
+                <!-- ================= Section ③ Generation target ================= -->
                 <Border Style="{StaticResource SectionCardStyle}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="③ CIBLE DE GÉNÉRATION"/>
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="③ GENERATION TARGET"/>
                         <TextBlock Style="{StaticResource SectionSubtitleStyle}"
-                                   Text="Quelles couches générer. Tu peux cocher une ou les deux."/>
+                                   Text="Which layers to generate. You can tick one or both."/>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -409,13 +409,13 @@
                             <!-- BIA Front version -->
                             <StackPanel Grid.Column="4" VerticalAlignment="Center">
                                 <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
-                                          materialDesign:HintAssist.Hint="Version BIA Front"
+                                          materialDesign:HintAssist.Hint="BIA Front version"
                                           x:Name="BiaFront"
                                           ItemsSource="{Binding BiaFronts}"
                                           SelectedValue="{Binding BiaFront}"
                                           IsEnabled="{Binding IsFrontSelected}"/>
                                 <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                           Text="Version du front-end BIA à utiliser comme cible (requis si Angular Front est coché)."/>
+                                           Text="BIA front-end version to use as target (required if Angular Front is ticked)."/>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
@@ -432,7 +432,7 @@
                             <StackPanel Grid.Column="0">
                                 <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="④ FEATURES"/>
                                 <TextBlock Style="{StaticResource SectionSubtitleStyle}"
-                                           Text="Options de génération, groupées par thème. Les paramètres d'une feature apparaissent dans sa propre tuile quand elle est activée."/>
+                                           Text="Generation options, grouped by theme. A feature's parameters appear in its own tile when enabled."/>
                             </StackPanel>
                         </Grid>
 
@@ -440,12 +440,12 @@
                                     BorderThickness="0"
                                     IsEnabled="{Binding IsDtoParsed}">
 
-                            <!-- ==== Onglet : Cycle de vie ==== -->
+                            <!-- ==== Tab: Lifecycle ==== -->
                             <TabItem>
                                 <TabItem.Header>
                                     <StackPanel Orientation="Horizontal">
                                         <materialDesign:PackIcon Kind="FileDocumentMultipleOutline" Height="16" Width="16" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Cycle de vie" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Lifecycle" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                         <Border Margin="6,0,0,0" Padding="5,1" CornerRadius="8"
                                                 Background="{DynamicResource MaterialDesign.Brush.Primary}"
                                                 Visibility="{Binding HasLifecycleActive, Converter={StaticResource BoolToVisConverter}}">
@@ -483,13 +483,13 @@
                                                 <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Versioned"/>
                                             </CheckBox>
                                             <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Conserve un historique complet de toutes les modifications de l'entité (qui a modifié quoi, quand)."/>
+                                                       Text="Keeps a full history of all entity changes (who changed what, when)."/>
                                             <Border Style="{StaticResource PreviewBoxStyle}"
                                                     Visibility="{Binding IsVersioned, Converter={StaticResource BoolToVisConverter}}">
                                                 <StackPanel>
-                                                    <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ CE QUI SERA GÉNÉRÉ"/>
+                                                    <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ WHAT WILL BE GENERATED"/>
                                                     <TextBlock Style="{StaticResource PreviewValueStyle}">
-                                                        <Run Text="→ table "/><Run Text="History_" FontWeight="SemiBold" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/><Run Text="{Binding CRUDNameSingular, Mode=OneWay, FallbackValue=Entity}" FontWeight="SemiBold" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/><Run Text=" créée"/>
+                                                        <Run Text="→ table "/><Run Text="History_" FontWeight="SemiBold" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/><Run Text="{Binding CRUDNameSingular, Mode=OneWay, FallbackValue=Entity}" FontWeight="SemiBold" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/><Run Text=" created"/>
                                                     </TextBlock>
                                                 </StackPanel>
                                             </Border>
@@ -513,13 +513,13 @@
                                                 <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Archivable"/>
                                             </CheckBox>
                                             <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Suppression logique (soft-delete) au lieu de supprimer définitivement. La ligne reste en base avec un indicateur IsDeleted."/>
+                                                       Text="Logical deletion (soft-delete) instead of permanent removal. The row stays in the DB with an IsDeleted flag."/>
                                             <Border Style="{StaticResource PreviewBoxStyle}"
                                                     Visibility="{Binding IsArchivable, Converter={StaticResource BoolToVisConverter}}">
                                                 <StackPanel>
-                                                    <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ CE QUI SERA GÉNÉRÉ"/>
+                                                    <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ WHAT WILL BE GENERATED"/>
                                                     <TextBlock Style="{StaticResource PreviewValueStyle}"
-                                                               Text="→ colonne IsDeleted ajoutée · Delete devient UPDATE IsDeleted=true"/>
+                                                               Text="→ IsDeleted column added · Delete becomes UPDATE IsDeleted=true"/>
                                                 </StackPanel>
                                             </Border>
                                         </StackPanel>
@@ -539,10 +539,10 @@
                                         </Border.Style>
                                         <StackPanel>
                                             <CheckBox IsChecked="{Binding IsFixable}">
-                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Fixable (épinglage)"/>
+                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Fixable (pinning)"/>
                                             </CheckBox>
                                             <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Permet à l'utilisateur d'épingler une ligne en tête de liste (ex: entités importantes toujours visibles en premier)."/>
+                                                       Text="Lets the user pin a row at the top of the list (e.g. important entities always visible first)."/>
                                         </StackPanel>
                                     </Border>
 
@@ -571,18 +571,18 @@
                                                 </StackPanel>
                                             </CheckBox>
                                             <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Affiche la timeline des modifications directement dans l'écran de détail de l'entité (nécessite Versioned)."/>
+                                                       Text="Shows the change timeline directly in the entity detail screen (requires Versioned)."/>
                                         </StackPanel>
                                     </Border>
                                 </Grid>
                             </TabItem>
 
-                            <!-- ==== Onglet : Accès ==== -->
+                            <!-- ==== Tab: Access ==== -->
                             <TabItem>
                                 <TabItem.Header>
                                     <StackPanel Orientation="Horizontal">
                                         <materialDesign:PackIcon Kind="ShieldAccountOutline" Height="16" Width="16" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Accès" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Access" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                         <Border Margin="6,0,0,0" Padding="5,1" CornerRadius="8"
                                                 Background="{DynamicResource MaterialDesign.Brush.Primary}"
                                                 Visibility="{Binding HasAccessActive, Converter={StaticResource BoolToVisConverter}}">
@@ -598,7 +598,7 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- Équipe (Team) -->
+                                    <!-- Team -->
                                     <Border Grid.Column="0">
                                         <Border.Style>
                                             <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
@@ -613,10 +613,10 @@
                                         <StackPanel>
                                             <CheckBox IsChecked="{Binding IsTeam, UpdateSourceTrigger=PropertyChanged}"
                                                       IsEnabled="{Binding IsCheckBoxIsTeamEnable}">
-                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Équipe (droits d'accès)"/>
+                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Team (access rights)"/>
                                             </CheckBox>
                                             <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="L'entité appartient à une équipe. Les utilisateurs doivent être membres de cette équipe pour y accéder (rôles Admin / Member)."/>
+                                                       Text="The entity belongs to a team. Users must be members of that team to access it (Admin / Member roles)."/>
 
                                             <!-- Expanded Team sub-parameters (only when IsTeam) -->
                                             <StackPanel Visibility="{Binding IsTeam, Converter={StaticResource BoolToVisConverter}}">
@@ -624,7 +624,7 @@
 
                                                 <!-- Only shown when UseFileGenerator is true (matches previous XAML) -->
                                                 <StackPanel Visibility="{Binding UseFileGenerator, Converter={StaticResource BoolToVisConverter}}">
-                                                    <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="PARAMÈTRES DE L'ÉQUIPE" Margin="0,0,0,6"/>
+                                                    <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="TEAM PARAMETERS" Margin="0,0,0,6"/>
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
@@ -636,31 +636,31 @@
                                                                                           materialDesign:HintAssist.Hint="Team Type ID"
                                                                                           Value="{Binding TeamTypeId}"/>
                                                             <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                                                       Text="ID dans la table TeamType (ex: 3 = Squad)."/>
+                                                                       Text="ID in the TeamType table (e.g. 3 = Squad)."/>
                                                         </StackPanel>
                                                         <StackPanel Grid.Column="2">
                                                             <materialDesign:NumericUpDown Style="{StaticResource MaterialDesignFilledNumericUpDown}"
                                                                                           materialDesign:HintAssist.Hint="Team Role Type ID"
                                                                                           Value="{Binding TeamRoleId}"/>
                                                             <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                                                       Text="ID dans la table RoleType (ex: 2 = Squad Role)."/>
+                                                                       Text="ID in the RoleType table (e.g. 2 = Squad Role)."/>
                                                         </StackPanel>
                                                     </Grid>
                                                 </StackPanel>
 
                                                 <StackPanel Margin="0,8,0,0">
                                                     <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
-                                                             materialDesign:HintAssist.Hint="Type d'équipe parent (optionnel)"
+                                                             materialDesign:HintAssist.Hint="Parent team type (optional)"
                                                              Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged}"/>
                                                     <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                                               Text="Nom du type d'équipe dont cette entité hérite dans la hiérarchie (ex: Site). Laisse vide si pas d'héritage."/>
+                                                               Text="Parent team type from which this entity inherits in the hierarchy (e.g. Site). Leave empty if no inheritance."/>
                                                 </StackPanel>
 
                                                 <!-- Team roles preview -->
                                                 <Border Style="{StaticResource PreviewBoxStyle}"
                                                         Visibility="{Binding HasTeamRolesPreview, Converter={StaticResource BoolToVisConverter}}">
                                                     <StackPanel>
-                                                        <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ RÔLES QUI SERONT AJOUTÉS"/>
+                                                        <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ ROLES THAT WILL BE ADDED"/>
                                                         <TextBlock Style="{StaticResource PreviewValueStyle}" Text="{Binding TeamRolesPreview}"/>
                                                     </StackPanel>
                                                 </Border>
@@ -682,16 +682,16 @@
                                         </Border.Style>
                                         <StackPanel>
                                             <CheckBox IsChecked="{Binding HasFormReadOnlyMode}">
-                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Formulaire lecture seule"/>
+                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Read-only form"/>
                                             </CheckBox>
                                             <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Génère un mode d'affichage en lecture seule du formulaire de l'entité (ex: pour les consultations sans édition)."/>
+                                                       Text="Generates a read-only display mode of the entity form (e.g. for view-only consultations)."/>
 
                                             <StackPanel Visibility="{Binding HasFormReadOnlyMode, Converter={StaticResource BoolToVisConverter}}">
                                                 <Border Margin="0,10,0,8" Height="1" Background="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
                                                 <TextBlock Style="{StaticResource SubFieldLabelStyle}" Text="Mode"/>
                                                 <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                                           Text="Choisit entre lecture seule partout ou uniquement sur la page de détail."/>
+                                                           Text="Choose between read-only everywhere or only on the detail page."/>
                                                 <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
                                                           Margin="0,2,0,0"
                                                           ItemsSource="{Binding FormReadOnlyModes}"
@@ -702,7 +702,7 @@
                                 </Grid>
                             </TabItem>
 
-                            <!-- ==== Onglet : Relations ==== -->
+                            <!-- ==== Tab: Relations ==== -->
                             <TabItem>
                                 <TabItem.Header>
                                     <StackPanel Orientation="Horizontal">
@@ -732,10 +732,10 @@
                                         <StackPanel>
                                             <CheckBox IsChecked="{Binding HasParent, UpdateSourceTrigger=PropertyChanged}"
                                                       IsEnabled="{Binding IsCheckboxParentEnable}">
-                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Entité parent"/>
+                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Parent entity"/>
                                             </CheckBox>
                                             <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Indique que cette entité est rattachée à une entité parente (ex: une Plane appartient à un Site). Les rôles Admin/Member du parent sont ajoutés aux permissions."/>
+                                                       Text="Indicates that this entity is attached to a parent entity (e.g. a Plane belongs to a Site). Parent Admin/Member roles are added to permissions."/>
 
                                             <StackPanel Visibility="{Binding HasParent, Converter={StaticResource BoolToVisConverter}}">
                                                 <Border Margin="0,10,0,8" Height="1" Background="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
@@ -747,17 +747,17 @@
                                                     </Grid.ColumnDefinitions>
                                                     <StackPanel Grid.Column="0">
                                                         <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
-                                                                 materialDesign:HintAssist.Hint="Nom du parent (singulier)"
+                                                                 materialDesign:HintAssist.Hint="Parent name (singular)"
                                                                  Text="{Binding ParentName, UpdateSourceTrigger=PropertyChanged}"/>
                                                         <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                                                   Text="Nom de l'entité parente (ex: Site, Airport)."/>
+                                                                   Text="Parent entity name (e.g. Site, Airport)."/>
                                                     </StackPanel>
                                                     <StackPanel Grid.Column="2">
                                                         <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
-                                                                 materialDesign:HintAssist.Hint="Pluriel"
+                                                                 materialDesign:HintAssist.Hint="Plural"
                                                                  Text="{Binding ParentNamePlural, UpdateSourceTrigger=PropertyChanged}"/>
                                                         <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                                                   Text="Pluriel du parent (auto-dérivé, éditable)."/>
+                                                                   Text="Parent plural (auto-derived, editable)."/>
                                                     </StackPanel>
                                                 </Grid>
 
@@ -765,14 +765,14 @@
                                                     <StackPanel>
                                                         <TextBlock FontSize="12" FontWeight="SemiBold" Text="Fixable Parent"/>
                                                         <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                                   Text="Permet à l'utilisateur d'épingler une ligne au niveau du parent (utile pour les vues filtrées)."/>
+                                                                   Text="Lets the user pin a row at the parent level (useful for filtered views)."/>
                                                     </StackPanel>
                                                 </CheckBox>
 
                                                 <Border Style="{StaticResource PreviewBoxStyle}"
                                                         Visibility="{Binding HasParentRolesPreview, Converter={StaticResource BoolToVisConverter}}">
                                                     <StackPanel>
-                                                        <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ RÔLES QUI SERONT AJOUTÉS"/>
+                                                        <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ ROLES THAT WILL BE ADDED"/>
                                                         <TextBlock Style="{StaticResource PreviewValueStyle}" Text="{Binding ParentRolesPreview}"/>
                                                     </StackPanel>
                                                 </Border>
@@ -782,12 +782,12 @@
                                 </Grid>
                             </TabItem>
 
-                            <!-- ==== Onglet : Intégrations ==== -->
+                            <!-- ==== Tab: Integrations ==== -->
                             <TabItem>
                                 <TabItem.Header>
                                     <StackPanel Orientation="Horizontal">
                                         <materialDesign:PackIcon Kind="PuzzleOutline" Height="16" Width="16" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Intégrations" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Integrations" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                         <Border Margin="6,0,0,0" Padding="5,1" CornerRadius="8"
                                                 Background="{DynamicResource MaterialDesign.Brush.Primary}"
                                                 Visibility="{Binding HasIntegrationsActive, Converter={StaticResource BoolToVisConverter}}">
@@ -822,7 +822,7 @@
                                                 <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Import"/>
                                             </CheckBox>
                                             <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Ajoute un endpoint d'import CSV/Excel côté API et un ImportDialogComponent côté Angular."/>
+                                                       Text="Adds a CSV/Excel import endpoint on the API side and an ImportDialogComponent on the Angular side."/>
                                         </StackPanel>
                                     </Border>
 
@@ -843,7 +843,7 @@
                                                 <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Hub client (SignalR)"/>
                                             </CheckBox>
                                             <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Synchronisation temps réel : quand un user modifie une ligne, les autres utilisateurs voient le changement instantanément."/>
+                                                       Text="Real-time sync: when a user edits a row, the other users see the change instantly."/>
                                         </StackPanel>
                                     </Border>
 
@@ -863,7 +863,7 @@
                                         <StackPanel>
                                             <CheckBox IsChecked="{Binding UseDomainUrl}">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="URL par domaine"/>
+                                                    <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Domain URL"/>
                                                     <Border Margin="8,0,0,0" Padding="4,1" CornerRadius="3"
                                                             Background="{DynamicResource MaterialDesign.Brush.Primary}"
                                                             VerticalAlignment="Center">
@@ -872,18 +872,18 @@
                                                 </StackPanel>
                                             </CheckBox>
                                             <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Préfixe les URLs générées par le nom du domaine (ex: /products/planes au lieu de /planes)."/>
+                                                       Text="Prefixes generated URLs with the domain name (e.g. /products/planes instead of /planes)."/>
                                         </StackPanel>
                                     </Border>
                                 </Grid>
                             </TabItem>
 
-                            <!-- ==== Onglet : Comportement ==== -->
+                            <!-- ==== Tab: Behavior ==== -->
                             <TabItem>
                                 <TabItem.Header>
                                     <StackPanel Orientation="Horizontal">
                                         <materialDesign:PackIcon Kind="CogOutline" Height="16" Width="16" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Comportement" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Behavior" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                         <Border Margin="6,0,0,0" Padding="5,1" CornerRadius="8"
                                                 Background="{DynamicResource MaterialDesign.Brush.Primary}"
                                                 Visibility="{Binding HasBehaviorActive, Converter={StaticResource BoolToVisConverter}}">
@@ -916,7 +916,7 @@
                                                 <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Advanced Filter"/>
                                             </CheckBox>
                                             <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Panneau de recherche avancée côté Angular (opérateurs multiples, filtres par colonne, sauvegarde de filtres)."/>
+                                                       Text="Advanced search panel on the Angular side (multiple operators, per-column filters, saved filters)."/>
                                         </StackPanel>
                                     </Border>
 
@@ -937,7 +937,7 @@
                                                 <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Custom Repository"/>
                                             </CheckBox>
                                             <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Génère une classe Repository personnalisable où tu peux écrire des requêtes EF spécifiques (override du Repository générique)."/>
+                                                       Text="Generates a customizable Repository class where you can write specific EF queries (override of the generic Repository)."/>
                                         </StackPanel>
                                     </Border>
                                 </Grid>
@@ -951,7 +951,7 @@
 
         <!-- Row 1: Footer — summary + secondary actions + primary Generate button -->
         <Border Grid.Row="1"
-                Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                Background="Transparent"
                 BorderBrush="{DynamicResource MaterialDesign.Brush.Card.Border}"
                 BorderThickness="0,1,0,0"
                 Padding="14,10">
@@ -965,7 +965,7 @@
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <materialDesign:PackIcon Kind="ClipboardTextOutline" Height="18" Width="18" VerticalAlignment="Center" Opacity="0.6"/>
                     <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="12">
-                        <Run Text="Résumé : "/>
+                        <Run Text="Summary: "/>
                         <Run Text="{Binding GenerationSummary, Mode=OneWay}"
                              FontWeight="SemiBold"
                              Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
@@ -984,11 +984,11 @@
                         <Button.ToolTip>
                             <StackPanel Orientation="Vertical" MaxWidth="340">
                                 <TextBlock FontWeight="SemiBold" Margin="0,0,0,4"
-                                           Text="Reverse la dernière génération"/>
+                                           Text="Revert the last generation"/>
                                 <TextBlock TextWrapping="Wrap"
-                                           Text="Supprime les fichiers produits et retire les blocs insérés dans les fichiers partagés (routes, DI…) pour ce DTO."/>
+                                           Text="Deletes the produced files and removes the blocks inserted in shared files (routes, DI…) for this DTO."/>
                                 <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Opacity="0.75" FontStyle="Italic"
-                                           Text="Attention : pas de git revert. Les modifs manuelles sur les fichiers générés seront perdues. Une confirmation sera demandée."/>
+                                           Text="Warning: no git revert. Manual edits to generated files will be lost. A confirmation will be asked."/>
                             </StackPanel>
                         </Button.ToolTip>
                         <StackPanel Orientation="Horizontal">
@@ -1002,7 +1002,7 @@
                             Margin="0,0,8,0" Padding="10,4" MinWidth="0"
                             Command="{Binding DeleteBIAToolkitAnnotationsCommand}"
                             IsEnabled="{Binding IsProjectChosen}"
-                            ToolTip="Supprime les marqueurs BIAToolkit présents dans le code (irréversible).">
+                            ToolTip="Removes BIAToolkit markers present in the code (irreversible).">
                         <StackPanel Orientation="Horizontal">
                             <materialDesign:PackIcon Kind="TagRemoveOutline" Height="16" Width="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Delete annotations" Margin="6,0,0,0" VerticalAlignment="Center"/>
@@ -1017,7 +1017,7 @@
                             IsEnabled="{Binding IsButtonGenerateCrudEnable}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <materialDesign:PackIcon Kind="FlashOutline" Height="20" Width="20" VerticalAlignment="Center"/>
-                            <TextBlock Text="Générer" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                            <TextBlock Text="Generate" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
