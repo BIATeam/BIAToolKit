@@ -1,12 +1,11 @@
 namespace BIA.ToolKit.UserControls
 {
     using BIA.ToolKit.ViewModels;
+    using System.Windows;
     using System.Windows.Controls;
 
     /// <summary>
     /// Interaction logic for OptionGeneratorUC.xaml
-    /// DataContext (OptionGeneratorViewModel) is set by the parent control.
-    /// Code-behind contains NO business logic — interact with the VM directly.
     /// </summary>
     public partial class OptionGeneratorUC : UserControl
     {
@@ -15,6 +14,11 @@ namespace BIA.ToolKit.UserControls
         public OptionGeneratorUC()
         {
             InitializeComponent();
+        }
+
+        private void RootScrollViewer_RequestBringIntoView(object sender, RequestBringIntoViewEventArgs e)
+        {
+            e.Handled = true;
         }
     }
 }

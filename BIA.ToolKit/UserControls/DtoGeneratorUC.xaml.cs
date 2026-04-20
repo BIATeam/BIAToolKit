@@ -19,27 +19,6 @@ namespace BIA.ToolKit.UserControls
         public DtoGeneratorUC()
         {
             InitializeComponent();
-
-            // Subscribe to VM event for UI-only operation (GridView column width reset)
-            DataContextChanged += (s, e) =>
-            {
-                ViewModel?.OnMappingRefreshed += ResetMappingColumnsWidths;
-            };
-        }
-
-        /// <summary>
-        /// UI-only operation: Reset GridView column widths (non-bindable).
-        /// CONSERVER - manipulation de controle non-bindable.
-        /// </summary>
-        private void ResetMappingColumnsWidths()
-        {
-            if (PropertiesListView.View is not GridView gridView) return;
-
-            foreach (GridViewColumn column in gridView.Columns)
-            {
-                column.Width = 0;
-                column.Width = double.NaN;
-            }
         }
 
         /// <summary>

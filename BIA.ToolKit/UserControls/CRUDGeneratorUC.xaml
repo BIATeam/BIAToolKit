@@ -236,11 +236,19 @@
                             </StackPanel>
 
                             <!-- Generation-already-done warning, full width -->
-                            <Label Grid.Row="1" Grid.ColumnSpan="7" Margin="0,6,0,0"
-                                   Content="⚠ Une génération a déjà été faite pour cette entité"
-                                   Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
-                                   FontWeight="SemiBold"
-                                   Visibility="{Binding IsDtoGenerated, Converter={StaticResource BoolToVisConverter}}"/>
+                            <Border Grid.Row="1" Grid.ColumnSpan="7" Margin="0,8,0,0"
+                                    Padding="10,8" CornerRadius="4"
+                                    Background="#33FF8C00"
+                                    BorderBrush="Orange" BorderThickness="1"
+                                    Visibility="{Binding IsDtoGenerated, Converter={StaticResource BoolToVisConverter}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="AlertOutline" Height="18" Width="18"
+                                                             Foreground="Orange" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Une génération a déjà été faite pour cette entité"
+                                               Foreground="Orange" FontWeight="SemiBold" FontSize="12"
+                                               VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                </StackPanel>
+                            </Border>
                         </Grid>
                     </StackPanel>
                 </Border>

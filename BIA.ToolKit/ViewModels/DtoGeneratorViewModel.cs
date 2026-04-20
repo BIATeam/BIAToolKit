@@ -17,6 +17,7 @@ namespace BIA.ToolKit.ViewModels
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.ComponentModel;
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
@@ -37,9 +38,11 @@ namespace BIA.ToolKit.ViewModels
         private bool disposed;
 
         /// <summary>
-        /// Raised after mapping properties are refreshed so the View can reset grid column widths.
+        /// Guards auto-mapping while the ViewModel performs bulk updates (history reload,
+        /// entity switch). When true, IsSelected changes on EntityProperty do not trigger
+        /// immediate add/remove — the caller is expected to refresh mappings explicitly.
         /// </summary>
-        public event Action OnMappingRefreshed;
+        private bool isBulkLoading;
 
         /// <summary>
         /// Constructor with dependency injection.
@@ -164,6 +167,7 @@ namespace BIA.ToolKit.ViewModels
         public string ProjectDomainNamespace { get; private set; }
         public bool IsEntitySelected => Entity != null;
         public bool HasMappingProperties => MappingEntityProperties.Count > 0;
+        public bool CanReorderMappingProperties => MappingEntityProperties.Count >= 2;
         public bool IsGenerationEnabled =>
             ((HasMappingProperties && MappingEntityProperties.All(x => x.IsValid) && MappingEntityProperties.Count == MappingEntityProperties.DistinctBy(x => x.MappingName).Count()) || !HasMappingProperties)
             && !string.IsNullOrWhiteSpace(EntityDomain)
@@ -245,45 +249,48 @@ namespace BIA.ToolKit.ViewModels
             SelectedBaseKeyType = generation.EntityBaseKeyType;
             UseDedicatedAudit = generation.UseDedicatedAudit;
 
-            var allEntityProperties = AllEntityPropertiesRecursively.ToList();
-            foreach (var property in allEntityProperties)
+            // Disable auto-mapping while we replay history: we set IsSelected in bulk and
+            // refresh mappings in a single pass at the end.
+            isBulkLoading = true;
+            try
             {
-                property.IsSelected = false;
+                var allEntityProperties = AllEntityPropertiesRecursively.ToList();
+                foreach (var property in allEntityProperties)
+                {
+                    property.IsSelected = false;
+                }
+                foreach (var property in generation.PropertyMappings)
+                {
+                    var entityProperty = allEntityProperties.FirstOrDefault(x => x.CompositeName == property.EntityPropertyCompositeName);
+                    if (entityProperty is null)
+                        continue;
+
+                    entityProperty.IsSelected = true;
+                }
+
+                RefreshMappingProperties();
+
+                foreach (var property in generation.PropertyMappings)
+                {
+                    var mappingProperty = MappingEntityProperties.FirstOrDefault(x => x.EntityCompositeName == property.EntityPropertyCompositeName);
+                    if (mappingProperty is null)
+                        continue;
+
+                    mappingProperty.MappingName = property.MappingName;
+                    mappingProperty.MappingDateType = property.DateType;
+                    mappingProperty.IsRequired = property.IsRequired;
+                    mappingProperty.OptionIdProperty = property.OptionMappingIdProperty;
+                    mappingProperty.OptionDisplayProperty = property.OptionMappingDisplayProperty;
+                    mappingProperty.OptionEntityIdProperty = property.OptionMappingEntityIdProperty;
+                    mappingProperty.IsParent = property.IsParent;
+                }
             }
-            foreach (var property in generation.PropertyMappings)
+            finally
             {
-                var entityProperty = allEntityProperties.FirstOrDefault(x => x.CompositeName == property.EntityPropertyCompositeName);
-                if (entityProperty is null)
-                    continue;
-
-                entityProperty.IsSelected = true;
+                isBulkLoading = false;
             }
 
-            RefreshMappingProperties();
-
-            foreach (var property in generation.PropertyMappings)
-            {
-                var mappingProperty = MappingEntityProperties.FirstOrDefault(x => x.EntityCompositeName == property.EntityPropertyCompositeName);
-                if (mappingProperty is null)
-                    continue;
-
-                mappingProperty.MappingName = property.MappingName;
-                mappingProperty.MappingDateType = property.DateType;
-                mappingProperty.IsRequired = property.IsRequired;
-                mappingProperty.OptionIdProperty = property.OptionMappingIdProperty;
-                mappingProperty.OptionDisplayProperty = property.OptionMappingDisplayProperty;
-                mappingProperty.OptionEntityIdProperty = property.OptionMappingEntityIdProperty;
-                mappingProperty.IsParent = property.IsParent;
-            }
-
-            ComputePropertiesValidity();
-        }
-
-        [RelayCommand]
-        private void SelectProperties()
-        {
-            RefreshMappingProperties();
-            OnMappingRefreshed?.Invoke();
+            SyncMappingReferences();
             ComputePropertiesValidity();
         }
 
@@ -362,9 +369,23 @@ namespace BIA.ToolKit.ViewModels
         [RelayCommand]
         public void RemoveAllMappingProperties()
         {
-            MappingEntityProperties.Clear();
+            isBulkLoading = true;
+            try
+            {
+                foreach (EntityProperty ep in AllEntityPropertiesRecursively)
+                {
+                    ep.IsSelected = false;
+                }
+                MappingEntityProperties.Clear();
+            }
+            finally
+            {
+                isBulkLoading = false;
+            }
 
+            SyncMappingReferences();
             OnPropertyChanged(nameof(HasMappingProperties));
+            OnPropertyChanged(nameof(CanReorderMappingProperties));
             OnPropertyChanged(nameof(IsGenerationEnabled));
         }
 
@@ -416,6 +437,7 @@ namespace BIA.ToolKit.ViewModels
 
         private void RefreshEntityPropertiesTreeView()
         {
+            UnhookEntityPropertySubscriptions();
             EntityProperties.Clear();
             if (Entity == null)
                 return;
@@ -424,6 +446,71 @@ namespace BIA.ToolKit.ViewModels
             List<EntityProperty> tree = DtoMappingService.BuildEntityPropertyTree(Entity, Entities);
             foreach (EntityProperty ep in tree)
                 EntityProperties.Add(ep);
+
+            HookEntityPropertySubscriptions();
+        }
+
+        /// <summary>
+        /// Subscribe to <see cref="EntityProperty.IsSelected"/> on every node of the tree so
+        /// ticking/unticking a checkbox immediately adds/removes the corresponding mapping.
+        /// </summary>
+        private void HookEntityPropertySubscriptions()
+        {
+            foreach (EntityProperty ep in AllEntityPropertiesRecursively)
+            {
+                ep.PropertyChanged -= OnEntityPropertyPropertyChanged;
+                ep.PropertyChanged += OnEntityPropertyPropertyChanged;
+            }
+        }
+
+        private void UnhookEntityPropertySubscriptions()
+        {
+            foreach (EntityProperty ep in AllEntityPropertiesRecursively)
+            {
+                ep.PropertyChanged -= OnEntityPropertyPropertyChanged;
+            }
+        }
+
+        private void OnEntityPropertyPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (isBulkLoading) return;
+            if (e.PropertyName != nameof(EntityProperty.IsSelected)) return;
+            if (sender is not EntityProperty ep) return;
+
+            if (ep.IsSelected)
+            {
+                // Add: RefreshMappingProperties scans all selected properties and appends
+                // any that are not yet in MappingEntityProperties. It also resolves option
+                // relations. Cheaper than duplicating single-property creation logic.
+                RefreshMappingProperties();
+            }
+            else
+            {
+                MappingEntityProperty mapping = MappingEntityProperties.FirstOrDefault(x => x.EntityCompositeName == ep.CompositeName);
+                if (mapping != null)
+                {
+                    MappingEntityProperties.Remove(mapping);
+                }
+            }
+
+            SyncMappingReferences();
+            ComputePropertiesValidity();
+            OnPropertyChanged(nameof(HasMappingProperties));
+            OnPropertyChanged(nameof(CanReorderMappingProperties));
+            OnPropertyChanged(nameof(IsGenerationEnabled));
+        }
+
+        /// <summary>
+        /// Keep each EntityProperty's MappingEntityProperty reference in sync with the
+        /// current MappingEntityProperties collection. Used by the XAML to bind inline
+        /// mapping editors directly off the tree nodes.
+        /// </summary>
+        private void SyncMappingReferences()
+        {
+            foreach (EntityProperty ep in AllEntityPropertiesRecursively)
+            {
+                ep.MappingEntityProperty = MappingEntityProperties.FirstOrDefault(x => x.EntityCompositeName == ep.CompositeName);
+            }
         }
 
         private void FillEntityProperties(EntityProperty property, string rootPropertyType)
@@ -449,9 +536,9 @@ namespace BIA.ToolKit.ViewModels
 
         public void RefreshMappingProperties()
         {
-            var mappingEntityProperties = new List<MappingEntityProperty>(MappingEntityProperties);
-            AddMappingProperties(EntityProperties, mappingEntityProperties);
-            MappingEntityProperties = new(mappingEntityProperties);
+            // Mutate the existing collection rather than replacing it: preserves drag-drop
+            // behaviour references and any XAML bindings watching the ObservableCollection.
+            AddMappingProperties(EntityProperties, MappingEntityProperties);
 
             foreach (MappingEntityProperty mappingEntityProperty in MappingEntityProperties.Where(x => x.IsOptionCollection))
             {
@@ -468,10 +555,11 @@ namespace BIA.ToolKit.ViewModels
             }
 
             OnPropertyChanged(nameof(HasMappingProperties));
+            OnPropertyChanged(nameof(CanReorderMappingProperties));
             OnPropertyChanged(nameof(IsGenerationEnabled));
         }
 
-        private void AddMappingProperties(IEnumerable<EntityProperty> entityProperties, List<MappingEntityProperty> mappingEntityProperties)
+        private void AddMappingProperties(IEnumerable<EntityProperty> entityProperties, ICollection<MappingEntityProperty> mappingEntityProperties)
         {
             foreach (EntityProperty selectedEntityProperty in entityProperties)
             {
@@ -597,6 +685,7 @@ namespace BIA.ToolKit.ViewModels
             ComputePropertiesValidity();
 
             OnPropertyChanged(nameof(HasMappingProperties));
+            OnPropertyChanged(nameof(CanReorderMappingProperties));
             OnPropertyChanged(nameof(IsGenerationEnabled));
         }
 

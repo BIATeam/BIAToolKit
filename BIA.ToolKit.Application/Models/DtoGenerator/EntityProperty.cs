@@ -12,6 +12,14 @@ namespace BIA.ToolKit.Application.Models.DtoGenerator
         [ObservableProperty]
         private bool isSelected;
 
+        /// <summary>
+        /// Reference to the mapping entry when <see cref="IsSelected"/> is true.
+        /// Owned and maintained by the ViewModel (auto-mapping on selection changes).
+        /// Exposed so XAML can bind inline mapping editors directly against this property.
+        /// </summary>
+        [ObservableProperty]
+        private MappingEntityProperty mappingEntityProperty;
+
         public string CompositeName { get; set; }
         public List<EntityProperty> Properties { get; set; } = [];
         public string ParentType { get; set; }

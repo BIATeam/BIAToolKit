@@ -39,12 +39,10 @@
             <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2"/>
             <TabControl x:Name="TabActions" Style="{StaticResource HighlightedTabControl}">
                 <TabItem x:Name="TabOptionGenerator" Header="Option" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <Grid>
-                            <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2" Grid.ColumnSpan="2"/>
-                            <uc:OptionGeneratorUC x:Name="OptionGenerator" Margin="10" />
-                        </Grid>
-                    </ScrollViewer>
+                    <Grid>
+                        <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2" Grid.ColumnSpan="2"/>
+                        <uc:OptionGeneratorUC x:Name="OptionGenerator" Margin="10" />
+                    </Grid>
                 </TabItem>
                 <TabItem x:Name="TabDtoGenerator" Header="DTO" IsEnabled="{Binding IsFileGeneratorServiceInit, Mode=OneWay}">
                     <Grid>
