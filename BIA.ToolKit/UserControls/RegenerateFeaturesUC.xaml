@@ -188,8 +188,7 @@
                     Content="Clear"
                     Margin="0,0,10,0"/>
             <Button x:Name="RegenerateButton"
-                    Style="{StaticResource MaterialDesignRaisedSecondaryButton}"
-                    Foreground="White"
+                    Style="{StaticResource Button.SecondaryAction}"
                     Content="Regenerate selected features"
                     Command="{Binding RegenerateCommand}"/>
         </StackPanel>

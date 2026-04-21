@@ -15,6 +15,10 @@
                 <ResourceDictionary Source="/Themes/Surfaces.xaml" />
             </ResourceDictionary.MergedDictionaries>
             
+            <!-- On-color brush for secondary CTA buttons. ApplyTheme overrides this at runtime
+                 (Black for dark/Lime, White for light/Teal) to guarantee WCAG AA contrast. -->
+            <SolidColorBrush x:Key="App.OnSecondaryBrush" Color="Black" />
+
             <!-- ViewModelLocator for automatic ViewModel resolution -->
             <infrastructure:ViewModelLocator x:Key="Locator" />
             

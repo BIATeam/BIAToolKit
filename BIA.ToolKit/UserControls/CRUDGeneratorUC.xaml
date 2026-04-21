@@ -1115,8 +1115,7 @@
                     </Button>
 
                     <Button x:Name="GenerateCrud"
-                            Style="{StaticResource MaterialDesignRaisedSecondaryButton}"
-                            Foreground="White"
+                            Style="{StaticResource Button.SecondaryAction}"
                             Height="40" Padding="16,0" MinWidth="150"
                             Command="{Binding GenerateCommand}"
                             IsEnabled="{Binding IsButtonGenerateCrudEnable}">

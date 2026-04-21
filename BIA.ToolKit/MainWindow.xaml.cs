@@ -111,6 +111,11 @@ namespace BIA.ToolKit
 
             paletteHelper.SetTheme(theme);
 
+            // WCAG AA on-color for CTA buttons: black on Lime (dark) ≈ 13:1, white on Teal 600 (light) ≈ 5.1:1.
+            // MDIX's computed Secondary.Foreground picks sub-optimally on these hues, so we drive it explicitly.
+            System.Windows.Application.Current.Resources["App.OnSecondaryBrush"] = new SolidColorBrush(
+                isDark ? Colors.Black : Colors.White);
+
             if (consoleWriterInstance != null)
             {
                 bool themeChanged = consoleWriterInstance.IsDarkTheme != isDark;

@@ -15,10 +15,11 @@
     </Style>
 
     <!-- Secondary CTA: used by all current CTAs (Create, Generate x3, Migrate, Regenerate).
-         Replaces the hardcoded Foreground="White" that produced ~1.2:1 contrast on the Lime dark theme. -->
+         Replaces the hardcoded Foreground="White" that produced ~1.2:1 contrast on the Lime dark theme.
+         Uses App.OnSecondaryBrush (driven by ApplyTheme): Black on Lime (dark) ≈ 13:1, White on Teal 600 (light) ≈ 5.1:1. -->
     <Style x:Key="Button.SecondaryAction" TargetType="Button"
            BasedOn="{StaticResource MaterialDesignRaisedSecondaryButton}">
-        <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Secondary.Foreground}"/>
+        <Setter Property="Foreground" Value="{DynamicResource App.OnSecondaryBrush}"/>
     </Style>
 
     <!-- Ghost: flat button for tertiary actions. -->

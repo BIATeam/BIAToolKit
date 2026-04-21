@@ -266,8 +266,7 @@
                     </Button>
 
                     <Button x:Name="GenerateOption"
-                            Style="{StaticResource MaterialDesignRaisedSecondaryButton}"
-                            Foreground="White"
+                            Style="{StaticResource Button.SecondaryAction}"
                             Height="40" Padding="16,0" MinWidth="150"
                             Command="{Binding GenerateCommand}"
                             IsEnabled="{Binding IsButtonGenerateOptionEnable}">
