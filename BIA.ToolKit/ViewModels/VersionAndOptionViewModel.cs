@@ -297,6 +297,18 @@ namespace BIA.ToolKit.ViewModels
                 WorkCompanyFile = GetWorkCompanyFile(dto.CompanyFileVersion);
             }
 
+            // The project was created with Company Files but none are available now
+            // (global setting off, or matching repo/version no longer configured).
+            // Drop the flag silently-for-model + log a clear warning, rather than letting
+            // downstream copy blow up with a NullReferenceException.
+            if (UseCompanyFiles && WorkCompanyFile == null)
+            {
+                UseCompanyFiles = false;
+                consoleWriter.AddMessageLine(
+                    $"Project was created with Company Files (version '{dto.CompanyFileVersion}') but none are available — overlay skipped. Enable Company Files in Settings and configure the matching repository to restore it.",
+                    "Orange");
+            }
+
             if (Profiles.Any(p => p == dto.Profile))
             {
                 Profile = dto.Profile;

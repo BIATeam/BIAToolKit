@@ -123,7 +123,11 @@ namespace BIA.ToolKit.Application.Services
 
             IList<string> filesToRemove = ["^new-angular-project\\.ps1$", "BiaToolKit_FeatureSetting\\.json"];
 
-            if (projectParameters.VersionAndOption.UseCompanyFiles)
+            if (projectParameters.VersionAndOption.UseCompanyFiles && projectParameters.VersionAndOption.WorkCompanyFile == null)
+            {
+                consoleWriter.AddMessageLine("Company Files are enabled but no matching repository/version is configured — overlay skipped.", "Orange");
+            }
+            else if (projectParameters.VersionAndOption.UseCompanyFiles)
             {
                 IList<string> filesToExclude = ["^biaCompanyFiles\\.json$"];
                 foreach (CFOption option in projectParameters.VersionAndOption.Options)
