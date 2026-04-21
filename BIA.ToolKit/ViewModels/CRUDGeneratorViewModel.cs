@@ -453,10 +453,17 @@ namespace BIA.ToolKit.ViewModels
         partial void OnBiaFrontChanged(string value) => OnBiaFrontChanged();
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsBIAFrontSelectorVisible))]
         private ObservableCollection<string> biaFronts = [];
 
         public bool IsWebApiAvailable => UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.WebApi));
         public bool IsFrontAvailable => (UseFileGenerator || (!string.IsNullOrEmpty(FeatureNameSelected) && ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.GenerationType == GenerationType.Front))) && (CurrentProject != null && CurrentProject.BIAFronts.Count > 0);
+
+        /// <summary>
+        /// Show the BIA Front version selector only when the project has more than one front.
+        /// With a single front it auto-selects and adds noise.
+        /// </summary>
+        public bool IsBIAFrontSelectorVisible => BiaFronts?.Count > 1;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsCheckBoxIsTeamEnable))]

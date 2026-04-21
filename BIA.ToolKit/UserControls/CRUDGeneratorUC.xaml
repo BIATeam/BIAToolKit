@@ -406,8 +406,9 @@
                                 </Grid>
                             </ToggleButton>
 
-                            <!-- BIA Front version -->
-                            <StackPanel Grid.Column="4" VerticalAlignment="Center">
+                            <!-- BIA Front version: hidden when the project has a single front (auto-selected) -->
+                            <StackPanel Grid.Column="4" VerticalAlignment="Center"
+                                        Visibility="{Binding IsBIAFrontSelectorVisible, Converter={StaticResource BoolToVisConverter}}">
                                 <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
                                           materialDesign:HintAssist.Hint="BIA Front version"
                                           x:Name="BiaFront"
@@ -415,7 +416,7 @@
                                           SelectedValue="{Binding BiaFront}"
                                           IsEnabled="{Binding IsFrontSelected}"/>
                                 <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                           Text="BIA front-end version to use as target (required if Angular Front is ticked)."/>
+                                           Text="Pick which Angular front-end the CRUD should be generated into."/>
                             </StackPanel>
                         </Grid>
                     </StackPanel>

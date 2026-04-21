@@ -48,22 +48,52 @@
                         </Style.Triggers>
                     </Style>
                 </TabControl.Style>
-                <TabItem x:Name="TabOptionGenerator" Header="Option" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
-                    <Grid>
-                        <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2" Grid.ColumnSpan="2"/>
-                        <uc:OptionGeneratorUC x:Name="OptionGenerator" Margin="10" />
-                    </Grid>
-                </TabItem>
-                <TabItem x:Name="TabDtoGenerator" Header="DTO" IsEnabled="{Binding IsFileGeneratorServiceInit, Mode=OneWay}">
+                <TabItem x:Name="TabDtoGenerator" IsEnabled="{Binding IsFileGeneratorServiceInit, Mode=OneWay}">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Background="Transparent"
+                                    ToolTipService.InitialShowDelay="300"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Generates a DTO (Data Transfer Object) from an existing domain entity. Required before generating CRUD. Supports BIA attributes like [BiaDtoField] for field-level configuration.">
+                            <TextBlock Text="DTO" VerticalAlignment="Center"/>
+                            <materialDesign:PackIcon Kind="InformationOutline" Width="14" Height="14"
+                                                     Margin="6,0,0,0" Opacity="0.6" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </TabItem.Header>
                     <Grid>
                         <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2" Grid.ColumnSpan="2"/>
                         <uc:DtoGeneratorUC x:Name="DtoGenerator" Margin="10"/>
                     </Grid>
                 </TabItem>
-                <TabItem x:Name="TabCrudGenerator" Header="CRUD" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
+                <TabItem x:Name="TabCrudGenerator" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Background="Transparent"
+                                    ToolTipService.InitialShowDelay="300"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Generates full CRUD operations (Controller, AppService, Mapper, Angular pages, NgRx Store, forms) from a DTO. Entry point to add a complete business feature end-to-end.">
+                            <TextBlock Text="CRUD" VerticalAlignment="Center"/>
+                            <materialDesign:PackIcon Kind="InformationOutline" Width="14" Height="14"
+                                                     Margin="6,0,0,0" Opacity="0.6" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </TabItem.Header>
                     <Grid>
                         <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2" Grid.ColumnSpan="2"/>
                         <uc:CRUDGeneratorUC x:Name="CRUDGenerator" Margin="10"/>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="TabOptionGenerator" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Background="Transparent"
+                                    ToolTipService.InitialShowDelay="300"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Generates a lookup dropdown (Id + Display) for simple reference entities like Country, Language, Role. Used as an option to populate selects in CRUD forms.">
+                            <TextBlock Text="Option" VerticalAlignment="Center"/>
+                            <materialDesign:PackIcon Kind="InformationOutline" Width="14" Height="14"
+                                                     Margin="6,0,0,0" Opacity="0.6" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2" Grid.ColumnSpan="2"/>
+                        <uc:OptionGeneratorUC x:Name="OptionGenerator" Margin="10" />
                     </Grid>
                 </TabItem>
             </TabControl>
