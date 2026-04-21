@@ -54,7 +54,8 @@
                       Style="{StaticResource MaterialDesignFilledComboBox}"
                       materialDesign:HintAssist.Hint="Profile"/>
 
-            <TextBlock Text="Options" FontWeight="SemiBold" Opacity="0.75" Margin="0,0,0,6"
+            <TextBlock Text="Options" FontWeight="SemiBold" Margin="0,0,0,6"
+                       Style="{StaticResource Text.Caption}"
                        Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}"/>
 
             <ItemsControl ItemsSource="{Binding Options}"

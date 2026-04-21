@@ -546,9 +546,9 @@
                                             <StackPanel>
                                                 <!-- Type info line -->
                                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                                    <TextBlock Text="Source type:" FontSize="10" Opacity="0.65" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Source type:" FontSize="10" Style="{StaticResource Text.Caption}" VerticalAlignment="Center"/>
                                                     <TextBlock Text="{Binding MappingEntityProperty.EntityType}" FontSize="10" FontWeight="SemiBold" Margin="4,0,10,0" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="Mapping type:" FontSize="10" Opacity="0.65" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Mapping type:" FontSize="10" Style="{StaticResource Text.Caption}" VerticalAlignment="Center"/>
                                                     <TextBlock Text="{Binding MappingEntityProperty.MappingType}" FontSize="10" FontWeight="SemiBold" Margin="4,0,0,0" VerticalAlignment="Center"/>
                                                 </StackPanel>
 

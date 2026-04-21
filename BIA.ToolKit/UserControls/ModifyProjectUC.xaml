@@ -100,7 +100,7 @@
                                Margin="0,12,0,4"
                                HorizontalAlignment="Center"/>
                     <TextBlock Text="Use the project selector above to choose a project to migrate."
-                               Opacity="0.7"
+                               Style="{StaticResource Text.Caption}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
             </Border>
