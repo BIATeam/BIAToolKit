@@ -24,11 +24,11 @@ public partial class PixelStopButtonUC : UserControl
     private const int GridCols = 8;
     private const int GridRows = 8;
 
-    // Very slow disintegration (25s), fast rebuild (3s)
-    private static readonly TimeSpan DisintegrateDuration = TimeSpan.FromSeconds(25.0);
-    private static readonly TimeSpan RebuildDuration = TimeSpan.FromSeconds(3.0);
-    private static readonly TimeSpan PauseDuration = TimeSpan.FromSeconds(1.0);
-    private static readonly TimeSpan MaxDelay = TimeSpan.FromSeconds(2.0);
+    // 8s cycle: disintegrate 6s, pause 0.5s, rebuild 1s, pause 0.5s
+    private static readonly TimeSpan DisintegrateDuration = TimeSpan.FromSeconds(6.0);
+    private static readonly TimeSpan RebuildDuration = TimeSpan.FromSeconds(1.0);
+    private static readonly TimeSpan PauseDuration = TimeSpan.FromSeconds(0.5);
+    private static readonly TimeSpan MaxDelay = TimeSpan.FromSeconds(0.5);
 
     private readonly List<PixelInfo> pixels = [];
     private readonly Random rng = new();
