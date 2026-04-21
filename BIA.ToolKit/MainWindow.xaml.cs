@@ -61,6 +61,19 @@ namespace BIA.ToolKit
             // Read IsDarkTheme directly from persisted settings because
             // SettingsService.Load() hasn't been called yet at this point.
             ApplyTheme(Properties.Settings.Default.IsDarkTheme);
+
+            // DEV-mode window diagnostics — refresh on size/state change or DEV toggle.
+            SizeChanged += (_, _) => UpdateDevDiagnostics();
+            StateChanged += (_, _) => UpdateDevDiagnostics();
+            Loaded += (_, _) => UpdateDevDiagnostics();
+            if (ViewModel?.AppSession is System.ComponentModel.INotifyPropertyChanged npc)
+            {
+                npc.PropertyChanged += (_, args) =>
+                {
+                    if (args.PropertyName == nameof(Helper.AppSessionService.IsDeveloperMode))
+                        UpdateDevDiagnostics();
+                };
+            }
         }
 
         // Navigation and output panel state are fully ViewModel-driven.
@@ -174,6 +187,42 @@ namespace BIA.ToolKit
                     ? PackIconKind.WindowRestore
                     : PackIconKind.WindowMaximize;
             }
+        }
+
+        private void UpdateDevDiagnostics()
+        {
+            if (DevDiagnosticsText == null)
+                return;
+
+            int w = (int)ActualWidth;
+            int h = (int)ActualHeight;
+            double dpi = VisualTreeHelper.GetDpi(this).DpiScaleX;
+
+            string workDims = "? × ?";
+            try
+            {
+                var handle = new WindowInteropHelper(this).Handle;
+                if (handle != IntPtr.Zero)
+                {
+                    var monitor = MonitorFromWindow(handle, 2 /* MONITOR_DEFAULTTONEAREST */);
+                    if (monitor != IntPtr.Zero)
+                    {
+                        var mi = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+                        if (GetMonitorInfo(monitor, ref mi))
+                        {
+                            int workW = mi.rcWork.Right - mi.rcWork.Left;
+                            int workH = mi.rcWork.Bottom - mi.rcWork.Top;
+                            workDims = $"{workW} × {workH}";
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Diagnostics must never crash the UI.
+            }
+
+            DevDiagnosticsText.Text = $"{w} × {h}  ·  {WindowState}  ·  work {workDims}  ·  dpi {dpi:0.##}";
         }
 
         #region WinAPI — constrain maximized window to work area (exclude taskbar)
