@@ -86,12 +86,15 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="14,0,0,0"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
         </Style>
 
+        <!-- Description uses the theme foreground at full opacity to meet WCAG AA
+             (contrast >= 4.5:1 required). Avoid Opacity reductions on informative text. -->
         <Style x:Key="CardDescriptionStyle" TargetType="TextBlock">
             <Setter Property="Margin" Value="0,8,0,0"/>
             <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Opacity" Value="0.8"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="LineHeight" Value="20"/>
         </Style>
@@ -107,16 +110,19 @@
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
 
+        <!-- Footer label/value: explicit Foreground + minimum 0.87 opacity for WCAG AA. -->
         <Style x:Key="CardFooterLabelStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Opacity" Value="0.75"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
+            <Setter Property="Opacity" Value="0.87"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="6,0,0,0"/>
         </Style>
 
         <Style x:Key="CardFooterValueStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
             <Setter Property="Margin" Value="0,4,0,0"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="LineHeight" Value="18"/>
@@ -156,7 +162,7 @@
         <!-- Row 1: Normal mode (project-type cards) / Advanced mode (full options) -->
         <Grid Grid.Row="1" Margin="0,14,0,0">
 
-            <!-- Normal mode: three cards side-by-side -->
+            <!-- Normal mode: two cards side-by-side -->
             <Grid>
                 <Grid.Style>
                     <Style TargetType="Grid">
@@ -172,7 +178,6 @@
                     </Style>
                 </Grid.Style>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
@@ -210,7 +215,8 @@
                                 <StackPanel Grid.Column="0">
                                     <StackPanel Orientation="Horizontal">
                                         <materialDesign:PackIcon Kind="PackageVariantClosed" Height="16" Width="16"
-                                                                 VerticalAlignment="Center" Opacity="0.7"/>
+                                                                 VerticalAlignment="Center" Opacity="0.87"
+                                                                 Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"/>
                                         <TextBlock Style="{StaticResource CardFooterLabelStyle}" Text="Company files"/>
                                     </StackPanel>
                                     <TextBlock Style="{StaticResource CardFooterValueStyle}">
@@ -238,12 +244,12 @@
                     </Grid>
                 </RadioButton>
 
-                <!-- API + DB -->
+                <!-- API using an existing DB -->
                 <RadioButton Grid.Column="1"
                              Style="{StaticResource ProjectTypeCardStyle}"
                              IsChecked="{Binding SelectedProjectType, Mode=TwoWay,
                                          Converter={StaticResource EnumToBoolConverter},
-                                         ConverterParameter={x:Static common:ProjectTypeKind.ApiAndDb}}">
+                                         ConverterParameter={x:Static common:ProjectTypeKind.ApiWithExistingDb}}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="auto"/>
@@ -254,14 +260,14 @@
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Grid.RowSpan="2" Orientation="Horizontal">
                             <Border Style="{StaticResource CardIconCircleStyle}">
-                                <materialDesign:PackIcon Kind="ServerNetwork" Height="24" Width="24"
+                                <materialDesign:PackIcon Kind="DatabaseArrowLeftOutline" Height="24" Width="24"
                                                          Foreground="White"
                                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Style="{StaticResource CardTitleStyle}" Text="API + DB"/>
+                            <TextBlock Style="{StaticResource CardTitleStyle}" Text="API using an existing DB"/>
                         </StackPanel>
                         <TextBlock Grid.Row="2" Style="{StaticResource CardDescriptionStyle}"
-                                   Text="Back-end only: API, Database, Worker Service. No Front-end."/>
+                                   Text="Wire the API to an already deployed database. Only the Database layer is generated — no deploy scripts, no front-end, no worker."/>
                         <Border Grid.Row="4" Style="{StaticResource CardFooterPanelStyle}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -271,7 +277,8 @@
                                 <StackPanel Grid.Column="0">
                                     <StackPanel Orientation="Horizontal">
                                         <materialDesign:PackIcon Kind="PackageVariantClosed" Height="16" Width="16"
-                                                                 VerticalAlignment="Center" Opacity="0.7"/>
+                                                                 VerticalAlignment="Center" Opacity="0.87"
+                                                                 Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"/>
                                         <TextBlock Style="{StaticResource CardFooterLabelStyle}" Text="Company files"/>
                                     </StackPanel>
                                     <TextBlock Style="{StaticResource CardFooterValueStyle}">
@@ -299,66 +306,6 @@
                     </Grid>
                 </RadioButton>
 
-                <!-- DB only -->
-                <RadioButton Grid.Column="2"
-                             Style="{StaticResource ProjectTypeCardStyle}"
-                             IsChecked="{Binding SelectedProjectType, Mode=TwoWay,
-                                         Converter={StaticResource EnumToBoolConverter},
-                                         ConverterParameter={x:Static common:ProjectTypeKind.DbOnly}}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                        </Grid.RowDefinitions>
-                        <StackPanel Grid.Row="0" Grid.RowSpan="2" Orientation="Horizontal">
-                            <Border Style="{StaticResource CardIconCircleStyle}">
-                                <materialDesign:PackIcon Kind="DatabaseOutline" Height="24" Width="24"
-                                                         Foreground="White"
-                                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <TextBlock Style="{StaticResource CardTitleStyle}" Text="DB only"/>
-                        </StackPanel>
-                        <TextBlock Grid.Row="2" Style="{StaticResource CardDescriptionStyle}"
-                                   Text="Database layer only (schema, migrations, deploy). No API, no Front-end."/>
-                        <Border Grid.Row="4" Style="{StaticResource CardFooterPanelStyle}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Kind="PackageVariantClosed" Height="16" Width="16"
-                                                                 VerticalAlignment="Center" Opacity="0.7"/>
-                                        <TextBlock Style="{StaticResource CardFooterLabelStyle}" Text="Company files"/>
-                                    </StackPanel>
-                                    <TextBlock Style="{StaticResource CardFooterValueStyle}">
-                                        <Run Text="{Binding WorkCompanyFile.Version, Mode=OneWay, FallbackValue=—, TargetNullValue=—}"
-                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
-                                        <Run Text=" · "/>
-                                        <Run Text="{Binding Profile, Mode=OneWay, FallbackValue=Wiring, TargetNullValue=Wiring}"
-                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
-                                        <Run Text=" · "/>
-                                        <Run Text="{Binding CheckedOptionsSummary, Mode=OneWay}"/>
-                                        <Run Text="{Binding RemoveExampleSettingsSuffix, Mode=OneWay}"/>
-                                    </TextBlock>
-                                </StackPanel>
-                                <Button Grid.Column="1" VerticalAlignment="Top"
-                                        Style="{StaticResource MaterialDesignIconButton}"
-                                        Width="28" Height="28" Padding="2"
-                                        Focusable="False"
-                                        Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
-                                        Command="{Binding EditCompanyFilesCommand}"
-                                        ToolTip="Edit company files">
-                                    <materialDesign:PackIcon Kind="PencilOutline" Height="16" Width="16"/>
-                                </Button>
-                            </Grid>
-                        </Border>
-                    </Grid>
-                </RadioButton>
             </Grid>
 
             <!-- Advanced mode: the original Feature Settings + Company Files -->
@@ -410,7 +357,7 @@
                                                                    Text="Because this feature is unchecked, the following dependent feature(s) are automatically disabled and cannot be selected:"/>
                                                         <TextBlock TextWrapping="Wrap" FontWeight="Bold"
                                                                    Text="{Binding DisabledFeatures, Mode=OneWay}"/>
-                                                        <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Opacity="0.75" FontStyle="Italic"
+                                                        <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Opacity="0.87" FontStyle="Italic"
                                                                    Text="Enable this feature to make the feature(s) above available again."/>
                                                     </StackPanel>
                                                 </Button.ToolTip>

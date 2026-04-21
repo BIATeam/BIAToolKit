@@ -395,11 +395,8 @@ namespace BIA.ToolKit.ViewModels
             bool frontEnd, auth, db, deployDb, worker;
             switch (projectType)
             {
-                case ProjectTypeKind.ApiAndDb:
-                    frontEnd = false; auth = true; db = true; deployDb = true; worker = true;
-                    break;
-                case ProjectTypeKind.DbOnly:
-                    frontEnd = false; auth = false; db = true; deployDb = true; worker = false;
+                case ProjectTypeKind.ApiWithExistingDb:
+                    frontEnd = false; auth = false; db = true; deployDb = false; worker = false;
                     break;
                 case ProjectTypeKind.Complete:
                 default:

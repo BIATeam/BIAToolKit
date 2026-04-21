@@ -8,10 +8,7 @@ namespace BIA.ToolKit.Common
         /// <summary>Front-end + API + Database + Worker Service.</summary>
         Complete,
 
-        /// <summary>API + Database (no Front-end).</summary>
-        ApiAndDb,
-
-        /// <summary>Database only (no Front-end, no Worker, no Auth).</summary>
-        DbOnly,
+        /// <summary>API wired to an existing database — only the Database feature is checked (no deploy, no front-end, no worker, no auth).</summary>
+        ApiWithExistingDb,
     }
 }
