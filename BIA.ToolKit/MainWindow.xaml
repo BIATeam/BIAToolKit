@@ -92,7 +92,13 @@
             <!-- App icon + title + version (grouped as "app identity") -->
             <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="8,0"
                         WindowChrome.IsHitTestVisibleInChrome="True">
-                <Image Source="/Images/Tools.ico" Width="18" Height="18" RenderOptions.BitmapScalingMode="Fant" VerticalAlignment="Center"/>
+                <!-- Logo: 7 successive clicks (<2s between clicks) toggle DEV mode ON. -->
+                <Border x:Name="LogoHitArea" Cursor="Hand" Background="Transparent"
+                        MouseLeftButtonDown="LogoClick"
+                        ToolTip="BIA Toolkit">
+                    <Image Source="/Images/Tools.ico" Width="18" Height="18"
+                           RenderOptions.BitmapScalingMode="Fant" VerticalAlignment="Center"/>
+                </Border>
                 <TextBlock Text="BIA Toolkit" VerticalAlignment="Center" Margin="8,0,0,0" FontSize="13"
                            Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"/>
                 <Button Height="18" Padding="0" x:Name="UpdateButton" VerticalAlignment="Center" Margin="8,0,0,0"
@@ -104,6 +110,22 @@
                 </Button>
                 <TextBlock Text="{Binding ApplicationVersion}" VerticalAlignment="Center" FontSize="11"
                            d:Text="V0.0.0.0" Margin="8,0,0,0" Opacity="0.6"/>
+
+                <!-- Exit DEV button: visible only when developer mode is ON.
+                     Warning-orange styling so it's impossible to forget you're in DEV. -->
+                <Button x:Name="ExitDevButton" Click="ExitDevClick"
+                        Visibility="{Binding AppSession.IsDeveloperMode, Converter={StaticResource BoolToVisConverter}, FallbackValue=Collapsed}"
+                        Margin="10,0,0,0" VerticalAlignment="Center"
+                        Height="22" Padding="8,0" MinWidth="0"
+                        Background="#FF9800" BorderBrush="#FF9800" Foreground="White"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        materialDesign:RippleAssist.IsDisabled="True"
+                        ToolTip="DEV mode is ON — click to exit">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="BugOutline" Width="13" Height="13" VerticalAlignment="Center"/>
+                        <TextBlock Text="Exit DEV" Margin="4,0,0,0" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
             </StackPanel>
 
             <!-- Update actions (shrinks first; right-aligned so the buttons stay visible) -->

@@ -35,6 +35,12 @@ namespace BIA.ToolKit.ViewModels
 
         private readonly SemaphoreSlim semaphore = new(1, 1);
 
+        /// <summary>
+        /// Shared, in-memory app session (DEV mode flag, etc.).
+        /// Exposed publicly so XAML can bind to AppSession.IsDeveloperMode.
+        /// </summary>
+        public AppSessionService AppSession { get; }
+
         public MainViewModel(
             Version applicationVersion,
             SettingsService settingsService,
@@ -44,7 +50,8 @@ namespace BIA.ToolKit.ViewModels
             ProjectCreatorService projectCreatorService,
             UpdateService updateService,
             CSharpParserService cSharpParserService,
-            IDialogService dialogService)
+            IDialogService dialogService,
+            AppSessionService appSession)
         {
             this.applicationVersion = applicationVersion;
             this.settingsService = settingsService;
@@ -55,6 +62,7 @@ namespace BIA.ToolKit.ViewModels
             this.updateService = updateService;
             this.cSharpParserService = cSharpParserService;
             this.dialogService = dialogService;
+            AppSession = appSession;
             WeakReferenceMessenger.Default.RegisterAll(this);
         }
 

@@ -157,6 +157,41 @@
                 </Border>
             </StackPanel>
         </DataTemplate>
+
+        <!-- "Detected from DTO" badge: small pill shown when the VM detected the
+             feature from the parsed DTO heritage (EntityInfo.IsVersioned etc.). -->
+        <Style x:Key="DetectedBadgeStyle" TargetType="Border">
+            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="Padding" Value="5,1"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Secondary}"/>
+        </Style>
+
+        <Style x:Key="DetectedBadgeTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="9"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#1B1B1B"/>
+            <Setter Property="Text" Value="detected"/>
+        </Style>
+
+        <!-- Angular mockup label inside a feature tile. -->
+        <Style x:Key="MockupLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Opacity" Value="0.6"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <!-- Angular mockup container: subtle bordered strip that previews the Angular UI. -->
+        <Style x:Key="MockupBoxStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
+            <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Background}"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="0,8,0,0"/>
+        </Style>
     </UserControl.Resources>
 
     <Grid>
@@ -424,527 +459,640 @@
 
                 <!-- ================= Section ④ Features ================= -->
                 <Border Style="{StaticResource SectionCardStyle}">
-                    <StackPanel>
+                    <StackPanel IsEnabled="{Binding IsDtoParsed}">
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="④ FEATURES"/>
+                        <TextBlock Style="{StaticResource SectionSubtitleStyle}"
+                                   Text="Tick the features to enable. Features detected from your DTO heritage are flagged with a 'detected' badge."/>
+
+                        <!-- DEV mode banner (global AppSession.IsDeveloperMode). -->
+                        <Border Margin="0,0,0,10" Padding="10,8" CornerRadius="4"
+                                Background="#33FF9800"
+                                BorderBrush="#FF9800" BorderThickness="1"
+                                Visibility="{Binding AppSession.IsDeveloperMode, Converter={StaticResource BoolToVisConverter}, FallbackValue=Collapsed}">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="BugOutline" Height="16" Width="16"
+                                                         Foreground="#FF9800" VerticalAlignment="Center"/>
+                                <TextBlock Margin="8,0,0,0" VerticalAlignment="Center"
+                                           FontSize="11" FontWeight="SemiBold" Foreground="#FF9800"
+                                           Text="DEV MODE — all features shown (including those not detected from DTO)"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Flat 2-column feature grid (replaces the previous 5-tab layout).
+                             Features auto-detectable from the DTO heritage carry a "detected" badge. -->
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="④ FEATURES"/>
-                                <TextBlock Style="{StaticResource SectionSubtitleStyle}"
-                                           Text="Generation options, grouped by theme. A feature's parameters appear in its own tile when enabled."/>
-                            </StackPanel>
-                        </Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="10"/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="10"/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="10"/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="10"/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="10"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
 
-                        <TabControl Background="Transparent"
-                                    BorderThickness="0"
-                                    IsEnabled="{Binding IsDtoParsed}">
+                            <!--#region Row 0 · Versioned | Archivable -->
 
-                            <!-- ==== Tab: Lifecycle ==== -->
-                            <TabItem>
-                                <TabItem.Header>
-                                    <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Kind="FileDocumentMultipleOutline" Height="16" Width="16" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Lifecycle" Margin="6,0,0,0" VerticalAlignment="Center"/>
-                                        <Border Margin="6,0,0,0" Padding="5,1" CornerRadius="8"
-                                                Background="{DynamicResource MaterialDesign.Brush.Primary}"
-                                                Visibility="{Binding HasLifecycleActive, Converter={StaticResource BoolToVisConverter}}">
-                                            <TextBlock Text="{Binding LifecycleActiveCount}" FontSize="10" FontWeight="SemiBold" Foreground="White"/>
+                            <!-- === Versioned (detectable) === -->
+                            <Border Grid.Column="0" Grid.Row="0">
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsVersioned}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding IsVersioned}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Versioned"/>
+                                            <Border Style="{StaticResource DetectedBadgeStyle}"
+                                                    Visibility="{Binding IsDtoDetectedVersioned, Converter={StaticResource BoolToVisConverter}}">
+                                                <TextBlock Style="{StaticResource DetectedBadgeTextStyle}"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                               Text="Keeps a full history of all entity changes (who changed what, when)."/>
+                                    <StackPanel Visibility="{Binding IsVersioned, Converter={StaticResource BoolToVisConverter}}">
+                                        <Border Style="{StaticResource PreviewBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ WHAT WILL BE GENERATED"/>
+                                                <TextBlock Style="{StaticResource PreviewValueStyle}">
+                                                    <Run Text="→ table "/><Run Text="History_" FontWeight="SemiBold" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/><Run Text="{Binding CRUDNameSingular, Mode=OneWay, FallbackValue=Entity}" FontWeight="SemiBold" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/><Run Text=" created · RowVersion column added"/>
+                                                </TextBlock>
+                                            </StackPanel>
                                         </Border>
-                                    </StackPanel>
-                                </TabItem.Header>
-
-                                <Grid Margin="0,10,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="8"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="auto"/>
-                                        <RowDefinition Height="8"/>
-                                        <RowDefinition Height="auto"/>
-                                    </Grid.RowDefinitions>
-
-                                    <!-- Versioned -->
-                                    <Border Grid.Column="0" Grid.Row="0">
-                                        <Border.Style>
-                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsVersioned}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                        <Setter Property="BorderThickness" Value="1.5"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <StackPanel>
-                                            <CheckBox IsChecked="{Binding IsVersioned}">
-                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Versioned"/>
-                                            </CheckBox>
-                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Keeps a full history of all entity changes (who changed what, when)."/>
-                                            <Border Style="{StaticResource PreviewBoxStyle}"
-                                                    Visibility="{Binding IsVersioned, Converter={StaticResource BoolToVisConverter}}">
-                                                <StackPanel>
-                                                    <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ WHAT WILL BE GENERATED"/>
-                                                    <TextBlock Style="{StaticResource PreviewValueStyle}">
-                                                        <Run Text="→ table "/><Run Text="History_" FontWeight="SemiBold" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/><Run Text="{Binding CRUDNameSingular, Mode=OneWay, FallbackValue=Entity}" FontWeight="SemiBold" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/><Run Text=" created"/>
-                                                    </TextBlock>
-                                                </StackPanel>
-                                            </Border>
-                                        </StackPanel>
-                                    </Border>
-
-                                    <!-- Archivable -->
-                                    <Border Grid.Column="2" Grid.Row="0">
-                                        <Border.Style>
-                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsArchivable}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                        <Setter Property="BorderThickness" Value="1.5"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <StackPanel>
-                                            <CheckBox IsChecked="{Binding IsArchivable}">
-                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Archivable"/>
-                                            </CheckBox>
-                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Logical deletion (soft-delete) instead of permanent removal. The row stays in the DB with an IsDeleted flag."/>
-                                            <Border Style="{StaticResource PreviewBoxStyle}"
-                                                    Visibility="{Binding IsArchivable, Converter={StaticResource BoolToVisConverter}}">
-                                                <StackPanel>
-                                                    <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ WHAT WILL BE GENERATED"/>
-                                                    <TextBlock Style="{StaticResource PreviewValueStyle}"
-                                                               Text="→ IsDeleted column added · Delete becomes UPDATE IsDeleted=true"/>
-                                                </StackPanel>
-                                            </Border>
-                                        </StackPanel>
-                                    </Border>
-
-                                    <!-- Fixable -->
-                                    <Border Grid.Column="0" Grid.Row="2">
-                                        <Border.Style>
-                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsFixable}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                        <Setter Property="BorderThickness" Value="1.5"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <StackPanel>
-                                            <CheckBox IsChecked="{Binding IsFixable}">
-                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Fixable (pinning)"/>
-                                            </CheckBox>
-                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Lets the user pin a row at the top of the list (e.g. important entities always visible first)."/>
-                                        </StackPanel>
-                                    </Border>
-
-                                    <!-- Display Historical (V6+) -->
-                                    <Border Grid.Column="2" Grid.Row="2"
-                                            Visibility="{Binding IsProjectCompatibleV6, Converter={StaticResource BoolToVisConverter}}">
-                                        <Border.Style>
-                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding DisplayHistorical}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                        <Setter Property="BorderThickness" Value="1.5"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <StackPanel>
-                                            <CheckBox IsChecked="{Binding DisplayHistorical}">
+                                        <Border Style="{StaticResource MockupBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
                                                 <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Show History"/>
-                                                    <Border Margin="8,0,0,0" Padding="4,1" CornerRadius="3"
-                                                            Background="{DynamicResource MaterialDesign.Brush.Primary}"
-                                                            VerticalAlignment="Center">
-                                                        <TextBlock Text="V6+" FontSize="9" FontWeight="SemiBold" Foreground="White"/>
-                                                    </Border>
+                                                    <materialDesign:PackIcon Kind="AccountCircle" Width="14" Height="14" VerticalAlignment="Center" Opacity="0.8"/>
+                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="admin · 2 min ago · edited Name"/>
                                                 </StackPanel>
-                                            </CheckBox>
-                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Shows the change timeline directly in the entity detail screen (requires Versioned)."/>
-                                        </StackPanel>
-                                    </Border>
-                                </Grid>
-                            </TabItem>
-
-                            <!-- ==== Tab: Access ==== -->
-                            <TabItem>
-                                <TabItem.Header>
-                                    <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Kind="ShieldAccountOutline" Height="16" Width="16" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Access" Margin="6,0,0,0" VerticalAlignment="Center"/>
-                                        <Border Margin="6,0,0,0" Padding="5,1" CornerRadius="8"
-                                                Background="{DynamicResource MaterialDesign.Brush.Primary}"
-                                                Visibility="{Binding HasAccessActive, Converter={StaticResource BoolToVisConverter}}">
-                                            <TextBlock Text="{Binding AccessActiveCount}" FontSize="10" FontWeight="SemiBold" Foreground="White"/>
+                                            </StackPanel>
                                         </Border>
                                     </StackPanel>
-                                </TabItem.Header>
+                                </StackPanel>
+                            </Border>
 
-                                <Grid Margin="0,10,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="8"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <!-- Team -->
-                                    <Border Grid.Column="0">
-                                        <Border.Style>
-                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsTeam}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                        <Setter Property="BorderThickness" Value="1.5"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <StackPanel>
-                                            <CheckBox IsChecked="{Binding IsTeam, UpdateSourceTrigger=PropertyChanged}"
-                                                      IsEnabled="{Binding IsCheckBoxIsTeamEnable}">
-                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Team (access rights)"/>
-                                            </CheckBox>
-                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="The entity belongs to a team. Users must be members of that team to access it (Admin / Member roles)."/>
-
-                                            <!-- Expanded Team sub-parameters (only when IsTeam) -->
-                                            <StackPanel Visibility="{Binding IsTeam, Converter={StaticResource BoolToVisConverter}}">
-                                                <Border Margin="0,10,0,8" Height="1" Background="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
-
-                                                <!-- Only shown when UseFileGenerator is true (matches previous XAML) -->
-                                                <StackPanel Visibility="{Binding UseFileGenerator, Converter={StaticResource BoolToVisConverter}}">
-                                                    <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="TEAM PARAMETERS" Margin="0,0,0,6"/>
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="10"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <StackPanel Grid.Column="0">
-                                                            <materialDesign:NumericUpDown Style="{StaticResource MaterialDesignFilledNumericUpDown}"
-                                                                                          materialDesign:HintAssist.Hint="Team Type ID"
-                                                                                          Value="{Binding TeamTypeId}"/>
-                                                            <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                                                       Text="ID in the TeamType table (e.g. 3 = Squad)."/>
-                                                        </StackPanel>
-                                                        <StackPanel Grid.Column="2">
-                                                            <materialDesign:NumericUpDown Style="{StaticResource MaterialDesignFilledNumericUpDown}"
-                                                                                          materialDesign:HintAssist.Hint="Team Role Type ID"
-                                                                                          Value="{Binding TeamRoleId}"/>
-                                                            <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                                                       Text="ID in the RoleType table (e.g. 2 = Squad Role)."/>
-                                                        </StackPanel>
-                                                    </Grid>
+                            <!-- === Archivable (detectable) === -->
+                            <Border Grid.Column="2" Grid.Row="0">
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsArchivable}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding IsArchivable}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Archivable"/>
+                                            <Border Style="{StaticResource DetectedBadgeStyle}"
+                                                    Visibility="{Binding IsDtoDetectedArchivable, Converter={StaticResource BoolToVisConverter}}">
+                                                <TextBlock Style="{StaticResource DetectedBadgeTextStyle}"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                               Text="Logical deletion (soft-delete) instead of permanent removal. The row stays in the DB with an IsDeleted flag."/>
+                                    <StackPanel Visibility="{Binding IsArchivable, Converter={StaticResource BoolToVisConverter}}">
+                                        <Border Style="{StaticResource PreviewBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ WHAT WILL BE GENERATED"/>
+                                                <TextBlock Style="{StaticResource PreviewValueStyle}"
+                                                           Text="→ IsDeleted column added · Delete becomes UPDATE IsDeleted=true"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource MockupBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <materialDesign:PackIcon Kind="DeleteOutline" Width="14" Height="14" VerticalAlignment="Center" Opacity="0.3"/>
+                                                    <TextBlock Margin="4,0" Text="→" VerticalAlignment="Center" Opacity="0.5"/>
+                                                    <materialDesign:PackIcon Kind="PackageDown" Width="14" Height="14" VerticalAlignment="Center"
+                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="Archive replaces Delete"/>
                                                 </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
 
-                                                <StackPanel Margin="0,8,0,0">
-                                                    <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
-                                                             materialDesign:HintAssist.Hint="Parent team type (optional)"
-                                                             Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged}"/>
+                            <!--#endregion-->
+
+                            <!--#region Row 2 · Fixable | Show History -->
+
+                            <!-- === Fixable (detectable) === -->
+                            <Border Grid.Column="0" Grid.Row="2">
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsFixable}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding IsFixable}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Fixable (pinning)"/>
+                                            <Border Style="{StaticResource DetectedBadgeStyle}"
+                                                    Visibility="{Binding IsDtoDetectedFixable, Converter={StaticResource BoolToVisConverter}}">
+                                                <TextBlock Style="{StaticResource DetectedBadgeTextStyle}"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                               Text="Lets the user pin a row at the top of the list (e.g. important entities always visible first)."/>
+                                    <StackPanel Visibility="{Binding IsFixable, Converter={StaticResource BoolToVisConverter}}">
+                                        <Border Style="{StaticResource PreviewBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ WHAT WILL BE GENERATED"/>
+                                                <TextBlock Style="{StaticResource PreviewValueStyle}"
+                                                           Text="→ Fix() action on controller · {Entity}_Fix permission added"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource MockupBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <materialDesign:PackIcon Kind="PinOutline" Width="14" Height="14" VerticalAlignment="Center"
+                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="Pinned rows stay at the top"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- === Show History (V6+) (depends on Versioned) === -->
+                            <Border Grid.Column="2" Grid.Row="2"
+                                    Visibility="{Binding IsProjectCompatibleV6, Converter={StaticResource BoolToVisConverter}}">
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DisplayHistorical}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding DisplayHistorical}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Show History"/>
+                                            <Border Margin="8,0,0,0" Padding="4,1" CornerRadius="3"
+                                                    Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="V6+" FontSize="9" FontWeight="SemiBold" Foreground="White"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                               Text="Shows the change timeline directly in the entity detail screen (requires Versioned)."/>
+                                    <StackPanel Visibility="{Binding DisplayHistorical, Converter={StaticResource BoolToVisConverter}}">
+                                        <Border Style="{StaticResource PreviewBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ WHAT WILL BE GENERATED"/>
+                                                <TextBlock Style="{StaticResource PreviewValueStyle}"
+                                                           Text="→ {Entity}HistoricalComponent · /historical endpoint"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource MockupBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <materialDesign:PackIcon Kind="TimelineTextOutline" Width="14" Height="14" VerticalAlignment="Center"
+                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="“History” tab with vertical timeline"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!--#endregion-->
+
+                            <!--#region Row 4 · Team | Read-only form -->
+
+                            <!-- === Team (detectable) === -->
+                            <Border Grid.Column="0" Grid.Row="4">
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsTeam}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding IsTeam, UpdateSourceTrigger=PropertyChanged}"
+                                              IsEnabled="{Binding IsCheckBoxIsTeamEnable}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Team (access rights)"/>
+                                            <Border Style="{StaticResource DetectedBadgeStyle}"
+                                                    Visibility="{Binding IsDtoDetectedTeam, Converter={StaticResource BoolToVisConverter}}">
+                                                <TextBlock Style="{StaticResource DetectedBadgeTextStyle}"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                               Text="The entity belongs to a team. Users must be members of that team to access it (Admin / Member roles)."/>
+
+                                    <StackPanel Visibility="{Binding IsTeam, Converter={StaticResource BoolToVisConverter}}">
+                                        <Border Margin="0,10,0,8" Height="1" Background="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
+
+                                        <StackPanel Visibility="{Binding UseFileGenerator, Converter={StaticResource BoolToVisConverter}}">
+                                            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="TEAM PARAMETERS" Margin="0,0,0,6"/>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="10"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <materialDesign:NumericUpDown Style="{StaticResource MaterialDesignFilledNumericUpDown}"
+                                                                                  materialDesign:HintAssist.Hint="Team Type ID"
+                                                                                  Value="{Binding TeamTypeId}"/>
                                                     <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                                               Text="Parent team type from which this entity inherits in the hierarchy (e.g. Site). Leave empty if no inheritance."/>
+                                                               Text="ID in the TeamType table (e.g. 3 = Squad)."/>
                                                 </StackPanel>
+                                                <StackPanel Grid.Column="2">
+                                                    <materialDesign:NumericUpDown Style="{StaticResource MaterialDesignFilledNumericUpDown}"
+                                                                                  materialDesign:HintAssist.Hint="Team Role Type ID"
+                                                                                  Value="{Binding TeamRoleId}"/>
+                                                    <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                                               Text="ID in the RoleType table (e.g. 2 = Squad Role)."/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </StackPanel>
 
-                                                <!-- Team roles preview -->
-                                                <Border Style="{StaticResource PreviewBoxStyle}"
-                                                        Visibility="{Binding HasTeamRolesPreview, Converter={StaticResource BoolToVisConverter}}">
-                                                    <StackPanel>
-                                                        <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ ROLES THAT WILL BE ADDED"/>
-                                                        <TextBlock Style="{StaticResource PreviewValueStyle}" Text="{Binding TeamRolesPreview}"/>
-                                                    </StackPanel>
+                                        <StackPanel Margin="0,8,0,0">
+                                            <Grid>
+                                                <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                         materialDesign:HintAssist.Hint="Parent team type (optional)"
+                                                         Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged}"/>
+                                                <Border HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                        Margin="0,6,8,0" Style="{StaticResource DetectedBadgeStyle}"
+                                                        Visibility="{Binding IsDtoDetectedAncestorTeam, Converter={StaticResource BoolToVisConverter}}">
+                                                    <TextBlock Style="{StaticResource DetectedBadgeTextStyle}"/>
                                                 </Border>
-                                            </StackPanel>
+                                            </Grid>
+                                            <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                                       Text="Parent team type from which this entity inherits (e.g. Site). Leave empty if no inheritance."/>
                                         </StackPanel>
-                                    </Border>
 
-                                    <!-- Form Read-Only -->
-                                    <Border Grid.Column="2">
-                                        <Border.Style>
-                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding HasFormReadOnlyMode}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                        <Setter Property="BorderThickness" Value="1.5"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <StackPanel>
-                                            <CheckBox IsChecked="{Binding HasFormReadOnlyMode}">
-                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Read-only form"/>
-                                            </CheckBox>
-                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Generates a read-only display mode of the entity form (e.g. for view-only consultations)."/>
-
-                                            <StackPanel Visibility="{Binding HasFormReadOnlyMode, Converter={StaticResource BoolToVisConverter}}">
-                                                <Border Margin="0,10,0,8" Height="1" Background="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
-                                                <TextBlock Style="{StaticResource SubFieldLabelStyle}" Text="Mode"/>
-                                                <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                                           Text="Choose between read-only everywhere or only on the detail page."/>
-                                                <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
-                                                          Margin="0,2,0,0"
-                                                          ItemsSource="{Binding FormReadOnlyModes}"
-                                                          SelectedValue="{Binding SelectedFormReadOnlyMode}"/>
+                                        <Border Style="{StaticResource PreviewBoxStyle}"
+                                                Visibility="{Binding HasTeamRolesPreview, Converter={StaticResource BoolToVisConverter}}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ ROLES THAT WILL BE ADDED"/>
+                                                <TextBlock Style="{StaticResource PreviewValueStyle}" Text="{Binding TeamRolesPreview}"/>
                                             </StackPanel>
-                                        </StackPanel>
-                                    </Border>
-                                </Grid>
-                            </TabItem>
-
-                            <!-- ==== Tab: Relations ==== -->
-                            <TabItem>
-                                <TabItem.Header>
-                                    <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Kind="LinkVariant" Height="16" Width="16" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Relations" Margin="6,0,0,0" VerticalAlignment="Center"/>
-                                        <Border Margin="6,0,0,0" Padding="5,1" CornerRadius="8"
-                                                Background="{DynamicResource MaterialDesign.Brush.Primary}"
-                                                Visibility="{Binding HasRelationsActive, Converter={StaticResource BoolToVisConverter}}">
-                                            <TextBlock Text="{Binding RelationsActiveCount}" FontSize="10" FontWeight="SemiBold" Foreground="White"/>
                                         </Border>
-                                    </StackPanel>
-                                </TabItem.Header>
 
-                                <Grid Margin="0,10,0,0">
-                                    <!-- Parent (HasParent) -->
-                                    <Border>
-                                        <Border.Style>
-                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding HasParent}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                        <Setter Property="BorderThickness" Value="1.5"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <StackPanel>
-                                            <CheckBox IsChecked="{Binding HasParent, UpdateSourceTrigger=PropertyChanged}"
-                                                      IsEnabled="{Binding IsCheckboxParentEnable}">
-                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Parent entity"/>
-                                            </CheckBox>
-                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Indicates that this entity is attached to a parent entity (e.g. a Plane belongs to a Site). Parent Admin/Member roles are added to permissions."/>
-
-                                            <StackPanel Visibility="{Binding HasParent, Converter={StaticResource BoolToVisConverter}}">
-                                                <Border Margin="0,10,0,8" Height="1" Background="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="10"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <StackPanel Grid.Column="0">
-                                                        <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
-                                                                 materialDesign:HintAssist.Hint="Parent name (singular)"
-                                                                 Text="{Binding ParentName, UpdateSourceTrigger=PropertyChanged}"/>
-                                                        <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                                                   Text="Parent entity name (e.g. Site, Airport)."/>
-                                                    </StackPanel>
-                                                    <StackPanel Grid.Column="2">
-                                                        <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
-                                                                 materialDesign:HintAssist.Hint="Plural"
-                                                                 Text="{Binding ParentNamePlural, UpdateSourceTrigger=PropertyChanged}"/>
-                                                        <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                                                   Text="Parent plural (auto-derived, editable)."/>
-                                                    </StackPanel>
-                                                </Grid>
-
-                                                <CheckBox Margin="0,8,0,0" IsChecked="{Binding HasFixableParent}">
-                                                    <StackPanel>
-                                                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="Fixable Parent"/>
-                                                        <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                                   Text="Lets the user pin a row at the parent level (useful for filtered views)."/>
-                                                    </StackPanel>
-                                                </CheckBox>
-
-                                                <Border Style="{StaticResource PreviewBoxStyle}"
-                                                        Visibility="{Binding HasParentRolesPreview, Converter={StaticResource BoolToVisConverter}}">
-                                                    <StackPanel>
-                                                        <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ ROLES THAT WILL BE ADDED"/>
-                                                        <TextBlock Style="{StaticResource PreviewValueStyle}" Text="{Binding ParentRolesPreview}"/>
-                                                    </StackPanel>
-                                                </Border>
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </Border>
-                                </Grid>
-                            </TabItem>
-
-                            <!-- ==== Tab: Integrations ==== -->
-                            <TabItem>
-                                <TabItem.Header>
-                                    <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Kind="PuzzleOutline" Height="16" Width="16" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Integrations" Margin="6,0,0,0" VerticalAlignment="Center"/>
-                                        <Border Margin="6,0,0,0" Padding="5,1" CornerRadius="8"
-                                                Background="{DynamicResource MaterialDesign.Brush.Primary}"
-                                                Visibility="{Binding HasIntegrationsActive, Converter={StaticResource BoolToVisConverter}}">
-                                            <TextBlock Text="{Binding IntegrationsActiveCount}" FontSize="10" FontWeight="SemiBold" Foreground="White"/>
-                                        </Border>
-                                    </StackPanel>
-                                </TabItem.Header>
-
-                                <Grid Margin="0,10,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="8"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="8"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <!-- Import -->
-                                    <Border Grid.Column="0">
-                                        <Border.Style>
-                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding UseImport}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                        <Setter Property="BorderThickness" Value="1.5"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <StackPanel>
-                                            <CheckBox IsChecked="{Binding UseImport}">
-                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Import"/>
-                                            </CheckBox>
-                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Adds a CSV/Excel import endpoint on the API side and an ImportDialogComponent on the Angular side."/>
-                                        </StackPanel>
-                                    </Border>
-
-                                    <!-- Hub Client -->
-                                    <Border Grid.Column="2">
-                                        <Border.Style>
-                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding UseHubClient}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                        <Setter Property="BorderThickness" Value="1.5"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <StackPanel>
-                                            <CheckBox IsChecked="{Binding UseHubClient}">
-                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Hub client (SignalR)"/>
-                                            </CheckBox>
-                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Real-time sync: when a user edits a row, the other users see the change instantly."/>
-                                        </StackPanel>
-                                    </Border>
-
-                                    <!-- Use Domain URL (V6+) -->
-                                    <Border Grid.Column="4"
-                                            Visibility="{Binding IsProjectCompatibleV6, Converter={StaticResource BoolToVisConverter}}">
-                                        <Border.Style>
-                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding UseDomainUrl}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                        <Setter Property="BorderThickness" Value="1.5"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <StackPanel>
-                                            <CheckBox IsChecked="{Binding UseDomainUrl}">
+                                        <Border Style="{StaticResource MockupBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
                                                 <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Domain URL"/>
-                                                    <Border Margin="8,0,0,0" Padding="4,1" CornerRadius="3"
-                                                            Background="{DynamicResource MaterialDesign.Brush.Primary}"
-                                                            VerticalAlignment="Center">
-                                                        <TextBlock Text="V6+" FontSize="9" FontWeight="SemiBold" Foreground="White"/>
-                                                    </Border>
+                                                    <materialDesign:PackIcon Kind="AccountGroup" Width="14" Height="14" VerticalAlignment="Center"
+                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11"
+                                                               Text="Team selector + role-based access gate"/>
                                                 </StackPanel>
-                                            </CheckBox>
-                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Prefixes generated URLs with the domain name (e.g. /products/planes instead of /planes)."/>
-                                        </StackPanel>
-                                    </Border>
-                                </Grid>
-                            </TabItem>
-
-                            <!-- ==== Tab: Behavior ==== -->
-                            <TabItem>
-                                <TabItem.Header>
-                                    <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Kind="CogOutline" Height="16" Width="16" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Behavior" Margin="6,0,0,0" VerticalAlignment="Center"/>
-                                        <Border Margin="6,0,0,0" Padding="5,1" CornerRadius="8"
-                                                Background="{DynamicResource MaterialDesign.Brush.Primary}"
-                                                Visibility="{Binding HasBehaviorActive, Converter={StaticResource BoolToVisConverter}}">
-                                            <TextBlock Text="{Binding BehaviorActiveCount}" FontSize="10" FontWeight="SemiBold" Foreground="White"/>
+                                            </StackPanel>
                                         </Border>
                                     </StackPanel>
-                                </TabItem.Header>
+                                </StackPanel>
+                            </Border>
 
-                                <Grid Margin="0,10,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="8"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
+                            <!-- === Read-only form === -->
+                            <Border Grid.Column="2" Grid.Row="4">
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasFormReadOnlyMode}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding HasFormReadOnlyMode}">
+                                        <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Read-only form"/>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                               Text="Generates a read-only display mode of the entity form (e.g. for view-only consultations)."/>
 
-                                    <!-- Advanced Filter -->
-                                    <Border Grid.Column="0">
-                                        <Border.Style>
-                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding UseAdvancedFilter}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                        <Setter Property="BorderThickness" Value="1.5"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <StackPanel>
-                                            <CheckBox IsChecked="{Binding UseAdvancedFilter}">
-                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Advanced Filter"/>
-                                            </CheckBox>
-                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Advanced search panel on the Angular side (multiple operators, per-column filters, saved filters)."/>
+                                    <StackPanel Visibility="{Binding HasFormReadOnlyMode, Converter={StaticResource BoolToVisConverter}}">
+                                        <Border Margin="0,10,0,8" Height="1" Background="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
+                                        <TextBlock Style="{StaticResource SubFieldLabelStyle}" Text="Mode"/>
+                                        <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                                   Text="Choose between read-only everywhere or only on the detail page."/>
+                                        <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
+                                                  Margin="0,2,0,0"
+                                                  ItemsSource="{Binding FormReadOnlyModes}"
+                                                  SelectedValue="{Binding SelectedFormReadOnlyMode}"/>
+                                        <Border Style="{StaticResource MockupBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <materialDesign:PackIcon Kind="EyeOutline" Width="14" Height="14" VerticalAlignment="Center" Opacity="0.7"/>
+                                                    <TextBlock Margin="6,0" VerticalAlignment="Center" FontSize="11" Text="Fields disabled"/>
+                                                    <materialDesign:PackIcon Kind="PencilOutline" Width="14" Height="14" VerticalAlignment="Center"
+                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                    <TextBlock Margin="4,0,0,0" VerticalAlignment="Center" FontSize="11" Text=" “Edit” button"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!--#endregion-->
+
+                            <!--#region Row 6 · Parent | Import -->
+
+                            <!-- === Parent entity === -->
+                            <Border Grid.Column="0" Grid.Row="6">
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasParent}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding HasParent, UpdateSourceTrigger=PropertyChanged}"
+                                              IsEnabled="{Binding IsCheckboxParentEnable}">
+                                        <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Parent entity"/>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                               Text="Indicates that this entity is attached to a parent entity (e.g. a Plane belongs to a Site). Parent Admin/Member roles are added to permissions."/>
+
+                                    <StackPanel Visibility="{Binding HasParent, Converter={StaticResource BoolToVisConverter}}">
+                                        <Border Margin="0,10,0,8" Height="1" Background="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="10"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                         materialDesign:HintAssist.Hint="Parent name (singular)"
+                                                         Text="{Binding ParentName, UpdateSourceTrigger=PropertyChanged}"/>
+                                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                                           Text="Parent entity name (e.g. Site, Airport)."/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                         materialDesign:HintAssist.Hint="Plural"
+                                                         Text="{Binding ParentNamePlural, UpdateSourceTrigger=PropertyChanged}"/>
+                                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                                           Text="Parent plural (auto-derived, editable)."/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <CheckBox Margin="0,8,0,0" IsChecked="{Binding HasFixableParent}">
+                                            <StackPanel>
+                                                <TextBlock FontSize="12" FontWeight="SemiBold" Text="Fixable Parent"/>
+                                                <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                                           Text="Lets the user pin a row at the parent level (useful for filtered views)."/>
+                                            </StackPanel>
+                                        </CheckBox>
+
+                                        <Border Style="{StaticResource PreviewBoxStyle}"
+                                                Visibility="{Binding HasParentRolesPreview, Converter={StaticResource BoolToVisConverter}}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ ROLES THAT WILL BE ADDED"/>
+                                                <TextBlock Style="{StaticResource PreviewValueStyle}" Text="{Binding ParentRolesPreview}"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Style="{StaticResource MockupBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding ParentName, FallbackValue=Parent}" FontSize="11" Opacity="0.6"/>
+                                                    <materialDesign:PackIcon Kind="ChevronRight" Width="12" Height="12" VerticalAlignment="Center" Margin="2,0"/>
+                                                    <TextBlock Text="{Binding CRUDNameSingular, FallbackValue=Entity}" FontSize="11"
+                                                               Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="  ·  Parent picker" Margin="0,0,0,0" FontSize="11" Opacity="0.6"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- === Import === -->
+                            <Border Grid.Column="2" Grid.Row="6">
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding UseImport}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding UseImport}">
+                                        <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Import"/>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                               Text="Adds a CSV/Excel import endpoint on the API side and an ImportDialogComponent on the Angular side."/>
+                                    <StackPanel Visibility="{Binding UseImport, Converter={StaticResource BoolToVisConverter}}">
+                                        <Border Style="{StaticResource MockupBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <materialDesign:PackIcon Kind="UploadOutline" Width="14" Height="14" VerticalAlignment="Center"
+                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="“Import” button + drag-and-drop dialog"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!--#endregion-->
+
+                            <!--#region Row 8 · Hub Client | Advanced Filter -->
+
+                            <!-- === Hub Client === -->
+                            <Border Grid.Column="0" Grid.Row="8">
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding UseHubClient}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding UseHubClient}">
+                                        <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Hub client (SignalR)"/>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                               Text="Real-time sync: when a user edits a row, the other users see the change instantly."/>
+                                    <StackPanel Visibility="{Binding UseHubClient, Converter={StaticResource BoolToVisConverter}}">
+                                        <Border Style="{StaticResource MockupBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <materialDesign:PackIcon Kind="BellBadgeOutline" Width="14" Height="14" VerticalAlignment="Center"
+                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="Live toast: “John edited row #42”"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- === Advanced Filter === -->
+                            <Border Grid.Column="2" Grid.Row="8">
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding UseAdvancedFilter}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding UseAdvancedFilter}">
+                                        <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Advanced Filter"/>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                               Text="Advanced search panel on the Angular side (multiple operators, per-column filters, saved filters)."/>
+                                    <StackPanel Visibility="{Binding UseAdvancedFilter, Converter={StaticResource BoolToVisConverter}}">
+                                        <Border Style="{StaticResource MockupBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <materialDesign:PackIcon Kind="FilterOutline" Width="14" Height="14" VerticalAlignment="Center"
+                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="Side drawer with operator filters"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!--#endregion-->
+
+                            <!--#region Row 10 · Custom Repository | Domain URL -->
+
+                            <!-- === Custom Repository === -->
+                            <Border Grid.Column="0" Grid.Row="10">
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasCustomRepository}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding HasCustomRepository}">
+                                        <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Custom Repository"/>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                               Text="Generates a customizable Repository class where you can write specific EF queries (override of the generic Repository)."/>
+                                    <StackPanel Visibility="{Binding HasCustomRepository, Converter={StaticResource BoolToVisConverter}}">
+                                        <Border Style="{StaticResource MockupBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 GENERATED INTERFACE"/>
+                                                <TextBlock FontFamily="Consolas" FontSize="11">
+                                                    <Run Text="interface " Foreground="Gray"/><Run Text="I" Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/><Run Text="{Binding CRUDNameSingular, Mode=OneWay, FallbackValue=Entity}" Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/><Run Text="Repository" Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- === Domain URL (V6+) === -->
+                            <Border Grid.Column="2" Grid.Row="10"
+                                    Visibility="{Binding IsProjectCompatibleV6, Converter={StaticResource BoolToVisConverter}}">
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding UseDomainUrl}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding UseDomainUrl}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Domain URL"/>
+                                            <Border Margin="8,0,0,0" Padding="4,1" CornerRadius="3"
+                                                    Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="V6+" FontSize="9" FontWeight="SemiBold" Foreground="White"/>
+                                            </Border>
                                         </StackPanel>
-                                    </Border>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                               Text="Prefixes generated URLs with the domain name (e.g. /products/planes instead of /planes)."/>
+                                    <StackPanel Visibility="{Binding UseDomainUrl, Converter={StaticResource BoolToVisConverter}}">
+                                        <Border Style="{StaticResource MockupBoxStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 GENERATED URL"/>
+                                                <TextBlock FontFamily="Consolas" FontSize="11">
+                                                    <Run Text="/"/><Run Text="{Binding Domain, Mode=OneWay, FallbackValue=domain}" Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/><Run Text="/"/><Run Text="{Binding CRUDNamePlural, Mode=OneWay, FallbackValue=entities}" Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
 
-                                    <!-- Custom Repository -->
-                                    <Border Grid.Column="2">
-                                        <Border.Style>
-                                            <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding HasCustomRepository}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                        <Setter Property="BorderThickness" Value="1.5"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <StackPanel>
-                                            <CheckBox IsChecked="{Binding HasCustomRepository}">
-                                                <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Custom Repository"/>
-                                            </CheckBox>
-                                            <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
-                                                       Text="Generates a customizable Repository class where you can write specific EF queries (override of the generic Repository)."/>
-                                        </StackPanel>
-                                    </Border>
-                                </Grid>
-                            </TabItem>
-
-                        </TabControl>
+                            <!--#endregion-->
+                        </Grid>
                     </StackPanel>
                 </Border>
             </StackPanel>

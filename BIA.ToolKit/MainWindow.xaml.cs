@@ -7,6 +7,7 @@ namespace BIA.ToolKit
     using System.Windows.Input;
     using System.Windows.Interop;
     using System.Windows.Media;
+    using System.Windows.Threading;
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.ViewModels;
@@ -110,6 +111,50 @@ namespace BIA.ToolKit
 
             UpdateMaximizeIcon();
         }
+
+        #region DEV mode — 7 successive logo clicks (<2s apart) to toggle ON
+
+        private const int DevModeClickThreshold = 7;
+        private const int DevModeClickResetMs = 2000;
+        private int logoClickCount;
+        private DispatcherTimer logoClickResetTimer;
+
+        private void LogoClick(object sender, MouseButtonEventArgs e)
+        {
+            if (ViewModel?.AppSession == null || ViewModel.AppSession.IsDeveloperMode)
+                return;
+
+            logoClickCount++;
+            logoClickResetTimer ??= new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(DevModeClickResetMs) };
+            logoClickResetTimer.Tick -= LogoClickResetTimer_Tick;
+            logoClickResetTimer.Tick += LogoClickResetTimer_Tick;
+            logoClickResetTimer.Stop();
+            logoClickResetTimer.Start();
+
+            if (logoClickCount >= DevModeClickThreshold)
+            {
+                logoClickCount = 0;
+                logoClickResetTimer.Stop();
+                ViewModel.AppSession.IsDeveloperMode = true;
+                consoleWriterInstance?.AddMessageLine("DEV mode enabled — all hidden features are now visible.", "Orange");
+            }
+        }
+
+        private void LogoClickResetTimer_Tick(object sender, EventArgs e)
+        {
+            logoClickCount = 0;
+            logoClickResetTimer.Stop();
+        }
+
+        private void ExitDevClick(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel?.AppSession == null)
+                return;
+            ViewModel.AppSession.IsDeveloperMode = false;
+            consoleWriterInstance?.AddMessageLine("DEV mode disabled.", "Gray");
+        }
+
+        #endregion
 
         private void MinimizeClick(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 

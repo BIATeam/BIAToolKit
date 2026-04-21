@@ -45,11 +45,18 @@ namespace BIA.ToolKit.ViewModels
         private List<FeatureGenerationSettings> frontSettingsList = [];
 
         /// <summary>
+        /// Shared app session (DEV mode flag). Exposed so XAML can bind via
+        /// AppSession.IsDeveloperMode.
+        /// </summary>
+        public BIA.ToolKit.Helper.AppSessionService AppSession { get; }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         public CRUDGeneratorViewModel(CSharpParserService parserService, ZipParserService zipService, GenerateCrudService crudService,
             SettingsService settingsService, IConsoleWriter consoleWriter,
-            FileGeneratorService fileGeneratorService, IDialogService dialogService)
+            FileGeneratorService fileGeneratorService, IDialogService dialogService,
+            BIA.ToolKit.Helper.AppSessionService appSession)
         {
             this.parserService = parserService;
             this.zipService = zipService;
@@ -58,6 +65,7 @@ namespace BIA.ToolKit.ViewModels
             this.consoleWriter = consoleWriter;
             this.fileGeneratorService = fileGeneratorService;
             this.dialogService = dialogService;
+            AppSession = appSession;
 
             OptionItems = [];
             ZipFeatureTypeList = [];
@@ -524,6 +532,27 @@ namespace BIA.ToolKit.ViewModels
         [ObservableProperty]
         private bool useDomainUrl;
 
+        // --- "Detected from DTO" snapshot flags ---
+        // Captured at DTO parse time from EntityInfo. Independent of the
+        // user-toggleable IsVersioned/IsArchivable/... flags (the user can
+        // turn a feature off, but the badge should still reflect that we
+        // detected it in the DTO heritage).
+
+        [ObservableProperty]
+        private bool isDtoDetectedVersioned;
+
+        [ObservableProperty]
+        private bool isDtoDetectedArchivable;
+
+        [ObservableProperty]
+        private bool isDtoDetectedFixable;
+
+        [ObservableProperty]
+        private bool isDtoDetectedTeam;
+
+        [ObservableProperty]
+        private bool isDtoDetectedAncestorTeam;
+
         #endregion
 
         #region ZipFile
@@ -923,6 +952,14 @@ namespace BIA.ToolKit.ViewModels
             IsArchivable = DtoEntity?.IsArchivable == true;
             AncestorTeam = DtoEntity?.AncestorTeamName;
             SelectedBaseKeyType = DtoEntity?.BaseKeyType;
+
+            // Snapshot detection flags so the "detected from DTO" badges
+            // stay accurate even if the user toggles the feature off.
+            IsDtoDetectedTeam = DtoEntity?.IsTeam == true;
+            IsDtoDetectedVersioned = DtoEntity?.IsVersioned == true;
+            IsDtoDetectedFixable = DtoEntity?.IsFixable == true;
+            IsDtoDetectedArchivable = DtoEntity?.IsArchivable == true;
+            IsDtoDetectedAncestorTeam = DtoEntity?.HasAncestorTeam == true;
             var isBackSelected = IsWebApiAvailable;
             var isFrontSelected = IsFrontAvailable;
 

@@ -53,6 +53,7 @@ namespace BIA.ToolKit
             services.AddSingleton<Application.Services.RegenerateFeatures.FeatureMigrationGeneratorService>();
             services.AddSingleton<Application.Services.RegenerateFeatures.RegenerationOrchestrationService>();
             services.AddSingleton<ProjectViewModel>();
+            services.AddSingleton<AppSessionService>();
             services.AddLogging();
 
             // ViewModels
@@ -61,7 +62,15 @@ namespace BIA.ToolKit
             services.AddTransient<ModifyProjectViewModel>();
             services.AddTransient<OptionGeneratorViewModel>();
             services.AddTransient<DtoGeneratorViewModel>();
-            services.AddTransient<CRUDGeneratorViewModel>();
+            services.AddTransient<CRUDGeneratorViewModel>(sp => new CRUDGeneratorViewModel(
+                sp.GetRequiredService<CSharpParserService>(),
+                sp.GetRequiredService<ZipParserService>(),
+                sp.GetRequiredService<GenerateCrudService>(),
+                sp.GetRequiredService<SettingsService>(),
+                sp.GetRequiredService<IConsoleWriter>(),
+                sp.GetRequiredService<FileGeneratorService>(),
+                sp.GetRequiredService<IDialogService>(),
+                sp.GetRequiredService<AppSessionService>()));
             services.AddTransient<RegenerateFeaturesViewModel>();
             services.AddTransient<MainViewModel>(sp => new MainViewModel(
                 Assembly.GetExecutingAssembly().GetName().Version,
@@ -72,7 +81,8 @@ namespace BIA.ToolKit
                 sp.GetRequiredService<ProjectCreatorService>(),
                 sp.GetRequiredService<UpdateService>(),
                 sp.GetRequiredService<CSharpParserService>(),
-                sp.GetRequiredService<IDialogService>()));
+                sp.GetRequiredService<IDialogService>(),
+                sp.GetRequiredService<AppSessionService>()));
 
             // Infrastructure
             services.AddSingleton<IDialogService, DialogService>();
