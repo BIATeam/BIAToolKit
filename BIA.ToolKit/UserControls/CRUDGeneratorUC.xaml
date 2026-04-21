@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:BIA.ToolKit.ViewModels"
+             xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:CRUDGeneratorViewModel, IsDesignTimeCreatable=False}"
@@ -632,16 +633,7 @@
                                                            Text="→ Fix() action on controller · {Entity}_Fix permission added"/>
                                             </StackPanel>
                                         </Border>
-                                        <Border Style="{StaticResource MockupBoxStyle}">
-                                            <StackPanel>
-                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <materialDesign:PackIcon Kind="PinOutline" Width="14" Height="14" VerticalAlignment="Center"
-                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="Pinned rows stay at the top"/>
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Border>
+                                        <uc:FeaturePreviewVideo FeatureName="fixable"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
@@ -680,16 +672,7 @@
                                                            Text="→ {Entity}HistoricalComponent · /historical endpoint"/>
                                             </StackPanel>
                                         </Border>
-                                        <Border Style="{StaticResource MockupBoxStyle}">
-                                            <StackPanel>
-                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <materialDesign:PackIcon Kind="TimelineTextOutline" Width="14" Height="14" VerticalAlignment="Center"
-                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="“History” tab with vertical timeline"/>
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Border>
+                                        <uc:FeaturePreviewVideo FeatureName="show-history"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
@@ -818,18 +801,7 @@
                                                   Margin="0,2,0,0"
                                                   ItemsSource="{Binding FormReadOnlyModes}"
                                                   SelectedValue="{Binding SelectedFormReadOnlyMode}"/>
-                                        <Border Style="{StaticResource MockupBoxStyle}">
-                                            <StackPanel>
-                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <materialDesign:PackIcon Kind="EyeOutline" Width="14" Height="14" VerticalAlignment="Center" Opacity="0.7"/>
-                                                    <TextBlock Margin="6,0" VerticalAlignment="Center" FontSize="11" Text="Fields disabled"/>
-                                                    <materialDesign:PackIcon Kind="PencilOutline" Width="14" Height="14" VerticalAlignment="Center"
-                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                    <TextBlock Margin="4,0,0,0" VerticalAlignment="Center" FontSize="11" Text=" “Edit” button"/>
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Border>
+                                        <uc:FeaturePreviewVideo FeatureName="form-readonly"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
@@ -910,6 +882,8 @@
                                                 </StackPanel>
                                             </StackPanel>
                                         </Border>
+                                        <uc:FeaturePreviewVideo FeatureName="fixable-parent"
+                                                                Visibility="{Binding HasFixableParent, Converter={StaticResource BoolToVisConverter}}"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
@@ -933,16 +907,7 @@
                                     <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
                                                Text="Adds a CSV/Excel import endpoint on the API side and an ImportDialogComponent on the Angular side."/>
                                     <StackPanel Visibility="{Binding UseImport, Converter={StaticResource BoolToVisConverter}}">
-                                        <Border Style="{StaticResource MockupBoxStyle}">
-                                            <StackPanel>
-                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <materialDesign:PackIcon Kind="UploadOutline" Width="14" Height="14" VerticalAlignment="Center"
-                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="“Import” button + drag-and-drop dialog"/>
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Border>
+                                        <uc:FeaturePreviewVideo FeatureName="import"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
@@ -1003,16 +968,7 @@
                                     <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
                                                Text="Advanced search panel on the Angular side (multiple operators, per-column filters, saved filters)."/>
                                     <StackPanel Visibility="{Binding UseAdvancedFilter, Converter={StaticResource BoolToVisConverter}}">
-                                        <Border Style="{StaticResource MockupBoxStyle}">
-                                            <StackPanel>
-                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <materialDesign:PackIcon Kind="FilterOutline" Width="14" Height="14" VerticalAlignment="Center"
-                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="Side drawer with operator filters"/>
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Border>
+                                        <uc:FeaturePreviewVideo FeatureName="advanced-filter"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>

@@ -83,6 +83,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Content Include="Resources\Previews\**\*.mp4">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Resources\Previews\**\*.webm">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Resources\Previews\**\*.wmv">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\BIA.ToolKit.Application\BIA.ToolKit.Application.csproj" />
 	</ItemGroup>
 
