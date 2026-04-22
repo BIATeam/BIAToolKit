@@ -4,15 +4,19 @@ namespace BIA.ToolKit.UserControls
     using System.IO;
     using System.Windows;
     using System.Windows.Controls;
+    using BIA.ToolKit.Dialogs;
 
     /// <summary>
-    /// Self-contained looping video preview for a CRUD feature tile.
-    /// Resolves its source from Resources/Previews/{FeatureName}.(mp4|webm);
-    /// hides itself silently if no matching file is bundled.
+    /// Compact "Watch demo" button for a CRUD feature tile. Resolves its source
+    /// from Resources/Previews/{FeatureName}.(mp4|webm|wmv) and hides itself
+    /// silently if no matching file is bundled. Clicking opens a modal preview
+    /// window sized to 80% of the main window.
     /// </summary>
     public partial class FeaturePreviewVideo : UserControl
     {
         private static readonly string[] SupportedExtensions = [".mp4", ".webm", ".wmv"];
+
+        private Uri resolvedSource;
 
         public FeaturePreviewVideo()
         {
@@ -39,9 +43,11 @@ namespace BIA.ToolKit.UserControls
 
         private void ResolveSource()
         {
+            resolvedSource = null;
+
             if (string.IsNullOrWhiteSpace(FeatureName))
             {
-                Container.Visibility = Visibility.Collapsed;
+                PlayButton.Visibility = Visibility.Collapsed;
                 return;
             }
 
@@ -51,44 +57,23 @@ namespace BIA.ToolKit.UserControls
                 var candidate = Path.Combine(previewsDir, FeatureName + ext);
                 if (File.Exists(candidate))
                 {
-                    PreviewMedia.Source = new Uri(candidate, UriKind.Absolute);
-                    Container.Visibility = Visibility.Visible;
+                    resolvedSource = new Uri(candidate, UriKind.Absolute);
+                    PlayButton.Visibility = Visibility.Visible;
                     return;
                 }
             }
 
-            Container.Visibility = Visibility.Collapsed;
+            PlayButton.Visibility = Visibility.Collapsed;
         }
 
-        private void Media_OnLoaded(object sender, RoutedEventArgs e)
+        private void OnPlayClick(object sender, RoutedEventArgs e)
         {
-            if (PreviewMedia.Source != null)
+            if (resolvedSource == null)
             {
-                PreviewMedia.Position = TimeSpan.Zero;
-                PreviewMedia.Play();
+                return;
             }
-        }
 
-        private void Media_OnUnloaded(object sender, RoutedEventArgs e)
-        {
-            PreviewMedia.Pause();
-        }
-
-        private void Media_OnOpened(object sender, RoutedEventArgs e)
-        {
-            PreviewMedia.Play();
-        }
-
-        private void Media_OnEnded(object sender, RoutedEventArgs e)
-        {
-            PreviewMedia.Position = TimeSpan.Zero;
-            PreviewMedia.Play();
-        }
-
-        private void Media_OnFailed(object sender, ExceptionRoutedEventArgs e)
-        {
-            // Codec missing or file corrupt — fail silently, hide the block.
-            Container.Visibility = Visibility.Collapsed;
+            VideoPreviewWindow.Show(Window.GetWindow(this), resolvedSource);
         }
     }
 }

@@ -536,15 +536,6 @@
                                                 </TextBlock>
                                             </StackPanel>
                                         </Border>
-                                        <Border Style="{StaticResource MockupBoxStyle}">
-                                            <StackPanel>
-                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <materialDesign:PackIcon Kind="AccountCircle" Width="14" Height="14" VerticalAlignment="Center" Opacity="0.8"/>
-                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="admin · 2 min ago · edited Name"/>
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Border>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
@@ -579,18 +570,6 @@
                                                 <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ WHAT WILL BE GENERATED"/>
                                                 <TextBlock Style="{StaticResource PreviewValueStyle}"
                                                            Text="→ IsDeleted column added · Delete becomes UPDATE IsDeleted=true"/>
-                                            </StackPanel>
-                                        </Border>
-                                        <Border Style="{StaticResource MockupBoxStyle}">
-                                            <StackPanel>
-                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <materialDesign:PackIcon Kind="DeleteOutline" Width="14" Height="14" VerticalAlignment="Center" Opacity="0.3"/>
-                                                    <TextBlock Margin="4,0" Text="→" VerticalAlignment="Center" Opacity="0.5"/>
-                                                    <materialDesign:PackIcon Kind="PackageDown" Width="14" Height="14" VerticalAlignment="Center"
-                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="Archive replaces Delete"/>
-                                                </StackPanel>
                                             </StackPanel>
                                         </Border>
                                     </StackPanel>
@@ -758,17 +737,6 @@
                                             </StackPanel>
                                         </Border>
 
-                                        <Border Style="{StaticResource MockupBoxStyle}">
-                                            <StackPanel>
-                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <materialDesign:PackIcon Kind="AccountGroup" Width="14" Height="14" VerticalAlignment="Center"
-                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11"
-                                                               Text="Team selector + role-based access gate"/>
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Border>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
@@ -870,18 +838,6 @@
                                             </StackPanel>
                                         </Border>
 
-                                        <Border Style="{StaticResource MockupBoxStyle}">
-                                            <StackPanel>
-                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding ParentName, FallbackValue=Parent}" FontSize="11" Style="{StaticResource Text.Caption}"/>
-                                                    <materialDesign:PackIcon Kind="ChevronRight" Width="12" Height="12" VerticalAlignment="Center" Margin="2,0"/>
-                                                    <TextBlock Text="{Binding CRUDNameSingular, FallbackValue=Entity}" FontSize="11"
-                                                               Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
-                                                    <TextBlock Text="  ·  Parent picker" Margin="0,0,0,0" FontSize="11" Style="{StaticResource Text.Caption}"/>
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Border>
                                         <uc:FeaturePreviewVideo FeatureName="fixable-parent"
                                                                 Visibility="{Binding HasFixableParent, Converter={StaticResource BoolToVisConverter}}"/>
                                     </StackPanel>
@@ -934,18 +890,6 @@
                                     </CheckBox>
                                     <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
                                                Text="Real-time sync: when a user edits a row, the other users see the change instantly."/>
-                                    <StackPanel Visibility="{Binding UseHubClient, Converter={StaticResource BoolToVisConverter}}">
-                                        <Border Style="{StaticResource MockupBoxStyle}">
-                                            <StackPanel>
-                                                <TextBlock Style="{StaticResource MockupLabelStyle}" Text="🎨 ANGULAR UI PREVIEW"/>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <materialDesign:PackIcon Kind="BellBadgeOutline" Width="14" Height="14" VerticalAlignment="Center"
-                                                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11" Text="Live toast: “John edited row #42”"/>
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Border>
-                                    </StackPanel>
                                 </StackPanel>
                             </Border>
 
