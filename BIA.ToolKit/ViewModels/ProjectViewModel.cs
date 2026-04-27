@@ -22,7 +22,8 @@ namespace BIA.ToolKit.ViewModels
     /// Manages project selection, loading, and parsed project state.
     /// </summary>
     public partial class ProjectViewModel : ObservableObject,
-        IRecipient<SettingsUpdatedMessage>
+        IRecipient<SettingsUpdatedMessage>,
+        IRecipient<EntityGenerationCompletedMessage>
     {
         private readonly FileGeneratorService fileGeneratorService;
         private readonly SettingsService settingsService;
@@ -39,6 +40,8 @@ namespace BIA.ToolKit.ViewModels
         }
 
         public void Receive(SettingsUpdatedMessage message) => EventBroker_OnSettingsUpdated(message.Settings);
+
+        public void Receive(EntityGenerationCompletedMessage message) => RefreshProjectInformations();
 
         private void EventBroker_OnSettingsUpdated(IBIATKSettings settings)
         {

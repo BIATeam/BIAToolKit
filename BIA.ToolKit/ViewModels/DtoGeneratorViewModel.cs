@@ -331,6 +331,8 @@ namespace BIA.ToolKit.ViewModels
                     GenerateBack = true,
                     HasAudit = UseDedicatedAudit
                 });
+
+                WeakReferenceMessenger.Default.Send(new EntityGenerationCompletedMessage());
             }));
         }
 

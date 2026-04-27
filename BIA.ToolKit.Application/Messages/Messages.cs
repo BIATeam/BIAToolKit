@@ -14,6 +14,8 @@ namespace BIA.ToolKit.Application.Messages
 
     public sealed record SolutionClassesParsedMessage;
 
+    public sealed record EntityGenerationCompletedMessage;
+
     // --- Settings ---
 
     public sealed record SettingsUpdatedMessage(IBIATKSettings Settings);

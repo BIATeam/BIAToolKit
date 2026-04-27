@@ -662,6 +662,7 @@ namespace BIA.ToolKit.ViewModels
                     });
 
                     UpdateCrudGenerationHistory();
+                    WeakReferenceMessenger.Default.Send(new EntityGenerationCompletedMessage());
                     return;
                 }
 
@@ -686,6 +687,8 @@ namespace BIA.ToolKit.ViewModels
                 UpdateCrudGenerationHistory();
 
                 consoleWriter.AddMessageLine($"End of '{CRUDNameSingular}' generation.", "Blue");
+
+                WeakReferenceMessenger.Default.Send(new EntityGenerationCompletedMessage());
             }));
         }
 
