@@ -452,6 +452,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
 
             foreach (string file in csharpFiles)
             {
+                ct.ThrowIfCancellationRequested();
                 if (FileTransform.OrderUsingFromFile(file))
                 {
                     _consoleWriter.AddMessageLine($"-> Usings ordered in {file}", "green");
