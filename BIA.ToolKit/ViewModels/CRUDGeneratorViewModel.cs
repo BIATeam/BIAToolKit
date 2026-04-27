@@ -137,6 +137,13 @@ namespace BIA.ToolKit.ViewModels
                     OnPropertyChanged(nameof(IsPluralAutoDerived));
                     break;
             }
+
+            // Whenever the button-enable flag flips, refresh its tooltip too so
+            // the user sees up-to-date "what's missing" hints when hovering.
+            if (e.PropertyName == nameof(IsButtonGenerateCrudEnable))
+            {
+                OnPropertyChanged(nameof(GenerateButtonTooltip));
+            }
         }
 
         #region CurrentProject
@@ -568,22 +575,49 @@ namespace BIA.ToolKit.ViewModels
             }
         }
 
-        public bool IsButtonGenerateCrudEnable
+        public bool IsButtonGenerateCrudEnable => GenerationBlockingReasons.Count == 0;
+
+        // Lists all the required-input failures preventing generation. Surfaced
+        // as a tooltip on the disabled Generate button so the user sees what
+        // to fix without reverse-engineering the boolean chain.
+        public List<string> GenerationBlockingReasons
         {
             get
             {
-                return IsDtoParsed
-                    && !string.IsNullOrWhiteSpace(CRUDNameSingular)
-                    && !string.IsNullOrWhiteSpace(CRUDNamePlural)
-                    && !string.IsNullOrEmpty(Domain)
-                    && (!string.IsNullOrWhiteSpace(DtoDisplayItemSelected) || ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option))
-                    && ((IsWebApiSelected && !IsFrontSelected) || (IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)) || (!IsWebApiSelected && IsFrontSelected && !string.IsNullOrWhiteSpace(BiaFront)))
-                    && !string.IsNullOrEmpty(FeatureNameSelected)
-                    && (!HasParent || (HasParent && !string.IsNullOrEmpty(ParentName) && !string.IsNullOrEmpty(ParentNamePlural)))
-                    && (!IsTeam || (IsTeam && !UseFileGenerator) || (UseFileGenerator && IsTeam && TeamRoleId > 0 && TeamTypeId > 0))
-                    && !string.IsNullOrWhiteSpace(SelectedBaseKeyType);
+                var reasons = new List<string>();
+
+                if (!IsDtoParsed)
+                    reasons.Add("Select a DTO Entity File.");
+                if (string.IsNullOrEmpty(FeatureNameSelected))
+                    reasons.Add("Choose a Feature to generate.");
+                if (string.IsNullOrWhiteSpace(SelectedBaseKeyType))
+                    reasons.Add("Choose a Base Key Type.");
+                if (string.IsNullOrEmpty(Domain))
+                    reasons.Add("Set the Domain.");
+                if (string.IsNullOrWhiteSpace(CRUDNameSingular))
+                    reasons.Add("Set the Name (singular).");
+                if (string.IsNullOrWhiteSpace(CRUDNamePlural))
+                    reasons.Add("Set the Plural.");
+                if (string.IsNullOrWhiteSpace(DtoDisplayItemSelected)
+                    && !ZipFeatureTypeList.Any(x => x.Feature == FeatureNameSelected && x.FeatureType == FeatureType.Option))
+                    reasons.Add("Select a Display property (the DTO must expose at least one string property).");
+                if (!IsWebApiSelected && !IsFrontSelected)
+                    reasons.Add("Tick at least one Generation Target (Web API or Angular Front).");
+                else if (IsFrontSelected && string.IsNullOrWhiteSpace(BiaFront))
+                    reasons.Add("Pick a BIA Front when Angular Front is targeted.");
+                if (HasParent && (string.IsNullOrEmpty(ParentName) || string.IsNullOrEmpty(ParentNamePlural)))
+                    reasons.Add("Set the Parent name and plural (Parent entity is enabled).");
+                if (IsTeam && UseFileGenerator && (TeamRoleId <= 0 || TeamTypeId <= 0))
+                    reasons.Add("Set Team Type ID and Team Role Type ID > 0 (Team is enabled).");
+
+                return reasons;
             }
         }
+
+        public string GenerateButtonTooltip =>
+            GenerationBlockingReasons.Count == 0
+                ? "Generate the selected feature for this entity."
+                : "Cannot generate yet — fix the following:\n• " + string.Join("\n• ", GenerationBlockingReasons);
         #endregion
 
         #region Team

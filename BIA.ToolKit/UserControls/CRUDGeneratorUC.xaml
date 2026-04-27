@@ -1059,7 +1059,10 @@
                             Style="{StaticResource Button.SecondaryAction}"
                             Height="40" Padding="16,0" MinWidth="150"
                             Command="{Binding GenerateCommand}"
-                            IsEnabled="{Binding IsButtonGenerateCrudEnable}">
+                            IsEnabled="{Binding IsButtonGenerateCrudEnable}"
+                            ToolTip="{Binding GenerateButtonTooltip}"
+                            ToolTipService.ShowOnDisabled="True"
+                            ToolTipService.InitialShowDelay="200">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <materialDesign:PackIcon Kind="FlashOutline" Height="20" Width="20" VerticalAlignment="Center"/>
                             <TextBlock Text="Generate" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>

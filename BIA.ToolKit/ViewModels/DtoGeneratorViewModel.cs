@@ -60,6 +60,16 @@ namespace BIA.ToolKit.ViewModels
 
             // Subscribe to messenger events
             WeakReferenceMessenger.Default.RegisterAll(this);
+
+            // Keep the Generate button tooltip in sync with IsGenerationEnabled
+            // without having to dual-fire OnPropertyChanged on every callsite.
+            PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(IsGenerationEnabled))
+                {
+                    OnPropertyChanged(nameof(GenerateButtonTooltip));
+                }
+            };
         }
 
         public void Dispose()
@@ -184,10 +194,37 @@ namespace BIA.ToolKit.ViewModels
         public bool IsVersionedEnabled => IsEntitySelected && !IsTeam;
         public bool HasMappingProperties => MappingEntityProperties.Count > 0;
         public bool CanReorderMappingProperties => MappingEntityProperties.Count >= 2;
-        public bool IsGenerationEnabled =>
-            ((HasMappingProperties && MappingEntityProperties.All(x => x.IsValid) && MappingEntityProperties.Count == MappingEntityProperties.DistinctBy(x => x.MappingName).Count()) || !HasMappingProperties)
-            && !string.IsNullOrWhiteSpace(EntityDomain)
-            && !string.IsNullOrWhiteSpace(SelectedBaseKeyType);
+        public bool IsGenerationEnabled => GenerationBlockingReasons.Count == 0;
+
+        // Surfaces what is currently preventing generation. Bound to the
+        // Generate button tooltip so the user does not have to guess.
+        public List<string> GenerationBlockingReasons
+        {
+            get
+            {
+                var reasons = new List<string>();
+
+                if (!IsEntitySelected)
+                    reasons.Add("Select an Entity.");
+                if (string.IsNullOrWhiteSpace(EntityDomain))
+                    reasons.Add("Set the Domain.");
+                if (string.IsNullOrWhiteSpace(SelectedBaseKeyType))
+                    reasons.Add("Choose a Base Key Type.");
+                if (HasMappingProperties && !MappingEntityProperties.All(x => x.IsValid))
+                    reasons.Add("Fix invalid property mappings.");
+                if (HasMappingProperties && MappingEntityProperties.Count != MappingEntityProperties.DistinctBy(x => x.MappingName).Count())
+                    reasons.Add("Resolve duplicate mapping names.");
+                if (IsTeam && IsVisibleTeamRoleId && TeamRoleId == 0)
+                    reasons.Add("Set Team Role Type ID > 0 (Team is enabled on framework v7+).");
+
+                return reasons;
+            }
+        }
+
+        public string GenerateButtonTooltip =>
+            GenerationBlockingReasons.Count == 0
+                ? "Generate the DTO files for this entity."
+                : "Cannot generate yet — fix the following:\n• " + string.Join("\n• ", GenerationBlockingReasons);
         public bool IsAuditable => Entity?.IsAuditable == true;
         public bool IsVisibleUseDedicatedAudit => Version.TryParse(project?.FrameworkVersion, out Version version) && version.Major >= 6;
 
