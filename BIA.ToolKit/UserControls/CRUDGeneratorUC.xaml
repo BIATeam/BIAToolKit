@@ -1055,14 +1055,75 @@
                         </StackPanel>
                     </Button>
 
+                    <!-- Visual cue: warning hint shown next to the Generate
+                         button while it is blocked, inviting the user to hover
+                         it for the full breakdown. -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,8,0" VerticalAlignment="Center"
+                                Visibility="{Binding HasGenerationBlockingReasons, Converter={StaticResource BoolToVisConverter}}">
+                        <materialDesign:PackIcon Kind="AlertCircleOutline" Width="20" Height="20"
+                                                 Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                 VerticalAlignment="Center"/>
+                        <TextBlock Text="Hover Generate to see what's missing"
+                                   Margin="6,0,0,0"
+                                   FontStyle="Italic"
+                                   VerticalAlignment="Center"
+                                   Style="{StaticResource Text.Caption}"/>
+                    </StackPanel>
+
                     <Button x:Name="GenerateCrud"
                             Style="{StaticResource Button.SecondaryAction}"
                             Height="40" Padding="16,0" MinWidth="150"
                             Command="{Binding GenerateCommand}"
                             IsEnabled="{Binding IsButtonGenerateCrudEnable}"
-                            ToolTip="{Binding GenerateButtonTooltip}"
                             ToolTipService.ShowOnDisabled="True"
-                            ToolTipService.InitialShowDelay="200">
+                            ToolTipService.InitialShowDelay="200"
+                            ToolTipService.ShowDuration="30000">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource Tooltip.Hint}">
+                                <Grid MinWidth="280" MaxWidth="440">
+                                    <!-- Ready state -->
+                                    <StackPanel Orientation="Horizontal"
+                                                Visibility="{Binding PlacementTarget.DataContext.IsButtonGenerateCrudEnable,
+                                                                     RelativeSource={RelativeSource AncestorType=ToolTip},
+                                                                     Converter={StaticResource BoolToVisConverter}}">
+                                        <materialDesign:PackIcon Kind="CheckCircleOutline" Width="22" Height="22"
+                                                                 Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                                 VerticalAlignment="Center"/>
+                                        <TextBlock Text="Ready to generate the selected feature."
+                                                   Margin="8,0,0,0" VerticalAlignment="Center" FontSize="13"/>
+                                    </StackPanel>
+                                    <!-- Blocked state -->
+                                    <StackPanel Visibility="{Binding PlacementTarget.DataContext.HasGenerationBlockingReasons,
+                                                                     RelativeSource={RelativeSource AncestorType=ToolTip},
+                                                                     Converter={StaticResource BoolToVisConverter}}">
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                            <materialDesign:PackIcon Kind="AlertCircleOutline" Width="22" Height="22"
+                                                                     Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                                     VerticalAlignment="Center"/>
+                                            <TextBlock Text="Cannot generate yet"
+                                                       FontSize="14" FontWeight="SemiBold"
+                                                       Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Text="Please fix the following:"
+                                                   Margin="0,0,0,6"
+                                                   Style="{StaticResource Text.Caption}"/>
+                                        <ItemsControl ItemsSource="{Binding PlacementTarget.DataContext.GenerationBlockingReasons,
+                                                                            RelativeSource={RelativeSource AncestorType=ToolTip}}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                        <TextBlock Text="•" Margin="2,0,8,0" VerticalAlignment="Top"
+                                                                   Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                                   FontWeight="Bold"/>
+                                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" MaxWidth="380"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Grid>
+                            </ToolTip>
+                        </Button.ToolTip>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <materialDesign:PackIcon Kind="FlashOutline" Height="20" Width="20" VerticalAlignment="Center"/>
                             <TextBlock Text="Generate" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>

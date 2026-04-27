@@ -23,4 +23,31 @@
         <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
         <Setter Property="BorderThickness" Value="1"/>
     </Style>
+
+    <!-- Hint tooltip: rich, theme-coloured tooltip with a primary border so it
+         stands out from neutral surface backgrounds. Used for the Generate
+         button tooltips that explain blocking reasons. -->
+    <Style x:Key="Tooltip.Hint" TargetType="ToolTip">
+        <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Card.Background}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="14,12"/>
+        <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
+        <Setter Property="HasDropShadow" Value="True"/>
+        <Setter Property="Placement" Value="Top"/>
+        <Setter Property="VerticalOffset" Value="-6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToolTip">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>

@@ -138,11 +138,13 @@ namespace BIA.ToolKit.ViewModels
                     break;
             }
 
-            // Whenever the button-enable flag flips, refresh its tooltip too so
-            // the user sees up-to-date "what's missing" hints when hovering.
+            // Whenever the button-enable flag flips, refresh tooltip + the
+            // blocked-state visibility flag so the rich tooltip switches
+            // between its "ready" and "cannot generate yet" panels.
             if (e.PropertyName == nameof(IsButtonGenerateCrudEnable))
             {
                 OnPropertyChanged(nameof(GenerateButtonTooltip));
+                OnPropertyChanged(nameof(HasGenerationBlockingReasons));
             }
         }
 
@@ -613,6 +615,8 @@ namespace BIA.ToolKit.ViewModels
                 return reasons;
             }
         }
+
+        public bool HasGenerationBlockingReasons => GenerationBlockingReasons.Count > 0;
 
         public string GenerateButtonTooltip =>
             GenerationBlockingReasons.Count == 0

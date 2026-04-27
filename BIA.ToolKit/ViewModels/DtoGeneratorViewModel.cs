@@ -61,13 +61,15 @@ namespace BIA.ToolKit.ViewModels
             // Subscribe to messenger events
             WeakReferenceMessenger.Default.RegisterAll(this);
 
-            // Keep the Generate button tooltip in sync with IsGenerationEnabled
-            // without having to dual-fire OnPropertyChanged on every callsite.
+            // Keep the Generate button tooltip + blocked-state flag in sync
+            // with IsGenerationEnabled so the rich tooltip switches between
+            // its "ready" and "cannot generate yet" panels.
             PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(IsGenerationEnabled))
                 {
                     OnPropertyChanged(nameof(GenerateButtonTooltip));
+                    OnPropertyChanged(nameof(HasGenerationBlockingReasons));
                 }
             };
         }
@@ -220,6 +222,8 @@ namespace BIA.ToolKit.ViewModels
                 return reasons;
             }
         }
+
+        public bool HasGenerationBlockingReasons => GenerationBlockingReasons.Count > 0;
 
         public string GenerateButtonTooltip =>
             GenerationBlockingReasons.Count == 0
