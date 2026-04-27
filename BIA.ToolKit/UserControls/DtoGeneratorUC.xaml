@@ -312,7 +312,7 @@
                                 </Style>
                             </Border.Style>
                             <StackPanel>
-                                <CheckBox IsChecked="{Binding IsVersioned, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsEntitySelected}">
+                                <CheckBox IsChecked="{Binding IsVersioned, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsVersionedEnabled}">
                                     <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Versioned"/>
                                 </CheckBox>
                                 <TextBlock Style="{StaticResource FeatureDescriptionStyle}"

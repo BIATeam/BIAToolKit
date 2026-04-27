@@ -86,6 +86,7 @@ namespace BIA.ToolKit.ViewModels
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsEntitySelected))]
         [NotifyPropertyChangedFor(nameof(IsAuditable))]
+        [NotifyPropertyChangedFor(nameof(IsVersionedEnabled))]
         private EntityInfo entity;
 
         partial void OnEntityChanged(EntityInfo value)
@@ -108,8 +109,8 @@ namespace BIA.ToolKit.ViewModels
                 RefreshEntityPropertiesTreeView();
                 RemoveAllMappingProperties();
 
-                IsTeam = value?.IsTeam == true;
                 IsVersioned = value?.IsVersioned == true;
+                IsTeam = value?.IsTeam == true;
                 IsFixable = value?.IsFixable == true;
                 IsArchivable = value?.IsArchivable == true;
                 SelectedBaseKeyType = value?.BaseKeyType;
@@ -144,10 +145,21 @@ namespace BIA.ToolKit.ViewModels
         private bool wasAlreadyGenerated;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsVersionedEnabled))]
         private bool isTeam;
 
         [ObservableProperty]
         private bool isVersioned;
+
+        // Team requires Versioned: enabling Team forces Versioned on, and the
+        // Versioned checkbox is locked while Team is on.
+        partial void OnIsTeamChanged(bool value)
+        {
+            if (value)
+            {
+                IsVersioned = true;
+            }
+        }
 
         [ObservableProperty]
         private bool isArchivable;
@@ -166,6 +178,7 @@ namespace BIA.ToolKit.ViewModels
 
         public string ProjectDomainNamespace { get; private set; }
         public bool IsEntitySelected => Entity != null;
+        public bool IsVersionedEnabled => IsEntitySelected && !IsTeam;
         public bool HasMappingProperties => MappingEntityProperties.Count > 0;
         public bool CanReorderMappingProperties => MappingEntityProperties.Count >= 2;
         public bool IsGenerationEnabled =>
@@ -242,8 +255,8 @@ namespace BIA.ToolKit.ViewModels
             WasAlreadyGenerated = true;
             EntityDomain = generation.Domain;
             AncestorTeam = generation.AncestorTeam;
-            IsTeam = generation.IsTeam;
             IsVersioned = generation.IsVersioned;
+            IsTeam = generation.IsTeam;
             IsFixable = generation.IsFixable;
             IsArchivable = generation.IsArchivable;
             SelectedBaseKeyType = generation.EntityBaseKeyType;
