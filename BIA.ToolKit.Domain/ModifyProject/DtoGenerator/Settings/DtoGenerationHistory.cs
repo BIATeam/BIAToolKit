@@ -21,6 +21,7 @@ namespace BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings
         public string Domain { get; set; }
         public string AncestorTeam { get; set; }
         public bool IsTeam { get; set; }
+        public int TeamRoleId { get; set; }
         public bool IsVersioned { get; set; }
         public bool IsFixable { get; set; }
         public bool IsArchivable { get; set; }

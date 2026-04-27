@@ -1,0 +1,18 @@
+{
+  "_comment": "TODO: Fill with actual package version mappings extracted from V5 and V6 template projects",
+  "nuget": {
+    "BIA.Net.Core.Common": { "from": "5.*", "to": "6.*" },
+    "BIA.Net.Core.Domain": { "from": "5.*", "to": "6.*" },
+    "BIA.Net.Core.Domain.Dto": { "from": "5.*", "to": "6.*" },
+    "BIA.Net.Core.Application": { "from": "5.*", "to": "6.*" },
+    "BIA.Net.Core.Infrastructure.Data": { "from": "5.*", "to": "6.*" },
+    "BIA.Net.Core.Infrastructure.Service": { "from": "5.*", "to": "6.*" },
+    "BIA.Net.Core.Presentation.Api": { "from": "5.*", "to": "6.*" },
+    "BIA.Net.Core.WorkerService": { "from": "5.*", "to": "6.*" }
+  },
+  "npm": {
+    "@bia-team/bia-ng": { "from": "TODO", "to": "TODO" },
+    "@angular/core": { "from": "TODO", "to": "TODO" },
+    "@angular/cli": { "from": "TODO", "to": "TODO" }
+  }
+}

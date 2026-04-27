@@ -1,0 +1,80 @@
+<UserControl x:Class="BIA.ToolKit.Dialogs.CompanyFilesDialogUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:BIA.ToolKit.ViewModels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             mc:Ignorable="d"
+             MinWidth="480" MaxWidth="560"
+             d:DataContext="{d:DesignInstance Type=vm:VersionAndOptionViewModel, IsDesignTimeCreatable=False}">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+            <materialDesign:PackIcon Kind="PackageVariantClosed" Height="22" Width="22"
+                                     VerticalAlignment="Center"
+                                     Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+            <TextBlock Text="Company files" FontSize="18" FontWeight="Bold"
+                       Margin="10,0,0,0" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1">
+            <CheckBox Margin="0,0,0,10"
+                      IsChecked="{Binding UseCompanyFiles}"
+                      Content="Use Company Files"/>
+
+            <ComboBox Margin="0,0,0,10"
+                      ItemsSource="{Binding WorkCompanyFiles}"
+                      DisplayMemberPath="VersionLabel"
+                      SelectedItem="{Binding WorkCompanyFile}"
+                      IsEnabled="{Binding UseCompanyFiles}"
+                      Style="{StaticResource MaterialDesignFilledComboBox}"
+                      materialDesign:HintAssist.Hint="Company File Version">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectionChanged">
+                        <i:InvokeCommandAction Command="{Binding CFVersionSelectionChangedCommand}"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </ComboBox>
+
+            <ComboBox Margin="0,0,0,14"
+                      ItemsSource="{Binding Profiles}"
+                      SelectedItem="{Binding Profile}"
+                      IsEnabled="{Binding UseCompanyFiles}"
+                      Style="{StaticResource MaterialDesignFilledComboBox}"
+                      materialDesign:HintAssist.Hint="Profile"/>
+
+            <TextBlock Text="Options" FontWeight="SemiBold" Margin="0,0,0,6"
+                       Style="{StaticResource Text.Caption}"
+                       Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}"/>
+
+            <ItemsControl ItemsSource="{Binding Options}"
+                          Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <CheckBox Margin="0,2"
+                                  Content="{Binding Name}"
+                                  IsChecked="{Binding IsChecked}"
+                                  Command="{Binding DataContext.OptionCheckedChangedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Margin="0,20,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                    CommandParameter="True">CLOSE</Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

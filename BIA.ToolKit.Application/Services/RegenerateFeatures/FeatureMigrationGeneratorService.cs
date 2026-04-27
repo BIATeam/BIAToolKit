@@ -9,7 +9,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.Models.DtoGenerator;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -21,6 +21,14 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
 
     public partial class FeatureMigrationGeneratorService(IConsoleWriter consoleWriter, DtoMappingService dtoMappingService)
     {
+        private class MutedConsoleWriter : IConsoleWriter
+        {
+            public void AddMessageLine(string message, string color = null, bool refreshimediate = true) { }
+            public void Clear() { }
+            public void CopyToClipboard() { }
+        }
+
+        private const int REGENERATE_FEATURES_VERSION_MINIMUM = 500;
         private static readonly Regex PlaceholderPattern = MyRegex();
         private readonly IConsoleWriter consoleWriter = consoleWriter;
         private readonly DtoMappingService dtoMappingService = dtoMappingService;
@@ -48,7 +56,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             };
 
             var fileGenerator = new FileGeneratorService(consoleWriter);
-            await fileGenerator.Init(targetProject, fromUnitTest: false, cancellationToken);
+            await fileGenerator.Init(targetProject, cancellationToken);
 
             if (!fileGenerator.IsInit)
             {
@@ -295,7 +303,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             {
                 try
                 {
-                    fileGenerator.SetPrettierProjectPathOverride(prettierPath);
+                    fileGenerator.SetPrettierAngularProjectPath(prettierPath);
                 }
                 catch (Exception ex)
                 {

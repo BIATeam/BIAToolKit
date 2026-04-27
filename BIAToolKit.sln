@@ -32,6 +32,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "50 - Test", "50 - Test", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BIA.ToolKit.Test.Templates", "BIA.ToolKit.Test.Templates\BIA.ToolKit.Test.Templates.csproj", "{BDA64B79-0247-4BC6-99CC-4B495D75415F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BIA.ToolKit.Tests", "BIA.ToolKit.Tests\BIA.ToolKit.Tests.csproj", "{822FDFE3-EE09-4B81-A10F-65F690B98EE4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -186,6 +188,26 @@ Global
 		{BDA64B79-0247-4BC6-99CC-4B495D75415F}.Release|x64.Build.0 = Release|Any CPU
 		{BDA64B79-0247-4BC6-99CC-4B495D75415F}.Release|x86.ActiveCfg = Release|Any CPU
 		{BDA64B79-0247-4BC6-99CC-4B495D75415F}.Release|x86.Build.0 = Release|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Debug|ARM.Build.0 = Debug|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Debug|x64.Build.0 = Debug|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Debug|x86.Build.0 = Debug|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Release|ARM.ActiveCfg = Release|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Release|ARM.Build.0 = Release|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Release|ARM64.Build.0 = Release|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Release|x64.ActiveCfg = Release|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Release|x64.Build.0 = Release|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Release|x86.ActiveCfg = Release|Any CPU
+		{822FDFE3-EE09-4B81-A10F-65F690B98EE4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

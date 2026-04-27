@@ -1,89 +1,282 @@
-﻿<UserControl x:Class="BIA.ToolKit.UserControls.OptionGeneratorUC"
+<UserControl x:Class="BIA.ToolKit.UserControls.OptionGeneratorUC"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vm="clr-namespace:BIA.ToolKit.ViewModels"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             mc:Ignorable="d" 
-             d:DesignHeight="430" d:DesignWidth="1400">
-    <UserControl.DataContext>
-        <local:OptionGeneratorViewModel />
-    </UserControl.DataContext>
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:OptionGeneratorViewModel, IsDesignTimeCreatable=False}"
+             d:DesignHeight="700" d:DesignWidth="1200">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
-        <Thickness x:Key="FormFirstRowMargin">0,0,0,5</Thickness>
-        <Thickness x:Key="FormRowMargin">0,5</Thickness>
+
+        <Style x:Key="SectionCardStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
+            <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Card.Background}"/>
+            <Setter Property="Padding" Value="16,14"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+        </Style>
+
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+            <Setter Property="Margin" Value="0,0,0,2"/>
+        </Style>
+
+        <Style x:Key="SectionSubtitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Opacity" Value="0.7"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+
+        <Style x:Key="FieldHelpStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Opacity" Value="0.65"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,2,0,4"/>
+        </Style>
+
+        <Style x:Key="FeatureTileStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
+            <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Card.Background}"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+        </Style>
+
+        <Style x:Key="FeatureTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="FeatureDescriptionStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Opacity" Value="0.75"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+            <Setter Property="LineHeight" Value="16"/>
+        </Style>
     </UserControl.Resources>
 
-    <Grid Margin="10">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition />
-            <ColumnDefinition Width="0.1*"/>
-            <ColumnDefinition />
-            <ColumnDefinition Width="0.1*"/>
-            <ColumnDefinition Width="160"/>
-        </Grid.ColumnDefinitions>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
 
-        <Grid Grid.Column="0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="0" Margin="{StaticResource FormFirstRowMargin}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
-                <ComboBox Grid.Column="0" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Entity" ItemsSource="{Binding Entities}" SelectedItem="{Binding Entity}" SelectionChanged="ModifyEntity_SelectionChange" IsEnabled="{Binding IsProjectChosen}" ItemTemplate="{StaticResource EntityDisplayTemplate}"/>
-                <Label Grid.Row="1" Name="OptionAlreadyGeneratedLabel" Content="Generation was already done for this Entity" Foreground="Yellow" Visibility="Collapsed" d:Visibility="Visible" />
-            </Grid>
-            <TextBox Margin="{StaticResource FormRowMargin}" Grid.Row="1" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Domain" Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextWrapping="Wrap" IsEnabled="{Binding IsEntityParsed}"/>
-            <ComboBox Margin="{StaticResource FormRowMargin}" Grid.Row="2" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="BIA Front" x:Name="BIAFront" ItemsSource="{Binding BiaFronts}" SelectedValue="{Binding BiaFront}" IsEnabled="{Binding IsProjectChosen}" SelectionChanged="BIAFront_SelectionChanged"/>
-        </Grid>
+        <ScrollViewer x:Name="RootScrollViewer" Grid.Row="0"
+                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                      Padding="10,10,10,0"
+                      RequestBringIntoView="RootScrollViewer_RequestBringIntoView">
+            <StackPanel>
 
-        <Grid Grid.Column="2">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-            </Grid.RowDefinitions>
-            <TextBox Grid.Row="0" Margin="{StaticResource FormFirstRowMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Entity Name Plural" Text="{Binding EntityNamePlural, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextWrapping="Wrap" IsEnabled="{Binding IsEntityParsed}"/>
-            <ComboBox Grid.Row="1" Margin="{StaticResource FormRowMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Option Display Property" ItemsSource="{Binding EntityDisplayItems}" SelectedValue="{Binding EntityDisplayItemSelected}" IsEnabled="{Binding IsEntityParsed}"/>
-            <!--<CheckBox Grid.Row="2" Margin="{StaticResource FormRowMargin}" Content="Use HUB client" IsChecked="{Binding UseHubClient}"/>-->
-            <Grid Grid.Row="2" Margin="{StaticResource FormRowMargin}" Visibility="{Binding IsProjectCompatibleV7, Converter={StaticResource BoolToVisConverter}}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
+                <!-- ================= Section 1: Entity source ================= -->
+                <Border Style="{StaticResource SectionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="① ENTITY SOURCE"/>
+                        <TextBlock Style="{StaticResource SectionSubtitleStyle}"
+                                   Text="Select the Option entity to generate and its base configuration."/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Option Entity -->
+                            <StackPanel Grid.Column="0" Grid.Row="0">
+                                <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
+                                          materialDesign:HintAssist.Hint="Option Entity"
+                                          ItemsSource="{Binding Entities}" SelectedItem="{Binding Entity, Mode=TwoWay}"
+                                          IsEnabled="{Binding IsProjectChosen}"
+                                          ItemTemplate="{StaticResource EntityDisplayTemplate}">
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="SelectionChanged">
+                                            <i:InvokeCommandAction Command="{Binding EntitySelectionChangedCommand}"/>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
+                                </ComboBox>
+                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                           Text="C# class that will be turned into a dropdown. Typically an entity with an Id and a Display."/>
+                            </StackPanel>
+
+                            <!-- Domain -->
+                            <StackPanel Grid.Column="2" Grid.Row="0">
+                                <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
+                                         materialDesign:HintAssist.Hint="Domain"
+                                         Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                         IsEnabled="{Binding IsEntityParsed}"/>
+                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                           Text="Business folder where generated files will be placed (derived from namespace)."/>
+                            </StackPanel>
+
+                            <!-- BIA Front -->
+                            <StackPanel Grid.Column="4" Grid.Row="0">
+                                <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
+                                          materialDesign:HintAssist.Hint="BIA Front"
+                                          ItemsSource="{Binding BiaFronts}"
+                                          SelectedValue="{Binding BiaFront, Mode=TwoWay}"
+                                          IsEnabled="{Binding IsProjectChosen}">
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="SelectionChanged">
+                                            <i:InvokeCommandAction Command="{Binding BiaFrontSelectionChangedCommand}" CommandParameter="{Binding BiaFront}"/>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
+                                </ComboBox>
+                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                           Text="Target Angular front-end. Leave empty to generate the back-end only."/>
+                            </StackPanel>
+
+                            <!-- Generation-already-done warning -->
+                            <Label Grid.Row="1" Grid.ColumnSpan="5" Margin="0,6,0,0"
+                                   Name="OptionAlreadyGeneratedLabel"
+                                   Content="⚠ A generation has already been performed for this entity"
+                                   Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                   FontWeight="SemiBold"
+                                   Visibility="Collapsed" d:Visibility="Visible"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= Section 2: Name & display ================= -->
+                <Border Style="{StaticResource SectionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="② NAME &amp; DISPLAY"/>
+                        <TextBlock Style="{StaticResource SectionSubtitleStyle}"
+                                   Text="How the option is named in code and which property is displayed in the dropdown."/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Entity Name Plural -->
+                            <StackPanel Grid.Column="0">
+                                <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
+                                         materialDesign:HintAssist.Hint="Entity Name Plural"
+                                         Text="{Binding EntityNamePlural, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                         IsEnabled="{Binding IsEntityParsed}"/>
+                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                           Text="Plural name of the entity (e.g. Countries, Languages). Used for routes and collection names."/>
+                            </StackPanel>
+
+                            <!-- Option Display Property -->
+                            <StackPanel Grid.Column="2">
+                                <ComboBox Style="{StaticResource MaterialDesignFilledComboBox}"
+                                          materialDesign:HintAssist.Hint="Option Display Property"
+                                          ItemsSource="{Binding EntityDisplayItems}"
+                                          SelectedValue="{Binding EntityDisplayItemSelected}"
+                                          IsEnabled="{Binding IsEntityParsed}"/>
+                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                           Text="Text property shown in the dropdown (e.g. Name, Label, Title)."/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= Section 3: Features (V7+ only) ================= -->
+                <Border Style="{StaticResource SectionCardStyle}"
+                        Visibility="{Binding IsProjectCompatibleV7, Converter={StaticResource BoolToVisConverter}}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="③ FEATURES"/>
+                        <TextBlock Style="{StaticResource SectionSubtitleStyle}"
+                                   Text="Advanced generation options available for this framework version."/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Use HUB client -->
+                            <Border Grid.Column="0">
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FeatureTileStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding UseHubClient}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding UseHubClient}" IsEnabled="{Binding IsProjectChosen}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource FeatureTitleStyle}" Text="Hub client (SignalR)"/>
+                                            <Border Margin="8,0,0,0" Padding="4,1" CornerRadius="3"
+                                                    Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="V7+" FontSize="9" FontWeight="SemiBold" Foreground="White"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource FeatureDescriptionStyle}"
+                                               Text="Generates a SignalR hub on the back-end and its Angular client for real-time updates of the option list."/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Row 1: Footer — actions -->
+        <Border Grid.Row="1"
+                Background="Transparent"
+                BorderBrush="{DynamicResource MaterialDesign.Brush.Card.Border}"
+                BorderThickness="0,1,0,0"
+                Padding="14,10">
+            <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition Width="0.1*"/>
-                    <ColumnDefinition/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
-                <Label Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" Content="Feature" Foreground="White" FontWeight="Bold" />
-                <CheckBox Margin="10,0,0,0" Grid.Column="0" Grid.Row="1" Content="Use HUB client" Foreground="White" IsChecked="{Binding UseHubClient}" IsEnabled="{Binding IsProjectChosen}" />
-            </Grid>
-        </Grid>
 
-        <Grid Grid.Column="4">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
-            <Button Grid.Row="0" Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}" Content="Generate" IsEnabled="{Binding IsButtonGenerateOptionEnable}" x:Name="GenerateCrud" Height="50"  Click="Generate_Click"/>
-            <Grid Grid.Row="1" VerticalAlignment="Bottom">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
-                <Button Visibility="Hidden" Grid.Row="0" Content="Delete previous generation" x:Name="DeleteGeneration"  Click="DeleteLastGeneration_Click" IsEnabled="{Binding IsEntityParsed}"/>
-                <Label Margin="0,10,0,0" Grid.Row="1" Content="After generation :" Foreground="White" HorizontalAlignment="Center"/>
-                <Button Grid.Row="2" Content="Delete annotations" x:Name="DeleteAnnotations" Click="DeleteBIAToolkitAnnotations_Click" IsEnabled="{Binding IsProjectChosen}"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="DeleteAnnotations"
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Margin="0,0,8,0" Padding="10,4" MinWidth="0"
+                            Command="{Binding DeleteBIAToolkitAnnotationsCommand}"
+                            IsEnabled="{Binding IsProjectChosen}"
+                            ToolTip="Removes BIAToolkit markers present in the code (irreversible).">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="TagRemoveOutline" Height="16" Width="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Delete annotations" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="GenerateOption"
+                            Style="{StaticResource Button.SecondaryAction}"
+                            Height="40" Padding="16,0" MinWidth="150"
+                            Command="{Binding GenerateCommand}"
+                            IsEnabled="{Binding IsButtonGenerateOptionEnable}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon Kind="FlashOutline" Height="20" Width="20" VerticalAlignment="Center"/>
+                            <TextBlock Text="Generate" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
             </Grid>
-        </Grid>
+        </Border>
     </Grid>
 </UserControl>

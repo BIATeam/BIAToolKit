@@ -1,127 +1,498 @@
-﻿<UserControl xmlns:UserControls="clr-namespace:BIA.ToolKit.UserControls"  x:Class="BIA.ToolKit.UserControls.VersionAndOptionUserControl"
+<UserControl xmlns:UserControls="clr-namespace:BIA.ToolKit.UserControls"  x:Class="BIA.ToolKit.UserControls.VersionAndOptionUserControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vm="clr-namespace:BIA.ToolKit.ViewModels"
+             xmlns:common="clr-namespace:BIA.ToolKit.Common;assembly=BIA.ToolKit.Common"
+             xmlns:conv="clr-namespace:BIA.ToolKit.Infrastructure"
              xmlns:gif="http://wpfanimatedgif.codeplex.com"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             mc:Ignorable="d" d:DesignWidth="800" MaxHeight="250">
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             mc:Ignorable="d" d:DesignWidth="900">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+        <conv:EnumToBoolConverter x:Key="EnumToBoolConverter" />
+        <DataTemplate x:Key="GroupBoxWhiteHeaderTemplate">
+            <TextBlock Text="{Binding}" Foreground="White" FontWeight="Bold"/>
+        </DataTemplate>
+
+        <!-- Card-style RadioButton used for "Normal" project-type selection. -->
+        <Style x:Key="ProjectTypeCardStyle" TargetType="RadioButton">
+            <Setter Property="GroupName" Value="ProjectTypeCard"/>
+            <Setter Property="Margin" Value="6"/>
+            <Setter Property="MinHeight" Value="190"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="CardBorder"
+                                CornerRadius="8"
+                                BorderThickness="1"
+                                BorderBrush="{DynamicResource MaterialDesign.Brush.Card.Border}"
+                                Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                                ClipToBounds="False"
+                                SnapsToDevicePixels="True">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="8" ShadowDepth="1"
+                                                  Opacity="0.18" Color="Black"/>
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <!-- Top accent strip (visible when selected) -->
+                                <Border x:Name="TopAccent" Grid.Row="0"
+                                        Height="4"
+                                        Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                                        CornerRadius="8,8,0,0"
+                                        Visibility="Hidden"/>
+                                <ContentPresenter Grid.Row="1" Margin="20,18,20,16"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="CardBorder" Property="BorderBrush"
+                                        Value="{DynamicResource MaterialDesign.Brush.Primary.Light}"/>
+                                <Setter TargetName="CardBorder" Property="BorderThickness" Value="1.5"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CardBorder" Property="BorderBrush"
+                                        Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                <Setter TargetName="CardBorder" Property="BorderThickness" Value="1.5"/>
+                                <Setter TargetName="TopAccent" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Inner content for a card: icon-in-circle + title + description + Company Files footer.
+             The DataContext is the parent VersionAndOptionViewModel. -->
+        <Style x:Key="CardIconCircleStyle" TargetType="Border">
+            <Setter Property="Width" Value="44"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="CornerRadius" Value="22"/>
+            <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+
+        <Style x:Key="CardTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="14,0,0,0"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
+        </Style>
+
+        <!-- Description uses the theme foreground at full opacity to meet WCAG AA
+             (contrast >= 4.5:1 required). Avoid Opacity reductions on informative text. -->
+        <Style x:Key="CardDescriptionStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,8,0,0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="LineHeight" Value="20"/>
+        </Style>
+
+        <!-- Integrated "Company Files" footer inside each card: tinted panel,
+             a little icon + "Company files" label, then version / profile / options on the next line. -->
+        <Style x:Key="CardFooterPanelStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Margin" Value="0,14,0,0"/>
+            <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Background}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <!-- Footer label/value: explicit Foreground + minimum 0.87 opacity for WCAG AA. -->
+        <Style x:Key="CardFooterLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
+            <Setter Property="Opacity" Value="0.87"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="6,0,0,0"/>
+        </Style>
+
+        <Style x:Key="CardFooterValueStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="LineHeight" Value="18"/>
+        </Style>
     </UserControl.Resources>
-    <UserControl.DataContext>
-        <!-- Declaratively create an instance of our SongViewModel -->
-        <local:VersionAndOptionViewModel />
-    </UserControl.DataContext>
+
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.4*"/>
-            <ColumnDefinition Width="0.6*"/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
 
-        <ComboBox Grid.Column="0" ItemsSource="{Binding WorkTemplates}"
-                  DisplayMemberPath="VersionLabel"
-                  SelectedItem="{Binding WorkTemplate}"
-                  SelectionChanged="FrameworkVersion_SelectionChanged"
-                  Style="{StaticResource MaterialDesignFilledComboBox}"
-                  materialDesign:HintAssist.Hint="Framework Version" VerticalAlignment="Top"/>
+        <!-- Row 0: Framework Version (left-accent bar, no full border) -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Width="4" CornerRadius="2" Margin="0,4,12,4"
+                    Background="{DynamicResource MaterialDesign.Brush.Primary}"/>
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding WorkTemplates}"
+                      DisplayMemberPath="VersionLabel"
+                      SelectedItem="{Binding WorkTemplate}"
+                      Style="{StaticResource MaterialDesignFilledComboBox}"
+                      FontSize="16"
+                      materialDesign:HintAssist.Hint="Framework Version">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectionChanged">
+                        <i:InvokeCommandAction Command="{Binding FrameworkVersionSelectionChangedCommand}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </ComboBox>
+        </Grid>
 
-        <GroupBox Margin="10,0" Grid.Column="1" Header="Feature Settings" Foreground="White" Name="FeatureSettingsGroup" VerticalAlignment="Top" Background="#323232" d:Visibility="Visible">
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="135">
-                <Grid>
-                    <ItemsControl Visibility="{Binding AreFeatureVisible, Converter={StaticResource BoolToVisConverter}}" Margin="0,0,10,0" ItemsSource="{Binding FeatureSettings}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" ToolTip="{Binding Description}" Command="{Binding DataContext.OnFeatureSettingSelectionChangedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Foreground="White" />
-                                    <materialDesign:PackIcon Margin="5,0,0,0" Height="20" Width="20" VerticalAlignment="Center" Kind="AlertCircle" Visibility="{Binding DisplayDisabledFeatures, Converter={StaticResource BoolToVisConverter}}">
-                                        <materialDesign:PackIcon.ToolTip>
-                                            <StackPanel Orientation="Horizontal">
-                                                <Label Foreground="Black" Content="Automatically disabled :"/>
-                                                <Label Foreground="Black" Content="{Binding DisabledFeatures, Mode=OneWay}" FontWeight="Bold"/>
-                                            </StackPanel>
-                                        </materialDesign:PackIcon.ToolTip>
-                                    </materialDesign:PackIcon>
-                                    <!-- Bouton config: uniquement pour CreateDefaultTeam -->
-                                    <Button Margin="5,0,0,0"
-                                            Padding="0"
-                                            Width="20" Height="20"
-                                            VerticalAlignment="Center"
-                                            Style="{StaticResource MaterialDesignIconForegroundButton}"
-                                            Visibility="{Binding IsCreateDefaultTeam, Converter={StaticResource BoolToVisConverter}}"
-                                            Command="{Binding DataContext.OpenDefaultTeamSettingsCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                            ToolTip="Configure Default Team Settings">
-                                        <materialDesign:PackIcon Kind="Cog" Height="16" Width="16"/>
-                                    </Button>
-                                    <!-- Icône erreur: CreateDefaultTeam sélectionné mais config incomplète -->
-                                    <materialDesign:PackIcon Margin="3,0,0,0"
-                                                             Height="18" Width="18"
-                                                             VerticalAlignment="Center"
-                                                             Kind="AlertCircle"
-                                                             Foreground="OrangeRed"
-                                                             Visibility="{Binding ShowDefaultTeamConfigError, Converter={StaticResource BoolToVisConverter}}"
-                                                             ToolTip="Default Team configuration is required."/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    <Label Margin="3,3,0,2" Visibility="{Binding IsVisibileNoFeature, Converter={StaticResource BoolToVisConverter}}" Content="No available feature" FontWeight="Bold" FontSize="15"/>
-                </Grid>
-            </ScrollViewer>
-        </GroupBox>
+        <!-- Row 1: Normal mode (project-type cards) / Advanced mode (full options) -->
+        <Grid Grid.Row="1" Margin="0,14,0,0">
 
-        <GroupBox Grid.Column="2" Header="Company files" Foreground="White" Name="CompanyFileGroup" Background="#323232" VerticalAlignment="Top">
-            <Grid Margin="0,0,10,0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" Grid.RowSpan="2" Orientation="Horizontal" VerticalAlignment="Center" Visibility="{Binding SettingsNotUseCompanyFiles, Converter={StaticResource BoolToVisConverter}}">
-                    <Image Name="Warning" Source="..\Images\Warning.png" HorizontalAlignment="Left" Height="40" RenderOptions.BitmapScalingMode="Fant" />
-                    <Label Name="WarningLabel"  Content="Use Company Files is off" VerticalAlignment="Center" Foreground="White" FontWeight="Bold" FontSize="15"/>
-                </StackPanel>
-                <Grid Visibility="{Binding SettingsUseCompanyFiles, Converter={StaticResource BoolToVisConverter}}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    <Grid Grid.Column="0">
+            <!-- Normal mode: two cards side-by-side -->
+            <Grid>
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsAdvancedMode}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ForceAdvanced, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Complete -->
+                <RadioButton Grid.Column="0"
+                             Style="{StaticResource ProjectTypeCardStyle}"
+                             IsChecked="{Binding SelectedProjectType, Mode=TwoWay,
+                                         Converter={StaticResource EnumToBoolConverter},
+                                         ConverterParameter={x:Static common:ProjectTypeKind.Complete}}">
+                    <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
                         </Grid.RowDefinitions>
-                        <CheckBox Grid.Row="0" Margin="0,5" IsChecked="{Binding UseCompanyFiles}" Name="UseCompanyFiles" Content="Use Company Files" Foreground="White" />
-                        <ComboBox Grid.Row="1" Margin="0,5"
-                                    ItemsSource="{Binding WorkCompanyFiles}" 
-                                    DisplayMemberPath="VersionLabel"
-                                    SelectedItem="{Binding WorkCompanyFile}"
-                                    SelectionChanged="CFVersion_SelectionChanged"
-                                    Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}"
-                                    Style="{StaticResource MaterialDesignFilledComboBox}"
-                                    materialDesign:HintAssist.Hint="Company File Version" />
-                        <ComboBox Grid.Row="2" Margin="0,5" ItemsSource="{Binding Profiles}" SelectedItem="{Binding Profile}" 
-                                    Style="{StaticResource MaterialDesignFilledComboBox}"
-                                      Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}"
-                                    materialDesign:HintAssist.Hint="Profile"/>
+                        <StackPanel Grid.Row="0" Grid.RowSpan="2" Orientation="Horizontal">
+                            <Border Style="{StaticResource CardIconCircleStyle}">
+                                <materialDesign:PackIcon Kind="RocketLaunchOutline" Height="24" Width="24"
+                                                         Foreground="White"
+                                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Style="{StaticResource CardTitleStyle}" Text="Complete"/>
+                        </StackPanel>
+                        <TextBlock Grid.Row="2" Style="{StaticResource CardDescriptionStyle}"
+                                   Text="Front-end + API + Database + Worker Service. Recommended for most projects."/>
+                        <Border Grid.Row="4" Style="{StaticResource CardFooterPanelStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="PackageVariantClosed" Height="16" Width="16"
+                                                                 VerticalAlignment="Center" Opacity="0.87"
+                                                                 Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"/>
+                                        <TextBlock Style="{StaticResource CardFooterLabelStyle}" Text="Company files"/>
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource CardFooterValueStyle}">
+                                        <Run Text="{Binding WorkCompanyFile.Version, Mode=OneWay, FallbackValue=—, TargetNullValue=—}"
+                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
+                                        <Run Text=" · "/>
+                                        <Run Text="{Binding Profile, Mode=OneWay, FallbackValue=Wiring, TargetNullValue=Wiring}"
+                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
+                                        <Run Text=" · "/>
+                                        <Run Text="{Binding CheckedOptionsSummary, Mode=OneWay}"/>
+                                        <Run Text="{Binding RemoveExampleSettingsSuffix, Mode=OneWay}"/>
+                                    </TextBlock>
+                                </StackPanel>
+                                <Button Grid.Column="1" VerticalAlignment="Top"
+                                        Style="{StaticResource MaterialDesignIconButton}"
+                                        Width="28" Height="28" Padding="2"
+                                        Focusable="False"
+                                        Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                        Command="{Binding EditCompanyFilesCommand}"
+                                        ToolTip="Edit company files">
+                                    <materialDesign:PackIcon Kind="PencilOutline" Height="16" Width="16"/>
+                                </Button>
+                            </Grid>
+                        </Border>
                     </Grid>
+                </RadioButton>
 
-                    <Grid Grid.Column="1" Margin="10,0" Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}">
-                        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" Height="135">
-                            <ItemsControl Grid.Row="1" ItemsSource="{Binding Options}">
+                <!-- API using an existing DB -->
+                <RadioButton Grid.Column="1"
+                             Style="{StaticResource ProjectTypeCardStyle}"
+                             IsChecked="{Binding SelectedProjectType, Mode=TwoWay,
+                                         Converter={StaticResource EnumToBoolConverter},
+                                         ConverterParameter={x:Static common:ProjectTypeKind.ApiWithExistingDb}}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0" Grid.RowSpan="2" Orientation="Horizontal">
+                            <Border Style="{StaticResource CardIconCircleStyle}">
+                                <materialDesign:PackIcon Kind="DatabaseArrowLeftOutline" Height="24" Width="24"
+                                                         Foreground="White"
+                                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Style="{StaticResource CardTitleStyle}" Text="API using an existing DB"/>
+                        </StackPanel>
+                        <TextBlock Grid.Row="2" Style="{StaticResource CardDescriptionStyle}"
+                                   Text="Wire the API to an already deployed database. Only the Database layer is generated — no deploy scripts, no front-end, no worker."/>
+                        <Border Grid.Row="4" Style="{StaticResource CardFooterPanelStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="PackageVariantClosed" Height="16" Width="16"
+                                                                 VerticalAlignment="Center" Opacity="0.87"
+                                                                 Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"/>
+                                        <TextBlock Style="{StaticResource CardFooterLabelStyle}" Text="Company files"/>
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource CardFooterValueStyle}">
+                                        <Run Text="{Binding WorkCompanyFile.Version, Mode=OneWay, FallbackValue=—, TargetNullValue=—}"
+                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
+                                        <Run Text=" · "/>
+                                        <Run Text="{Binding Profile, Mode=OneWay, FallbackValue=Wiring, TargetNullValue=Wiring}"
+                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}" FontWeight="SemiBold"/>
+                                        <Run Text=" · "/>
+                                        <Run Text="{Binding CheckedOptionsSummary, Mode=OneWay}"/>
+                                        <Run Text="{Binding RemoveExampleSettingsSuffix, Mode=OneWay}"/>
+                                    </TextBlock>
+                                </StackPanel>
+                                <Button Grid.Column="1" VerticalAlignment="Top"
+                                        Style="{StaticResource MaterialDesignIconButton}"
+                                        Width="28" Height="28" Padding="2"
+                                        Focusable="False"
+                                        Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                        Command="{Binding EditCompanyFilesCommand}"
+                                        ToolTip="Edit company files">
+                                    <materialDesign:PackIcon Kind="PencilOutline" Height="16" Width="16"/>
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </RadioButton>
+
+            </Grid>
+
+            <!-- Advanced mode: the original Feature Settings + Company Files -->
+            <Grid>
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsAdvancedMode}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ForceAdvanced, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <GroupBox Margin="0,0,5,0" Grid.Column="0" Header="Feature Settings"
+                          HeaderTemplate="{StaticResource GroupBoxWhiteHeaderTemplate}"
+                          Name="FeatureSettingsGroup" VerticalAlignment="Stretch"
+                          Background="{DynamicResource MaterialDesign.Brush.Card.Background}">
+                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto">
+                        <Grid>
+                            <ItemsControl Visibility="{Binding AreFeatureVisible, Converter={StaticResource BoolToVisConverter}}" Margin="0,0,10,0" ItemsSource="{Binding FeatureSettings}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" />
+                                        <StackPanel Orientation="Horizontal">
+                                            <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" ToolTip="{Binding Description}" Command="{Binding DataContext.FeatureSettingSelectionChangedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                            <Button Margin="5,0,0,0" Padding="2" Width="24" Height="24"
+                                                    VerticalAlignment="Center"
+                                                    Focusable="False"
+                                                    Style="{StaticResource MaterialDesignIconButton}"
+                                                    Foreground="#F59E0B"
+                                                    Cursor="Help"
+                                                    ToolTipService.InitialShowDelay="200"
+                                                    ToolTipService.ShowDuration="20000"
+                                                    ToolTipService.BetweenShowDelay="0"
+                                                    Visibility="{Binding DisplayDisabledFeatures, Converter={StaticResource BoolToVisConverter}}">
+                                                <Button.ToolTip>
+                                                    <StackPanel Orientation="Vertical" MaxWidth="340">
+                                                        <TextBlock FontWeight="SemiBold" Margin="0,0,0,4"
+                                                                   Text="Dependent features unavailable"/>
+                                                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,6"
+                                                                   Text="Because this feature is unchecked, the following dependent feature(s) are automatically disabled and cannot be selected:"/>
+                                                        <TextBlock TextWrapping="Wrap" FontWeight="Bold"
+                                                                   Text="{Binding DisabledFeatures, Mode=OneWay}"/>
+                                                        <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Opacity="0.87" FontStyle="Italic"
+                                                                   Text="Enable this feature to make the feature(s) above available again."/>
+                                                    </StackPanel>
+                                                </Button.ToolTip>
+                                                <materialDesign:PackIcon Kind="InformationOutline" Height="18" Width="18"/>
+                                            </Button>
+                                            <Button Margin="5,0,0,0" Padding="0" Width="20" Height="20"
+                                                    VerticalAlignment="Center"
+                                                    Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                                    Visibility="{Binding IsCreateDefaultTeam, Converter={StaticResource BoolToVisConverter}}"
+                                                    Command="{Binding DataContext.OpenDefaultTeamSettingsCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    ToolTip="Configure Default Team Settings">
+                                                <materialDesign:PackIcon Kind="Cog" Height="16" Width="16"/>
+                                            </Button>
+                                            <materialDesign:PackIcon Margin="3,0,0,0" Height="18" Width="18"
+                                                                     VerticalAlignment="Center"
+                                                                     Kind="AlertCircle"
+                                                                     Foreground="OrangeRed"
+                                                                     Visibility="{Binding ShowDefaultTeamConfigError, Converter={StaticResource BoolToVisConverter}}"
+                                                                     ToolTip="Default Team configuration is required."/>
+                                        </StackPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                        </ScrollViewer>
+                            <Label Margin="3,3,0,2" Visibility="{Binding IsVisibileNoFeature, Converter={StaticResource BoolToVisConverter}}" Content="No available feature" FontWeight="Bold" FontSize="15"/>
+                        </Grid>
+                    </ScrollViewer>
+                </GroupBox>
+
+                <GroupBox Grid.Column="1" Margin="5,0,0,0" Header="Company files"
+                          HeaderTemplate="{StaticResource GroupBoxWhiteHeaderTemplate}"
+                          Name="CompanyFileGroup"
+                          Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                          VerticalAlignment="Stretch">
+                    <Grid Margin="0,0,10,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0" Grid.RowSpan="2" Orientation="Horizontal" VerticalAlignment="Center" Visibility="{Binding SettingsNotUseCompanyFiles, Converter={StaticResource BoolToVisConverter}}">
+                            <Image Name="Warning" Source="..\Images\Warning.png" HorizontalAlignment="Left" Height="40" RenderOptions.BitmapScalingMode="Fant" />
+                            <Label Name="WarningLabel"  Content="Use Company Files is off" VerticalAlignment="Center" FontWeight="Bold" FontSize="15"/>
+                        </StackPanel>
+                        <Grid Visibility="{Binding SettingsUseCompanyFiles, Converter={StaticResource BoolToVisConverter}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                </Grid.RowDefinitions>
+                                <CheckBox Grid.Row="0" Margin="0,5" IsChecked="{Binding UseCompanyFiles}" Name="UseCompanyFiles" Content="Use Company Files" />
+                                <ComboBox Grid.Row="1" Margin="0,5"
+                                          ItemsSource="{Binding WorkCompanyFiles}"
+                                          DisplayMemberPath="VersionLabel"
+                                          SelectedItem="{Binding WorkCompanyFile}"
+                                          Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}"
+                                          Style="{StaticResource MaterialDesignFilledComboBox}"
+                                          materialDesign:HintAssist.Hint="Company File Version">
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="SelectionChanged">
+                                            <i:InvokeCommandAction Command="{Binding CFVersionSelectionChangedCommand}" />
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
+                                </ComboBox>
+                                <ComboBox Grid.Row="2" Margin="0,5" ItemsSource="{Binding Profiles}" SelectedItem="{Binding Profile}"
+                                          Style="{StaticResource MaterialDesignFilledComboBox}"
+                                          Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}"
+                                          materialDesign:HintAssist.Hint="Profile"/>
+                            </Grid>
+
+                            <Grid Grid.Column="1" Margin="10,0" Visibility="{Binding UseCompanyFiles, Converter={StaticResource BoolToVisConverter}}">
+                                <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl Grid.Row="1" ItemsSource="{Binding Options}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                                          Command="{Binding DataContext.OptionCheckedChangedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Grid>
+                        </Grid>
                     </Grid>
-                </Grid>
+                </GroupBox>
             </Grid>
-        </GroupBox>
-        <Canvas/>
+        </Grid>
+
+        <!-- Row 2: Advanced / Simple toggle link (hidden when ForceAdvanced=True) -->
+        <Grid Grid.Row="2" Margin="0,8,0,0">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ForceAdvanced, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+            <Button HorizontalAlignment="Left"
+                    Style="{StaticResource MaterialDesignFlatButton}"
+                    Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                    Command="{Binding ToggleAdvancedModeCommand}"
+                    ToolTip="Show all feature toggles and company file options">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon VerticalAlignment="Center">
+                        <materialDesign:PackIcon.Style>
+                            <Style TargetType="materialDesign:PackIcon">
+                                <Setter Property="Kind" Value="ChevronDown"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsAdvancedMode}" Value="True">
+                                        <Setter Property="Kind" Value="ChevronUp"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </materialDesign:PackIcon.Style>
+                    </materialDesign:PackIcon>
+                    <TextBlock Margin="4,0,0,0" VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="More options"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsAdvancedMode}" Value="True">
+                                        <Setter Property="Text" Value="Less options"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
+            </Button>
+        </Grid>
     </Grid>
 </UserControl>

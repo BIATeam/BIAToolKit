@@ -20,6 +20,7 @@ namespace BIA.ToolKit.Domain.Settings
         public string ModifyProjectRootProjectsPath { get; set; }
         public string CreateCompanyName { get; set; }
         public bool AutoUpdate { get; set; }
+        public bool IsDarkTheme { get; set; } = true;
         public RepositoryUserConfig ToolkitRepositoryConfig { get; set; }
         public List<RepositoryUserConfig> TemplateRepositoriesConfig { get; set; }
         public List<RepositoryUserConfig> CompanyFilesRepositoriesConfig { get; set; }

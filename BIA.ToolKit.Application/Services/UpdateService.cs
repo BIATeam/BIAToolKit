@@ -13,16 +13,17 @@ namespace BIA.ToolKit.Application.Services
     using System.Threading.Tasks;
     using System.Windows;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain;
+    using CommunityToolkit.Mvvm.Messaging;
 
-    public class UpdateService(UIEventBroker eventBroker, IConsoleWriter consoleWriter, SettingsService settingsService)
+    public class UpdateService(IConsoleWriter consoleWriter, SettingsService settingsService)
     {
         private const string UpdateArchiveName = "BIAToolKit.zip";
         private const string UpdaterArchiveName = "BIAToolKitUpdater.zip";
         private const string UpdaterName = "BIA.ToolKit.Updater.exe";
 
-        private readonly UIEventBroker eventBroker = eventBroker;
         private readonly IConsoleWriter consoleWriter = consoleWriter;
         private readonly SettingsService settingsService = settingsService;
         private Version currentVersion;
@@ -81,7 +82,7 @@ namespace BIA.ToolKit.Application.Services
                     HasNewVersion = true;
                     NewVersion = lastRelease.Version;
                     this.lastRelease = lastRelease.Release;
-                    eventBroker.NotifyNewVersionAvailable();
+                    WeakReferenceMessenger.Default.Send(new NewVersionAvailableMessage());
                     return;
                 }
 

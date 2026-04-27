@@ -30,6 +30,9 @@ namespace BIA.ToolKit.Test.Templates
             {
                 messageSink.OnMessage(new DiagnosticMessage($"[{fixtureName} {stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}]\t{message}"));
             }
+
+            public void Clear() { }
+            public void CopyToClipboard() { }
         }
 
         public FileGeneratorService FileGeneratorService { get; private set; }
@@ -91,7 +94,7 @@ namespace BIA.ToolKit.Test.Templates
 
             consoleWriter.AddMessageLine($"Init service...");
             FileGeneratorService = new FileGeneratorService(consoleWriter);
-            FileGeneratorService.Init(TestProject, true).Wait();
+            FileGeneratorService.Init(TestProject, cancellationToken: CancellationToken.None).Wait();
 
             if (referenceProject.BIAFronts.Count != 0)
             {

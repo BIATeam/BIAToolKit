@@ -5,7 +5,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.Contexts
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.Models.DtoGenerator;
 
     public sealed class FileGeneratorDtoContext : FileGeneratorContext
     {
@@ -16,5 +16,6 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.Contexts
         public bool HasAudit { get; set; }
         public bool HasListAndItemModels { get; set; }
         public List<MappingEntityProperty> ListProperties { get; set; } = [];
+        public int TeamRoleId { get; set; }
     }
 }

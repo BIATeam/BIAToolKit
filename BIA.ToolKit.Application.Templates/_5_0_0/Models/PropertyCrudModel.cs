@@ -65,6 +65,7 @@ namespace BIA.ToolKit.Application.Templates._5_0_0.Models
             switch (baseType.Replace("?", string.Empty).ToLower())
             {
                 case "string":
+                case "guid":
                     baseType = "string";
                     break;
                 case "bool":

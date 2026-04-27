@@ -2,12 +2,14 @@ namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Extensions;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Parser;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ProjectAnalysis;
+    using CommunityToolkit.Mvvm.Messaging;
     using Microsoft.Build.Locator;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
@@ -29,23 +31,29 @@ using Roslyn.Compilers.Common;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services;*/
 
-    public class CSharpParserService(IConsoleWriter consoleWriter, UIEventBroker eventBroker)
+    public class CSharpParserService(IConsoleWriter consoleWriter) : IDisposable
     {
         private readonly List<string> excludedEntitiesFilesSuffixes = ["Mapper", "Service", "Repository", "Customizer", "Specification", "Dto"];
         private readonly IConsoleWriter consoleWriter = consoleWriter;
-        private readonly UIEventBroker eventBroker = eventBroker;
         private Solution CurrentSolution;
         public IReadOnlyList<ClassInfo> CurrentSolutionClasses { get; private set; } = [];
 
         private MSBuildWorkspace Workspace { get; set; }
 
+        public void Dispose()
+        {
+            Workspace?.Dispose();
+            Workspace = null;
+        }
+
         public ClassDefinition ParseClassFile(string fileName, CancellationToken cancellationToken = default)
         {
+            DiagLog.Write($"ParseClassFile: {fileName}");
             cancellationToken.ThrowIfCancellationRequested();
 
-#if DEBUG
-            consoleWriter.AddMessageLine($"Parse file: '{fileName}'", "Green");
-#endif
+            // NOTE: consoleWriter.AddMessageLine is NOT thread-safe — it touches WPF controls
+            // without dispatching, so calling it from a worker thread (Task.Run) crashes the app.
+            // Diagnostic logging goes through DiagLog instead.
 
             string fileText = File.ReadAllText(fileName);
 
@@ -58,23 +66,21 @@ using Roslyn.Services;*/
             }
 
             TypeDeclarationSyntax typeDeclaration;
-            IEnumerable<TypeDeclarationSyntax> descendants = root.Descendants<TypeDeclarationSyntax>();
-            if (descendants.Count() == 1)
+            // Materialize the list ONCE — the underlying enumerable walks the whole syntax tree
+            // each time it is enumerated, so previous code was re-walking the tree three times.
+            List<TypeDeclarationSyntax> descendants = [.. root.Descendants<TypeDeclarationSyntax>()];
+            if (descendants.Count == 1)
             {
-                typeDeclaration = descendants.Single();
+                typeDeclaration = descendants[0];
             }
-            else if (descendants.Count() > 1)
+            else if (descendants.Count > 1)
             {
-#if DEBUG
-                consoleWriter.AddMessageLine($"More of one declaration found on file '{fileName}' :", "Orange");
-                descendants.ToList().ForEach(x => consoleWriter.AddMessageLine($"   - {x.Identifier} ({x.Kind()})", "Orange"));
-#endif
-                // TODO NMA 
-                typeDeclaration = descendants.Where(x => x.IsKind(SyntaxKind.ClassDeclaration)).Single();
+                // TODO NMA
+                typeDeclaration = descendants.Single(x => x.IsKind(SyntaxKind.ClassDeclaration));
             }
             else
             {
-                consoleWriter.AddMessageLine($"No declaration found on file '{fileName}' :", "Orange");
+                DiagLog.Write($"ParseClassFile: no declaration found in '{fileName}'");
                 typeDeclaration = null;
             }
             NamespaceDeclarationSyntax namespaceSyntax = root.Descendants<NamespaceDeclarationSyntax>().SingleOrDefault();
@@ -176,7 +182,9 @@ using Roslyn.Services;*/
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine(ex.Message, "Red");
+                // Use DiagLog instead of consoleWriter — this method may run on a worker thread
+                // (Task.Run) where touching WPF controls crashes the app.
+                DiagLog.Write($"GetDomainEntities: ERROR: {ex.Message}");
             }
 
             return entities.OrderBy(x => x.Name);
@@ -216,7 +224,9 @@ using Roslyn.Services;*/
 
                 if (string.IsNullOrWhiteSpace(msbuildPath))
                 {
-                    consoleWriter.AddMessageLine("Error: MSBuild is not installed on this system.", "red");
+                    // Use DiagLog — RegisterMSBuild is called from Task.Run, so consoleWriter
+                    // (which touches WPF controls) would crash the app.
+                    DiagLog.Write("RegisterMSBuild: ERROR: MSBuild is not installed on this system.");
                     return;
                 }
 
@@ -225,17 +235,19 @@ using Roslyn.Services;*/
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"Error: Failed to register MSBuild : {ex.Message}", "red");
+                DiagLog.Write($"RegisterMSBuild: ERROR: Failed to register MSBuild: {ex.Message}");
             }
         }
 
         private void InitWorkspace()
         {
+            Workspace?.Dispose();
             Workspace = MSBuildWorkspace.Create();
 
             if (Workspace == null)
             {
-                consoleWriter.AddMessageLine("Error: Workspace could not be created.", "red");
+                // Use DiagLog — InitWorkspace is called from RegisterMSBuild which runs in Task.Run.
+                DiagLog.Write("InitWorkspace: ERROR: Workspace could not be created.");
                 return;
             }
         }
@@ -252,6 +264,8 @@ using Roslyn.Services;*/
 
             if (!await RestoreSolution(solutionPath, ct))
                 return;
+
+            ct.ThrowIfCancellationRequested();
 
             consoleWriter.AddMessageLine("Opening solution...", "darkgray");
             Workspace.CloseSolution();
@@ -277,7 +291,6 @@ using Roslyn.Services;*/
                 return;
             }
 
-            var result = new List<ClassInfo>();
             consoleWriter.AddMessageLine("Parsing classes...", "darkgray");
 
             IEnumerable<Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)>> classesInfosPerProjectTasks = CurrentSolution.Projects.Select(project => GetClassesInfoFromProject(project, ct));
@@ -288,7 +301,7 @@ using Roslyn.Services;*/
                 consoleWriter.AddMessageLine($"{report.Project} : {report.ClassesCount} classes parsed in {report.ElapsedSeconds} seconds", "gray");
             }
             CurrentSolutionClasses = [.. classesInfosReports.SelectMany(x => x.ClassesInfo)];
-            eventBroker.NotifySolutionClassesParsed();
+            WeakReferenceMessenger.Default.Send(new SolutionClassesParsedMessage());
             consoleWriter.AddMessageLine($"Classes parsed successfully", "lightgreen");
         }
 
@@ -489,8 +502,19 @@ using Roslyn.Services;*/
 
             using var process = new Process { StartInfo = startInfo };
             process.Start();
+
+            // Register cancellation to kill the restore process (ct alone won't
+            // terminate the dotnet child process — we must kill it explicitly).
+            using var registration = ct.Register(() =>
+            {
+                try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
+                catch { /* process may have already exited */ }
+            });
+
             string stdError = await process.StandardError.ReadToEndAsync(ct);
             await process.WaitForExitAsync(ct);
+
+            ct.ThrowIfCancellationRequested();
 
             if (process.ExitCode != 0)
             {

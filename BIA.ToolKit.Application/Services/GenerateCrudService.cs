@@ -2,7 +2,7 @@ namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Settings;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.Models.CrudGenerator;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;

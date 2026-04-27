@@ -3,10 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:BIA.ToolKit.Application.ViewModel;assembly=BIA.ToolKit.Application"
+             xmlns:vm="clr-namespace:BIA.ToolKit.ViewModels"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d"
-             d:DataContext="{d:DesignInstance Type=local:ProjectViewModel, IsDesignTimeCreatable=False}"
+             d:DataContext="{d:DesignInstance Type=vm:ProjectViewModel, IsDesignTimeCreatable=False}"
              d:Width="1280">
     <Grid>
         <Grid.ColumnDefinitions>
@@ -29,9 +29,14 @@
                      Style="{StaticResource MaterialDesignFilledTextBox}"
                      materialDesign:HintAssist.Hint="Projects Parent Path"
                      Text="{Binding RootProjectsPath}"
-                     TextWrapping="Wrap"
-                     TextChanged="RootPathTextBox_TextChanged"/>
-            <Button Grid.Column="1" Margin="5,0" Content="..." Click="BrowseRootFolder_Click"/>
+                     TextWrapping="Wrap"/>
+            <Button Grid.Column="1" Margin="5,0"
+                    Style="{StaticResource MaterialDesignIconButton}"
+                    Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                    ToolTip="Browse..."
+                    Click="BrowseRootFolder_Click">
+                <materialDesign:PackIcon Kind="FolderOpenOutline" Height="26" Width="26"/>
+            </Button>
         </Grid>
 
         <!-- Column 1: Project folder combo + refresh + refresh info -->
@@ -49,16 +54,18 @@
                       materialDesign:HintAssist.Hint="Project Folder"
                       ItemsSource="{Binding Projects}"
                       SelectedValue="{Binding Folder}"/>
-            <Button Grid.Column="1" Click="RefreshProjectList_Click"
-                    ToolTip="Refresh project folder list" Padding="5" Margin="5,0">
-                <Image Source="/Images/rafraichir-32.png" />
+            <Button Grid.Column="1" Command="{Binding RefreshProjetsListCommand}"
+                    Style="{StaticResource MaterialDesignIconButton}"
+                    Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                    ToolTip="Refresh project folder list" Margin="5,0">
+                <materialDesign:PackIcon Kind="Refresh" Height="26" Width="26"/>
             </Button>
             <Button Style="{StaticResource MaterialDesignPaperDarkButton}"
                     Margin="0,5,0,0" Grid.Row="1"
                     IsEnabled="{Binding IsProjectSelected}"
                     Command="{Binding RefreshProjectInformationsCommand}">
                 <StackPanel Orientation="Horizontal">
-                    <Label Content="Refresh project informations"/>
+                    <TextBlock Text="Refresh project informations" VerticalAlignment="Center"/>
                     <materialDesign:PackIcon Margin="5,0,0,0" Kind="CogRefreshOutline" VerticalAlignment="Center" Height="20" Width="20"/>
                 </StackPanel>
             </Button>

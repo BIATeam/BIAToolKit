@@ -1,0 +1,17 @@
+{
+  "sourceVersion": "6.0.0",
+  "targetVersion": "7.0.0",
+  "templateCompanyName": "TheBIADevCompany",
+  "templateProjectName": "BIADemo",
+  "templateAngularFronts": ["Angular"],
+  "templateGithubRawUrl": "https://raw.githubusercontent.com/BIATeam/BIATemplate/main/",
+  "specialPhases": {
+    "iocContainerSplit": {
+      "description": "IocContainer.cs is split from 1 file into 2 partial class files",
+      "v6TemplateFile": "IocContainer_V6.cs",
+      "v6Path": "DotNet/{CompanyName}.{ProjectName}.Crosscutting.Ioc/IocContainer.cs",
+      "v7ProjectPath": "DotNet/{CompanyName}.{ProjectName}.Crosscutting.Ioc/IocContainer.cs",
+      "v7BiaPath": "DotNet/{CompanyName}.{ProjectName}.Crosscutting.Ioc/Bia/IocContainer.cs"
+    }
+  }
+}

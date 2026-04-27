@@ -22,7 +22,7 @@ namespace BIA.ToolKit.Common.Extensions
             var jsonSerializerSettings = new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                TypeNameHandling = TypeNameHandling.Auto
+                TypeNameHandling = TypeNameHandling.None
             };
             string serialized = JsonConvert.SerializeObject(self, jsonSerializerSettings);
             return JsonConvert.DeserializeObject<T>(serialized, jsonSerializerSettings);

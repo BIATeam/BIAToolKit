@@ -1,303 +1,40 @@
 namespace BIA.ToolKit.UserControls
 {
-    using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.Services.FileGenerator;
-    using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
-    using BIA.ToolKit.Application.Settings;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.ViewModels;
     using BIA.ToolKit.Behaviors;
-    using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
-    using BIA.ToolKit.Domain.ModifyProject;
-    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings;
     using Microsoft.Xaml.Behaviors;
-    using System;
-    using System.Data.Common;
-    using System.IO;
     using System.Linq;
-    using System.Threading.Tasks;
-    using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
-    using static BIA.ToolKit.Application.Services.UIEventBroker;
-    using System.Threading;
 
     /// <summary>
     /// Interaction logic for DtoGenerator.xaml
+    /// DataContext (DtoGeneratorViewModel) is set by the parent control.
+    /// Code-behind contains NO business logic — interact with the VM directly.
     /// </summary>
     public partial class DtoGeneratorUC : UserControl
     {
-        private readonly DtoGeneratorViewModel vm;
-
-        private CSharpParserService parserService;
-        private FileGeneratorService fileGeneratorService;
-        private CRUDSettings settings;
-        private Project project;
-        private UIEventBroker uiEventBroker;
-        private string dtoGenerationHistoryFile;
-        private DtoGenerationHistory generationHistory = new();
-        private DtoGeneration generation;
-        private bool processSelectProperties;
+        public DtoGeneratorViewModel ViewModel => DataContext as DtoGeneratorViewModel;
 
         public DtoGeneratorUC()
         {
             InitializeComponent();
-            vm = (DtoGeneratorViewModel)DataContext;
         }
 
         /// <summary>
-        /// Injection of services.
+        /// UI-only operation: Drag-drop delegates to Behavior.
+        /// CONSERVER - UI pure, aucun acces au VM.
         /// </summary>
-        public void Inject(CSharpParserService parserService, SettingsService settingsService, IConsoleWriter consoleWriter, FileGeneratorService fileGeneratorService,
-            UIEventBroker uiEventBroker, DtoMappingService dtoMappingService)
-        {
-            this.parserService = parserService;
-            settings = new(settingsService);
-            this.fileGeneratorService = fileGeneratorService;
-            this.uiEventBroker = uiEventBroker;
-            this.uiEventBroker.OnProjectChanged += UIEventBroker_OnProjectChanged;
-            this.uiEventBroker.OnSolutionClassesParsed += UiEventBroker_OnSolutionClassesParsed;
-
-            vm.Inject(fileGeneratorService, consoleWriter, dtoMappingService);
-        }
-
-        private void UiEventBroker_OnSolutionClassesParsed()
-        {
-            ListEntities();
-        }
-
-        private void UIEventBroker_OnProjectChanged(Project project)
-        {
-            SetCurrentProject(project);
-        }
-
-        public void SetCurrentProject(Project project)
-        {
-            if (project == this.project)
-                return;
-
-            vm.IsProjectChosen = false;
-            vm.Clear();
-
-            if (project is null)
-                return;
-
-            InitProject(project);
-        }
-
-        private void InitProject(Project project)
-        {
-            this.project = project;
-            vm.SetProject(project);
-
-            InitHistoryFile(project);
-        }
-
-        private Task ListEntities(CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            
-            if (project is null)
-                return Task.CompletedTask;
-
-            var domainEntities = parserService.GetDomainEntities(project).ToList();
-            vm.SetEntities(domainEntities);
-            return Task.CompletedTask;
-        }
-
-        private void InitHistoryFile(Project project)
-        {
-            dtoGenerationHistoryFile = Path.Combine(project.Folder, Constants.FolderBia, settings.DtoGenerationHistoryFileName);
-            if (File.Exists(dtoGenerationHistoryFile))
-            {
-                generationHistory = CommonTools.DeserializeJsonFile<DtoGenerationHistory>(dtoGenerationHistoryFile);
-            }
-        }
-
-        private void RefreshEntitiesList_Click(object sender, RoutedEventArgs e)
-        {
-            uiEventBroker.RequestExecuteActionWithWaiter(ListEntities);
-        }
-
-        private void SelectProperties_Click(object sender, RoutedEventArgs e)
-        {
-            processSelectProperties = true;
-            vm.RefreshMappingProperties();
-            ResetMappingColumnsWidths();
-            vm.ComputePropertiesValidity();
-            processSelectProperties = false;
-        }
-
-        private void RemoveAllMappingProperties_Click(object sender, RoutedEventArgs e)
-        {
-            vm.RemoveAllMappingProperties();
-        }
-
-        private void ResetMappingColumnsWidths()
-        {
-            var gridView = PropertiesListView.View as GridView;
-            foreach (GridViewColumn column in gridView.Columns)
-            {
-                column.Width = 0;
-                column.Width = double.NaN;
-            }
-        }
-
-        private void GenerateButton_Click(object sender, RoutedEventArgs e)
-        {
-            uiEventBroker.RequestExecuteActionWithWaiter(async (ct) =>
-            {
-                UpdateHistoryFile();
-                await fileGeneratorService.GenerateDtoAsync(new FileGeneratorDtoContext
-                {
-                    CompanyName = project.CompanyName,
-                    ProjectName = project.Name,
-                    DomainName = vm.EntityDomain,
-                    EntityName = vm.Entity.Name,
-                    EntityNamePlural = vm.Entity.NamePluralized,
-                    BaseKeyType = vm.SelectedBaseKeyType,
-                    Properties = [.. vm.MappingEntityProperties],
-                    IsTeam = vm.IsTeam,
-                    IsVersioned = vm.IsVersioned,
-                    IsArchivable = vm.IsArchivable,
-                    IsFixable = vm.IsFixable,
-                    AncestorTeamName = vm.AncestorTeam,
-                    HasAncestorTeam = !string.IsNullOrEmpty(vm.AncestorTeam),
-                    GenerateBack = true,
-                    HasAudit = vm.UseDedicatedAudit
-                }, ct);
-            });
-        }
-
-        private void UpdateHistoryFile()
-        {
-            bool isNewGeneration = generation is null;
-            generation ??= new DtoGeneration();
-
-            generation.DateTime = DateTime.Now;
-            generation.FrameworkVersion = project?.FrameworkVersion;
-            generation.EntityName = vm.Entity.Name;
-            generation.EntityNamePlural = vm.Entity.NamePluralized;
-            generation.EntityNamespace = vm.Entity.Namespace;
-            generation.Domain = vm.EntityDomain;
-            generation.AncestorTeam = vm.AncestorTeam;
-            generation.IsTeam = vm.IsTeam;
-            generation.IsVersioned = vm.IsVersioned;
-            generation.IsArchivable = vm.IsArchivable;
-            generation.IsFixable = vm.IsFixable;
-            generation.EntityBaseKeyType = vm.SelectedBaseKeyType;
-            generation.UseDedicatedAudit = vm.UseDedicatedAudit;
-            generation.PropertyMappings.Clear();
-
-            foreach (MappingEntityProperty property in vm.MappingEntityProperties)
-            {
-                var generationPropertyMapping = new DtoGenerationPropertyMapping
-                {
-                    DateType = property.MappingDateType,
-                    EntityPropertyCompositeName = property.EntityCompositeName,
-                    IsRequired = property.IsRequired,
-                    MappingName = property.MappingName,
-                    OptionMappingDisplayProperty = property.OptionDisplayProperty,
-                    OptionMappingEntityIdProperty = property.OptionEntityIdProperty,
-                    OptionMappingIdProperty = property.OptionIdProperty,
-                    IsParent = property.IsParent
-                };
-                generation.PropertyMappings.Add(generationPropertyMapping);
-            }
-
-            if (isNewGeneration)
-            {
-                generationHistory.Generations.Add(generation);
-            }
-
-            if (!Directory.Exists(Path.GetDirectoryName(dtoGenerationHistoryFile)))
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(dtoGenerationHistoryFile));
-            }
-            CommonTools.SerializeToJsonFile(generationHistory, dtoGenerationHistoryFile);
-        }
-
-        private void MappingPropertyTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            vm.ComputePropertiesValidity();
-        }
-
-        private void MappingOptionId_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (processSelectProperties)
-                return;
-
-            vm.ComputePropertiesValidity();
-        }
-
-        private void EntitiesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (vm.Entity is null)
-                return;
-
-            LoadFromHistory(vm.Entity);
-        }
-
-        private void LoadFromHistory(EntityInfo entity)
-        {
-            generation = generationHistory.Generations.FirstOrDefault(g => g.EntityName.Equals(entity.Name) && g.EntityNamespace.Equals(entity.Namespace));
-            if (generation is null)
-            {
-                vm.WasAlreadyGenerated = false;
-                return;
-            }
-
-            vm.WasAlreadyGenerated = true;
-            vm.EntityDomain = generation.Domain;
-            vm.AncestorTeam = generation.AncestorTeam;
-            vm.IsTeam = generation.IsTeam;
-            vm.IsVersioned = generation.IsVersioned;
-            vm.IsFixable = generation.IsFixable;
-            vm.IsArchivable = generation.IsArchivable;
-            vm.SelectedBaseKeyType = generation.EntityBaseKeyType;
-            vm.UseDedicatedAudit = generation.UseDedicatedAudit;
-
-            var allEntityProperties = vm.AllEntityPropertiesRecursively.ToList();
-            foreach (EntityProperty property in allEntityProperties)
-            {
-                property.IsSelected = false;
-            }
-            foreach (DtoGenerationPropertyMapping property in generation.PropertyMappings)
-            {
-                EntityProperty entityProperty = allEntityProperties.FirstOrDefault(x => x.CompositeName == property.EntityPropertyCompositeName);
-                if (entityProperty is null)
-                    continue;
-
-                entityProperty.IsSelected = true;
-            }
-
-            vm.RefreshMappingProperties();
-
-            foreach (DtoGenerationPropertyMapping property in generation.PropertyMappings)
-            {
-                MappingEntityProperty mappingProperty = vm.MappingEntityProperties.FirstOrDefault(x => x.EntityCompositeName == property.EntityPropertyCompositeName);
-                if (mappingProperty is null)
-                    continue;
-
-                mappingProperty.MappingName = property.MappingName;
-                mappingProperty.MappingDateType = property.DateType;
-                mappingProperty.IsRequired = property.IsRequired;
-                mappingProperty.OptionIdProperty = property.OptionMappingIdProperty;
-                mappingProperty.OptionDisplayProperty = property.OptionMappingDisplayProperty;
-                mappingProperty.OptionEntityIdProperty = property.OptionMappingEntityIdProperty;
-                mappingProperty.IsParent = property.IsParent;
-            }
-
-            vm.ComputePropertiesValidity();
-        }
-
         private void DragHandle_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             ListViewDragDropBehavior behavior = GetDragDropBehavior();
             behavior?.HandleDragStart(sender, e);
         }
 
+        /// <summary>
+        /// UI-only operation: Drag-drop delegates to Behavior.
+        /// CONSERVER - UI pure, aucun acces au VM.
+        /// </summary>
         private void DragHandle_MouseMove(object sender, MouseEventArgs e)
         {
             ListViewDragDropBehavior behavior = GetDragDropBehavior();

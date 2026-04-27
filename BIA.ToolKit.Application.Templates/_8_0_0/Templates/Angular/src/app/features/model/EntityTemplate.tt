@@ -39,7 +39,7 @@ export interface <#= ModelInstance.EntityName #>
 // TODO after creation of CRUD<# if(ModelInstance.IsTeam) {#> Team<# } #> <#= ModelInstance.EntityName #> : adapt the field configuration
 export const <#= ModelInstance.EntityName.ToCamelCase() #>FieldsConfiguration: BiaFieldsConfig<<#= ModelInstance.EntityName #>> = {
   columns: [
-<#  if(ModelInstance.BaseKeyType == "string") { #>
+<#  if(ModelInstance.BaseKeyType == "string" || ModelInstance.BaseKeyType == "Guid") { #>
     Object.assign(new BiaFieldConfig('id', '<#= ModelInstance.EntityName.ToCamelCase() #>.id'), {
       type: PropType.String,
       isRequired: true,

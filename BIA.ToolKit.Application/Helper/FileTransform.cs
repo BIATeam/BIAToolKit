@@ -53,29 +53,51 @@ namespace BIA.ToolKit.Application.Helper
             {
                 newContent += match.Value;
             }
+            // Skip the disk write when nothing changed: avoids touching mtime
+            // and saves IO when the file is already correctly ordered.
+            if (oldContent == newContent)
+            {
+                return false;
+            }
             File.WriteAllText(path, newContent);
-            return oldContent != newContent;
+            return true;
         }
 
+        // Sorts every using statement found in the file in-place. System.*
+        // usings come first (preserved relative to themselves), then the
+        // others, both alphabetic by namespace. The previous implementation
+        // was a recursive bubble sort: O(N^2) and unbounded recursion depth
+        // on long using blocks, which made post-generation ordering visibly
+        // slow on large entities. Now O(N log N) and iterative.
         private static void OrderUsingInLines(string[] lines)
         {
-            bool orderChanged = false;
-            for (int i = 0; i < lines.Length - 1; i++)
+            var usingIndexes = new List<int>(lines.Length);
+            for (int i = 0; i < lines.Length; i++)
             {
-                string line = lines[i].Trim();
-                string nextLine = lines[i + 1].Trim();
-                if (!line.StartsWith("using System")
-                    && IsUsingStatement(line)
-                    && IsUsingStatement(nextLine)
-                    && line.Replace("using ", "").CompareTo(nextLine.Replace("using ", "")) > 0)
+                if (IsUsingStatement(lines[i].Trim()))
                 {
-                    orderChanged = true;
-                    lines.SwapValues(i, i + 1);
+                    usingIndexes.Add(i);
                 }
             }
-            if (orderChanged)
+            if (usingIndexes.Count < 2)
             {
-                OrderUsingInLines(lines);
+                return;
+            }
+
+            string[] sortedUsings = usingIndexes
+                .Select(i => lines[i])
+                .OrderBy(line =>
+                {
+                    string body = line.Trim().Substring("using ".Length);
+                    // Sort key: System.* group ('0_'), then everything else ('1_'),
+                    // each sorted alphabetically by their namespace body.
+                    return (body.StartsWith("System.") || body.StartsWith("System;") ? "0_" : "1_") + body;
+                }, StringComparer.Ordinal)
+                .ToArray();
+
+            for (int j = 0; j < usingIndexes.Count; j++)
+            {
+                lines[usingIndexes[j]] = sortedUsings[j];
             }
         }
 

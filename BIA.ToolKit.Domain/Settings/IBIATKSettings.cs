@@ -12,5 +12,6 @@ namespace BIA.ToolKit.Domain.Settings
         string CreateProjectRootProjectsPath { get; }
         string ModifyProjectRootProjectsPath { get; }
         bool UseCompanyFiles { get; }
+        bool IsDarkTheme { get; }
     }
 }

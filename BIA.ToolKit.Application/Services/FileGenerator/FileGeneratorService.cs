@@ -13,7 +13,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Services.FileGenerator.ModelProviders;
     using BIA.ToolKit.Application.Templates;
-    using BIA.ToolKit.Application.ViewModel;
+
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject;
@@ -44,8 +44,6 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
         private FileGeneratorContext _currentContext;
         private Manifest _currentManifest;
         private string _prettierAngularProjectPath;
-        private string _prettierAngularProjectPathOverride;
-        private bool _fromUnitTest;
 
         public bool IsInit { get; private set; }
 
@@ -57,7 +55,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             LoadTemplatesManifests();
         }
 
-        public async Task Init(Project project, bool fromUnitTest = false, CancellationToken cancellationToken = default)
+        public async Task Init(Project project, CancellationToken cancellationToken = default)
         {
             if (project is null)
             {
@@ -68,8 +66,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
 
             IsInit = false;
             _currentProject = project;
-            _fromUnitTest = fromUnitTest;
-            _prettierAngularProjectPathOverride = null;
+            _prettierAngularProjectPath = null;
 
             try
             {
@@ -173,21 +170,6 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
                 throw new Exception($"Unable to init prettier from unexisting front folder {path}");
             }
             _prettierAngularProjectPath = path;
-        }
-
-        /// <summary>
-        /// Sets a prettier path that takes precedence over the project folder path normally derived
-        /// from <see cref="_currentProject"/>. Useful when generating features into a temporary
-        /// folder that does not have <c>node_modules</c> installed.
-        /// The override is cleared automatically when <see cref="Init"/> is called.
-        /// </summary>
-        public void SetPrettierProjectPathOverride(string path)
-        {
-            if (!Directory.Exists(path))
-            {
-                throw new Exception($"Unable to set prettier path override from unexisting folder {path}");
-            }
-            _prettierAngularProjectPathOverride = path;
         }
 
         public async Task<string> CreateTemporaryPrettierToolProject(string referenceProjectAngularPath, CancellationToken cancellationToken)
@@ -395,7 +377,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             }
             catch (Exception ex)
             {
-                _consoleWriter.AddMessageLine($"CRUD generation failed : {ex}", color: "red");
+                _consoleWriter.AddMessageLine($"Team generation failed : {ex}", color: "red");
             }
         }
 
@@ -414,6 +396,21 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             };
             var manifestsFiles = Directory.EnumerateFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "manifest.json", System.IO.SearchOption.AllDirectories).ToList();
             manifestsFiles.ForEach(m => _manifests.Add(JsonConvert.DeserializeObject<Manifest>(File.ReadAllText(m), jsonSerializersettings)));
+        }
+
+        // Reports the number of installed template versions to the console.
+        // Must be called after the console writer's UI sink is initialized
+        // (i.e. after MainWindow's InitOutput); the ctor runs too early.
+        public void LogTemplatesStatus()
+        {
+            if (_manifests.Count == 0)
+            {
+                _consoleWriter.AddMessageLine("WARNING: no template versions found next to the executable. Code generation will be unavailable. The installation is likely corrupted - please reinstall or run the auto-update again.", "Red");
+                return;
+            }
+
+            var versions = string.Join(", ", _manifests.OrderBy(m => m.Version).Select(m => m.Version));
+            _consoleWriter.AddMessageLine($"{_manifests.Count} template version(s) available: {versions}", "Gray");
         }
 
         private async Task GenerateTemplatesFromManifestFeatureAsync(Manifest.Feature manifestFeature, object model, CancellationToken ct)
@@ -455,6 +452,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
 
             foreach (string file in csharpFiles)
             {
+                ct.ThrowIfCancellationRequested();
                 if (FileTransform.OrderUsingFromFile(file))
                 {
                     _consoleWriter.AddMessageLine($"-> Usings ordered in {file}", "green");
@@ -488,13 +486,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             ct.ThrowIfCancellationRequested();
 
             string angularProjectFolder = Path.Combine(_currentProject.Folder, _currentContext.AngularFront);
-
-            if (!_fromUnitTest)
-            {
-                // Use externally supplied path if set (e.g. when generating into a temp folder that
-                // does not have node_modules); otherwise fall back to the project's own front folder.
-                SetPrettierAngularProjectPath(_prettierAngularProjectPathOverride ?? angularProjectFolder);
-            }
+            _prettierAngularProjectPath ??= angularProjectFolder;
 
             await RunGenerateTemplatesAsync(templates, model, GenerateAngularTemplateAsync, ct);
 
@@ -562,7 +554,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             var process = new Process();
             process.StartInfo.WorkingDirectory = _prettierAngularProjectPath;
             process.StartInfo.FileName = "cmd.exe";
-            process.StartInfo.Arguments = $"/C npx prettier --write \"{path}\" --plugin=prettier-plugin-organize-imports --config \"{Path.Combine(_prettierAngularProjectPath, ".prettierrc")}\"";
+            process.StartInfo.Arguments = $"/C npx prettier --write \"{path}\" --plugin=prettier-plugin-organize-imports --config .prettierrc";
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
 
@@ -576,8 +568,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             }
             catch (Exception ex)
             {
-                _consoleWriter.AddMessageLine($"Prettier failed for {path} (PID={process.Id}) : {ex.Message}", "red");
-                process.Kill();
+                _consoleWriter.AddMessageLine($"Prettier failed for {path} : {ex.Message}", "red");
             }
             finally
             {

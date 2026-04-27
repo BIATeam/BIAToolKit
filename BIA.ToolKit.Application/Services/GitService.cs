@@ -65,7 +65,7 @@ namespace BIA.ToolKit.Application.Services
             ct.ThrowIfCancellationRequested();
             outPut.AddMessageLine($"Clone {url} into {localPath}...", "Pink");
 
-            if (await RunScript("git", $"clone \"" + url + "\" \"" + localPath + "\"", ct: ct) == 0)
+            if (await RunScript("git", ["clone", url, localPath], ct: ct) == 0)
             {
                 outPut.AddMessageLine($"Clone finished", "Green");
             }
@@ -83,7 +83,7 @@ namespace BIA.ToolKit.Application.Services
 
             // git diff --no-index V3.3.3 V3.4.0 > .\\Migration\\CF_3.3.3-3.4.0.patch
             //await RunScript($"cd {rootPath} \r\n git diff --no-index --binary {name1} {name2} > {migrateFilePath}");
-            int result = await RunScript("git", $"diff --ignore-blank-lines --no-index --binary {name1} {name2} --output={migrateFilePath}", rootPath, ct);
+            int result = await RunScript("git", ["diff", "--ignore-blank-lines", "--no-index", "--binary", name1, name2, $"--output={migrateFilePath}"], rootPath, ct);
             if (result == 0)
             {
                 outPut.AddMessageLine("Diff folder: No difference found ", "Green");
@@ -120,7 +120,7 @@ namespace BIA.ToolKit.Application.Services
             outPut.AddMessageLine($"Apply diff", "Pink");
             outPut.AddMessageLine($"On project : {projectPath}", "Pink");
             // cd "...\\YourProject" git apply --reject --whitespace=fix "3.2.2-3.3.0.patch" \
-            int result = await RunScript("git", $"apply --reject --unsafe-paths --whitespace=fix {migrateFilePath}", projectPath, ct);
+            int result = await RunScript("git", ["apply", "--reject", "--unsafe-paths", "--whitespace=fix", migrateFilePath], projectPath, ct);
             if (result == 0)
             {
                 outPut.AddMessageLine("Apply diff finished !", actionFinishedAtEnd ? "Green" : "Blue");
@@ -258,8 +258,8 @@ namespace BIA.ToolKit.Application.Services
             }
 
             int result = await RunScript("git",
-                $"merge-file -L Src -L {param.ProjectOriginVersion} -L {param.ProjectTargetVersion} " +
-                $"\"{finalProjectFile}\" \"{originalProjectFile}\" \"{targetProjectFile}\"",
+                ["merge-file", "-L", "Src", "-L", param.ProjectOriginVersion, "-L", param.ProjectTargetVersion,
+                 finalProjectFile, originalProjectFile, targetProjectFile],
                 ct: ct);
 
             if (result == 0)
@@ -373,20 +373,56 @@ namespace BIA.ToolKit.Application.Services
         }
 
         /// <summary>
-        /// Runs a PowerShell script with parameters and prints the resulting pipeline objects to the console output. 
+        /// Runs a process with a safe argument list (auto-escaped) and prints output to the console.
+        /// Prefer this overload when arguments contain user-provided values.
         /// </summary>
-        /// <param name="program">The program name.</param>
-        /// <param name="arguments">The argument.</param>
-        /// <param name="workingDirectory">The working directory.</param>
-        private async Task<int> RunScript(string program, string arguments, string workingDirectory = null, CancellationToken ct = default)
+        private async Task<int> RunScript(string program, IEnumerable<string> argumentList, string workingDirectory = null, CancellationToken ct = default)
         {
-            //bool ret = true;
             try
             {
                 var startInfo = new ProcessStartInfo()
                 {
-                    FileName = program/*"git"*/,
-                    Arguments = arguments/*"pull"*/,
+                    FileName = program,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+                foreach (var arg in argumentList)
+                    startInfo.ArgumentList.Add(arg);
+
+                if (workingDirectory != null)
+                    startInfo.WorkingDirectory = workingDirectory;
+
+                var process = new Process
+                {
+                    StartInfo = startInfo,
+                    EnableRaisingEvents = true
+                };
+
+                return await RunProcessAsync(process, ct).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                outPut.AddMessageLine("Error in RunScript", "Red");
+                outPut.AddMessageLine(e.Message, "Red");
+                if (e.InnerException != null) outPut.AddMessageLine(e.InnerException.Message, "Red");
+                if (e.StackTrace != null) outPut.AddMessageLine(e.StackTrace, "Red");
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Runs a process with a raw arguments string. Only use when arguments are fully controlled (no user input).
+        /// </summary>
+        private async Task<int> RunScript(string program, string arguments, string workingDirectory = null, CancellationToken ct = default)
+        {
+            try
+            {
+                var startInfo = new ProcessStartInfo()
+                {
+                    FileName = program,
+                    Arguments = arguments,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -394,7 +430,7 @@ namespace BIA.ToolKit.Application.Services
                 };
                 if (workingDirectory != null)
                 {
-                    startInfo.WorkingDirectory = workingDirectory/*"C:\\Users\\L025308\\AppData\\Roaming\\BIA.ToolKit\\1.0.0.0\\BIATemplate\\Repo"*/;
+                    startInfo.WorkingDirectory = workingDirectory;
                 }
 
                 var process = new Process

@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Validation Pré-Implémentation",
+  "description": "Valide que la spec est complète avant de démarrer les tâches d'implémentation",
+  "version": "1",
+  "when": {
+    "type": "preTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "En tant que Tech Lead, vérifie que la spec est complète et cohérente avant de démarrer l'implémentation. Valide l'architecture technique et identifie les risques potentiels."
+  }
+}

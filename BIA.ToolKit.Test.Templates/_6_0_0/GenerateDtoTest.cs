@@ -3,7 +3,7 @@ namespace BIA.ToolKit.Test.Templates._6_0_0
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
-    using BIA.ToolKit.Application.ViewModel;
+    using BIA.ToolKit.Application.Models.DtoGenerator;
     using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using Xunit;
 
