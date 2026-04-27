@@ -223,6 +223,8 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="10"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto"/>
@@ -271,8 +273,25 @@
                                            Text="Business folder where generated files will be placed (derived from namespace)."/>
                             </StackPanel>
 
+                            <!-- Parent team type (independent from the Team feature) -->
+                            <StackPanel Grid.Column="8" Grid.Row="0">
+                                <Grid>
+                                    <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
+                                             materialDesign:HintAssist.Hint="Parent team type (optional)"
+                                             Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged}"
+                                             IsEnabled="{Binding IsDtoParsed}"/>
+                                    <Border HorizontalAlignment="Right" VerticalAlignment="Top"
+                                            Margin="0,6,8,0" Style="{StaticResource DetectedBadgeStyle}"
+                                            Visibility="{Binding IsDtoDetectedAncestorTeam, Converter={StaticResource BoolToVisConverter}}">
+                                        <TextBlock Style="{StaticResource DetectedBadgeTextStyle}"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                           Text="Parent team type from which this entity inherits (e.g. Site). Leave empty if no inheritance."/>
+                            </StackPanel>
+
                             <!-- Generation-already-done warning, full width -->
-                            <Border Grid.Row="1" Grid.ColumnSpan="7" Margin="0,8,0,0"
+                            <Border Grid.Row="1" Grid.ColumnSpan="9" Margin="0,8,0,0"
                                     Padding="10,8" CornerRadius="4"
                                     Background="#33FF8C00"
                                     BorderBrush="Orange" BorderThickness="1"
@@ -713,29 +732,6 @@
                                                 </StackPanel>
                                             </Grid>
                                         </StackPanel>
-
-                                        <StackPanel Margin="0,8,0,0">
-                                            <Grid>
-                                                <TextBox Style="{StaticResource MaterialDesignFilledTextBox}"
-                                                         materialDesign:HintAssist.Hint="Parent team type (optional)"
-                                                         Text="{Binding AncestorTeam, UpdateSourceTrigger=PropertyChanged}"/>
-                                                <Border HorizontalAlignment="Right" VerticalAlignment="Top"
-                                                        Margin="0,6,8,0" Style="{StaticResource DetectedBadgeStyle}"
-                                                        Visibility="{Binding IsDtoDetectedAncestorTeam, Converter={StaticResource BoolToVisConverter}}">
-                                                    <TextBlock Style="{StaticResource DetectedBadgeTextStyle}"/>
-                                                </Border>
-                                            </Grid>
-                                            <TextBlock Style="{StaticResource FieldHelpStyle}"
-                                                       Text="Parent team type from which this entity inherits (e.g. Site). Leave empty if no inheritance."/>
-                                        </StackPanel>
-
-                                        <Border Style="{StaticResource PreviewBoxStyle}"
-                                                Visibility="{Binding HasTeamRolesPreview, Converter={StaticResource BoolToVisConverter}}">
-                                            <StackPanel>
-                                                <TextBlock Style="{StaticResource PreviewLabelStyle}" Text="⚡ ROLES THAT WILL BE ADDED"/>
-                                                <TextBlock Style="{StaticResource PreviewValueStyle}" Text="{Binding TeamRolesPreview}"/>
-                                            </StackPanel>
-                                        </Border>
 
                                     </StackPanel>
                                 </StackPanel>
