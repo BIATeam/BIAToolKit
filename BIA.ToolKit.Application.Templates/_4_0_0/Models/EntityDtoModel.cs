@@ -68,6 +68,7 @@ namespace BIA.ToolKit.Application.Templates._4_0_0.Models
         public bool IsArchivable { get; set; }
         public bool IsFixable { get; set; }
         public bool IsVersioned { get; set; }
+        public int TeamRoleId { get; set; }
         public virtual bool HasAudit { get => throw new System.NotImplementedException(); set; }
         public virtual bool HasListAndItemModels { get => throw new System.NotImplementedException(); set; }
         public virtual List<TPropertyDtoModel> ListProperties { get => throw new System.NotImplementedException(); set; }

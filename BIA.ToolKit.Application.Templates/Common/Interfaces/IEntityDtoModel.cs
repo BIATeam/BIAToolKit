@@ -20,5 +20,6 @@ namespace BIA.ToolKit.Application.Templates.Common.Interfaces
         bool HasListAndItemModels { get; set; }
         List<TPropertyDtoModel> ListProperties { get; set; }
         IEnumerable<TPropertyDtoModel> ListPropertiesToGenerate { get; }
+        int TeamRoleId { get; set; }
     }
 }

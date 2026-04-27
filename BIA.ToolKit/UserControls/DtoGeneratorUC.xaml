@@ -239,8 +239,26 @@
                                        Text="Parent team type (optional)."/>
                         </StackPanel>
 
+                        <!-- Team Role Type ID (V7+) -->
+                        <StackPanel Grid.Column="2" Grid.Row="2" Margin="0,6,0,0"
+                                    Visibility="{Binding IsVisibleTeamRoleId, Converter={StaticResource BoolToVisConverter}}">
+                            <Grid>
+                                <materialDesign:NumericUpDown Style="{StaticResource MaterialDesignFilledNumericUpDown}"
+                                                              materialDesign:HintAssist.Hint="Team Role Type ID"
+                                                              Value="{Binding TeamRoleId}"
+                                                              IsEnabled="{Binding IsTeam}"/>
+                                <Border HorizontalAlignment="Right" VerticalAlignment="Top"
+                                        Margin="0,6,8,0" Padding="4,1" CornerRadius="3"
+                                        Background="{DynamicResource MaterialDesign.Brush.Primary}">
+                                    <TextBlock Text="V7+" FontSize="9" FontWeight="SemiBold" Foreground="White"/>
+                                </Border>
+                            </Grid>
+                            <TextBlock Style="{StaticResource FieldHelpStyle}"
+                                       Text="ID in the RoleType table (e.g. 2 = Squad Role). Required when Team is enabled."/>
+                        </StackPanel>
+
                         <!-- Already generated warning -->
-                        <Border Grid.Row="2" Grid.ColumnSpan="3" Margin="0,8,0,0"
+                        <Border Grid.Row="3" Grid.ColumnSpan="3" Margin="0,8,0,0"
                                 Padding="10,8" CornerRadius="4"
                                 Background="#33FF8C00"
                                 BorderBrush="Orange" BorderThickness="1"

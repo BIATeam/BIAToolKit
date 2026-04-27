@@ -13,6 +13,12 @@
           "outputPath": "{Project}.Domain\\{Domain}\\Mappers\\{Entity}ListMapper.cs"
         },
         {
+          "inputPath": "CrosscuttingCommon\\Enum\\PartialCrudRoleIdTemplate.tt",
+          "outputPath": "{Project}.Crosscutting.Common\\Enum\\RoleId.cs",
+          "isPartial": true,
+          "partialInsertionMarkup": "RoleId"
+        },
+        {
           "inputPath": "DomainDto\\EntityDtoTemplate.tt",
           "outputPath": "{Project}.Domain.Dto\\{Domain}\\{Entity}Dto.cs"
         },
@@ -142,12 +148,6 @@
           "outputPath": "{Project}.Presentation.Api\\bianetpermissions.json",
           "isPartial": true,
           "partialInsertionMarkup": "Config"
-        },
-        {
-          "inputPath": "CrosscuttingCommon\\Enum\\PartialCrudRoleIdTemplate.tt",
-          "outputPath": "{Project}.Crosscutting.Common\\Enum\\RoleId.cs",
-          "isPartial": true,
-          "partialInsertionMarkup": "RoleId"
         },
         {
           "inputPath": "CrosscuttingCommon\\Enum\\PartialCrudTeamTypeIdTemplate.tt",

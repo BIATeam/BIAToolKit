@@ -125,6 +125,7 @@ namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
             model.IsVersioned = dtoContext.IsVersioned;
             model.HasAudit = dtoContext.HasAudit;
             model.HasListAndItemModels = dtoContext.HasListAndItemModels;
+            model.TeamRoleId = dtoContext.TeamRoleId;
             model.ListProperties = [.. dtoContext.ListProperties.Select(x => new TPropertyDtoModel()
             {
                 MappingName = x.MappingName,
